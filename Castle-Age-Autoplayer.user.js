@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.60
+// @version        138.61
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.60";
+var thisVersion = "138.61";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -1589,8 +1589,8 @@ AddListeners:function(topDivName) {
 		},false);
 	}
 
-	var ss=document.evaluate("//a[contains(@id,'caap_Switch_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	for(var s=0; s<ss.snapshotLength; s++) {
+	ss=document.evaluate("//a[contains(@id,'caap_Switch_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+	for(s=0; s<ss.snapshotLength; s++) {
 		var switchDiv=ss.snapshotItem(s);
 		switchDiv.addEventListener('click',function(e) {
 			var subId = e.target.id.replace(/_Switch/i,'');
@@ -1632,15 +1632,17 @@ GetStats:function() {
 	this.stats={};
 
 	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
-		// Facebook ID
-		var webSlice=nHtml.FindByAttrContains(document.body,"a","href","party.php");
-		if (webSlice) {
-			var fbidm=this.userRe.exec(webSlice.getAttribute('href'));
-			if(fbidm) {
-				var txtFBID=fbidm[2];
-				gm.setValue('FBID',txtFBID);
-			}
-		}
+                if (document.getElementById('app46755028429_healForm')){
+                        // Facebook ID
+                        var webSlice=nHtml.FindByAttrContains(document.body,"a","href","party.php");
+                        if (webSlice) {
+                                var fbidm=this.userRe.exec(webSlice.getAttribute('href'));
+                                if(fbidm) {
+                                        var txtFBID=fbidm[2];
+                                        gm.setValue('FBID',txtFBID);
+                                }
+                        }
+                }
 	}
 
 	// rank
@@ -3582,10 +3584,11 @@ checkMonsterDamage:function() {
 			gm.setListObjVal('monsterOl',monster,'T2K',T2K.toString()+ ' hr');
 		}
 		if (boss && boss.siege) {
+                        var miss = '';
+                        var txtNeedToLaunch = '';
 			if (monstType.indexOf('Raid')>=0) {
                                 // Not a great way to find the number of calls required but it works for now
-                                var miss = '';
-                                var txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 250px; font-size: 12px; text-align: center; color: #ffffff;");
+                                txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 250px; font-size: 12px; text-align: center; color: #ffffff;");
                                 if (txtNeedToLaunch) {
                                         //gm.log("Found text for calls need to launch.");
                                         miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
@@ -3596,8 +3599,7 @@ checkMonsterDamage:function() {
 				//phaseText=Math.min(parseInt($("img[src*="+boss.siege_img+"]").attr('src').replace(/.*(\d+).jpg/, "$1")),boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			} else {
                                 // Not a great way to find the number of calls required but it works for now
-                                var miss = '';
-                                var txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 306px; font-size: 12px; text-align: center; color: #ffffff;");
+                                txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 306px; font-size: 12px; text-align: center; color: #ffffff;");
                                 if (txtNeedToLaunch) {
                                         //gm.log("Found text for calls need to launch.");
                                         miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1").trim();
