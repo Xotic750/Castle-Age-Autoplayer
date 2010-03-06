@@ -3792,7 +3792,6 @@ Monsters:function() {
 		this.SetDivContent('battle_mess','Not Safe For Monster. Battle!');
 		return false;
 	}
-gm.log('monsters 1');
 	var counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 	if (this.WhileSinceDidIt('monsterReview',60*60) && counter < -1
 			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')==0)) {
@@ -3813,10 +3812,8 @@ gm.log('monsters 1');
 			gm.setValue('resetselectMonster',true);
 		}
 	}
-gm.log('monsters 2');
 	if (!this.WhileSinceDidIt('NotargetFrombattle_monster',60)) return false;
 ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
-gm.log('monsters 3');
 
 // Establish a delay timer when we are 1 stamina below attack level. Timer includes 5 min for stamina tick plus user defined random interval
 	if (!this.InLevelUpMode() && this.stats.stamina.num == (gm.getValue('MonsterStaminaReq',1) - 1)
@@ -3826,14 +3823,12 @@ gm.log('monsters 3');
 		return false;
 	}
 
-gm.log('monsters 4');
 	if (!this.CheckTimer('battleTimer')) {
 		if(this.stats.stamina.num < gm.getValue('MaxIdleStamina',this.stats.stamina.max)) {
 			this.SetDivContent('fight_mess','Monster Delay Until ' + this.DisplayTimer('battleTimer'));
 			return false;
 		}
 	}
-gm.log('monsters 5');
 	// Check to see if we should fortify, attack monster, or battle raid
 	if ( (monster = gm.getValue('targetFromfortify')) && this.stats.energy.num >= 10) {
 		fightMode = gm.setValue('fightMode','Fortify');
