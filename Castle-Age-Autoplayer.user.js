@@ -696,14 +696,6 @@ SetTimer:function(name, time) {
 	now += time*1000;
 	gm.setValue(name, now.toString());
 },
-CheckLastAction:function(thisAction) {
-	this.SetDivContent('activity_mess','Current activity: ' + thisAction);
-	lastAction = gm.getValue('LastAction','none');
-	gm.setValue('LastAction',thisAction);
-	if (lastAction!=thisAction) {
-		gm.log('Changed from doing ' + lastAction + ' to ' + thisAction);
-	}
-},
 NumberOnly:function(num) {
 	var numOnly=parseFloat(num.toString().replace(/[^0-9\.]/g,""));
 	return numOnly;
