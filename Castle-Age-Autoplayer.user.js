@@ -3365,6 +3365,9 @@ parseCondition:function(type,conditions) {
 },
 checkMonsterEngage:function() {
 	if (!this.oneMinuteUpdate('monsterEngage')) return;
+	// get all buttons to check monsterObjectList
+	var ss=document.evaluate(".//img[contains(@src,'dragon_list_btn_')]",document.body,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+	if (ss.snapshotLength==0) return false;
 	if (caap.CheckForImage('tab_monster_on.jpg'))
 		page = 'battle_monster';
 	else if (caap.CheckForImage('tab_raid_on.gif'))
@@ -3385,12 +3388,6 @@ checkMonsterEngage:function() {
 			gm.log('On another player\'s keep.');
 			return false;
 		}
-	}
-	// get all buttons to check monsterObjectList
-	var ss=document.evaluate(".//img[contains(@src,'dragon_list_btn_')]",document.body,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if (ss.snapshotLength==0) {
-		gm.log('No monster buttons?  On wrong page?');
-		return false;
 	}
 	// Review monsters and find attack and fortify button
 	monsterList=[];
