@@ -3171,7 +3171,7 @@ Battle:function(mode) {
 		return false;
 	}
 	if (gm.getValue('WhenBattle') == 'No Monster' && mode != 'DemiPoints') {
-		if ((gm.getValue('WhenMonster','') != 'Never') && gm.getValue('monsterToAttack') && !gm.getValue('monsterToAttack').match(/the deathrune siege/i)) {
+		if ((gm.getValue('WhenMonster','') != 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
 			return false;
 		}
 	}
