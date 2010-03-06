@@ -3315,10 +3315,10 @@ group:function(label, max) {
 
 //http://castleage.wikidot.com/monster for monster info
 bosses:{
-        'Deathrune'			: {duration: 168, ach: 500000, siege : 5, siegeClicks : [30,60,90,120,200]
+        'Deathrune'			: {duration: 168, ach: 1000000, siege : 5, siegeClicks : [30,60,90,120,200]
 							, siegeDam : [6600000,8250000,9900000,13200000,16500000]
 							, siege_img : '/graphics/death_siege_small', fort: true, staUse:5},
-        'Elemental'			: {duration: 168, ach: 500000, siege : 5, siegeClicks : [30,60,90,120,200]
+        'Elemental'			: {duration: 168, ach: 1000000, siege : 5, siegeClicks : [30,60,90,120,200]
 							, siegeDam : [6600000,8250000,9900000,13200000,16500000]
 							, siege_img : '/graphics/earth_siege_small', fort: true, staUse:5
 /*							, levels : {
@@ -3336,7 +3336,7 @@ bosses:{
 								'Levels 30-60' : caap.group('30-60: ',30),
 								'Levels 1-30'  : caap.group('01-30: ',40)}
 */							},
-		'Legion'		: {duration: 168 , ach: 250, siege : 6,  siegeClicks : [10,20,40,80,150,300]
+		'Legion'		: {duration: 168 , ach: 1000, siege : 6,  siegeClicks : [10,20,40,80,150,300]
 							, siegeDam : [3000,4500,6000,9000,12000,15000]
 							, siege_img : '/graphics/castle_siege_small', fort: true, staUse:5},
         'Dragon'		: {duration: 72  , ach: 100000, siege : 0},
