@@ -1202,7 +1202,7 @@ SetControls:function(force) {
 	var refreshMonsters=document.getElementById('caap_refreshMonsters');
 	refreshMonsters.addEventListener('click',function(e) {
 		gm.setValue('monsterReview',0);
-		gm.setValue('monsterReviewCounter',-4);
+		gm.setValue('monsterReviewCounter',-3);
 	},false);
 
 	var caapRestart=document.getElementById('caapRestart');
@@ -1220,7 +1220,6 @@ SetControls:function(force) {
 //		caap.ReloadOccasionally();
 //		caap.WaitMainLoop();
 	},false);
-
 
 	controlDiv.addEventListener('mousedown',function(e) {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
@@ -1575,7 +1574,7 @@ AddListeners:function(topDivName) {
 			gm.log('Change: setting ' + idName + ' to something new');
 			if (idName == 'orderbattle_monster' || idName == 'orderraid') {
 				gm.setValue('monsterReview',0);
-				gm.setValue('monsterReviewCounter',-4);
+				gm.setValue('monsterReviewCounter',-3);
 			}
 			caap.SaveBoxText(idName);
 		},false);
@@ -3758,9 +3757,10 @@ monsterConfirmRightPage:function(webSlice,monster) {
 },
 MonsterReview:function() {
 	// Review all active monsters, try siege weapons on the way
-	counter = parseInt(gm.getValue('monsterReviewCounter',-4),10);
+	counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
+	//gm.log("this.WhileSinceDidIt('monsterReview',60*60) && counter >=-1	&& (this.CheckStamina('Monster',1) || gm.getValue('monsterReview')==0) " + this.WhileSinceDidIt('monsterReview',60*60) +' '+ counter +' '+ this.stats.stamina.num > 0 +' '+ gm.getValue('monsterReview'));
 	if (this.WhileSinceDidIt('monsterReview',60*60) && counter >=-1
-			&& (this.CheckStamina('Monster',1) || gm.getValue('monsterReview')==0)) {
+			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')==0)) {
 		// Check raids and monster individual pages
 		monsterObjList = gm.getList('monsterOl');
 		while ( ++counter < monsterObjList.length) {
@@ -3769,24 +3769,29 @@ MonsterReview:function() {
 			this.SetDivContent('battle_mess','Reviewing/sieging '+ monster);
 			this.SetDivContent('battle_mess','Reviewing/sieging '+ monster);
 			gm.setValue('monsterReviewCounter',counter);
-			if (link = gm.getObjVal(monsterObj,'Link'))
+			link = gm.getObjVal(monsterObj,'Link');
+			if (/href/.test(link)) {
 				link = link.split("'")[1];
 				conditions = gm.getObjVal(monsterObj,'conditions');
 				if ((conditions) && (conditions.match(':ac')) && gm.getObjVal(monsterObj,'status') == 'Collect Reward') {
-					if (monster.indexOf('Siege')>=0) link += '&rix=1';
 					link += '&action=collectReward';
+					if (monster.indexOf('Siege')>=0)
+						link += '&rix='+gm.getObjVal(monsterObj,'rix','2');
 				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true))
 					link = link.replace('&action=doObjective','');
-				gm.log(' monster ' + monster + ' link ' + link + ' conditions ' + conditions + ' monsterObj ' + monsterObj);
+				gm.log('MonsterObj #' + counter + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
 				gm.setValue('resetmonsterDamage',true);
+				gm.setValue('ReleaseControl',true);
 				caap.VisitUrl(link);
 			return true;
+		}
 		}
 		this.JustDidIt('monsterReview');
 		gm.setValue('resetselectMonster',true);
 		gm.log('Done with monster/raid review.');
-		gm.setValue('monsterReviewCounter',-4);
+		gm.setValue('monsterReviewCounter',-3);
 	}
+	return false;
 },
 Monsters:function() {
 ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
@@ -3796,20 +3801,15 @@ Monsters:function() {
 		this.SetDivContent('battle_mess','Not Safe For Monster. Battle!');
 		return false;
 	}
-	var counter = parseInt(gm.getValue('monsterReviewCounter',-4),10);
+	var counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 	if (this.WhileSinceDidIt('monsterReview',60*60) && counter < -1
-			&& (this.CheckStamina('Monster',1) || gm.getValue('monsterReview')==0)) {
+			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')==0)) {
 		// Check Monster page
-		if (counter == -4) {
-			gm.setValue('monsterOl','');
-			gm.setValue('monsterReviewCounter',++counter);
-		}
 		if (counter == -3) {
-			if (this.NavigateTo('keep,battle_monster','tab_monster_on.jpg')) {
+			gm.setValue('monsterOl','');
 				gm.setValue('resetmonsterEngage',true);
-				return true;
-			}
 			gm.setValue('monsterReviewCounter',++counter);
+			return this.NavigateTo('battle_monster');
 		}
 		if (counter == -2) {
 			if (this.NavigateTo(this.battlePage + ',raid','tab_raid_on.gif')) {
