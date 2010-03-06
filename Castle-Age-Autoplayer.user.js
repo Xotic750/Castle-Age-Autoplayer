@@ -1254,7 +1254,6 @@ SetControls:function(force) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
 		}
 
-//		nHtml.setTimeout(testfunc, 0);
 	}, true);
 
 	globalContainer.addEventListener('click', function(event) {
@@ -1852,8 +1851,6 @@ CheckResults:function() {
 	resultsFunction = gm.getValue('ResultsFunction','');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
 
-	// Below not working, so return
-//	return;
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	if (!caap.clickURL) return;
@@ -5386,9 +5383,6 @@ window.setTimeout(function() {
 	//if (document.querySelector("#app46755028429_battle_monster"))
         if (document.getElementById("app46755028429_battle_monster"))
 		caap.checkMonsterDamage();
-//	if (!gm.getValue('Disabled',false))
-//		caap.engageDashboard();
-	caap.JustDidIt('PageLoad');
 	caap.addExpDisplay();
 	gm.setValue('ReleaseControl',true);
 	caap.MainLoop();
