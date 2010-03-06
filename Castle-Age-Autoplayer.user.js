@@ -1244,8 +1244,10 @@ SetControls:function(force) {
 		gm.setValue('WhenMonster','Not Hiding');
 		this.SetControls(true);
 	}
-
-	if (!(globalContainer = document.querySelector('#app46755028429_globalContainer'))) return;
+	if (!(globalContainer = document.querySelector('#app46755028429_globalContainer'))) {
+		gm.log('Global Container not found');
+		return;
+	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
 /*		if(event.target.querySelector("#app46755028429_app_body")) {
 		nHtml.setTimeout(caap.checkMonsterDamage, 0);
@@ -1259,7 +1261,7 @@ SetControls:function(force) {
 	globalContainer.addEventListener('click', function(event) {
 		var obj = event.target;
 		while(obj && !obj.href) obj = obj.parentNode;
-		if(obj && obj.href) caap.clickUrl = obj.href;
+		if(obj && obj.href) gm.setValue('clickUrl',obj.href);
 //		gm.log('global container ' + caap.clickUrl);
 	}, true);
 
@@ -1828,12 +1830,12 @@ CheckResults:function() {
 
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-	if (!caap.clickURL) return;
-	page = caap.clickUrl.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
+	if (!(page = gm.getValue('clickUrl'))) return;
 	gm.log('Clicked page is ' + page);
+	page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
 	if (this.pageSpecificCheckFunctions[page])
 		this[this.pageSpecificCheckFunctions[page]]();
-	caap.clickUrl = null;
+	gm.setValue('clickUrl','');
 },
 
 
@@ -5357,7 +5359,7 @@ window.setTimeout(function() {
 //$(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
-	caap.clickUrl=window.location.href;
+	gm.setValue('clickUrl',window.location.href);
 	// todo figure out way to print out the querySelector value for refined function calls
 	//if (document.querySelector("#app46755028429_battle_monster"))
         if (document.getElementById("app46755028429_battle_monster"))
