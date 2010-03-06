@@ -868,6 +868,7 @@ SetControls:function(force) {
 		// we already have the controls
 		return;
 	}
+	this.CheckLastAction(gm.getValue('LastAction','none'));
 
 	var htmlCode = '';
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
