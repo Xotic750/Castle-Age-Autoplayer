@@ -1213,6 +1213,7 @@ SetControls:function(force) {
 		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
 		gm.setValue('caapPause','none');
 		gm.setValue('Disabled',false);
+		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('resetselectMonster',true);
 		gm.setValue('resetmonsterEngage',true);
@@ -1620,6 +1621,7 @@ GetStatusNumbers:function(node) {
 },
 
 GetStats:function() {
+try{
 	this.stats={};
 
 	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
@@ -1661,15 +1663,10 @@ GetStats:function() {
 	if(!health) {
 		health=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_health') and not(contains(@id,'health_time'))");
 	}
-	if(health!=null) {
 		this.stats['health']=this.GetStatusNumbers(health.parentNode);
 		if(this.stats.health) {
 			healthMess="Health: "+this.stats.health.num;
 		}
-	} else {
-		gm.log('Could not find health');
-		this.needReload = true;
-	}
 
 	// stamina
 	this.stats.stamina = null;
@@ -1678,7 +1675,6 @@ GetStats:function() {
 	if(!stamina) {
 		stamina=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_stamina') and not(contains(@id,'stamina_time'))");
 	}
-	if(stamina!=null) {
 		this.stats['stamina']=this.GetStatusNumbers(stamina.parentNode);
 		if(this.stats.stamina) {
 			staminaMess="Stamina: "+this.stats.stamina.num;
@@ -1686,10 +1682,6 @@ GetStats:function() {
 				gm.setValue('MaxIdleStamina', this.stats.stamina.max);
 			}
 		}
-	} else {
-		gm.log('Could not find stamina');
-		return false;
-	}
 
 	// energy
 	var energyMess='';
@@ -1697,7 +1689,6 @@ GetStats:function() {
 	if(!energy) {
 		energy=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_energy') and not(contains(@id,'energy_time'))");
 	}
-	if(energy!=null) {
 		this.stats['energy']=this.GetStatusNumbers(energy.parentNode);
 		if(this.stats.energy!=null) {
 			energyMess="Energy: "+this.stats.energy.num;
@@ -1708,17 +1699,12 @@ GetStats:function() {
 				gm.setValue('MaxIdleEnergy', this.stats.energy.max);
 			}
 		}
-	} else {
-		gm.log('Could not find energy');
-		return false;
-	}
 
 	// level
 	var level=nHtml.FindByAttrContains(document.body,"div","title",'experience points');
 	var levelMess='';
-	if(level!=null) {
-		var txtLevel=nHtml.GetText(level);
-		var levelm=this.levelRe.exec(txtLevel);
+	var txtlevel=nHtml.GetText(level);
+	var levelm=this.levelRe.exec(txtlevel);
 		if (levelm) {
 			this.stats['level']=parseInt(levelm[1],10);
 			levelMess = "Level: " + this.stats.level;
@@ -1727,15 +1713,11 @@ GetStats:function() {
 		} else {
 			gm.log('Could not find level re');
 		}
-	} else {
-		gm.log('Could not find level obj');
-	}
 
 	this.stats['rank']=parseInt(gm.getValue('MyRank'),10);
 
 	// army
 	var td=nHtml.FindByAttrContains(document.body,"div","id","main_bntp");
-	if (td) {
 		var a=nHtml.FindByAttrContains(td,"a","href","army");
 		var txtArmy = nHtml.GetText(a);
 		var armym=this.armyRe.exec(txtArmy);
@@ -1746,27 +1728,17 @@ GetStats:function() {
 			var armyMess = "Army: " + this.stats.army;
 		} else {
 			gm.log("Can't find armyRe in " + txtArmy);
-		}
-	} else {
-		gm.log("Can't find main_bntp stats");
 	}
 
 	// gold
 	cashObj=nHtml.FindByAttrXPath(document.body,"strong","contains(string(),'$')");
-	if(cashObj) {
 		var cashTxt=nHtml.GetText(cashObj);
 		var cash=this.NumberOnly(cashTxt);
 		this.stats.cash=cash;
-	} else {
-		gm.log('Could not find cash');
-	}
 
 	// experience
-	//var experienceMess='';
 	var exp=nHtml.FindByAttrContains(document.body,'div','id','st_2_5');
-	if(exp) {
-		this.stats.exp = this.GetStatusNumbers(exp);
-	} else gm.log('Unable to find exp div');
+	this.stats.exp = this.GetStatusNumbers(exp);
 
 	// time to next level
 	if (this.stats.exp) {
@@ -1802,6 +1774,10 @@ GetStats:function() {
 	}
 	// return true if probably working
 	return cashObj && (health!=null);
+}catch (e){
+	gm.log("ERROR GetStats :"+e);
+	return false;
+}
 },
 
 /////////////////////////////////////////////////////////////////////
@@ -3542,26 +3518,26 @@ checkMonsterDamage:function() {
 		} else gm.log("couldn't get top table");
 	} else gm.log("couldn't get dragoncontainer");
 
-        var monsterTicker = nHtml.FindByAttrContains(document.body,"div","id","app46755028429_monsterTicker");
-        if (monsterTicker) {
-                //gm.log("Monster ticker found.");
-                time = nHtml.GetText(monsterTicker).trim().split(":");
-        } else {
-                gm.log("Could not locate Monster ticker.");
-        }
+	var monsterTicker = nHtml.FindByAttrContains(document.body,"div","id","app46755028429_monsterTicker");
+	if (monsterTicker) {
+			//gm.log("Monster ticker found.");
+			time = nHtml.GetText(monsterTicker).trim().split(":");
+	} else {
+			gm.log("Could not locate Monster ticker.");
+	}
 
-        if(time.length == 3) {
+	if(time.length == 3) {
+		var hpBar = null;
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
-                var imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg").parentNode;
-                if (imgHealthBar) {
-                        //gm.log("Found monster health div.");
-                        var divAttr = imgHealthBar.getAttribute("style").split(";");
-                        var attrWidth = divAttr[1].split(":");
-                        hpBar = attrWidth[1].trim();
-                } else {
-                        gm.log("Could not find monster health div.");
-                }
-                if (hpBar) {
+		if (imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg")) {
+				//gm.log("Found monster health div.");
+				var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
+				var attrWidth = divAttr[1].split(":");
+				hpBar = attrWidth[1].trim();
+		} else {
+				gm.log("Could not find monster health div.");
+		}
+		if (hpBar) {
 			var hp   = Math.round(hpBar.replace(/%/,'')*10)/10; //fix two 2 decimal places
 			gm.setListObjVal('monsterOl',monster,'Damage%',hp);
 			if (!(boss = caap.bosses[monstType])) {
@@ -3573,17 +3549,17 @@ checkMonsterDamage:function() {
 			gm.setListObjVal('monsterOl',monster,'T2K',T2K.toString()+ ' hr');
 		}
 		if (boss && boss.siege) {
-                        var miss = '';
-                        var txtNeedToLaunch = '';
+			var miss = '';
+			var txtNeedToLaunch = '';
 			if (monstType.indexOf('Raid')>=0) {
-                                // Not a great way to find the number of calls required but it works for now
-                                txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 250px; font-size: 12px; text-align: center; color: #ffffff;");
-                                if (txtNeedToLaunch) {
-                                        //gm.log("Found text for calls need to launch.");
-                                        miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
-                                } else {
-                                        gm.log("Could not find text for calls need to launch.");
-                                }
+				// Not a great way to find the number of calls required but it works for now
+				txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 250px; font-size: 12px; text-align: center; color: #ffffff;");
+				if (txtNeedToLaunch) {
+						//gm.log("Found text for calls need to launch.");
+						miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
+				} else {
+						gm.log("Could not find text for calls need to launch.");
+				}
 				//miss = $("img[src*="+boss.siege_img+"]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
 				//phaseText=Math.min(parseInt($("img[src*="+boss.siege_img+"]").attr('src').replace(/.*(\d+).jpg/, "$1")),boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			} else {
@@ -3777,7 +3753,8 @@ MonsterReview:function() {
 					link += '&action=collectReward';
 					if (monster.indexOf('Siege')>=0)
 						link += '&rix='+gm.getObjVal(monsterObj,'rix','2');
-				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true))
+				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true)
+						|| this.stats.stamina.num == 0)
 					link = link.replace('&action=doObjective','');
 				gm.log('MonsterObj #' + counter + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
 				gm.setValue('resetmonsterDamage',true);
@@ -3801,6 +3778,7 @@ Monsters:function() {
 		this.SetDivContent('battle_mess','Not Safe For Monster. Battle!');
 		return false;
 	}
+gm.log('monsters 1');
 	var counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 	if (this.WhileSinceDidIt('monsterReview',60*60) && counter < -1
 			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')==0)) {
@@ -3821,8 +3799,10 @@ Monsters:function() {
 			gm.setValue('resetselectMonster',true);
 		}
 	}
+gm.log('monsters 2');
 	if (!this.WhileSinceDidIt('NotargetFrombattle_monster',60)) return false;
 ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
+gm.log('monsters 3');
 
 // Establish a delay timer when we are 1 stamina below attack level. Timer includes 5 min for stamina tick plus user defined random interval
 	if (!this.InLevelUpMode() && this.stats.stamina.num == (gm.getValue('MonsterStaminaReq',1) - 1)
@@ -3832,12 +3812,14 @@ Monsters:function() {
 		return false;
 	}
 
+gm.log('monsters 4');
 	if (!this.CheckTimer('battleTimer')) {
 		if(this.stats.stamina.num < gm.getValue('MaxIdleStamina',this.stats.stamina.max)) {
 			this.SetDivContent('fight_mess','Monster Delay Until ' + this.DisplayTimer('battleTimer'));
 			return false;
 		}
 	}
+gm.log('monsters 5');
 	// Check to see if we should fortify, attack monster, or battle raid
 	if ( (monster = gm.getValue('targetFromfortify')) && this.stats.energy.num >= 10) {
 		fightMode = gm.setValue('fightMode','Fortify');
