@@ -3590,6 +3590,21 @@ checkMonsterDamage:function() {
 		return;
 	}
 	monsterConditions = gm.getListObjVal('monsterOl',monster,'conditions','');
+	if (monsterConditions.indexOf(':ac')>=0) {
+		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
+		monsterList = gm.getList('monsterOl');
+		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
+				&& nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward')) {
+			gm.log('Collecting Reward');
+			gm.setValue('monsterReviewCounter',counter-1);
+			gm.setListObjVal('monsterOl',monster,'status','Collect Reward');
+			if (monster.indexOf('Siege')>=0) {
+				if (nHtml.FindByAttrContains(document.body,'a','href','&rix=1'))
+					gm.setListObjVal('monsterOl',monster,'rix',1);
+				else gm.setListObjVal('monsterOl',monster,'rix',2);
+			}
+		}
+	}
 	if ((boss = caap.bosses[monstType]))
 		achLevel = caap.parseCondition('ach',monsterConditions) || boss.ach;
 	else achLevel = caap.parseCondition('ach',monsterConditions);
