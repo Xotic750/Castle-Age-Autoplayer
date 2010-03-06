@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.61
+// @version        138.62
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.61";
+var thisVersion = "138.62";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -26,52 +26,6 @@ var symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVj
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_5.jpg
 var symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQxIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
 ///////////////////////////
-
-if (navigator.userAgent.toLowerCase().indexOf('chrome') != -1) {
-        if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
-	//if ((typeof GM_getValue == 'undefined') || (GM_getValue('a', 'b') == undefined)) {
-		GM_addStyle = function(css) {
-			var style = document.createElement('style');
-			style.textContent = css;
-			document.getElementsByTagName('head')[0].appendChild(style);
-		};
-
-		GM_deleteValue = function(name) {
-			localStorage.removeItem(name);
-		};
-
-		GM_getValue = function(name, defaultValue) {
-			var value = localStorage.getItem(name);
-			if (!value)
-				return defaultValue;
-			var type = value[0];
-			value = value.substring(1);
-			switch (type) {
-				case 'b':
-					return value == 'true';
-				case 'n':
-					return Number(value);
-				default:
-					return value;
-			}
-		};
-
-		GM_log = function(message) {
-			console.log(message);
-		};
-
-		GM_registerMenuCommand = function(name, funk) {
-		};
-
-		GM_setValue = function(name, value) {
-			value = (typeof value)[0] + value;
-			localStorage.setItem(name, value);
-		};
-
-		if(typeof(unsafeWindow)=='undefined') { unsafeWindow=window; }
-
-	}
-}
 
 if(!GM_log) {
 	GM_log=console.debug;
