@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.64
+// @version        138.65
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.64";
+var thisVersion = "138.65";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -889,6 +889,7 @@ SetControls:function(force) {
 	var dontbattleInstructions="Remember an opponents id after a loss and don't battle him again";
 	var plusonekillsInstructions="Force +1 kill scenario if 80% or more of targets are withn freshmeat settings. Note: Since Castle Age choses the target, selecting this option could result in a greater chance of loss.";
 	var raidOrderInstructions="List of search words that decide which raids to participate in first.  Use words in player name or in raid name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million.";
+	var ignorebattlelossInstructions="Ignore battle losses and attack regardless.  This will also delete all battle loss records.";
 	htmlCode += this.ToggleControl('Battling','BATTLE');
 		var battleList = ['Stamina Available','At Max Stamina','At X Stamina','No Monster','Not Hiding','Never'];
 		var battleInst = ['Stamina Available will battle whenever you have enough stamina','At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','No Monster will battle only when there are no active monster battles','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables player battles'];
@@ -922,7 +923,9 @@ SetControls:function(force) {
 				htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Army Ratio Base&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeNumberForm('FreshMeatARBase',FMARBaseInstructions,"0.5","size='2'  style='font-size: 10px; text-align: right'") + '</td></tr></table>';
 			htmlCode += "</div>";
 			htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType',false) == 'Userid List'?'block':'none') +"'>";
-				htmlCode += this.MakeTextBox('BattleTargets',userIdInstructions," rows='2'") + '<br />';
+				htmlCode += this.MakeTextBox('BattleTargets',userIdInstructions," rows='2'");
+				htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+				htmlCode += '<tr><td>Ignore Battle Losses</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('IgnoreBattleLoss',false,'',ignorebattlelossInstructions) +  '</td></tr></table>';
 			htmlCode += "</div>";
 		htmlCode += "</div>";
 	htmlCode += "<hr/> </div>";
@@ -1106,6 +1109,18 @@ SetControls:function(force) {
 		if(gm.getValue('HideAds')) {
 			nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
 		}else nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='block';
+	},false);
+
+	var IgnoreBattleLossBox=document.getElementById('caap_IgnoreBattleLoss');
+	var IgnoreBattleLoss=gm.getValue('IgnoreBattleLoss',false);
+	IgnoreBattleLossBox.checked=IgnoreBattleLoss?true:false;
+	IgnoreBattleLossBox.addEventListener('change',function(e) {
+		if(gm.getValue('IgnoreBattleLoss')) {
+			gm.setValue("IgnoreBattleLoss",true);
+			gm.log("Ignore Battle Losses has been enabled.")
+			gm.setValue("BattlesLostList",'');
+			gm.log("Battle Lost List has been cleared.")
+		} else gm.setValue("IgnoreBattleLoss",false);
 	},false);
 
 	var unlockMenuBox=document.getElementById('unlockMenu');
@@ -2793,7 +2808,9 @@ CheckBattleResults:function() {
 		if (gm.getValue('BattlesLostList','').indexOf(vs+userId+vs) == -1) {
 			now = (new Date().getTime()).toString();
 			newelement = now + vs + userId + vs + userName;
-			gm.listPush('BattlesLostList',newelement,100);
+			if (!gm.getValue('IgnoreBattleLoss',false)) {
+				gm.listPush('BattlesLostList',newelement,100);
+			}
 		}
 /* 	Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
 		if (gm.getValue('BattlesWonList','').indexOf(os+userId+os) >= 0) {

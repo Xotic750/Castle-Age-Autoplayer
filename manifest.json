@@ -14,5 +14,5 @@
    "name": "Castle Age Autoplayer - Alpha Patched",
    "background_page": "background.html",
    "permissions": [ "http://apps.facebook.com/castle_age/*", "http://www.facebook.com/common/error.html", "http://www.facebook.com/reqs.php#confirm_46755028429_0", "http://www.facebook.com/home.php", "http://www.facebook.com/home.php*filter=app_46755028429*" ],
-   "version": "138.64"
+   "version": "138.65"
 }
