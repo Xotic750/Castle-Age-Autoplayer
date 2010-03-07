@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.63
+// @version        138.64
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.63";
+var thisVersion = "138.64";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -3134,7 +3134,7 @@ Battle:function(mode) {
 
 	if (!this.notSafeCount) this.notSafeCount = 0;
 
-	if ( !(target = this.GetCurrentBattleTarget())) return false;
+	if (!(target = this.GetCurrentBattleTarget(mode))) return false;
 	target = target.toLowerCase();
 	gm.log('Battle Target: '+target);
 
@@ -3213,7 +3213,11 @@ NextBattleTarget:function() {
 	gm.setValue('BattleTargetUpto',battleUpto+1);
 },
 
-GetCurrentBattleTarget:function() {
+GetCurrentBattleTarget:function(mode) {
+	if (mode == 'DemiPoints') {
+		if (gm.getValue('targetFromraid','') && gm.getValue('TargetType','') == 'Raid') return 'Raid';
+		else return 'Freshmeat';
+	}
 	if (gm.getValue('TargetType','') == 'Raid') {
 		if (gm.getValue('targetFromraid','')) {
 			return 'Raid';
