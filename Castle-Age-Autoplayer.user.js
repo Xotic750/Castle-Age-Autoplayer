@@ -3616,7 +3616,7 @@ checkMonsterDamage:function() {
 		gm.setListObjVal('monsterOl',monster,'color','red');
 		gm.setListObjVal('monsterOl',monster,'over','max');
 		if (isTarget) gm.setValue('resetselectMonster',true);
-	} else if ((fortPct) && fortPct < caap.GetNumber('MinFortToAttack',1)) {
+	} else if ((fortPct) && fortPct < caap.GetNumber('MinFortToAttack',1) && hp && fortPct < hp) {
 		gm.setListObjVal('monsterOl',monster,'color','purple');
 		if (isTarget) gm.setValue('resetselectMonster',true);
 	} else if (damDone>=achLevel && gm.getValue('AchievementMode')) {
