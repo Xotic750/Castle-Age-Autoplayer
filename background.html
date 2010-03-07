@@ -15,7 +15,7 @@
                             case "GetAll" :
                                 var allAttrPairs = '';
                                 for (var i =0; i < window.localStorage.length; i++) {
-                                    var attrPair = window.localStorage.key(i).toString().replace(/castle_age__/g,'') + "|" + window.localStorage.getItem(window.localStorage.key(i).toString());
+                                    var attrPair = window.localStorage.key(i).toString().replace(/^castle_age__/,'') + "|" + window.localStorage.getItem(window.localStorage.key(i).toString());
                                     allAttrPairs = allAttrPairs + "||" + attrPair;
                                 }
                                 sendResponse({attributes: allAttrPairs});
