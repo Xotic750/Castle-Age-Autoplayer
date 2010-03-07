@@ -1198,15 +1198,15 @@ SetControls:function(force) {
 		gm.setValue('WhenMonster','Not Hiding');
 		this.SetControls(true);
 	}
-	if (!(globalContainer = document.querySelector('#app46755028429_globalContainer'))) {
+	if (!(globalContainer = document.getElementById('app46755028429_globalContainer'))) {
 		gm.log('Global Container not found');
 		return;
 	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
-/*		if(event.target.querySelector("#app46755028429_app_body")) {
+/*		if(event.target.getElementById("app46755028429_app_body")) {
 		nHtml.setTimeout(caap.checkMonsterDamage, 0);
 		}
-*/		if(document.querySelector('#app46755028429_st_2_5')) {
+*/		if(document.getElementById('app46755028429_st_2_5')) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
 		}
 
