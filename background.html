@@ -1,38 +1,6 @@
 <html>
     <head>
         <script>
-            chrome.extension.onRequest.addListener(
-                function(request, sender, sendResponse) {
-                    switch (request.action) {
-                            case "Set" :
-                                window.localStorage.setItem(request.name, request.value);
-                                sendResponse({ack: "Ok"});
-                                break;
-                            case "Get" :
-                                var getValue = window.localStorage.getItem(request.name);
-                                sendResponse({resValue: getValue});
-                                break;
-                            case "GetAll" :
-                                var allAttrPairs = '';
-                                for (var i =0; i < window.localStorage.length; i++) {
-                                    var attrPair = window.localStorage.key(i).toString().replace(/^castle_age__/,'') + "|" + window.localStorage.getItem(window.localStorage.key(i).toString());
-                                    allAttrPairs = allAttrPairs + "||" + attrPair;
-                                }
-                                sendResponse({attributes: allAttrPairs});
-                                break;
-                            case "Del" :
-                                window.localStorage.removeItem(request.name);
-                                sendResponse({ack: "Ok"});
-                                break;
-                            case "Clr" :
-                                window.localStorage.clear();
-                                sendResponse({ack: "Ok"});
-                                break;
-                            default :
-                                sendResponse({});
-                    }
-                }
-            );
         </script>
     </head>
     <body onload="">

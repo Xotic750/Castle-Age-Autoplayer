@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.62
+// @version        138.63
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.62";
+var thisVersion = "138.63";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -1786,7 +1786,7 @@ CheckResults:function() {
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	if (!(page = gm.getValue('clickUrl'))) return;
 	gm.log('Clicked page is ' + page);
-	page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
+	if(page.match(/\/[^\/]+.php/i)) page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
 	if (this.pageSpecificCheckFunctions[page])
 		this[this.pageSpecificCheckFunctions[page]]();
 	gm.setValue('clickUrl','');
@@ -4508,7 +4508,7 @@ Bank:function() {
 	var minInCash=this.GetNumber('MinInCash');
 	if (minInCash=='') minInCash=0;
 
-	if(maxInCash=="" || this.stats.cash<=minInCash || this.stats.cash<maxInCash) {
+	if(maxInCash=="" || this.stats.cash<=minInCash || this.stats.cash<maxInCash || this.stats.cash<10) {
 		return false;
 	}
 
@@ -5320,7 +5320,6 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 }
 
 window.setTimeout(function() {
-//$(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
 	gm.setValue('clickUrl',window.location.href);
@@ -5332,8 +5331,6 @@ window.setTimeout(function() {
 	gm.setValue('ReleaseControl',true);
 	caap.MainLoop();
 },1000);
-//});
-
 
 caap.ReloadOccasionally();
 
