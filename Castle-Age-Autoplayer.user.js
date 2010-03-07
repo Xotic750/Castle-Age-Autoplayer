@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.66";
+var thisVersion = "138.67";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -833,11 +833,13 @@ SetControls:function(force) {
 	var healthInstructions="Minimum health to have before healing, press tab to save(leave blank to disable): ";
 	var healthStamInstructions="Minimum Stamina to have before healing, press tab to save(leave blank to disable): ";
 	var bankImmedInstructions="Bank as soon as possible. May interrupt player and monster battles.";
-	var autobuyInstructions="Automatically buy properties in groups of 10 based on best Return On Investment value. ";
+	var autobuyInstructions="Automatically buy properties in groups of 10 based on best Return On Investment value.";
+	var autosellInstructions="Automatically sell off any excess properties above your level allowance.";
 	htmlCode += '<hr />' + this.ToggleControl('CashandHealth','CASH and HEALTH');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) +  '</td></tr>';
-		htmlCode += '<tr><td>Auto Buy Properties</td><td> ' + this.MakeCheckBox('autoBuyProperty',false,'',autobuyInstructions) + '</td></tr></table>';
+		htmlCode += '<tr><td>Auto Buy Properties</td><td> ' + this.MakeCheckBox('autoBuyProperty',false,'',autobuyInstructions) + '</td></tr>';
+		htmlCode += '<tr><td>Auto Sell Excess Properties</td><td> ' + this.MakeCheckBox('SellProperties',true,'',autosellInstructions) + '</td></tr></table>';
 		htmlCode += "Always Keep&nbsp$" + this.MakeNumberForm('minInStore',bankInstructions0,100000,"type='text'  size='12' style='font-size: 10px'") + " In Bank<br />";
 		htmlCode += "Bank Above&nbsp;&nbsp$" + this.MakeNumberForm('MaxInCash',bankInstructions2,'',"type='text'  size='7' style='font-size: 10px'") + "<br />";
 		htmlCode += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;But Keep&nbsp;$" + this.MakeNumberForm('MinInCash',bankInstructions1,'',"type='text' size='7' style='font-size: 10px'") + " On Hand <br /><br />";
@@ -939,7 +941,7 @@ SetControls:function(force) {
 	var monsterachieveInstructions="Check if monsters have reached achievement damage level first. Switch when achievement met.";
 	var demiPointsFirstInstructions="Don't attack monsters until you've gotten all your demi points from battling.";
 	var powerattackInstructions="Use power attacks. Only do normal attacks if power attack not possible";
-	var dosiegeInstructions="Turns one or off automatic siege assist for all monsters and raids.";
+	var dosiegeInstructions="Turns on or off automatic siege assist for all monsters and raids.";
 	htmlCode += this.ToggleControl('Monster','MONSTER');
 		var mbattleList = ['Stamina Available','At Max Stamina','At X Stamina','Not Hiding','Never'];
 		var mbattleInst = ['Stamina Available will attack whenever you have enough stamina','At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables attacking monsters'];
@@ -953,7 +955,7 @@ SetControls:function(force) {
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += "<tr><td>Monster delay secs</td><td>" + this.MakeNumberForm('seedTime','Max random delay to battle monsters',300,"type='text'  size='4' style='font-size: 10px'") + "</td></tr>";
 			htmlCode += '<tr><td>Power Attack Only</td><td> ' + this.MakeCheckBox('PowerAttack',true,'',powerattackInstructions) +  '</td></tr>';
-			htmlCode += '<tr><td>Siege weapon assist</td><td> ' + this.MakeCheckBox('DoSiege',true,'',doseigeInstructions) +  '</td></tr>';
+			htmlCode += '<tr><td>Siege weapon assist</td><td> ' + this.MakeCheckBox('DoSiege',true,'',dosiegeInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Clear Complete Monsters</td><td> ' + this.MakeCheckBox('clearCompleteMonsters',false,'') +  '</td></tr>';
 			htmlCode += '<tr><td>Achievement Mode</td><td> ' + this.MakeCheckBox('AchievementMode',true,'',monsterachieveInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Get Demi Points First</td><td> ' + this.MakeCheckBox('DemiPointsFirst',false,'DemiList',demiPointsFirstInstructions,true)+  '</td></tr>';
@@ -1117,6 +1119,12 @@ SetControls:function(force) {
 	var DoSiege=gm.getValue('DoSiege',true);
 	DoSiegeBox.checked=DoSiege?true:false;
 	DoSiegeBox.addEventListener('change',function(e) {
+	},false);
+
+	var SellPropertiesBox=document.getElementById('caap_SellProperties');
+	var SellProperties=gm.getValue('SellProperties',true);
+	SellPropertiesBox.checked=SellProperties?true:false;
+	SellPropertiesBox.addEventListener('change',function(e) {
 	},false);
 
 	var IgnoreBattleLossBox=document.getElementById('caap_IgnoreBattleLoss');
