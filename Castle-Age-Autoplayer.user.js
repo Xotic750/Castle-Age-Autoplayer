@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.65
+// @version        138.66
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.65";
+var thisVersion = "138.66";
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -939,6 +939,7 @@ SetControls:function(force) {
 	var monsterachieveInstructions="Check if monsters have reached achievement damage level first. Switch when achievement met.";
 	var demiPointsFirstInstructions="Don't attack monsters until you've gotten all your demi points from battling.";
 	var powerattackInstructions="Use power attacks. Only do normal attacks if power attack not possible";
+	var siegeweaponassistInstructions="Automatically assist with construction of siege weapons or similar.";
 	htmlCode += this.ToggleControl('Monster','MONSTER');
 		var mbattleList = ['Stamina Available','At Max Stamina','At X Stamina','Not Hiding','Never'];
 		var mbattleInst = ['Stamina Available will attack whenever you have enough stamina','At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables attacking monsters'];
@@ -952,6 +953,7 @@ SetControls:function(force) {
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += "<tr><td>Monster delay secs</td><td>" + this.MakeNumberForm('seedTime','Max random delay to battle monsters',300,"type='text'  size='4' style='font-size: 10px'") + "</td></tr>";
 			htmlCode += '<tr><td>Power Attack Only</td><td> ' + this.MakeCheckBox('PowerAttack',true,'',powerattackInstructions) +  '</td></tr>';
+			htmlCode += '<tr><td>Siege weapon assist</td><td> ' + this.MakeCheckBox('SiegeWeaponAssist',true,'',siegeweaponassistInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Clear Complete Monsters</td><td> ' + this.MakeCheckBox('clearCompleteMonsters',false,'') +  '</td></tr>';
 			htmlCode += '<tr><td>Achievement Mode</td><td> ' + this.MakeCheckBox('AchievementMode',true,'',monsterachieveInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Get Demi Points First</td><td> ' + this.MakeCheckBox('DemiPointsFirst',false,'DemiList',demiPointsFirstInstructions,true)+  '</td></tr>';
@@ -1111,16 +1113,21 @@ SetControls:function(force) {
 		}else nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='block';
 	},false);
 
+	var SiegeWeaponAssistBox=document.getElementById('caap_SiegeWeaponAssist');
+	var SiegeWeaponAssist=gm.getValue('SiegeWeaponAssist',true);
+	SiegeWeaponAssistBox.checked=SiegeWeaponAssist?true:false;
+	SiegeWeaponAssistBox.addEventListener('change',function(e) {
+	},false);
+
 	var IgnoreBattleLossBox=document.getElementById('caap_IgnoreBattleLoss');
 	var IgnoreBattleLoss=gm.getValue('IgnoreBattleLoss',false);
 	IgnoreBattleLossBox.checked=IgnoreBattleLoss?true:false;
 	IgnoreBattleLossBox.addEventListener('change',function(e) {
 		if(gm.getValue('IgnoreBattleLoss')) {
-			gm.setValue("IgnoreBattleLoss",true);
 			gm.log("Ignore Battle Losses has been enabled.")
 			gm.setValue("BattlesLostList",'');
 			gm.log("Battle Lost List has been cleared.")
-		} else gm.setValue("IgnoreBattleLoss",false);
+		}
 	},false);
 
 	var unlockMenuBox=document.getElementById('unlockMenu');
@@ -2074,13 +2081,18 @@ DrawQuests:function(pickQuestTF) {
 			gm.log('no button found:'+quest_name);
 			continue;
 		}
+		var influence;
 		var bossList = ["Gift of Earth","Eye of the Storm","A Look into the Darkness","The Rift","Undead Embrace","Confrontation"];
 		if (bossList.indexOf(quest_name) >= 0 && nHtml.FindByClassName(document.body,'div','quests_background_sub')) {
 			//if boss and found sub quests
 			influence = "100";
 		} else {
 			var influenceList=this.influenceRe.exec(divTxt);
-			influence = influenceList[1];
+			if (influenceList) {
+				influence = influenceList[1];
+			} else {
+				gm.log("Influence div not found.");
+			}
 		}
 		if(!influence) {
 			gm.log('no influence found:'+quest_name+' in ' + divTxt);
@@ -3743,7 +3755,7 @@ MonsterReview:function() {
 					if (monster.indexOf('Siege')>=0)
 						link += '&rix='+gm.getObjVal(monsterObj,'rix','2');
 				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true)
-						|| this.stats.stamina.num == 0)
+						|| this.stats.stamina.num == 0 || !gm.getValue('SiegeWeaponAssist',true))
 					link = link.replace('&action=doObjective','');
 				gm.log('MonsterObj #' + counter + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
 				gm.setValue('resetmonsterDamage',true);
@@ -4771,7 +4783,11 @@ AutoGift:function() {
 			gm.setValue('GiftEntry',giverId[2]+vs+giverName);
 			gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
 			this.JustDidIt('ClickedFacebookURL');
-			this.VisitUrl(acceptDiv.href);
+			if (navigator.userAgent.toLowerCase().indexOf('chrome') != -1) {
+				this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&rqtp=army&uid=" + giverId[2]);
+			} else {
+				this.VisitUrl(acceptDiv.href);
+			}
 			return true;
 		}
 		gm.setValue('HaveGift',false);
