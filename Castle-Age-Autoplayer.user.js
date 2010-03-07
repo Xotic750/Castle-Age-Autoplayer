@@ -5299,13 +5299,14 @@ if(gm.getValue('SetTitle')) {
 if (gm.getValue('LastVersion',0) != thisVersion) {
 	// Put code to be run once to upgrade an old version's variables to new format or such here.
 	if (parseInt(gm.getValue('LastVersion',0),10)<121) gm.setValue('WhenBattle',gm.getValue('WhenFight','Stamina Available'));
-	/*if (parseInt(gm.getValue('LastVersion',0))<126) {
-		if (navigator.userAgent.toLowerCase().indexOf('chrome') == -1) {
-			for each(var n in GM_listValues()){
-				if (GM_getValue(n)) GM_setValue(n,GM_getValue(n).toString().replace('~',os).replace('`',vs));
+	if (parseInt(gm.getValue('LastVersion',0))<126) {
+		var storageKeys = GM_listValues();
+		for (var key = 0; key < storageKeys.length; key++){
+			if (GM_getValue(storageKeys[key])) {
+				GM_setValue(storageKeys[key],GM_getValue(storageKeys[key]).toString().replace('~',os).replace('`',vs));
 			}
 		}
-	}*/
+	}
 	if (parseInt(gm.getValue('LastVersion',0),10)<130 && gm.getValue('MonsterGeneral')) {
 		gm.setValue('AttackGeneral',gm.getValue('MonsterGeneral'));
 		gm.deleteValue('MonsterGeneral');
