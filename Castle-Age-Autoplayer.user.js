@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.69
+// @version        138.70
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.69";
+var thisVersion = "138.70";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -688,7 +688,7 @@ SetupDivs:function() {
 	div.style.color='#000';
 	div.style.cssFloat='right';
         if (gm.getValue('HideAds',false)) {
-	nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
+		nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
         }
 
 	var divList = ['activity_mess','army_mess','quest_mess','battle_mess','heal_mess','demipoint_mess','demibless_mess','level_mess','control'];
@@ -1199,13 +1199,14 @@ SetControls:function(force) {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight','#efe');
 		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
 		gm.setValue('caapPause','none');
+		if (is_chrome) CE_notify("paused",gm.getValue('caapPause','none'));
 		gm.setValue('Disabled',false);
+		if (is_chrome) CE_notify("disabled",gm.getValue('Disabled',false));
 		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('resetselectMonster',true);
 		gm.setValue('resetmonsterEngage',true);
 		gm.setValue('resetmonsterDamage',true);
-		if (is_chrome) CE_notify("paused",false);
 //		caap.ReloadOccasionally();
 //		caap.WaitMainLoop();
 	},false);
@@ -1216,7 +1217,7 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
-		if (is_chrome) CE_notify("paused",true);
+		if (is_chrome) CE_notify("paused",gm.getValue('caapPause','block'));
 	},false);
 
 	if(gm.getObjVal('AutoQuest','name')) {
@@ -3525,9 +3526,9 @@ checkMonsterDamage:function() {
 			gm.log("Could not locate Monster ticker.");
 	}
 
-	if(time.length == 3) {
-		var hpBar = null;
+	if(time.length == 3  && this.CheckForImage('monster_health_background.jpg')) {
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
+		var hpBar = null;
 		if (imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg")) {
 				//gm.log("Found monster health div.");
 				var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
@@ -5261,6 +5262,7 @@ MainLoop:function() {
 	this.SetupDivs();
 //	this.AddBattleLinks();
 	if(gm.getValue('Disabled',false)) {
+		if (is_chrome) CE_notify("disabled",gm.getValue('Disabled',false));
 		this.SetControls();
 		this.WaitMainLoop();
 		return;
@@ -5333,7 +5335,7 @@ ReloadCastleAge:function() {
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('caapPause','none');
-		if (is_chrome) CE_notify("paused",false);
+		if (is_chrome) CE_notify("paused",gm.getValue('caapPause','none'));
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
 },
@@ -5376,7 +5378,7 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 window.setTimeout(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
-	if (is_chrome) CE_notify("paused",false);
+	if (is_chrome) CE_notify("paused",gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
 	// todo figure out way to print out the querySelector value for refined function calls
 	//if (document.querySelector("#app46755028429_battle_monster"))

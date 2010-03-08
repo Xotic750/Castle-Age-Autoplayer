@@ -38,17 +38,24 @@ chrome.extension.onRequest.addListener(
             case "notify" :
                 switch (request.change) {
                     case "paused" :
-                        if (request.bool) {
-                            chrome.browserAction.setIcon({path:"paused.png"});
-                            console.log("chrome_support: script paused");
-                        } else {
-                            chrome.browserAction.setIcon({path:"icon.png"})
-                            console.log("chrome_support: script unpaused");
-                        }
+                        switch (request.value) {
+                            case "block" :
+                                chrome.browserAction.setIcon({path:"paused.png"});
+                                console.log("chrome_support: script paused.");
+                                break;
+                            case "none" :
+                                chrome.browserAction.setIcon({path:"icon.png"})
+                                console.log("chrome_support: script unpaused.");
+                                break;
+                            default :
+                                chrome.browserAction.setIcon({path:"unknown.png"})
+                                console.log("chrome_support: unkown pause state.");
+                                break;
+                            }
                         sendResponse({action: request.action, ack: "ok"});
                         break;
                     case "disabled" :
-                        if (request.bool) {
+                        if (request.value) {
                             chrome.browserAction.setIcon({path:"disabled.png"});
                             console.log("chrome_support: script disabled");
                         } else {
@@ -71,7 +78,7 @@ chrome.extension.onRequest.addListener(
     }
 );
 
-CE_notify = function(change, bool) {
-    chrome.extension.sendRequest({action: "notify", change: change, bool: bool}, function(response) {
+CE_notify = function(change, value) {
+    chrome.extension.sendRequest({action: "notify", change: change, value: value}, function(response) {
     });
 };
