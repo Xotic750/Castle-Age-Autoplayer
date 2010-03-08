@@ -11,7 +11,7 @@ chrome.extension.onRequest.addListener(
         switch (request.action) {
             case "setItem" :
                 GM_setValue(request.name, request.value);
-                sendResponse({ack: "ok"});
+                sendResponse({action: request.action, ack: "ok"});
                 console.log("chrome_support: setItem(" + request.name + ", " + request.value + ")");
                 break;
             case "getItem" :
@@ -22,35 +22,56 @@ chrome.extension.onRequest.addListener(
                                                     }, function(response) {
                     });
                 });
-                sendResponse({ack: "ok"});
+                sendResponse({action: request.action, ack: "ok"});
                 console.log("chrome_support: getItem(" + request.name + ", " + GM_getValue(request.name) + ")");
                 break;
             case "removeItem" :
                 GM_deleteValue(request.name);
-                sendResponse({ack: "ok"});
+                sendResponse({action: request.action, ack: "ok"});
                 console.log("chrome_support: removeItem(" + request.name + ")");
                 break;
             case "clear" :
                 localStorage.clear();
-                sendResponse({ack: "ok"});
+                sendResponse({action: request.action, ack: "ok"});
                 console.log("chrome_support: clear(" + request.name + ")");
                 break;
-            case "paused" :
-                if (request.state) {
-                    chrome.browserAction.setIcon({path:"paused.png"});
-                } else {
-                    chrome.browserAction.setIcon({path:"icon.png"})
+            case "notify" :
+                switch (request.change) {
+                    case "paused" :
+                        if (request.bool) {
+                            chrome.browserAction.setIcon({path:"paused.png"});
+                            console.log("chrome_support: script paused");
+                        } else {
+                            chrome.browserAction.setIcon({path:"icon.png"})
+                            console.log("chrome_support: script unpaused");
+                        }
+                        sendResponse({action: request.action, ack: "ok"});
+                        break;
+                    case "disabled" :
+                        if (request.bool) {
+                            chrome.browserAction.setIcon({path:"disabled.png"});
+                            console.log("chrome_support: script disabled");
+                        } else {
+                            chrome.browserAction.setIcon({path:"icon.png"})
+                            console.log("chrome_support: script enabled");
+                        }
+                        sendResponse({action: request.action, ack: "ok"});
+                        break;
+                    default :
+                        sendResponse({});
+                        console.log("chrome_support: unknown request notify.");
+                        break;
                 }
                 break;
             default :
                 sendResponse({});
-                console.log("chrome_support: unknown request.");
+                console.log("chrome_support: unknown request action.");
                 break;
         }
     }
 );
 
-CE_paused = function(bState) {
-    chrome.extension.sendRequest({action: "paused", state: bState}, function(response) {
+CE_notify = function(change, bool) {
+    chrome.extension.sendRequest({action: "notify", change: change, bool: bool}, function(response) {
     });
 };

@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.68
+// @version        138.69
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.68";
+var thisVersion = "138.69";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -1205,7 +1205,7 @@ SetControls:function(force) {
 		gm.setValue('resetselectMonster',true);
 		gm.setValue('resetmonsterEngage',true);
 		gm.setValue('resetmonsterDamage',true);
-		if (is_chrome) CE_paused(false);
+		if (is_chrome) CE_notify("paused",false);
 //		caap.ReloadOccasionally();
 //		caap.WaitMainLoop();
 	},false);
@@ -1216,7 +1216,7 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
-		if (is_chrome) CE_paused(true);
+		if (is_chrome) CE_notify("paused",true);
 	},false);
 
 	if(gm.getObjVal('AutoQuest','name')) {
@@ -4829,12 +4829,14 @@ AutoGift:function() {
 
 	// CA send gift button
 	if (gm.getValue('CASendList','')) {
-		if (button = nHtml.FindByAttrContains(nHtml.FindByAttrContains(document.body,'form','id','req_form_'),'input','id','send')) {
-			gm.log('Clicked CA send gift button');
-			gm.listAddBefore('FBSendList',gm.getList('CASendList'));
-			gm.setList('CASendList',[]);
-			caap.Click(button);
-			return true;
+		if (sendForm = nHtml.FindByAttrContains(document.body,'form','id','req_form_')) {
+			if (button = nHtml.FindByAttrContains(sendForm,'input','id','send')) {
+				gm.log('Clicked CA send gift button');
+				gm.listAddBefore('FBSendList',gm.getList('CASendList'));
+				gm.setList('CASendList',[]);
+				caap.Click(button);
+				return true;
+			}
 		}
 		gm.log('No CA button to send gifts');
 		gm.listAddBefore('ReceivedList',gm.getList('CASendList'));
@@ -5331,7 +5333,7 @@ ReloadCastleAge:function() {
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('caapPause','none');
-		if (is_chrome) CE_paused(false);
+		if (is_chrome) CE_notify("paused",false);
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
 },
@@ -5374,7 +5376,7 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 window.setTimeout(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
-	if (is_chrome) CE_paused(false);
+	if (is_chrome) CE_notify("paused",false);
 	gm.setValue('clickUrl',window.location.href);
 	// todo figure out way to print out the querySelector value for refined function calls
 	//if (document.querySelector("#app46755028429_battle_monster"))
