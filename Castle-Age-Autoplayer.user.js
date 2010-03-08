@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.66
+// @version        138.68
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,10 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.67";
+var thisVersion = "138.68";
+
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
+var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -1202,6 +1205,7 @@ SetControls:function(force) {
 		gm.setValue('resetselectMonster',true);
 		gm.setValue('resetmonsterEngage',true);
 		gm.setValue('resetmonsterDamage',true);
+		if (is_chrome) CE_paused(false);
 //		caap.ReloadOccasionally();
 //		caap.WaitMainLoop();
 	},false);
@@ -1212,6 +1216,7 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
+		if (is_chrome) CE_paused(true);
 	},false);
 
 	if(gm.getObjVal('AutoQuest','name')) {
@@ -1610,7 +1615,7 @@ GetStats:function() {
 try{
 	this.stats={};
 
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
                 if (document.getElementById('app46755028429_healForm')){
                         // Facebook ID
                         var webSlice=nHtml.FindByAttrContains(document.body,"a","href","party.php");
@@ -3373,7 +3378,7 @@ checkMonsterEngage:function() {
 	gm.log('In check '+ page + ' engage');
 
 	firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
 			gm.log('On another player\'s keep.');
@@ -3448,7 +3453,7 @@ checkMonsterDamage:function() {
 	if (this.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
 	else if (this.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
 	else monstType = /\w+$/i.exec(monster);
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monster = monster.replace(/.+'s /,'Your ');
 	} else {
@@ -3492,7 +3497,7 @@ checkMonsterDamage:function() {
 	if (webSlice) {
 		webSlice=nHtml.FindByAttrContains(webSlice,"td","valign","top");
 		if (webSlice) {
-			if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+			if (isnot_firefox) {
 				webSlice=nHtml.FindByAttrContains(webSlice,"a","href","keep.php?user=" + gm.getValue('FBID','x'));
 			} else {
 				webSlice=nHtml.FindByAttrContains(webSlice,"a","href","keep.php?user=" + unsafeWindow.Env.user);
@@ -3641,7 +3646,7 @@ selectMonster:function() {
 			monsterList[monstPage].push(monsterObj);
 		}
 		if (gm.getValue('SerializeRaidsAndMonsters',false) && monstPage == 'raid')
-			monsterList[battle_monster].push(monsterObj);
+			monsterList['battle_monster'].push(monsterObj);
 	});
 //	['battle_monster'].forEach(function(selectType) {
 	['battle_monster','raid'].forEach(function(selectType) {
@@ -3727,7 +3732,7 @@ monsterConfirmRightPage:function(webSlice,monster) {
 	// Confirm name and type of monster
 	var monsterOnPage = nHtml.GetText(webSlice);
 	monsterOnPage = monsterOnPage.substring(0,monsterOnPage.indexOf('You have (')).trim();
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monsterOnPage = monsterOnPage.replace(/.+'s /,'Your ');
 	} else {
@@ -3889,7 +3894,7 @@ Monsters:function() {
 		return true;
 	}
 	firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
 			gm.log('On another player\'s keep.');
@@ -4791,7 +4796,7 @@ AutoGift:function() {
 			gm.setValue('GiftEntry',giverId[2]+vs+giverName);
 			gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
 			this.JustDidIt('ClickedFacebookURL');
-			if (navigator.userAgent.toLowerCase().indexOf('chrome') != -1) {
+			if (is_chrome) {
 				this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&rqtp=army&uid=" + giverId[2]);
 			} else {
 				this.VisitUrl(acceptDiv.href);
@@ -5326,6 +5331,7 @@ ReloadCastleAge:function() {
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('caapPause','none');
+		if (is_chrome) CE_paused(false);
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
 },
@@ -5368,6 +5374,7 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 window.setTimeout(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
+	if (is_chrome) CE_paused(false);
 	gm.setValue('clickUrl',window.location.href);
 	// todo figure out way to print out the querySelector value for refined function calls
 	//if (document.querySelector("#app46755028429_battle_monster"))

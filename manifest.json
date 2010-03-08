@@ -2,17 +2,22 @@
    "content_scripts": [ {
       "exclude_globs": [  ],
       "include_globs": [ "http*://apps.*facebook.com/castle_age/*", "http://www.facebook.com/common/error.html", "http://www.facebook.com/reqs.php#confirm_46755028429_0", "http://www.facebook.com/home.php", "http://www.facebook.com/home.php*filter=app_46755028429*" ],
-      "js": [ "gm_functions.js", "Castle-Age-Autoplayer.user.js" ],
+      "js": [ "jquery-1.4.2.min.js", "gm_functions.js", "chrome_support.js", "options.js", "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*", "https://*/*" ]
    } ],
    "converted_from_user_script": true,
    "description": "Autoplayer for Castle Age game on Facebook.",
+   "options_page": "options.html",
+   "browser_action": {
+      "default_icon": "icon.png",
+      "popup": "popup.html"
+   },
    "icons": {
       "128": "128x128.png",
       "48": "48x48.png"
    },
    "name": "Castle Age Autoplayer - Alpha Patched",
    "background_page": "background.html",
-   "permissions": [ "http://apps.facebook.com/castle_age/*", "http://www.facebook.com/common/error.html", "http://www.facebook.com/reqs.php#confirm_46755028429_0", "http://www.facebook.com/home.php", "http://www.facebook.com/home.php*filter=app_46755028429*" ],
-   "version": "138.67"
+   "permissions": [ "tabs", "http://apps.facebook.com/castle_age/*", "http://www.facebook.com/common/error.html", "http://www.facebook.com/reqs.php#confirm_46755028429_0", "http://www.facebook.com/home.php", "http://www.facebook.com/home.php*filter=app_46755028429*" ],
+   "version": "138.68"
 }
