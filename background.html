@@ -1,8 +1,51 @@
 <html>
     <head>
         <script type="text/javascript" src="gm_functions.js"></script>
-        <script type="text/javascript" src="options.js"></script>
         <script type="text/javascript" src="chrome_support.js"></script>
+        <script type="text/javascript">
+        var logging = true;
+
+        function setItem(key, value) {
+            try {
+                log("Inside setItem:" + key + ":" + value);
+                GM_setValue(key, value);
+            }catch(e) {
+                log("Error inside setItem");
+                log(e);
+            }
+            log("Return from setItem" + key + ":" +  value);
+        }
+        function getItem(key) {
+            var value;
+            log('Get Item:' + key);
+            try {
+                value = GM_getValue(key);
+            }catch(e) {
+                log("Error inside getItem() for key:" + key);
+                    log(e);
+                    value = "null";
+            }
+            log("Returning value: " + value);
+            return value;
+        }
+
+        function clearStrg() {
+            log('about to clear local storage');
+            localStorage.clear();
+            log('cleared');
+        }
+
+        function message(action, name, value) {
+            CS_message(action, name, value);
+            log('sent message');
+        }
+
+        function log(txt) {
+            if(logging) {
+                console.log(txt);
+            }
+        }
+        </script>
     </head>
     <body onload="">
     </body>

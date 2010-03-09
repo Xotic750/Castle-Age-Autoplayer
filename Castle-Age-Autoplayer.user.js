@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.70
+// @version        138.71
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +12,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.70";
+var thisVersion = "138.71";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -828,6 +828,9 @@ SetControls:function(force) {
 	this.CheckLastAction(gm.getValue('LastAction','none'));
 
 	var htmlCode = '';
+	if (is_chrome) {
+		htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
+	}
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
 	htmlCode += '<hr />Disable auto run for this game. ' + this.MakeCheckBox('Disabled',false);
 	var bankInstructions0="Minimum cash to keep in the bank. Press tab to save";
@@ -1199,9 +1202,8 @@ SetControls:function(force) {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight','#efe');
 		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
 		gm.setValue('caapPause','none');
-		if (is_chrome) CE_notify("paused",gm.getValue('caapPause','none'));
-		gm.setValue('Disabled',false);
-		if (is_chrome) CE_notify("disabled",gm.getValue('Disabled',false));
+		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		//gm.setValue('Disabled',false);
 		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('resetselectMonster',true);
@@ -1217,8 +1219,20 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
-		if (is_chrome) CE_notify("paused",gm.getValue('caapPause','block'));
+		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
 	},false);
+
+	if (is_chrome) {
+		var caapPauseDiv=document.getElementById('caapPauseA');
+		caapPauseDiv.addEventListener('click',function(e) {
+			document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
+			document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark','1');
+//			nHtml.clearTimeouts();
+			gm.setValue('caapPause','block');
+			caapPaused.style.display='block';
+			if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
+		},false);
+	}
 
 	if(gm.getObjVal('AutoQuest','name')) {
 		var stopA=document.getElementById('stopAutoQuest');
@@ -5262,7 +5276,7 @@ MainLoop:function() {
 	this.SetupDivs();
 //	this.AddBattleLinks();
 	if(gm.getValue('Disabled',false)) {
-		if (is_chrome) CE_notify("disabled",gm.getValue('Disabled',false));
+		if (is_chrome) CE_message("disabled", null, gm.getValue('Disabled',false));
 		this.SetControls();
 		this.WaitMainLoop();
 		return;
@@ -5335,7 +5349,7 @@ ReloadCastleAge:function() {
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('caapPause','none');
-		if (is_chrome) CE_notify("paused",gm.getValue('caapPause','none'));
+		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
 },
@@ -5378,7 +5392,7 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 window.setTimeout(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
-	if (is_chrome) CE_notify("paused",gm.getValue('caapPause','none'));
+	if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
 	// todo figure out way to print out the querySelector value for refined function calls
 	//if (document.querySelector("#app46755028429_battle_monster"))

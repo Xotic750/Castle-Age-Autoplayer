@@ -35,40 +35,59 @@ chrome.extension.onRequest.addListener(
                 sendResponse({action: request.action, ack: "ok"});
                 console.log("chrome_support: clear(" + request.name + ")");
                 break;
-            case "notify" :
-                switch (request.change) {
-                    case "paused" :
-                        switch (request.value) {
-                            case "block" :
-                                chrome.browserAction.setIcon({path:"paused.png"});
-                                console.log("chrome_support: script paused.");
-                                break;
-                            case "none" :
-                                chrome.browserAction.setIcon({path:"icon.png"})
-                                console.log("chrome_support: script unpaused.");
-                                break;
-                            default :
-                                chrome.browserAction.setIcon({path:"unknown.png"})
-                                console.log("chrome_support: unkown pause state.");
-                                break;
-                            }
-                        sendResponse({action: request.action, ack: "ok"});
+            case "paused" :
+                switch (request.value) {
+                    case "block" :
+                        chrome.browserAction.setIcon({path:"paused.png"});
+                        GM_setValue("ce_paused", true);
+                        console.log("chrome_support: script paused.");
                         break;
-                    case "disabled" :
-                        if (request.value) {
-                            chrome.browserAction.setIcon({path:"disabled.png"});
-                            console.log("chrome_support: script disabled");
-                        } else {
-                            chrome.browserAction.setIcon({path:"icon.png"})
-                            console.log("chrome_support: script enabled");
-                        }
-                        sendResponse({action: request.action, ack: "ok"});
+                    case "none" :
+                        chrome.browserAction.setIcon({path:"icon.png"});
+                        GM_setValue("ce_paused", false);
+                        console.log("chrome_support: script unpaused.");
                         break;
                     default :
-                        sendResponse({});
-                        console.log("chrome_support: unknown request notify.");
+                        chrome.browserAction.setIcon({path:"unknown.png"});
+                        GM_setValue("ce_paused", request.value);
+                        console.log("chrome_support: unkown pause state.");
                         break;
                 }
+                sendResponse({action: request.action, ack: "ok"});
+                break;
+            case "disabled" :
+                switch (request.value) {
+                    case true :
+                        chrome.browserAction.setIcon({path:"disabled.png"});
+                        console.log("chrome_support: script disabled");
+                        break;
+                    case false :
+                        chrome.browserAction.setIcon({path:"icon.png"});
+                        console.log("chrome_support: script enabled");
+                        break;
+                    default :
+                        chrome.browserAction.setIcon({path:"unknown.png"});
+                        console.log("chrome_support: unkown disable state.");
+                        break;
+                }
+                GM_setValue("ce_paused", request.value);
+                sendResponse({action: request.action, ack: "ok"});
+                break;
+            case "clickcaapRestart" :
+		var a = document.getElementById('caapRestart');
+		if (a) {
+			caap.Click(a);
+		}
+                sendResponse({action: request.action, ack: "ok"});
+                console.log("chrome_support: clickcaapRestart");
+                break;
+            case "clickcontrolDiv" :
+		var a = document.getElementById('caapPauseA');
+		if (a) {
+			caap.Click(a);
+		}
+                sendResponse({action: request.action, ack: "ok"});
+                console.log("chrome_support: clickcontrolDiv");
                 break;
             default :
                 sendResponse({});
@@ -78,7 +97,15 @@ chrome.extension.onRequest.addListener(
     }
 );
 
-CE_notify = function(change, value) {
-    chrome.extension.sendRequest({action: "notify", change: change, value: value}, function(response) {
+
+CE_message = function(action, name, value) {
+    chrome.extension.sendRequest({action: action, name: name, value: value}, function(response) {
     });
 };
+
+CS_message = function(action, name, value) {
+    chrome.tabs.getSelected(null, function(tab) {
+        chrome.tabs.sendRequest(tab.id, {action: action, name: name, value: value}, function(response) {
+        });
+});
+}
