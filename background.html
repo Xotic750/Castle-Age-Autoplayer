@@ -3,50 +3,64 @@
         <script type="text/javascript" src="gm_functions.js"></script>
         <script type="text/javascript" src="chrome_support.js"></script>
         <script type="text/javascript">
-        var logging = true;
+            var timerId;
+            var pollInterval = 1000 * 5; // 1 minute, in milliseconds
+            var pollFailCount = 0;
 
-        function setItem(key, value) {
-            try {
-                log("Inside setItem:" + key + ":" + value);
-                GM_setValue(key, value);
-            }catch(e) {
-                log("Error inside setItem");
-                log(e);
+            function setItem(key, value) {
+                try {
+                    S_log("background.html: Inside setItem:" + key + ":" + value);
+                    GM_setValue(key, value);
+                }catch(e) {
+                    S_log("background.html: Error inside setItem");
+                    S_log(e);
+                }
+                log("background.html: Return from setItem" + key + ":" +  value);
             }
-            log("Return from setItem" + key + ":" +  value);
-        }
-        function getItem(key) {
-            var value;
-            log('Get Item:' + key);
-            try {
-                value = GM_getValue(key);
-            }catch(e) {
-                log("Error inside getItem() for key:" + key);
-                    log(e);
-                    value = "null";
+
+            function getItem(key) {
+                var value;
+                S_log('background.html: Get Item: ' + key);
+                try {
+                    value = GM_getValue(key);
+                }catch(e) {
+                    S_log("background.html: Error inside getItem() for key:" + key);
+                        S_log(e);
+                        value = "null";
+                }
+                S_log("background.html: Returning value: " + value);
+                return value;
             }
-            log("Returning value: " + value);
-            return value;
-        }
 
-        function clearStrg() {
-            log('about to clear local storage');
-            localStorage.clear();
-            log('cleared');
-        }
-
-        function message(action, name, value) {
-            CS_message(action, name, value);
-            log('sent message');
-        }
-
-        function log(txt) {
-            if(logging) {
-                console.log(txt);
+            function clearStrg() {
+                S_log('background.html: about to clear local storage');
+                localStorage.clear();
+                S_log('background.html: cleared');
             }
-        }
+
+            function message(action, name, value) {
+                CS_message(action, name, value);
+                S_log('background.html: message: ' + action +' ' + name  +' ' + value);
+            }
+
+            function startPoll() {
+                CS_message("DoPoll", null, null);
+                S_log('background.html: startPoll: ' + GM_getValue("PollFailCount", 0));
+                timerId = setTimeout(startPoll, pollInterval);
+            }
+
+            function stopPoll() {
+                clearTimeout(timerId);
+                S_log('background.html: stopPoll');
+            }
+
+            function main() {
+                S_log('background.html: main');
+                CM_Listener();
+                //startPoll();
+            }
         </script>
     </head>
-    <body onload="">
+    <body onload="main()">
     </body>
 </html>

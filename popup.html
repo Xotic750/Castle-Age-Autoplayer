@@ -1,8 +1,13 @@
 <html>
     <head>
         <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="chrome_support.js"></script>
         <script type="text/javascript">
-            var logging = true;
+            function log(txt) {
+                if(logging) {
+                    chrome.extension.getBackgroundPage().log("popup.html: " + txt);
+                }
+            }
 
             function getValue(key) {
                 return chrome.extension.getBackgroundPage().getItem(key);
@@ -10,12 +15,6 @@
 
             function setValue(key, value) {
                 return chrome.extension.getBackgroundPage().setItem(key, value);
-            }
-
-            function log(txt) {
-                if(logging) {
-                    chrome.extension.getBackgroundPage().log(txt);
-                }
             }
 
             function pause() {

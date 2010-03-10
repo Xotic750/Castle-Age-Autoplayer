@@ -2,7 +2,8 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.71
+// @version        138.72
+// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-1.4.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,10 +13,12 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.71";
+var thisVersion = "138.72";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
+
+if (is_chrome) CM_Listener();
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -828,11 +831,11 @@ SetControls:function(force) {
 	this.CheckLastAction(gm.getValue('LastAction','none'));
 
 	var htmlCode = '';
-	if (is_chrome) {
-		htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
-	}
+	if (is_chrome) htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
-	htmlCode += '<hr />Disable auto run for this game. ' + this.MakeCheckBox('Disabled',false);
+	var autoRunInstructions="Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
+	htmlCode += '<hr /><table width=180 cellpadding=0 cellspacing=0>';
+	htmlCode += '<tr><td>Disable Autoplayer</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeCheckBox('Disabled',false,'',autoRunInstructions) + '</td></tr></table>';
 	var bankInstructions0="Minimum cash to keep in the bank. Press tab to save";
 	var bankInstructions1="Minimum cash to have on hand, press tab to save";
 	var bankInstructions2="Maximum cash to have on hand, bank anything above this, press tab to save(leave blank to disable)";
@@ -843,7 +846,7 @@ SetControls:function(force) {
 	var autosellInstructions="Automatically sell off any excess properties above your level allowance.";
 	htmlCode += '<hr />' + this.ToggleControl('CashandHealth','CASH and HEALTH');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) +  '</td></tr>';
+		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) + '</td></tr>';
 		htmlCode += '<tr><td>Auto Buy Properties</td><td> ' + this.MakeCheckBox('autoBuyProperty',false,'',autobuyInstructions) + '</td></tr>';
 		htmlCode += '<tr><td>Auto Sell Excess Properties</td><td> ' + this.MakeCheckBox('SellProperties',true,'',autosellInstructions) + '</td></tr></table>';
 		htmlCode += "Always Keep&nbsp$" + this.MakeNumberForm('minInStore',bankInstructions0,100000,"type='text'  size='12' style='font-size: 10px'") + " In Bank<br />";
@@ -914,7 +917,8 @@ SetControls:function(force) {
 		htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (gm.getValue('WhenBattle',false)!='Never'?'block':'none') +"'>";
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>Battle Type:</td><td>' + this.MakeDropDown('BattleType',typeList,typeInst,"style='font-size: 10px min-width: 60px; max-width: 60px; width : 60px;'") + '</td></tr>';
-			htmlCode += '<tr><td>Clear Complete Raids</td><td> ' + this.MakeCheckBox('clearCompleteRaids',false,'') +  '</td></tr>';
+			htmlCode += '<tr><td>Clear Complete Raids</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('clearCompleteRaids',false,'') +  '</td></tr>';
+			htmlCode += '<tr><td>Ignore Battle Losses</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('IgnoreBattleLoss',false,'',ignorebattlelossInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Chain:Battle Points Won</td><td>' + this.MakeNumberForm('ChainBP',chainBPInstructions,'',"size='8' style='font-size: 10px; text-align: right' ") + '</td></tr>';
 			htmlCode += '<tr><td>Chain:Gold Won</td><td>' + this.MakeNumberForm('ChainGold',chainGoldInstructions,'',"size='8' style='font-size: 10px; text-align: right' ") + '</td></tr></table>';
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
@@ -932,8 +936,6 @@ SetControls:function(force) {
 			htmlCode += "</div>";
 			htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType',false) == 'Userid List'?'block':'none') +"'>";
 				htmlCode += this.MakeTextBox('BattleTargets',userIdInstructions," rows='2'");
-				htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-				htmlCode += '<tr><td>Ignore Battle Losses</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('IgnoreBattleLoss',false,'',ignorebattlelossInstructions) +  '</td></tr></table>';
 			htmlCode += "</div>";
 		htmlCode += "</div>";
 	htmlCode += "<hr/> </div>";
@@ -1061,13 +1063,14 @@ SetControls:function(force) {
 		giftChoiceList = giftChoiceList.concat(gm.getList('GiftList'));
 		giftChoiceList.push('Get Gift List');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-		htmlCode += '<tr><td>Set Title</td><td> ' + this.MakeCheckBox('SetTitle',false,'',titleInstructions) +  "</td></tr>";
-		htmlCode += '<tr><td>Hide Sidebar Adverts</td><td> ' + this.MakeCheckBox('HideAds',false,'',hideAdsInstructions) +  "</td></tr>";
-		htmlCode += '<tr><td>Auto Elite Army</td><td> ' + this.MakeCheckBox('AutoElite',true,'AutoEliteControl','Enable or disable Auto Elite function',true) + " </td><td><input type='button' id='caap_resetElite' value='Do Now' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
+		htmlCode += '<tr><td>Set Title</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('SetTitle',false,'',titleInstructions) +  "</td></tr>";
+		htmlCode += '<tr><td>Hide Sidebar Adverts</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('HideAds',false,'',hideAdsInstructions) +  "</td></tr>";
+		htmlCode += '<tr><td>Auto Elite Army</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('AutoElite',true,'AutoEliteControl','Enable or disable Auto Elite function',true) + " </td><td><input type='button' id='caap_resetElite' value='Do Now' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>'+this.MakeTextBox('EliteArmyList',"Try these UserIDs first. Use ',' between each UserID"," rows='2'") + '</td></tr></table>';
 		htmlCode += '</div>';
-		htmlCode += '<tr><td>Auto Return Gifts&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td> ' + this.MakeCheckBox('AutoGift',false,'GiftControl',giftInstructions,true) + "</td></tr>";
+		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+		htmlCode += '<tr><td>Auto Return Gifts</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('AutoGift',false,'GiftControl',giftInstructions,true) + "</td></tr></table>";
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Give&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('GiftChoice',giftChoiceList) + '</td></tr></table>';
 		htmlCode += '</div>';
@@ -1087,7 +1090,7 @@ SetControls:function(force) {
 			htmlCode += "<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<input type='button' id='caap_refreshMonsters' value='Reset Monster Dashboard' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 			htmlCode += "<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<input type='button' id='FillArmy' value='Fill Army' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 		htmlCode += '</table></div>';
-	htmlCode += "<hr/> </div>";
+	htmlCode += "<hr/></div>";
 	htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 	htmlCode += "<tr><td><input type='checkbox' id='unlockMenu' /></td><td>Unlock Menu</td><td><input type='button' id='ResetMenuLocation' value='Reset' style='font-size: 10px; width:50; height:50'></td></tr></table>";
 	htmlCode+= "Version: " + thisVersion + "  -  <a href='" + discussionURL + "' target='_blank'>Discussion Boards</a><br />";
@@ -1293,7 +1296,7 @@ makeTd:function(text,color) {
 	return "<td><font size=1 color='" + color+"'>"+text+"</font></td>";
 },
 monsterDashboard:function() {
-	if (nHtml.FindByAttrContains(document.body, "div", "id", "caap_info") && !this.oneMinuteUpdate('dashboard')) return;
+	if ($("#caap_info") && !this.oneMinuteUpdate('dashboard')) return;
 	// if not on an individual monster page, delete any monsters without the page info from Engage
 	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
@@ -1303,50 +1306,22 @@ monsterDashboard:function() {
 	}
 	caap.selectMonster();
 
-        if (!nHtml.FindByAttrContains(document.body, "div", "id", "caap_top")) {
-                var afterCaapTop = document.getElementById('app_content_46755028429').childNodes[0].childNodes[0];
-                var beforeCaapTop = afterCaapTop.childNodes[3];
-                if (afterCaapTop && beforeCaapTop) {
-                        //gm.log("Located child div for placing caap_top.");
-                        var newCaapTop = document.createElement("div");
-                        newCaapTop.setAttribute("id", "caap_top");
-                        newCaapTop.setAttribute("style", "opacity:1;margin:0 auto;width:610px;padding:5px;position:absolute;top:" +
-                                                (document.getElementById('app46755028429_main_bn_container').offsetTop-11) +
-                                                "px;background:" + gm.getValue("StyleBackgroundLight","white"));
-                        afterCaapTop.insertBefore(newCaapTop, beforeCaapTop);
-
-                        var appendCaapTop = document.getElementById('caap_top');
-                        if (appendCaapTop) {
-                                //gm.log("Located caap_top for placing caap_feed and caap_info");
-                                var newCaapFeed = document.createElement("div");
-                                newCaapFeed.setAttribute("id", "caap_feed");
-                                newCaapFeed.setAttribute("style", "font-size:9px");
-                                appendCaapTop.appendChild(newCaapFeed);
-
-                                var newCaapInfo = document.createElement("div");
-                                newCaapInfo.setAttribute("id", "caap_info");
-                                newCaapInfo.setAttribute("style", "width:610px;height:175px;overflow:auto");
-                                appendCaapTop.appendChild(newCaapInfo);
-
-                                var appendCaapFeedLink = document.getElementById('caap_feed');
-                                if (appendCaapFeedLink) {
-                                        //gm.log("Located caap_feed for placing caap_feedlink");
-                                        var newCaapFeedLink = document.createElement("a");
-                                        var newFeedLinkText = document.createTextNode("LIVE FEED! Your friends are calling.");
-                                        newCaapFeedLink.setAttribute("id", "caap_feedlink");
-                                        newCaapFeedLink.setAttribute("href", "http://www.facebook.com/home.php?filter=app_46755028429");
-                                        newCaapFeedLink.appendChild(newFeedLinkText);
-                                        appendCaapFeedLink.appendChild(newCaapFeedLink);
-                                } else {
-                                        gm.log("Could not locate locate caap_feed for placing caap_feedlink.");
-                                }
-                        } else {
-                                gm.log("Could not locate locate caap_top for placing caap_feed and caap_info.");
-                        }
-                } else {
-                        gm.log("Could not locate child div for placing caap_top.");
-                }
-        }
+	var layout = "<div id='caap_top' style='position:absolute;top:" + (document.querySelector('#app46755028429_main_bn_container').offsetTop-11)
+		+ "px;left:0px;'>";
+	layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/home.php?filter=app_46755028429'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
+	layout += "<div id='caap_info' style='width:610px;height:175px;overflow:auto;'></div>";
+	layout += "</div>";
+	if (!$("#caap_top").length) {
+	   $(layout).css({
+			background : gm.getValue("StyleBackgroundLight","white"),
+//			background : "white",
+//			background : "url('http://image2.castleagegame.com/1357/graphics/bg_jobs_tile.jpg')",
+			padding : "5px",
+			width: " 610px",
+			margin : "0 auto",
+			opacity : "1"
+		}).insertBefore("#app46755028429_globalContainer");
+	}
 
 	var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
 	displayItemList=['Name','Damage','Damage%','Fort%','TimeLeft','T2K','Phase','Link'];
@@ -1377,13 +1352,7 @@ monsterDashboard:function() {
 		html += '</tr>';
 	});
 	html += '</table></div>';
-        var divCaapInfo = document.getElementById('caap_info');
-        if (divCaapInfo) {
-                //gm.log("Found caap_info div for monster table.");
-                divCaapInfo.innerHTML = html;
-        } else {
-                gm.log("Could not find caap_info div for monster table.");
-        }
+        $("#caap_info").html(html);
 },
 
 shortenURL:function(long_url, callback) {
@@ -1402,31 +1371,9 @@ return;
 },
 
 addExpDisplay:function() {
-        if (nHtml.FindByAttrContains(document.body, "a", "id", "caap_ExpToLevel")) {
-                //gm.log("Experience to next level found.");
-                return false;
-        }
-
-        var expDiv = nHtml.FindByAttrContains(document.body, "div", "id", "app46755028429_st_2_5");
-        if (expDiv) {
-                var expAnchor = nHtml.FindByAttrContains(expDiv,"a","href","http://apps.facebook.com/castle_age/quests.php");
-                        if (expAnchor) {
-                                var arrExp = nHtml.GetText(expAnchor).trim().split("/");
-                                var newAnch = document.createElement("a");
-                                var newText = document.createTextNode("(" + (arrExp[1] - arrExp[0]) + ")");
-                                newAnch.setAttribute("id", "caap_ExpToLevel");
-                                newAnch.setAttribute("href", "http://apps.facebook.com/castle_age/quests.php");
-                                newAnch.setAttribute("style", "color:red;font-weight:bold;text-decoration:none");
-                                newAnch.appendChild(newText);
-                                document.getElementById("app46755028429_st_2_5").appendChild(newAnch);
-                        } else {
-                                gm.log("Could not locate experience anchor.");
-                                return false;
-                        }
-        } else {
-                gm.log("Could not locate experience div.");
-                return false;
-        }
+    if (/\(/.test($("#app46755028429_st_2_5 strong").text())) return false;
+    var arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
+    $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>"+(arrExp[1] - arrExp[0])+"</span>)");
 },
 
 /////////////////////////////////////////////////////////////////////
@@ -3535,7 +3482,7 @@ checkMonsterDamage:function() {
 	var monsterTicker = nHtml.FindByAttrContains(document.body,"div","id","app46755028429_monsterTicker");
 	if (monsterTicker) {
 			//gm.log("Monster ticker found.");
-			time = nHtml.GetText(monsterTicker).trim().split(":");
+			time = $("#app46755028429_monsterTicker").text().split(":");
 	} else {
 			gm.log("Could not locate Monster ticker.");
 	}
@@ -3564,28 +3511,11 @@ checkMonsterDamage:function() {
 		}
 		if (boss && boss.siege) {
 			var miss = '';
-			var txtNeedToLaunch = '';
 			if (monstType.indexOf('Raid')>=0) {
-				// Not a great way to find the number of calls required but it works for now
-				txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 250px; font-size: 12px; text-align: center; color: #ffffff;");
-				if (txtNeedToLaunch) {
-						//gm.log("Found text for calls need to launch.");
-						miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
-				} else {
-						gm.log("Could not find text for calls need to launch.");
-				}
-				//miss = $("img[src*="+boss.siege_img+"]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
+				miss = $("img[src*="+boss.siege_img+"]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
 				//phaseText=Math.min(parseInt($("img[src*="+boss.siege_img+"]").attr('src').replace(/.*(\d+).jpg/, "$1")),boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			} else {
-                                // Not a great way to find the number of calls required but it works for now
-                                txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 306px; font-size: 12px; text-align: center; color: #ffffff;");
-                                if (txtNeedToLaunch) {
-                                        //gm.log("Found text for calls need to launch.");
-                                        miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1").trim();
-                                } else {
-                                        gm.log("Could not find text for calls need to launch.");
-                                }
-				//miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+				miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
 				//phaseText=Math.min($("img[src*="+boss.siege_img+"]").size()+1,boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			}
                         var currentPhase = '';
@@ -3627,7 +3557,7 @@ checkMonsterDamage:function() {
 	fortPct = gm.getListObjVal('monsterOl',monster,'Fort%','');
 	isTarget = (monster == gm.getValue('targetFromraid','') || monster == gm.getValue('targetFrombattle_monster',''));
 
-	if (maxDamage && damDone>maxDamage)	{
+	if (maxDamage && damDone>=maxDamage) {
 		gm.setListObjVal('monsterOl',monster,'color','red');
 		gm.setListObjVal('monsterOl',monster,'over','max');
 		if (isTarget) gm.setValue('resetselectMonster',true);
@@ -5389,7 +5319,7 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 	gm.setValue('LastVersion',thisVersion);
 }
 
-window.setTimeout(function() {
+$(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
 	if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
@@ -5401,7 +5331,7 @@ window.setTimeout(function() {
 	caap.addExpDisplay();
 	gm.setValue('ReleaseControl',true);
 	caap.MainLoop();
-},1000);
+});
 
 caap.ReloadOccasionally();
 
