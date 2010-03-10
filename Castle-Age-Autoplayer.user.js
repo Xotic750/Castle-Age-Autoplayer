@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.74
+// @version        138.75
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -13,7 +13,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.74";
+var thisVersion = "138.75";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -3591,8 +3591,10 @@ selectMonster:function() {
 	monsterFullList.forEach(function(monsterObj) {
 		gm.setListObjVal('monsterOl',monsterObj.split(vs)[0],'conditions','none');
 		monstPage = gm.getObjVal(monsterObj,'page');
-		if (gm.getValue('SerializeRaidsAndMonsters',false)) monsterList['any'].push(monsterObj);
-		else monsterList[monstPage].push(monsterObj);
+		if (gm.getValue('SerializeRaidsAndMonsters',false))
+			monsterList['any'].push(monsterObj);
+		else if ((monstPage == 'raid') || (monstPage=='battle_monster'))
+			monsterList[monstPage].push(monsterObj);
 	});
 
 	//PLEASE NOTE BEFORE CHANGING
