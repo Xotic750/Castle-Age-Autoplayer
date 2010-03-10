@@ -3609,8 +3609,8 @@ selectMonster:function() {
 	// We then read in the users attack order list
 	for (var s in selectTypes) {
 		var selectType = selectTypes[s];
-		var firstOverAch;
-		var firstUnderMax;
+		firstOverAch = '';
+		firstUnderMax = '';
 		// The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
 		switch (selectType) {
 			case 'any' :
