@@ -2,7 +2,8 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.62
+// @version        138.73
+// @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -12,7 +13,12 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.62";
+var thisVersion = "138.73";
+
+var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
+var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
+
+if (is_chrome) CM_Listener();
 
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
@@ -685,7 +691,7 @@ SetupDivs:function() {
 	div.style.color='#000';
 	div.style.cssFloat='right';
         if (gm.getValue('HideAds',false)) {
-	nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
+		nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
         }
 
 	var divList = ['activity_mess','army_mess','quest_mess','battle_mess','heal_mess','demipoint_mess','demibless_mess','level_mess','control'];
@@ -825,19 +831,24 @@ SetControls:function(force) {
 	this.CheckLastAction(gm.getValue('LastAction','none'));
 
 	var htmlCode = '';
+	if (is_chrome) htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
-	htmlCode += '<hr />Disable auto run for this game. ' + this.MakeCheckBox('Disabled',false);
+	var autoRunInstructions="Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
+	htmlCode += '<hr /><table width=180 cellpadding=0 cellspacing=0>';
+	htmlCode += '<tr><td>Disable Autoplayer</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeCheckBox('Disabled',false,'',autoRunInstructions) + '</td></tr></table>';
 	var bankInstructions0="Minimum cash to keep in the bank. Press tab to save";
 	var bankInstructions1="Minimum cash to have on hand, press tab to save";
 	var bankInstructions2="Maximum cash to have on hand, bank anything above this, press tab to save(leave blank to disable)";
 	var healthInstructions="Minimum health to have before healing, press tab to save(leave blank to disable): ";
 	var healthStamInstructions="Minimum Stamina to have before healing, press tab to save(leave blank to disable): ";
 	var bankImmedInstructions="Bank as soon as possible. May interrupt player and monster battles.";
-	var autobuyInstructions="Automatically buy properties in groups of 10 based on best Return On Investment value. ";
+	var autobuyInstructions="Automatically buy properties in groups of 10 based on best Return On Investment value.";
+	var autosellInstructions="Automatically sell off any excess properties above your level allowance.";
 	htmlCode += '<hr />' + this.ToggleControl('CashandHealth','CASH and HEALTH');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) +  '</td></tr>';
-		htmlCode += '<tr><td>Auto Buy Properties</td><td> ' + this.MakeCheckBox('autoBuyProperty',false,'',autobuyInstructions) + '</td></tr></table>';
+		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) + '</td></tr>';
+		htmlCode += '<tr><td>Auto Buy Properties</td><td> ' + this.MakeCheckBox('autoBuyProperty',false,'',autobuyInstructions) + '</td></tr>';
+		htmlCode += '<tr><td>Auto Sell Excess Properties</td><td> ' + this.MakeCheckBox('SellProperties',true,'',autosellInstructions) + '</td></tr></table>';
 		htmlCode += "Always Keep&nbsp$" + this.MakeNumberForm('minInStore',bankInstructions0,100000,"type='text'  size='12' style='font-size: 10px'") + " In Bank<br />";
 		htmlCode += "Bank Above&nbsp;&nbsp$" + this.MakeNumberForm('MaxInCash',bankInstructions2,'',"type='text'  size='7' style='font-size: 10px'") + "<br />";
 		htmlCode += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;But Keep&nbsp;$" + this.MakeNumberForm('MinInCash',bankInstructions1,'',"type='text' size='7' style='font-size: 10px'") + " On Hand <br /><br />";
@@ -889,6 +900,7 @@ SetControls:function(force) {
 	var dontbattleInstructions="Remember an opponents id after a loss and don't battle him again";
 	var plusonekillsInstructions="Force +1 kill scenario if 80% or more of targets are withn freshmeat settings. Note: Since Castle Age choses the target, selecting this option could result in a greater chance of loss.";
 	var raidOrderInstructions="List of search words that decide which raids to participate in first.  Use words in player name or in raid name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million.";
+	var ignorebattlelossInstructions="Ignore battle losses and attack regardless.  This will also delete all battle loss records.";
 	htmlCode += this.ToggleControl('Battling','BATTLE');
 		var battleList = ['Stamina Available','At Max Stamina','At X Stamina','No Monster','Not Hiding','Never'];
 		var battleInst = ['Stamina Available will battle whenever you have enough stamina','At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','No Monster will battle only when there are no active monster battles','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables player battles'];
@@ -905,7 +917,8 @@ SetControls:function(force) {
 		htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (gm.getValue('WhenBattle',false)!='Never'?'block':'none') +"'>";
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>Battle Type:</td><td>' + this.MakeDropDown('BattleType',typeList,typeInst,"style='font-size: 10px min-width: 60px; max-width: 60px; width : 60px;'") + '</td></tr>';
-			htmlCode += '<tr><td>Clear Complete Raids</td><td> ' + this.MakeCheckBox('clearCompleteRaids',false,'') +  '</td></tr>';
+			htmlCode += '<tr><td>Clear Complete Raids</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('clearCompleteRaids',false,'') +  '</td></tr>';
+			htmlCode += '<tr><td>Ignore Battle Losses</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('IgnoreBattleLoss',false,'',ignorebattlelossInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Chain:Battle Points Won</td><td>' + this.MakeNumberForm('ChainBP',chainBPInstructions,'',"size='8' style='font-size: 10px; text-align: right' ") + '</td></tr>';
 			htmlCode += '<tr><td>Chain:Gold Won</td><td>' + this.MakeNumberForm('ChainGold',chainGoldInstructions,'',"size='8' style='font-size: 10px; text-align: right' ") + '</td></tr></table>';
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
@@ -922,7 +935,7 @@ SetControls:function(force) {
 				htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Army Ratio Base&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeNumberForm('FreshMeatARBase',FMARBaseInstructions,"0.5","size='2'  style='font-size: 10px; text-align: right'") + '</td></tr></table>';
 			htmlCode += "</div>";
 			htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType',false) == 'Userid List'?'block':'none') +"'>";
-				htmlCode += this.MakeTextBox('BattleTargets',userIdInstructions," rows='2'") + '<br />';
+				htmlCode += this.MakeTextBox('BattleTargets',userIdInstructions," rows='2'");
 			htmlCode += "</div>";
 		htmlCode += "</div>";
 	htmlCode += "<hr/> </div>";
@@ -936,6 +949,7 @@ SetControls:function(force) {
 	var monsterachieveInstructions="Check if monsters have reached achievement damage level first. Switch when achievement met.";
 	var demiPointsFirstInstructions="Don't attack monsters until you've gotten all your demi points from battling.";
 	var powerattackInstructions="Use power attacks. Only do normal attacks if power attack not possible";
+	var dosiegeInstructions="Turns on or off automatic siege assist for all monsters and raids.";
 	htmlCode += this.ToggleControl('Monster','MONSTER');
 		var mbattleList = ['Stamina Available','At Max Stamina','At X Stamina','Not Hiding','Never'];
 		var mbattleInst = ['Stamina Available will attack whenever you have enough stamina','At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables attacking monsters'];
@@ -949,6 +963,7 @@ SetControls:function(force) {
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += "<tr><td>Monster delay secs</td><td>" + this.MakeNumberForm('seedTime','Max random delay to battle monsters',300,"type='text'  size='4' style='font-size: 10px'") + "</td></tr>";
 			htmlCode += '<tr><td>Power Attack Only</td><td> ' + this.MakeCheckBox('PowerAttack',true,'',powerattackInstructions) +  '</td></tr>';
+			htmlCode += '<tr><td>Siege weapon assist</td><td> ' + this.MakeCheckBox('DoSiege',true,'',dosiegeInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Clear Complete Monsters</td><td> ' + this.MakeCheckBox('clearCompleteMonsters',false,'') +  '</td></tr>';
 			htmlCode += '<tr><td>Achievement Mode</td><td> ' + this.MakeCheckBox('AchievementMode',true,'',monsterachieveInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Get Demi Points First</td><td> ' + this.MakeCheckBox('DemiPointsFirst',false,'DemiList',demiPointsFirstInstructions,true)+  '</td></tr>';
@@ -1048,13 +1063,14 @@ SetControls:function(force) {
 		giftChoiceList = giftChoiceList.concat(gm.getList('GiftList'));
 		giftChoiceList.push('Get Gift List');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-		htmlCode += '<tr><td>Set Title</td><td> ' + this.MakeCheckBox('SetTitle',false,'',titleInstructions) +  "</td></tr>";
-		htmlCode += '<tr><td>Hide Sidebar Adverts</td><td> ' + this.MakeCheckBox('HideAds',false,'',hideAdsInstructions) +  "</td></tr>";
-		htmlCode += '<tr><td>Auto Elite Army</td><td> ' + this.MakeCheckBox('AutoElite',true,'AutoEliteControl','Enable or disable Auto Elite function',true) + " </td><td><input type='button' id='caap_resetElite' value='Do Now' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
+		htmlCode += '<tr><td>Set Title</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('SetTitle',false,'',titleInstructions) +  "</td></tr>";
+		htmlCode += '<tr><td>Hide Sidebar Adverts</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('HideAds',false,'',hideAdsInstructions) +  "</td></tr>";
+		htmlCode += '<tr><td>Auto Elite Army</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('AutoElite',true,'AutoEliteControl','Enable or disable Auto Elite function',true) + " </td><td><input type='button' id='caap_resetElite' value='Do Now' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>'+this.MakeTextBox('EliteArmyList',"Try these UserIDs first. Use ',' between each UserID"," rows='2'") + '</td></tr></table>';
 		htmlCode += '</div>';
-		htmlCode += '<tr><td>Auto Return Gifts&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td> ' + this.MakeCheckBox('AutoGift',false,'GiftControl',giftInstructions,true) + "</td></tr>";
+		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+		htmlCode += '<tr><td>Auto Return Gifts</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('AutoGift',false,'GiftControl',giftInstructions,true) + "</td></tr></table>";
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Give&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('GiftChoice',giftChoiceList) + '</td></tr></table>';
 		htmlCode += '</div>';
@@ -1074,7 +1090,7 @@ SetControls:function(force) {
 			htmlCode += "<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<input type='button' id='caap_refreshMonsters' value='Reset Monster Dashboard' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 			htmlCode += "<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<input type='button' id='FillArmy' value='Fill Army' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 		htmlCode += '</table></div>';
-	htmlCode += "<hr/> </div>";
+	htmlCode += "<hr/></div>";
 	htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 	htmlCode += "<tr><td><input type='checkbox' id='unlockMenu' /></td><td>Unlock Menu</td><td><input type='button' id='ResetMenuLocation' value='Reset' style='font-size: 10px; width:50; height:50'></td></tr></table>";
 	htmlCode+= "Version: " + thisVersion + "  -  <a href='" + discussionURL + "' target='_blank'>Discussion Boards</a><br />";
@@ -1106,6 +1122,29 @@ SetControls:function(force) {
 		if(gm.getValue('HideAds')) {
 			nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
 		}else nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='block';
+	},false);
+
+	var DoSiegeBox=document.getElementById('caap_DoSiege');
+	var DoSiege=gm.getValue('DoSiege',true);
+	DoSiegeBox.checked=DoSiege?true:false;
+	DoSiegeBox.addEventListener('change',function(e) {
+	},false);
+
+	var SellPropertiesBox=document.getElementById('caap_SellProperties');
+	var SellProperties=gm.getValue('SellProperties',true);
+	SellPropertiesBox.checked=SellProperties?true:false;
+	SellPropertiesBox.addEventListener('change',function(e) {
+	},false);
+
+	var IgnoreBattleLossBox=document.getElementById('caap_IgnoreBattleLoss');
+	var IgnoreBattleLoss=gm.getValue('IgnoreBattleLoss',false);
+	IgnoreBattleLossBox.checked=IgnoreBattleLoss?true:false;
+	IgnoreBattleLossBox.addEventListener('change',function(e) {
+		if(gm.getValue('IgnoreBattleLoss')) {
+			gm.log("Ignore Battle Losses has been enabled.")
+			gm.setValue("BattlesLostList",'');
+			gm.log("Battle Lost List has been cleared.")
+		}
 	},false);
 
 	var unlockMenuBox=document.getElementById('unlockMenu');
@@ -1166,7 +1205,8 @@ SetControls:function(force) {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight','#efe');
 		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
 		gm.setValue('caapPause','none');
-		gm.setValue('Disabled',false);
+		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		//gm.setValue('Disabled',false);
 		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('resetselectMonster',true);
@@ -1182,7 +1222,20 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
+		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
 	},false);
+
+	if (is_chrome) {
+		var caapPauseDiv=document.getElementById('caapPauseA');
+		caapPauseDiv.addEventListener('click',function(e) {
+			document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
+			document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark','1');
+//			nHtml.clearTimeouts();
+			gm.setValue('caapPause','block');
+			caapPaused.style.display='block';
+			if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
+		},false);
+	}
 
 	if(gm.getObjVal('AutoQuest','name')) {
 		var stopA=document.getElementById('stopAutoQuest');
@@ -1243,7 +1296,7 @@ makeTd:function(text,color) {
 	return "<td><font size=1 color='" + color+"'>"+text+"</font></td>";
 },
 monsterDashboard:function() {
-	if (nHtml.FindByAttrContains(document.body, "div", "id", "caap_info") && !this.oneMinuteUpdate('dashboard')) return;
+	if ($("#caap_info") && !this.oneMinuteUpdate('dashboard')) return;
 	// if not on an individual monster page, delete any monsters without the page info from Engage
 	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
@@ -1253,50 +1306,22 @@ monsterDashboard:function() {
 	}
 	caap.selectMonster();
 
-        if (!nHtml.FindByAttrContains(document.body, "div", "id", "caap_top")) {
-                var afterCaapTop = document.getElementById('app_content_46755028429').childNodes[0].childNodes[0];
-                var beforeCaapTop = afterCaapTop.childNodes[3];
-                if (afterCaapTop && beforeCaapTop) {
-                        //gm.log("Located child div for placing caap_top.");
-                        var newCaapTop = document.createElement("div");
-                        newCaapTop.setAttribute("id", "caap_top");
-                        newCaapTop.setAttribute("style", "opacity:1;margin:0 auto;width:610px;padding:5px;position:absolute;top:" +
-                                                (document.getElementById('app46755028429_main_bn_container').offsetTop-11) +
-                                                "px;background:" + gm.getValue("StyleBackgroundLight","white"));
-                        afterCaapTop.insertBefore(newCaapTop, beforeCaapTop);
-
-                        var appendCaapTop = document.getElementById('caap_top');
-                        if (appendCaapTop) {
-                                //gm.log("Located caap_top for placing caap_feed and caap_info");
-                                var newCaapFeed = document.createElement("div");
-                                newCaapFeed.setAttribute("id", "caap_feed");
-                                newCaapFeed.setAttribute("style", "font-size:9px");
-                                appendCaapTop.appendChild(newCaapFeed);
-
-                                var newCaapInfo = document.createElement("div");
-                                newCaapInfo.setAttribute("id", "caap_info");
-                                newCaapInfo.setAttribute("style", "width:610px;height:175px;overflow:auto");
-                                appendCaapTop.appendChild(newCaapInfo);
-
-                                var appendCaapFeedLink = document.getElementById('caap_feed');
-                                if (appendCaapFeedLink) {
-                                        //gm.log("Located caap_feed for placing caap_feedlink");
-                                        var newCaapFeedLink = document.createElement("a");
-                                        var newFeedLinkText = document.createTextNode("LIVE FEED! Your friends are calling.");
-                                        newCaapFeedLink.setAttribute("id", "caap_feedlink");
-                                        newCaapFeedLink.setAttribute("href", "http://www.facebook.com/home.php?filter=app_46755028429");
-                                        newCaapFeedLink.appendChild(newFeedLinkText);
-                                        appendCaapFeedLink.appendChild(newCaapFeedLink);
-                                } else {
-                                        gm.log("Could not locate locate caap_feed for placing caap_feedlink.");
-                                }
-                        } else {
-                                gm.log("Could not locate locate caap_top for placing caap_feed and caap_info.");
-                        }
-                } else {
-                        gm.log("Could not locate child div for placing caap_top.");
-                }
-        }
+	var layout = "<div id='caap_top' style='position:absolute;top:" + (document.querySelector('#app46755028429_main_bn_container').offsetTop-11)
+		+ "px;left:0px;'>";
+	layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/home.php?filter=app_46755028429'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
+	layout += "<div id='caap_info' style='width:610px;height:175px;overflow:auto;'></div>";
+	layout += "</div>";
+	if (!$("#caap_top").length) {
+	   $(layout).css({
+			background : gm.getValue("StyleBackgroundLight","white"),
+//			background : "white",
+//			background : "url('http://image2.castleagegame.com/1357/graphics/bg_jobs_tile.jpg')",
+			padding : "5px",
+			width: " 610px",
+			margin : "0 auto",
+			opacity : "1"
+		}).insertBefore("#app46755028429_globalContainer");
+	}
 
 	var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
 	displayItemList=['Name','Damage','Damage%','Fort%','TimeLeft','T2K','Phase','Link'];
@@ -1327,13 +1352,7 @@ monsterDashboard:function() {
 		html += '</tr>';
 	});
 	html += '</table></div>';
-        var divCaapInfo = document.getElementById('caap_info');
-        if (divCaapInfo) {
-                //gm.log("Found caap_info div for monster table.");
-                divCaapInfo.innerHTML = html;
-        } else {
-                gm.log("Could not find caap_info div for monster table.");
-        }
+        $("#caap_info").html(html);
 },
 
 shortenURL:function(long_url, callback) {
@@ -1352,31 +1371,9 @@ return;
 },
 
 addExpDisplay:function() {
-        if (nHtml.FindByAttrContains(document.body, "a", "id", "caap_ExpToLevel")) {
-                //gm.log("Experience to next level found.");
-                return false;
-        }
-
-        var expDiv = nHtml.FindByAttrContains(document.body, "div", "id", "app46755028429_st_2_5");
-        if (expDiv) {
-                var expAnchor = nHtml.FindByAttrContains(expDiv,"a","href","http://apps.facebook.com/castle_age/quests.php");
-                        if (expAnchor) {
-                                var arrExp = nHtml.GetText(expAnchor).trim().split("/");
-                                var newAnch = document.createElement("a");
-                                var newText = document.createTextNode("(" + (arrExp[1] - arrExp[0]) + ")");
-                                newAnch.setAttribute("id", "caap_ExpToLevel");
-                                newAnch.setAttribute("href", "http://apps.facebook.com/castle_age/quests.php");
-                                newAnch.setAttribute("style", "color:red;font-weight:bold;text-decoration:none");
-                                newAnch.appendChild(newText);
-                                document.getElementById("app46755028429_st_2_5").appendChild(newAnch);
-                        } else {
-                                gm.log("Could not locate experience anchor.");
-                                return false;
-                        }
-        } else {
-                gm.log("Could not locate experience div.");
-                return false;
-        }
+    if (/\(/.test($("#app46755028429_st_2_5 strong").text())) return false;
+    var arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
+    $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>"+(arrExp[1] - arrExp[0])+"</span>)");
 },
 
 /////////////////////////////////////////////////////////////////////
@@ -1580,7 +1577,7 @@ GetStats:function() {
 try{
 	this.stats={};
 
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
                 if (document.getElementById('app46755028429_healForm')){
                         // Facebook ID
                         var webSlice=nHtml.FindByAttrContains(document.body,"a","href","party.php");
@@ -1786,7 +1783,7 @@ CheckResults:function() {
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	if (!(page = gm.getValue('clickUrl'))) return;
 	gm.log('Clicked page is ' + page);
-	page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
+	if(page.match(/\/[^\/]+.php/i)) page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
 	if (this.pageSpecificCheckFunctions[page])
 		this[this.pageSpecificCheckFunctions[page]]();
 	gm.setValue('clickUrl','');
@@ -2059,13 +2056,18 @@ DrawQuests:function(pickQuestTF) {
 			gm.log('no button found:'+quest_name);
 			continue;
 		}
+		var influence;
 		var bossList = ["Gift of Earth","Eye of the Storm","A Look into the Darkness","The Rift","Undead Embrace","Confrontation"];
 		if (bossList.indexOf(quest_name) >= 0 && nHtml.FindByClassName(document.body,'div','quests_background_sub')) {
 			//if boss and found sub quests
 			influence = "100";
 		} else {
 			var influenceList=this.influenceRe.exec(divTxt);
-			influence = influenceList[1];
+			if (influenceList) {
+				influence = influenceList[1];
+			} else {
+				gm.log("Influence div not found.");
+			}
 		}
 		if(!influence) {
 			gm.log('no influence found:'+quest_name+' in ' + divTxt);
@@ -2793,7 +2795,9 @@ CheckBattleResults:function() {
 		if (gm.getValue('BattlesLostList','').indexOf(vs+userId+vs) == -1) {
 			now = (new Date().getTime()).toString();
 			newelement = now + vs + userId + vs + userName;
-			gm.listPush('BattlesLostList',newelement,100);
+			if (!gm.getValue('IgnoreBattleLoss',false)) {
+				gm.listPush('BattlesLostList',newelement,100);
+			}
 		}
 /* 	Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
 		if (gm.getValue('BattlesWonList','').indexOf(os+userId+os) >= 0) {
@@ -3134,7 +3138,7 @@ Battle:function(mode) {
 
 	if (!this.notSafeCount) this.notSafeCount = 0;
 
-	if ( !(target = this.GetCurrentBattleTarget())) return false;
+	if (!(target = this.GetCurrentBattleTarget(mode))) return false;
 	target = target.toLowerCase();
 	gm.log('Battle Target: '+target);
 
@@ -3213,7 +3217,11 @@ NextBattleTarget:function() {
 	gm.setValue('BattleTargetUpto',battleUpto+1);
 },
 
-GetCurrentBattleTarget:function() {
+GetCurrentBattleTarget:function(mode) {
+	if (mode == 'DemiPoints') {
+		if (gm.getValue('targetFromraid','') && gm.getValue('TargetType','') == 'Raid') return 'Raid';
+		else return 'Freshmeat';
+	}
 	if (gm.getValue('TargetType','') == 'Raid') {
 		if (gm.getValue('targetFromraid','')) {
 			return 'Raid';
@@ -3332,7 +3340,7 @@ checkMonsterEngage:function() {
 	gm.log('In check '+ page + ' engage');
 
 	firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
 			gm.log('On another player\'s keep.');
@@ -3407,7 +3415,7 @@ checkMonsterDamage:function() {
 	if (this.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
 	else if (this.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
 	else monstType = /\w+$/i.exec(monster);
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monster = monster.replace(/.+'s /,'Your ');
 	} else {
@@ -3451,7 +3459,7 @@ checkMonsterDamage:function() {
 	if (webSlice) {
 		webSlice=nHtml.FindByAttrContains(webSlice,"td","valign","top");
 		if (webSlice) {
-			if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+			if (isnot_firefox) {
 				webSlice=nHtml.FindByAttrContains(webSlice,"a","href","keep.php?user=" + gm.getValue('FBID','x'));
 			} else {
 				webSlice=nHtml.FindByAttrContains(webSlice,"a","href","keep.php?user=" + unsafeWindow.Env.user);
@@ -3474,14 +3482,14 @@ checkMonsterDamage:function() {
 	var monsterTicker = nHtml.FindByAttrContains(document.body,"div","id","app46755028429_monsterTicker");
 	if (monsterTicker) {
 			//gm.log("Monster ticker found.");
-			time = nHtml.GetText(monsterTicker).trim().split(":");
+			time = $("#app46755028429_monsterTicker").text().split(":");
 	} else {
 			gm.log("Could not locate Monster ticker.");
 	}
 
-	if(time.length == 3) {
-		var hpBar = null;
+	if(time.length == 3  && this.CheckForImage('monster_health_background.jpg')) {
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
+		var hpBar = null;
 		if (imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg")) {
 				//gm.log("Found monster health div.");
 				var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
@@ -3503,28 +3511,11 @@ checkMonsterDamage:function() {
 		}
 		if (boss && boss.siege) {
 			var miss = '';
-			var txtNeedToLaunch = '';
 			if (monstType.indexOf('Raid')>=0) {
-				// Not a great way to find the number of calls required but it works for now
-				txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 250px; font-size: 12px; text-align: center; color: #ffffff;");
-				if (txtNeedToLaunch) {
-						//gm.log("Found text for calls need to launch.");
-						miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
-				} else {
-						gm.log("Could not find text for calls need to launch.");
-				}
-				//miss = $("img[src*="+boss.siege_img+"]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
+				miss = $("img[src*="+boss.siege_img+"]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
 				//phaseText=Math.min(parseInt($("img[src*="+boss.siege_img+"]").attr('src').replace(/.*(\d+).jpg/, "$1")),boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			} else {
-                                // Not a great way to find the number of calls required but it works for now
-                                txtNeedToLaunch = nHtml.FindByAttrContains(document.body,"div","style","position: relative; top: -18px; z-index: 0; width: 306px; font-size: 12px; text-align: center; color: #ffffff;");
-                                if (txtNeedToLaunch) {
-                                        //gm.log("Found text for calls need to launch.");
-                                        miss = nHtml.GetText(txtNeedToLaunch).replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1").trim();
-                                } else {
-                                        gm.log("Could not find text for calls need to launch.");
-                                }
-				//miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+				miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
 				//phaseText=Math.min($("img[src*="+boss.siege_img+"]").size()+1,boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			}
                         var currentPhase = '';
@@ -3566,7 +3557,7 @@ checkMonsterDamage:function() {
 	fortPct = gm.getListObjVal('monsterOl',monster,'Fort%','');
 	isTarget = (monster == gm.getValue('targetFromraid','') || monster == gm.getValue('targetFrombattle_monster',''));
 
-	if (maxDamage && damDone>maxDamage)	{
+	if (maxDamage && damDone>=maxDamage) {
 		gm.setListObjVal('monsterOl',monster,'color','red');
 		gm.setListObjVal('monsterOl',monster,'over','max');
 		if (isTarget) gm.setValue('resetselectMonster',true);
@@ -3580,86 +3571,116 @@ checkMonsterDamage:function() {
 	}
 	gm.setValue('resetdashboard',true);
 },
+
 selectMonster:function() {
 	if (!this.oneMinuteUpdate('selectMonster')) return;
-	gm.log('Selecting monster');
-	gm.setValue('targetFromraid','');
-	gm.setValue('targetFromfortify','');
+//	gm.log('Selecting monster');
+
+	// First we forget everything about who we already picked.
 	gm.setValue('targetFrombattle_monster','');
-	var firstOverAch = [], firstUnderDmg = [], monsterListCurrent = [];
+	gm.setValue('targetFromfortify','');
+	gm.setValue('targetFromraid','');
+
+	// Next we get our monster objects from the reposoitory and break them into separarte lists
+	// for monster or raid.  If we are serializing then we make one list only.
 	var monsterList = {};
-	monsterList.raid = [];
 	monsterList.battle_monster = [];
-	firstOverAch.raid = '';
-	firstOverAch.battle_monster = '';
+	monsterList.raid = [];
+	monsterList.any = [];
 	monsterFullList = gm.getList('monsterOl','');
 	monsterFullList.forEach(function(monsterObj) {
 		gm.setListObjVal('monsterOl',monsterObj.split(vs)[0],'conditions','none');
 		monstPage = gm.getObjVal(monsterObj,'page');
-		if ((monstPage == 'raid') || (monstPage=='battle_monster')) {
-			monsterList[monstPage].push(monsterObj);
-		}
-		if (gm.getValue('SerializeRaidsAndMonsters',false) && monstPage == 'raid')
-			monsterList[battle_monster].push(monsterObj);
+		if (gm.getValue('SerializeRaidsAndMonsters',false)) monsterList['any'].push(monsterObj);
+		else monsterList[monstPage].push(monsterObj);
 	});
-//	['battle_monster'].forEach(function(selectType) {
-	['battle_monster','raid'].forEach(function(selectType) {
+
+	//PLEASE NOTE BEFORE CHANGING
+	//The Serialize Raids and Monsters dictates a 'single-pass' because we only need select
+	//one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
+	//serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
+	//a round hole. Please reconsider before doing so.
+	if (gm.getValue('SerializeRaidsAndMonsters',false))  selectTypes = ['any'];
+	else selectTypes = ['battle_monster','raid'];
+
+	// We loop through for each selection type (only once if serialized between the two)
+	// We then read in the users attack order list
+	for (var s in selectTypes) {
+		var selectType = selectTypes[s];
+		var firstOverAch;
+		var firstUnderMax;
 		// The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-		attackOrderList=gm.getValue('order'+selectType,'');
-		if (gm.getValue('SerializeRaidsAndMonsters',false) && selectType == 'battle_monster')
-			attackOrderList += gm.getValue('orderraid','');
-		attackOrderList=attackOrderList.split(/[\n,]/).concat('your',"'");
+		switch (selectType) {
+			case 'any' :
+				var attackOrderList1=gm.getValue('orderbattle_monster','').split(/[\n,]/);
+				var attackOrderList2=gm.getValue('orderraid','').split(/[\n,]/).concat('your',"'");
+				var attackOrderList=attackOrderList1.concat(attackOrderList2);
+				break;
+			default :
+				var attackOrderList=gm.getValue('order'+selectType,'').split(/[\n,]/).concat('your',"'");
+		}
+
+		// Next we step through the users list getting the name and conditions
 		for (var p in attackOrderList) {
 			if (!(attackOrderList[p].trim())) continue;
 			attackOrderName = attackOrderList[p].match(/^[^:]+/).toString().trim().toLowerCase();
 			monsterConditions= attackOrderList[p].replace(/^[^:]+/,'').toString().trim();
 			monsterListCurrent = monsterList[selectType];
-//			monsterListCurrent.forEach(function(monsterObj) {
-//			for (var m in monsterList[selectType]) {
+
+			// Now we try to match the users name agains our list of monsters
 			for (var m in monsterListCurrent) {
 				monsterObj = monsterListCurrent[m];
 				monster = monsterObj.split(vs)[0];
-				if (gm.getListObjVal('monsterOl',monster,'conditions')!='none') continue;
-				//gm.log(' monster ' + monster + ' match term ' + attackOrderList[p]);
+				monstPage = gm.getObjVal(monsterObj,'page');
 
-				// if monster name doesn't match, no further processing
-				if (monster.toLowerCase().indexOf(attackOrderName)>=0) {
-					//gm.log('MATCH monster ' + monster + ' conditions ' + monsterConditions + ' match term ' + attackOrderList[p]);
-					gm.setListObjVal('monsterOl',monster,'conditions',monsterConditions);
-					// Match found, so remove from future checks
-					//gm.log('BEFORE cut:' + monsterList[selectType]);
-//					monsterList[selectType].splice(monsterList[selectType].indexOf(monsterObj),1);
-					//gm.log('AFTER cut:' + monsterList[selectType]);
+				// If we set conditions on this monster already then we do not reprocess
+				if (gm.getListObjVal('monsterOl',monster,'conditions') != 'none') continue;
 
-					// if monster dead, no further processing
-					if (!gm.getObjVal(monsterObj,'status')) {
-						monstType = gm.getObjVal(monsterObj,'Type');
-						color = gm.getObjVal(monsterObj,'color','');
-						over = gm.getObjVal(monsterObj,'over','');
-						if (!gm.getValue('targetFrom'+selectType)) {
-							if (over!='max' && color!='purple') {
-								if (over!='ach')
-									gm.setValue('targetFrom'+selectType,monster);
-								else if (!firstOverAch[selectType])
-									firstOverAch[selectType] = monster;
-							}
-						}
-						monsterFort = parseFloat(gm.getObjVal(monsterObj,'Fort%',100));
-						maxToFortify = caap.parseCondition('f%',monsterConditions) || caap.GetNumber('MaxToFortify',0);
-						if (monsterFort < maxToFortify && !gm.getValue('targetFromfortify',''))
-							gm.setValue('targetFromfortify',monster);
+				//If this monster does not match, skip to next one
+				// Or if this monster is dead, skip to next one
+				// Or if this monster is not the correct type, skip to next one
+				if ((monster.toLowerCase().indexOf(attackOrderName) < 0)
+					|| (gm.getObjVal(monsterObj,'status'))
+					|| (selectType != 'any' && monstPage != selectType)) continue;
+
+				//Monster is a match so we set the conditions
+				gm.setListObjVal('monsterOl',monster,'conditions',monsterConditions);
+
+				// checkMonsterDamage would have set our 'color' and 'over' values. We need to check
+				// these to see if this is the monster we should select/
+				color = gm.getObjVal(monsterObj,'color','');
+				over = gm.getObjVal(monsterObj,'over','');
+				if (!firstUnderMax) {
+					if (over!='max' && color!='purple') {
+						if (over!='ach')
+							firstUnderMax = monster;
+						else if (!firstOverAch)
+							firstOverAch = monster;
 					}
 				}
+
+				// If this a monster we need to fortify we check to see if it is under our threshold.
+				monsterFort = parseFloat(gm.getObjVal(monsterObj,'Fort%',100));
+				maxToFortify = caap.parseCondition('f%',monsterConditions) || caap.GetNumber('MaxToFortify',0);
+				if (monsterFort < maxToFortify && !gm.getValue('targetFromfortify',''))
+					gm.setValue('targetFromfortify',monster);
 			}
 		}
- 		if (!(monster = gm.getValue('targetFrom'+selectType)))
-			monster = gm.setValue('targetFrom'+selectType,firstOverAch[selectType]);
 
+		// Now we use the first under max/under achivment that we found. If we didn't find any under
+		// achievement then we use the first over achievement
+ 		if (!(monster = firstUnderMax))
+			monster = firstOverAch;
+
+		// If we've got a monster for this selection type then we set the GM variables for the name
+		// and stamina requirements
  		if (monster) {
+			monstPage = gm.getListObjVal('monsterOl',monster,'page');
+			gm.setValue('targetFrom'+monstPage,monster);
+
 			monsterConditions = gm.getListObjVal('monsterOl',monster,'conditions');
 			monstType = gm.getListObjVal('monsterOl',monster,'Type','Dragon');
-		//	gm.log(' monster type 2 '+ monstType + ' monster '  + monster);
-			if (selectType == 'battle_monster') {
+			if (monstPage == 'battle_monster') {
 				if (caap.bosses[monstType] && caap.bosses[monstType].staUse)
 					gm.setValue('MonsterStaminaReq',caap.bosses[monstType].staUse);
 				else if ((caap.InLevelUpMode() && caap.stats.stamina.num>=10) || monsterConditions.match(/:pa/i))
@@ -3678,15 +3699,15 @@ selectMonster:function() {
 				else gm.setValue('RaidStaminaReq',1);
 			}
 		}
-	});
+	};
 	gm.setValue('resetdashboard',true);
-gm.log('Selecting monster end');
 },
+
 monsterConfirmRightPage:function(webSlice,monster) {
 	// Confirm name and type of monster
 	var monsterOnPage = nHtml.GetText(webSlice);
 	monsterOnPage = monsterOnPage.substring(0,monsterOnPage.indexOf('You have (')).trim();
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monsterOnPage = monsterOnPage.replace(/.+'s /,'Your ');
 	} else {
@@ -3848,7 +3869,7 @@ Monsters:function() {
 		return true;
 	}
 	firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-	if (navigator.userAgent.toLowerCase().indexOf('firefox') == -1) {
+	if (isnot_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
 			gm.log('On another player\'s keep.');
@@ -4508,7 +4529,7 @@ Bank:function() {
 	var minInCash=this.GetNumber('MinInCash');
 	if (minInCash=='') minInCash=0;
 
-	if(maxInCash=="" || this.stats.cash<=minInCash || this.stats.cash<maxInCash) {
+	if(maxInCash=="" || this.stats.cash<=minInCash || this.stats.cash<maxInCash || this.stats.cash<10) {
 		return false;
 	}
 
@@ -4750,7 +4771,11 @@ AutoGift:function() {
 			gm.setValue('GiftEntry',giverId[2]+vs+giverName);
 			gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
 			this.JustDidIt('ClickedFacebookURL');
-			this.VisitUrl(acceptDiv.href);
+			if (is_chrome) {
+				this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&rqtp=army&uid=" + giverId[2]);
+			} else {
+				this.VisitUrl(acceptDiv.href);
+			}
 			return true;
 		}
 		gm.setValue('HaveGift',false);
@@ -4779,12 +4804,14 @@ AutoGift:function() {
 
 	// CA send gift button
 	if (gm.getValue('CASendList','')) {
-		if (button = nHtml.FindByAttrContains(nHtml.FindByAttrContains(document.body,'form','id','req_form_'),'input','id','send')) {
-			gm.log('Clicked CA send gift button');
-			gm.listAddBefore('FBSendList',gm.getList('CASendList'));
-			gm.setList('CASendList',[]);
-			caap.Click(button);
-			return true;
+		if (sendForm = nHtml.FindByAttrContains(document.body,'form','id','req_form_')) {
+			if (button = nHtml.FindByAttrContains(sendForm,'input','id','send')) {
+				gm.log('Clicked CA send gift button');
+				gm.listAddBefore('FBSendList',gm.getList('CASendList'));
+				gm.setList('CASendList',[]);
+				caap.Click(button);
+				return true;
+			}
 		}
 		gm.log('No CA button to send gifts');
 		gm.listAddBefore('ReceivedList',gm.getList('CASendList'));
@@ -5209,6 +5236,7 @@ MainLoop:function() {
 	this.SetupDivs();
 //	this.AddBattleLinks();
 	if(gm.getValue('Disabled',false)) {
+		if (is_chrome) CE_message("disabled", null, gm.getValue('Disabled',false));
 		this.SetControls();
 		this.WaitMainLoop();
 		return;
@@ -5281,6 +5309,7 @@ ReloadCastleAge:function() {
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('caapPause','none');
+		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
 },
@@ -5299,13 +5328,14 @@ if(gm.getValue('SetTitle')) {
 if (gm.getValue('LastVersion',0) != thisVersion) {
 	// Put code to be run once to upgrade an old version's variables to new format or such here.
 	if (parseInt(gm.getValue('LastVersion',0),10)<121) gm.setValue('WhenBattle',gm.getValue('WhenFight','Stamina Available'));
-	/*if (parseInt(gm.getValue('LastVersion',0))<126) {
-		if (navigator.userAgent.toLowerCase().indexOf('chrome') == -1) {
-			for each(var n in GM_listValues()){
-				if (GM_getValue(n)) GM_setValue(n,GM_getValue(n).toString().replace('~',os).replace('`',vs));
+	if (parseInt(gm.getValue('LastVersion',0))<126) {
+		var storageKeys = GM_listValues();
+		for (var key = 0; key < storageKeys.length; key++){
+			if (GM_getValue(storageKeys[key])) {
+				GM_setValue(storageKeys[key],GM_getValue(storageKeys[key]).toString().replace('~',os).replace('`',vs));
 			}
 		}
-	}*/
+	}
 	if (parseInt(gm.getValue('LastVersion',0),10)<130 && gm.getValue('MonsterGeneral')) {
 		gm.setValue('AttackGeneral',gm.getValue('MonsterGeneral'));
 		gm.deleteValue('MonsterGeneral');
@@ -5319,10 +5349,10 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 	gm.setValue('LastVersion',thisVersion);
 }
 
-window.setTimeout(function() {
-//$(function() {
+$(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
+	if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
 	// todo figure out way to print out the querySelector value for refined function calls
 	//if (document.querySelector("#app46755028429_battle_monster"))
@@ -5331,9 +5361,7 @@ window.setTimeout(function() {
 	caap.addExpDisplay();
 	gm.setValue('ReleaseControl',true);
 	caap.MainLoop();
-},1000);
-//});
-
+});
 
 caap.ReloadOccasionally();
 

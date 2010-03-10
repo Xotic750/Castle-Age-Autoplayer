@@ -1,40 +1,66 @@
 <html>
     <head>
-        <script>
-            chrome.extension.onRequest.addListener(
-                function(request, sender, sendResponse) {
-                    switch (request.action) {
-                            case "Set" :
-                                window.localStorage.setItem(request.name, request.value);
-                                sendResponse({ack: "Ok"});
-                                break;
-                            case "Get" :
-                                var getValue = window.localStorage.getItem(request.name);
-                                sendResponse({resValue: getValue});
-                                break;
-                            case "GetAll" :
-                                var allAttrPairs = '';
-                                for (var i =0; i < window.localStorage.length; i++) {
-                                    var attrPair = window.localStorage.key(i).toString().replace(/^castle_age__/,'') + "|" + window.localStorage.getItem(window.localStorage.key(i).toString());
-                                    allAttrPairs = allAttrPairs + "||" + attrPair;
-                                }
-                                sendResponse({attributes: allAttrPairs});
-                                break;
-                            case "Del" :
-                                window.localStorage.removeItem(request.name);
-                                sendResponse({ack: "Ok"});
-                                break;
-                            case "Clr" :
-                                window.localStorage.clear();
-                                sendResponse({ack: "Ok"});
-                                break;
-                            default :
-                                sendResponse({});
-                    }
+        <script type="text/javascript" src="gm_functions.js"></script>
+        <script type="text/javascript" src="chrome_support.js"></script>
+        <script type="text/javascript">
+            var timerId;
+            var pollInterval = 1000 * 5; // 1 minute, in milliseconds
+            var pollFailCount = 0;
+
+            function setItem(key, value) {
+                try {
+                    S_log("background.html: Inside setItem:" + key + ":" + value);
+                    GM_setValue(key, value);
+                }catch(e) {
+                    S_log("background.html: Error inside setItem");
+                    S_log(e);
                 }
-            );
+                log("background.html: Return from setItem" + key + ":" +  value);
+            }
+
+            function getItem(key) {
+                var value;
+                S_log('background.html: Get Item: ' + key);
+                try {
+                    value = GM_getValue(key);
+                }catch(e) {
+                    S_log("background.html: Error inside getItem() for key:" + key);
+                        S_log(e);
+                        value = "null";
+                }
+                S_log("background.html: Returning value: " + value);
+                return value;
+            }
+
+            function clearStrg() {
+                S_log('background.html: about to clear local storage');
+                localStorage.clear();
+                S_log('background.html: cleared');
+            }
+
+            function message(action, name, value) {
+                CS_message(action, name, value);
+                S_log('background.html: message: ' + action +' ' + name  +' ' + value);
+            }
+
+            function startPoll() {
+                CS_message("DoPoll", null, null);
+                S_log('background.html: startPoll: ' + GM_getValue("PollFailCount", 0));
+                timerId = setTimeout(startPoll, pollInterval);
+            }
+
+            function stopPoll() {
+                clearTimeout(timerId);
+                S_log('background.html: stopPoll');
+            }
+
+            function main() {
+                S_log('background.html: main');
+                CM_Listener();
+                //startPoll();
+            }
         </script>
     </head>
-    <body onload="">
+    <body onload="main()">
     </body>
 </html>

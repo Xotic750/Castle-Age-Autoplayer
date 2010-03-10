@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="chrome_support.js"></script>
+        <script type="text/javascript">
+            function log(txt) {
+                if(logging) {
+                    chrome.extension.getBackgroundPage().log("popup.html: " + txt);
+                }
+            }
+
+            function getValue(key) {
+                return chrome.extension.getBackgroundPage().getItem(key);
+            }
+
+            function setValue(key, value) {
+                return chrome.extension.getBackgroundPage().setItem(key, value);
+            }
+
+            function pause() {
+                $('#play').attr('style', 'display: inline');
+                $('#pause').attr('style', 'display: none');
+                chrome.extension.getBackgroundPage().message("clickcontrolDiv", null, null);
+                //window.close();
+            }
+
+            function play() {
+                $('#pause').attr('style', 'display: inline');
+                $('#play').attr('style', 'display: none');
+                chrome.extension.getBackgroundPage().message("clickcaapRestart", null, null);
+                //window.close();
+            }
+
+            function disable() {
+                $('#enable').attr('style', 'display: inline');
+                $('#disable').attr('style', 'display: none');
+                //window.close();
+            }
+
+            function enable() {
+                $('#disable').attr('style', 'display: inline');
+                $('#enable').attr('style', 'display: none');
+                //window.close();
+            }
+
+            function begin() {
+                log("begin");
+                if (getValue("ce_paused")) {
+                    $('#play').attr('style', 'display: inline');
+                    $('#pause').attr('style', 'display: none')
+                } else {
+                    $('#pause').attr('style', 'display: inline');
+                    $('#play').attr('style', 'display: none');
+                }
+
+                if (getValue("ce_disabled")) {
+                    $('#enable').attr('style', 'display: inline');
+                    $('#disable').attr('style', 'display: none');
+                    $('#enable').attr('disabled', 'disabled');
+                } else {
+                    $('#disable').attr('style', 'display: inline');
+                    $('#enable').attr('style', 'display: none');
+                    $('#disable').attr('disabled', 'disabled');
+                }
+                log("end");
+            }
+        </script>
+    </head>
+    <body onload="begin()">
+        <div style="white-space:nowrap">
+            <p>Not working yet!</p>
+            <button id="pause" style="display: none" class="button" onclick="pause()">Pause</button>
+            <button id="play" style="display: none" class="button" onclick="play()">Play</button>
+            <button id="enable" style="display: none" class="button" onclick="enable()">Enable</button>
+            <button id="disable" style="display: none" class="button" onclick="disable()">Disable</button>
+        </div>
+    </body>
+</html>
