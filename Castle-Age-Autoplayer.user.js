@@ -4069,6 +4069,7 @@ MonsterFinder:function(){
 	if (urlix == "" && gm.getValue("mfStatus","") != "OpenMonster") {
 				gm.setValue("mfStatus","");
 				gm.log("Resetting monster finder history");
+				this.clearLinks();
 	}
 
 	gm.log("All checks passed to enter Monster Finder");
@@ -4305,35 +4306,39 @@ clearLinks: function (resetall){
 		gm.setValue("navLink","");
 		gm.setValue("mfStatus","");
 		gm.setValue("waitMonsterLoad",0);
+		gm.setValue("urlixc","~");
 	}
-	gm.setValue("urlixc","~");
+	
+	gm.setValue("urlix","~");
+	gm.setValue('doaid', '~');
+	gm.setValue('legio', '~');
+	gm.setValue('hydra', '~');
+	gm.setValue('earth', '~');
+	gm.setValue('kull', '~');
+	gm.setValue('gilda', '~');
+	gm.setValue('colos', '~');
+	gm.setValue('sylva', '~');
+	gm.setValue('mephi', '~');
+	gm.setValue('keira', '~');
+	gm.setValue('lotus', '~');
+	gm.setValue('skaar', '~');
+	gm.setValue('serps', '~');
+	gm.setValue('eserp', '~');
+	gm.setValue('sserp', '~');
+	gm.setValue('aserp', '~');
+	gm.setValue('rserp', '~');
+	gm.setValue('drags', '~');
+	gm.setValue('edrag', '~');
+	gm.setValue('fdrag', '~');
+	gm.setValue('gdrag', '~');
+	gm.setValue('rdrag', '~');
+	gm.setValue('deas', '~');
+	gm.setValue('a1dea', '~');
+	gm.setValue('a2dea', '~');
+	gm.setValue('b1dea', '~');
+	gm.setValue('b2dea', '~');
 
-	for(var x = 0; x < caap.monstArgs.snapshotLength; x++){
-		gm.setValue(caap.monstArgs[x],"~");
-	}
-},
-
-maintainUrl:function(url) {
-/*
-	gm.log("Maintain " + url + " # Monst ARgs" + caap.monstArgs.length);
-	for(var x = 0; x < 27; x++){
-		var monstarg = gm.getValue(caap.monstArgs[x],"~");
-
-		gm.log("Checking " + url + "\n vs. " + caap.monstArgs[x].fname + " \n" + monstarg);
-		if (monstarg.indexOf(url) >= 0) {
-			gm.log("Maintaining, removing (" + url + " ) from " + caap.monstArgs[x]);
-			gm.setValue(caap.monstArgs[x], gm.getValue(caap.monstArgs[x],"~").replace("~" + url, "").replace("~~","~"));
-		}
-	}
-*/
-},
-
-maintainAllUrl:function(){
-	var urlixc = gm.getValue("urlixc","~").split("~");
-	gm.log("Maintaining all checked URL");
-	for(var x = 0; x < urlixc.snapshotLength; x++) {
-		maintainUrl(urlixc[x]);
-	}
+	this.JustDidIt("clearedMonsterFinderLinks");
 },
 
 handleCTA : function () {
@@ -5058,14 +5063,8 @@ AutoStat:function(){
 
 Idle:function() {
 	//Update Monster Finder
-	if(this.stats.stamina.num >= gm.getValue("MonsterFinderMinStam",50)){
-		var urlix = gm.getValue("urlix","~");
-                var urlcount = nHtml.CountInstances(urlix);
-		if(urlcount > 100) {
-			gm.log("Idle- Maintaining Checked URL, #-" +  urlcount);
-			caap.maintainAllUrl();
-			gm.log("Idle- URL Maintained, went from " + urlcount + " to " + nHtml.CountInstances(gm.getValue(Urlix,"~")));
-		}
+	if(caap.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)){
+		this.clearLinks(true);
 	}
 
 	try{
