@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.77
+// @version        138.78
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -13,7 +13,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.77";
+var thisVersion = "138.78";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -3831,17 +3831,23 @@ Monsters:function() {
 		} else if (gm.getValue('MonsterStaminaReq',1)==1) {
 			// not power attack only normal attacks
 			if(!(attackButton = this.CheckForImage('attack_monster_button.jpg'))) {
-				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-					attackButton = this.CheckForImage('attack_monster_button2.jpg');
-					if (attackButton) gm.setValue('MonsterStaminaReq',5);
+				if(!(attackButton = this.CheckForImage('event_attack1.gif'))) {
+					if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
+						if(!(attackButton = this.CheckForImage('event_attack2.gif')))
+							attackButton = this.CheckForImage('attack_monster_button2.jpg');
+						if (attackButton) gm.setValue('MonsterStaminaReq',5);
+					}
 				}
 			}
 		}else{
 			// power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
 			if(!(attackButton = this.CheckForImage('attack_monster_button2.jpg'))) {
-				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-					attackButton = this.CheckForImage('attack_monster_button.jpg');
-					if (attackButton) gm.setValue('MonsterStaminaReq',1);
+				if(!(attackButton = this.CheckForImage('event_attack2.gif'))) {
+					if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
+						if(!(attackButton = this.CheckForImage('event_attack1.gif')))
+							attackButton = this.CheckForImage('attack_monster_button.jpg');
+						if (attackButton) gm.setValue('MonsterStaminaReq',1);
+					}
 				}
 			}
 		}
@@ -5214,15 +5220,17 @@ MainLoop:function() {
 
 	if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
 
-		if (gm.getValue("mfStatus","") == "OpenMonster") {
-			gm.log("Opening Monster " + gm.getValue("navLink"));
-			this.CheckMonster();
-		} else if (gm.getValue("mfStatus","") == "CheckMonster"){
-			gm.log("Scanning URL for new monster");
-			this.selectMonst();
-		}
+		if (gm.getValue("MonsterFinderUse",false)) {
+			if (gm.getValue("mfStatus","") == "OpenMonster") {
+				gm.log("Opening Monster " + gm.getValue("navLink"));
+				this.CheckMonster();
+			} else if (gm.getValue("mfStatus","") == "CheckMonster"){
+				gm.log("Scanning URL for new monster");
+				this.selectMonst();
+			}
 
-		this.MonsterFinderOnFB();
+			this.MonsterFinderOnFB();
+		}
 		this.AcceptGiftOnFB();
 	 	this.WaitMainLoop();
 		return;

@@ -3,9 +3,9 @@
         <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
         <script type="text/javascript" src="chrome_support.js"></script>
         <script type="text/javascript">
-            function log(txt) {
+            function P_log(txt) {
                 if(logging) {
-                    chrome.extension.getBackgroundPage().log("popup.html: " + txt);
+                    chrome.extension.getBackgroundPage().S_log("popup.html: " + txt);
                 }
             }
 
@@ -20,6 +20,8 @@
             function pause() {
                 $('#play').attr('style', 'display: inline');
                 $('#pause').attr('style', 'display: none');
+                $('#disable').attr('disabled', '');
+                $('#enable').attr('disabled', '');
                 chrome.extension.getBackgroundPage().message("clickcontrolDiv", null, null);
                 //window.close();
             }
@@ -27,6 +29,8 @@
             function play() {
                 $('#pause').attr('style', 'display: inline');
                 $('#play').attr('style', 'display: none');
+                $('#disable').attr('disabled', 'true');
+                $('#enable').attr('disabled', 'true');
                 chrome.extension.getBackgroundPage().message("clickcaapRestart", null, null);
                 //window.close();
             }
@@ -34,35 +38,39 @@
             function disable() {
                 $('#enable').attr('style', 'display: inline');
                 $('#disable').attr('style', 'display: none');
+                chrome.extension.getBackgroundPage().message("clickcaap_Disabled", null, null);
                 //window.close();
             }
 
             function enable() {
                 $('#disable').attr('style', 'display: inline');
                 $('#enable').attr('style', 'display: none');
+                chrome.extension.getBackgroundPage().message("clickcaap_Disabled", null, null);
                 //window.close();
             }
 
             function begin() {
-                log("begin");
-                if (getValue("ce_paused")) {
-                    $('#play').attr('style', 'display: inline');
-                    $('#pause').attr('style', 'display: none')
-                } else {
-                    $('#pause').attr('style', 'display: inline');
-                    $('#play').attr('style', 'display: none');
-                }
-
-                if (getValue("ce_disabled")) {
+                P_log("begin");
+                if (getValue("disabled")) {
                     $('#enable').attr('style', 'display: inline');
                     $('#disable').attr('style', 'display: none');
-                    $('#enable').attr('disabled', 'disabled');
                 } else {
                     $('#disable').attr('style', 'display: inline');
                     $('#enable').attr('style', 'display: none');
-                    $('#disable').attr('disabled', 'disabled');
                 }
-                log("end");
+
+                if (getValue("paused")) {
+                    $('#play').attr('style', 'display: inline');
+                    $('#pause').attr('style', 'display: none')
+                    $('#disable').attr('disabled', '');
+                    $('#enable').attr('disabled', '');
+                } else {
+                    $('#pause').attr('style', 'display: inline');
+                    $('#play').attr('style', 'display: none');
+                    $('#disable').attr('disabled', 'true');
+                    $('#enable').attr('disabled', 'true');
+                }
+                P_log("end");
             }
         </script>
     </head>

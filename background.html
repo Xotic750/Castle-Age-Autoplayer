@@ -7,15 +7,85 @@
             var pollInterval = 1000 * 5; // 1 minute, in milliseconds
             var pollFailCount = 0;
 
+            function B_Listener() {
+                chrome.extension.onRequest.addListener(
+                    function(request, sender, sendResponse) {
+                        S_log(sender.tab ? "background.html: from a content script(tab:" + sender.tab.id + "): " + sender.tab.url : "background.html: from the extension");
+                        S_log("background.html: request: " + request.action + "(" + request.name + ", " + request.value + ")");
+                        if (sender.tab) setItem("sender.tab.id", sender.tab.id);
+                        else setItem("sender.tab.id", 0);
+                        switch (request.action) {
+                            case "paused" :
+                                switch (request.value) {
+                                    case "block" :
+                                        setItem("paused", true);
+                                        chrome.browserAction.setIcon({path:"paused.png"});
+                                        S_log("background.html: script paused.");
+                                        sendResponse({ack: "ok"});
+                                        break;
+                                    case "none" :
+                                        setItem("paused", false);
+                                        chrome.browserAction.setIcon({path:"icon.png"});
+                                        S_log("background.html: script unpaused.");
+                                        sendResponse({ack: "ok"});
+                                        break;
+                                    default :
+                                        chrome.browserAction.setIcon({path:"unknown.png"});
+                                        S_log("background.html: unkown pause state");
+                                        sendResponse({});
+                                        break;
+                                }
+                                break;
+                            case "disabled" :
+                                switch (request.value) {
+                                    case true :
+                                        setItem("disabled", true);
+                                        chrome.browserAction.setIcon({path:"disabled.png"});
+                                        S_log("background.html: script disabled");
+                                        sendResponse({ack: "ok"});
+                                        break;
+                                    case false :
+                                        setItem("disabled", false);
+                                        chrome.browserAction.setIcon({path:"icon.png"});
+                                        S_log("background.html: script enabled");
+                                        sendResponse({ack: "ok"});
+                                        break;
+                                    default :
+                                        chrome.browserAction.setIcon({path:"unknown.png"});
+                                        S_log("background.html: unkown disable state");
+                                        sendResponse({});
+                                        break;
+                                }
+                                break;
+                            default :
+                                S_log("background.html: unknown request action");
+                                sendResponse({});
+                                break;
+                        }
+                    }
+                );
+            };
+
+
+            function CS_message(action, name, value) {
+                if (getItem("sender.tab.id",0)) {
+                    chrome.tabs.get(getItem("sender.tab.id"), function(tab) {
+                        chrome.tabs.sendRequest(tab.id, {action: action, name: name, value: value}, function(response) {
+                            S_log("background.html: CS_message:" + action + "(" + name + ", " + value + ")");
+                        });
+                    });
+                }
+            };
+
             function setItem(key, value) {
                 try {
-                    S_log("background.html: Inside setItem:" + key + ":" + value);
+                    S_log("background.html: Inside setItem: " + key + ":" + value);
                     GM_setValue(key, value);
                 }catch(e) {
                     S_log("background.html: Error inside setItem");
                     S_log(e);
                 }
-                log("background.html: Return from setItem" + key + ":" +  value);
+                S_log("background.html: Return from setItem");
             }
 
             function getItem(key) {
@@ -24,7 +94,7 @@
                 try {
                     value = GM_getValue(key);
                 }catch(e) {
-                    S_log("background.html: Error inside getItem() for key:" + key);
+                    S_log("background.html: Error inside getItem() for key: " + key);
                         S_log(e);
                         value = "null";
                 }
@@ -56,7 +126,7 @@
 
             function main() {
                 S_log('background.html: main');
-                CM_Listener();
+                B_Listener();
                 //startPoll();
             }
         </script>
