@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.73
+// @version        138.76
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -13,7 +13,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.73";
+var thisVersion = "138.76";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -3591,8 +3591,10 @@ selectMonster:function() {
 	monsterFullList.forEach(function(monsterObj) {
 		gm.setListObjVal('monsterOl',monsterObj.split(vs)[0],'conditions','none');
 		monstPage = gm.getObjVal(monsterObj,'page');
-		if (gm.getValue('SerializeRaidsAndMonsters',false)) monsterList['any'].push(monsterObj);
-		else monsterList[monstPage].push(monsterObj);
+		if (gm.getValue('SerializeRaidsAndMonsters',false))
+			monsterList['any'].push(monsterObj);
+		else if ((monstPage == 'raid') || (monstPage=='battle_monster'))
+			monsterList[monstPage].push(monsterObj);
 	});
 
 	//PLEASE NOTE BEFORE CHANGING
@@ -3607,8 +3609,8 @@ selectMonster:function() {
 	// We then read in the users attack order list
 	for (var s in selectTypes) {
 		var selectType = selectTypes[s];
-		var firstOverAch;
-		var firstUnderMax;
+		firstOverAch = '';
+		firstUnderMax = '';
 		// The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
 		switch (selectType) {
 			case 'any' :
@@ -4139,20 +4141,20 @@ CheckMonster:function(){
 			caap.Click(attackButton);
 			window.setTimeout(function() {
 				gm.log("Hand off to Monsters section");
-			gm.setValue("urlixc", gm.getValue("urlixc","~") + "~" + gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
-				caap.maintainUrl(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
+				gm.setValue("urlixc", gm.getValue("urlixc","~") + "~" + gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
+				//caap.maintainUrl(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
 				gm.setValue("mfStatus","MonsterFound");
 				caap.DeceiveDidIt("NotargetFrombattle_monster");
-			gm.setValue("navLink","");
-			gm.setValue('LastAction',"Idle");
+				gm.setValue("navLink","");
+				gm.setValue('LastAction',"Idle");
 				caap.VisitUrl("http://apps.facebook.com/castle_age/battle_monster.php");
-			return true;
+				return true;
 			}, 4000);
 			return false;
 		} else {
 			gm.log("Already attacked this monster, find new one");
 			gm.setValue("urlixc", gm.getValue("urlixc","~") + "~" + gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
-			this.maintainUrl(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
+			//this.maintainURL(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
 			gm.setValue("mfStatus","TestMonster");
 			gm.setValue("waitMonsterLoad",0);
 			return true;
@@ -4167,7 +4169,7 @@ CheckMonster:function(){
 		} else {
 			gm.log("No Attack Button, Find New Monster");
 			gm.setValue("urlixc", gm.getValue("urlixc","~") + gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
-			this.maintainUrl(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
+			//this.maintainURL(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
 			gm.setValue("mfStatus","TestMonster");
 			gm.setValue("waitMonsterLoad",0);
 			return true;
@@ -4308,7 +4310,7 @@ clearLinks: function (resetall){
 		gm.setValue("waitMonsterLoad",0);
 		gm.setValue("urlixc","~");
 	}
-	
+
 	gm.setValue("urlix","~");
 	gm.setValue('doaid', '~');
 	gm.setValue('legio', '~');
