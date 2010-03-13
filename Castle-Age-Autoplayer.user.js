@@ -3487,6 +3487,22 @@ checkMonsterDamage:function() {
 			gm.log("Could not locate Monster ticker.");
 	}
 
+	monsterConditions = gm.getListObjVal('monsterOl',monster,'conditions','');
+	if (monsterConditions.indexOf(':ac')>=0) {
+		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
+		monsterList = gm.getList('monsterOl');
+		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
+				&& nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward')) {
+			gm.log('Collecting Reward');
+			gm.setValue('monsterReviewCounter',counter-1);
+			gm.setListObjVal('monsterOl',monster,'status','Collect Reward');
+			if (monster.indexOf('Siege')>=0) {
+				if (nHtml.FindByAttrContains(document.body,'a','href','&rix=1')) {
+					gm.setListObjVal('monsterOl',monster,'rix',1);
+				} else gm.setListObjVal('monsterOl',monster,'rix',2);
+			}
+		}
+	}
 	if(time.length == 3  && this.CheckForImage('monster_health_background.jpg')) {
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
 		var hpBar = null;
@@ -3533,22 +3549,6 @@ checkMonsterDamage:function() {
 		gm.log('Monster is dead?');
 		gm.setValue('resetselectMonster',true);
 		return;
-	}
-	monsterConditions = gm.getListObjVal('monsterOl',monster,'conditions','');
-	if (monsterConditions.indexOf(':ac')>=0) {
-		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
-		monsterList = gm.getList('monsterOl');
-		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
-				&& nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward')) {
-			gm.log('Collecting Reward');
-			gm.setValue('monsterReviewCounter',counter-1);
-			gm.setListObjVal('monsterOl',monster,'status','Collect Reward');
-			if (monster.indexOf('Siege')>=0) {
-				if (nHtml.FindByAttrContains(document.body,'a','href','&rix=1'))
-					gm.setListObjVal('monsterOl',monster,'rix',1);
-				else gm.setListObjVal('monsterOl',monster,'rix',2);
-			}
-		}
 	}
 	if ((boss = caap.bosses[monstType]))
 		achLevel = caap.parseCondition('ach',monsterConditions) || boss.ach;
@@ -3642,11 +3642,13 @@ selectMonster:function() {
 				// Or if this monster is dead, skip to next one
 				// Or if this monster is not the correct type, skip to next one
 				if ((monster.toLowerCase().indexOf(attackOrderName) < 0)
-					|| (gm.getObjVal(monsterObj,'status'))
 					|| (selectType != 'any' && monstPage != selectType)) continue;
 
 				//Monster is a match so we set the conditions
 				gm.setListObjVal('monsterOl',monster,'conditions',monsterConditions);
+
+				// If it's complete or collect rewards, no need to process further
+				if (gm.getObjVal(monsterObj,'status')) continue;
 
 				// checkMonsterDamage would have set our 'color' and 'over' values. We need to check
 				// these to see if this is the monster we should select/
@@ -3733,8 +3735,7 @@ MonsterReview:function() {
 		while ( ++counter < monsterObjList.length) {
 			if (!(monsterObj = monsterObjList[counter])) continue;
 			monster = monsterObj.split(vs)[0];
-			this.SetDivContent('battle_mess','Reviewing/sieging '+ monster);
-			this.SetDivContent('battle_mess','Reviewing/sieging '+ monster);
+			this.SetDivContent('battle_mess','Reviewing/sieging '+ counter + '/' + monsterObjList.length + ' ' + monster);
 			gm.setValue('monsterReviewCounter',counter);
 			link = gm.getObjVal(monsterObj,'Link');
 			if (/href/.test(link)) {
@@ -3747,7 +3748,7 @@ MonsterReview:function() {
 				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true)
 						|| this.stats.stamina.num == 0)
 					link = link.replace('&action=doObjective','');
-				gm.log('MonsterObj #' + counter + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
+				gm.log('MonsterObj '+ counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
 				gm.setValue('resetmonsterDamage',true);
 				gm.setValue('ReleaseControl',true);
 				caap.VisitUrl(link);
