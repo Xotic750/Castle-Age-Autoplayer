@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.78
+// @version        138.79
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -13,7 +13,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.78";
+var thisVersion = "138.79";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -3831,23 +3831,17 @@ Monsters:function() {
 		} else if (gm.getValue('MonsterStaminaReq',1)==1) {
 			// not power attack only normal attacks
 			if(!(attackButton = this.CheckForImage('attack_monster_button.jpg'))) {
-				if(!(attackButton = this.CheckForImage('event_attack1.gif'))) {
-					if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-						if(!(attackButton = this.CheckForImage('event_attack2.gif')))
-							attackButton = this.CheckForImage('attack_monster_button2.jpg');
-						if (attackButton) gm.setValue('MonsterStaminaReq',5);
-					}
+				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
+					attackButton = this.CheckForImage('attack_monster_button2.jpg');
+					if (attackButton) gm.setValue('MonsterStaminaReq',5);
 				}
 			}
 		}else{
 			// power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
 			if(!(attackButton = this.CheckForImage('attack_monster_button2.jpg'))) {
-				if(!(attackButton = this.CheckForImage('event_attack2.gif'))) {
-					if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-						if(!(attackButton = this.CheckForImage('event_attack1.gif')))
-							attackButton = this.CheckForImage('attack_monster_button.jpg');
-						if (attackButton) gm.setValue('MonsterStaminaReq',1);
-					}
+				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
+					attackButton = this.CheckForImage('attack_monster_button.jpg');
+					if (attackButton) gm.setValue('MonsterStaminaReq',1);
 				}
 			}
 		}
@@ -4039,35 +4033,47 @@ CheckNotHiding:function(attackType) {
 /////////////////////////////////////////////////////////////////////
 
 monstArgs:{
-		'doaid'			:{fname:'Any Weapon Aid', sname:'Aid', urlid:'doObjective'},
-		'urlix'			:{fname:'Any Monster', sname:'Any',urlid:'user'},
-		'legio'			:{fname:'Battle of the Dark Legion', sname:'Legion', nname:'castle', imgid:'cta_castle_', twt2: 'corc_'},
-		'hydra'			:{fname:'Cronus, The World Hydra ', sname:'Cronus', nname:'hydra', imgid:'twitter_hydra_objective', twt2: 'hydra_'},
-		'earth'			:{fname:'Genesis, The Earth Elemental ', sname:'Genesis', nname:'earthelemental', imgid:'cta_earth_', twt2: 'earth_'},
-		'kull'			:{fname:'Kull, the Orc Captain', sname:'Kull', nname:'captain', imgid:'cta_orc_captain.gif', twt2: 'bosscaptain'},
-		'gilda'			:{fname:'Gildamesh, the Orc King', sname:'Gildamesh', nname:'king', imgid:'cta_orc_king.gif', twt2: 'bossgilda'},
-		'colos'			:{fname:'Colossus of Terra', sname:'Colossus', nname:'stone', imgid:'cta_stone.gif', twt2: 'bosscolossus'},
-		'sylva'			:{fname:'Sylvanas the Sorceress Queen', sname:'Sylvanas', nname:'sylvanas', imgid:'cta_sylvanas.gif', twt2: 'bosssylvanus'},
-		'mephi'			:{fname:'Mephistophles', sname:'Mephisto', nname:'mephi', imgid:'cta_mephi.gif', twt2: 'bossmephistopheles'},
-		'keira'			:{fname:'Keira', sname:'keira', nname:'keira', imgid:'cta_keira.gif', twt2: 'boss_img'},
-		'lotus'			:{fname:'Lotus Ravenmoore', sname:'Ravenmoore', nname:'lotus', imgid:'cta_lotus.gif', twt2: 'bosslotus_'},
-		'skaar'			:{fname:'Skaar Deathrune',sname:'Deathrune', nname:'skaar', imgid:'cta_death_',twt2: 'death_', deadimg: 'cta_death_dead.gif'},
-		'serps'			:{fname:'Any Serpent', sname:'Serpent', nname:'seamonster', imgid:'twitter_seamonster_', twt2: 'sea_'},
-		'eserp'			:{fname:'Emerald Serpent', sname:'Emerald Serpent', nname:'greenseamonster', imgid:'twitter_seamonster_green_1', twt2: 'sea_'},
-		'sserp'			:{fname:'Saphire Serpent', sname:'Saphire Serpent', nname:'blueseamonster', imgid:'twitter_seamonster_blue_1', twt2: 'sea_'},
-		'aserp'			:{fname:'Amethyst Serpent', sname:'Amethyst Serpent', nname:'purpleseamonster', imgid:'twitter_seamonster_purple_1', twt2: 'sea_'},
-		'rserp'			:{fname:'Ancient Serpent', sname:'Ancient Serpent', nname:'redseamonster', imgid:'twitter_seamonster_red_1', twt2: 'sea_'},
-		'drags'			:{fname:'Any Dragon', sname:'Dragon', nname:'drag', imgid:'_dragon.gif', twt2: 'dragon_'},
-		'edrag'			:{fname:'Emerald Dragon', sname:'Emerald Dragon', nname:'greendragon', imgid:'cta_green_dragon.gif', twt2: 'dragon_'},
-		'fdrag'			:{fname:'Frost Dragon', sname:'Frost Dragon', nname:'bluedragon', imgid:'cta_blue_dragon.gif', twt2: 'dragon_'},
-		'gdrag'			:{fname:'Gold Dragon', sname:'Gold Dragon', nname:'yellowdragon', imgid:'cta_yellow_dragon.gif"', twt2: 'dragon_'},
-		'rdrag'			:{fname:'Ancient Red Dragon', sname:'Red Dragon', nname:'reddragon', imgid:'cta_red_dragon.gif', twt2: 'dragon_'},
-		'deas'			:{fname:'Any Deathrune Raid', sname:'Deathrune Raid', nname:'deathrune', imgid:'raid_deathrune_', twt2: 'deathrune_'},
-		'a1dea'			:{fname:'Deathrune Raid I Part 1', sname:'Deathrune Raid A1', nname:'deathrunea1', imgid:'raid_deathrune_a1.gif', twt2: 'deathrune_'},
-		'a2dea'			:{fname:'Deathrune Raid I Part 2', sname:'Deathrune Raid A2', nname:'deathrunea2', imgid:'raid_deathrune_a2.gif', twt2: 'deathrune_'},
-		'b1dea'			:{fname:'Deathrune Raid II Part 1', sname:'Deathrune Raid B1', nname:'deathruneb1', imgid:'raid_deathrune_b1.gif', twt2: 'deathrune_'},
-		'b2dea'			:{fname:'Deathrune Raid II Part 2', sname:'Deathrune Raid B2', nname:'deathruneb2', imgid:'raid_deathrune_b2.gif', twt2: 'deathrune_'}
+	'doaid'			:{fname:'Any Weapon Aid', sname:'Aid', urlid:'doObjective'},
+	'urlix'			:{fname:'Any Monster', sname:'Any',urlid:'user'},
+	'legio'			:{fname:'Battle of the Dark Legion', sname:'Legion', nname:'castle', imgid:'cta_castle_', twt2: 'corc_'},
+	'hydra'			:{fname:'Cronus, The World Hydra ', sname:'Cronus', nname:'hydra', imgid:'twitter_hydra_objective', twt2: 'hydra_'},
+	//'elems'			:{fname:'Any Elemental', sname:'Elemental', nname:'elems', imgid:'', twt2: ''},
+	'earth'			:{fname:'Genesis, The Earth Elemental ', sname:'Genesis', nname:'earthelemental', imgid:'cta_earth_', twt2: 'earth_'},
+	'ice'			:{fname:'Ragnarok, The Ice Elemental ', sname:'Ragnarok', nname:'iceelemental', imgid:'cta_water_', twt2: 'water_'},
+	'kull'			:{fname:'Kull, the Orc Captain', sname:'Kull', nname:'captain', imgid:'cta_orc_captain.gif', twt2: 'bosscaptain'},
+	'gilda'			:{fname:'Gildamesh, the Orc King', sname:'Gildamesh', nname:'king', imgid:'cta_orc_king.gif', twt2: 'bossgilda'},
+	'colos'			:{fname:'Colossus of Terra', sname:'Colossus', nname:'stone', imgid:'cta_stone.gif', twt2: 'bosscolossus'},
+	'sylva'			:{fname:'Sylvanas the Sorceress Queen', sname:'Sylvanas', nname:'sylvanas', imgid:'cta_sylvanas.gif', twt2: 'bosssylvanus'},
+	'mephi'			:{fname:'Mephistophles', sname:'Mephisto', nname:'mephi', imgid:'cta_mephi.gif', twt2: 'bossmephistopheles'},
+	'keira'			:{fname:'Keira', sname:'keira', nname:'keira', imgid:'cta_keira.gif', twt2: 'boss_img'},
+	'lotus'			:{fname:'Lotus Ravenmoore', sname:'Ravenmoore', nname:'lotus', imgid:'cta_lotus.gif', twt2: 'bosslotus_'},
+	'skaar'			:{fname:'Skaar Deathrune',sname:'Deathrune', nname:'skaar', imgid:'cta_death_',twt2: 'death_', deadimg: 'cta_death_dead.gif'},
+	'serps'			:{fname:'Any Serpent', sname:'Serpent', nname:'seamonster', imgid:'twitter_seamonster_', twt2: 'sea_'},
+	'eserp'			:{fname:'Emerald Serpent', sname:'Emerald Serpent', nname:'greenseamonster', imgid:'twitter_seamonster_green_1', twt2: 'sea_'},
+	'sserp'			:{fname:'Saphire Serpent', sname:'Saphire Serpent', nname:'blueseamonster', imgid:'twitter_seamonster_blue_1', twt2: 'sea_'},
+	'aserp'			:{fname:'Amethyst Serpent', sname:'Amethyst Serpent', nname:'purpleseamonster', imgid:'twitter_seamonster_purple_1', twt2: 'sea_'},
+	'rserp'			:{fname:'Ancient Serpent', sname:'Ancient Serpent', nname:'redseamonster', imgid:'twitter_seamonster_red_1', twt2: 'sea_'},
+	'drags'			:{fname:'Any Dragon', sname:'Dragon', nname:'drag', imgid:'_dragon.gif', twt2: 'dragon_'},
+	'edrag'			:{fname:'Emerald Dragon', sname:'Emerald Dragon', nname:'greendragon', imgid:'cta_green_dragon.gif', twt2: 'dragon_'},
+	'fdrag'			:{fname:'Frost Dragon', sname:'Frost Dragon', nname:'bluedragon', imgid:'cta_blue_dragon.gif', twt2: 'dragon_'},
+	'gdrag'			:{fname:'Gold Dragon', sname:'Gold Dragon', nname:'yellowdragon', imgid:'cta_yellow_dragon.gif"', twt2: 'dragon_'},
+	'rdrag'			:{fname:'Ancient Red Dragon', sname:'Red Dragon', nname:'reddragon', imgid:'cta_red_dragon.gif', twt2: 'dragon_'},
+	'deas'			:{fname:'Any Deathrune Raid', sname:'Deathrune Raid', nname:'deathrune', imgid:'raid_deathrune_', twt2: 'deathrune_'},
+	'a1dea'			:{fname:'Deathrune Raid I Part 1', sname:'Deathrune Raid A1', nname:'deathrunea1', imgid:'raid_deathrune_a1.gif', twt2: 'deathrune_'},
+	'a2dea'			:{fname:'Deathrune Raid I Part 2', sname:'Deathrune Raid A2', nname:'deathrunea2', imgid:'raid_deathrune_a2.gif', twt2: 'deathrune_'},
+	'b1dea'			:{fname:'Deathrune Raid II Part 1', sname:'Deathrune Raid B1', nname:'deathruneb1', imgid:'raid_deathrune_b1.gif', twt2: 'deathrune_'},
+	'b2dea'			:{fname:'Deathrune Raid II Part 2', sname:'Deathrune Raid B2', nname:'deathruneb2', imgid:'raid_deathrune_b2.gif', twt2: 'deathrune_'}
 },
+
+monstGroups:{	
+	'doaid'			:{monst:'legio~hydra~earth~ice~sylva~skaar~a1dea~a2dea~b1dea~b2dea'},
+	'world'			:{monst:'legio~hydra~earth~ice', max: '5'},
+	'serps'			:{monst:'eserp~sserp~aserp~rserp'},
+	'drags'			:{monst:'edrag~fdrag~gdrag~rdrag'},
+	'deas'			:{monst:'a1dea~a2dea~b1dea~b2dea'},
+	'elems'			:{monst:'earth~ice'},
+},	
+
 
 MonsterFinder:function(){
 	if(!gm.getValue("MonsterFinderUse",true) || this.stats.stamina.num < gm.getValue("MonsterFinderMinStam",20) || this.stats.health.num < 10) return false;
@@ -4093,7 +4099,7 @@ MonsterFinder:function(){
 		} else if ( (mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed',60*60*2)) || (!this.WhileSinceDidIt('checkedFeed',60*gm.getValue("MonsterFinderFeedMin",5))) ){
 				caap.selectMonst();
 			} else {
-				caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true",0);
+				caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf",0);
 				gm.setValue("mfStatus","MFOFB");
 				return false;
 			}
@@ -4128,9 +4134,11 @@ CheckMonster:function(){
 		if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
 			if(!(attackButton = this.CheckForImage('attack_monster_button2.jpg'))) {
 				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-					if(!(attackButton = this.CheckForImage('attack_monster_button2.jpg'))) {
-						if(!(attackButton = this.CheckForImage('attack_monster_button.jpg'))) {
-							attackButton = this.CheckForImage('raid_attack_button.gif');
+					if(!(attackButton = this.CheckForImage('attack_monster_button.jpg'))) {
+						if(!(attackButton = this.CheckForImage('event_attack1.gif'))) {
+							if(!(attackButton = this.CheckForImage('event_attack2.gif'))) {
+								attackButton = this.CheckForImage('raid_attack_button.gif');
+							}
 						}
 					}
 				}
@@ -4150,11 +4158,19 @@ CheckMonster:function(){
 				gm.setValue("urlixc", gm.getValue("urlixc","~") + "~" + gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
 				//caap.maintainUrl(gm.getValue("navLink").replace("http://apps.facebook.com/castle_age",""));
 				gm.setValue("mfStatus","MonsterFound");
-				caap.DeceiveDidIt("NotargetFrombattle_monster");
+				//caap.DeceiveDidIt("NotargetFrombattle_monster");
 				gm.setValue("navLink","");
-				gm.setValue('LastAction',"Idle");
-				caap.VisitUrl("http://apps.facebook.com/castle_age/battle_monster.php");
-				return true;
+				//caap.VisitUrl("http://apps.facebook.com/castle_age/battle_monster.php");				
+				gm.setValue('resetmonsterEngage',true);
+				caap.NavigateTo('battle_monster');
+				gm.log("Navigate to battle_monster");
+				window.setTimeout(function() {
+					gm.setValue('resetselectMonster',true);
+					gm.setValue('LastAction',"Idle");
+					gm.log("resetselectMonster");
+					return true
+				}, 4000);
+			
 			}, 4000);
 			return false;
 		} else {
@@ -4322,6 +4338,7 @@ clearLinks: function (resetall){
 	gm.setValue('legio', '~');
 	gm.setValue('hydra', '~');
 	gm.setValue('earth', '~');
+	gm.setValue('ice', '~');
 	gm.setValue('kull', '~');
 	gm.setValue('gilda', '~');
 	gm.setValue('colos', '~');
@@ -4377,6 +4394,11 @@ handleCTA : function () {
 					monst = gm.getValue("earth","~");
 					if (monst.indexOf(url) == -1) {
 						gm.setValue("earth", gm.getValue("earth","") + "~" + url);
+					}
+				} else if (src.indexOf("cta_water_") >= 0) { //Ragnarok, the Ice Elemental
+					monst = gm.getValue("ice","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("ice", gm.getValue("ice","") + "~" + url);
 					}
 				} else if (src.indexOf("raid_deathrune_") >= 0) { //Deathrune Raids
 					monst = gm.getValue("deas","~");
@@ -5220,17 +5242,15 @@ MainLoop:function() {
 
 	if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
 
-		if (gm.getValue("MonsterFinderUse",false)) {
-			if (gm.getValue("mfStatus","") == "OpenMonster") {
-				gm.log("Opening Monster " + gm.getValue("navLink"));
-				this.CheckMonster();
-			} else if (gm.getValue("mfStatus","") == "CheckMonster"){
-				gm.log("Scanning URL for new monster");
-				this.selectMonst();
-			}
-
-			this.MonsterFinderOnFB();
+		if (gm.getValue("mfStatus","") == "OpenMonster") {
+			gm.log("Opening Monster " + gm.getValue("navLink"));
+			this.CheckMonster();
+		} else if (gm.getValue("mfStatus","") == "CheckMonster"){
+			gm.log("Scanning URL for new monster");
+			this.selectMonst();
 		}
+
+		this.MonsterFinderOnFB();
 		this.AcceptGiftOnFB();
 	 	this.WaitMainLoop();
 		return;
