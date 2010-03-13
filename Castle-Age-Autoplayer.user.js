@@ -4733,11 +4733,9 @@ PassiveGeneral:function() {
 /////////////////////////////////////////////////////////////////////
 
 AutoIncome:function() {
-	if (this.stats.payminute < 1 && this.stats.paytime.match(/\d/)) {
-		this.SelectGeneral('IncomeGeneral');
-		return true;
-	}
-	return false;
+	return (this.stats.payminute < 1 
+		&& this.stats.paytime.match(/\d/)
+		&& this.SelectGeneral('IncomeGeneral'));
 },
 
 /////////////////////////////////////////////////////////////////////
