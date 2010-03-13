@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.80
+// @version        138.81
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -13,7 +13,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.80";
+var thisVersion = "138.81";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -1306,7 +1306,7 @@ monsterDashboard:function() {
 	}
 	caap.selectMonster();
 
-	var layout = "<div id='caap_top' style='position:absolute;top:" + (document.querySelector('#app46755028429_main_bn_container').offsetTop-11)
+	var layout = "<div id='caap_top' style='position:absolute;top:" + (document.getElementById('app46755028429_main_bn_container').offsetTop-11)
 		+ "px;left:0px;'>";
 	layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/home.php?filter=app_46755028429'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
 	layout += "<div id='caap_info' style='width:610px;height:175px;overflow:auto;'></div>";
@@ -4066,14 +4066,14 @@ monstArgs:{
 	'b2dea'			:{fname:'Deathrune Raid II Part 2', sname:'Deathrune Raid B2', nname:'deathruneb2', imgid:'raid_deathrune_b2.gif', twt2: 'deathrune_'}
 },
 
-monstGroups:{	
+monstGroups:{
 	'doaid'			:{monst:'legio~hydra~earth~ice~sylva~skaar~a1dea~a2dea~b1dea~b2dea'},
 	'world'			:{monst:'legio~hydra~earth~ice', max: '5'},
 	'serps'			:{monst:'eserp~sserp~aserp~rserp'},
 	'drags'			:{monst:'edrag~fdrag~gdrag~rdrag'},
 	'deas'			:{monst:'a1dea~a2dea~b1dea~b2dea'},
 	'elems'			:{monst:'earth~ice'},
-},	
+},
 
 
 MonsterFinder:function(){
@@ -4161,7 +4161,7 @@ CheckMonster:function(){
 				gm.setValue("mfStatus","MonsterFound");
 				//caap.DeceiveDidIt("NotargetFrombattle_monster");
 				gm.setValue("navLink","");
-				//caap.VisitUrl("http://apps.facebook.com/castle_age/battle_monster.php");				
+				//caap.VisitUrl("http://apps.facebook.com/castle_age/battle_monster.php");
 				gm.setValue('resetmonsterEngage',true);
 				caap.NavigateTo('battle_monster');
 				gm.log("Navigate to battle_monster");
@@ -4171,7 +4171,7 @@ CheckMonster:function(){
 					gm.log("resetselectMonster");
 					return true
 				}, 4000);
-			
+
 			}, 4000);
 			return false;
 		} else {
