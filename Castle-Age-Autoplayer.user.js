@@ -842,13 +842,13 @@ SetControls:function(force) {
 	var healthInstructions="Minimum health to have before healing, press tab to save(leave blank to disable): ";
 	var healthStamInstructions="Minimum Stamina to have before healing, press tab to save(leave blank to disable): ";
 	var bankImmedInstructions="Bank as soon as possible. May interrupt player and monster battles.";
-	var autobuyInstructions="Automatically buy properties in groups of 10 based on best Return On Investment value.";
-	var autosellInstructions="Automatically sell off any excess properties above your level allowance.";
+	var autobuyInstructions="Automatically buy lands in groups of 10 based on best Return On Investment value.";
+	var autosellInstructions="Automatically sell off any excess lands above your level allowance.";
 	htmlCode += '<hr />' + this.ToggleControl('CashandHealth','CASH and HEALTH');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) + '</td></tr>';
-		htmlCode += '<tr><td>Auto Buy Properties</td><td> ' + this.MakeCheckBox('autoBuyProperty',false,'',autobuyInstructions) + '</td></tr>';
-		htmlCode += '<tr><td>Auto Sell Excess Properties</td><td> ' + this.MakeCheckBox('SellProperties',true,'',autosellInstructions) + '</td></tr></table>';
+		htmlCode += '<tr><td>Auto Buy Lands</td><td> ' + this.MakeCheckBox('autoBuyLand',false,'',autobuyInstructions) + '</td></tr>';
+		htmlCode += '<tr><td>Auto Sell Excess Lands</td><td> ' + this.MakeCheckBox('SellLands',true,'',autosellInstructions) + '</td></tr></table>';
 		htmlCode += "Always Keep&nbsp$" + this.MakeNumberForm('minInStore',bankInstructions0,100000,"type='text'  size='12' style='font-size: 10px'") + " In Bank<br />";
 		htmlCode += "Bank Above&nbsp;&nbsp$" + this.MakeNumberForm('MaxInCash',bankInstructions2,'',"type='text'  size='7' style='font-size: 10px'") + "<br />";
 		htmlCode += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;But Keep&nbsp;$" + this.MakeNumberForm('MinInCash',bankInstructions1,'',"type='text' size='7' style='font-size: 10px'") + " On Hand <br /><br />";
@@ -1130,10 +1130,10 @@ SetControls:function(force) {
 	DoSiegeBox.addEventListener('change',function(e) {
 	},false);
 
-	var SellPropertiesBox=document.getElementById('caap_SellProperties');
-	var SellProperties=gm.getValue('SellProperties',true);
-	SellPropertiesBox.checked=SellProperties?true:false;
-	SellPropertiesBox.addEventListener('change',function(e) {
+	var SellLandsBox=document.getElementById('caap_SellLands');
+	var SellLands=gm.getValue('SellLands',true);
+	SellLandsBox.checked=SellLands?true:false;
+	SellLandsBox.addEventListener('change',function(e) {
 	},false);
 
 	var IgnoreBattleLossBox=document.getElementById('caap_IgnoreBattleLoss');
@@ -1256,10 +1256,10 @@ SetControls:function(force) {
 		return;
 	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
-/*		if(event.target.getElementById("app46755028429_app_body")) {
-		nHtml.setTimeout(caap.checkMonsterDamage, 0);
+		if(event.target.getElementById("app46755028429_app_body")) {
+			nHtml.setTimeout(caap.checkMonsterDamage, 0);
 		}
-*/		if(document.getElementById('app46755028429_st_2_5')) {
+		if(document.getElementById('app46755028429_st_2_5')) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
 		}
 
@@ -1746,6 +1746,7 @@ SetCheckResultsFunction:function(resultsFunction) {
 	this.JustDidIt('SetResultsFunctionTimer');
 	gm.setValue('ResultsFunction',resultsFunction);
 },
+
 pageSpecificCheckFunctions:{'battle_monster':'checkMonsterEngage','raid':'checkMonsterEngage'},
 CheckResults:function() {
 	// Check for new gifts
@@ -2411,13 +2412,13 @@ AutoBless:function() {
 
 /////////////////////////////////////////////////////////////////////
 
-//							PROPERTY
+//							LAND
 
-// Displays return on properties and perfom auto purchasing
+// Displays return on lands and perfom auto purchasing
 
 /////////////////////////////////////////////////////////////////////
 
-PropertiesGetNameFromRow:function(row) {
+LandsGetNameFromRow:function(row) {
 	// schoolofmagic, etc. <div class=item_title
 	var infoDiv=nHtml.FindByAttrXPath(row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')");
 	if(!infoDiv) {
@@ -2434,13 +2435,13 @@ PropertiesGetNameFromRow:function(row) {
 },
 
 bestProp:{prop:'',roi:''},
-DrawProperties:function() {
+DrawLands:function() {
 	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_propDone')")) return null;
 	gm.deleteValue('BestPropCost');
 	this.sellProp = '';
 	this.bestProp.roi =0;
-	var propByName=this.IterateProperties(function(prop) {
-		this.SelectProperties(prop.row, 2);
+	var propByName=this.IterateLands(function(prop) {
+		this.SelectLands(prop.row, 2);
 		var roi=(parseInt((prop.income/prop.totalCost)*240000,10) /100);
 		selects = prop.row.getElementsByTagName('select');
 		if(!nHtml.FindByAttrXPath(prop.row,'input',"@name='Buy'")) {
@@ -2453,7 +2454,7 @@ DrawProperties:function() {
 			div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_costs')");
 			ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
 			owned = Number(ownedText.replace(/:\s+/,''));
-			// If we own more than allowed we will set property and selection
+			// If we own more than allowed we will set land and selection
 			var selection = new Array(1,5,10);
 			for (var s=2; s>=0; s--) {
 				if (owned - maxAllowed >= selection[s]) {
@@ -2511,7 +2512,7 @@ DrawProperties:function() {
 	return null;
 },
 
-IterateProperties:function(func) {
+IterateLands:function(func) {
 	var content=document.getElementById('content');
 	var ss=document.evaluate(".//tr[contains(@class,'land_buy_row')]",content,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	if (!ss || (ss.snapshotLength == 0)) {
@@ -2527,9 +2528,9 @@ IterateProperties:function(func) {
 		var row=ss.snapshotItem(s);
 		if(!row) { continue; }
 
-		var name=this.PropertiesGetNameFromRow(row);
+		var name=this.LandsGetNameFromRow(row);
 
-		if(name==null || name=='') { gm.log("Can't find property name"); continue; }
+		if(name==null || name=='') { gm.log("Can't find land name"); continue; }
 
 		var moneyss=document.evaluate(".//*[contains(@class,'gold') or contains(@class,'currency')]",row,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 
@@ -2564,7 +2565,7 @@ IterateProperties:function(func) {
 			continue;
 		}
 		if(income>cost) {
-			// income is always less than the cost of property.
+			// income is always less than the cost of land.
 			income=nums[1]; cost=nums[0];
 		}
 
@@ -2582,16 +2583,16 @@ IterateProperties:function(func) {
 	return propByName;
 },
 
-SelectProperties:function(row,val) {
+SelectLands:function(row,val) {
 	var selects=row.getElementsByTagName('select');
 	if(selects.length<1) { return false; }
 	var select=selects[0];
 	select.selectedIndex=val;
 	return true;
 },
-BuyProperty:function(prop) {
-	//this.DrawProperties();
-	this.SelectProperties(prop.row,2);
+BuyLand:function(prop) {
+	//this.DrawLands();
+	this.SelectLands(prop.row,2);
 	var button;
 	if(button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'")){
 //		gm.log("Clicking buy button:" +button);
@@ -2606,9 +2607,9 @@ BuyProperty:function(prop) {
 	return false;
 },
 
-SellProperty:function(prop,select) {
-	//this.DrawProperties();
-	this.SelectProperties(prop.row,select);
+SellLand:function(prop,select) {
+	//this.DrawLands();
+	this.SelectLands(prop.row,select);
 	var button;
 	if(button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'")){
 //		gm.log("Clicking sell button:" +button);
@@ -2622,24 +2623,24 @@ SellProperty:function(prop,select) {
 	return false;
 },
 
-Properties:function() {
+Lands:function() {
 	/*if(gm.getValue('LandTimer') && this.CheckTimer('LandTimer')) {
 		if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
 	}*/
-	var autoBuyProperty=gm.getValue('autoBuyProperty',0);
-	if(autoBuyProperty) {
-		// Do we have properties above our max to sell?
-		if (this.sellProp && gm.getValue('SellProperties',true)) {
-			this.SellProperty(this.sellProp,this.sellProp.selection);
+	var autoBuyLand=gm.getValue('autoBuyLand',0);
+	if(autoBuyLand) {
+		// Do we have lands above our max to sell?
+		if (this.sellProp && gm.getValue('SellLands',true)) {
+			this.SellLand(this.sellProp,this.sellProp.selection);
 			return true;
 		}
 
 		if(!gm.getValue('BestPropCost')){
-			gm.log("Going to land to get Best Property Cost");
+			gm.log("Going to land to get Best Land Cost");
 			if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
 		}
 		if(gm.getValue('BestPropCost') == 'none'){
-			//gm.log("No Properties avaliable");
+			//gm.log("No Lands avaliable");
 			return false;
 		}
 		if(!gm.getValue('inStore')){
@@ -2658,8 +2659,8 @@ Properties:function() {
 			if(this.PassiveGeneral())return true;
 			this.NavigateTo('soldiers,land');
 			if(this.CheckForImage('tab_land_on.gif')){
-				gm.log("Buying property: "+caap.bestProp.name);
-				if (this.BuyProperty(caap.bestProp.prop))
+				gm.log("Buying land: "+caap.bestProp.name);
+				if (this.BuyLand(caap.bestProp.prop))
 				return true;
 			}else return this.NavigateTo('soldiers,land');
 		}
@@ -5293,7 +5294,7 @@ MainLoop:function() {
 	this.monsterDashboard();
     this.UpdateGeneralList();
     this.SetControls();
-	this.DrawProperties();
+	this.DrawLands();
 
 	if(!this.WhileSinceDidIt('newControlPanelLoaded',3)) {
 		this.WaitMainLoop();
@@ -5310,7 +5311,7 @@ MainLoop:function() {
 		this.WaitMainLoop();
 		return;
 	}
-	var actionsList = ['AutoElite','Heal','ImmediateBanking','ImmediateAutoStat','MaxEnergyQuest','DemiPoints','Monsters','Battle','MonsterFinder','Quests','PassiveGeneral','Properties','Bank','AutoBless','AutoStat','AutoGift','MonsterReview','Idle'];
+	var actionsList = ['AutoElite','Heal','ImmediateBanking','ImmediateAutoStat','MaxEnergyQuest','DemiPoints','Monsters','Battle','MonsterFinder','Quests','PassiveGeneral','Lands','Bank','AutoBless','AutoStat','AutoGift','MonsterReview','Idle'];
 
 	if (!gm.getValue('ReleaseControl',false)) actionsList.unshift(gm.getValue('LastAction','Idle'));
 	else gm.setValue('ReleaseControl',false);
@@ -5382,9 +5383,7 @@ $(function() {
 	gm.setValue('caapPause','none');
 	if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
-	// todo figure out way to print out the querySelector value for refined function calls
-	//if (document.querySelector("#app46755028429_battle_monster"))
-        if (document.getElementById("app46755028429_battle_monster"))
+	if (document.getElementById("app46755028429_battle_monster"))
 		caap.checkMonsterDamage();
 	caap.addExpDisplay();
 	gm.setValue('ReleaseControl',true);
