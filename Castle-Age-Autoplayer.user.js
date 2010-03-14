@@ -3492,7 +3492,8 @@ checkMonsterDamage:function() {
 		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 		monsterList = gm.getList('monsterOl');
 		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
-				&& nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward')) {
+				&& (nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward') 
+				|| nHtml.FindByAttrContains(document.body,'input','alt','Collect Reward'))) {
 			gm.log('Collecting Reward');
 			gm.setValue('monsterReviewCounter',counter-1);
 			gm.setListObjVal('monsterOl',monster,'status','Collect Reward');
