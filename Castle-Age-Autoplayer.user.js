@@ -1256,10 +1256,13 @@ SetControls:function(force) {
 		return;
 	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
-		if(event.target.getElementById("app46755028429_app_body")) {
-			nHtml.setTimeout(caap.checkMonsterDamage, 0);
+//		if(event.target.getElementById("app46755028429_app_body")) {
+//			nHtml.setTimeout(caap.checkMonsterDamage, 0);
+		if(event.target.querySelector("#app46755028429_app_body")) {
+			nHtml.setTimeout(caap.loadPageCheckFunction, 0);
+//			caap.loadPageCheckFunction(event.target);
 		}
-		if(document.getElementById('app46755028429_st_2_5')) {
+		if(event.target.getElementById('app46755028429_st_2_5')) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
 		}
 
@@ -1747,19 +1750,37 @@ SetCheckResultsFunction:function(resultsFunction) {
 	gm.setValue('ResultsFunction',resultsFunction);
 },
 
-page:{
-        'index'					: {signatureGif: 168},
-        'quests'				: {signatureGif: 168},
-        'symbolquests'			: {signatureGif: 168},
-        'monster_quests'		: {signatureGif: 168},
-        'onMonster'					: {signatureGif: 168},
-        'battle_monster'			: {signatureGif: 168, subpages: ['onMonster']},
-        'onMonster'					: {signatureGif: 168},
-        'raid'			: {signatureGif: 168, subpages: ['onRaid']},
-        'land'			: {signatureGif: 168},
-        'quests'			: {signatureGif: 168, subpage: 'onMonster'},
-        'battle'			: {signatureGif: 168, subpage: 'onMonster'},
-		'onMonster'
+pageList:{
+	'battle_monster': {signaturePic: 'tab_monster_on.jpg', subpages: ['onMonster']},
+	'onMonster'		: {signaturePic: 'tab_monster_active.jpg'},
+	'raid'			: {signaturePic: 'tab_raid_on.gif', subpages: ['onRaid']},
+	'onRaid'		: {signaturePic: 'raid_back.jpg'},
+	'land'			: {signaturePic: 'tab_land_on.gif'},
+},
+loadPageCheckFunction:function(appBodySlice) {
+	// Check page to see if we should go to a page specific check function
+	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
+	gm.setValue('page','');
+	page = gm.getValue('clickUrl');
+	gm.log('Last URL called is ' + page);
+	if(page.match(/\/[^\/]+.php/i)) page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
+	if (caap.pageList[page]) {
+		if (caap.CheckForImage(caap.pageList[page].signaturePic,appBodySlice)) {
+			gm.log('Page: ' + page);
+			page = gm.setValue('page',page);
+		}
+		caap.pageList[page].subpages.forEach( function(subpage) {
+			if (caap.CheckForImage(caap.pageList[subpage].signaturePic,appBodySlice)) {
+				gm.log('Page: ' + subpage);
+				page = gm.setValue('page',subpage);
+			}
+		});
+	}
+	if (!gm.getValue('page')) return gm.log('Page not defined on pageList');
+	if(typeof this['onLoadCheck_'+page] == 'function') {
+		this['onLoadCheck_'+page];
+	}
+},
 
 pageSpecificCheckFunctions:{'battle_monster':'checkMonsterEngage','raid':'checkMonsterEngage'},
 CheckResults:function() {
@@ -1793,15 +1814,6 @@ CheckResults:function() {
 	// If set and still recent, go to the function specified in 'ResultsFunction'
 	resultsFunction = gm.getValue('ResultsFunction','');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
-
-	// Check page to see if we should go to a page specific check function
-	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-	if (!(page = gm.getValue('clickUrl'))) return;
-	gm.log('Clicked page is ' + page);
-	if(page.match(/\/[^\/]+.php/i)) page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
-	if (this.pageSpecificCheckFunctions[page])
-		this[this.pageSpecificCheckFunctions[page]]();
-	gm.setValue('clickUrl','');
 },
 
 
@@ -5400,6 +5412,7 @@ $(function() {
 	if (document.getElementById("app46755028429_battle_monster"))
 		caap.checkMonsterDamage();
 	caap.addExpDisplay();
+	caap.loadPageCheckFunction(document.body);
 	gm.setValue('ReleaseControl',true);
 	caap.MainLoop();
 });
