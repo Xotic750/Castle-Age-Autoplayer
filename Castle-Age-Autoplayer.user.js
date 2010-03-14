@@ -1256,16 +1256,11 @@ SetControls:function(force) {
 		return;
 	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
-//		if(event.target.getElementById("app46755028429_app_body")) {
-//			nHtml.setTimeout(caap.checkMonsterDamage, 0);
-		if(event.target.querySelector("#app46755028429_app_body")) {
+		if (event.target.id == "app46755028429_app_body")
 			nHtml.setTimeout(caap.loadPageCheckFunction, 0);
-//			caap.loadPageCheckFunction(event.target);
-		}
 		if(event.target.getElementById('app46755028429_st_2_5')) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
 		}
-
 	}, true);
 
 	globalContainer.addEventListener('click', function(event) {
@@ -1751,34 +1746,35 @@ SetCheckResultsFunction:function(resultsFunction) {
 },
 
 pageList:{
-	'battle_monster': {signaturePic: 'tab_monster_on.jpg', subpages: ['onMonster']},
-	'onMonster'		: {signaturePic: 'tab_monster_active.jpg'},
-	'raid'			: {signaturePic: 'tab_raid_on.gif', subpages: ['onRaid']},
-	'onRaid'		: {signaturePic: 'raid_back.jpg'},
-	'land'			: {signaturePic: 'tab_land_on.gif'},
+	'battle_monster': {signaturePic: 'tab_monster_on.jpg', 		onLoadCheckFunction : 'onLoadCheck_fightList', subpages: ['onMonster']},
+	'onMonster'		: {signaturePic: 'tab_monster_active.jpg', 	onLoadCheckFunction : 'onLoadCheck_viewFight'},
+	'raid'			: {signaturePic: 'tab_raid_on.gif', 		onLoadCheckFunction : 'onLoadCheck_fightList', subpages: ['onRaid']},
+	'onRaid'		: {signaturePic: 'raid_back.jpg', 			onLoadCheckFunction : 'onLoadCheck_viewFight'},
+	'land'			: {signaturePic: 'tab_land_on.gif', 		onLoadCheckFunction : 'onLoadCheck_land'},
 },
 loadPageCheckFunction:function(appBodySlice) {
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	gm.setValue('page','');
-	page = gm.getValue('clickUrl');
-	gm.log('Last URL called is ' + page);
-	if(page.match(/\/[^\/]+.php/i)) page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
+	var pageUrl = gm.getValue('clickUrl');
+	if (pageUrl.match(/\/[^\/]+.php/i)) page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
+	else return;
 	if (caap.pageList[page]) {
 		if (caap.CheckForImage(caap.pageList[page].signaturePic,appBodySlice)) {
-			gm.log('Page: ' + page);
 			page = gm.setValue('page',page);
 		}
-		caap.pageList[page].subpages.forEach( function(subpage) {
-			if (caap.CheckForImage(caap.pageList[subpage].signaturePic,appBodySlice)) {
-				gm.log('Page: ' + subpage);
-				page = gm.setValue('page',subpage);
-			}
-		});
+		if (caap.pageList[page].subpages) {
+			caap.pageList[page].subpages.forEach( function(subpage) {
+				if (caap.CheckForImage(caap.pageList[subpage].signaturePic,appBodySlice)) {
+					page = gm.setValue('page',subpage);
+				}
+			});
+		}
 	}
-	if (!gm.getValue('page')) return gm.log('Page not defined on pageList');
-	if(typeof this['onLoadCheck_'+page] == 'function') {
-		this['onLoadCheck_'+page];
+	if (!gm.getValue('page')) return gm.log('Last URL: ' + pageUrl + ' No page defined on pageList');
+	else gm.log('Last URL: ' + pageUrl + ' Page: ' + page);
+	if(typeof caap[caap.pageList[page].onLoadCheckFunction] == 'function') {
+		caap[caap.pageList[page].onLoadCheckFunction]();
 	}
 },
 
@@ -2461,8 +2457,8 @@ LandsGetNameFromRow:function(row) {
 },
 
 bestLand:{land:'',roi:''},
-DrawLands:function() {
-	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_landDone')")) return null;
+onLoadCheck_land:function() {
+//	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_landDone')")) return null;
 	gm.deleteValue('BestLandCost');
 	this.sellLand = '';
 	this.bestLand.roi =0;
@@ -3354,16 +3350,12 @@ parseCondition:function(type,conditions) {
 		value = parseInt(value,10) * 1000 * (/\d+k/i.test(value) + /\d+m/i.test(value) * 1000);
 	return parseInt(value,10);
 },
-checkMonsterEngage:function() {
-	if (!this.oneMinuteUpdate('monsterEngage')) return;
+
+onLoadCheck_fightList:function() {
 	// get all buttons to check monsterObjectList
 	var ss=document.evaluate(".//img[contains(@src,'dragon_list_btn_')]",document.body,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	if (ss.snapshotLength==0) return false;
-	if (caap.CheckForImage('tab_monster_on.jpg'))
-		page = 'battle_monster';
-	else if (caap.CheckForImage('tab_raid_on.gif'))
-		page = 'raid';
-	else return;
+	page = gm.getValue('page');
 	gm.log('In check '+ page + ' engage');
 
 	firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
@@ -3430,18 +3422,17 @@ checkMonsterEngage:function() {
 	gm.setValue('resetdashboard',true);
 },
 
-checkMonsterDamage:function() {
-	// Check if on monster page
-	if (!(webSlice=caap.CheckForImage('dragon_title_owner.jpg'))) return;
-	if (!this.oneMinuteUpdate('monsterDamage')) return;
+onLoadCheck_viewFight:function() {
 	gm.log('Checking monster damage');
 	// Get name and type of monster
 	var monster = nHtml.GetText(webSlice);
 	var fort = null;
 	monster = monster.substring(0,monster.indexOf('You have (')).trim();
+gm.log(' viewfight 1');
 	if (this.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
 	else if (this.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
 	else monstType = /\w+$/i.exec(monster);
+gm.log(' viewfight 2');
 	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monster = monster.replace(/.+'s /,'Your ');
@@ -3449,6 +3440,7 @@ checkMonsterDamage:function() {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+unsafeWindow.Env.user))
 			 monster = monster.replace(/.+'s /,'Your ');
 	}
+gm.log(' viewfight 3');
 	lastDamDone = gm.getListObjVal('monsterOl',monster,'Damage',0);
 	gm.setListObjVal('monsterOl',monster,'Type',monstType);
     // Extract info
@@ -3480,6 +3472,7 @@ checkMonsterDamage:function() {
 		}
 		gm.setListObjVal('monsterOl',monster,'Fort%',(Math.round(shipHealth*10))/10);
 	}
+gm.log(' viewfight 4');
 
 	// Get damage done to monster
 	var webSlice=nHtml.FindByAttrContains(document.body,"td","class","dragonContainer");
@@ -5314,13 +5307,10 @@ MainLoop:function() {
 
 	this.DrawQuests(false);
 	this.CheckResults();
-	this.checkMonsterEngage();
-	this.checkMonsterDamage();
 	this.selectMonster();
 	this.monsterDashboard();
     this.UpdateGeneralList();
     this.SetControls();
-	this.DrawLands();
 
 	if(!this.WhileSinceDidIt('newControlPanelLoaded',3)) {
 		this.WaitMainLoop();
