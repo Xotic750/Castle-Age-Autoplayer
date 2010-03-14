@@ -4,7 +4,7 @@
 
         Version 1.0.0.0
 */
-var logging = true;
+var logging = false;
 
 S_log = function(txt) {
     if(logging) {

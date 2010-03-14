@@ -3836,17 +3836,23 @@ Monsters:function() {
 		} else if (gm.getValue('MonsterStaminaReq',1)==1) {
 			// not power attack only normal attacks
 			if(!(attackButton = this.CheckForImage('attack_monster_button.jpg'))) {
-				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-					attackButton = this.CheckForImage('attack_monster_button2.jpg');
-					if (attackButton) gm.setValue('MonsterStaminaReq',5);
+				if(!(attackButton = this.CheckForImage('event_attack1.gif'))) {
+					if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
+						if(!(attackButton = this.CheckForImage('event_attack2.gif')))
+							attackButton = this.CheckForImage('attack_monster_button2.jpg');
+						if (attackButton) gm.setValue('MonsterStaminaReq',5);
+					}
 				}
 			}
 		}else{
 			// power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
 			if(!(attackButton = this.CheckForImage('attack_monster_button2.jpg'))) {
-				if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
-					attackButton = this.CheckForImage('attack_monster_button.jpg');
-					if (attackButton) gm.setValue('MonsterStaminaReq',1);
+				if(!(attackButton = this.CheckForImage('event_attack2.gif'))) {
+					if(!(attackButton = this.CheckForImage('seamonster_power.gif'))) {
+						if(!(attackButton = this.CheckForImage('event_attack1.gif')))
+							attackButton = this.CheckForImage('attack_monster_button.jpg');
+						if (attackButton) gm.setValue('MonsterStaminaReq',1);
+					}
 				}
 			}
 		}
@@ -4810,6 +4816,15 @@ AutoGift:function() {
 			gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
 			this.JustDidIt('ClickedFacebookURL');
 			if (is_chrome) {
+				/*
+				var giftType = 'Unknown Gift';
+				var giftEntry = gm.getValue('GiftEntry','');
+				if (giftEntry) {
+					if (gm.getValue('ReceivedList',' ').indexOf(giftEntry)<0) gm.listPush('ReceivedList',giftEntry + vs + giftType);
+					gm.log ('This giver: ' + giverId[2] + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
+					gm.setValue('GiftEntry','');
+				}
+				*/
 				this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&rqtp=army&uid=" + giverId[2]);
 			} else {
 				this.VisitUrl(acceptDiv.href);
@@ -4867,6 +4882,7 @@ AutoGift:function() {
 	giverList = gm.getList('ReceivedList');
 	if (!giverList.length) return false;
 	var giftChoice = gm.getValue('GiftChoice');
+	if (is_chrome) giftChoice = 'Random Gift';
 
 	if (this.NavigateTo('army,gift','giftpage_title.jpg')) return true;
 
