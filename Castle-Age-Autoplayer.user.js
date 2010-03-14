@@ -1661,7 +1661,7 @@ try{
 		if (levelm) {
 			this.stats['level']=parseInt(levelm[1],10);
 			levelMess = "Level: " + this.stats.level;
-			if(gm.getValue('Level',0) != this.stats.level) gm.deleteValue('BestPropCost');
+			if(gm.getValue('Level',0) != this.stats.level) gm.deleteValue('BestLandCost');
 			gm.setValue('Level',this.stats.level);
 		} else {
 			gm.log('Could not find level re');
@@ -1746,6 +1746,20 @@ SetCheckResultsFunction:function(resultsFunction) {
 	this.JustDidIt('SetResultsFunctionTimer');
 	gm.setValue('ResultsFunction',resultsFunction);
 },
+
+page:{
+        'index'					: {signatureGif: 168},
+        'quests'				: {signatureGif: 168},
+        'symbolquests'			: {signatureGif: 168},
+        'monster_quests'		: {signatureGif: 168},
+        'onMonster'					: {signatureGif: 168},
+        'battle_monster'			: {signatureGif: 168, subpages: ['onMonster']},
+        'onMonster'					: {signatureGif: 168},
+        'raid'			: {signatureGif: 168, subpages: ['onRaid']},
+        'land'			: {signatureGif: 168},
+        'quests'			: {signatureGif: 168, subpage: 'onMonster'},
+        'battle'			: {signatureGif: 168, subpage: 'onMonster'},
+		'onMonster'
 
 pageSpecificCheckFunctions:{'battle_monster':'checkMonsterEngage','raid':'checkMonsterEngage'},
 CheckResults:function() {
@@ -2434,50 +2448,50 @@ LandsGetNameFromRow:function(row) {
 	return strongs[0].textContent.trim();
 },
 
-bestProp:{prop:'',roi:''},
+bestLand:{land:'',roi:''},
 DrawLands:function() {
-	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_propDone')")) return null;
-	gm.deleteValue('BestPropCost');
-	this.sellProp = '';
-	this.bestProp.roi =0;
-	var propByName=this.IterateLands(function(prop) {
-		this.SelectLands(prop.row, 2);
-		var roi=(parseInt((prop.income/prop.totalCost)*240000,10) /100);
-		selects = prop.row.getElementsByTagName('select');
-		if(!nHtml.FindByAttrXPath(prop.row,'input',"@name='Buy'")) {
+	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_landDone')")) return null;
+	gm.deleteValue('BestLandCost');
+	this.sellLand = '';
+	this.bestLand.roi =0;
+	var landByName=this.IterateLands(function(land) {
+		this.SelectLands(land.row, 2);
+		var roi=(parseInt((land.income/land.totalCost)*240000,10) /100);
+		selects = land.row.getElementsByTagName('select');
+		if(!nHtml.FindByAttrXPath(land.row,'input',"@name='Buy'")) {
 			roi = 0;
 			// Lets get our max allowed from the land_buy_info div
-			div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')");
+			div = nHtml.FindByAttrXPath(land.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')");
 			maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
 			maxAllowed= Number(maxText.replace(/:\s+/,''));
 			// Lets get our owned total from the land_buy_costs div
-			div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_costs')");
+			div = nHtml.FindByAttrXPath(land.row,'div',"contains(@class,'land_buy_costs')");
 			ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
 			owned = Number(ownedText.replace(/:\s+/,''));
 			// If we own more than allowed we will set land and selection
 			var selection = new Array(1,5,10);
 			for (var s=2; s>=0; s--) {
 				if (owned - maxAllowed >= selection[s]) {
-					this.sellProp = prop;
-					this.sellProp.selection = s;
+					this.sellLand = land;
+					this.sellLand.selection = s;
 					break;
 				}
 			}
 		}
-		div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
+		div = nHtml.FindByAttrXPath(land.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
 		div[0].innerHTML+=" | "+roi+"% per day.";
-		if(!prop.usedByOther) {
-			if(!(this.bestProp.roi || roi == 0)|| roi>this.bestProp.roi) {
-				this.bestProp.roi=roi;
-				this.bestProp.prop=prop;
-				gm.setValue('BestPropCost',this.bestProp.prop.cost);
+		if(!land.usedByOther) {
+			if(!(this.bestLand.roi || roi == 0)|| roi>this.bestLand.roi) {
+				this.bestLand.roi=roi;
+				this.bestLand.land=land;
+				gm.setValue('BestLandCost',this.bestLand.land.cost);
 			}
 		}
-		if(prop.row.className == "land_buy_row_unique"){
-			if(nHtml.GetText(prop.row).match(/each consecutive day/i) != null) {
+		if(land.row.className == "land_buy_row_unique"){
+			if(nHtml.GetText(land.row).match(/each consecutive day/i) != null) {
 				gm.log("Found unique land, checking timer");
-				if(nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5])){
-					resultsText = nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5]).trim();
+				if(nHtml.GetText(land.row.childNodes[1].childNodes[7].childNodes[5])){
+					resultsText = nHtml.GetText(land.row.childNodes[1].childNodes[7].childNodes[5]).trim();
 					if(resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/)){
 						resultsText = resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/).toString().split(',')[0];
 						resultsText = resultsText.split(':');
@@ -2495,18 +2509,18 @@ DrawLands:function() {
 							gm.log("Setting Land Timer");
 							this.SetTimer('LandTimer',hours*3600+minutes*60+seconds);
 						}
-						//prop.row.childNodes[1].childNodes[7].childNodes[5].childNodes[5].childNodes[1]
-					}else {gm.log("You need to buy a prop first"); this.SetTimer('LandTimer',9999999999999999999999999);}
+						//land.row.childNodes[1].childNodes[7].childNodes[5].childNodes[5].childNodes[1]
+					}else {gm.log("You need to buy a land first"); this.SetTimer('LandTimer',9999999999999999999999999);}
 				}else gm.log("Error");
 			}
 		}
 	});
-	gm.log("BestPropCost:"+gm.getValue('BestPropCost'));
-	if(!gm.getValue('BestPropCost')){
-		gm.setValue('BestPropCost','none');
+	gm.log("BestLandCost:"+gm.getValue('BestLandCost'));
+	if(!gm.getValue('BestLandCost')){
+		gm.setValue('BestLandCost','none');
 	}
 	div=document.createElement('div');
-	div.className='caap_propDone';
+	div.className='caap_landDone';
 	div.style.display='none';
 	nHtml.FindByAttrContains(document.body,"tr","class",'land_buy_row').appendChild(div);
 	return null;
@@ -2520,8 +2534,8 @@ IterateLands:function(func) {
 		return null;
 	}
 	var builtOnRe=new RegExp('(Built On|Consumes|Requires):\\s*([^<]+)','i');
-	var propByName={};
-	var propNames=[];
+	var landByName={};
+	var landNames=[];
 
 	//gm.log('forms found:'+ss.snapshotLength);
 	for(var s=0; s<ss.snapshotLength; s++) {
@@ -2571,16 +2585,16 @@ IterateLands:function(func) {
 
 		var totalCost=cost;
 
-		var prop={'row':row,'name':name,'income':income,'cost':cost,'totalCost':totalCost,'usedByOther':false};
+		var land={'row':row,'name':name,'income':income,'cost':cost,'totalCost':totalCost,'usedByOther':false};
 
-		propByName[name]=prop;
-		propNames.push(name);
+		landByName[name]=land;
+		landNames.push(name);
 	}
 
-	for(var p=0; p<propNames.length;p++) {
-		func.call(this,propByName[propNames[p]]);
+	for(var p=0; p<landNames.length;p++) {
+		func.call(this,landByName[landNames[p]]);
 	}
-	return propByName;
+	return landByName;
 },
 
 SelectLands:function(row,val) {
@@ -2590,33 +2604,33 @@ SelectLands:function(row,val) {
 	select.selectedIndex=val;
 	return true;
 },
-BuyLand:function(prop) {
+BuyLand:function(land) {
 	//this.DrawLands();
-	this.SelectLands(prop.row,2);
+	this.SelectLands(land.row,2);
 	var button;
-	if(button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'")){
+	if(button=nHtml.FindByAttrXPath(land.row,'input',"@type='submit' or @type='image'")){
 //		gm.log("Clicking buy button:" +button);
 		if(button) {
-			gm.log("Buying Prop: " +prop.name);
+			gm.log("Buying Land: " +land.name);
 			this.Click(button,13000);
-			gm.setValue('BestPropCost','');
-			this.bestProp.roi = '';
+			gm.setValue('BestLandCost','');
+			this.bestLand.roi = '';
 			return true;
 		}
 	}
 	return false;
 },
 
-SellLand:function(prop,select) {
+SellLand:function(land,select) {
 	//this.DrawLands();
-	this.SelectLands(prop.row,select);
+	this.SelectLands(land.row,select);
 	var button;
-	if(button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'")){
+	if(button=nHtml.FindByAttrXPath(land.row,'input',"@type='submit' or @type='image'")){
 //		gm.log("Clicking sell button:" +button);
 		if(button) {
-			gm.log("Selling Prop: " +prop.name);
+			gm.log("Selling Land: " +land.name);
 			this.Click(button,13000);
-			this.sellProp = '';
+			this.sellLand = '';
 			return true;
 		}
 	}
@@ -2630,16 +2644,16 @@ Lands:function() {
 	var autoBuyLand=gm.getValue('autoBuyLand',0);
 	if(autoBuyLand) {
 		// Do we have lands above our max to sell?
-		if (this.sellProp && gm.getValue('SellLands',true)) {
-			this.SellLand(this.sellProp,this.sellProp.selection);
+		if (this.sellLand && gm.getValue('SellLands',true)) {
+			this.SellLand(this.sellLand,this.sellLand.selection);
 			return true;
 		}
 
-		if(!gm.getValue('BestPropCost')){
+		if(!gm.getValue('BestLandCost')){
 			gm.log("Going to land to get Best Land Cost");
 			if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
 		}
-		if(gm.getValue('BestPropCost') == 'none'){
+		if(gm.getValue('BestLandCost') == 'none'){
 			//gm.log("No Lands avaliable");
 			return false;
 		}
@@ -2648,19 +2662,19 @@ Lands:function() {
 			if (this.NavigateTo('keep')) return true;
 		}
 		//Retrieving from Bank
-		if(this.stats.cash+(gm.getValue('inStore')-this.GetNumber('minInStore'))>=10*gm.getValue('BestPropCost') && this.stats.cash < 10*gm.getValue('BestPropCost')){
+		if(this.stats.cash+(gm.getValue('inStore')-this.GetNumber('minInStore'))>=10*gm.getValue('BestLandCost') && this.stats.cash < 10*gm.getValue('BestLandCost')){
 			if(this.PassiveGeneral())return true;
-			gm.log("Trying to retrieve: "+(10*gm.getValue('BestPropCost')-this.stats.cash));
-			return this.RetrieveFromBank(10*gm.getValue('BestPropCost')-this.stats.cash);
+			gm.log("Trying to retrieve: "+(10*gm.getValue('BestLandCost')-this.stats.cash));
+			return this.RetrieveFromBank(10*gm.getValue('BestLandCost')-this.stats.cash);
 		}
 
 // Need to check for enough moneys + do we have enough of the builton type that we already own.
-		if(gm.getValue('BestPropCost') && this.stats.cash >= 10*gm.getValue('BestPropCost')){
+		if(gm.getValue('BestLandCost') && this.stats.cash >= 10*gm.getValue('BestLandCost')){
 			if(this.PassiveGeneral())return true;
 			this.NavigateTo('soldiers,land');
 			if(this.CheckForImage('tab_land_on.gif')){
-				gm.log("Buying land: "+caap.bestProp.name);
-				if (this.BuyLand(caap.bestProp.prop))
+				gm.log("Buying land: "+caap.bestLand.name);
+				if (this.BuyLand(caap.bestLand.land))
 				return true;
 			}else return this.NavigateTo('soldiers,land');
 		}
