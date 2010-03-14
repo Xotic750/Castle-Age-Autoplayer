@@ -3389,7 +3389,9 @@ checkMonsterEngage:function() {
 			default :
 		}
 		var mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' +url.match(/mpool=\d+/i)[0].split('=')[1] : '');
-		siege = (/=3/.test(mpool) || page == 'raidx') ? "&action=doObjective" :'';
+		monstType = /\w+$/i.exec(monster);
+		if (monstType == 'Siege') siege = "&action=doObjective";
+		else siege = ((boss = caap.bosses[monstType]) && boss.siege) ? "&action=doObjective" :'';
 		var link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?user="
 				+ url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
 		gm.setListObjVal('monsterOl',monster,'Link',link);
