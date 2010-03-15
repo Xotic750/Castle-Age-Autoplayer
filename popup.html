@@ -1,0 +1,86 @@
+<html>
+    <head>
+        <script type="text/javascript" src="jquery-1.4.2.min.js"></script>
+        <script type="text/javascript" src="chrome_support.js"></script>
+        <script type="text/javascript">
+            function P_log(txt) {
+                if(logging) {
+                    chrome.extension.getBackgroundPage().S_log("popup.html: " + txt);
+                }
+            }
+
+            function getValue(key) {
+                return chrome.extension.getBackgroundPage().getItem(key);
+            }
+
+            function setValue(key, value) {
+                return chrome.extension.getBackgroundPage().setItem(key, value);
+            }
+
+            function pause() {
+                $('#play').attr('style', 'display: inline');
+                $('#pause').attr('style', 'display: none');
+                $('#disable').attr('disabled', '');
+                $('#enable').attr('disabled', '');
+                chrome.extension.getBackgroundPage().message("clickcontrolDiv", null, null);
+                //window.close();
+            }
+
+            function play() {
+                $('#pause').attr('style', 'display: inline');
+                $('#play').attr('style', 'display: none');
+                $('#disable').attr('disabled', 'true');
+                $('#enable').attr('disabled', 'true');
+                chrome.extension.getBackgroundPage().message("clickcaapRestart", null, null);
+                //window.close();
+            }
+
+            function disable() {
+                $('#enable').attr('style', 'display: inline');
+                $('#disable').attr('style', 'display: none');
+                chrome.extension.getBackgroundPage().message("clickcaap_Disabled", null, null);
+                //window.close();
+            }
+
+            function enable() {
+                $('#disable').attr('style', 'display: inline');
+                $('#enable').attr('style', 'display: none');
+                chrome.extension.getBackgroundPage().message("clickcaap_Disabled", null, null);
+                //window.close();
+            }
+
+            function begin() {
+                P_log("begin");
+                if (getValue("disabled")) {
+                    $('#enable').attr('style', 'display: inline');
+                    $('#disable').attr('style', 'display: none');
+                } else {
+                    $('#disable').attr('style', 'display: inline');
+                    $('#enable').attr('style', 'display: none');
+                }
+
+                if (getValue("paused")) {
+                    $('#play').attr('style', 'display: inline');
+                    $('#pause').attr('style', 'display: none')
+                    $('#disable').attr('disabled', '');
+                    $('#enable').attr('disabled', '');
+                } else {
+                    $('#pause').attr('style', 'display: inline');
+                    $('#play').attr('style', 'display: none');
+                    $('#disable').attr('disabled', 'true');
+                    $('#enable').attr('disabled', 'true');
+                }
+                P_log("end");
+            }
+        </script>
+    </head>
+    <body onload="begin()">
+        <div style="white-space:nowrap">
+            <p>Not working yet!</p>
+            <button id="pause" style="display: none" class="button" onclick="pause()">Pause</button>
+            <button id="play" style="display: none" class="button" onclick="play()">Play</button>
+            <button id="enable" style="display: none" class="button" onclick="enable()">Enable</button>
+            <button id="disable" style="display: none" class="button" onclick="disable()">Disable</button>
+        </div>
+    </body>
+</html>
