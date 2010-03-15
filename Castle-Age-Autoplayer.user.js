@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        138.83
+// @version        138.84
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -13,7 +13,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "138.83";
+var thisVersion = "138.84";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -186,7 +186,7 @@ getX:function(path,parent,type) {
 		case xpath.string : return document.evaluate(path,parent,null,type,null).stringValue;
 		case xpath.first : return document.evaluate(path,parent,null,type,null).singleNodeValue;
 		case xpath.unordered : return document.evaluate(path,parent,null,type,null);
-		default :
+		default : break;
 	}
 },
 getHTMLPredicate:function(HTML){
@@ -549,7 +549,10 @@ SelectGeneral:function(whichGeneral) {
 			general = gm.getList('LevelUpGenerals').pop();
 		}
 	}
-	currentGeneral = this.GetCurrentGeneral().replace('**','');
+	var getCurrentGeneral = this.GetCurrentGeneral();
+	if (!getCurrentGeneral) this.ReloadCastleAge();
+	currentGeneral = getCurrentGeneral.replace('**','');
+	//currentGeneral = this.GetCurrentGeneral().replace('**','');
 	if(general.indexOf(currentGeneral) >= 0) return false;
 
 	gm.log('Changing from ' + currentGeneral + ' to ' + general);
@@ -835,7 +838,7 @@ SetControls:function(force) {
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
 	var autoRunInstructions="Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
 	htmlCode += '<hr /><table width=180 cellpadding=0 cellspacing=0>';
-	htmlCode += '<tr><td>Disable Autoplayer</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeCheckBox('Disabled',false,'',autoRunInstructions) + '</td></tr></table>';
+	htmlCode += '<tr><td>Disable Autoplayer</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeCheckBox('Disabled',false,'',autoRunInstructions) + '</td></tr></table>';
 	var bankInstructions0="Minimum cash to keep in the bank. Press tab to save";
 	var bankInstructions1="Minimum cash to have on hand, press tab to save";
 	var bankInstructions2="Maximum cash to have on hand, bank anything above this, press tab to save(leave blank to disable)";
@@ -877,6 +880,7 @@ SetControls:function(force) {
 				default :
 					gm.deleteValue('QuestSubArea');
 					htmlCode += "<div id='AutoSubArea'></div>";
+					break;
 			}
 			questList = ['Max Influence','Max Gold','Max Experience', 'Manual'];
 			htmlCode += '<tr><td>Quest For:</td><td>' + this.MakeDropDown('WhyQuest',questList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr></table>';
@@ -1141,9 +1145,9 @@ SetControls:function(force) {
 	IgnoreBattleLossBox.checked=IgnoreBattleLoss?true:false;
 	IgnoreBattleLossBox.addEventListener('change',function(e) {
 		if(gm.getValue('IgnoreBattleLoss')) {
-			gm.log("Ignore Battle Losses has been enabled.")
+			gm.log("Ignore Battle Losses has been enabled.");
 			gm.setValue("BattlesLostList",'');
-			gm.log("Battle Lost List has been cleared.")
+			gm.log("Battle Lost List has been cleared.");
 		}
 	},false);
 
@@ -1251,18 +1255,52 @@ SetControls:function(force) {
 		gm.setValue('WhenMonster','Not Hiding');
 		this.SetControls(true);
 	}
+
 	if (!(globalContainer = document.getElementById('app46755028429_globalContainer'))) {
 		gm.log('Global Container not found');
 		return;
 	}
+
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
-		if(event.target.getElementById("app46755028429_app_body")) {
-			nHtml.setTimeout(caap.checkMonsterDamage, 0);
+		var $target = $(event.target);
+
+		/*
+		if(event.type && event.type != undefined && event.target.id && event.target.id != undefined){
+			gm.log("Event type: " + event.type);
+			gm.log("Event target id: " + event.target.id);
 		}
-		if(document.getElementById('app46755028429_st_2_5')) {
-			nHtml.setTimeout(caap.addExpDisplay, 0);
+		*/
+
+		if($target.is("#app46755028429_app_body")) {
+			nHtml.setTimeout(caap.checkMonsterDamage, 0);
+			//gm.log("Listener did: checkMonsterDamage");
 		}
 
+		if($target.is("#app46755028429_index") ||
+		   $target.is("#app46755028429_keep") ||
+		   $target.is("#app46755028429_generals") ||
+		   $target.is("#app46755028429_battle_monster") ||
+		   $target.is("#app46755028429_battle") ||
+		   $target.is("#app46755028429_battlerank") ||
+		   $target.is("#app46755028429_battle_train") ||
+		   $target.is("#app46755028429_quests") ||
+		   $target.is("#app46755028429_symbolquests") ||
+		   $target.is("#app46755028429_alchemy") ||
+		   $target.is("#app46755028429_soldiers") ||
+		   $target.is("#app46755028429_item") ||
+		   $target.is("#app46755028429_land") ||
+		   $target.is("#app46755028429_magic") ||
+		   $target.is("#app46755028429_oracle") ||
+		   $target.is("#app46755028429_symbols") ||
+		   $target.is("#app46755028429_treasure_chest") ||
+		   $target.is("#app46755028429_gift") ||
+		   $target.is("#app46755028429_apprentice") ||
+		   $target.is("#app46755028429_news") ||
+		   $target.is("#app46755028429_friend_page") ||
+		   $target.is("#app46755028429_army_reqs")) {
+			nHtml.setTimeout(caap.addExpDisplay, 0);
+			//gm.log("Listener did: addExpDisplay");
+		}
 	}, true);
 
 	globalContainer.addEventListener('click', function(event) {
@@ -1472,6 +1510,7 @@ AddListeners:function(topDivName) {
 						default :
 							caap.SetDisplay('FreshmeatSub',true);
 							caap.SetDisplay('UserIdsSub',false);
+							break;
 					}
 				} else if (/Attribute./.test(idName)) {
 					gm.setValue("SkillPointsNeed",1);
@@ -1512,6 +1551,7 @@ AddListeners:function(topDivName) {
 							if (nHtml.FindByAttr(document.body,'div','id','caap_top')) {
 								nHtml.FindByAttr(document.body,'div','id','caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight","white");
 							}
+							break;
 					}
 				}
 			}
@@ -1877,6 +1917,7 @@ Quests:function() {
 			if (!this.CheckForImage('tab_atlantis_on.gif')) return this.NavigateTo('quests,monster_quests');
                         break;
 		default :
+			break;
 	}
 
 	if ((button = this.CheckForImage('quick_switch_button.gif')) && !gm.getValue('ForceSubGeneral',false)) {
@@ -2102,6 +2143,7 @@ DrawQuests:function(pickQuestTF) {
 					if(bestReward<rewardRatio) gm.setObjVal('AutoQuest','name',quest_name);
                                         break;
 				default :
+					break;
 			}
 			if (gm.getObjVal('AutoQuest','name')==quest_name) {
 				bestReward=rewardRatio;
@@ -3387,6 +3429,7 @@ checkMonsterEngage:function() {
 				gm.setListObjVal('monsterOl',monster,'color','grey');
 				break;
 			default :
+				break;
 		}
 		var mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' +url.match(/mpool=\d+/i)[0].split('=')[1] : '');
 		monstType = /\w+$/i.exec(monster);
@@ -3409,14 +3452,14 @@ checkMonsterEngage:function() {
 checkMonsterDamage:function() {
 	// Check if on monster page
 	if (!(webSlice=caap.CheckForImage('dragon_title_owner.jpg'))) return;
-	if (!this.oneMinuteUpdate('monsterDamage')) return;
+	if (!caap.oneMinuteUpdate('monsterDamage')) return;
 	gm.log('Checking monster damage');
 	// Get name and type of monster
 	var monster = nHtml.GetText(webSlice);
 	var fort = null;
 	monster = monster.substring(0,monster.indexOf('You have (')).trim();
-	if (this.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
-	else if (this.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
+	if (caap.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
+	else if (caap.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
 	else monstType = /\w+$/i.exec(monster);
 	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
@@ -3495,7 +3538,7 @@ checkMonsterDamage:function() {
 		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 		monsterList = gm.getList('monsterOl');
 		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
-				&& (nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward') 
+				&& (nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward')
 				|| nHtml.FindByAttrContains(document.body,'input','alt','Collect Reward'))) {
 			gm.log('Collecting Reward');
 			gm.setValue('monsterReviewCounter',counter-1);
@@ -3507,7 +3550,7 @@ checkMonsterDamage:function() {
 			}
 		}
 	}
-	if(time.length == 3  && this.CheckForImage('monster_health_background.jpg')) {
+	if(time.length == 3  && caap.CheckForImage('monster_health_background.jpg')) {
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
 		var hpBar = null;
 		if (imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg")) {
@@ -3519,7 +3562,7 @@ checkMonsterDamage:function() {
 				gm.log("Could not find monster health div.");
 		}
 		if (hpBar) {
-			var hp   = Math.round(hpBar.replace(/%/,'')*10)/10; //fix two 2 decimal places
+			var hp = Math.round(hpBar.replace(/%/,'')*10)/10; //fix two 2 decimal places
 			gm.setListObjVal('monsterOl',monster,'Damage%',hp);
 			if (!(boss = caap.bosses[monstType])) {
 				gm.log('Unknown monster');
@@ -3615,15 +3658,17 @@ selectMonster:function() {
 		var selectType = selectTypes[s];
 		firstOverAch = '';
 		firstUnderMax = '';
+		var attackOrderList = [];
 		// The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
 		switch (selectType) {
 			case 'any' :
 				var attackOrderList1=gm.getValue('orderbattle_monster','').split(/[\n,]/);
 				var attackOrderList2=gm.getValue('orderraid','').split(/[\n,]/).concat('your',"'");
-				var attackOrderList=attackOrderList1.concat(attackOrderList2);
+				attackOrderList=attackOrderList1.concat(attackOrderList2);
 				break;
 			default :
-				var attackOrderList=gm.getValue('order'+selectType,'').split(/[\n,]/).concat('your',"'");
+				attackOrderList=gm.getValue('order'+selectType,'').split(/[\n,]/).concat('your',"'");
+				break;
 		}
 
 		// Next we step through the users list getting the name and conditions
@@ -3707,7 +3752,7 @@ selectMonster:function() {
 				else gm.setValue('RaidStaminaReq',1);
 			}
 		}
-	};
+	}
 	gm.setValue('resetdashboard',true);
 },
 
@@ -4082,7 +4127,7 @@ monstGroups:{
 	'serps'			:{monst:'eserp~sserp~aserp~rserp'},
 	'drags'			:{monst:'edrag~fdrag~gdrag~rdrag'},
 	'deas'			:{monst:'a1dea~a2dea~b1dea~b2dea'},
-	'elems'			:{monst:'earth~ice'},
+	'elems'			:{monst:'earth~ice'}
 },
 
 
@@ -4179,7 +4224,7 @@ CheckMonster:function(){
 					gm.setValue('resetselectMonster',true);
 					gm.setValue('LastAction',"Idle");
 					gm.log("resetselectMonster");
-					return true
+					return true;
 				}, 4000);
 
 			}, 4000);
@@ -4381,156 +4426,157 @@ handleCTA : function () {
 
 	var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, xpath.unordered);
 	gm.log ("Number of entries- " + ctas.snapshotLength);
-	for (var x = 0; x < ctas.snapshotLength; x++)	{
+	for (var x = 0; x < ctas.snapshotLength; x++) {
 
 		var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), xpath.string).replace("http://apps.facebook.com/castle_age",""), fid = nHtml.Gup("user",url), mpool = nHtml.Gup("mpool",url), action = nHtml.Gup("action",url);
 		var src = nHtml.getX('./div[2]/div/div/a/div/img/@src', ctas.snapshotItem(x), xpath.string);
 		var time = nHtml.getX('./form/span/span/a/abbr/@title', ctas.snapshotItem(x), xpath.string);
 
 		var monst;
-			if (src) {
-				var urlixc = gm.getValue("urlixc","~");
-				if (urlixc.indexOf(url) >=0) { //gm.log("Monster Already Checked");
-				} else if (src.indexOf("cta_hydra_") >= 0 || src.indexOf("twitter_hydra_objective") >= 0) { //Hydra
-					monst = gm.getValue("hydra","~");
+		if (src) {
+			var urlixc = gm.getValue("urlixc","~");
+			if (urlixc.indexOf(url) >=0) {
+				//gm.log("Monster Already Checked");
+			} else if (src.indexOf("cta_hydra_") >= 0 || src.indexOf("twitter_hydra_objective") >= 0) { //Hydra
+				monst = gm.getValue("hydra","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("hydra", gm.getValue("hydra","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_castle_") >= 0) { //Battle of the Dark Legion (Orcs)
+				monst = gm.getValue("legio","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("legio", gm.getValue("legio","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_earth_") >= 0) { //Genesis, the Earth Elemental
+				monst = gm.getValue("earth","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("earth", gm.getValue("earth","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_water_") >= 0) { //Ragnarok, the Ice Elemental
+				monst = gm.getValue("ice","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("ice", gm.getValue("ice","") + "~" + url);
+				}
+			} else if (src.indexOf("raid_deathrune_") >= 0) { //Deathrune Raids
+				monst = gm.getValue("deas","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("deas", gm.getValue("deas","") + "~" + url);
+				}
+				if (src.indexOf("raid_deathrune_a1.gif") >= 0) { // Deathrune Raid Part 1 Under Level 50 Summoner (a1)
+					monst = gm.getValue("a1dea","~");
 					if (monst.indexOf(url) == -1) {
-						gm.setValue("hydra", gm.getValue("hydra","") + "~" + url);
+						gm.setValue("a1dea", gm.getValue("a1dea","") + "~" + url);
 					}
-				} else if (src.indexOf("cta_castle_") >= 0) { //Battle of the Dark Legion (Orcs)
-					monst = gm.getValue("legio","~");
+				} else if (src.indexOf("raid_deathrune_a2.gif") >= 0) { // Deathrune Raid Part 2 Under Level 50 Summoner (a2)
+					monst = gm.getValue("a2dea","~");
 					if (monst.indexOf(url) == -1) {
-						gm.setValue("legio", gm.getValue("legio","") + "~" + url);
+						gm.setValue("a2dea", gm.getValue("a2dea","") + "~" + url);
 					}
-				} else if (src.indexOf("cta_earth_") >= 0) { //Genesis, the Earth Elemental
-					monst = gm.getValue("earth","~");
+				} else if (src.indexOf("raid_deathrune_b1.gif") >= 0) { // Deathrune Raid Part 1 Over Level 50 Summoner (b1)
+					monst = gm.getValue("b1dea","~");
 					if (monst.indexOf(url) == -1) {
-						gm.setValue("earth", gm.getValue("earth","") + "~" + url);
+						gm.setValue("b1dea", gm.getValue("b1dea","") + "~" + url);
 					}
-				} else if (src.indexOf("cta_water_") >= 0) { //Ragnarok, the Ice Elemental
-					monst = gm.getValue("ice","~");
+				} else if (src.indexOf("raid_deathrune_b2.gif") >= 0) { // Deathrune Raid Part 2 Over Level 50 Summoner (b2)
+					monst = gm.getValue("b2dea","~");
 					if (monst.indexOf(url) == -1) {
-						gm.setValue("ice", gm.getValue("ice","") + "~" + url);
-					}
-				} else if (src.indexOf("raid_deathrune_") >= 0) { //Deathrune Raids
-					monst = gm.getValue("deas","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("deas", gm.getValue("deas","") + "~" + url);
-					}
-					if (src.indexOf("raid_deathrune_a1.gif") >= 0) { // Deathrune Raid Part 1 Under Level 50 Summoner (a1)
-						monst = gm.getValue("a1dea","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("a1dea", gm.getValue("a1dea","") + "~" + url);
-						}
-					} else if (src.indexOf("raid_deathrune_a2.gif") >= 0) { // Deathrune Raid Part 2 Under Level 50 Summoner (a2)
-						monst = gm.getValue("a2dea","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("a2dea", gm.getValue("a2dea","") + "~" + url);
-						}
-					} else if (src.indexOf("raid_deathrune_b1.gif") >= 0) { // Deathrune Raid Part 1 Over Level 50 Summoner (b1)
-						monst = gm.getValue("b1dea","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("b1dea", gm.getValue("b1dea","") + "~" + url);
-						}
-					} else if (src.indexOf("raid_deathrune_b2.gif") >= 0) { // Deathrune Raid Part 2 Over Level 50 Summoner (b2)
-						monst = gm.getValue("b2dea","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("b2dea", gm.getValue("b2dea","") + "~" + url);
-						}
-					}
-				} else if (src.indexOf("_dragon.gif") >= 0) { //Dragons
-					monst = gm.getValue("drags","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("drags", gm.getValue("drags","") + "~" + url);
-					}
-					if (src.indexOf("cta_red_dragon.gif") >= 0) { // Red Dragon
-						monst = gm.getValue("rdrag","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("rdrag", gm.getValue("rdrag","") + "~" + url);
-						}
-					} else if (src.indexOf("cta_yellow_dragon.gif") >= 0) {  // Gold Dragon
-						monst = gm.getValue("gdrag","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("gdrag", gm.getValue("gdrag","") + "~" + url);
-						}
-					} else if (src.indexOf("cta_blue_dragon.gif") >= 0) { // Frost Dragon
-						monst = gm.getValue("fdrag","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("fdrag", gm.getValue("fdrag","") + "~" + url);
-						}
-					} else if (src.indexOf("cta_green_dragon.gif") >= 0) { // Emerald Dragon
-						monst = gm.getValue("edrag","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("edrag", gm.getValue("edrag","") + "~" + url);
-						}
-					}
-				} else if (src.indexOf("twitter_seamonster_") >= 0 && src.indexOf("_1.jpg") >= 0) { // Sea Serpents
-					monst = gm.getValue("serps","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("serps", gm.getValue("serps","") + "~" + url);
-					}
-					if (src.indexOf("twitter_seamonster_purple_1") >= 0) { // Amethyt Serpent
-						monst = gm.getValue("aserp","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("aserp", gm.getValue("aserp","") + "~" + url);
-						}
-					} else if (src.indexOf("twitter_seamonster_red_1") >= 0) { // Ancient Serpent (red)
-						monst = gm.getValue("rserp","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("rserp", gm.getValue("rserp","") + "~" + url);
-						}
-					} else if (src.indexOf("twitter_seamonster_blue_1") >= 0) { // Saphire Serpent
-						monst = gm.getValue("sserp","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("sserp", gm.getValue("sserp","") + "~" + url);
-						}
-					} else if (src.indexOf("twitter_seamonster_green_1") >= 0) { // Emerald Serpent
-						monst = gm.getValue("eserp","~");
-						if (monst.indexOf(url) == -1) {
-							gm.setValue("eserp", gm.getValue("eserp","") + "~" + url);
-						}
-					}
-				} else if (src.indexOf("cta_death") >= 0 && src.indexOf("cta_death_dead.gif") == -1) { // skaar
-					monst = gm.getValue("skaar","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("skaar", gm.getValue("skaar","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_lotus.gif") >= 0) { // Lotus
-					monst = gm.getValue("lotus","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("lotus", gm.getValue("lotus","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_keira.gif") >= 0) { // Keira
-					monst = gm.getValue("keira","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("keira", gm.getValue("keira","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_mephi.gif") >= 0) { // Mephisto
-					monst = gm.getValue("mephi","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("mephi", gm.getValue("mephi","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_sylvanas.gif") >= 0) { //Sylvanas
-					monst = gm.getValue("sylva","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("sylva", gm.getValue("sylva","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_stone.gif") >= 0) { //Colossus of Terra
-					monst = gm.getValue("colos","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("colos", gm.getValue("colos","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_orc_king.gif") >= 0) { //Gildamesh
-					monst = gm.getValue("gilda","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("gilda", gm.getValue("gilda","") + "~" + url);
-					}
-				} else if (src.indexOf("cta_orc_captain.gif") >= 0) { //Kull
-					monst = gm.getValue("kull","~");
-					if (monst.indexOf(url) == -1) {
-						gm.setValue("kull", gm.getValue("kull","") + "~" + url);
+						gm.setValue("b2dea", gm.getValue("b2dea","") + "~" + url);
 					}
 				}
+			} else if (src.indexOf("_dragon.gif") >= 0) { //Dragons
+				monst = gm.getValue("drags","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("drags", gm.getValue("drags","") + "~" + url);
+				}
+				if (src.indexOf("cta_red_dragon.gif") >= 0) { // Red Dragon
+					monst = gm.getValue("rdrag","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("rdrag", gm.getValue("rdrag","") + "~" + url);
+					}
+				} else if (src.indexOf("cta_yellow_dragon.gif") >= 0) {  // Gold Dragon
+					monst = gm.getValue("gdrag","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("gdrag", gm.getValue("gdrag","") + "~" + url);
+					}
+				} else if (src.indexOf("cta_blue_dragon.gif") >= 0) { // Frost Dragon
+					monst = gm.getValue("fdrag","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("fdrag", gm.getValue("fdrag","") + "~" + url);
+					}
+				} else if (src.indexOf("cta_green_dragon.gif") >= 0) { // Emerald Dragon
+					monst = gm.getValue("edrag","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("edrag", gm.getValue("edrag","") + "~" + url);
+					}
+				}
+			} else if (src.indexOf("twitter_seamonster_") >= 0 && src.indexOf("_1.jpg") >= 0) { // Sea Serpents
+				monst = gm.getValue("serps","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("serps", gm.getValue("serps","") + "~" + url);
+				}
+				if (src.indexOf("twitter_seamonster_purple_1") >= 0) { // Amethyt Serpent
+					monst = gm.getValue("aserp","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("aserp", gm.getValue("aserp","") + "~" + url);
+					}
+				} else if (src.indexOf("twitter_seamonster_red_1") >= 0) { // Ancient Serpent (red)
+					monst = gm.getValue("rserp","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("rserp", gm.getValue("rserp","") + "~" + url);
+					}
+				} else if (src.indexOf("twitter_seamonster_blue_1") >= 0) { // Saphire Serpent
+					monst = gm.getValue("sserp","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("sserp", gm.getValue("sserp","") + "~" + url);
+					}
+				} else if (src.indexOf("twitter_seamonster_green_1") >= 0) { // Emerald Serpent
+					monst = gm.getValue("eserp","~");
+					if (monst.indexOf(url) == -1) {
+						gm.setValue("eserp", gm.getValue("eserp","") + "~" + url);
+					}
+				}
+			} else if (src.indexOf("cta_death") >= 0 && src.indexOf("cta_death_dead.gif") == -1) { // skaar
+				monst = gm.getValue("skaar","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("skaar", gm.getValue("skaar","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_lotus.gif") >= 0) { // Lotus
+				monst = gm.getValue("lotus","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("lotus", gm.getValue("lotus","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_keira.gif") >= 0) { // Keira
+				monst = gm.getValue("keira","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("keira", gm.getValue("keira","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_mephi.gif") >= 0) { // Mephisto
+				monst = gm.getValue("mephi","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("mephi", gm.getValue("mephi","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_sylvanas.gif") >= 0) { //Sylvanas
+				monst = gm.getValue("sylva","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("sylva", gm.getValue("sylva","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_stone.gif") >= 0) { //Colossus of Terra
+				monst = gm.getValue("colos","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("colos", gm.getValue("colos","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_orc_king.gif") >= 0) { //Gildamesh
+				monst = gm.getValue("gilda","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("gilda", gm.getValue("gilda","") + "~" + url);
+				}
+			} else if (src.indexOf("cta_orc_captain.gif") >= 0) { //Kull
+				monst = gm.getValue("kull","~");
+				if (monst.indexOf(url) == -1) {
+					gm.setValue("kull", gm.getValue("kull","") + "~" + url);
+				}
 			}
+		}
 
 
 		var urlix = gm.getValue("urlix", "~");
@@ -4743,7 +4789,7 @@ PassiveGeneral:function() {
 /////////////////////////////////////////////////////////////////////
 
 AutoIncome:function() {
-	return (this.stats.payminute < 1 
+	return (this.stats.payminute < 1
 		&& this.stats.paytime.match(/\d/)
 		&& this.SelectGeneral('IncomeGeneral'));
 },
@@ -4882,7 +4928,7 @@ AutoGift:function() {
 	giverList = gm.getList('ReceivedList');
 	if (!giverList.length) return false;
 	var giftChoice = gm.getValue('GiftChoice');
-	if (is_chrome) giftChoice = 'Random Gift';
+	//if (is_chrome) giftChoice = 'Random Gift';
 
 	if (this.NavigateTo('army,gift','giftpage_title.jpg')) return true;
 
@@ -4925,6 +4971,7 @@ AutoGift:function() {
 			break;
 		default:
 			giftPic = giftNamePic[gm.getValue('GiftChoice')];
+			break;
 	}
 
 	// Move to gifts page
@@ -5311,8 +5358,8 @@ MainLoop:function() {
 	this.checkMonsterDamage();
 	this.selectMonster();
 	this.monsterDashboard();
-    this.UpdateGeneralList();
-    this.SetControls();
+	this.UpdateGeneralList();
+	this.SetControls();
 	this.DrawLands();
 
 	if(!this.WhileSinceDidIt('newControlPanelLoaded',3)) {
@@ -5376,7 +5423,7 @@ if(gm.getValue('SetTitle')) {
 if (gm.getValue('LastVersion',0) != thisVersion) {
 	// Put code to be run once to upgrade an old version's variables to new format or such here.
 	if (parseInt(gm.getValue('LastVersion',0),10)<121) gm.setValue('WhenBattle',gm.getValue('WhenFight','Stamina Available'));
-	if (parseInt(gm.getValue('LastVersion',0))<126) {
+	if (parseInt(gm.getValue('LastVersion',0),10)<126) {
 		var storageKeys = GM_listValues();
 		for (var key = 0; key < storageKeys.length; key++){
 			if (GM_getValue(storageKeys[key])) {
