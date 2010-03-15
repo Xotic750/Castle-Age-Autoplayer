@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139
+// @version        139.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -14,7 +14,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "139";
+var thisVersion = "139.1";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -3941,7 +3941,7 @@ selectMonster:function() {
 				else if (gm.getValue('PowerAttack'))
 					gm.setValue('MonsterStaminaReq',5);
 				else gm.setValue('MonsterStaminaReq',1);
-				if (gm.getValue('MonsterGeneral') == 'Orc King' || (caap.bosses[monstType] && caap.bosses[monstType].general && caap.bosses[monstType].general == 'Orc King'))
+				if (gm.getValue('MonsterGeneral') == 'Orc King' && gm.getValue('OrcKingPowerAttack',false))
 					gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);				
 			} else {
 				// Switch RaidPowerAttack
@@ -4068,16 +4068,7 @@ Monsters:function() {
 
     // Set right general
     var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
-    if (fightMode != 'Fortify' 
-		&& monstType 
-		&& caap.bosses[monstType] 
-		&& caap.bosses[monstType].general
-		&& gm.getValue('AllGenerals').indexOf(caap.bosses[monstType].general) >= 0) {
-      gm.setValue('SpecialAttackGeneral', caap.bosses[monstType].general);
-	  gm.log('Special General '+caap.bosses[monstType].general+' Used To Fight '+monstType);
-      if (this.SelectGeneral('SpecialAttackGeneral')) return true;
-    }
-    else if (this.SelectGeneral(fightMode + 'General')) return true;	
+    if (this.SelectGeneral(fightMode + 'General')) return true;	
 
 	// Check if on engage monster page
 	if ((webSlice=this.CheckForImage('dragon_title_owner.jpg'))) {
