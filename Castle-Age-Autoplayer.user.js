@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.1
+// @version        139.11
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -14,7 +14,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "139.1";
+var thisVersion = "139.11";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -99,34 +99,36 @@ var xpath = {
 	unordered: XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
 	first : XPathResult.FIRST_ORDERED_NODE_TYPE
 };
+
 var nHtml={
 FindByAttrContains:function(obj,tag,attr,className,subDocument) {
 	if(attr=="className") { attr="class"; }
 	className=className.toLowerCase();
-	if (!subDocument) 
-		var q=document.evaluate(".//"+tag+
+	var q = null;
+	if (!subDocument)
+		q = document.evaluate(".//"+tag+
 			"[contains(translate(@"+attr+",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+className+
 			"')]",obj,null,
 			XPathResult.FIRST_ORDERED_NODE_TYPE,null);
 	else
-		var q=subDocument.evaluate(".//"+tag+
+		q = subDocument.evaluate(".//"+tag+
 			"[contains(translate(@"+attr+",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+className+
 			"')]",obj,null,
-			XPathResult.FIRST_ORDERED_NODE_TYPE,null);			
+			XPathResult.FIRST_ORDERED_NODE_TYPE,null);
 	if(q && q.singleNodeValue) { return q.singleNodeValue; }
 	return null;
 },
 FindByAttrXPath:function(obj,tag,className,subDocument) {
-	var q=null;
+	var q = null;
 	try {
 		var xpath=".//"+tag+"["+className+"]";
 		if(obj==null) {
 			GM_log('Trying to find xpath with null obj:'+xpath);
 			return null;
 		}
-		if (!subDocument) 
+		if (!subDocument)
 			q=document.evaluate(xpath,obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
-		else 
+		else
 			q=subDocument.evaluate(xpath,obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
 	} catch(err) {
 		GM_log("XPath Failed:"+xpath+","+err);
@@ -137,11 +139,15 @@ FindByAttrXPath:function(obj,tag,className,subDocument) {
 FindByAttr:function(obj,tag,attr,className,subDocument) {
 	if(className.exec==undefined) {
 		if(attr=="className") { attr="class"; }
+
+		var q = null;
 		if (!subDocument)
-			var q=document.evaluate(".//"+tag+"[@"+attr+"='"+className+"']",obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
-		else 
-			var q=subDocument.evaluate(".//"+tag+"[@"+attr+"='"+className+"']",obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
+			q = document.evaluate(".//"+tag+"[@"+attr+"='"+className+"']",obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
+		else
+			q = subDocument.evaluate(".//"+tag+"[@"+attr+"='"+className+"']",obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
+
 		if(q && q.singleNodeValue) { return q.singleNodeValue; }
+
 		return null;
 	}
 	var divs=obj.getElementsByTagName(tag);
@@ -213,16 +219,17 @@ getHTMLPredicate:function(HTML){
 
 OpenInIFrame:function(url, key) {
 	//if(!iframe = document.getElementById(key))
-	iframe = document.createElement("iframe");
+	var iframe = document.createElement("iframe");
 	//GM_log ("Navigating iframe to " + url);
 	iframe.setAttribute("src", url);
 	iframe.setAttribute("id", key);
 	iframe.setAttribute("style","width:0;height:0;");
-	document.documentElement.appendChild(iframe)
+	document.documentElement.appendChild(iframe);
 },
 
 ResetIFrame:function(key) {
-	if(iframe = document.getElementById(key)){
+	var iframe = document.getElementById(key);
+	if(iframe){
 		gm.log("Deleting iframe = "+key);
 		iframe.parentNode.removeChild(iframe);
 	}else gm.log("Frame not found = "+key);
@@ -625,16 +632,22 @@ CheckForImage:function(image,webSlice,subDocument) {
 	if (!webSlice) {
 		if (!subDocument)
 			webSlice=document.body;
-		else 
-			webSlice=subDocument.body;			
+		else
+			webSlice=subDocument.body;
 	}
-	if (imageSlice = nHtml.FindByAttrContains(webSlice,'input','src',image,subDocument)) {
+
+	var imageSlice = nHtml.FindByAttrContains(webSlice,'input','src',image,subDocument);
+	if (imageSlice) {
 		return imageSlice;
 	}
-	if (imageSlice = nHtml.FindByAttrContains(webSlice,'img','src',image,subDocument)) {
+
+	imageSlice = nHtml.FindByAttrContains(webSlice,'img','src',image,subDocument);
+	if (imageSlice) {
 		return imageSlice;
 	}
-	if (imageSlice = nHtml.FindByAttrContains(webSlice,'div','style',image,subDocument)) {
+
+	imageSlice = nHtml.FindByAttrContains(webSlice,'div','style',image,subDocument);
+	if (imageSlice) {
 		return imageSlice;
 	}
 	return false;
@@ -1020,12 +1033,12 @@ SetControls:function(force) {
 			htmlCode += this.MakeTextBox('MonsterFinderOrder',monsterFinderOrderInstructions," rows='3'");
 		htmlCode += "</div>";
 	htmlCode += "</table><hr/> </div>";
-	
+
 	//Recon Controls
 	var PReconInstructions="Enable player battle reconnaissance to run as an idle background task. Battle targets will be collected and can be displayed using the 'Target List' selection on the dashboard.";
 	var PRRankInstructions="Provide the number of ranks below you which recon will use to filter targets. This value will be subtracted from your rank to establish the minimum rank that recon will consider as a viable target. Default 3.";
 	var PRLevelInstructions="Provide the number of levels above you which recon will use to filter targets. This value will be added to your level to establish the maximum level that recon will consider as a viable target. Default 10.";
-	var PRARBaseInstructions="This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. For example, a value of .5 means you will battle an opponent the same level as you with an army half the size of your army or less. Default 1.";	
+	var PRARBaseInstructions="This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. For example, a value of .5 means you will battle an opponent the same level as you with an army half the size of your army or less. Default 1.";
 
 	htmlCode += this.ToggleControl('Recon','RECON');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
@@ -1033,10 +1046,10 @@ SetControls:function(force) {
 			htmlCode += 'Find battle targets that are:';
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Lower Than Rank Minus </td><td>' + this.MakeNumberForm('ReconPlayerRank',PRRankInstructions,'3',"size='2'  style='font-size: 10px; text-align: right'") + '</td></tr>';
-			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than Level Plus </td><td>' + this.MakeNumberForm('ReconPlayerLevel',PRLevelInstructions,'10',"size='2'  style='font-size: 10px; text-align: right'") + '</td></tr>';	
-			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than X*Army </td><td>' + this.MakeNumberForm('ReconPlayerARBase',PRARBaseInstructions,'1',"size='2'  style='font-size: 10px; text-align: right'") + '</td></tr></table>';				
+			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than Level Plus </td><td>' + this.MakeNumberForm('ReconPlayerLevel',PRLevelInstructions,'10',"size='2'  style='font-size: 10px; text-align: right'") + '</td></tr>';
+			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than X*Army </td><td>' + this.MakeNumberForm('ReconPlayerARBase',PRARBaseInstructions,'1',"size='2'  style='font-size: 10px; text-align: right'") + '</td></tr></table>';
 		htmlCode += "</div>";
-	htmlCode += "<hr/> </div>";		
+	htmlCode += "<hr/> </div>";
 
 
 	// Add General Comboboxes
@@ -1378,34 +1391,34 @@ monsterDashboard:function() {
 /*-------------------------------------------------------------------------------------\
  Next we put in our Refresh Monster List button which will only show when we have
  selected the Monster display.
-\-------------------------------------------------------------------------------------*/		
+\-------------------------------------------------------------------------------------*/
 	layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay','Monster')=='Monster'?'block':'none') +"'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 10px; width:50; height:50'></div>";
 /*-------------------------------------------------------------------------------------\
  Next we put in the Clear Target List button which will only show when we have
  selected the Target List display
-\-------------------------------------------------------------------------------------*/	
-	layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay','Monster')=='Target List'?'block':'none') +"'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 10px; width:50; height:50'></div>";	
+\-------------------------------------------------------------------------------------*/
+	layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay','Monster')=='Target List'?'block':'none') +"'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 10px; width:50; height:50'></div>";
 /*-------------------------------------------------------------------------------------\
  Then we put in the Live Feed link since we overlay the Castle Age link.
-\-------------------------------------------------------------------------------------*/	
+\-------------------------------------------------------------------------------------*/
 	layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
 /*-------------------------------------------------------------------------------------\
- We install the display selection box that allows the user to toggle through the 
+ We install the display selection box that allows the user to toggle through the
  available displays.
 \-------------------------------------------------------------------------------------*/
 	var displayList = ['Monster','Target List'];
-	layout += "<div style='font-size: 10px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay',displayList,'',"style='font-size: 9px min-width: 120px; max-width: 120px; width : 120px;'") + "</div>"
+	layout += "<div style='font-size: 10px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay',displayList,'',"style='font-size: 9px min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
 /*-------------------------------------------------------------------------------------\
-And here we build our empty content divs.  We display the appropriate div 
-depending on which display was selected using the control above 
-\-------------------------------------------------------------------------------------*/	
+And here we build our empty content divs.  We display the appropriate div
+depending on which display was selected using the control above
+\-------------------------------------------------------------------------------------*/
 	layout += "<div id='caap_infoMonster' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay','Monster')=='Monster'?'block':'none') +"'></div>";
 	layout += "<div id='caap_infoTargets1' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay','Monster')=='Target List'?'block':'none') +"'></div>";
 	layout += "<div id='caap_infoTargets2' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay','Monster')=='Target Stats'?'block':'none') +"'></div>";
 	layout += "</div>";
 /*-------------------------------------------------------------------------------------\
  No we apply our CSS to our container
-\-------------------------------------------------------------------------------------*/	
+\-------------------------------------------------------------------------------------*/
 	if (!$("#caap_top").length) {
 	   $(layout).css({
 			background : gm.getValue("StyleBackgroundLight","white"),
@@ -1447,18 +1460,18 @@ depending on which display was selected using the control above
 	});
 	html += '</table>';
 	$("#caap_infoMonster").html(html);
-	
+
 /*-------------------------------------------------------------------------------------\
 Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
-table and then build the header row. 
+table and then build the header row.
 \-------------------------------------------------------------------------------------*/
-	var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
+	html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
 	headers = ['UserId','Name','Rank','Rank#','Level','Army','Last Alive'];
-	values = ['nameStr','rankStr','rankNum','levelNum','armyNum','aliveTime']; 
-	for (var p in headers) html += "<td><b><font size=1>"+headers[p]+'</font></b></td>';
+	values = ['nameStr','rankStr','rankNum','levelNum','armyNum','aliveTime'];
+	for (var pp in headers) html += "<td><b><font size=1>"+headers[pp]+'</font></b></td>';
 /*-------------------------------------------------------------------------------------\
-This div will hold data drom the targetsOl repository.  We step through the entries 
-in targetOl and build each table row.  Our userid is 'key' so it's the first parameter                     
+This div will hold data drom the targetsOl repository.  We step through the entries
+in targetOl and build each table row.  Our userid is 'key' so it's the first parameter
 \-------------------------------------------------------------------------------------*/
 	targetList = gm.getList('targetsOl');
 	for (var i in targetList) {
@@ -1469,34 +1482,34 @@ in targetOl and build each table row.  Our userid is 'key' so it's the first par
 /*-------------------------------------------------------------------------------------\
 We step through each of the additional values we include in the table. If a value is
 null then we build an empty td
-\-------------------------------------------------------------------------------------*/		
+\-------------------------------------------------------------------------------------*/
 		for (var j in values) {
 			value = gm.getObjVal(targetObj,values[j]);
 			if (!value) {
 				html += '<td></td>';
 				continue;
-			}	
+			}
 /*-------------------------------------------------------------------------------------\
 We format the values based on the names. Names ending with Num are numbers, ending in
-Time are date/time counts, and Str are strings. We then end the row, and finally when 
+Time are date/time counts, and Str are strings. We then end the row, and finally when
 all done end the table.  We then add the HTML to the div.
-\-------------------------------------------------------------------------------------*/			
+\-------------------------------------------------------------------------------------*/
 			if (/.+Num/.test(values[j])) value = caap.makeCommaValue(value);
 			if (/.+Time/.test(values[j])) {
 				var newTime = new Date(parseInt(value,10));
 				value = (newTime.getMonth()+1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
-			}	
+			}
 			html += caap.makeTd(value,'black');
-		}	
+		}
 		html += '</tr>';
-	}	
+	}
 	html += '</table>';
 	$("#caap_infoTargets1").html(html);
 /*-------------------------------------------------------------------------------------\
 We add our listener for the Display Select control.
-\-------------------------------------------------------------------------------------*/		
+\-------------------------------------------------------------------------------------*/
 	caap.AddDBListener();
-},	
+},
 /*-------------------------------------------------------------------------------------\
 AddDBListener creates the listener for our dashboard controls.
 \-------------------------------------------------------------------------------------*/
@@ -1526,21 +1539,22 @@ AddDBListener:function(){
 				caap.SetDisplay('infoTargets2',false);
 				caap.SetDisplay('buttonMonster',true);
 				caap.SetDisplay('buttonTargets',false);
-		}	
-		gm.setValue('resetdashboard',true);	
-	},false);	
-	
+				break;
+		}
+		gm.setValue('resetdashboard',true);
+	},false);
+
 	var refreshMonsters=document.getElementById('caap_refreshMonsters');
 	refreshMonsters.addEventListener('click',function(e) {
 		gm.setValue('monsterReview',0);
 		gm.setValue('monsterReviewCounter',-3);
-	},false);	
-	
+	},false);
+
 	var clearTargets=document.getElementById('caap_clearTargets');
 	clearTargets.addEventListener('click',function(e) {
 		gm.setValue('targetsOl','');
-		gm.setValue('resetdashboard',true);	
-	},false);	
+		gm.setValue('resetdashboard',true);
+	},false);
 },
 /*-------------------------------------------------------------------------------------\
 DBDropDown is used to make our drop down boxes for dash board controls.  These require
@@ -1966,22 +1980,25 @@ CheckResults:function() {
 		if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
 			gm.log('We have a gift waiting!');
 			gm.setValue('HaveGift',true);
-		} else if (beepDiv = nHtml.FindByAttrContains(document.body,'div','class','UIBeep_Title')) {
-			beepText = nHtml.GetText(beepDiv).trim();
-			if (beepText.match(/sent you a gift/) && !beepText.match(/notification/)) {
-				gm.log('We have a gift waiting');
-				gm.setValue('HaveGift',true);
+		} else {
+			var beepDiv = nHtml.FindByAttrContains(document.body,'div','class','UIBeep_Title');
+			if (beepDiv) {
+				var beepText = nHtml.GetText(beepDiv).trim();
+				if (beepText.match(/sent you a gift/) && !beepText.match(/notification/)) {
+					gm.log('We have a gift waiting');
+					gm.setValue('HaveGift',true);
+				}
 			}
 		}
 	}
 
 	if (this.stats.level < 10) this.battlePage = 'battle_train,battle_off';
 	else this.battlePage = 'battle';
-	
-	//Check for Elite Guard Add image 
+
+	//Check for Elite Guard Add image
 	if (this.CheckForImage('elite_guard_add')) {
 		if (gm.getValue('AutoEliteEnd','NoArmy') != 'NoArmy') gm.setValue('AutoEliteGetList',0);
-	}	
+	}
 
 
 	// Check for Gold Stored
@@ -1989,7 +2006,8 @@ CheckResults:function() {
 		var goldStored = nHtml.FindByAttrContains(document.body,"b","class",'money').firstChild.data.replace(/[^0-9]/g,'');
 		gm.setValue('inStore',goldStored);
 	}
-	if (resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body'))
+	var resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
+	if (resultsDiv)
 		resultsText = nHtml.GetText(resultsDiv).trim();
 	else resultsText = '';
 
@@ -2041,15 +2059,18 @@ Quests:function() {
 		return false;
 	}
 	if(gm.getValue('WhenQuest','') == 'Not Fortifying') {
-		if(!(maxHealthtoQuest=this.GetNumber('MaxHealthtoQuest'))) {
+		var maxHealthtoQuest=this.GetNumber('MaxHealthtoQuest');
+		if(!maxHealthtoQuest) {
 			this.SetDivContent('quest_mess','<b>No valid over fortify %</b>');
 			return false;
 		}
-		if ((fortMon = gm.getValue('targetFromfortify'))) {
+		var fortMon = gm.getValue('targetFromfortify');
+		if (fortMon) {
 			this.SetDivContent('quest_mess','No questing until attack target '+fortMon+" health exceeds "+this.GetNumber('MaxToFortify')+'%');
 			return false;
 		}
-		if (!(targetFrombattle_monster = gm.getValue('targetFrombattle_monster'))) {
+		var targetFrombattle_monster = gm.getValue('targetFrombattle_monster');
+		if (!targetFrombattle_monster) {
 			if (!(targetFort = gm.getListObjVal('monsterOl',targetFrombattle_monster,'ShipHealth'))) {
 				if(targetFort < maxHealthtoQuest) {
 					this.SetDivContent('quest_mess','No questing until fortify target '+targetFrombattle_monster+' health exceeds '+maxHealthtoQuest+'%');
@@ -2097,7 +2118,8 @@ Quests:function() {
 			break;
 	}
 
-	if ((button = this.CheckForImage('quick_switch_button.gif')) && !gm.getValue('ForceSubGeneral',false)) {
+	var button = this.CheckForImage('quick_switch_button.gif');
+	if (button && !gm.getValue('ForceSubGeneral',false)) {
 		gm.log('Clicking on quick switch general button.');
 		this.Click(button);
 		return true;
@@ -2106,7 +2128,8 @@ Quests:function() {
         var costToBuy = '';
 
 	//Buy quest requires popup
-	if(itemBuyPopUp = nHtml.FindByAttrContains(document.body,"form","id",'itemBuy')){
+	var itemBuyPopUp = nHtml.FindByAttrContains(document.body,"form","id",'itemBuy');
+	if(itemBuyPopUp){
 		gm.setValue('storeRetrieve','general');
 		if (this.SelectGeneral('BuyGeneral')) return true;
 		gm.setValue('storeRetrieve','');
@@ -2126,16 +2149,18 @@ Quests:function() {
 				return false;
 			}
 		}
-		if (button = this.CheckForImage('quick_buy_button.jpg')){
-		gm.log('Clicking on quick buy button.');
-		this.Click(button);
-		return true;
+		button = this.CheckForImage('quick_buy_button.jpg');
+		if (button){
+			gm.log('Clicking on quick buy button.');
+			this.Click(button);
+			return true;
 		}
 		gm.log("Cant find buy button");
 		return false;
 	}
 
-	if (button = this.CheckForImage('quick_buy_button.jpg')) {
+	button = this.CheckForImage('quick_buy_button.jpg');
+	if (button) {
 		gm.setValue('storeRetrieve','general');
 		if (this.SelectGeneral('BuyGeneral')) return true;
 		gm.setValue('storeRetrieve','');
@@ -2171,7 +2196,8 @@ Quests:function() {
 		return true;
 	}
 	//if found missing requires, click to buy
-	if(background = nHtml.FindByAttrContains(autoQuestDivs.tr,"div","style",'background-color')){
+	var background = nHtml.FindByAttrContains(autoQuestDivs.tr,"div","style",'background-color');
+	if(background){
 		if(background.style.backgroundColor == 'rgb(158, 11, 15)'){
 			gm.log(" background.style.backgroundColor = "+background.style.backgroundColor);
 			gm.setValue('storeRetrieve','general');
@@ -2812,16 +2838,14 @@ SelectLands:function(row,val) {
 BuyLand:function(prop) {
 	//this.DrawLands();
 	this.SelectLands(prop.row,2);
-	var button;
-	if(button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'")){
+	var button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'");
+	if(button) {
 //		gm.log("Clicking buy button:" +button);
-		if(button) {
-			gm.log("Buying Prop: " +prop.name);
-			this.Click(button,13000);
-			gm.setValue('BestPropCost','');
-			this.bestProp.roi = '';
-			return true;
-		}
+		gm.log("Buying Prop: " +prop.name);
+		this.Click(button,13000);
+		gm.setValue('BestPropCost','');
+		this.bestProp.roi = '';
+		return true;
 	}
 	return false;
 },
@@ -2829,15 +2853,13 @@ BuyLand:function(prop) {
 SellLand:function(prop,select) {
 	//this.DrawLands();
 	this.SelectLands(prop.row,select);
-	var button;
-	if(button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'")){
+	var button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'");
+	if(button) {
 //		gm.log("Clicking sell button:" +button);
-		if(button) {
-			gm.log("Selling Prop: " +prop.name);
-			this.Click(button,13000);
-			this.sellProp = '';
-			return true;
-		}
+		gm.log("Selling Prop: " +prop.name);
+		this.Click(button,13000);
+		this.sellProp = '';
+		return true;
 	}
 	return false;
 },
@@ -2939,7 +2961,7 @@ AddBattleLinks:function() {
 CheckBattleResults:function() {
 	// Check for Battle results
 
-	resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
+	var resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
 	if (resultsDiv) {
 		resultsText = nHtml.GetText(resultsDiv).trim();
 		if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
@@ -3510,7 +3532,7 @@ bosses:{
 								'Levels 60-90' : caap.group('60-90: ',30),
 								'Levels 30-60' : caap.group('30-60: ',30),
 								'Levels 1-30'  : caap.group('01-30: ',30)}
-*/							},							
+*/							},
         'Earth Elemental'	: {duration: 168, ach: 1000000, siege : 5, siegeClicks : [30,60,90,120,200]
 							, siegeDam : [6600000,8250000,9900000,13200000,16500000]
 							, siege_img : '/graphics/earth_siege_small', fort: true, staUse:5, general: 'Orc King'
@@ -3558,14 +3580,14 @@ parseCondition:function(type,conditions) {
 },
 
 getMonstType:function(name) {
-	var words = name.split(" ")
-	var count = words.length - 1
+	var words = name.split(" ");
+	var count = words.length - 1;
 	switch (words[count]) {
 		case 'Elemental' :
 			return words[count-1] + ' ' + words[count];
 		default :
 			return words[count];
-	}		
+	}
 },
 
 checkMonsterEngage:function() {
@@ -3736,7 +3758,7 @@ checkMonsterDamage:function() {
 		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 		monsterList = gm.getList('monsterOl');
 		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
-				&& (nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward') 
+				&& (nHtml.FindByAttrContains(document.body,'a','href','&action=collectReward')
 				|| nHtml.FindByAttrContains(document.body,'input','alt','Collect Reward'))) {
 			gm.log('Collecting Reward');
 			gm.setValue('monsterReviewCounter',counter-1);
@@ -3751,13 +3773,14 @@ checkMonsterDamage:function() {
 	if(time.length == 3  && caap.CheckForImage('monster_health_background.jpg')) {
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
 		var hpBar = null;
-		if (imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg")) {
-				//gm.log("Found monster health div.");
-				var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
-				var attrWidth = divAttr[1].split(":");
-				hpBar = attrWidth[1].trim();
+		var imgHealthBar = nHtml.FindByAttrContains(document.body,"img","src","monster_health_background.jpg");
+		if (imgHealthBar) {
+			//gm.log("Found monster health div.");
+			var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
+			var attrWidth = divAttr[1].split(":");
+			hpBar = attrWidth[1].trim();
 		} else {
-				gm.log("Could not find monster health div.");
+			gm.log("Could not find monster health div.");
 		}
 		if (hpBar) {
 			var hp = Math.round(hpBar.replace(/%/,'')*10)/10; //fix two 2 decimal places
@@ -3942,7 +3965,7 @@ selectMonster:function() {
 					gm.setValue('MonsterStaminaReq',5);
 				else gm.setValue('MonsterStaminaReq',1);
 				if (gm.getValue('MonsterGeneral') == 'Orc King' && gm.getValue('OrcKingPowerAttack',false))
-					gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);				
+					gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
 			} else {
 				// Switch RaidPowerAttack
 				if (gm.getValue('RaidPowerAttack',false) || monsterConditions.match(/:pa/i))
@@ -4068,7 +4091,7 @@ Monsters:function() {
 
     // Set right general
     var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
-    if (this.SelectGeneral(fightMode + 'General')) return true;	
+    if (this.SelectGeneral(fightMode + 'General')) return true;
 
 	// Check if on engage monster page
 	if ((webSlice=this.CheckForImage('dragon_title_owner.jpg'))) {
@@ -4166,7 +4189,8 @@ DemiPoints:function() {
 	if (!gm.getValue('DemiPointsFirst')) return false;
 
 	if (this.CheckForImage('battle_on.gif')) {
-		if (smallDeity = this.CheckForImage('symbol_tiny_1.jpg')) {
+		var smallDeity = this.CheckForImage('symbol_tiny_1.jpg');
+		if (smallDeity) {
 			demiPointList = nHtml.GetText(smallDeity.parentNode.parentNode.parentNode).match(/\d+ \/ 10/g);
 			gm.setList('DemiPointList',demiPointList);
 			gm.log('DemiPointList: ' + demiPointList);
@@ -4585,7 +4609,7 @@ selectMonst: function() {
 
 clearLinks: function (resetall){
 	gm.log("Clear Links");
-	if (resetall = true) {
+	if (resetall) {
 		gm.setValue("navLink","");
 		gm.setValue("mfStatus","");
 		gm.setValue("waitMonsterLoad",0);
@@ -5028,9 +5052,9 @@ CheckGiftResults:function(resultsText) {
 	}
 },
 AutoGift:function() {
-
 	if (!gm.getValue('AutoGift')) return false;
-	if (giftEntry = nHtml.FindByAttrContains(document.body,'div','id','_gift1')) {
+	var giftEntry = nHtml.FindByAttrContains(document.body,'div','id','_gift1');
+	if (giftEntry) {
 		gm.setList('GiftList',[]);
 		var ss=document.evaluate(".//div[contains(@id,'_gift')]",giftEntry.parentNode,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 		var giftNamePic= {};
@@ -5088,9 +5112,11 @@ AutoGift:function() {
 		return this.NavigateTo('gift');
 	}
 
+	var button = null;
 	// Facebook pop-up on CA
 	if (gm.getValue('FBSendList','')) {
-		if (button = nHtml.FindByAttrContains(document.body,'input','name','sendit') ) {
+		button = nHtml.FindByAttrContains(document.body,'input','name','sendit');
+		if (button) {
 			gm.log('Sending gifts to Facebook');
 			this.Click(button);
 			this.SetCheckResultsFunction('CheckGiftResults');
@@ -5098,7 +5124,8 @@ AutoGift:function() {
 		}
 		gm.listAddBefore('ReceivedList',gm.getList('FBSendList'));
 		gm.setList('FBSendList',[]);
-		if (button = nHtml.FindByAttrContains(document.body,'input','name','ok')){
+		button = nHtml.FindByAttrContains(document.body,'input','name','ok');
+		if (button){
 			gm.log('Over max gifts per day');
 			this.JustDidIt('WaitForNextGiftSend');
 			this.Click(button);
@@ -5110,8 +5137,10 @@ AutoGift:function() {
 
 	// CA send gift button
 	if (gm.getValue('CASendList','')) {
-		if (sendForm = nHtml.FindByAttrContains(document.body,'form','id','req_form_')) {
-			if (button = nHtml.FindByAttrContains(sendForm,'input','id','send')) {
+		sendForm = nHtml.FindByAttrContains(document.body,'form','id','req_form_');
+		if (sendForm) {
+			button = nHtml.FindByAttrContains(sendForm,'input','id','send');
+			if (button) {
 				gm.log('Clicked CA send gift button');
 				gm.listAddBefore('FBSendList',gm.getList('CASendList'));
 				gm.setList('CASendList',[]);
@@ -5133,11 +5162,9 @@ AutoGift:function() {
 	}
 
 	if (gm.getValue('DisableGiftReturn',false)) gm.setList('ReceivedList',[]);
-	
+
 	giverList = gm.getList('ReceivedList');
 	if (!giverList.length) return false;
-	var giftChoice = gm.getValue('GiftChoice');
-	//if (is_chrome) giftChoice = 'Random Gift';
 
 	if (this.NavigateTo('army,gift','giftpage_title.jpg')) return true;
 
@@ -5146,12 +5173,15 @@ AutoGift:function() {
 		gm.log('No list of pictures for gift choices');
 		return false;
 	}
-	
+
 	var givenGiftType = '';
-    var giftPic = '';
+	var giftPic = '';
+	var giftChoice = gm.getValue('GiftChoice');
+	//if (is_chrome) giftChoice = 'Random Gift';
 	switch (giftChoice) {
 		case 'Random Gift':
-			if ((giftPic = gm.getValue('RandomGiftPic'))) break;
+			giftPic = gm.getValue('RandomGiftPic');
+			if (giftPic) break;
 			var picNum = Math.floor(Math.random()* (gm.getList('GiftList').length));
 			var n = 0;
 			for(var picN in giftNamePic) {
@@ -5185,7 +5215,8 @@ AutoGift:function() {
 	}
 
 	// Move to gifts page
-	if (!(picDiv = this.CheckForImage(giftPic))) {
+	picDiv = this.CheckForImage(giftPic);
+	if (!picDiv) {
 		gm.log('Unable to find ' + giftPic);
 		return false;
 	} else gm.log('GiftPic is ' + giftPic);
@@ -5213,14 +5244,16 @@ AutoGift:function() {
 			continue;
 		}
 
-		if (!(nameButton = nHtml.FindByAttrContains(giveDiv,'input','value',giverID))) {
+		var nameButton = nHtml.FindByAttrContains(giveDiv,'input','value',giverID);
+		if (!nameButton) {
 			gm.log('Unable to find giver ID ' + giverID);
 			gm.listPush('NotFoundIDs',giverList[p]);
 			this.JustDidIt('WaitForNotFoundIDs');
 			continue;
+		} else {
+			gm.log('Clicking giver ID ' + giverID);
+			this.Click(nameButton);
 		}
-		gm.log('Clicking giver ID ' + giverID);
-		this.Click(nameButton);
 
 		//test actually clicked
 		if (nHtml.FindByAttrContains(doneDiv,'input','value',giverID)) {
@@ -5465,7 +5498,7 @@ Idle:function() {
 	}catch (e){
 		gm.log("ERROR: " + e);
 	}
-	
+
 	this.ReconPlayers();
 	gm.setValue('ReleaseControl',true);
 	return true;
@@ -5474,12 +5507,12 @@ Idle:function() {
 /*-------------------------------------------------------------------------------------\
                                   RECON PLAYERS
 
-ReconPlayers is an idle background process that scans the battle page for viable  
-targets that can later be attacked. 
+ReconPlayers is an idle background process that scans the battle page for viable
+targets that can later be attacked.
 \-------------------------------------------------------------------------------------*/
 ReconPlayers:function(){try{
 /*-------------------------------------------------------------------------------------\
-If recon is disabled or if we check our timer to make sure we are not running recon too 
+If recon is disabled or if we check our timer to make sure we are not running recon too
 often.
 \-------------------------------------------------------------------------------------*/
 	if (!gm.getValue('DoPlayerRecon',false)) return false;
@@ -5489,12 +5522,12 @@ often.
 If we don't have our iframe then we open it up. We give an additional 30 seconds to get
 loaded.
 \-------------------------------------------------------------------------------------*/
-	if (!document.getElementById("iframeRecon")) { 
+	if (!document.getElementById("iframeRecon")) {
 		nHtml.OpenInIFrame('http://apps.facebook.com/castle_age/battle.php#iframeRecon','iframeRecon');
 		gm.log('Opening the recon iframe');
 		this.SetTimer('PlayerReconTimer',30);
 		return true;
-	}	
+	}
 /*-------------------------------------------------------------------------------------\
 pageObj wil contain our iframe DOM content.  If we don't have any content yet we give
 it another 30 seconds.
@@ -5505,11 +5538,11 @@ it another 30 seconds.
 		this.SetTimer('PlayerReconTimer',30);
 		return true;
 	}
-	this.SetDivContent('idle_mess','Player Recon: In Progress');	
-/*-------------------------------------------------------------------------------------\	
-We use the 'invade' button gif for our snapshot.  If we don't find any then we aren't 
+	this.SetDivContent('idle_mess','Player Recon: In Progress');
+/*-------------------------------------------------------------------------------------\
+We use the 'invade' button gif for our snapshot.  If we don't find any then we aren't
 in the right place or have a load problem
-\-------------------------------------------------------------------------------------*/	
+\-------------------------------------------------------------------------------------*/
 	var target = "//input[contains(@src,'battle_01.gif')]";
 	var ss=pageObj.evaluate(target,pageObj,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	if(ss.snapshotLength<=0) {
@@ -5517,7 +5550,7 @@ in the right place or have a load problem
 		gm.log('Recon can not find battle page');
 		caap.SetDivContent('idle_mess','');
 		return false;
-	}	
+	}
 //	gm.log("Found targets: "+ss.snapshotLength);
 /*-------------------------------------------------------------------------------------\
 Next we get our Recon Player settings for lowest rank, highest level, and army ratio
@@ -5525,11 +5558,11 @@ base multiplier.
 \-------------------------------------------------------------------------------------*/
 	var reconRank = this.GetNumber('ReconPlayerRank',99);
 	var reconLevel = this.GetNumber('ReconPlayerLevel',999);
-	var reconARBase = this.GetNumber('ReconPlayerARBase',999);	
+	var reconARBase = this.GetNumber('ReconPlayerARBase',999);
 	var found = 0;
 /*-------------------------------------------------------------------------------------\
 Now we step through our snapshot data which represents data within each 'tr' for each
-target on the battle page.  We step back through the parent objects until we have the 
+target on the battle page.  We step back through the parent objects until we have the
 entire 'tr'
 \-------------------------------------------------------------------------------------*/
 	for(var s=0; s<ss.snapshotLength; s++) {
@@ -5540,12 +5573,12 @@ entire 'tr'
 		var tr = obj;
 /*-------------------------------------------------------------------------------------\
 We get the deity number for the target
-\-------------------------------------------------------------------------------------*/	
+\-------------------------------------------------------------------------------------*/
 		deityNum = this.NumberOnly(this.CheckForImage('symbol_',tr,pageObj).src.match(/\d+\.jpg/i).toString());
 /*-------------------------------------------------------------------------------------\
-We also get the targets actual name, level and rank from the text string 
-\-------------------------------------------------------------------------------------*/		
-		var regex = new RegExp('(.+), Level ([0-9]+)\\s*([A-Za-z ]+)','i')
+We also get the targets actual name, level and rank from the text string
+\-------------------------------------------------------------------------------------*/
+		var regex = new RegExp('(.+), Level ([0-9]+)\\s*([A-Za-z ]+)','i');
 		var txt = nHtml.GetText(tr).trim();
 		if (!(levelm = regex.exec(txt))) {
 			gm.log('Recon can not parse target text string' + txt);
@@ -5556,8 +5589,8 @@ We also get the targets actual name, level and rank from the text string
 		var rankStr = levelm[3].trim();
 		var rankNum = this.rankTable[rankStr.toLowerCase()];
 /*-------------------------------------------------------------------------------------\
-Then we get the targets army count and userid. 	We'll also save the current time we 
-found the target alive.	
+Then we get the targets army count and userid. 	We'll also save the current time we
+found the target alive.
 \-------------------------------------------------------------------------------------*/
 		var armyNum = parseInt(tr.childNodes[5].textContent.trim(),10);
 		var userID = nHtml.FindByAttrXPath(tr,"input","@name='target_id'",pageObj).value;
@@ -5571,37 +5604,37 @@ We filter out targets that are above the recon max level or below the recon min 
 /*-------------------------------------------------------------------------------------\
 We adjust the army ratio base by our level multiplier and then apply this to our army
 size.  If the result is our adjusted army size is below the targets army size then
-we filter this taregt too. 
+we filter this taregt too.
 \-------------------------------------------------------------------------------------*/
 		var levelMultiplier = this.stats.level/levelNum;
 		var armyRatio = reconARBase * levelMultiplier;
 		if (armyRatio <= 0) {
 			gm.log('Recon unable to calculate army ratio: '+ reconARBase +'/'+ levelMultiplier);
 			continue;
-		}	
+		}
 		if (armyNum > (this.stats.army*armyRatio)) continue;
 //		gm.log('Target Found: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
 /*-------------------------------------------------------------------------------------\
 Ok, recon has found a viable target. We get any existing values from the targetsOL
-database. 
+database.
 \-------------------------------------------------------------------------------------*/
-		found++
+		found++;
 		invadewinsNum = gm.getListObjVal('targetsOl',userID,'invadewinsNum',-1);
 		invadelossesNum = gm.getListObjVal('targetsOl',userID,'invadelossesNum',-1);
 		duelwinsNum = gm.getListObjVal('targetsOl',userID,'duelwinsNum',-1);
-		duellossesNum = gm.getListObjVal('targetsOl',userID,'duellossesNum',-1);	
+		duellossesNum = gm.getListObjVal('targetsOl',userID,'duellossesNum',-1);
 		defendwinsNum = gm.getListObjVal('targetsOl',userID,'defendwinsNum',-1);
-		defendlossesNum = gm.getListObjVal('targetsOl',userID,'defendlossesNum',-1);		
+		defendlossesNum = gm.getListObjVal('targetsOl',userID,'defendlossesNum',-1);
 		goldNum = gm.getListObjVal('targetsOl',userID,'goldNum',-1);
 		attackTime = gm.getListObjVal('targetsOl',userID,'attackTime',0);
 		selectTime = gm.getListObjVal('targetsOl',userID,'selectTime',0);
 		statswinsNum = gm.getListObjVal('targetsOl',userID,'statswinsNum',-1);
 		statslossesNum = gm.getListObjVal('targetsOl',userID,'statswinsNum',-1);
 /*-------------------------------------------------------------------------------------\
-And then we add/update targetsOL database with information on the target. We include 
+And then we add/update targetsOL database with information on the target. We include
 the max value of the number of entries on the first update
-\-------------------------------------------------------------------------------------*/	
-		entryLimit = gm.getValue('LimitTargets',100)
+\-------------------------------------------------------------------------------------*/
+		entryLimit = gm.getValue('LimitTargets',100);
 		gm.setListObjVal('targetsOl',userID,'nameStr',nameStr,entryLimit);			/* Target name */
 		gm.setListObjVal('targetsOl',userID,'rankStr',rankStr);						/* Target rank */
 		gm.setListObjVal('targetsOl',userID,'rankNum',rankNum);						/* Target rank number */
@@ -5611,28 +5644,28 @@ the max value of the number of entries on the first update
 		gm.setListObjVal('targetsOl',userID,'invadewinsNum',invadewinsNum);			/* Tally of invade wins against target */
 		gm.setListObjVal('targetsOl',userID,'invadelossesNum',invadelossesNum);		/* Tally of invade losses against target */
 		gm.setListObjVal('targetsOl',userID,'duelwinsNum',duelwinsNum);				/* Tally of duel wins against target */
-		gm.setListObjVal('targetsOl',userID,'duellossesNum',duellossesNum);			/* Tally of duel losses against target */	
+		gm.setListObjVal('targetsOl',userID,'duellossesNum',duellossesNum);			/* Tally of duel losses against target */
 		gm.setListObjVal('targetsOl',userID,'defendwinsNum',defendwinsNum);			/* Tally of wins when target attacked us */
-		gm.setListObjVal('targetsOl',userID,'defendlossesNum',defendlossesNum);		/* Tally of losses when target attacked us */		
+		gm.setListObjVal('targetsOl',userID,'defendlossesNum',defendlossesNum);		/* Tally of losses when target attacked us */
 		gm.setListObjVal('targetsOl',userID,'statswinsNum',statswinsNum);			/* Targets win count from stats */
 		gm.setListObjVal('targetsOl',userID,'statslossesNum',statslossesNum);		/* Targets loss count from stats */
 		gm.setListObjVal('targetsOl',userID,'goldNum',goldNum);						/* Tally of gold won from target */
 		gm.setListObjVal('targetsOl',userID,'aliveTime',aliveTime);					/* Last time found alive */
 		gm.setListObjVal('targetsOl',userID,'attackTime',attackTime);				/* Last time attacked */
 		gm.setListObjVal('targetsOl',userID,'selectTime',selectTime);				/* Last time selected to attack */
-	}	
+	}
 /*-------------------------------------------------------------------------------------\
-We're done with recon.  Reload the battle page for next pass and set timer for the next 
-recon to occur in 60 seconds 
-\-------------------------------------------------------------------------------------*/	
+We're done with recon.  Reload the battle page for next pass and set timer for the next
+recon to occur in 60 seconds
+\-------------------------------------------------------------------------------------*/
 	pageObj.location.reload(true);
-	retrySecs = gm.getValue('PlayerReconRetry',60)	
+	retrySecs = gm.getValue('PlayerReconRetry',60);
 	this.SetTimer('PlayerReconTimer',retrySecs);
-	if (found > 0) { 
+	if (found > 0) {
 		this.SetDivContent('idle_mess','Player Recon: Found:' + found + ' Total:'+gm.getList('targetsOl').length);
-	} else {	
+	} else {
 		this.SetDivContent('idle_mess','Player Recon: No Targets Found');
-	}	
+	}
 	window.setTimeout(function() {caap.SetDivContent('idle_mess','');},retrySecs*1000);
 	return false;
 } catch (e){gm.log("ERROR in Recon :"+e); return false;}
@@ -5676,6 +5709,7 @@ MainLoop:function() {
 		}, 30*1000);
 		return;
 	}
+
 	if(document.getElementById('try_again_button')) {
 		gm.log('detected Try Again message, waiting to reload');
 		// error
@@ -5686,7 +5720,6 @@ MainLoop:function() {
 	}
 
 	if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
-
 		if (gm.getValue("mfStatus","") == "OpenMonster") {
 			gm.log("Opening Monster " + gm.getValue("navLink"));
 			this.CheckMonster();
@@ -5702,7 +5735,8 @@ MainLoop:function() {
 	}
 
 	//We don't need to send out any notifications
-	if (button = nHtml.FindByAttrContains(document.body,"a","class",'undo_link')){
+	var button = nHtml.FindByAttrContains(document.body,"a","class",'undo_link');
+	if (button){
 		this.Click(button);
 		gm.log('Undoing notification');
 	}
@@ -5745,17 +5779,20 @@ MainLoop:function() {
 		this.WaitMainLoop();
 		return;
 	}
+
 	if(gm.getValue('caapPause','none') != 'none') {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
 		document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark','1');
 		this.WaitMainLoop();
 		return;
 	}
+
 	if (this.AutoIncome()) {
 		this.CheckLastAction('AutoIncome');
 		this.WaitMainLoop();
 		return;
 	}
+
 	var actionsList = ['AutoElite','Heal','ImmediateBanking','ImmediateAutoStat','MaxEnergyQuest','DemiPoints','Monsters','Battle','MonsterFinder','Quests','PassiveGeneral','Lands','Bank','AutoBless','AutoStat','AutoGift','MonsterReview','Idle'];
 
 	if (!gm.getValue('ReleaseControl',false)) actionsList.unshift(gm.getValue('LastAction','Idle'));
