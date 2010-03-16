@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.13
+// @version        139.14
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -18,7 +18,7 @@
 // Define our global object
 ///////////////////////////
 var caapGlob = {};
-caapGlob.thisVersion = "139.13";
+caapGlob.thisVersion = "139.14";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -26,6 +26,9 @@ caapGlob.newVersionAvailable = false;
 caapGlob.documentTitle = document.title;
 caapGlob.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 caapGlob.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false;
+caapGlob.os = '\n'; // Object separator - used to separate objects
+caapGlob.vs = '\t'; // Value separator - used to separate name/values within the objects
+caapGlob.ls = '\f'; // Label separator - used to separate the name from the value
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
@@ -89,390 +92,429 @@ if (!caapGlob.is_chrome) {
 String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
 
 /////////////////////////////////////////////////////////////////////
-
 //							HTML TOOLS
-
 // this object contains general methods for wading through the DOM and dealing with HTML
-
 /////////////////////////////////////////////////////////////////////
+var nHtml = {
+	xpath:{
+		string : XPathResult.STRING_TYPE,
+		unordered: XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+		first : XPathResult.FIRST_ORDERED_NODE_TYPE
+	},
 
-var xpath = {
-	string : XPathResult.STRING_TYPE,
-	unordered: XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
-	first : XPathResult.FIRST_ORDERED_NODE_TYPE
-};
-
-var nHtml={
-FindByAttrContains:function(obj, tag, attr, className, subDocument) {
-	if(attr == "className") { attr = "class"; }
-
-	if (!subDocument) subDocument = document;
-
-	var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
-		attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+
-		className.toLowerCase() + "')]", obj, null, xpath.first, null);
-
-	if(q && q.singleNodeValue) { return q.singleNodeValue; }
-
-	return null;
-},
-
-FindByAttrXPath:function(obj, tag, className, subDocument) {
-	var q = null;
-	try {
-		var xp = ".//" + tag + "[" + className + "]";
-		if (obj === null) {
-			gm.log('Trying to find xpath with null obj:' + xp );
-			return null;
-		}
-
-		if (!subDocument) subDocument = document;
-
-		q = subDocument.evaluate(xp, obj, null, xpath.first, null);
-	} catch(err) {
-		gm.log("XPath Failed:" + xp + "," + err);
-	}
-
-	if(q && q.singleNodeValue) { return q.singleNodeValue; }
-
-	return null;
-},
-
-FindByAttr:function(obj, tag, attr, className, subDocument) {
-	if(className.exec == undefined) {
+	FindByAttrContains:function(obj, tag, attr, className, subDocument) {
 		if(attr == "className") { attr = "class"; }
 
 		if (!subDocument) subDocument = document;
 
-		var q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, xpath.first, null);
+		var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
+			attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+
+			className.toLowerCase() + "')]", obj, null, this.xpath.first, null);
 
 		if(q && q.singleNodeValue) { return q.singleNodeValue; }
 
 		return null;
-	}
+	},
 
-	var divs = bj.getElementsByTagName(tag);
-	for(var d = 0; d < divs.length; d++) {
-		var div = divs[d];
-		if(className.exec != undefined) {
-			if(className.exec(div[attr])) {
+	FindByAttrXPath:function(obj, tag, className, subDocument) {
+		var q = null;
+		try {
+			var xp = ".//" + tag + "[" + className + "]";
+			if (obj === null) {
+				gm.log('Trying to find xpath with null obj:' + xp );
+				return null;
+			}
+
+			if (!subDocument) subDocument = document;
+
+			q = subDocument.evaluate(xp, obj, null, this.xpath.first, null);
+		} catch(err) {
+			gm.log("XPath Failed:" + xp + "," + err);
+		}
+
+		if(q && q.singleNodeValue) { return q.singleNodeValue; }
+
+		return null;
+	},
+
+	FindByAttr:function(obj, tag, attr, className, subDocument) {
+		if(className.exec == undefined) {
+			if(attr == "className") { attr = "class"; }
+
+			if (!subDocument) subDocument = document;
+
+			var q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, this.xpath.first, null);
+
+			if(q && q.singleNodeValue) { return q.singleNodeValue; }
+
+			return null;
+		}
+
+		var divs = obj.getElementsByTagName(tag);
+		for(var d = 0; d < divs.length; d++) {
+			var div = divs[d];
+			if(className.exec != undefined) {
+				if(className.exec(div[attr])) {
+					return div;
+				}
+			} else if(div[attr] == className) {
 				return div;
 			}
-		} else if(div[attr] == className) {
-			return div;
 		}
-	}
 
-	return null;
-},
+		return null;
+	},
 
-FindByClassName:function(obj, tag, className) {
-	return this.FindByAttr(obj, tag, "className", className);
-},
+	FindByClassName:function(obj, tag, className) {
+		return this.FindByAttr(obj, tag, "className", className);
+	},
 
-spaceTags:{
-	'td':1,'br':1,'hr':1,'span':1,'table':1
-},
+	spaceTags:{
+		'td':1,'br':1,'hr':1,'span':1,'table':1
+	},
 
-GetText:function(obj) {
-	var txt = ' ';
-	if(obj.tagName != undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
-		txt += " ";
-	}
-
-	if(obj.nodeName == "#text") { return txt + obj.textContent; }
-
-	for(var o = 0; o < obj.childNodes.length; o++) {
-		var child = obj.childNodes[o];
-		txt += this.GetText(child);
-	}
-
-	return txt;
-},
-
-htmlRe:new RegExp('<[^>]+>','g'),
-StripHtml:function(html) {
-	return html.replace(this.htmlRe,'').replace(/&nbsp;/g,'');
-},
-
-timeouts:{},
-setTimeout:function(func,millis) {
-	var t=window.setTimeout(function() {
-		func();
-		nHtml.timeouts[t]=undefined;
-	},millis);
-	this.timeouts[t]=1;
-},
-clearTimeouts:function() {
-	for(var t in this.timeouts) {
-		window.clearTimeout(t);
-	}
-	this.timeouts={};
-},
-getX:function(path,parent,type) {
-	switch (type) {
-		case xpath.string : return document.evaluate(path,parent,null,type,null).stringValue;
-		case xpath.first : return document.evaluate(path,parent,null,type,null).singleNodeValue;
-		case xpath.unordered : return document.evaluate(path,parent,null,type,null);
-		default : break;
-	}
-},
-getHTMLPredicate:function(HTML){
-	for (var x = HTML.length; x > 1; x--) {
-		if (HTML.substr(x,1) == '/') {
-			return HTML.substr(x + 1);
+	GetText:function(obj) {
+		var txt = ' ';
+		if(obj.tagName != undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
+			txt += " ";
 		}
+
+		if(obj.nodeName == "#text") { return txt + obj.textContent; }
+
+		for(var o = 0; o < obj.childNodes.length; o++) {
+			var child = obj.childNodes[o];
+			txt += this.GetText(child);
+		}
+
+		return txt;
+	},
+
+	htmlRe:new RegExp('<[^>]+>','g'),
+
+	StripHtml:function(html) {
+		return html.replace(this.htmlRe,'').replace(/&nbsp;/g,'');
+	},
+
+	timeouts:{},
+
+	setTimeout:function(func,millis) {
+		var t = window.setTimeout(function() {
+			func();
+			nHtml.timeouts[t] = undefined;
+		},millis);
+		this.timeouts[t] = 1;
+	},
+
+	clearTimeouts:function() {
+		for(var t in this.timeouts) {
+			window.clearTimeout(t);
+		}
+		this.timeouts = {};
+	},
+
+	getX:function(path, parent, type) {
+		var evaluate = null;
+		switch (type) {
+			case this.xpath.string :
+				evaluate = document.evaluate(path,parent,null,type,null).stringValue;
+				break;
+			case this.xpath.first :
+				evaluate = document.evaluate(path,parent,null,type,null).singleNodeValue;
+				break;
+			case this.xpath.unordered :
+				evaluate = document.evaluate(path,parent,null,type,null);
+				break;
+			default :
+				break;
+		}
+		return evaluate;
+	},
+
+	getHTMLPredicate:function(HTML){
+		for (var x = HTML.length; x > 1; x--) {
+			if (HTML.substr(x,1) == '/') {
+				return HTML.substr(x + 1);
+			}
+		}
+		return HTML;
+	},
+
+	OpenInIFrame:function(url, key) {
+		//if(!iframe = document.getElementById(key))
+		var iframe = document.createElement("iframe");
+		//GM_log ("Navigating iframe to " + url);
+		iframe.setAttribute("src", url);
+		iframe.setAttribute("id", key);
+		iframe.setAttribute("style", "width:0;height:0;");
+		document.documentElement.appendChild(iframe);
+	},
+
+	ResetIFrame:function(key) {
+		var iframe = document.getElementById(key);
+		if(iframe){
+			gm.log("Deleting iframe = " + key);
+			iframe.parentNode.removeChild(iframe);
+		} else gm.log("Frame not found = " + key);
+
+		if(document.getElementById(key)) gm.log("Found iframe");
+	},
+
+	Gup : function(name,href){
+		name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+		var regexS = "[\\?&]" + name + "=([^&#]*)";
+		var regex = new RegExp( regexS );
+		var results = regex.exec(href);
+		if( results === null ) return "";
+		else return results[1];
+	},
+
+	ScrollToBottom: function(){
+		//GM_log("Scroll Height: " + document.body.scrollHeight);
+		if (document.body.scrollHeight) {
+			window.scrollBy(0, document.body.scrollHeight);
+		}// else if (screen.height){}
+	},
+
+	ScrollToTop: function(){
+		window.scrollByPages(-1000);
+	},
+
+	CountInstances:function(string, word) {
+	  var substrings = string.split(word);
+	  return substrings.length - 1;
 	}
-	return HTML;
-},
-
-OpenInIFrame:function(url, key) {
-	//if(!iframe = document.getElementById(key))
-	var iframe = document.createElement("iframe");
-	//GM_log ("Navigating iframe to " + url);
-	iframe.setAttribute("src", url);
-	iframe.setAttribute("id", key);
-	iframe.setAttribute("style","width:0;height:0;");
-	document.documentElement.appendChild(iframe);
-},
-
-ResetIFrame:function(key) {
-	var iframe = document.getElementById(key);
-	if(iframe){
-		gm.log("Deleting iframe = "+key);
-		iframe.parentNode.removeChild(iframe);
-	} else gm.log("Frame not found = "+key);
-
-	if(document.getElementById(key)) gm.log("Found iframe");
-},
-
-Gup : function(name,href){
-	name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-	var regexS = "[\\?&]"+name+"=([^&#]*)";
-	var regex = new RegExp( regexS );
-	var results = regex.exec(href);
-	if( results === null ) return "";
-	else return results[1];
-},
-
-ScrollToBottom: function(){
-	//GM_log("Scroll Height: " + document.body.scrollHeight);
-	if (document.body.scrollHeight) {
-		window.scrollBy(0, document.body.scrollHeight);
-	}// else if (screen.height){}
-},
-
-ScrollToTop: function(){
-	window.scrollByPages(-1000);
-},
-
-CountInstances:function(string, word) {
-  var substrings = string.split(word);
-  return substrings.length - 1;
-}
 };
 
 /////////////////////////////////////////////////////////////////////
-
 //							gm OBJECT
-
 // this object is used for setting/getting GM specific functions.
 /////////////////////////////////////////////////////////////////////
-var os='\n'; // Object separator - used to separate objects
-var vs='\t'; // Value separator - used to separate name/values within the objects
-var ls='\f'; // Label separator - used to separate the name from the value
-gm={
+gm = {
+	// use to log stuff
+	log:function(mess) {
+		GM_log('v' + caapGlob.thisVersion + ': ' + mess);
+	},
 
-// use to log stuff
-log:function(mess) {
-	GM_log('v' + caapGlob.thisVersion + ': ' + mess);
-},
-debug:function(mess) {
-	if(caapGlob.debug) { gm.log(mess); }
-},
-// use these to set/get values in a way that prepends the game's name
-setValue:function(n,v) {
-	gm.debug('Set ' + n + ' to ' + v);
-	GM_setValue(caap.gameName+"__"+n,v);
-	return v;
-},
-getValue:function(n,v) {
-	gm.debug('Get ' +n + ' value ' + GM_getValue(caap.gameName+"__"+n,v));
-	return GM_getValue(caap.gameName+"__"+n,v);
-},
-deleteValue:function(n) {
-	gm.debug('Delete ' +n + ' value ');
-	return GM_deleteValue(caap.gameName+"__"+n);
-},
-IsArray:function(testObject) {
-    return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
-},
-setList:function(n,v) {
-	if (!gm.IsArray(v)) {
-		gm.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
-		return;
-	}
-	return GM_setValue(caap.gameName+"__"+n,v.join(os));
-},
-getList:function(n) {
-	getList = GM_getValue(caap.gameName+"__"+n,'');
-	gm.debug('GetList ' +n + ' value ' + GM_getValue(caap.gameName+"__"+n));
-	return (getList) ? getList.split(os) : [];
-},
-listAddBefore:function(listName,addList) {
-	newList = addList.concat(gm.getList(listName));
-	gm.setList(listName,newList);
-	return newList;
-},
-listPop:function(listName) {
-	popList = gm.getList(listName);
-	if (!popList.length) return '';
-	popItem = popList.pop();
-	gm.setList(listName,popList);
-	return popItem;
-},
-listPush:function(listName, pushItem, max) {
-  var list = gm.getList(listName);
+	debug:function(mess) {
+		if(caapGlob.debug) { gm.log(mess); }
+	},
 
-  // Only add if it isn't already there.
-  if (list.indexOf(pushItem) != -1) {
-    return;
-  }
-  list.push(pushItem);
-  if (max > 0) {
-    while (max < list.length) {
-      //var pushItem = list.shift();
-      pushItem = list.shift();
-      gm.debug('Removing ' + pushItem + ' from ' + listName + '.');
-    }
-  }
-  gm.setList(listName, list);
-},
-listFindItemByPrefix:function(list,prefix) {
-	var itemList = list.filter(function(item){
-		return item.indexOf(prefix)===0;
-	});
-//gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
-	if (itemList.length) return itemList[0];
-},
-setObjVal:function(objName,label,value) {
-	if (!(objStr = gm.getValue(objName))) {
-		gm.setValue(objName,label+ls+value);
-		return;
+	// use these to set/get values in a way that prepends the game's name
+	setValue:function(n, v) {
+		gm.debug('Set ' + n + ' to ' + v);
+		GM_setValue(caap.gameName + "__" + n, v);
+		return v;
+	},
+	getValue:function(n, v) {
+		gm.debug('Get ' + n + ' value ' + GM_getValue(caap.gameName + "__" + n, v));
+		return GM_getValue(caap.gameName + "__" + n, v);
+	},
+
+	deleteValue:function(n) {
+		gm.debug('Delete ' + n + ' value ');
+		return GM_deleteValue(caap.gameName + "__" + n);
+	},
+
+	IsArray:function(testObject) {
+	    return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
+	},
+
+	setList:function(n, v) {
+		if (!gm.IsArray(v)) {
+			gm.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
+			return;
+		}
+		return GM_setValue(caap.gameName + "__" + n, v.join(caapGlob.os));
+	},
+
+	getList:function(n) {
+		getList = GM_getValue(caap.gameName + "__" + n, '');
+		gm.debug('GetList ' + n + ' value ' + GM_getValue(caap.gameName + "__" + n));
+		return (getList) ? getList.split(caapGlob.os) : [];
+	},
+
+	listAddBefore:function(listName, addList) {
+		newList = addList.concat(gm.getList(listName));
+		gm.setList(listName, newList);
+		return newList;
+	},
+
+	listPop:function(listName) {
+		popList = gm.getList(listName);
+		if (!popList.length) return '';
+
+		popItem = popList.pop();
+		gm.setList(listName, popList);
+		return popItem;
+	},
+
+	listPush:function(listName, pushItem, max) {
+		var list = gm.getList(listName);
+
+		// Only add if it isn't already there.
+		if (list.indexOf(pushItem) != -1) { return; }
+
+		list.push(pushItem);
+		if (max > 0) {
+			while (max < list.length) {
+				//var pushItem = list.shift();
+				pushItem = list.shift();
+				gm.debug('Removing ' + pushItem + ' from ' + listName + '.');
+			}
+		}
+
+		gm.setList(listName, list);
+	},
+
+	listFindItemByPrefix:function(list, prefix) {
+		var itemList = list.filter(function(item){
+			return item.indexOf(prefix) === 0;
+		});
+		//gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
+		if (itemList.length) return itemList[0];
+	},
+
+	setObjVal:function(objName, label, value) {
+		var objStr = gm.getValue(objName);
+		if (!objStr) {
+			gm.setValue(objName, label + caapGlob.ls + value);
+			return;
+		}
+
+		var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+		if (!itemStr) {
+			gm.setValue(objName,label + caapGlob.ls + value + caapGlob.vs + objStr);
+			return;
+		}
+
+		objList = objStr.split(caapGlob.vs);
+		objList.splice(objList.indexOf(itemStr), 1, label + caapGlob.ls + value);
+		gm.setValue(objName,objList.join(caapGlob.vs));
+	},
+
+	getObjVal:function(objName, label, defaultValue) {
+		var objStr;
+		if (objName.indexOf(caapGlob.ls) < 0) objStr = gm.getValue(objName);
+		else objStr = objName;
+
+		if (!objStr) return defaultValue;
+
+		var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+		if (!itemStr) return defaultValue;
+
+		return itemStr.split(caapGlob.ls)[1];
+	},
+
+	getListObjVal:function(listName, objName, label, defaultValue) {
+		var gLOVlist = gm.getList(listName);
+		if (!(gLOVlist.length)) return defaultValue;
+
+		//gm.log('have list '+gLOVlist);
+		var objStr = gm.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
+		if (!objStr) return defaultValue;
+
+		//gm.log('have obj ' + objStr);
+		var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+		if (!itemStr) return defaultValue;
+
+		//gm.log('have val '+itemStr);
+		return itemStr.split(caapGlob.ls)[1];
+	},
+
+	setListObjVal:function(listName, objName, label, value, max) {
+		var objList = gm.getList(listName);
+		if (!(objList.length)) {
+			gm.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
+			return;
+		}
+
+		var objStr = gm.listFindItemByPrefix(objList, objName + caapGlob.vs);
+		if (!objStr) {
+			gm.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
+			return;
+		}
+
+		var valList = objStr.split(caapGlob.vs);
+		var valStr = gm.listFindItemByPrefix(valList, label + caapGlob.ls);
+		if (!valStr) {
+			valList.push(label + caapGlob.ls + value);
+			objList.splice(objList.indexOf(objStr), 1, objStr + caapGlob.vs + label + caapGlob.ls + value);
+			gm.setList(listName, objList);
+			return;
+		}
+
+		valList.splice(valList.indexOf(valStr), 1, label + caapGlob.ls + value);
+		objList.splice(objList.indexOf(objStr), 1, valList.join(caapGlob.vs));
+		gm.setList(listName, objList);
+	},
+
+	deleteListObj:function(listName, objName) {
+		var objList = gm.getList(listName);
+		if (!(objList.length)) return false;
+
+		var objStr = gm.listFindItemByPrefix(objList, objName);
+		if (objStr) {
+			objList.splice(objList.indexOf(objStr), 1);
+			gm.setList(listName, objList);
+		}
 	}
-	if (!(itemStr = gm.listFindItemByPrefix(objStr.split(vs),label+ls))) {
-		gm.setValue(objName,label + ls + value + vs + objStr);
-		return;
-	}
-	objList = objStr.split(vs);
-	objList.splice(objList.indexOf(itemStr),1,label+ls+value);
-	gm.setValue(objName,objList.join(vs));
-},
-getObjVal:function(objName,label,defaultValue) {
-	if (objName.indexOf(ls)<0)
-		objStr = gm.getValue(objName);
-	else objStr = objName;
-	if (!objStr) return defaultValue;
-	if (!(itemStr = gm.listFindItemByPrefix(objStr.split(vs),label+ls))) return defaultValue;
-	return itemStr.split(ls)[1];
-},
-getListObjVal:function(listName,objName,label,defaultValue) {
-	gLOVlist = gm.getList(listName);
-	if (!(gLOVlist.length)) return defaultValue;
-//gm.log('have list '+gLOVlist);
-	if (!(objStr = gm.listFindItemByPrefix(gLOVlist,objName+vs))) return defaultValue;
-//gm.log('have obj ' + objStr);
-	if (!(itemStr = gm.listFindItemByPrefix(objStr.split(vs),label+ls))) return defaultValue;
-//gm.log('have val '+itemStr);
-	return itemStr.split(ls)[1];
-},
-setListObjVal:function(listName,objName,label,value,max) {
-	objList = gm.getList(listName);
-	if (!(objList.length)) {
-		gm.setValue(listName,objName+vs+label+ls+value);
-		return;
-	}
-	if (!(objStr = gm.listFindItemByPrefix(objList,objName+vs))) {
-		gm.listPush(listName,objName+vs+label+ls+value,max);
-		return;
-	}
-	valList = objStr.split(vs);
-	if (!(valStr = gm.listFindItemByPrefix(valList,label+ls))) {
-		valList.push(label+ls+value);
-		objList.splice(objList.indexOf(objStr),1,objStr+vs+label+ls+value);
-		gm.setList(listName,objList);
-		return;
-	}
-	valList.splice(valList.indexOf(valStr),1,label+ls+value);
-	objList.splice(objList.indexOf(objStr),1,valList.join(vs));
-	gm.setList(listName,objList);
-},
-deleteListObj:function(listName,objName) {
-	objList = gm.getList(listName);
-	if (!(objList.length)) return false;
-	if ((objStr = gm.listFindItemByPrefix(objList,objName))) {
-		objList.splice(objList.indexOf(objStr),1);
-		gm.setList(listName,objList);
-	}
-}
 };
-/////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////
-Move={
-moveHandler:function(e){
-	savedTarget.style.position='absolute';
-	if (e === null) return;
-	if ( e.button<=1 && dragOK ){
-		savedTarget.style.left = e.clientX - dragXoffset + 'px';
-		savedTarget.style.top = e.clientY - dragYoffset + 'px';
+//							move OBJECT
+/////////////////////////////////////////////////////////////////////
+Move = {
+	moveHandler:function(e){
+		savedTarget.style.position = 'absolute';
+		if (e === null) return;
+		if ( e.button<=1 && dragOK ) {
+			savedTarget.style.left = e.clientX - dragXoffset + 'px';
+			savedTarget.style.top = e.clientY - dragYoffset + 'px';
+			return false;
+		}
+	},
+
+	cleanup:function(e) {
+		document.removeEventListener('mousemove',Move.moveHandler,false);
+		document.removeEventListener('mouseup',Move.cleanup,false);
+		savedTarget.style.cursor=orgCursor;
+
+		if(savedTarget.getAttribute('id')=='divOptions'){
+			GM_setValue('optionsLeft', savedTarget.style.left);
+			GM_setValue('optionsTop',  savedTarget.style.top);
+		}else if(savedTarget.getAttribute('id')=='divUpdater'){
+			GM_setValue('updaterLeft', savedTarget.style.left);
+			GM_setValue('updaterTop',  savedTarget.style.top);
+		}else if(savedTarget.getAttribute('id')=='divMenu'){
+			GM_setValue('menuLeft', savedTarget.style.left);
+			GM_setValue('menuTop',  savedTarget.style.top);
+		}
+
+		dragOK=false; //its been dragged now
+		didDrag=true;
+	},
+
+	dragHandler:function(e){
+		var htype='-moz-grabbing';
+		if (e === null) return;// {{ e = window.event;}  // htype='move';}
+		var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
+		orgCursor=target.style.cursor;
+
+		if(target.nodeName!='DIV') return;
+
+		savedTarget=target;
+		target.style.cursor=htype;
+		dragOK=true;
+		dragXoffset = e.clientX-target.offsetLeft;
+		dragYoffset = e.clientY-target.offsetTop;
+
+		//set the left before removing the right
+		target.style.left = e.clientX - dragXoffset + 'px';
+		target.style.right = null;
+		document.addEventListener('mousemove',Move.moveHandler,false);
+		document.addEventListener('mouseup',Move.cleanup,false);
 		return false;
 	}
-},
-
-cleanup:function(e) {
-	document.removeEventListener('mousemove',Move.moveHandler,false);
-	document.removeEventListener('mouseup',Move.cleanup,false);
-	savedTarget.style.cursor=orgCursor;
-
-	if(savedTarget.getAttribute('id')=='divOptions'){
-		GM_setValue('optionsLeft', savedTarget.style.left);
-		GM_setValue('optionsTop',  savedTarget.style.top);
-	}else if(savedTarget.getAttribute('id')=='divUpdater'){
-		GM_setValue('updaterLeft', savedTarget.style.left);
-		GM_setValue('updaterTop',  savedTarget.style.top);
-	}else if(savedTarget.getAttribute('id')=='divMenu'){
-		GM_setValue('menuLeft', savedTarget.style.left);
-		GM_setValue('menuTop',  savedTarget.style.top);
-	}
-
-	dragOK=false; //its been dragged now
-	didDrag=true;
-},
-
-dragHandler:function(e){
-
-	var htype='-moz-grabbing';
-	if (e === null) return;// {{ e = window.event;}  // htype='move';}
-	var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
-	orgCursor=target.style.cursor;
-
-	if(target.nodeName!='DIV')
-		return;
-
-	savedTarget=target;
-	target.style.cursor=htype;
-	dragOK=true;
-	dragXoffset = e.clientX-target.offsetLeft;
-	dragYoffset = e.clientY-target.offsetTop;
-
-	//set the left before removing the right
-	target.style.left = e.clientX - dragXoffset + 'px';
-	target.style.right = null;
-	document.addEventListener('mousemove',Move.moveHandler,false);
-	document.addEventListener('mouseup',Move.cleanup,false);
-	return false;
-}
 };
 ////////////////////////////////////////////////////////////////////
 
@@ -542,18 +584,18 @@ GetCurrentGeneral:function() {
 },
 UpdateGeneralList:function() {
 	if (!this.CheckForImage('tab_generals_on.gif')) return false;
-	var gens = nHtml.getX('//div[@class=\'generalSmallContainer2\']', document, xpath.unordered);
+	var gens = nHtml.getX('//div[@class=\'generalSmallContainer2\']', document, nHtml.xpath.unordered);
 	gm.setValue('AllGenerals','');
 	gm.setValue('GeneralImages','');
 	gm.setValue('LevelUpGenerals','');
 	for (var x = 0; x < gens.snapshotLength; x++)	{
-		var gen = nHtml.getX('./div[@class=\'general_name_div3\']/text()', gens.snapshotItem(x), xpath.string).replace(/[\t\r\n]/g,'');
-		var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), xpath.string);
+		var gen = nHtml.getX('./div[@class=\'general_name_div3\']/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g,'');
+		var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
 		img = nHtml.getHTMLPredicate(img);
-//		var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), xpath.string);
-//		var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), xpath.string);
-//		var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), xpath.string).replace(/[\t\r\n]/gm,'');
-		var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), xpath.string).replace(/Level /gi,'').replace(/[\t\r\n]/g,'');
+//		var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
+//		var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string);
+//		var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/gm,'');
+		var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/Level /gi,'').replace(/[\t\r\n]/g,'');
 //		var genatts = gen + ":" + atk + "/" + def + ":L" + level + ":" + img + ","
 		gm.listPush('AllGenerals',gen);
 		gm.listPush('GeneralImages',gen + ':' + img);
@@ -1388,8 +1430,8 @@ monsterDashboard:function() {
 	// if not on an individual monster page, delete any monsters without the page info from Engage
 	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
-			if (monsterObj.indexOf(vs+'page'+ls)<0)
-				gm.deleteListObj('monsterOl',monsterObj.split(vs)[0]);
+			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
+				gm.deleteListObj('monsterOl',monsterObj.split(caapGlob.vs)[0]);
 		});
 	}
 	caap.selectMonster();
@@ -1448,7 +1490,7 @@ depending on which display was selected using the control above
 	displayItemList.shift();
 	monsterList=gm.getList('monsterOl');
 	monsterList.forEach( function(monsterObj) {
-		monster = monsterObj.split(vs)[0];
+		monster = monsterObj.split(caapGlob.vs)[0];
 		html += "<tr>";
 		if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster'))
 			color = 'green';
@@ -1487,7 +1529,7 @@ in targetOl and build each table row.  Our userid is 'key' so it's the first par
 	targetList = gm.getList('targetsOl');
 	for (var i in targetList) {
 		targetObj = targetList[i];
-		userid = targetObj.split(vs)[0];
+		userid = targetObj.split(caapGlob.vs)[0];
 		html += "<tr>";
 		html += caap.makeTd(userid,'black');
 /*-------------------------------------------------------------------------------------\
@@ -2363,7 +2405,7 @@ DrawQuests:function(pickQuestTF) {
 			if (gm.getObjVal('AutoQuest','name')==quest_name) {
 				bestReward=rewardRatio;
 				expRatio = experience/energy;
-				gm.setValue('AutoQuest','name'+ls+quest_name+vs+'energy'+ls+energy+vs+'general'+ls+general+vs+'expRatio'+ls+expRatio);
+				gm.setValue('AutoQuest','name' + caapGlob.ls + quest_name + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
 				autoQuestDivs={'click':click,'tr':div,'genDiv':genDiv};
 			}
 		}
@@ -2561,7 +2603,7 @@ LabelQuests:function(div,energy,reward,experience,click) {
 		setAutoQuest.addEventListener("click",function(e) {
 			var sps=e.target.getElementsByTagName('span');
 			if(sps.length>0) {
-				gm.setValue('AutoQuest','name'+ls+sps[0].innerHTML.toString()+ls+'energy'+ls+sps[1].innerHTML.toString());
+				gm.setValue('AutoQuest','name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.ls + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
 				gm.setValue('WhyQuest','Manual');
 				if (caap.CheckForImage('tab_quest_on.gif')) {
 					gm.setValue('QuestArea','Quest');
@@ -3020,9 +3062,9 @@ CheckBattleResults:function() {
 		}
 
 /* 	Not ready for primtime.   Need to build SliceList to extract our element
-		if (gm.getValue('BattlesWonList','').indexOf(os+userId+os) >= 0) {
-			element = gm.sliceList('BattlesWonList',os+userId+os);
-			elementArray = element.split(vs);
+		if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
+			element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
+			elementArray = element.split(caapGlob.vs);
 			prevWins = Number(elementArray[3]);
 			prevBPs = Number(elementArray[4]);
 			prevGold = Number(elementArray[5]);
@@ -3031,10 +3073,10 @@ CheckBattleResults:function() {
 			goldnum  = prevGold + goldnum
 		}
 */
-		if (gm.getValue('BattlesWonList','').indexOf(vs+userId+vs) == -1 &&
+		if (gm.getValue('BattlesWonList','').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
 			(bpnum >= gm.getValue('ReconBPWon',0) || (goldnum >= gm.getValue('ReconGoldWon',0)))) {
 			now = (new Date().getTime()).toString();
-			newelement = now + vs + userId + vs + userName + vs + wins + vs + bpnum + vs + goldnum;
+			newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
 			gm.listPush('BattlesWonList',newelement,100);
 		}
 		this.SetCheckResultsFunction('');
@@ -3046,17 +3088,17 @@ CheckBattleResults:function() {
 		userName = nHtml.GetText(nameLink).trim();
 
 		gm.log("We Were Defeated By "+userName+".");
-		if (gm.getValue('BattlesLostList','').indexOf(vs+userId+vs) == -1) {
+		if (gm.getValue('BattlesLostList','').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1) {
 			now = (new Date().getTime()).toString();
-			newelement = now + vs + userId + vs + userName;
+			newelement = now + caapGlob.vs + userId + caapGlob.vs + userName;
 			if (!gm.getValue('IgnoreBattleLoss',false)) {
 				gm.listPush('BattlesLostList',newelement,100);
 			}
 		}
 /* 	Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
-		if (gm.getValue('BattlesWonList','').indexOf(os+userId+os) >= 0) {
-			trash = gm.sliceList('BattlesWonList',os+userId+os);
-			elementArray = element.split(vs);
+		if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
+			trash = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
+			elementArray = element.split(caapGlob.vs);
 		}
 */		this.SetCheckResultsFunction('');
 	}
@@ -3262,7 +3304,7 @@ try{
 		var dfl = gm.getValue('BattlesLostList','');
 
 		// don't battle people we recently lost to
-		if (dfl.indexOf(vs+id+vs) >= 0) continue;
+		if (dfl.indexOf(caapGlob.vs + id + caapGlob.vs) >= 0) continue;
 		var thisScore = rank-(army/levelMultiplier/this.stats.army);
 
 		if (id == chainId) chainAttack = true;
@@ -3457,7 +3499,7 @@ Battle:function(mode) {
 			return this.BattleFreshmeat('Freshmeat');
 		default:
 			var dfl = gm.getValue('BattlesLostList','');
-			if (dfl.indexOf(vs+target+vs) >= 0) {
+			if (dfl.indexOf(caapGlob.vs + target + caapGlob.vs) >= 0) {
 				gm.log('Avoiding Losing Target: ' + target);
 				this.NextBattleTarget();
 				return true;
@@ -3611,7 +3653,7 @@ checkMonsterEngage:function() {
 	if (!this.oneMinuteUpdate('monsterEngage')) return;
 	// get all buttons to check monsterObjectList
 	var ss=document.evaluate(".//img[contains(@src,'dragon_list_btn_')]",document.body,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if (ss.snapshotLength===0) return false;
+	if (ss.snapshotLength === 0) return false;
 	if (caap.CheckForImage('tab_monster_on.jpg'))
 		page = 'battle_monster';
 	else if (caap.CheckForImage('tab_raid_on.gif'))
@@ -3677,10 +3719,10 @@ checkMonsterEngage:function() {
 		gm.setListObjVal('monsterOl',monster,'Link',link);
 	}
 	gm.getList('monsterOl').forEach(function(monsterObj) {
-		monster = monsterObj.split(vs)[0];
-		if (monsterObj.indexOf(vs+'page'+ls)<0)
+		monster = monsterObj.split(caapGlob.vs)[0];
+		if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
 			gm.deleteListObj('monsterOl',monster);
-		else if (monsterList.indexOf(monster)<0 && monsterObj.indexOf('page'+ls+page)>=0)
+		else if (monsterList.indexOf(monster)<0 && monsterObj.indexOf('page' + caapGlob.ls + page) >= 0)
 			gm.deleteListObj('monsterOl',monster);
 	});
 	gm.setValue('resetdashboard',true);
@@ -3688,7 +3730,7 @@ checkMonsterEngage:function() {
 
 checkMonsterDamage:function() {
 	// Check if on monster page
-	var webSlice = caap.CheckForImage('dragon_title_owner.jpg')
+	var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
 	if (!webSlice) return;
 	if (!caap.oneMinuteUpdate('monsterDamage')) return;
 	gm.log('Checking monster damage');
@@ -3731,7 +3773,7 @@ checkMonsterDamage:function() {
 		var shipHealth = img.parentNode.style.width;
 		shipHealth = shipHealth.substring(0,shipHealth.length-1);
 		if (monstType == "Legion" || monstType.indexOf('Elemental') >=0) {
-			img = caap.CheckForImage('repair_bar_grey')
+			img = caap.CheckForImage('repair_bar_grey');
 			if (img) {
 				var extraHealth = img.parentNode.style.width;
 				extraHealth = extraHealth.substring(0,extraHealth.length-1);
@@ -3878,7 +3920,7 @@ selectMonster:function() {
 	monsterList.any = [];
 	monsterFullList = gm.getList('monsterOl','');
 	monsterFullList.forEach(function(monsterObj) {
-		gm.setListObjVal('monsterOl',monsterObj.split(vs)[0],'conditions','none');
+		gm.setListObjVal('monsterOl',monsterObj.split(caapGlob.vs)[0],'conditions','none');
 		monstPage = gm.getObjVal(monsterObj,'page');
 		if (gm.getValue('SerializeRaidsAndMonsters',false))
 			monsterList['any'].push(monsterObj);
@@ -3923,7 +3965,7 @@ selectMonster:function() {
 			// Now we try to match the users name agains our list of monsters
 			for (var m in monsterListCurrent) {
 				monsterObj = monsterListCurrent[m];
-				monster = monsterObj.split(vs)[0];
+				monster = monsterObj.split(caapGlob.vs)[0];
 				monstPage = gm.getObjVal(monsterObj,'page');
 
 				// If we set conditions on this monster already then we do not reprocess
@@ -4027,7 +4069,7 @@ MonsterReview:function() {
 		monsterObjList = gm.getList('monsterOl');
 		while ( ++counter < monsterObjList.length) {
 			if (!(monsterObj = monsterObjList[counter])) continue;
-			monster = monsterObj.split(vs)[0];
+			monster = monsterObj.split(caapGlob.vs)[0];
 			this.SetDivContent('battle_mess','Reviewing/sieging '+ counter + '/' + monsterObjList.length + ' ' + monster);
 			gm.setValue('monsterReviewCounter',counter);
 			link = gm.getObjVal(monsterObj,'Link');
@@ -4566,7 +4608,7 @@ bottomScroll: function() {
 
 olderPosts: function() {
 	if (itRun > 0) {
-    var showMore = nHtml.getX('//a[@class=\'PagerMoreLink\']', document, xpath.unordered);
+    var showMore = nHtml.getX('//a[@class=\'PagerMoreLink\']', document, nHtml.xpath.unordered);
 	showMore.click();
 	}
 	//this.NavigateTo("Older Posts");
@@ -4679,13 +4721,13 @@ clearLinks: function (resetall){
 
 handleCTA : function () {
 
-	var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, xpath.unordered);
+	var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, nHtml.xpath.unordered);
 	gm.log ("Number of entries- " + ctas.snapshotLength);
 	for (var x = 0; x < ctas.snapshotLength; x++) {
 
-		var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), xpath.string).replace("http://apps.facebook.com/castle_age",""), fid = nHtml.Gup("user",url), mpool = nHtml.Gup("mpool",url), action = nHtml.Gup("action",url);
-		var src = nHtml.getX('./div[2]/div/div/a/div/img/@src', ctas.snapshotItem(x), xpath.string);
-		var time = nHtml.getX('./form/span/span/a/abbr/@title', ctas.snapshotItem(x), xpath.string);
+		var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), nHtml.xpath.string).replace("http://apps.facebook.com/castle_age",""), fid = nHtml.Gup("user",url), mpool = nHtml.Gup("mpool",url), action = nHtml.Gup("action",url);
+		var src = nHtml.getX('./div[2]/div/div/a/div/img/@src', ctas.snapshotItem(x), nHtml.xpath.string);
+		var time = nHtml.getX('./form/span/span/a/abbr/@title', ctas.snapshotItem(x), nHtml.xpath.string);
 
 		var monst;
 		if (src) {
@@ -5117,7 +5159,7 @@ AutoGift:function() {
 				return false;
 			}
 			var giverName = nHtml.GetText(nHtml.FindByAttrContains(acceptDiv.parentNode.parentNode,'a','href','profile.php')).trim();
-			gm.setValue('GiftEntry',giverId[2]+vs+giverName);
+			gm.setValue('GiftEntry', giverId[2] + caapGlob.vs + giverName);
 			gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
 			this.JustDidIt('ClickedFacebookURL');
 			if (caapGlob.is_chrome) {
@@ -5125,7 +5167,7 @@ AutoGift:function() {
 				var giftType = 'Unknown Gift';
 				var giftEntry = gm.getValue('GiftEntry','');
 				if (giftEntry) {
-					if (gm.getValue('ReceivedList',' ').indexOf(giftEntry)<0) gm.listPush('ReceivedList',giftEntry + vs + giftType);
+					if (gm.getValue('ReceivedList',' ').indexOf(giftEntry)<0) gm.listPush('ReceivedList',giftEntry + caapGlob.vs + giftType);
 					gm.log ('This giver: ' + giverId[2] + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
 					gm.setValue('GiftEntry','');
 				}
@@ -5228,7 +5270,7 @@ AutoGift:function() {
 			if (giverList[0].indexOf('Unknown Gift')>=0) {
 				givenGiftType = gm.getList('GiftList').shift();
 			} else {
-				givenGiftType = giverList[0].split(vs)[2];
+				givenGiftType = giverList[0].split(caapGlob.vs)[2];
 			}
 			gm.log('Looking for same gift as ' + givenGiftType);
 			giftPic = giftNamePic[givenGiftType];
@@ -5263,7 +5305,7 @@ AutoGift:function() {
 			gm.listPush('ReceivedList',giverList[p]);
 			continue;
 		}
-		giverData=giverList[p].split(vs);
+		giverData=giverList[p].split(caapGlob.vs);
 		giverID=giverData[0];
 		giftType=giverData[2];
 		if (giftChoice == 'Same Gift As Received' && giftType != givenGiftType && giftType != 'Unknown Gift') {
@@ -5319,7 +5361,7 @@ AcceptGiftOnFB:function() {
 				gm.log('Unknown gift type.');
 				giftType = 'Unknown Gift';
 			}
-			if (gm.getValue('ReceivedList',' ').indexOf(giftEntry)<0) gm.listPush('ReceivedList',giftEntry + vs + giftType);
+			if (gm.getValue('ReceivedList',' ').indexOf(giftEntry)<0) gm.listPush('ReceivedList',giftEntry + caapGlob.vs + giftType);
 			gm.log ('This giver: ' + user + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
 			caap.Click(giftDiv);
 			gm.setValue('GiftEntry','');
@@ -5872,7 +5914,7 @@ if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
 		var storageKeys = GM_listValues();
 		for (var key = 0; key < storageKeys.length; key++){
 			if (GM_getValue(storageKeys[key])) {
-				GM_setValue(storageKeys[key],GM_getValue(storageKeys[key]).toString().replace('~',os).replace('`',vs));
+				GM_setValue(storageKeys[key],GM_getValue(storageKeys[key]).toString().replace('~',caapGlob.os).replace('`', caapGlob.vs));
 			}
 		}
 	}
