@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.12
+// @version        139.13
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -14,75 +14,77 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "139.12";
-
-var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
-var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
-
-if (is_chrome) CM_Listener();
-
+///////////////////////////
+// Define our global object
+///////////////////////////
+var caapGlob = {};
+caapGlob.thisVersion = "139.13";
+caapGlob.SUC_script_num = 57917;
+caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
+caapGlob.debug = false;
+caapGlob.newVersionAvailable = false;
+caapGlob.documentTitle = document.title;
+caapGlob.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
+caapGlob.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false;
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
-var symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
+caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_2.jpg
-var symbol_tiny_2 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAAgFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERITBggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicbEyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVTogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVHSdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOsUbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptbBsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCOimfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXcp8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIifZ9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/wDH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXcqmc+53P5QMf/2Q%3D%3D";
+caapGlob.symbol_tiny_2 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAAgFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERITBggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicbEyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVTogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVHSdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOsUbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptbBsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCOimfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXcp8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIifZ9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/wDH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXcqmc+53P5QMf/2Q%3D%3D";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_3.jpg
-var symbol_tiny_3 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAAgHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcIExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFLHB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66ttjBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LGlImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjUqBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJEBlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFHwg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCFHOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjtBB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfHH//Z";
+caapGlob.symbol_tiny_3 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAAgHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcIExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFLHB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66ttjBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LGlImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjUqBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJEBlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFHwg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCFHOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjtBB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfHH//Z";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_4.jpg
-var symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAAgJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMHFAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZGh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YSOG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfPUeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+tKDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAsJCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWnY5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5RkasZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cYtrbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSaln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/mc/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D";
+caapGlob.symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAAgJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMHFAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZGh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YSOG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfPUeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+tKDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAsJCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWnY5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5RkasZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cYtrbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSaln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/mc/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_5.jpg
-var symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQxIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
+caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQxIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
 ///////////////////////////
 
-if(!GM_log) {
-	GM_log=console.debug;
-}
+if (caapGlob.is_chrome) CM_Listener();
 
-var discussionURL= 'http://senses.ws/caap/index.php';
-var debug=false;
-var newVersionAvailable=0;
-var documentTitle=document.title;
-
-if (parseInt(GM_getValue('SUC_remote_version',0),10) > thisVersion) {
-	newVersionAvailable=1;
-}
-
-// update script from: http://userscripts.org/scripts/review/57917
-var SUC_script_num = 57917;
-try{ function updateCheck(forced) {
-	if ((forced) || (parseInt(GM_getValue('SUC_last_update', '0'),10) + (86400000*1) <= (new Date().getTime()))) {
-		try {
-			GM_xmlhttpRequest({
-				method: 'GET',
-				url: 'http://userscripts.org/scripts/source/'+SUC_script_num+'.meta.js?'+new Date().getTime(),
-				headers: {'Cache-Control': 'no-cache'},
-				onload: function(resp){
-					var remote_version, rt, script_name;
-					rt=resp.responseText;
-					GM_setValue('SUC_last_update', new Date().getTime()+'');
-					remote_version=parseInt(/@version\s*(.*?)\s*$/m.exec(rt)[1],10);
-					script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
-					GM_setValue('SUC_target_script_name', script_name);
-					GM_setValue('SUC_remote_version', remote_version);
-					GM_log('remote version ' + remote_version);
-					if (remote_version > thisVersion) {
-						newVersionAvailable=1;
-						if (forced) {
-							if(confirm('There is an update available for the Greasemonkey script "'+script_name+'."\nWould you like to go to the install page now?')) {
-								GM_openInTab('http://userscripts.org/scripts/show/'+SUC_script_num);
-							}
-						}
-					} else if (forced) alert('No update is available for "'+script_name+'."');
-				}
-			});
-		}catch (err) {
-			if (forced) alert('An error occurred while checking for updates:\n'+err);
-		}
+if (!caapGlob.is_chrome) {
+	if(!GM_log) {
+		GM_log=console.debug;
 	}
-     }
-     GM_registerMenuCommand(GM_getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function(){updateCheck(true);});
-     updateCheck(false);
-} catch(err) {}
+
+	if (parseInt(GM_getValue('SUC_remote_version',0),10) > caapGlob.thisVersion) {
+		caapGlob.newVersionAvailable = true;
+	}
+
+	// update script from: http://userscripts.org/scripts/review/57917
+	try{ function updateCheck(forced) {
+		if ((forced) || (parseInt(GM_getValue('SUC_last_update', '0'),10) + (86400000*1) <= (new Date().getTime()))) {
+			try {
+				GM_xmlhttpRequest({
+					method: 'GET',
+					url: 'http://userscripts.org/scripts/source/' + caapGlob.SUC_script_num + '.meta.js?' + new Date().getTime(),
+					headers: {'Cache-Control': 'no-cache'},
+					onload: function(resp){
+						var rt = resp.responseText;
+						var remote_version = parseInt(/@version\s*(.*?)\s*$/m.exec(rt)[1],10);
+						var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
+						GM_setValue('SUC_last_update', new Date().getTime()+'');
+						GM_setValue('SUC_target_script_name', script_name);
+						GM_setValue('SUC_remote_version', remote_version);
+						GM_log('remote version ' + remote_version);
+						if (remote_version > caapGlob.thisVersion) {
+							caapGlob.newVersionAvailable = true;
+							if (forced) {
+								if(confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+									GM_openInTab('http://userscripts.org/scripts/show/' + caapGlob.SUC_script_num);
+								}
+							}
+						} else if (forced) alert('No update is available for "' + script_name + '."');
+					}
+				});
+			}catch (err) {
+				if (forced) alert('An error occurred while checking for updates:\n' + err);
+			}
+		}
+	     }
+	     GM_registerMenuCommand(GM_getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function(){updateCheck(true);});
+	     updateCheck(false);
+	} catch(err) {}
+}
 
 String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
 
@@ -101,83 +103,90 @@ var xpath = {
 };
 
 var nHtml={
-FindByAttrContains:function(obj,tag,attr,className,subDocument) {
-	if(attr=="className") { attr="class"; }
-	className=className.toLowerCase();
-	var q = null;
-	if (!subDocument)
-		q = document.evaluate(".//"+tag+
-			"[contains(translate(@"+attr+",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+className+
-			"')]",obj,null,
-			XPathResult.FIRST_ORDERED_NODE_TYPE,null);
-	else
-		q = subDocument.evaluate(".//"+tag+
-			"[contains(translate(@"+attr+",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+className+
-			"')]",obj,null,
-			XPathResult.FIRST_ORDERED_NODE_TYPE,null);
+FindByAttrContains:function(obj, tag, attr, className, subDocument) {
+	if(attr == "className") { attr = "class"; }
+
+	if (!subDocument) subDocument = document;
+
+	var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
+		attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+
+		className.toLowerCase() + "')]", obj, null, xpath.first, null);
+
 	if(q && q.singleNodeValue) { return q.singleNodeValue; }
+
 	return null;
 },
-FindByAttrXPath:function(obj,tag,className,subDocument) {
+
+FindByAttrXPath:function(obj, tag, className, subDocument) {
 	var q = null;
 	try {
-		var xpath=".//"+tag+"["+className+"]";
-		if(obj===null) {
-			GM_log('Trying to find xpath with null obj:'+xpath);
+		var xp = ".//" + tag + "[" + className + "]";
+		if (obj === null) {
+			gm.log('Trying to find xpath with null obj:' + xp );
 			return null;
 		}
-		if (!subDocument)
-			q=document.evaluate(xpath,obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
-		else
-			q=subDocument.evaluate(xpath,obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
+
+		if (!subDocument) subDocument = document;
+
+		q = subDocument.evaluate(xp, obj, null, xpath.first, null);
 	} catch(err) {
-		GM_log("XPath Failed:"+xpath+","+err);
+		gm.log("XPath Failed:" + xp + "," + err);
 	}
+
 	if(q && q.singleNodeValue) { return q.singleNodeValue; }
+
 	return null;
 },
-FindByAttr:function(obj,tag,attr,className,subDocument) {
-	if(className.exec==undefined) {
-		if(attr=="className") { attr="class"; }
 
-		var q = null;
-		if (!subDocument)
-			q = document.evaluate(".//"+tag+"[@"+attr+"='"+className+"']",obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
-		else
-			q = subDocument.evaluate(".//"+tag+"[@"+attr+"='"+className+"']",obj,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null);
+FindByAttr:function(obj, tag, attr, className, subDocument) {
+	if(className.exec == undefined) {
+		if(attr == "className") { attr = "class"; }
+
+		if (!subDocument) subDocument = document;
+
+		var q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, xpath.first, null);
 
 		if(q && q.singleNodeValue) { return q.singleNodeValue; }
 
 		return null;
 	}
-	var divs=obj.getElementsByTagName(tag);
-	for(var d=0; d<divs.length; d++) {
-		var div=divs[d];
-		if(className.exec!=undefined) {
+
+	var divs = bj.getElementsByTagName(tag);
+	for(var d = 0; d < divs.length; d++) {
+		var div = divs[d];
+		if(className.exec != undefined) {
 			if(className.exec(div[attr])) {
 				return div;
 			}
-		} else if(div[attr]==className) {
+		} else if(div[attr] == className) {
 			return div;
 		}
 	}
+
 	return null;
 },
-FindByClassName:function(obj,tag,className) {
-	return this.FindByAttr(obj,tag,"className",className);
+
+FindByClassName:function(obj, tag, className) {
+	return this.FindByAttr(obj, tag, "className", className);
 },
-spaceTags:{'td':1,'br':1,'hr':1,'span':1,'table':1
+
+spaceTags:{
+	'td':1,'br':1,'hr':1,'span':1,'table':1
 },
+
 GetText:function(obj) {
-	var txt=' ';
-	if(obj.tagName!=undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
-		txt+=" ";
+	var txt = ' ';
+	if(obj.tagName != undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
+		txt += " ";
 	}
-	if(obj.nodeName=="#text") { return txt+obj.textContent; }
-	for(var o=0; o<obj.childNodes.length; o++) {
-		var child=obj.childNodes[o];
-		txt+=this.GetText(child);
+
+	if(obj.nodeName == "#text") { return txt + obj.textContent; }
+
+	for(var o = 0; o < obj.childNodes.length; o++) {
+		var child = obj.childNodes[o];
+		txt += this.GetText(child);
 	}
+
 	return txt;
 },
 
@@ -232,8 +241,9 @@ ResetIFrame:function(key) {
 	if(iframe){
 		gm.log("Deleting iframe = "+key);
 		iframe.parentNode.removeChild(iframe);
-	}else gm.log("Frame not found = "+key);
-	if(document.getElementById(key))gm.log("Found iframe");
+	} else gm.log("Frame not found = "+key);
+
+	if(document.getElementById(key)) gm.log("Found iframe");
 },
 
 Gup : function(name,href){
@@ -249,7 +259,7 @@ ScrollToBottom: function(){
 	//GM_log("Scroll Height: " + document.body.scrollHeight);
 	if (document.body.scrollHeight) {
 		window.scrollBy(0, document.body.scrollHeight);
-	} else if (screen.height){}
+	}// else if (screen.height){}
 },
 
 ScrollToTop: function(){
@@ -275,10 +285,10 @@ gm={
 
 // use to log stuff
 log:function(mess) {
-	GM_log('v'+thisVersion + ': ' +mess);
+	GM_log('v' + caapGlob.thisVersion + ': ' + mess);
 },
 debug:function(mess) {
-	if(debug) { gm.log(mess); }
+	if(caapGlob.debug) { gm.log(mess); }
 },
 // use these to set/get values in a way that prepends the game's name
 setValue:function(n,v) {
@@ -863,7 +873,7 @@ SetControls:function(force) {
 	this.CheckLastAction(gm.getValue('LastAction','none'));
 
 	var htmlCode = '';
-	if (is_chrome) htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
+	if (caapGlob.is_chrome) htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
 	var autoRunInstructions="Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
 	htmlCode += '<hr /><table width=180 cellpadding=0 cellspacing=0>';
@@ -1001,7 +1011,7 @@ SetControls:function(force) {
 			htmlCode += '<tr><td>Achievement Mode</td><td> ' + this.MakeCheckBox('AchievementMode',true,'',monsterachieveInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Get Demi Points First</td><td> ' + this.MakeCheckBox('DemiPointsFirst',false,'DemiList',demiPointsFirstInstructions,true)+  '</td></tr>';
 			var demiPoint =['Ambrosia','Malekus','Corvintheus','Aurora','Azeron'];
-			var demiPtList = ['<img src="'+symbol_tiny_1+'" height="15" width="14"/>','<img src="'+symbol_tiny_2+'" height="15" width="14"/>','<img src="'+symbol_tiny_3+'" height="15" width="14"/>','<img src="'+symbol_tiny_4+'" height="15" width="14"/>','<img src="'+symbol_tiny_5+'" height="15" width="14"/>'];
+			var demiPtList = ['<img src="'+caapGlob.symbol_tiny_1+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_2+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_3+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_4+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_5+'" height="15" width="14"/>'];
 				for (var demiPtItem in demiPtList) {
 					htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint'+demiPtItem,true,'',demiPoint[demiPtItem]);
 				}
@@ -1142,10 +1152,10 @@ SetControls:function(force) {
 	htmlCode += "<hr/></div>";
 	htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 	htmlCode += "<tr><td><input type='checkbox' id='unlockMenu' /></td><td>Unlock Menu</td><td><input type='button' id='ResetMenuLocation' value='Reset' style='font-size: 10px; width:50; height:50'></td></tr></table>";
-	htmlCode+= "Version: " + thisVersion + "  -  <a href='" + discussionURL + "' target='_blank'>Discussion Boards</a><br />";
+	htmlCode+= "Version: " + caapGlob.thisVersion + "  -  <a href='" + caapGlob.discussionURL + "' target='_blank'>Discussion Boards</a><br />";
 
-	if (newVersionAvailable) {
-		htmlCode += "<a href='http://userscripts.org/scripts/source/" +SUC_script_num+".user.js'>Install new autoplayer version: "+GM_getValue('SUC_remote_version') + "!</a>";
+	if (caapGlob.newVersionAvailable) {
+		htmlCode += "<a href='http://userscripts.org/scripts/source/" + caapGlob.SUC_script_num + ".user.js'>Install new autoplayer version: " + gm.getValue('SUC_remote_version') + "!</a>";
 	}
 
 	this.SetDivContent('control',htmlCode);
@@ -1160,8 +1170,8 @@ SetControls:function(force) {
 	SetTitleBox.checked=SetTitle?true:false;
 	SetTitleBox.addEventListener('change',function(e) {
 		if(gm.getValue('SetTitle')) {
-			document.title=gm.getValue('PlayerName','CAAP')+" - "+documentTitle;
-		}else document.title=documentTitle;
+			document.title = gm.getValue('PlayerName','CAAP') + " - " + caapGlob.documentTitle;
+		}else document.title = caapGlob.documentTitle;
 	},false);
 
 	var HideAdsBox=document.getElementById('caap_HideAds');
@@ -1248,7 +1258,7 @@ SetControls:function(force) {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight','#efe');
 		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
 		gm.setValue('caapPause','none');
-		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 		//gm.setValue('Disabled',false);
 		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
@@ -1265,10 +1275,10 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
-		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
+		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
 	},false);
 
-	if (is_chrome) {
+	if (caapGlob.is_chrome) {
 		var caapPauseDiv=document.getElementById('caapPauseA');
 		caapPauseDiv.addEventListener('click',function(e) {
 			document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
@@ -1276,7 +1286,7 @@ SetControls:function(force) {
 //			nHtml.clearTimeouts();
 			gm.setValue('caapPause','block');
 			caapPaused.style.display='block';
-			if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
+			if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
 		},false);
 	}
 
@@ -1805,7 +1815,7 @@ GetStats:function() {
 try{
 	this.stats={};
 
-	if (isnot_firefox) {
+	if (!caapGlob.is_firefox) {
                 if (document.getElementById('app46755028429_healForm')){
                         // Facebook ID
                         var webSlice=nHtml.FindByAttrContains(document.body,"a","href","party.php");
@@ -3610,7 +3620,7 @@ checkMonsterEngage:function() {
 	gm.log('In check '+ page + ' engage');
 
 	var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
-	if (isnot_firefox) {
+	if (!caapGlob.is_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
 			gm.log('On another player\'s keep.');
@@ -3689,7 +3699,7 @@ checkMonsterDamage:function() {
 	if (caap.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
 	else if (caap.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
 	else monstType = caap.getMonstType(monster);
-	if (isnot_firefox) {
+	if (!caapGlob.is_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monster = monster.replace(/.+'s /,'Your ');
 	} else {
@@ -3736,7 +3746,7 @@ checkMonsterDamage:function() {
 	if (webSlice) {
 		webSlice=nHtml.FindByAttrContains(webSlice,"td","valign","top");
 		if (webSlice) {
-			if (isnot_firefox) {
+			if (!caapGlob.is_firefox) {
 				webSlice=nHtml.FindByAttrContains(webSlice,"a","href","keep.php?user=" + gm.getValue('FBID','x'));
 			} else {
 				webSlice=nHtml.FindByAttrContains(webSlice,"a","href","keep.php?user=" + unsafeWindow.Env.user);
@@ -3765,7 +3775,7 @@ checkMonsterDamage:function() {
 	}
 
 	monsterConditions = gm.getListObjVal('monsterOl',monster,'conditions','');
-	if (monsterConditions.indexOf(':ac')>=0) {
+	if (/:ac\b/.test(monsterConditions)) {
 		counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 		monsterList = gm.getList('monsterOl');
 		if (counter >=0 && monsterList[counter].indexOf(monster)>=0
@@ -3994,7 +4004,7 @@ monsterConfirmRightPage:function(webSlice,monster) {
 	// Confirm name and type of monster
 	var monsterOnPage = nHtml.GetText(webSlice);
 	monsterOnPage = monsterOnPage.substring(0,monsterOnPage.indexOf('You have (')).trim();
-	if (isnot_firefox) {
+	if (!caapGlob.is_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monsterOnPage = monsterOnPage.replace(/.+'s /,'Your ');
 	} else {
@@ -4165,7 +4175,7 @@ Monsters:function() {
 	}
 
 	var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-	if (isnot_firefox) {
+	if (!caapGlob.is_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
 			gm.log('On another player\'s keep.');
@@ -5110,7 +5120,7 @@ AutoGift:function() {
 			gm.setValue('GiftEntry',giverId[2]+vs+giverName);
 			gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
 			this.JustDidIt('ClickedFacebookURL');
-			if (is_chrome) {
+			if (caapGlob.is_chrome) {
 				/*
 				var giftType = 'Unknown Gift';
 				var giftEntry = gm.getValue('GiftEntry','');
@@ -5195,7 +5205,7 @@ AutoGift:function() {
 	var givenGiftType = '';
 	var giftPic = '';
 	var giftChoice = gm.getValue('GiftChoice');
-	//if (is_chrome) giftChoice = 'Random Gift';
+	//if (caapGlob.is_chrome) giftChoice = 'Random Gift';
 	switch (giftChoice) {
 		case 'Random Gift':
 			giftPic = gm.getValue('RandomGiftPic');
@@ -5534,6 +5544,7 @@ If recon is disabled or if we check our timer to make sure we are not running re
 often.
 \-------------------------------------------------------------------------------------*/
 	if (!gm.getValue('DoPlayerRecon',false)) return false;
+	if (this.stats.stamina.num <= 0) return false;
 	if (!this.CheckTimer('PlayerReconTimer')) return false;
 	this.SetDivContent('idle_mess','Player Recon: Starting');
 /*-------------------------------------------------------------------------------------\
@@ -5762,7 +5773,7 @@ MainLoop:function() {
 	this.SetupDivs();
 //	this.AddBattleLinks();
 	if(gm.getValue('Disabled',false)) {
-		if (is_chrome) CE_message("disabled", null, gm.getValue('Disabled',false));
+		if (caapGlob.is_chrome) CE_message("disabled", null, gm.getValue('Disabled',false));
 		this.SetControls();
 		this.WaitMainLoop();
 		return;
@@ -5838,7 +5849,7 @@ ReloadCastleAge:function() {
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('caapPause','none');
-		if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
 },
@@ -5854,7 +5865,7 @@ if(gm.getValue('SetTitle')) {
         document.title=gm.getValue('PlayerName','CAAP');
 }
 
-if (gm.getValue('LastVersion',0) != thisVersion) {
+if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
 	// Put code to be run once to upgrade an old version's variables to new format or such here.
 	if (parseInt(gm.getValue('LastVersion',0),10)<121) gm.setValue('WhenBattle',gm.getValue('WhenFight','Stamina Available'));
 	if (parseInt(gm.getValue('LastVersion',0),10)<126) {
@@ -5875,13 +5886,13 @@ if (gm.getValue('LastVersion',0) != thisVersion) {
 			gm.setValue(gmVal,'');
 		});
 	}
-	gm.setValue('LastVersion',thisVersion);
+	gm.setValue('LastVersion',caapGlob.thisVersion);
 }
 
 $(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
-	if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+	if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
 	if (document.getElementById("app46755028429_battle_monster"))
 		caap.checkMonsterDamage();
