@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.11
+// @version        139.12
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -14,7 +14,7 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-var thisVersion = "139.11";
+var thisVersion = "139.12";
 
 var is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
 var isnot_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') == -1  ? true : false;
@@ -122,7 +122,7 @@ FindByAttrXPath:function(obj,tag,className,subDocument) {
 	var q = null;
 	try {
 		var xpath=".//"+tag+"["+className+"]";
-		if(obj==null) {
+		if(obj===null) {
 			GM_log('Trying to find xpath with null obj:'+xpath);
 			return null;
 		}
@@ -241,7 +241,7 @@ Gup : function(name,href){
 	var regexS = "[\\?&]"+name+"=([^&#]*)";
 	var regex = new RegExp( regexS );
 	var results = regex.exec(href);
-	if( results == null ) return "";
+	if( results === null ) return "";
 	else return results[1];
 },
 
@@ -340,7 +340,7 @@ listPush:function(listName, pushItem, max) {
 },
 listFindItemByPrefix:function(list,prefix) {
 	var itemList = list.filter(function(item){
-		return item.indexOf(prefix)==0;
+		return item.indexOf(prefix)===0;
 	});
 //gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
 	if (itemList.length) return itemList[0];
@@ -412,7 +412,7 @@ deleteListObj:function(listName,objName) {
 Move={
 moveHandler:function(e){
 	savedTarget.style.position='absolute';
-	if (e == null) return;
+	if (e === null) return;
 	if ( e.button<=1 && dragOK ){
 		savedTarget.style.left = e.clientX - dragXoffset + 'px';
 		savedTarget.style.top = e.clientY - dragYoffset + 'px';
@@ -443,7 +443,7 @@ cleanup:function(e) {
 dragHandler:function(e){
 
 	var htype='-moz-grabbing';
-	if (e == null) return;// {{ e = window.event;}  // htype='move';}
+	if (e === null) return;// {{ e = window.event;}  // htype='move';}
 	var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
 	orgCursor=target.style.cursor;
 
@@ -1323,6 +1323,7 @@ SetControls:function(force) {
 		   $target.is("#app46755028429_battlerank") ||
 		   $target.is("#app46755028429_battle_train") ||
 		   $target.is("#app46755028429_quests") ||
+		   $target.is("#app46755028429_raid") ||
 		   $target.is("#app46755028429_symbolquests") ||
 		   $target.is("#app46755028429_alchemy") ||
 		   $target.is("#app46755028429_soldiers") ||
@@ -1420,7 +1421,7 @@ depending on which display was selected using the control above
  No we apply our CSS to our container
 \-------------------------------------------------------------------------------------*/
 	if (!$("#caap_top").length) {
-	   $(layout).css({
+		$(layout).css({
 			background : gm.getValue("StyleBackgroundLight","white"),
 //			background : "url('http://image2.castleagegame.com/1357/graphics/bg_jobs_tile.jpg')",
 			padding : "5px",
@@ -1608,11 +1609,12 @@ addExpDisplay:function() {
 /////////////////////////////////////////////////////////////////////
 
 SetDisplay:function(idName,setting){
-	if (!(div = document.getElementById('caap_' + idName))) {
+	var div = document.getElementById('caap_' + idName);
+	if (!div) {
 		gm.log('Unable to find div: ' + idName);
 		return;
 	}
-	if (setting == true) {
+	if (setting === true) {
 		div.style.display = 'block';
 	} else {
 		div.style.display = 'none';
@@ -1622,7 +1624,7 @@ SetDisplay:function(idName,setting){
 
 AddListeners:function(topDivName) {
 	if(!(div = document.getElementById(topDivName))) return false;
-    var s=0;
+	var s=0;
 
 	var ss=document.evaluate("//input[contains(@id,'caap_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	if(ss.snapshotLength<=0) gm.log('no inputs');
@@ -2225,12 +2227,12 @@ Quests:function() {
 },
 
 DrawQuests:function(pickQuestTF) {
-	whyQuest = gm.getValue('WhyQuest','');
+	var whyQuest = gm.getValue('WhyQuest','');
 	if (pickQuestTF && whyQuest!='Manual') gm.setValue('AutoQuest','');
 	var bestReward=0;
         var rewardRatio = 0;
 	var div = document.body;
-        var ss = '';
+        var ss = null;
         var s = 0;
 	if (this.CheckForImage('demi_quest_on.gif')) {
 		ss=document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",div,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
@@ -2241,7 +2243,7 @@ DrawQuests:function(pickQuestTF) {
 	}
 
 	ss=document.evaluate(".//div[contains(@class,'quests_background')]",div,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if (ss.snapshotLength == 0) {
+	if (ss.snapshotLength === 0) {
 //		gm.log("Failed to find quests_background");
 		return;
 	}
@@ -2491,7 +2493,7 @@ GetQuestName:function(questDiv) {
 },
 
 IsEnoughEnergyForAutoQuest:function() {
-	energy = gm.getObjVal('AutoQuest','energy');
+	var energy = gm.getObjVal('AutoQuest','energy');
 	if(!this.stats.energy || !energy) { return false; }
 	var whenQuest = gm.getValue('WhenQuest','');
 
@@ -2688,7 +2690,7 @@ DrawLands:function() {
 	var propByName=this.IterateLands(function(prop) {
 		this.SelectLands(prop.row, 2);
 		var roi=(parseInt((prop.income/prop.totalCost)*240000,10) /100);
-		selects = prop.row.getElementsByTagName('select');
+		var selects = prop.row.getElementsByTagName('select');
 		if(!nHtml.FindByAttrXPath(prop.row,'input',"@name='Buy'")) {
 			roi = 0;
 			// Lets get our max allowed from the land_buy_info div
@@ -2712,7 +2714,7 @@ DrawLands:function() {
 		div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
 		div[0].innerHTML+=" | "+roi+"% per day.";
 		if(!prop.usedByOther) {
-			if(!(this.bestProp.roi || roi == 0)|| roi>this.bestProp.roi) {
+			if(!(this.bestProp.roi || roi === 0)|| roi>this.bestProp.roi) {
 				this.bestProp.roi=roi;
 				this.bestProp.prop=prop;
 				gm.setValue('BestPropCost',this.bestProp.prop.cost);
@@ -2760,7 +2762,7 @@ DrawLands:function() {
 IterateLands:function(func) {
 	var content=document.getElementById('content');
 	var ss=document.evaluate(".//tr[contains(@class,'land_buy_row')]",content,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if (!ss || (ss.snapshotLength == 0)) {
+	if (!ss || (ss.snapshotLength === 0)) {
 		//gm.log("Can't find land_buy_row");
 		return null;
 	}
@@ -2775,7 +2777,7 @@ IterateLands:function(func) {
 
 		var name=this.LandsGetNameFromRow(row);
 
-		if(name==null || name=='') { gm.log("Can't find land name"); continue; }
+		if(name===null || name==='') { gm.log("Can't find land name"); continue; }
 
 		var moneyss=document.evaluate(".//*[contains(@class,'gold') or contains(@class,'currency')]",row,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 
@@ -3113,8 +3115,8 @@ BattleUserId:function(userid) {
 
 		var battleButton = nHtml.FindByAttrContains(document.body,"input","src",target);
 		if (battleButton) {
-			form = battleButton.parentNode.parentNode;
-			inp = nHtml.FindByAttrXPath(form,"input","@name='target_id'");
+			var form = battleButton.parentNode.parentNode;
+			var inp = nHtml.FindByAttrXPath(form,"input","@name='target_id'");
 			if (inp) {
 				inp.value = userid;
 				this.lastBattleID=userid;
@@ -3178,7 +3180,8 @@ try{
 //	gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
 	for(var s=0; s<ss.snapshotLength; s++) {
 		var button=ss.snapshotItem(s);
-		if(!(tr=button)) {
+		var tr=button;
+		if(!tr) {
 			gm.log('No tr parent of button?');
 			continue;
 		}
@@ -3261,7 +3264,7 @@ try{
 		temp.targetNumber = s+1 ;
 		safeTargets[count] = temp;
 		count++;
-		if (s == 0 && type == 'Raid') plusOneSafe = true;
+		if (s === 0 && type == 'Raid') plusOneSafe = true;
 
 		for (x = 0; x < count; x++) {
 			for (var y = 0 ; y < x ; y++) {
@@ -3311,12 +3314,12 @@ try{
 
 				bestButton = safeTargets[x].button;
 				if (bestButton != null) {
-						gm.log('Found Target score: ' + safeTargets[x].score + ' id: ' + safeTargets[x].id +' Number: '+safeTargets[x].targetNumber);
-						this.ClickBattleButton(bestButton);
-						this.lastBattleID = safeTargets[x].id;
-						this.SetDivContent('battle_mess','Attacked: ' + this.lastBattleID);
-						this.notSafeCount = 0;
-						return true;
+					gm.log('Found Target score: ' + safeTargets[x].score + ' id: ' + safeTargets[x].id +' Number: '+safeTargets[x].targetNumber);
+					this.ClickBattleButton(bestButton);
+					this.lastBattleID = safeTargets[x].id;
+					this.SetDivContent('battle_mess','Attacked: ' + this.lastBattleID);
+					this.notSafeCount = 0;
+					return true;
 				} else gm.log('Attack button is null');
 			}
 		}
@@ -3348,19 +3351,20 @@ Battle:function(mode) {
 		this.SetDivContent('battle_mess','Safe To Wait For Monster');
 		return false;
 	}
+
 	if (gm.getValue('WhenBattle') == 'No Monster' && mode != 'DemiPoints') {
 		if ((gm.getValue('WhenMonster','') != 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
 			return false;
 		}
 	}
+
 	if (!this.CheckStamina('Battle')) return false;
 
 	if (this.WhileSinceDidIt('MyRankLast',60*60)) {
-			gm.log('Visiting keep to get new rank');
-			this.NavigateTo('keep');
-			return true;
+		gm.log('Visiting keep to get new rank');
+		this.NavigateTo('keep');
+		return true;
 	}
-
 
 	// Check if we should chain attack
 	if (nHtml.FindByAttrContains(document.body,"img","src",'battle_victory.gif')) {
@@ -3380,11 +3384,14 @@ Battle:function(mode) {
 
 	if (!this.notSafeCount) this.notSafeCount = 0;
 
-	if (!(target = this.GetCurrentBattleTarget(mode))) return false;
+	var target = this.GetCurrentBattleTarget(mode);
+	if (!target) return false;
+
 	target = target.toLowerCase();
 	gm.log('Battle Target: '+target);
 
 	if (this.SelectGeneral('BattleGeneral')) return true;
+
 	switch (target) {
 		case 'raid' :
 			this.SetDivContent('battle_mess','Joining the Raid');
@@ -3594,7 +3601,7 @@ checkMonsterEngage:function() {
 	if (!this.oneMinuteUpdate('monsterEngage')) return;
 	// get all buttons to check monsterObjectList
 	var ss=document.evaluate(".//img[contains(@src,'dragon_list_btn_')]",document.body,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if (ss.snapshotLength==0) return false;
+	if (ss.snapshotLength===0) return false;
 	if (caap.CheckForImage('tab_monster_on.jpg'))
 		page = 'battle_monster';
 	else if (caap.CheckForImage('tab_raid_on.gif'))
@@ -3602,7 +3609,7 @@ checkMonsterEngage:function() {
 	else return;
 	gm.log('In check '+ page + ' engage');
 
-	firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
+	var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
 	if (isnot_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
@@ -3671,7 +3678,8 @@ checkMonsterEngage:function() {
 
 checkMonsterDamage:function() {
 	// Check if on monster page
-	if (!(webSlice=caap.CheckForImage('dragon_title_owner.jpg'))) return;
+	var webSlice = caap.CheckForImage('dragon_title_owner.jpg')
+	if (!webSlice) return;
 	if (!caap.oneMinuteUpdate('monsterDamage')) return;
 	gm.log('Checking monster damage');
 	// Get name and type of monster
@@ -3699,7 +3707,8 @@ checkMonsterDamage:function() {
         var phase = '';
 
 	// Check for mana forcefield
-	if ((img=caap.CheckForImage('bar_dispel'))) {
+	var img = caap.CheckForImage('bar_dispel');
+	if (img) {
 		var manaHealth = img.parentNode.style.width;
 		manaHealth = manaHealth.substring(0,manaHealth.length-1);
 		manaHealth = 100 - Number(manaHealth);
@@ -3707,11 +3716,13 @@ checkMonsterDamage:function() {
 	}
 
 	// Check fortify stuff
-	if ((img=caap.CheckForImage('seamonster_ship_health'))) {
+	img = caap.CheckForImage('seamonster_ship_health');
+	if (img) {
 		var shipHealth = img.parentNode.style.width;
 		shipHealth = shipHealth.substring(0,shipHealth.length-1);
 		if (monstType == "Legion" || monstType.indexOf('Elemental') >=0) {
-			if ((img = caap.CheckForImage('repair_bar_grey'))) {
+			img = caap.CheckForImage('repair_bar_grey')
+			if (img) {
 				var extraHealth = img.parentNode.style.width;
 				extraHealth = extraHealth.substring(0,extraHealth.length-1);
 				shipHealth = Math.round(Number(shipHealth) * (100/(100 - Number(extraHealth))));
@@ -3721,7 +3732,7 @@ checkMonsterDamage:function() {
 	}
 
 	// Get damage done to monster
-	var webSlice=nHtml.FindByAttrContains(document.body,"td","class","dragonContainer");
+	webSlice=nHtml.FindByAttrContains(document.body,"td","class","dragonContainer");
 	if (webSlice) {
 		webSlice=nHtml.FindByAttrContains(webSlice,"td","valign","top");
 		if (webSlice) {
@@ -3802,7 +3813,7 @@ checkMonsterDamage:function() {
 				miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
 				//phaseText=Math.min($("img[src*="+boss.siege_img+"]").size()+1,boss.siege)+"/"+boss.siege+ " need " + (isNaN(+miss) ? 0 : miss);
 			}
-                        var currentPhase = '';
+                        var currentPhase = 0;
                         var divSeigeLogs = document.getElementById("app46755028429_siege_log").getElementsByTagName("div").length;
                         if (divSeigeLogs) {
                                 //gm.log("Found siege logs.");
@@ -4001,7 +4012,7 @@ MonsterReview:function() {
 	counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 	//gm.log("this.WhileSinceDidIt('monsterReview',60*60) && counter >=-1	&& (this.CheckStamina('Monster',1) || gm.getValue('monsterReview')==0) " + this.WhileSinceDidIt('monsterReview',60*60) +' '+ counter +' '+ this.stats.stamina.num > 0 +' '+ gm.getValue('monsterReview'));
 	if (this.WhileSinceDidIt('monsterReview',60*60) && counter >=-1
-			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')==0)) {
+			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')===0)) {
 		// Check raids and monster individual pages
 		monsterObjList = gm.getList('monsterOl');
 		while ( ++counter < monsterObjList.length) {
@@ -4018,7 +4029,7 @@ MonsterReview:function() {
 					if (monster.indexOf('Siege')>=0)
 						link += '&rix='+gm.getObjVal(monsterObj,'rix','2');
 				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true)
-						|| this.stats.stamina.num == 0)
+						|| this.stats.stamina.num === 0)
 					link = link.replace('&action=doObjective','');
 				gm.log('MonsterObj '+ counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
 				gm.setValue('resetmonsterDamage',true);
@@ -4044,7 +4055,7 @@ Monsters:function() {
 	}
 	var counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
 	if (this.WhileSinceDidIt('monsterReview',60*60) && counter < -1
-			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')==0)) {
+			&& (this.stats.stamina.num > 0 || gm.getValue('monsterReview')===0)) {
 		// Check Monster page
 		if (counter == -3) {
 			gm.setValue('monsterOl','');
@@ -4129,7 +4140,7 @@ Monsters:function() {
 		if (attackButton) {
 			if (fightMode == 'Fortify')
 				attackMess = 'Fortifying ' + monster;
-			 else attackMess = (gm.getValue('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monster;
+			else attackMess = (gm.getValue('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monster;
 			gm.log(attackMess);
 			this.SetDivContent('battle_mess',attackMess);
 			gm.setValue('ReleaseControl',true);
@@ -4144,6 +4155,7 @@ Monsters:function() {
 		gm.setValue('resetmonsterEngage',true);
 		return true;
 	}
+
 	if (gm.getValue('clearCompleteMonsters',false) && this.completeButton.battle_monster) {
 		caap.Click(this.completeButton.battle_monster,1000);
 		gm.log('Cleared a completed monster');
@@ -4151,7 +4163,8 @@ Monsters:function() {
 		gm.setValue('resetmonsterEngage',true);
 		return true;
 	}
-	firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+
+	var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
 	if (isnot_firefox) {
 		if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user='+gm.getValue('FBID','x'))
 				|| firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
@@ -4217,16 +4230,20 @@ minutesBeforeLevelToUseUpStaEnergy : 5,
 
 InLevelUpMode:function() {
 	if (!gm.getValue('EnableLevelUpMode',true)) return false;
-	var now = new Date();
+
 	if (!(this.stats.levelTime)) return false;
+
+	var now = new Date();
 	if ((this.stats.levelTime.getTime() - now.getTime())<this.minutesBeforeLevelToUseUpStaEnergy*60*1000) {
 		return true;
 	}
+
 	return false;
 },
 CheckStamina:function(battleOrBattle,attackMinStamina) {
 	if (!attackMinStamina) attackMinStamina=1;
-	when = gm.getValue('When' + battleOrBattle,'');
+
+	var when = gm.getValue('When' + battleOrBattle,'');
 	if (when == 'Never') return false;
 
 	if(!this.stats.stamina || !this.stats.health) {
@@ -4274,7 +4291,9 @@ CheckStamina:function(battleOrBattle,attackMinStamina) {
 		this.SetDivContent('battle_mess','Waiting for max stamina: '+this.stats.stamina.num+"/"+gm.getValue('MaxIdleStamina'));
 		return false;
 	}
+
 	if (this.stats.stamina.num>=attackMinStamina) return true;
+
 	this.SetDivContent('battle_mess','Waiting for more stamina: '+this.stats.stamina.num+"/"+attackMinStamina);
 	return false;
 },
@@ -4362,31 +4381,30 @@ MonsterFinder:function(){
 	if(!gm.getValue("MonsterFinderUse",true) || this.stats.stamina.num < gm.getValue("MonsterFinderMinStam",20) || this.stats.health.num < 10) return false;
 
 	var urlix = gm.getValue("urlix","").replace("~","");
-
-	if (urlix == "" && gm.getValue("mfStatus","") != "OpenMonster") {
-				gm.setValue("mfStatus","");
-				gm.log("Resetting monster finder history");
-				this.clearLinks();
+	if (urlix === "" && gm.getValue("mfStatus","") != "OpenMonster") {
+		gm.setValue("mfStatus","");
+		gm.log("Resetting monster finder history");
+		this.clearLinks();
 	}
 
 	gm.log("All checks passed to enter Monster Finder");
-		if(window.location.href.indexOf("filter=app_46755028429") < 0 ) {
-			var mfstatus = gm.getValue("mfStatus","");
-			if(mfstatus =="OpenMonster") {
-				caap.CheckMonster();
-				return true;
-			} else if (mfstatus =="MonsterFound"){
-				caap.VisitUrl("http://apps.facebook.com/castle_age" + gm.getValue("navLink"));
-				gm.setValue("mfStatus","");
-				return true;
-		} else if ( (mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed',60*60*2)) || (!this.WhileSinceDidIt('checkedFeed',60*gm.getValue("MonsterFinderFeedMin",5))) ){
-				caap.selectMonst();
-			} else {
-				caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf",0);
-				gm.setValue("mfStatus","MFOFB");
-				return false;
-			}
+	if(window.location.href.indexOf("filter=app_46755028429") < 0 ) {
+		var mfstatus = gm.getValue("mfStatus","");
+		if(mfstatus =="OpenMonster") {
+			caap.CheckMonster();
+			return true;
+		} else if (mfstatus =="MonsterFound"){
+			caap.VisitUrl("http://apps.facebook.com/castle_age" + gm.getValue("navLink"));
+			gm.setValue("mfStatus","");
+			return true;
+	} else if ( (mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed',60*60*2)) || (!this.WhileSinceDidIt('checkedFeed',60*gm.getValue("MonsterFinderFeedMin",5))) ){
+			caap.selectMonst();
+		} else {
+			caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf",0);
+			gm.setValue("mfStatus","MFOFB");
+			return false;
 		}
+	}
 
 },
 
@@ -4514,7 +4532,7 @@ monstDamage:function() {	// Get damage done to monster
 
 mfMain : function() {
 	gm.log("Do Stuff " + new Date() );
-	if(gm.getValue("urlix","") == "") {this.clearLinks();}
+	if(gm.getValue("urlix","") === "") {this.clearLinks();}
 	//this.maintainAllUrl();
 	//this.redirectLinks();
 	this.handleCTA();
@@ -4554,7 +4572,7 @@ olderPosts: function() {
 },
 
 selectMonst: function() {
-	if (gm.getValue("monstersExhausted", false) == true) return false;
+	if (gm.getValue("monstersExhausted", false) === true) return false;
 	gm.log("Select Monst Function");
 	var monstPriority = gm.getValue("MonsterFinderOrder") ;
 
@@ -4609,7 +4627,7 @@ selectMonst: function() {
 
 clearLinks: function (resetall){
 	gm.log("Clear Links");
-	if (resetall) {
+	if (resetall === true) {
 		gm.setValue("navLink","");
 		gm.setValue("mfStatus","");
 		gm.setValue("waitMonsterLoad",0);
@@ -4846,9 +4864,9 @@ ImmediateBanking:function() {
 Bank:function() {
 	var maxInCash=this.GetNumber('MaxInCash');
 	var minInCash=this.GetNumber('MinInCash');
-	if (minInCash=='') minInCash=0;
+	if (minInCash==='') minInCash=0;
 
-	if(maxInCash=="" || this.stats.cash<=minInCash || this.stats.cash<maxInCash || this.stats.cash<10) {
+	if(maxInCash==="" || this.stats.cash<=minInCash || this.stats.cash<maxInCash || this.stats.cash<10) {
 		return false;
 	}
 
@@ -4885,7 +4903,7 @@ RetrieveFromBank:function(num){
 		// Cannot find the link
 		return this.NavigateTo('keep');
 	}
-	if (!(minInStore==''|| minInStore <= gm.getValue('inStore',0)-num))return false;
+	if (!(minInStore===''|| minInStore <= gm.getValue('inStore',0)-num))return false;
 
 
 	var retrieveForm = retrieveButton.form;
@@ -4915,9 +4933,9 @@ Heal:function() {
 	this.SetDivContent('heal_mess','');
 	var whenBattle = gm.getValue('WhenBattle','');
 	var minToHeal=this.GetNumber('MinToHeal');
-	if(minToHeal=="") return false;
+	if(minToHeal==="") return false;
 	var minStamToHeal=this.GetNumber('MinStamToHeal');
-	if(minStamToHeal=="") minStamToHeal = 0;
+	if(minStamToHeal==="") minStamToHeal = 0;
 
 	if(!this.stats.health) return false;
 
@@ -4963,7 +4981,7 @@ AutoElite:function() {
 	}
 
 	var eliteList=gm.getValue('MyEliteTodo','').trim();
-	if (eliteList== '') {
+	if (eliteList === '') {
 		if (this.CheckForImage('view_army_on.gif')) {
 			gm.log('load auto elite list');
 			var armyList=gm.getValue('EliteArmyList','');
@@ -4992,7 +5010,7 @@ AutoElite:function() {
 		eliteList = eliteList.substring(eliteList.indexOf(',')+1);
 		gm.setValue('MyEliteTodo',eliteList);
 		this.JustDidIt('AutoEliteReqNext');
-		if (eliteList == '') {
+		if (eliteList === '') {
 			this.JustDidIt('AutoEliteGetList');
 			gm.setValue('AutoEliteEnd','NoArmy');
 			gm.log('Army list exhausted');
@@ -5169,7 +5187,7 @@ AutoGift:function() {
 	if (this.NavigateTo('army,gift','giftpage_title.jpg')) return true;
 
 	// Get the gift to send out
-	if (giftNamePic.length==0) {
+	if (giftNamePic.length===0) {
 		gm.log('No list of pictures for gift choices');
 		return false;
 	}
@@ -5448,7 +5466,7 @@ Idle:function() {
 								// Add army members //
 								var count = 0;
 								var ID = gm.getValue("ArmyCount",0);
-								if(ID == 0) gm.log("Adding "+Ids.length+" member");
+								if(ID === 0) gm.log("Adding "+Ids.length+" member");
 								caap.SetDivContent('idle_mess','Filling Army, Please wait...'+ID+"/"+Ids.length);
 								for (ID; ID < Ids.length ; ID++) {
 									if(count >= 5){ //don't spam requests
@@ -5752,7 +5770,7 @@ MainLoop:function() {
 
 	if (!this.GetStats()) {
 		noWindowLoad = gm.getValue('NoWindowLoad',0);
-		if (noWindowLoad == 0) {
+		if (noWindowLoad === 0) {
 			this.JustDidIt('NoWindowLoadTimer');
 			gm.setValue('NoWindowLoad',1);
 		} else if (this.WhileSinceDidIt('NoWindowLoadTimer',Math.min(Math.pow(2,noWindowLoad-1)*15,60*60))) {
@@ -6140,7 +6158,7 @@ Colors: new function(){
 
     this.SetHexString = function(hexString)
     {
-      if(hexString == null || typeof(hexString) != "string")
+      if(hexString === null || typeof(hexString) != "string")
         return false;
 
       if (hexString.substr(0, 1) == '#')
@@ -6213,7 +6231,7 @@ Colors: new function(){
       green = value;
       blue = value;
 
-      if(value == 0 || saturation == 0)
+      if(value === 0 || saturation === 0)
         return;
 
       var tHue = (hue / 60);
@@ -6280,7 +6298,7 @@ Position:function(x, y){
   this.Min = function(val)
   {
     var newPos = new style.Position(this.X, this.Y);
-    if(val == null)
+    if(val === null)
       return newPos;
 
     if(!isNaN(val.X) && this.X > val.X)
@@ -6294,7 +6312,7 @@ Position:function(x, y){
   this.Max = function(val)
   {
     var newPos = new style.Position(this.X, this.Y);
-    if(val == null)
+    if(val === null)
       return newPos;
 
     if(!isNaN(val.X) && this.X < val.X)
@@ -6325,7 +6343,7 @@ Position:function(x, y){
   {
     if(typeof(element) == "string")
       element = document.getElementById(element);
-    if(element == null)
+    if(element === null)
       return;
     if(!isNaN(this.X))
       element.style.left = this.X + 'px';
@@ -6341,7 +6359,7 @@ correctOffset:function(pos, offset, neg){
 hookEvent:function(element, eventName, callback){
   if(typeof(element) == "string")
     element = document.getElementById(element);
-  if(element == null)
+  if(element === null)
     return;
   if(element.addEventListener)
   {
@@ -6353,7 +6371,7 @@ hookEvent:function(element, eventName, callback){
 unhookEvent:function(element, eventName, callback){
   if(typeof(element) == "string")
     element = document.getElementById(element);
-  if(element == null)
+  if(element === null)
     return;
   if(element.removeEventListener)
     element.removeEventListener(eventName, callback, false);
@@ -6396,7 +6414,7 @@ absoluteCursorPostion:function(eventObj){
 dragObject:function(element, attachElement, lowerBound, upperBound, startCallback, moveCallback, endCallback, attachLater){
   if(typeof(element) == "string")
     element = document.getElementById(element);
-  if(element == null)
+  if(element === null)
       return;
 
   if(lowerBound != null && upperBound != null)
@@ -6501,7 +6519,7 @@ dragObject:function(element, attachElement, lowerBound, upperBound, startCallbac
 
   if(typeof(attachElement) == "string")
     attachElement = document.getElementById(attachElement);
-  if(attachElement == null)
+  if(attachElement === null)
     attachElement = element;
 
   if(!attachLater)
