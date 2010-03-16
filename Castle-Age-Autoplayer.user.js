@@ -1256,7 +1256,8 @@ SetControls:function(force) {
 		return;
 	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
-		if (event.target.id == "app46755028429_app_body")
+//		if (event.target.id) alert(event.target.id);
+		if (event.target.id == "app46755028429_app_body" || event.target.id == "app46755028429_battle_monster")
 			nHtml.setTimeout(caap.loadPageCheckFunction, 0);
 		if(event.target.getElementById('app46755028429_st_2_5')) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
@@ -3423,8 +3424,9 @@ onLoadCheck_fightList:function() {
 },
 
 onLoadCheck_viewFight:function() {
-	gm.log('Checking monster damage');
 	// Get name and type of monster
+	if (!(webSlice=caap.CheckForImage('dragon_title_owner.jpg'))) return;
+	gm.log('Checking monster damage');
 	var monster = nHtml.GetText(webSlice);
 	var fort = null;
 	monster = monster.substring(0,monster.indexOf('You have (')).trim();
@@ -5312,7 +5314,7 @@ MainLoop:function() {
     this.UpdateGeneralList();
     this.SetControls();
 
-	if(!this.WhileSinceDidIt('newControlPanelLoaded',3)) {
+	if(!this.WhileSinceDidIt('newControlPanelLoaded',4)) {
 		this.WaitMainLoop();
 		return;
 	}
@@ -5399,8 +5401,6 @@ $(function() {
 	gm.setValue('caapPause','none');
 	if (is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
-	if (document.getElementById("app46755028429_battle_monster"))
-		caap.checkMonsterDamage();
 	caap.addExpDisplay();
 	caap.loadPageCheckFunction(document.body);
 	gm.setValue('ReleaseControl',true);
