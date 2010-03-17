@@ -1257,7 +1257,9 @@ SetControls:function(force) {
 	}
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
 //		if (event.target.id) alert(event.target.id);
-		if (event.target.id == "app46755028429_app_body" || event.target.id == "app46755028429_battle_monster")
+		if (event.target.id == "app46755028429_app_body" 
+				|| event.target.id == "app46755028429_battle_monster"
+				|| event.target.id == "app46755028429_raid")
 			nHtml.setTimeout(caap.loadPageCheckFunction, 0);
 		if(event.target.getElementById('app46755028429_st_2_5')) {
 			nHtml.setTimeout(caap.addExpDisplay, 0);
@@ -3430,11 +3432,9 @@ onLoadCheck_viewFight:function() {
 	var monster = nHtml.GetText(webSlice);
 	var fort = null;
 	monster = monster.substring(0,monster.indexOf('You have (')).trim();
-gm.log(' viewfight 1');
 	if (this.CheckForImage('raid_1_large.jpg')) monstType = 'Raid I';
 	else if (this.CheckForImage('raid_b1_large.jpg')) monstType = 'Raid II';
 	else monstType = /\w+$/i.exec(monster);
-gm.log(' viewfight 2');
 	if (isnot_firefox) {
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
 			 monster = monster.replace(/.+'s /,'Your ');
@@ -3442,7 +3442,6 @@ gm.log(' viewfight 2');
 		if (nHtml.FindByAttrContains(webSlice,'a','href','id='+unsafeWindow.Env.user))
 			 monster = monster.replace(/.+'s /,'Your ');
 	}
-gm.log(' viewfight 3');
 	lastDamDone = gm.getListObjVal('monsterOl',monster,'Damage',0);
 	gm.setListObjVal('monsterOl',monster,'Type',monstType);
     // Extract info
@@ -3474,7 +3473,6 @@ gm.log(' viewfight 3');
 		}
 		gm.setListObjVal('monsterOl',monster,'Fort%',(Math.round(shipHealth*10))/10);
 	}
-gm.log(' viewfight 4');
 
 	// Get damage done to monster
 	var webSlice=nHtml.FindByAttrContains(document.body,"td","class","dragonContainer");
