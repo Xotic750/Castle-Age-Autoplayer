@@ -21,7 +21,7 @@ var caapGlob = {};
 caapGlob.thisVersion = "139.14";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
-caapGlob.debug = false;
+caapGlob.debug = true;
 caapGlob.newVersionAvailable = false;
 caapGlob.documentTitle = document.title;
 caapGlob.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
@@ -1183,10 +1183,6 @@ SetControls:function(force) {
 	}
 
 	this.SetDivContent('control',htmlCode);
-
-	// Add a timer here to make sure user has a pause before script starts
-	caap.JustDidIt('newControlPanelLoaded');
-
 	this.AddListeners('caap_div');
 
 	var SetTitleBox=document.getElementById('caap_SetTitle');
@@ -5776,11 +5772,6 @@ MainLoop:function() {
 		return;
 	} else gm.setValue('NoWindowLoad',0);
 
-	if(!this.WhileSinceDidIt('newControlPanelLoaded',4)) {
-		this.WaitMainLoop();
-		return;
-	}
-
 	if(gm.getValue('caapPause','none') != 'none') {
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
 		document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark','1');
@@ -5861,14 +5852,15 @@ if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
 
 $(function() {
 	gm.log('Full page load completed');
-	gm.setValue('caapPause','none');
-	if (window.location.href.indexOf('facebook.com/castle_age/') >= 0)
+	if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
 		caap.SetControls();
-	if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		gm.setValue('caapPause','none');
+		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		caap.CheckResults();
+		gm.setValue('ReleaseControl',true);
+	}
 	gm.setValue('clickUrl',window.location.href);
-	caap.CheckResults();
-	gm.setValue('ReleaseControl',true);
-	caap.MainLoop();
+	caap.WaitMainLoop();
 });
 
 caap.ReloadOccasionally();
