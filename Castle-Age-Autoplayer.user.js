@@ -4151,7 +4151,6 @@ Monsters:function() {
 ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
 	if (this.NavigateTo('keep,battle_monster','tab_monster_on.jpg')) return true;
-	}
 
 	if (gm.getValue('clearCompleteMonsters',false) && this.completeButton.battle_monster) {
 		caap.Click(this.completeButton.battle_monster,1000);
