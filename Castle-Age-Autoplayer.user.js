@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.16
+// @version        139.17
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -18,7 +18,7 @@
 // Define our global object
 ///////////////////////////
 var caapGlob = {};
-caapGlob.thisVersion = "139.16";
+caapGlob.thisVersion = "139.17";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -623,57 +623,76 @@ Click:function(obj,loadWaitTime) {
 		0, 0, 0, 0, 0, false, false, false, false, 0, null);
 	return !obj.dispatchEvent(evt);
 },
+
 ClickWait:function(obj,loadWaitTime) {
 	this.setTimeout(function() {
 		this.Click(obj,loadWaitTime);
-	},1000+Math.floor(Math.random()*1000));
+	}, 1000 + Math.floor(Math.random() * 1000));
 },
+
 VisitUrl:function(url,loadWaitTime) {
 	this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
 //	this.setTimeout(function() {
-	document.location.href=url;
+	document.location.href = url;
 //	},1000+Math.floor(Math.random()*1000));
 },
+
 GetCurrentGeneral:function() {
-	var webSlice = nHtml.FindByAttrContains(document.body,"div","class",'general_name_div3');
+	var webSlice = nHtml.FindByAttrContains(document.body, "div", "class", 'general_name_div3');
 	if (!webSlice) {
 		gm.log("Couldn't find current general div");
 		return false;
 	}
+
 	return webSlice.innerHTML.trim();
 },
+
 UpdateGeneralList:function() {
-	if (!this.CheckForImage('tab_generals_on.gif')) return false;
+	if (!this.CheckForImage('tab_generals_on.gif')) {
+        return false;
+    }
+
 	var gens = nHtml.getX('//div[@class=\'generalSmallContainer2\']', document, nHtml.xpath.unordered);
-	gm.setValue('AllGenerals','');
-	gm.setValue('GeneralImages','');
-	gm.setValue('LevelUpGenerals','');
-	for (var x = 0; x < gens.snapshotLength; x++)	{
-		var gen = nHtml.getX('./div[@class=\'general_name_div3\']/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g,'');
+	gm.setValue('AllGenerals', '');
+	gm.setValue('GeneralImages', '');
+	gm.setValue('LevelUpGenerals', '');
+	for (var x = 0; x < gens.snapshotLength; x++) {
+		var gen = nHtml.getX('./div[@class=\'general_name_div3\']/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
 		var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
 		img = nHtml.getHTMLPredicate(img);
 //		var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
 //		var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string);
 //		var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/gm,'');
-		var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/Level /gi,'').replace(/[\t\r\n]/g,'');
+		var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/Level /gi, '').replace(/[\t\r\n]/g, '');
 //		var genatts = gen + ":" + atk + "/" + def + ":L" + level + ":" + img + ","
-		gm.listPush('AllGenerals',gen);
-		gm.listPush('GeneralImages',gen + ':' + img);
-		if (level < 4){gm.listPush('LevelUpGenerals',gen);}
+		gm.listPush('AllGenerals', gen);
+		gm.listPush('GeneralImages', gen + ':' + img);
+		if (level < 4){gm.listPush('LevelUpGenerals', gen);}
 	}
 	gm.setList('AllGenerals',gm.getList('AllGenerals').sort());
 //	gm.log("All Generals: " + gm.getList('AllGenerals'));
 },
+
 ClearGeneral:function(whichGeneral) {
 	gm.log('Setting ' + whichGeneral + ' to "Use Current"');
 	gm.setValue(whichGeneral,'Use Current');
 	this.SetControls(true);
 },
+
 SelectGeneral:function(whichGeneral) {
-	if (!(general = gm.getValue(whichGeneral,''))) return false;
-	if (!general || /use current/i.test(general)) return false;
+	if (!(general = gm.getValue(whichGeneral, ''))) {
+        return false;
+    }
+
+	if (!general || /use current/i.test(general)) {
+        return false;
+    }
+
 	if (/under level 4/i.test(general)) {
-		if (!gm.getList('LevelUpGenerals').length) return this.ClearGeneral(whichGeneral);
+		if (!gm.getList('LevelUpGenerals').length) {
+            return this.ClearGeneral(whichGeneral);
+        }
+
 		if (gm.getValue('ReverseLevelUpGenerals')) {
 			general = gm.getList('LevelUpGenerals').reverse().pop();
 		}
@@ -681,55 +700,83 @@ SelectGeneral:function(whichGeneral) {
 			general = gm.getList('LevelUpGenerals').pop();
 		}
 	}
+
 	var getCurrentGeneral = this.GetCurrentGeneral();
-	if (!getCurrentGeneral) this.ReloadCastleAge();
-	currentGeneral = getCurrentGeneral.replace('**','');
-	//currentGeneral = this.GetCurrentGeneral().replace('**','');
-	if(general.indexOf(currentGeneral) >= 0) return false;
+	if (!getCurrentGeneral) {
+        this.ReloadCastleAge();
+    }
+
+	var currentGeneral = getCurrentGeneral.replace('**', '');
+	if(general.indexOf(currentGeneral) >= 0) {
+        return false;
+    }
 
 	gm.log('Changing from ' + currentGeneral + ' to ' + general);
-	if (this.NavigateTo('mercenary,generals','tab_generals_on.gif')) return true;
-	if (/get general list/i.test(general)) return this.ClearGeneral(whichGeneral);
-	var hasGeneral = function(genImg) {return (genImg.indexOf(general.replace(/:.+/,''))>=0); };
-	generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/.+:/,'');
+	if (this.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+        return true;
+    }
+
+	if (/get general list/i.test(general)) {
+        return this.ClearGeneral(whichGeneral);
+    }
+
+	var hasGeneral = function(genImg) {
+        return (genImg.indexOf(general.replace(/:.+/, '')) >= 0);
+    };
+
+	generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/.+:/, '');
 	if (this.CheckForImage(generalImage)) {
 		return this.NavigateTo(generalImage);
 	}
+
 	this.SetDivContent('Could not find ' + general);
 	gm.log('Could not find ' + generalImage);
 	return this.ClearGeneral(whichGeneral);
 },
+
 oneMinuteUpdate:function(funcName) {
-	if (!gm.getValue('reset' + funcName) && !this.WhileSinceDidIt(funcName + 'Timer',60)) return false;
+	if (!gm.getValue('reset' + funcName) && !this.WhileSinceDidIt(funcName + 'Timer', 60)) {
+        return false;
+    }
+
 	this.JustDidIt(funcName + 'Timer');
 	gm.setValue('reset' + funcName,false);
 	return true;
 },
+
 NavigateTo:function(pathToPage,imageOnPage) {
-	var content=document.getElementById('content');
+	var content = document.getElementById('content');
 	if(!content) {
 		gm.log('No content to Navigate to ' + imageOnPage + ' using ' + pathToPage);
 		return false;
 	}
-	if (imageOnPage && this.CheckForImage(imageOnPage)) return false;
+
+	if (imageOnPage && this.CheckForImage(imageOnPage)) {
+        return false;
+    }
 
 	var pathList = pathToPage.split(",");
-	for(var s=pathList.length-1; s>=0; s--) {
-		var a=nHtml.FindByAttrXPath(content,'a',"contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
+	for(var s = pathList.length - 1; s >= 0; s--) {
+		var a = nHtml.FindByAttrXPath(content,'a',"contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
 		if (a) {
 			gm.log('Go to ' + pathList[s]);
 			caap.Click(a);
 			return true;
 		}
+
 		var imageTest = pathList[s];
-		if (imageTest.indexOf(".") == -1) imageTest = imageTest + '.';
-		var input = nHtml.FindByAttrContains(document.body,"input","src",imageTest);
+		if (imageTest.indexOf(".") == -1) {
+            imageTest = imageTest + '.';
+        }
+
+		var input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
 		if (input) {
 			gm.log('Click on image ' + input.src.match(/[\w.]+$/));
 			caap.Click(input);
 			return true;
 		}
-		var img = nHtml.FindByAttrContains(document.body,"img","src",imageTest);
+
+		var img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
 		if (img) {
 			gm.log('Click on image ' + img.src.match(/[\w.]+$/));
 			caap.Click(img);
@@ -740,25 +787,26 @@ NavigateTo:function(pathToPage,imageOnPage) {
 	return false;
 },
 
-CheckForImage:function(image,webSlice,subDocument) {
+CheckForImage:function(image, webSlice, subDocument) {
 	if (!webSlice) {
-		if (!subDocument)
-			webSlice=document.body;
-		else
-			webSlice=subDocument.body;
+		if (!subDocument) {
+			webSlice = document.body;
+		} else {
+			webSlice = subDocument.body;
+		}
 	}
 
-	var imageSlice = nHtml.FindByAttrContains(webSlice,'input','src',image,subDocument);
+	var imageSlice = nHtml.FindByAttrContains(webSlice, 'input', 'src', image, subDocument);
 	if (imageSlice) {
 		return imageSlice;
 	}
 
-	imageSlice = nHtml.FindByAttrContains(webSlice,'img','src',image,subDocument);
+	imageSlice = nHtml.FindByAttrContains(webSlice, 'img', 'src', image, subDocument);
 	if (imageSlice) {
 		return imageSlice;
 	}
 
-	imageSlice = nHtml.FindByAttrContains(webSlice,'div','style',image,subDocument);
+	imageSlice = nHtml.FindByAttrContains(webSlice, 'div', 'style', image,subDocument);
 	if (imageSlice) {
 		return imageSlice;
 	}
@@ -767,43 +815,57 @@ CheckForImage:function(image,webSlice,subDocument) {
 
 WhileSinceDidIt:function(name, seconds) {
 	var now = (new Date().getTime());
-	return (!gm.getValue(name) || (parseInt(gm.getValue(name),10) < (now-1000*seconds)));
+	return (!gm.getValue(name) || (parseInt(gm.getValue(name), 10) < (now - 1000 * seconds)));
 },
+
 JustDidIt:function(name) {
 	var now = (new Date().getTime());
 	gm.setValue(name, now.toString());
 },
+
 DeceiveDidIt:function(name) {
 	gm.log("Deceive Did It");
-	var now = (new Date().getTime())-6500000;
+	var now = (new Date().getTime()) - 6500000;
 	gm.setValue(name, now.toString());
 },
+
 // Returns true if timer is passed, or undefined
 CheckTimer:function(name) {
 	nameTimer = gm.getValue(name);
-	if (!nameTimer) return true;
+	if (!nameTimer) {
+        return true;
+    }
+
 	var now = new Date().getTime();
 	return (nameTimer < now);
 },
+
 FormatTime:function(time) {
-	return time.toDateString().match(/^\w+ /) + time.toLocaleTimeString().replace(/:\d+ /i,' ').replace(/:\d+$/i,'');
+	return time.toDateString().match(/^\w+ /) + time.toLocaleTimeString().replace(/:\d+ /i, ' ').replace(/:\d+$/i, '');
 },
+
 DisplayTimer:function(name) {
 	nameTimer = gm.getValue(name);
-	if (!nameTimer) return false;
+	if (!nameTimer) {
+        return false;
+    }
+
 	var newTime = new Date();
-	newTime.setTime(parseInt(nameTimer,10));
+	newTime.setTime(parseInt(nameTimer, 10));
 	return this.FormatTime(newTime);
 },
+
 SetTimer:function(name, time) {
 	var now = (new Date().getTime());
 	now += time*1000;
 	gm.setValue(name, now.toString());
 },
+
 NumberOnly:function(num) {
-	var numOnly=parseFloat(num.toString().replace(/[^0-9\.]/g,""));
+	var numOnly = parseFloat(num.toString().replace(/[^0-9\.]/g, ""));
 	return numOnly;
 },
+
 RemoveHtmlJunk:function(html) {
 	return html.replace(this.htmlJunkRe,'');
 },
@@ -817,38 +879,40 @@ RemoveHtmlJunk:function(html) {
 /////////////////////////////////////////////////////////////////////
 
 SetupDivs:function() {
-
 	if(document.getElementById('caap_div')) {
 		return false;
 	}
-	var div=document.createElement('div');
+
+	var div = document.createElement('div');
 	//var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
-	div.id='caap_div';
+	div.id = 'caap_div';
 	if (gm.getValue('menuTop', '') && gm.getValue('menuLeft', '')) {
-		div.style.position='absolute';
-		div.style.top=gm.getValue('menuTop');
-		div.style.left=gm.getValue('menuLeft');
+		div.style.position = 'absolute';
+		div.style.top = gm.getValue('menuTop');
+		div.style.left = gm.getValue('menuLeft');
 	} else {
-		div.style.top='100px';
-		div.style.left='940px';
+		div.style.top = '100px';
+		div.style.left = '940px';
 	}
-	div.style.width='180px';
 
-	div.style.padding='4px';
-	div.style.border='2px solid #444';
-	div.style.background = gm.getValue('StyleBackgroundLight','#E0C691');
-	div.style.opacity = gm.getValue('StyleOpacityLight','1');
-	div.style.color='#000';
-	div.style.cssFloat='right';
-        if (gm.getValue('HideAds',false)) {
-		nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
-        }
+	div.style.width = '180px';
+	div.style.padding = '4px';
+	div.style.border = '2px solid #444';
+	div.style.background = gm.getValue('StyleBackgroundLight', '#E0C691');
+	div.style.opacity = gm.getValue('StyleOpacityLight', '1');
+	div.style.color = '#000';
+	div.style.cssFloat = 'right';
+    if (gm.getValue('HideAds', false)) {
+        nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display = 'none';
+    }
 
-	var divList = ['activity_mess','idle_mess','quest_mess','battle_mess','heal_mess','demipoint_mess','demibless_mess','level_mess','control'];
+	var divList = ['activity_mess', 'idle_mess', 'quest_mess', 'battle_mess', 'heal_mess', 'demipoint_mess', 'demibless_mess', 'level_mess', 'control'];
 	for (var divID in divList) {
-		var addDiv=document.createElement('div');
-		addDiv.id='caap_' + divList[divID];
-		div.appendChild(addDiv);
+        if (divList.hasOwnProperty(divID)) {
+            var addDiv = document.createElement('div');
+            addDiv.id = 'caap_' + divList[divID];
+            div.appendChild(addDiv);
+        }
 	}
 
 //check these out to see which one actually works on CA and remove the rest
@@ -879,21 +943,25 @@ SetupDivs:function() {
 	return true;
 },
 
-AppendTextToDiv:function(divName,text) {
+AppendTextToDiv:function(divName, text) {
 	var d=document.getElementById('caap_' + divName);
 	if(d) {
 		d.innerHTML  += text;
 		return true;
-	} else return false;
+	} else {
+        return false;
+    }
 },
 
-MakeDropDown:function(idName, dropDownList,instructions,formatParms) {
-	var selectedItem = gm.getValue(idName,'defaultValue');
-	if (selectedItem=='defaultValue')
-		selectedItem = gm.setValue(idName,dropDownList[0]);
+MakeDropDown:function(idName, dropDownList, instructions, formatParms) {
+	var selectedItem = gm.getValue(idName, 'defaultValue');
+	if (selectedItem == 'defaultValue') {
+		selectedItem = gm.setValue(idName, dropDownList[0]);
+	}
+
 	var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
 	for (var item in dropDownList) {
-		if (selectedItem!=dropDownList[item]) {
+		if (selectedItem != dropDownList[item]) {
 			if (instructions) {
 				htmlCode+="<option" + ((instructions[item])?" title='" + instructions[item] + "'":'') + ">"  + dropDownList[item];
 			} else {
@@ -901,51 +969,75 @@ MakeDropDown:function(idName, dropDownList,instructions,formatParms) {
 			}
 		}
 	}
+
 	htmlCode+='</select>';
 	return htmlCode;
 },
 
-MakeCheckBox:function(idName,defaultValue,varClass,instructions,tableTF) {
+MakeCheckBox:function(idName, defaultValue, varClass, instructions, tableTF) {
 	var checkItem = gm.getValue(idName,'defaultValue');
-	if (checkItem=='defaultValue') gm.setValue(idName,defaultValue);
+	if (checkItem == 'defaultValue') {
+        gm.setValue(idName, defaultValue);
+    }
+
 	var htmlCode = "<input type='checkbox' id='caap_" + idName + "' title=" + '"' + instructions +'"' + ((varClass)?" class='" + varClass + "'":'') + (gm.getValue(idName)?'checked':'')+' />';
 	if (varClass) {
-		if (tableTF) htmlCode += "</td></tr></table>";
-		else htmlCode += '<br />';
-		htmlCode += this.AddCollapsingDiv(idName,varClass);
+		if (tableTF) {
+            htmlCode += "</td></tr></table>";
+        } else {
+            htmlCode += '<br />';
+        }
+
+		htmlCode += this.AddCollapsingDiv(idName, varClass);
 	}
+
 	return htmlCode;
 },
 
-MakeNumberForm:function(idName,instructions,initDefault,formatParms) {
-	if (gm.getValue(idName,'defaultValue')=='defaultValue') gm.setValue(idName,initDefault);
-	if (!initDefault) initDefault = '';
-	if (!formatParms) formatParms = "size='4'";
+MakeNumberForm:function(idName, instructions, initDefault, formatParms) {
+	if (gm.getValue(idName,'defaultValue') == 'defaultValue') {
+        gm.setValue(idName,initDefault);
+    }
+
+	if (!initDefault) {
+        initDefault = '';
+    }
+
+	if (!formatParms) {
+        formatParms = "size='4'";
+    }
+
 	var htmlCode = " <input type='text' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions +'"' + " />";
 	return htmlCode;
 },
 
-AddCollapsingDiv:function(parentId,subId) {
+AddCollapsingDiv:function(parentId, subId) {
 	var htmlCode = "<div id='caap_" + subId + "' style='display: " + (gm.getValue(parentId,false)?'block':'none') +"'>";
 	return htmlCode;
 },
 
 ToggleControl:function(controlId, staticText) {
 	var currentDisplay = gm.getValue('Control_' + controlId, "none");
-        var displayChar = "-";
-	if (currentDisplay == "none") displayChar = "+";
+    var displayChar = "-";
+	if (currentDisplay == "none") {
+        displayChar = "+";
+    }
+
 	var toggleCode = '<b><a id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ' + displayChar + ' ' + staticText + '</a></b> <br />';
 	toggleCode += "<div id='caap_" + controlId + "' style='display: " + currentDisplay + "'>";
 	return toggleCode;
 },
 
-GetNumber:function(name,defaultValue) {
-	if(!gm.getValue(name)) return defaultValue || '';
+GetNumber:function(name, defaultValue) {
+	if(!gm.getValue(name)) {
+        return defaultValue || '';
+    }
+
 	return Number(gm.getValue(name));
 },
 
-MakeTextBox:function(idName,instructions,formatParms) {
-	var checkItem = gm.getValue(idName,'');
+MakeTextBox:function(idName, instructions, formatParms) {
+	var checkItem = gm.getValue(idName, '');
 	// if (idName == 'BattleTargets' && checkItem == '') {
 		// gm.log('Freshmeat set.' + idName + ' checkItem ' + checkItem);
 		// gm.setValue(idName,'freshmeat');
@@ -955,46 +1047,52 @@ MakeTextBox:function(idName,instructions,formatParms) {
 },
 
 SaveBoxText:function(idName) {
-	var boxText=document.getElementById('caap_' + idName);
-	gm.setValue(idName,boxText.value);
+	var boxText = document.getElementById('caap_' + idName);
+	gm.setValue(idName, boxText.value);
 },
 
 SetDivContent:function(idName,mess) {
 	this.SetupDivs();
 	var d=document.getElementById('caap_' + idName);
-	if(d) { d.innerHTML=mess; }
+	if(d) {
+        d.innerHTML=mess;
+    }
 },
 
 SetQuestControl:function() {
 	this.SetupDivs();
 	var htmlCode = '';
-	this.SetDivContent('quest_control',htmlCode);
+	this.SetDivContent('quest_control', htmlCode);
 },
 
 SetControls:function(force) {
 
-	var controlDiv=document.getElementById('caap_control');
-	if(controlDiv && controlDiv.innerHTML.length>0 && !force) {
+	var controlDiv = document.getElementById('caap_control');
+	if(controlDiv && controlDiv.innerHTML.length > 0 && !force) {
 		// we already have the controls
 		return;
 	}
-	this.CheckLastAction(gm.getValue('LastAction','none'));
+
+	this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
 	var htmlCode = '';
-	if (caapGlob.is_chrome) htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
+	if (caapGlob.is_chrome) {
+        htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
+    }
+
 	htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause','block') +"'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart </a></div>";
-	var autoRunInstructions="Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
+	var autoRunInstructions = "Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
 	htmlCode += '<hr /><table width=180 cellpadding=0 cellspacing=0>';
 	htmlCode += '<tr><td>Disable Autoplayer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </td><td>' + this.MakeCheckBox('Disabled',false,'',autoRunInstructions) + '</td></tr></table>';
-	var bankInstructions0="Minimum cash to keep in the bank. Press tab to save";
-	var bankInstructions1="Minimum cash to have on hand, press tab to save";
-	var bankInstructions2="Maximum cash to have on hand, bank anything above this, press tab to save(leave blank to disable)";
-	var healthInstructions="Minimum health to have before healing, press tab to save(leave blank to disable): ";
-	var healthStamInstructions="Minimum Stamina to have before healing, press tab to save(leave blank to disable): ";
-	var bankImmedInstructions="Bank as soon as possible. May interrupt player and monster battles.";
-	var autobuyInstructions="Automatically buy lands in groups of 10 based on best Return On Investment value.";
-	var autosellInstructions="Automatically sell off any excess lands above your level allowance.";
-	htmlCode += '<hr />' + this.ToggleControl('CashandHealth','CASH and HEALTH');
+	var bankInstructions0 = "Minimum cash to keep in the bank. Press tab to save";
+	var bankInstructions1 = "Minimum cash to have on hand, press tab to save";
+	var bankInstructions2 = "Maximum cash to have on hand, bank anything above this, press tab to save(leave blank to disable)";
+	var healthInstructions = "Minimum health to have before healing, press tab to save(leave blank to disable): ";
+	var healthStamInstructions = "Minimum Stamina to have before healing, press tab to save(leave blank to disable): ";
+	var bankImmedInstructions = "Bank as soon as possible. May interrupt player and monster battles.";
+	var autobuyInstructions = "Automatically buy lands in groups of 10 based on best Return On Investment value.";
+	var autosellInstructions = "Automatically sell off any excess lands above your level allowance.";
+	htmlCode += '<hr />' + this.ToggleControl('CashandHealth', 'CASH and HEALTH');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Bank Immediately</td><td> ' + this.MakeCheckBox('BankImmed',false,'',bankImmedInstructions) + '</td></tr>';
 		htmlCode += '<tr><td>Auto Buy Lands</td><td> ' + this.MakeCheckBox('autoBuyLand',false,'',autobuyInstructions) + '</td></tr>';
@@ -1007,21 +1105,21 @@ SetControls:function(force) {
 	htmlCode += "<hr/> </div>";
 
 	var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.";
-	htmlCode += this.ToggleControl('Quests','QUEST');
-		var questList = ['Energy Available','At Max Energy','Not Fortifying','Never'];
+	htmlCode += this.ToggleControl('Quests', 'QUEST');
+		var questList = ['Energy Available', 'At Max Energy', 'Not Fortifying', 'Never'];
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td width=80>Quest When:</td><td>' + this.MakeDropDown('WhenQuest',questList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr></table>';
 		htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest',false)!='Never'?'block':'none') +"'>";
 			questList = ['Quest','Demi Quests','Atlantis'];
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>Pick Quest Area:</td><td>' + this.MakeDropDown('QuestArea',questList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
-			switch (gm.getValue('QuestArea', questList[0])){
+			switch (gm.getValue('QuestArea',  questList[0])){
 				case 'Quest' :
-					questList =['Land of Fire','Land of Earth','Land of Mist','Land of Water','Demon Realm','Undead Realm','Underworld'];
+					questList =['Land of Fire', 'Land of Earth', 'Land of Mist', 'Land of Water', 'Demon Realm', 'Undead Realm', 'Underworld'];
 					htmlCode += '<tr><td>Pick Sub Area:</td><td>' + this.MakeDropDown('QuestSubArea',questList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
 					break;
 				case 'Demi Quests' :
-					questList = ['Ambrosia','Malekus','Corvintheus','Aurora','Azeron'];
+					questList = ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'];
 					htmlCode += '<tr><td>Pick Sub Area:</td><td>' + this.MakeDropDown('QuestSubArea',questList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
 					break;
 				default :
@@ -1029,36 +1127,41 @@ SetControls:function(force) {
 					htmlCode += "<div id='AutoSubArea'></div>";
 					break;
 			}
-			questList = ['Max Influence','Max Gold','Max Experience', 'Manual'];
+			questList = ['Max Influence', 'Max Gold', 'Max Experience', 'Manual'];
 			htmlCode += '<tr><td>Quest For:</td><td>' + this.MakeDropDown('WhyQuest',questList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr></table>';
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>Switch Quest Area</td><td> ' + this.MakeCheckBox('swithQuestArea',false,'','Allows switching quest area') +  "</td></tr>";
 			htmlCode += '<tr><td>Use Only Subquest General</td><td> ' + this.MakeCheckBox('ForceSubGeneral',false,'',forceSubGen) +  "</td></tr></table>";
 		htmlCode += "</div>";
-		if ((autoQuestName = gm.getObjVal('AutoQuest','name'))) {
+		if ((autoQuestName = gm.getObjVal('AutoQuest', 'name'))) {
 			htmlCode += "<a id='stopAutoQuest' href='javascript:;'>Stop auto quest: "+ autoQuestName +" (energy: "+gm.getObjVal('AutoQuest','energy')+")"+"</a><br />";
 		}
 	htmlCode += "<hr/> </div>";
 
 
-	var XBattleInstructions="Start battling if stamina is above this points";
-	var XMinBattleInstructions="Don't battle if stamina is below this points";
-	var userIdInstructions="User IDs(not user name).  Click with the right mouse button on the link to the users profile & copy link.  Then paste it here and remove everything but the last numbers. (ie. 123456789)";
-	var chainBPInstructions="Number of battle points won to initiate a chain attack. Specify 0 to always chain attack.";
-	var chainGoldInstructions="Amount of gold won to initiate a chain attack. Specify 0 to always chain attack.";
-	var FMRankInstructions="The lowest relative rank below yours that you are willing to spend your stamina on. Leave blank to attack any rank.";
-	var FMARBaseInstructions="This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. A value of 1 means you will battle an opponent the same level as you with an army the same size as you or less. Default .5";
-	var dontbattleInstructions="Remember an opponents id after a loss and don't battle him again";
-	var plusonekillsInstructions="Force +1 kill scenario if 80% or more of targets are withn freshmeat settings. Note: Since Castle Age choses the target, selecting this option could result in a greater chance of loss.";
-	var raidOrderInstructions="List of search words that decide which raids to participate in first.  Use words in player name or in raid name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million.";
-	var ignorebattlelossInstructions="Ignore battle losses and attack regardless.  This will also delete all battle loss records.";
+	var XBattleInstructions = "Start battling if stamina is above this points";
+	var XMinBattleInstructions = "Don't battle if stamina is below this points";
+	var userIdInstructions = "User IDs(not user name).  Click with the right mouse button on the link to the users profile & copy link.  Then paste it here and remove everything but the last numbers. (ie. 123456789)";
+	var chainBPInstructions = "Number of battle points won to initiate a chain attack. Specify 0 to always chain attack.";
+	var chainGoldInstructions = "Amount of gold won to initiate a chain attack. Specify 0 to always chain attack.";
+	var FMRankInstructions = "The lowest relative rank below yours that you are willing to spend your stamina on. Leave blank to attack any rank.";
+	var FMARBaseInstructions = "This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. A value of 1 means you will battle an opponent the same level as you with an army the same size as you or less. Default .5";
+	var dontbattleInstructions = "Remember an opponents id after a loss and don't battle him again";
+	var plusonekillsInstructions = "Force +1 kill scenario if 80% or more of targets are withn freshmeat settings. Note: Since Castle Age choses the target, selecting this option could result in a greater chance of loss.";
+	var raidOrderInstructions = "List of search words that decide which raids to participate in first.  Use words in player name or in raid name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million.";
+	var ignorebattlelossInstructions = "Ignore battle losses and attack regardless.  This will also delete all battle loss records.";
 	htmlCode += this.ToggleControl('Battling','BATTLE');
-		var battleList = ['Stamina Available','At Max Stamina','At X Stamina','No Monster','Not Hiding','Never'];
-		var battleInst = ['Stamina Available will battle whenever you have enough stamina','At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','No Monster will battle only when there are no active monster battles','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables player battles'];
-		var typeList = ['Invade','Duel'];
-		var typeInst = ['Battle using Invade button','Battle using Duel button - no guarentee you will win though'];
-		var targetList = ['Freshmeat','Userid List','Raid'];
-		var targetInst = ['Use settings to select a target from the Battle Page','Select target from the supplied list of userids','Raid Battles'];
+		var battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Not Hiding', 'Never'];
+		var battleInst = ['Stamina Available will battle whenever you have enough stamina',
+                          'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
+                          'At X Stamina you can set maximum and minimum stamina to battle',
+                          'No Monster will battle only when there are no active monster battles',
+                          'Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted',
+                          'Never - disables player battles'];
+		var typeList = ['Invade', 'Duel'];
+		var typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though'];
+		var targetList = ['Freshmeat', 'Userid List', 'Raid'];
+		var targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'];
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Battle When:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('WhenBattle',battleList,battleInst,"style='font-size: 10px min-width: 90px; max-width: 90px; width : 90px;'") + '</td></tr></table>';
 		htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (gm.getValue('WhenBattle',false)!='At X Stamina'?'none':'block') +"'>";
@@ -1091,19 +1194,23 @@ SetControls:function(force) {
 		htmlCode += "</div>";
 	htmlCode += "<hr/> </div>";
 
-	var XMonsterInstructions="Start attacking if stamina is above this points";
-	var XMinMonsterInstructions="Don't attack if stamina is below this points";
-	var attackOrderInstructions="List of search words that decide which monster to attack first.  Use words in player name or in monster name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. To override achievement use the ach: token and specify damage values.";
-	var fortifyInstructions="Fortify if ship health is below this % (leave blank to disable)";
-	var questFortifyInstructions="Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)";
-	var stopAttackInstructions="Don't attack if ship health is below this % (leave blank to disable)";
-	var monsterachieveInstructions="Check if monsters have reached achievement damage level first. Switch when achievement met.";
-	var demiPointsFirstInstructions="Don't attack monsters until you've gotten all your demi points from battling.";
-	var powerattackInstructions="Use power attacks. Only do normal attacks if power attack not possible";
-	var dosiegeInstructions="Turns on or off automatic siege assist for all monsters and raids.";
+	var XMonsterInstructions = "Start attacking if stamina is above this points";
+	var XMinMonsterInstructions = "Don't attack if stamina is below this points";
+	var attackOrderInstructions = "List of search words that decide which monster to attack first.  Use words in player name or in monster name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. To override achievement use the ach: token and specify damage values.";
+	var fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)";
+	var questFortifyInstructions = "Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)";
+	var stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)";
+	var monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.";
+	var demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling.";
+	var powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible";
+	var dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.";
 	htmlCode += this.ToggleControl('Monster','MONSTER');
-		var mbattleList = ['Stamina Available','At Max Stamina','At X Stamina','Not Hiding','Never'];
-		var mbattleInst = ['Stamina Available will attack whenever you have enough stamina','At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up','At X Stamina you can set maximum and minimum stamina to battle','Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted','Never - disables attacking monsters'];
+		var mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Not Hiding', 'Never'];
+		var mbattleInst = ['Stamina Available will attack whenever you have enough stamina',
+                           'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
+                           'At X Stamina you can set maximum and minimum stamina to battle',
+                           'Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted',
+                           'Never - disables attacking monsters'];
 		htmlCode += '<table width=189 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Attack When:</td><td>' + this.MakeDropDown('WhenMonster',mbattleList,mbattleInst,"style='font-size: 10px min-width: 105px; max-width: 105px; width : 105px;'") + '</td></tr></table>';
 		htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (gm.getValue('WhenMonster',false)!='At X Stamina'?'none':'block') +"'>";
@@ -1118,10 +1225,12 @@ SetControls:function(force) {
 			htmlCode += '<tr><td>Clear Complete Monsters</td><td> ' + this.MakeCheckBox('clearCompleteMonsters',false,'') +  '</td></tr>';
 			htmlCode += '<tr><td>Achievement Mode</td><td> ' + this.MakeCheckBox('AchievementMode',true,'',monsterachieveInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Get Demi Points First</td><td> ' + this.MakeCheckBox('DemiPointsFirst',false,'DemiList',demiPointsFirstInstructions,true)+  '</td></tr>';
-			var demiPoint =['Ambrosia','Malekus','Corvintheus','Aurora','Azeron'];
+			var demiPoint = ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'];
 			var demiPtList = ['<img src="'+caapGlob.symbol_tiny_1+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_2+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_3+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_4+'" height="15" width="14"/>','<img src="'+caapGlob.symbol_tiny_5+'" height="15" width="14"/>'];
 				for (var demiPtItem in demiPtList) {
-					htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint'+demiPtItem,true,'',demiPoint[demiPtItem]);
+                    if (demiPtList.hasOwnProperty(demiPtItem)) {
+                        htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint'+demiPtItem,true,'',demiPoint[demiPtItem]);
+                    }
 				}
 			htmlCode += "</div>";
 			htmlCode += '</table><table width=180 cellpadding=0 cellspacing=0>';
@@ -1134,30 +1243,26 @@ SetControls:function(force) {
 	htmlCode += "<hr/> </div>";
 
 	//Monster finder controls
-	var monsterFinderInstructions="When monsters are over max damage, use Monster Finder?";
-	var monsterFinderStamInstructions="Don't find new monster if stamina under this amount";
-	var monsterFinderFeedMinInstructions="Wait at least this many minutes before checking the Castle Age feed (in Facebook) (Max 120)";
-	var monsterFinderFeedMaxInstructions="If this much time has passed, always Castle Age feed (in Facebook) (argument is in minutes)";
-	var monsterFinderOrderInstructions="List of search words that decide which monster to attack first.  Can be names or monster types.";
-
+	var monsterFinderInstructions = "When monsters are over max damage, use Monster Finder?";
+	var monsterFinderStamInstructions = "Don't find new monster if stamina under this amount";
+	var monsterFinderFeedMinInstructions = "Wait at least this many minutes before checking the Castle Age feed (in Facebook) (Max 120)";
+	var monsterFinderFeedMaxInstructions = "If this much time has passed, always Castle Age feed (in Facebook) (argument is in minutes)";
+	var monsterFinderOrderInstructions = "List of search words that decide which monster to attack first.  Can be names or monster types.";
 	htmlCode += this.ToggleControl('MonsterFinder','MONSTER FINDER');
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 			htmlCode += '<tr><td>Use Monster Finder?</td><td> ' + this.MakeCheckBox('MonsterFinderUse',true,'',monsterFinderInstructions) +  '</td></tr>';
 			htmlCode += '<tr><td>Monster Find Min Stam</td><td>' + this.MakeNumberForm('MonsterFinderMinStam',monsterFinderStamInstructions,50,"size='1'  style='font-size: 10px'") + '</td></tr>';
-
 			htmlCode += '<tr><td>Min-Check Feed (minutes)</td><td>' + this.MakeNumberForm('MonsterFinderFeedMin',monsterFinderFeedMinInstructions,15,"size='1'  style='font-size: 10px'") + '</td></tr>';
-
 			htmlCode += "Find Monster Priority: <a href='http://senses.ws/caap/index.php?topic=66.0' target='_blank'><font color='red'>?</font></a>";
 			htmlCode += this.MakeTextBox('MonsterFinderOrder',monsterFinderOrderInstructions," rows='3'");
 		htmlCode += "</div>";
 	htmlCode += "</table><hr/> </div>";
 
 	//Recon Controls
-	var PReconInstructions="Enable player battle reconnaissance to run as an idle background task. Battle targets will be collected and can be displayed using the 'Target List' selection on the dashboard.";
-	var PRRankInstructions="Provide the number of ranks below you which recon will use to filter targets. This value will be subtracted from your rank to establish the minimum rank that recon will consider as a viable target. Default 3.";
-	var PRLevelInstructions="Provide the number of levels above you which recon will use to filter targets. This value will be added to your level to establish the maximum level that recon will consider as a viable target. Default 10.";
-	var PRARBaseInstructions="This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. For example, a value of .5 means you will battle an opponent the same level as you with an army half the size of your army or less. Default 1.";
-
+	var PReconInstructions = "Enable player battle reconnaissance to run as an idle background task. Battle targets will be collected and can be displayed using the 'Target List' selection on the dashboard.";
+	var PRRankInstructions = "Provide the number of ranks below you which recon will use to filter targets. This value will be subtracted from your rank to establish the minimum rank that recon will consider as a viable target. Default 3.";
+	var PRLevelInstructions = "Provide the number of levels above you which recon will use to filter targets. This value will be added to your level to establish the maximum level that recon will consider as a viable target. Default 10.";
+	var PRARBaseInstructions = "This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. For example, a value of .5 means you will battle an opponent the same level as you with an army half the size of your army or less. Default 1.";
 	htmlCode += this.ToggleControl('Recon','RECON');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Enable Player Recon </td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('DoPlayerRecon',false,'PlayerReconControl',PReconInstructions,true) + '</td></tr></table>';
@@ -1171,30 +1276,34 @@ SetControls:function(force) {
 
 
 	// Add General Comboboxes
-	generalList = ['Get General List','Use Current','Under Level 4'].concat(gm.getList('AllGenerals'));
+	generalList = ['Get General List', 'Use Current', 'Under Level 4'].concat(gm.getList('AllGenerals'));
+	var crossList = function(checkItem) {
+        return (generalList.indexOf(checkItem) >= 0);
+    };
 
-	var crossList = function(checkItem) { return (generalList.indexOf(checkItem)>=0); };
-	var generalIncomeList= ['Get General List','Mercedes','Cid','Use Current'].filter(crossList);
-	var generalBankingList= ['Get General List','Aeris','Use Current'].filter(crossList);
-	var reverseGenInstructions="This will make the script level Generals under level 4 from Top-down instead of Bottom-up";
-
-	htmlCode += this.ToggleControl('Generals','GENERALS');
-		var dropDownList = ['Idle','Monster','Fortify','Battle','SubQuest','Buy'];
+	var generalIncomeList= ['Get General List', 'Mercedes', 'Cid', 'Use Current'].filter(crossList);
+	var generalBankingList= ['Get General List', 'Aeris', 'Use Current'].filter(crossList);
+	var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up";
+	htmlCode += this.ToggleControl('Generals', 'GENERALS');
+		var dropDownList = ['Idle', 'Monster', 'Fortify', 'Battle', 'SubQuest', 'Buy'];
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 		for (var dropDownItem in dropDownList) {
-			htmlCode += '<tr><td>' + dropDownList[dropDownItem] + '</td><td>' + this.MakeDropDown(dropDownList[dropDownItem] + 'General',generalList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
+            if (dropDownList.hasOwnProperty(dropDownItem)) {
+                htmlCode += '<tr><td>' + dropDownList[dropDownItem] + '</td><td>' + this.MakeDropDown(dropDownList[dropDownItem] + 'General',generalList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
+            }
 		}
+
 		//<input type='button' id='caap_resetGeneralList' value='Do Now' style='font-size: 10px; width:50; height:50'>" + '</td></tr>'
 		htmlCode += '<tr><td>Income</td><td>' + this.MakeDropDown('IncomeGeneral',generalIncomeList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
 		htmlCode += '<tr><td>Banking</td><td>' + this.MakeDropDown('BankingGeneral',generalBankingList,'',"style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
 		htmlCode += '<tr><td colspan="2">' + this.MakeCheckBox('ReverseLevelUpGenerals',false,'',reverseGenInstructions) + '  Reverse Under Level 4 Order</td></tr></table>';
 	htmlCode += "<hr/> </div>";
 
-	var statusInstructions="Automatically increase attributes when upgrade skill points are available.";
-	var statusAdvInstructions="USE WITH CAUTION: You can use numbers or formulas(ie. level * 2 + 10). Variable keywords include energy, health, stamina, attack, defense, and level. JS functions can be used (Math.min, Math.max, etc) !!!Remember your math class: 'level + 20' not equals 'level * 2 + 10'!!!";
-	var statImmedInstructions="Update Stats Immediately";
-	attrList = ['','energy','attack','defense','stamina','health'];
-	htmlCode += this.ToggleControl('Status','UPGRADE SKILL POINTS');
+	var statusInstructions = "Automatically increase attributes when upgrade skill points are available.";
+	var statusAdvInstructions = "USE WITH CAUTION: You can use numbers or formulas(ie. level * 2 + 10). Variable keywords include energy, health, stamina, attack, defense, and level. JS functions can be used (Math.min, Math.max, etc) !!!Remember your math class: 'level + 20' not equals 'level * 2 + 10'!!!";
+	var statImmedInstructions = "Update Stats Immediately";
+	attrList = ['', 'energy', 'attack', 'defense', 'stamina', 'health'];
+	htmlCode += this.ToggleControl('Status', 'UPGRADE SKILL POINTS');
 		htmlCode += '<table width=170 cellpadding=0 cellspacing=0>';
 		htmlCode += '<tr><td>Auto Add Upgrade Points</td><td> ' + this.MakeCheckBox('AutoStat',false,'',statusInstructions) +  "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>";
                 htmlCode += '<tr><td>Upgrade Immediately</td><td> ' + this.MakeCheckBox('StatImmed',false,'',statImmedInstructions) +  "</td></tr>";
@@ -1222,12 +1331,11 @@ SetControls:function(force) {
 		htmlCode += "</div>";
 	htmlCode += "<hr/> </div>";
 
-	var giftInstructions="Automatically receive and send return gifts.";
-	var titleInstructions="Set the title bar to the player name.";
-        var hideAdsInstructions="Hides the sidebar adverts.";
-	htmlCode += this.ToggleControl('Other','OTHER OPTIONS');
-
-		var giftChoiceList = ['Same Gift As Received','Random Gift'];
+	var giftInstructions = "Automatically receive and send return gifts.";
+	var titleInstructions = "Set the title bar to the player name.";
+    var hideAdsInstructions = "Hides the sidebar adverts.";
+	htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
+		var giftChoiceList = ['Same Gift As Received', 'Random Gift'];
 		giftChoiceList = giftChoiceList.concat(gm.getList('GiftList'));
 		giftChoiceList.push('Get Gift List');
 		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
@@ -1261,121 +1369,128 @@ SetControls:function(force) {
 	htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
 	htmlCode += "<tr><td><input type='checkbox' id='unlockMenu' /></td><td>Unlock Menu</td><td><input type='button' id='caap_ResetMenuLocation' value='Reset' style='font-size: 10px; width:50; height:50'></td></tr></table>";
 	htmlCode+= "Version: " + caapGlob.thisVersion + "  -  <a href='" + caapGlob.discussionURL + "' target='_blank'>Discussion Boards</a><br />";
-
 	if (caapGlob.newVersionAvailable) {
 		htmlCode += "<a href='http://userscripts.org/scripts/source/" + caapGlob.SUC_script_num + ".user.js'>Install new autoplayer version: " + gm.getValue('SUC_remote_version') + "!</a>";
 	}
 
-	this.SetDivContent('control',htmlCode);
+	this.SetDivContent('control', htmlCode);
 
 	// Add a timer here to make sure user has a pause before script starts
 	caap.JustDidIt('newControlPanelLoaded');
 
 	this.AddListeners('caap_div');
 
-	var SetTitleBox=document.getElementById('caap_SetTitle');
-	var SetTitle=gm.getValue('SetTitle',false);
-	SetTitleBox.checked=SetTitle?true:false;
-	SetTitleBox.addEventListener('change',function(e) {
+	var SetTitleBox = document.getElementById('caap_SetTitle');
+	var SetTitle = gm.getValue('SetTitle', false);
+	SetTitleBox.checked = SetTitle ? true : false;
+	SetTitleBox.addEventListener('change', function(e) {
 		if(gm.getValue('SetTitle')) {
-			document.title = gm.getValue('PlayerName','CAAP') + " - " + caapGlob.documentTitle;
-		}else document.title = caapGlob.documentTitle;
-	},false);
+			document.title = gm.getValue('PlayerName', 'CAAP') + " - " + caapGlob.documentTitle;
+		} else {
+            document.title = caapGlob.documentTitle;
+        }
+	}, false);
 
-	var HideAdsBox=document.getElementById('caap_HideAds');
-	var HideAds=gm.getValue('HideAds',false);
-	HideAdsBox.checked=HideAds?true:false;
-	HideAdsBox.addEventListener('change',function(e) {
-		if(gm.getValue('HideAds')) {
+	var HideAdsBox = document.getElementById('caap_HideAds');
+	var HideAds = gm.getValue('HideAds', false);
+	HideAdsBox.checked = HideAds ? true : false;
+	HideAdsBox.addEventListener('change', function(e) {
+		if (gm.getValue('HideAds')) {
 			nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
-		}else nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='block';
-	},false);
+		} else {
+            nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='block';
+        }
+	}, false);
 
-	var DoSiegeBox=document.getElementById('caap_DoSiege');
-	var DoSiege=gm.getValue('DoSiege',true);
-	DoSiegeBox.checked=DoSiege?true:false;
-	DoSiegeBox.addEventListener('change',function(e) {
-	},false);
+	var DoSiegeBox = document.getElementById('caap_DoSiege');
+	var DoSiege = gm.getValue('DoSiege', true);
+	DoSiegeBox.checked=DoSiege ? true : false;
+	DoSiegeBox.addEventListener('change', function(e) {
+	}, false);
 
-	var SellLandsBox=document.getElementById('caap_SellLands');
-	var SellLands=gm.getValue('SellLands',true);
-	SellLandsBox.checked=SellLands?true:false;
-	SellLandsBox.addEventListener('change',function(e) {
-	},false);
+	var SellLandsBox = document.getElementById('caap_SellLands');
+	var SellLands = gm.getValue('SellLands', true);
+	SellLandsBox.checked = SellLands ? true : false;
+	SellLandsBox.addEventListener('change', function(e) {
+	}, false);
 
-	var IgnoreBattleLossBox=document.getElementById('caap_IgnoreBattleLoss');
-	var IgnoreBattleLoss=gm.getValue('IgnoreBattleLoss',false);
-	IgnoreBattleLossBox.checked=IgnoreBattleLoss?true:false;
-	IgnoreBattleLossBox.addEventListener('change',function(e) {
-		if(gm.getValue('IgnoreBattleLoss')) {
+	var IgnoreBattleLossBox = document.getElementById('caap_IgnoreBattleLoss');
+	var IgnoreBattleLoss = gm.getValue('IgnoreBattleLoss', false);
+	IgnoreBattleLossBox.checked = IgnoreBattleLoss ? true : false;
+	IgnoreBattleLossBox.addEventListener('change', function(e) {
+		if (gm.getValue('IgnoreBattleLoss')) {
 			gm.log("Ignore Battle Losses has been enabled.");
-			gm.setValue("BattlesLostList",'');
+			gm.setValue("BattlesLostList", '');
 			gm.log("Battle Lost List has been cleared.");
 		}
-	},false);
+	}, false);
 
-	var unlockMenuBox=document.getElementById('unlockMenu');
-	unlockMenuBox.addEventListener('change',function(e) {
+	var unlockMenuBox = document.getElementById('unlockMenu');
+	unlockMenuBox.addEventListener('change', function(e) {
 		div = document.getElementById("caap_div");
-		if(unlockMenuBox.checked){
+		if (unlockMenuBox.checked){
 			$(":input[id^='caap_']").attr({disabled: true});
-			div.style.cursor='move';
+			div.style.cursor = 'move';
 			div.addEventListener('mousedown', Move.dragHandler, false);
-		}else{
+		} else {
 			$(":input[id^='caap_']").attr({disabled: false});
-			div.style.cursor ='';
+			div.style.cursor = '';
 			div.removeEventListener('mousedown', Move.dragHandler, false);
 		}
 
-	},false);
+	}, false);
 
-	var FillArmyButton=document.getElementById('caap_FillArmy');
-	FillArmyButton.addEventListener('click',function(e) {
-		gm.setValue("FillArmy",true);
-	},false);
+	var FillArmyButton = document.getElementById('caap_FillArmy');
+	FillArmyButton.addEventListener('click', function(e) {
+		gm.setValue("FillArmy", true);
+	}, false);
 
-	var StartedColorSelectButton=document.getElementById('StartedColorSelect');
-	StartedColorSelectButton.addEventListener('click',function(e) {
+	var StartedColorSelectButton = document.getElementById('StartedColorSelect');
+	StartedColorSelectButton.addEventListener('click', function(e) {
 		style.LoadMenu('Start');
-	},false);
-	var StopedColorSelectButton=document.getElementById('StopedColorSelect');
-	StopedColorSelectButton.addEventListener('click',function(e) {
-		style.LoadMenu('Stop');
-	},false);
+	}, false);
 
-	var resetMenuLocation=document.getElementById('caap_ResetMenuLocation');
-	resetMenuLocation.addEventListener('click',function(e) {
+	var StopedColorSelectButton = document.getElementById('StopedColorSelect');
+	StopedColorSelectButton.addEventListener('click', function(e) {
+		style.LoadMenu('Stop');
+	}, false);
+
+	var resetMenuLocation = document.getElementById('caap_ResetMenuLocation');
+	resetMenuLocation.addEventListener('click', function(e) {
 		div = document.getElementById("caap_div");
-		div.style.cursor ='';
-		div.style.position='';
+		div.style.cursor = '';
+		div.style.position= '';
 		div.removeEventListener('mousedown', Move.dragHandler, false);
-		div.style.top='100px';
-		div.style.left='940px';
+		div.style.top = '100px';
+		div.style.left = '940px';
 		document.getElementById('unlockMenu').checked = false;
 		$(":input[id^='caap_']").attr({disabled: false});
 		gm.deleteValue('menuLeft', caapGlob.savedTarget.style.left);
 		gm.deleteValue('menuTop',  caapGlob.savedTarget.style.top);
-	},false);
+	}, false);
 
-	var resetElite=document.getElementById('caap_resetElite');
+	var resetElite = document.getElementById('caap_resetElite');
 	resetElite.addEventListener('click',function(e) {
-		gm.setValue('AutoEliteGetList',0);
-	},false);
+		gm.setValue('AutoEliteGetList', 0);
+	}, false);
 
-	var caapRestart=document.getElementById('caapRestart');
-	var caapPaused=document.getElementById('caapPaused');
-	caapRestart.addEventListener('click',function(e) {
+	var caapRestart = document.getElementById('caapRestart');
+	var caapPaused = document.getElementById('caapPaused');
+	caapRestart.addEventListener('click', function(e) {
 		caapPaused.style.display='none';
-		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight','#efe');
-		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
+		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
+		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
 		gm.setValue('caapPause','none');
-		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		if (caapGlob.is_chrome) {
+            CE_message("paused", null, gm.getValue('caapPause', 'none'));
+        }
+
 		caap.SetControls(true);
-		gm.setValue('ReleaseControl',true);
-		gm.setValue('resetselectMonster',true);
-		gm.setValue('resetmonsterEngage',true);
-		gm.setValue('resetmonsterDamage',true);
-		div.style.cursor ='';
+		gm.setValue('ReleaseControl', true);
+		gm.setValue('resetselectMonster', true);
+		gm.setValue('resetmonsterEngage', true);
+		gm.setValue('resetmonsterDamage', true);
+		div.style.cursor = '';
 		div.removeEventListener('mousedown', Move.dragHandler, false);
 		document.getElementById('unlockMenu').checked = false;
 		$(":input[id*='caap_']").attr({disabled: false});
@@ -1384,38 +1499,42 @@ SetControls:function(force) {
 	},false);
 
 	controlDiv.addEventListener('mousedown',function(e) {
-		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
-		document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark','1');
+		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
+		document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
 //		nHtml.clearTimeouts();
-		gm.setValue('caapPause','block');
-		caapPaused.style.display='block';
-		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
-	},false);
+		gm.setValue('caapPause', 'block');
+		caapPaused.style.display = 'block';
+		if (caapGlob.is_chrome) {
+            CE_message("paused", null, gm.getValue('caapPause','block'));
+        }
+	}, false);
 
 	if (caapGlob.is_chrome) {
-		var caapPauseDiv=document.getElementById('caapPauseA');
-		caapPauseDiv.addEventListener('click',function(e) {
-			document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark','#fee');
-			document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark','1');
+		var caapPauseDiv = document.getElementById('caapPauseA');
+		caapPauseDiv.addEventListener('click', function(e) {
+			document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
+			document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
 //			nHtml.clearTimeouts();
-			gm.setValue('caapPause','block');
-			caapPaused.style.display='block';
-			if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
-		},false);
+			gm.setValue('caapPause', 'block');
+			caapPaused.style.display = 'block';
+			if (caapGlob.is_chrome) {
+                CE_message("paused", null, gm.getValue('caapPause', 'block'));
+            }
+		}, false);
 	}
 
-	if(gm.getObjVal('AutoQuest','name')) {
-		var stopA=document.getElementById('stopAutoQuest');
-		stopA.addEventListener('click',function() {
-			gm.setValue('AutoQuest','');
-			gm.setValue('WhyQuest','Manual');
+	if(gm.getObjVal('AutoQuest', 'name')) {
+		var stopA = document.getElementById('stopAutoQuest');
+		stopA.addEventListener('click', function() {
+			gm.setValue('AutoQuest', '');
+			gm.setValue('WhyQuest', 'Manual');
 			gm.log('Change: setting stopAutoQuest and go to Manual');
 			caap.SetControls(true);
-		},false);
+		}, false);
 	}
 
 	if (gm.getValue('WhenBattle') == 'Not Hiding' && gm.getValue('WhenMonster') != 'Not Hiding') {
-		gm.setValue('WhenMonster','Not Hiding');
+		gm.setValue('WhenMonster', 'Not Hiding');
 		this.SetControls(true);
 	}
 
@@ -1462,15 +1581,20 @@ SetControls:function(force) {
 		   $target.is("#app46755028429_news") ||
 		   $target.is("#app46755028429_friend_page") ||
 		   $target.is("#app46755028429_army_reqs")) {
-			nHtml.setTimeout(caap.addExpDisplay, 0);
+            nHtml.setTimeout(caap.addExpDisplay, 0);
 			//gm.log("Listener did: addExpDisplay");
 		}
 	}, true);
 
 	globalContainer.addEventListener('click', function(event) {
 		var obj = event.target;
-		while(obj && !obj.href) obj = obj.parentNode;
-		if(obj && obj.href) gm.setValue('clickUrl',obj.href);
+		while(obj && !obj.href) {
+            obj = obj.parentNode;
+        }
+
+		if(obj && obj.href) {
+            gm.setValue('clickUrl',obj.href);
+        }
 //		gm.log('global container ' + caap.clickUrl);
 	}, true);
 
@@ -4794,15 +4918,15 @@ clearLinks: function (resetall){
 },
 
 handleCTA : function () {
-
 	var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, nHtml.xpath.unordered);
 	gm.log ("Number of entries- " + ctas.snapshotLength);
 	for (var x = 0; x < ctas.snapshotLength; x++) {
-
-		var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), nHtml.xpath.string).replace("http://apps.facebook.com/castle_age",""), fid = nHtml.Gup("user",url), mpool = nHtml.Gup("mpool",url), action = nHtml.Gup("action",url);
+		var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), nHtml.xpath.string).replace("http://apps.facebook.com/castle_age","");
+        var fid = nHtml.Gup("user",url);
+        var mpool = nHtml.Gup("mpool",url);
+        var action = nHtml.Gup("action",url);
 		var src = nHtml.getX('./div[2]/div/div/a/div/img/@src', ctas.snapshotItem(x), nHtml.xpath.string);
 		var time = nHtml.getX('./form/span/span/a/abbr/@title', ctas.snapshotItem(x), nHtml.xpath.string);
-
 		var monst;
 		if (src) {
 			var urlixc = gm.getValue("urlixc","~");
