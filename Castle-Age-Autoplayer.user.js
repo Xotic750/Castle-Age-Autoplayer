@@ -3676,8 +3676,6 @@ CheckResults_fightList:function() {
 		monster = monsterObj.split(caapGlob.vs)[0];
 		if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
 			gm.deleteListObj('monsterOl',monster);
-		else if (monsterList.indexOf(monster)<0 && monsterObj.indexOf('page' + caapGlob.ls + page) >= 0)
-			gm.deleteListObj('monsterOl',monster);
 	});
 	gm.setValue('resetdashboard',true);
 },
