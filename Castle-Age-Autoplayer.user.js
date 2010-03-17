@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.14
+// @version        139.15
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -18,7 +18,7 @@
 // Define our global object
 ///////////////////////////
 var caapGlob = {};
-caapGlob.thisVersion = "139.14";
+caapGlob.thisVersion = "139.15";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -29,6 +29,13 @@ caapGlob.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') != -1
 caapGlob.os = '\n'; // Object separator - used to separate objects
 caapGlob.vs = '\t'; // Value separator - used to separate name/values within the objects
 caapGlob.ls = '\f'; // Label separator - used to separate the name from the value
+caapGlob.savedTarget = {};
+caapGlob.savedTarget.style = {};
+caapGlob.savedTarget.style.left;
+caapGlob.savedTarget.style.top;
+caapGlob.dragXoffset;
+caapGlob.dragYoffset;
+caapGlob.dragOK;
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
@@ -465,54 +472,41 @@ gm = {
 /////////////////////////////////////////////////////////////////////
 Move = {
 	moveHandler:function(e){
-		savedTarget.style.position = 'absolute';
+		caapGlob.savedTarget.style.position = 'absolute';
 		if (e === null) return;
-		if ( e.button<=1 && dragOK ) {
-			savedTarget.style.left = e.clientX - dragXoffset + 'px';
-			savedTarget.style.top = e.clientY - dragYoffset + 'px';
+		if ( e.button <= 1 && caapGlob.dragOK ) {
+			caapGlob.savedTarget.style.left = e.clientX - caapGlob.dragXoffset + 'px';
+			caapGlob.savedTarget.style.top = e.clientY - caapGlob.dragYoffset + 'px';
 			return false;
 		}
 	},
 
 	cleanup:function(e) {
-		document.removeEventListener('mousemove',Move.moveHandler,false);
-		document.removeEventListener('mouseup',Move.cleanup,false);
-		savedTarget.style.cursor=orgCursor;
-
-		if(savedTarget.getAttribute('id')=='divOptions'){
-			GM_setValue('optionsLeft', savedTarget.style.left);
-			GM_setValue('optionsTop',  savedTarget.style.top);
-		}else if(savedTarget.getAttribute('id')=='divUpdater'){
-			GM_setValue('updaterLeft', savedTarget.style.left);
-			GM_setValue('updaterTop',  savedTarget.style.top);
-		}else if(savedTarget.getAttribute('id')=='divMenu'){
-			GM_setValue('menuLeft', savedTarget.style.left);
-			GM_setValue('menuTop',  savedTarget.style.top);
+		document.removeEventListener('mousemove', Move.moveHandler, false);
+		document.removeEventListener('mouseup', Move.cleanup, false);
+		if (caapGlob.savedTarget.style.left && caapGlob.savedTarget.style.top) {
+			gm.setValue('menuLeft', caapGlob.savedTarget.style.left);
+			gm.setValue('menuTop',  caapGlob.savedTarget.style.top);
 		}
-
-		dragOK=false; //its been dragged now
-		didDrag=true;
+		caapGlob.dragOK = false; //its been dragged now
 	},
 
 	dragHandler:function(e){
-		var htype='-moz-grabbing';
 		if (e === null) return;// {{ e = window.event;}  // htype='move';}
+
 		var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
-		orgCursor=target.style.cursor;
+		if(target.nodeName != 'DIV') return;
 
-		if(target.nodeName!='DIV') return;
-
-		savedTarget=target;
-		target.style.cursor=htype;
-		dragOK=true;
-		dragXoffset = e.clientX-target.offsetLeft;
-		dragYoffset = e.clientY-target.offsetTop;
+		caapGlob.savedTarget = target;
+		caapGlob.dragOK = true;
+		caapGlob.dragXoffset = e.clientX-target.offsetLeft;
+		caapGlob.dragYoffset = e.clientY-target.offsetTop;
 
 		//set the left before removing the right
-		target.style.left = e.clientX - dragXoffset + 'px';
+		target.style.left = e.clientX - caapGlob.dragXoffset + 'px';
 		target.style.right = null;
-		document.addEventListener('mousemove',Move.moveHandler,false);
-		document.addEventListener('mouseup',Move.cleanup,false);
+		document.addEventListener('mousemove', Move.moveHandler, false);
+		document.addEventListener('mouseup', Move.cleanup, false);
 		return false;
 	}
 };
@@ -764,8 +758,14 @@ SetupDivs:function() {
 	var div=document.createElement('div');
 	//var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
 	div.id='caap_div';
-	div.style.top='100px';
-	div.style.left='940px';
+	if (gm.getValue('menuTop', '') && gm.getValue('menuLeft', '')) {
+		div.style.position='absolute';
+		div.style.top=gm.getValue('menuTop');
+		div.style.left=gm.getValue('menuLeft');
+	} else {
+		div.style.top='100px';
+		div.style.left='940px';
+	}
 	div.style.width='180px';
 
 	div.style.padding='4px';
@@ -864,8 +864,8 @@ AddCollapsingDiv:function(parentId,subId) {
 	return htmlCode;
 },
 
-ToggleControl:function(controlId,staticText) {
-	var currentDisplay = gm.getValue('Control_'+controlId,"none");
+ToggleControl:function(controlId, staticText) {
+	var currentDisplay = gm.getValue('Control_' + controlId, "none");
         var displayChar = "-";
 	if (currentDisplay == "none") displayChar = "+";
 	var toggleCode = '<b><a id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ' + displayChar + ' ' + staticText + '</a></b> <br />';
@@ -1189,11 +1189,11 @@ SetControls:function(force) {
 				htmlCode += '<tr><td>Transparency</td><td>' + this.MakeNumberForm('StyleTransparencyStoped','0 ~ 1','',"type='text' size='5'  style='font-size: 10px; text-align: right'") + '</td></tr>';
 			htmlCode += "</table></div>";
 			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-			htmlCode += "<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<input type='button' id='FillArmy' value='Fill Army' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
+			htmlCode += "<tr><td></td><td></td><td>&nbsp;&nbsp;&nbsp;<input type='button' id='caap_FillArmy' value='Fill Army' style='font-size: 10px; width:50; height:50'>" + '</td></tr>';
 		htmlCode += '</table></div>';
 	htmlCode += "<hr/></div>";
 	htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-	htmlCode += "<tr><td><input type='checkbox' id='unlockMenu' /></td><td>Unlock Menu</td><td><input type='button' id='ResetMenuLocation' value='Reset' style='font-size: 10px; width:50; height:50'></td></tr></table>";
+	htmlCode += "<tr><td><input type='checkbox' id='unlockMenu' /></td><td>Unlock Menu</td><td><input type='button' id='caap_ResetMenuLocation' value='Reset' style='font-size: 10px; width:50; height:50'></td></tr></table>";
 	htmlCode+= "Version: " + caapGlob.thisVersion + "  -  <a href='" + caapGlob.discussionURL + "' target='_blank'>Discussion Boards</a><br />";
 
 	if (caapGlob.newVersionAvailable) {
@@ -1249,43 +1249,46 @@ SetControls:function(force) {
 	},false);
 
 	var unlockMenuBox=document.getElementById('unlockMenu');
-	var unlockMenu=gm.getValue('unlockMenu',false);
-	unlockMenuBox.checked=unlockMenu?true:false;
 	unlockMenuBox.addEventListener('change',function(e) {
 		div = document.getElementById("caap_div");
 		if(unlockMenuBox.checked){
+			$(":input[id^='caap_']").attr({disabled: true});
 			div.style.cursor='move';
 			div.addEventListener('mousedown', Move.dragHandler, false);
 		}else{
+			$(":input[id^='caap_']").attr({disabled: false});
 			div.style.cursor ='';
 			div.removeEventListener('mousedown', Move.dragHandler, false);
 		}
 
 	},false);
 
-	var FillArmyButton=document.getElementById('FillArmy');
+	var FillArmyButton=document.getElementById('caap_FillArmy');
 	FillArmyButton.addEventListener('click',function(e) {
-			gm.setValue("FillArmy",true);
+		gm.setValue("FillArmy",true);
 	},false);
 
 	var StartedColorSelectButton=document.getElementById('StartedColorSelect');
 	StartedColorSelectButton.addEventListener('click',function(e) {
-			style.LoadMenu('Start');
+		style.LoadMenu('Start');
 	},false);
 	var StopedColorSelectButton=document.getElementById('StopedColorSelect');
 	StopedColorSelectButton.addEventListener('click',function(e) {
-			style.LoadMenu('Stop');
+		style.LoadMenu('Stop');
 	},false);
 
-	var resetMenuLocation=document.getElementById('ResetMenuLocation');
+	var resetMenuLocation=document.getElementById('caap_ResetMenuLocation');
 	resetMenuLocation.addEventListener('click',function(e) {
-			div = document.getElementById("caap_div");
-			div.style.cursor ='';
-			div.style.position='';
-			div.removeEventListener('mousedown', Move.dragHandler, false);
-			div.style.top='100px';
-			div.style.left='940px';
-			document.getElementById('unlockMenu').checked = false;
+		div = document.getElementById("caap_div");
+		div.style.cursor ='';
+		div.style.position='';
+		div.removeEventListener('mousedown', Move.dragHandler, false);
+		div.style.top='100px';
+		div.style.left='940px';
+		document.getElementById('unlockMenu').checked = false;
+		$(":input[id^='caap_']").attr({disabled: false});
+		gm.deleteValue('menuLeft', caapGlob.savedTarget.style.left);
+		gm.deleteValue('menuTop',  caapGlob.savedTarget.style.top);
 	},false);
 
 	var resetElite=document.getElementById('caap_resetElite');
@@ -1301,12 +1304,15 @@ SetControls:function(force) {
 		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight','1');
 		gm.setValue('caapPause','none');
 		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
-		//gm.setValue('Disabled',false);
 		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('resetselectMonster',true);
 		gm.setValue('resetmonsterEngage',true);
 		gm.setValue('resetmonsterDamage',true);
+		div.style.cursor ='';
+		div.removeEventListener('mousedown', Move.dragHandler, false);
+		document.getElementById('unlockMenu').checked = false;
+		$(":input[id*='caap_']").attr({disabled: false});
 //		caap.ReloadOccasionally();
 //		caap.WaitMainLoop();
 	},false);
@@ -1567,7 +1573,7 @@ We add our listener for the Display Select control.
 AddDBListener creates the listener for our dashboard controls.
 \-------------------------------------------------------------------------------------*/
 AddDBListener:function(){
-	var selectDiv=document.getElementById('caap1_DBDisplay');
+	var selectDiv=document.getElementById('caap_DBDisplay');
 	selectDiv.addEventListener('change',function(e) {
 		var value = e.target.options[e.target.selectedIndex].value;
 		gm.setValue('DBDisplay',value);
@@ -1617,7 +1623,7 @@ DBDropDown:function(idName, dropDownList,instructions,formatParms) {
 	var selectedItem = gm.getValue(idName,'defaultValue');
 	if (selectedItem=='defaultValue')
 		selectedItem = gm.setValue(idName,dropDownList[0]);
-	var htmlCode = " <select id='caap1_" + idName + "' " + formatParms + "'><option>" + selectedItem;
+	var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
 	for (var item in dropDownList) {
 		if (selectedItem!=dropDownList[item]) {
 			if (instructions) {
