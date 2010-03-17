@@ -582,8 +582,7 @@ GetCurrentGeneral:function() {
 	}
 	return webSlice.innerHTML.trim();
 },
-UpdateGeneralList:function() {
-	if (!this.CheckForImage('tab_generals_on.gif')) return false;
+CheckResults_generals:function() {
 	var gens = nHtml.getX('//div[@class=\'generalSmallContainer2\']', document, nHtml.xpath.unordered);
 	gm.setValue('AllGenerals','');
 	gm.setValue('GeneralImages','');
@@ -756,63 +755,6 @@ RemoveHtmlJunk:function(html) {
 
 /////////////////////////////////////////////////////////////////////
 
-SetupDivs:function() {
-
-	if(document.getElementById('caap_div')) {
-		return false;
-	}
-	var div=document.createElement('div');
-	//var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
-	div.id='caap_div';
-	div.style.top='100px';
-	div.style.left='940px';
-	div.style.width='180px';
-
-	div.style.padding='4px';
-	div.style.border='2px solid #444';
-	div.style.background = gm.getValue('StyleBackgroundLight','#E0C691');
-	div.style.opacity = gm.getValue('StyleOpacityLight','1');
-	div.style.color='#000';
-	div.style.cssFloat='right';
-        if (gm.getValue('HideAds',false)) {
-		nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
-        }
-
-	var divList = ['activity_mess','idle_mess','quest_mess','battle_mess','heal_mess','demipoint_mess','demibless_mess','level_mess','control'];
-	for (var divID in divList) {
-		var addDiv=document.createElement('div');
-		addDiv.id='caap_' + divList[divID];
-		div.appendChild(addDiv);
-	}
-
-//check these out to see which one actually works on CA and remove the rest
-	var b=nHtml.FindByAttrContains(document.body, 'div', 'className', 'UIStandardFrame_Container');
-	if(b) {
-		b.insertBefore(div,b.childNodes[1]);
-	} else {
-
-		var app=document.getElementById('fb_sell_profile');
-		if(!app) {
-			app=nHtml.FindByAttr(document.body,'div','className','app');
-		}
-		if(!app) {
-			app=nHtml.FindByAttr(document.body,'div','id',/^app.*header$/);
-		}
-		if(app) {
-			if(app.parentNode.parentNode) {
-				// some ajax games won't reload before the app's area, let's insert the div there.
-				app.parentNode.parentNode.insertBefore(div,app.parentNode);
-			} else {
-				app.insertBefore(div,app.childNodes[0]);
-			}
-		} else {
-			gm.log('cannot find app div');
-		}
-	}
-
-	return true;
-},
-
 AppendTextToDiv:function(divName,text) {
 	var d=document.getElementById('caap_' + divName);
 	if(d) {
@@ -894,19 +836,59 @@ SaveBoxText:function(idName) {
 },
 
 SetDivContent:function(idName,mess) {
-	this.SetupDivs();
 	var d=document.getElementById('caap_' + idName);
 	if(d) { d.innerHTML=mess; }
 },
-
-SetQuestControl:function() {
-	this.SetupDivs();
-	var htmlCode = '';
-	this.SetDivContent('quest_control',htmlCode);
-},
-
 SetControls:function(force) {
+	if(!document.getElementById('caap_div')) {
+		var div=document.createElement('div');
+		//var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
+		div.id='caap_div';
+		div.style.top='100px';
+		div.style.left='940px';
+		div.style.width='180px';
 
+		div.style.padding='4px';
+		div.style.border='2px solid #444';
+		div.style.background = gm.getValue('StyleBackgroundLight','#E0C691');
+		div.style.opacity = gm.getValue('StyleOpacityLight','1');
+		div.style.color='#000';
+		div.style.cssFloat='right';
+		if (gm.getValue('HideAds',false))
+			nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
+
+		var divList = ['activity_mess','idle_mess','quest_mess','battle_mess','heal_mess','demipoint_mess','demibless_mess','level_mess','control'];
+		for (var divID in divList) {
+			var addDiv=document.createElement('div');
+			addDiv.id='caap_' + divList[divID];
+			div.appendChild(addDiv);
+		}
+
+		// todo: check these out to see which one actually works on CA and remove the rest
+		var b=nHtml.FindByAttrContains(document.body, 'div', 'className', 'UIStandardFrame_Container');
+		if(b) {
+			b.insertBefore(div,b.childNodes[1]);
+		} else {
+
+			var app=document.getElementById('fb_sell_profile');
+			if(!app) {
+				app=nHtml.FindByAttr(document.body,'div','className','app');
+			}
+			if(!app) {
+				app=nHtml.FindByAttr(document.body,'div','id',/^app.*header$/);
+			}
+			if(app) {
+				if(app.parentNode.parentNode) {
+					// some ajax games won't reload before the app's area, let's insert the div there.
+					app.parentNode.parentNode.insertBefore(div,app.parentNode);
+				} else {
+					app.insertBefore(div,app.childNodes[0]);
+				}
+			} else {
+				gm.log('cannot find app div');
+			}
+		}
+	}
 	var controlDiv=document.getElementById('caap_control');
 	if(controlDiv && controlDiv.innerHTML.length>0 && !force) {
 		// we already have the controls
@@ -1305,8 +1287,6 @@ SetControls:function(force) {
 		caap.SetControls(true);
 		gm.setValue('ReleaseControl',true);
 		gm.setValue('resetselectMonster',true);
-		gm.setValue('resetmonsterEngage',true);
-		gm.setValue('resetmonsterDamage',true);
 //		caap.ReloadOccasionally();
 //		caap.WaitMainLoop();
 	},false);
@@ -1357,11 +1337,7 @@ SetControls:function(force) {
 		if (event.target.id == "app46755028429_app_body" 
 				|| event.target.id == "app46755028429_battle_monster"
 				|| event.target.id == "app46755028429_raid")
-			nHtml.setTimeout(caap.loadPageCheckFunction, 0);
-		if(event.target.getElementById('app46755028429_st_2_5')) {
-			nHtml.setTimeout(caap.addExpDisplay, 0);
-			//gm.log("Listener did: addExpDisplay");
-		}
+			nHtml.setTimeout(caap.CheckResults, 0);
 	}, true);
 
 	globalContainer.addEventListener('click', function(event) {
@@ -1396,14 +1372,13 @@ makeTd:function(text,color) {
 },
 monsterDashboard:function() {
 	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) return;
-	// if not on an individual monster page, delete any monsters without the page info from Engage
+	// if not on an individual monster page, delete any monsters without the page info from monster list
 	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
 			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
 				gm.deleteListObj('monsterOl',monsterObj.split(caapGlob.vs)[0]);
 		});
 	}
-	caap.selectMonster();
 /*-------------------------------------------------------------------------------------\
  Here is where we construct the HTML for our dashboard. We start by building the outer
  container and position it within the main container.
@@ -1997,15 +1972,20 @@ SetCheckResultsFunction:function(resultsFunction) {
 },
 
 pageList:{
-	'battle_monster': {signaturePic: 'tab_monster_on.jpg', 		onLoadCheckFunction : 'onLoadCheck_fightList', subpages: ['onMonster']},
-	'onMonster'		: {signaturePic: 'tab_monster_active.jpg', 	onLoadCheckFunction : 'onLoadCheck_viewFight'},
-	'raid'			: {signaturePic: 'tab_raid_on.gif', 		onLoadCheckFunction : 'onLoadCheck_fightList', subpages: ['onRaid']},
-	'onRaid'		: {signaturePic: 'raid_back.jpg', 			onLoadCheckFunction : 'onLoadCheck_viewFight'},
-	'land'			: {signaturePic: 'tab_land_on.gif', 		onLoadCheckFunction : 'onLoadCheck_land'},
+	'battle_monster': {signaturePic: 'tab_monster_on.jpg', 		CheckResultsFunction : 'CheckResults_fightList', subpages: ['onMonster']},
+	'onMonster'		: {signaturePic: 'tab_monster_active.jpg', 	CheckResultsFunction : 'CheckResults_viewFight'},
+	'raid'			: {signaturePic: 'tab_raid_on.gif', 		CheckResultsFunction : 'CheckResults_fightList', subpages: ['onRaid']},
+	'onRaid'		: {signaturePic: 'raid_back.jpg', 			CheckResultsFunction : 'CheckResults_viewFight'},
+	'land'			: {signaturePic: 'tab_land_on.gif', 		CheckResultsFunction : 'CheckResults_land'},
+	'generals'		: {signaturePic: 'tab_generals_on.gif',		CheckResultsFunction : 'CheckResults_generals'},
 },
-loadPageCheckFunction:function(appBodySlice) {
+CheckResults:function() {
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
+	caap.addExpDisplay();
+	caap.DrawQuests(false);
+	caap.selectMonster();
+	caap.monsterDashboard();
 	gm.setValue('page','');
 	var pageUrl = gm.getValue('clickUrl');
 	if (pageUrl.match(/\/[^\/]+.php/i)) page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
@@ -2024,13 +2004,9 @@ loadPageCheckFunction:function(appBodySlice) {
 	}
 	if (!gm.getValue('page')) return gm.log('Last URL: ' + pageUrl + ' No page defined on pageList');
 	else gm.log('Last URL: ' + pageUrl + ' Page: ' + page);
-	if(typeof caap[caap.pageList[page].onLoadCheckFunction] == 'function') {
-		caap[caap.pageList[page].onLoadCheckFunction]();
+	if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
+		caap[caap.pageList[page].CheckResultsFunction]();
 	}
-},
-
-pageSpecificCheckFunctions:{'battle_monster':'checkMonsterEngage','raid':'checkMonsterEngage'},
-CheckResults:function() {
 	// Check for new gifts
 	if (!gm.getValue('HaveGift')) {
 		if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
@@ -2071,8 +2047,6 @@ CheckResults:function() {
 	resultsFunction = gm.getValue('ResultsFunction','');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
 },
-
-
 /////////////////////////////////////////////////////////////////////
 
 //							QUESTING
@@ -2727,7 +2701,7 @@ LandsGetNameFromRow:function(row) {
 },
 
 bestLand:{land:'',roi:''},
-onLoadCheck_land:function() {
+CheckResults_land:function() {
 //	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_landDone')")) return null;
 	gm.deleteValue('BestLandCost');
 	this.sellLand = '';
@@ -3169,7 +3143,6 @@ BattleUserId:function(userid) {
 				this.notSafeCount = 0;
 				return true;
 			} else gm.log("target_id not found in battleForm");
-				gm.log("target_id not found in battleForm");
 		} else gm.log("battleButton not found");
 
 	return false;
@@ -3178,7 +3151,6 @@ rankTable:{'acolyte':0, 'scout': 1,'soldier': 2,'elite soldier': 3,'squire': 4,'
 
 ClickBattleButton:function(battleButton) {
 	gm.setValue('ReleaseControl',true);
-	gm.setValue('resetmonsterDamage',true);
 	this.SetCheckResultsFunction('CheckBattleResults');
 	this.Click(battleButton);
 },
@@ -3440,22 +3412,17 @@ Battle:function(mode) {
 	switch (target) {
 		case 'raid' :
 			this.SetDivContent('battle_mess','Joining the Raid');
-			if (this.NavigateTo(this.battlePage + ',raid','tab_raid_on.gif')) {
-				gm.setValue('resetmonsterEngage',true);
-				return true;
-			}
+			if (this.NavigateTo(this.battlePage + ',raid','tab_raid_on.gif')) return true;
 			if (gm.getValue('clearCompleteRaids',false) && this.completeButton.raid) {
 				caap.Click(this.completeButton.raid,1000);
 				this.completeButton.raid = '';
 				gm.log('Cleared a completed raid');
-				gm.setValue('resetmonsterEngage',true);
 				return true;
 			}
 			raidName = gm.getValue('targetFromraid','');
  			if (!(webSlice = caap.CheckForImage('dragon_title_owner.jpg'))) {
  				if ((engageButton = this.monsterEngageButtons[raidName])) {
 					caap.Click(engageButton);
-					gm.setValue('resetmonsterDamage',true);
 					return true;
 				} else {
  					gm.log('Unable to engage raid ' + raidName);
@@ -3641,7 +3608,7 @@ getMonstType:function(name) {
 	}
 },
 
-onLoadCheck_fightList:function() {
+CheckResults_fightList:function() {
 	// get all buttons to check monsterObjectList
 	var ss=document.evaluate(".//img[contains(@src,'dragon_list_btn_')]",document.body,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	if (ss.snapshotLength === 0) return false;
@@ -3714,7 +3681,7 @@ onLoadCheck_fightList:function() {
 	});
 	gm.setValue('resetdashboard',true);
 },
-onLoadCheck_viewFight:function() {
+CheckResults_viewFight:function() {
 	// Get name and type of monster
 	var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
 	if (!webSlice) return;
@@ -3896,7 +3863,7 @@ selectMonster:function() {
 	gm.setValue('targetFromfortify','');
 	gm.setValue('targetFromraid','');
 
-	// Next we get our monster objects from the reposoitory and break them into separarte lists
+	// Next we get our monster objects from the repository and break them into separate lists
 	// for monster or raid.  If we are serializing then we make one list only.
 	var monsterList = {};
 	monsterList.battle_monster = [];
@@ -4068,7 +4035,6 @@ MonsterReview:function() {
 						|| this.stats.stamina.num === 0)
 					link = link.replace('&action=doObjective','');
 				gm.log('MonsterObj '+ counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
-				gm.setValue('resetmonsterDamage',true);
 				gm.setValue('ReleaseControl',true);
 				caap.VisitUrl(link);
 			return true;
@@ -4095,13 +4061,11 @@ Monsters:function() {
 		// Check Monster page
 		if (counter == -3) {
 			gm.setValue('monsterOl','');
-				gm.setValue('resetmonsterEngage',true);
 			gm.setValue('monsterReviewCounter',++counter);
 			return this.NavigateTo('battle_monster');
 		}
 		if (counter == -2) {
 			if (this.NavigateTo(this.battlePage + ',raid','tab_raid_on.gif')) {
-				gm.setValue('resetmonsterEngage',true);
 				return true;
 			}
 			// Read in conditions like no siege and auto collect
@@ -4180,23 +4144,19 @@ Monsters:function() {
 			gm.log(attackMess);
 			this.SetDivContent('battle_mess',attackMess);
 			gm.setValue('ReleaseControl',true);
-			gm.setValue('resetmonsterDamage',true);
 			caap.Click(attackButton,8000);
 			return true;
 		}
 	}
 ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
-	if (this.NavigateTo('keep,battle_monster','tab_monster_on.jpg')) {
-		gm.setValue('resetmonsterEngage',true);
-		return true;
+	if (this.NavigateTo('keep,battle_monster','tab_monster_on.jpg')) return true;
 	}
 
 	if (gm.getValue('clearCompleteMonsters',false) && this.completeButton.battle_monster) {
 		caap.Click(this.completeButton.battle_monster,1000);
 		gm.log('Cleared a completed monster');
 		this.completeButton.battle_monster = '';
-		gm.setValue('resetmonsterEngage',true);
 		return true;
 	}
 
@@ -4219,7 +4179,6 @@ Monsters:function() {
 	if (engageButton) {
 		this.SetDivContent('battle_mess','Opening ' + monster);
 		caap.Click(engageButton);
-		gm.setValue('resetmonsterDamage',true);
 		return true;
 	} else {
 		this.JustDidIt('NotargetFrombattle_monster');
@@ -4498,7 +4457,6 @@ CheckMonster:function(){
 				//caap.DeceiveDidIt("NotargetFrombattle_monster");
 				gm.setValue("navLink","");
 				//caap.VisitUrl("http://apps.facebook.com/castle_age/battle_monster.php");
-				gm.setValue('resetmonsterEngage',true);
 				caap.NavigateTo('battle_monster');
 				gm.log("Navigate to battle_monster");
 				window.setTimeout(function() {
@@ -5754,7 +5712,7 @@ CheckLastAction:function(thisAction) {
 },
 
 MainLoop:function() {
-	this.waitMilliSecs=1000;
+	this.waitMilliSecs=5000;
 	// assorted errors...
 	var href=location.href;
 	if(href.indexOf('/common/error.html')>=0) {
@@ -5764,7 +5722,6 @@ MainLoop:function() {
 		}, 30*1000);
 		return;
 	}
-
 	if(document.getElementById('try_again_button')) {
 		gm.log('detected Try Again message, waiting to reload');
 		// error
@@ -5774,7 +5731,13 @@ MainLoop:function() {
 		return;
 	}
 
-	if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
+	if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 
+			|| window.location.href.indexOf('www.facebook.com/home.php') >= 0) {
+		this.AcceptGiftOnFB();
+	 	this.WaitMainLoop();
+		return;
+	}
+	if (window.location.href.indexOf('filter=app_46755028429') >= 0) {
 		if (gm.getValue("mfStatus","") == "OpenMonster") {
 			gm.log("Opening Monster " + gm.getValue("navLink"));
 			this.CheckMonster();
@@ -5782,9 +5745,7 @@ MainLoop:function() {
 			gm.log("Scanning URL for new monster");
 			this.selectMonst();
 		}
-
 		this.MonsterFinderOnFB();
-		this.AcceptGiftOnFB();
 	 	this.WaitMainLoop();
 		return;
 	}
@@ -5796,8 +5757,6 @@ MainLoop:function() {
 		gm.log('Undoing notification');
 	}
 
-	this.SetupDivs();
-//	this.AddBattleLinks();
 	if(gm.getValue('Disabled',false)) {
 		if (caapGlob.is_chrome) CE_message("disabled", null, gm.getValue('Disabled',false));
 		this.SetControls();
@@ -5819,13 +5778,6 @@ MainLoop:function() {
 		this.WaitMainLoop();
 		return;
 	} else gm.setValue('NoWindowLoad',0);
-
-	this.DrawQuests(false);
-	this.CheckResults();
-	this.selectMonster();
-	this.monsterDashboard();
-    this.UpdateGeneralList();
-    this.SetControls();
 
 	if(!this.WhileSinceDidIt('newControlPanelLoaded',4)) {
 		this.WaitMainLoop();
@@ -5851,13 +5803,13 @@ MainLoop:function() {
 	else gm.setValue('ReleaseControl',false);
 //	gm.log('Action list: ' + actionsList);
 
-	for (var action in actionsList) {
-//		gm.log('Action: ' + actionsList[action]);
-		if(this[actionsList[action]]()) {
-			this.CheckLastAction(actionsList[action]);
+	actionsList.forEach( function(action) {
+//		gm.log('Action: ' + action);
+		if(this[action]()) {
+			this.CheckLastAction(action);
 			break;
 		}
-	}
+	});
 
 	this.WaitMainLoop();
 },
@@ -5870,8 +5822,6 @@ WaitMainLoop:function() {
 ReloadCastleAge:function() {
 	// better than reload... no prompt on forms!
 	if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
-		gm.setValue('ReleaseControl',true);
-		gm.setValue('caapPause','none');
 		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 		window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 	}
@@ -5915,10 +5865,11 @@ if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
 $(function() {
 	gm.log('Full page load completed');
 	gm.setValue('caapPause','none');
+	if (window.location.href.indexOf('facebook.com/castle_age/') >= 0)
+		caap.SetControls();
 	if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 	gm.setValue('clickUrl',window.location.href);
-	caap.addExpDisplay();
-	caap.loadPageCheckFunction(document.body);
+	caap.CheckResults();
 	gm.setValue('ReleaseControl',true);
 	caap.MainLoop();
 });
