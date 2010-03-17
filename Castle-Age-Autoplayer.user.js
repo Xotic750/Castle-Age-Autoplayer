@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.15
+// @version        139.16
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -18,7 +18,7 @@
 // Define our global object
 ///////////////////////////
 var caapGlob = {};
-caapGlob.thisVersion = "139.15";
+caapGlob.thisVersion = "139.16";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -31,11 +31,11 @@ caapGlob.vs = '\t'; // Value separator - used to separate name/values within the
 caapGlob.ls = '\f'; // Label separator - used to separate the name from the value
 caapGlob.savedTarget = {};
 caapGlob.savedTarget.style = {};
-caapGlob.savedTarget.style.left;
-caapGlob.savedTarget.style.top;
-caapGlob.dragXoffset;
-caapGlob.dragYoffset;
-caapGlob.dragOK;
+caapGlob.savedTarget.style.left = null;
+caapGlob.savedTarget.style.top = null;
+caapGlob.dragXoffset = null;
+caapGlob.dragYoffset = null;
+caapGlob.dragOK = false;
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
@@ -49,11 +49,13 @@ caapGlob.symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AA
 caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQxIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
 ///////////////////////////
 
-if (caapGlob.is_chrome) CM_Listener();
+if (caapGlob.is_chrome) {
+	CM_Listener();
+}
 
 if (!caapGlob.is_chrome) {
 	if(!GM_log) {
-		GM_log=console.debug;
+		GM_log = console.debug;
 	}
 
 	if (parseInt(GM_getValue('SUC_remote_version',0),10) > caapGlob.thisVersion) {
@@ -61,36 +63,41 @@ if (!caapGlob.is_chrome) {
 	}
 
 	// update script from: http://userscripts.org/scripts/review/57917
-	try{ function updateCheck(forced) {
-		if ((forced) || (parseInt(GM_getValue('SUC_last_update', '0'),10) + (86400000*1) <= (new Date().getTime()))) {
-			try {
-				GM_xmlhttpRequest({
-					method: 'GET',
-					url: 'http://userscripts.org/scripts/source/' + caapGlob.SUC_script_num + '.meta.js?' + new Date().getTime(),
-					headers: {'Cache-Control': 'no-cache'},
-					onload: function(resp){
-						var rt = resp.responseText;
-						var remote_version = parseInt(/@version\s*(.*?)\s*$/m.exec(rt)[1],10);
-						var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
-						GM_setValue('SUC_last_update', new Date().getTime()+'');
-						GM_setValue('SUC_target_script_name', script_name);
-						GM_setValue('SUC_remote_version', remote_version);
-						GM_log('remote version ' + remote_version);
-						if (remote_version > caapGlob.thisVersion) {
-							caapGlob.newVersionAvailable = true;
-							if (forced) {
-								if(confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-									GM_openInTab('http://userscripts.org/scripts/show/' + caapGlob.SUC_script_num);
-								}
-							}
-						} else if (forced) alert('No update is available for "' + script_name + '."');
-					}
-				});
-			}catch (err) {
-				if (forced) alert('An error occurred while checking for updates:\n' + err);
-			}
-		}
-	     }
+	try{
+		function updateCheck(forced) {
+            if ((forced) || (parseInt(GM_getValue('SUC_last_update', '0'),10) + (86400000*1) <= (new Date().getTime()))) {
+                try {
+                    GM_xmlhttpRequest({
+                        method: 'GET',
+                        url: 'http://userscripts.org/scripts/source/' + caapGlob.SUC_script_num + '.meta.js?' + new Date().getTime(),
+                        headers: {'Cache-Control': 'no-cache'},
+                        onload: function(resp) {
+                            var rt = resp.responseText;
+                            var remote_version = parseInt(/@version\s*(.*?)\s*$/m.exec(rt)[1],10);
+                            var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
+                            GM_setValue('SUC_last_update', new Date().getTime()+'');
+                            GM_setValue('SUC_target_script_name', script_name);
+                            GM_setValue('SUC_remote_version', remote_version);
+                            GM_log('remote version ' + remote_version);
+                            if (remote_version > caapGlob.thisVersion) {
+                                caapGlob.newVersionAvailable = true;
+                                if (forced) {
+                                    if(confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                        GM_openInTab('http://userscripts.org/scripts/show/' + caapGlob.SUC_script_num);
+                                    }
+                                }
+                            } else if (forced) {
+                                alert('No update is available for "' + script_name + '."');
+                            }
+                        }
+                    });
+                } catch (err) {
+                    if (forced) {
+                        alert('An error occurred while checking for updates:\n' + err);
+                    }
+                }
+            }
+	    }
 	     GM_registerMenuCommand(GM_getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function(){updateCheck(true);});
 	     updateCheck(false);
 	} catch(err) {}
@@ -110,49 +117,65 @@ var nHtml = {
 	},
 
 	FindByAttrContains:function(obj, tag, attr, className, subDocument) {
-		if(attr == "className") { attr = "class"; }
+		if(attr == "className") {
+			attr = "class";
+		}
 
-		if (!subDocument) subDocument = document;
+		if (!subDocument) {
+			subDocument = document;
+		}
 
 		var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
 			attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'"+
 			className.toLowerCase() + "')]", obj, null, this.xpath.first, null);
 
-		if(q && q.singleNodeValue) { return q.singleNodeValue; }
+		if(q && q.singleNodeValue) {
+			return q.singleNodeValue;
+		}
 
 		return null;
 	},
 
 	FindByAttrXPath:function(obj, tag, className, subDocument) {
 		var q = null;
+		var xp = ".//" + tag + "[" + className + "]";
 		try {
-			var xp = ".//" + tag + "[" + className + "]";
 			if (obj === null) {
 				gm.log('Trying to find xpath with null obj:' + xp );
 				return null;
 			}
 
-			if (!subDocument) subDocument = document;
+			if (!subDocument) {
+				subDocument = document;
+			}
 
 			q = subDocument.evaluate(xp, obj, null, this.xpath.first, null);
 		} catch(err) {
 			gm.log("XPath Failed:" + xp + "," + err);
 		}
 
-		if(q && q.singleNodeValue) { return q.singleNodeValue; }
+		if(q && q.singleNodeValue) {
+			return q.singleNodeValue;
+		}
 
 		return null;
 	},
 
 	FindByAttr:function(obj, tag, attr, className, subDocument) {
-		if(className.exec == undefined) {
-			if(attr == "className") { attr = "class"; }
+		if(className.exec === undefined) {
+			if(attr == "className") {
+				attr = "class";
+			}
 
-			if (!subDocument) subDocument = document;
+			if (!subDocument) {
+				subDocument = document;
+			}
 
 			var q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, this.xpath.first, null);
 
-			if(q && q.singleNodeValue) { return q.singleNodeValue; }
+			if(q && q.singleNodeValue) {
+				return q.singleNodeValue;
+			}
 
 			return null;
 		}
@@ -160,7 +183,7 @@ var nHtml = {
 		var divs = obj.getElementsByTagName(tag);
 		for(var d = 0; d < divs.length; d++) {
 			var div = divs[d];
-			if(className.exec != undefined) {
+			if(className.exec !== undefined) {
 				if(className.exec(div[attr])) {
 					return div;
 				}
@@ -182,11 +205,13 @@ var nHtml = {
 
 	GetText:function(obj) {
 		var txt = ' ';
-		if(obj.tagName != undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
+		if(obj.tagName !== undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
 			txt += " ";
 		}
 
-		if(obj.nodeName == "#text") { return txt + obj.textContent; }
+		if(obj.nodeName == "#text") {
+			return txt + obj.textContent;
+		}
 
 		for(var o = 0; o < obj.childNodes.length; o++) {
 			var child = obj.childNodes[o];
@@ -208,14 +233,18 @@ var nHtml = {
 		var t = window.setTimeout(function() {
 			func();
 			nHtml.timeouts[t] = undefined;
-		},millis);
+		}, millis);
+
 		this.timeouts[t] = 1;
 	},
 
 	clearTimeouts:function() {
 		for(var t in this.timeouts) {
-			window.clearTimeout(t);
+			if (this.timeouts.hasOwnProperty(t)) {
+				window.clearTimeout(t);
+			}
 		}
+
 		this.timeouts = {};
 	},
 
@@ -234,6 +263,7 @@ var nHtml = {
 			default :
 				break;
 		}
+
 		return evaluate;
 	},
 
@@ -243,6 +273,7 @@ var nHtml = {
 				return HTML.substr(x + 1);
 			}
 		}
+
 		return HTML;
 	},
 
@@ -261,9 +292,13 @@ var nHtml = {
 		if(iframe){
 			gm.log("Deleting iframe = " + key);
 			iframe.parentNode.removeChild(iframe);
-		} else gm.log("Frame not found = " + key);
+		} else {
+			gm.log("Frame not found = " + key);
+		}
 
-		if(document.getElementById(key)) gm.log("Found iframe");
+		if(document.getElementById(key)) {
+			gm.log("Found iframe");
+		}
 	},
 
 	Gup : function(name,href){
@@ -271,8 +306,11 @@ var nHtml = {
 		var regexS = "[\\?&]" + name + "=([^&#]*)";
 		var regex = new RegExp( regexS );
 		var results = regex.exec(href);
-		if( results === null ) return "";
-		else return results[1];
+		if( results === null ) {
+			return "";
+		} else {
+			return results[1];
+		}
 	},
 
 	ScrollToBottom: function(){
@@ -348,7 +386,9 @@ gm = {
 
 	listPop:function(listName) {
 		popList = gm.getList(listName);
-		if (!popList.length) return '';
+		if (!popList.length) {
+			return '';
+		}
 
 		popItem = popList.pop();
 		gm.setList(listName, popList);
@@ -359,7 +399,9 @@ gm = {
 		var list = gm.getList(listName);
 
 		// Only add if it isn't already there.
-		if (list.indexOf(pushItem) != -1) { return; }
+		if (list.indexOf(pushItem) != -1) {
+			return;
+		}
 
 		list.push(pushItem);
 		if (max > 0) {
@@ -378,7 +420,9 @@ gm = {
 			return item.indexOf(prefix) === 0;
 		});
 		//gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
-		if (itemList.length) return itemList[0];
+		if (itemList.length) {
+			return itemList[0];
+		}
 	},
 
 	setObjVal:function(objName, label, value) {
@@ -401,28 +445,41 @@ gm = {
 
 	getObjVal:function(objName, label, defaultValue) {
 		var objStr;
-		if (objName.indexOf(caapGlob.ls) < 0) objStr = gm.getValue(objName);
-		else objStr = objName;
+		if (objName.indexOf(caapGlob.ls) < 0) {
+			objStr = gm.getValue(objName);
+		} else {
+			objStr = objName;
+		}
 
-		if (!objStr) return defaultValue;
+		if (!objStr) {
+			return defaultValue;
+		}
 
 		var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
-		if (!itemStr) return defaultValue;
+		if (!itemStr) {
+			return defaultValue;
+		}
 
 		return itemStr.split(caapGlob.ls)[1];
 	},
 
 	getListObjVal:function(listName, objName, label, defaultValue) {
 		var gLOVlist = gm.getList(listName);
-		if (!(gLOVlist.length)) return defaultValue;
+		if (!(gLOVlist.length)) {
+			return defaultValue;
+		}
 
 		//gm.log('have list '+gLOVlist);
 		var objStr = gm.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
-		if (!objStr) return defaultValue;
+		if (!objStr) {
+			return defaultValue;
+		}
 
 		//gm.log('have obj ' + objStr);
 		var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
-		if (!itemStr) return defaultValue;
+		if (!itemStr) {
+			return defaultValue;
+		}
 
 		//gm.log('have val '+itemStr);
 		return itemStr.split(caapGlob.ls)[1];
@@ -457,7 +514,9 @@ gm = {
 
 	deleteListObj:function(listName, objName) {
 		var objList = gm.getList(listName);
-		if (!(objList.length)) return false;
+		if (!(objList.length)) {
+			return false;
+		}
 
 		var objStr = gm.listFindItemByPrefix(objList, objName);
 		if (objStr) {
@@ -473,7 +532,10 @@ gm = {
 Move = {
 	moveHandler:function(e){
 		caapGlob.savedTarget.style.position = 'absolute';
-		if (e === null) return;
+		if (e === null) {
+			return;
+		}
+
 		if ( e.button <= 1 && caapGlob.dragOK ) {
 			caapGlob.savedTarget.style.left = e.clientX - caapGlob.dragXoffset + 'px';
 			caapGlob.savedTarget.style.top = e.clientY - caapGlob.dragYoffset + 'px';
@@ -492,10 +554,14 @@ Move = {
 	},
 
 	dragHandler:function(e){
-		if (e === null) return;// {{ e = window.event;}  // htype='move';}
+		if (e === null) {
+			return;// {{ e = window.event;}  // htype='move';}
+		}
 
 		var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
-		if(target.nodeName != 'DIV') return;
+		if(target.nodeName != 'DIV') {
+			return;
+		}
 
 		caapGlob.savedTarget = target;
 		caapGlob.dragOK = true;
@@ -4082,13 +4148,15 @@ MonsterReview:function() {
 			if (/href/.test(link)) {
 				link = link.split("'")[1];
 				conditions = gm.getObjVal(monsterObj,'conditions');
-				if ((conditions) && (conditions.match(':ac')) && gm.getObjVal(monsterObj,'status') == 'Collect Reward') {
+				if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj,'status') == 'Collect Reward') {
 					link += '&action=collectReward';
-					if (monster.indexOf('Siege')>=0)
+					if (monster.indexOf('Siege')>=0) {
 						link += '&rix='+gm.getObjVal(monsterObj,'rix','2');
+					}
 				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true)
-						|| this.stats.stamina.num === 0)
+						|| this.stats.stamina.num === 0) {
 					link = link.replace('&action=doObjective','');
+				}
 				gm.log('MonsterObj '+ counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
 				gm.setValue('resetmonsterDamage',true);
 				gm.setValue('ReleaseControl',true);
