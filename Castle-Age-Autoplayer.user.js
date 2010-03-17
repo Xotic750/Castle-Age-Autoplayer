@@ -1991,12 +1991,12 @@ CheckResults:function() {
 	if (pageUrl.match(/\/[^\/]+.php/i)) page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
 	else return;
 	if (caap.pageList[page]) {
-		if (caap.CheckForImage(caap.pageList[page].signaturePic,appBodySlice)) {
+		if (caap.CheckForImage(caap.pageList[page].signaturePic)) {
 			page = gm.setValue('page',page);
 		}
 		if (caap.pageList[page].subpages) {
 			caap.pageList[page].subpages.forEach( function(subpage) {
-				if (caap.CheckForImage(caap.pageList[subpage].signaturePic,appBodySlice)) {
+				if (caap.CheckForImage(caap.pageList[subpage].signaturePic)) {
 					page = gm.setValue('page',subpage);
 				}
 			});
@@ -5800,13 +5800,13 @@ MainLoop:function() {
 	else gm.setValue('ReleaseControl',false);
 //	gm.log('Action list: ' + actionsList);
 
-	actionsList.forEach( function(action) {
-//		gm.log('Action: ' + action);
-		if(this[action]()) {
-			this.CheckLastAction(action);
+	for (var i in actionsList) {
+//		gm.log('Action: ' + actionsList[i]);
+		if(this[actionsList[i]]()) {
+			this.CheckLastAction(actionsList[i]);
 			break;
 		}
-	});
+	}
 
 	this.WaitMainLoop();
 },
