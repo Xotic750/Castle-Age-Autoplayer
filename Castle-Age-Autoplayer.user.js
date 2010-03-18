@@ -21,7 +21,7 @@ var caapGlob = {};
 caapGlob.thisVersion = "139.14";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
-caapGlob.debug = true;
+caapGlob.debug = false;
 caapGlob.newVersionAvailable = false;
 caapGlob.documentTitle = document.title;
 caapGlob.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
@@ -2020,11 +2020,11 @@ CheckResults:function() {
 		}
 	}
 
-	if (this.stats.level < 10) this.battlePage = 'battle_train,battle_off';
-	else this.battlePage = 'battle';
+	if (caap.stats.level < 10) caap.battlePage = 'battle_train,battle_off';
+	else caap.battlePage = 'battle';
 
 	//Check for Elite Guard Add image
-	if (this.CheckForImage('elite_guard_add')) {
+	if (caap.CheckForImage('elite_guard_add')) {
 		if (gm.getValue('AutoEliteEnd','NoArmy') != 'NoArmy') gm.setValue('AutoEliteGetList',0);
 	}
 
@@ -5853,8 +5853,8 @@ if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
 $(function() {
 	gm.log('Full page load completed');
 	if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
-		caap.SetControls();
 		gm.setValue('caapPause','none');
+		caap.SetControls();
 		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
 		caap.CheckResults();
 		gm.setValue('ReleaseControl',true);
