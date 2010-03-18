@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.19
+// @version        139.20
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -17,8 +17,9 @@
 ///////////////////////////
 // Define our global object
 ///////////////////////////
+
 var caapGlob = {};
-caapGlob.thisVersion = "139.19";
+caapGlob.thisVersion = "139.20";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -36,6 +37,7 @@ caapGlob.savedTarget.style.top = null;
 caapGlob.dragXoffset = null;
 caapGlob.dragYoffset = null;
 caapGlob.dragOK = false;
+caapGlob.quest_name = null;
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
@@ -109,6 +111,7 @@ String.prototype.trim = function() { return this.replace(/^\s+|\s+$/g, ''); };
 //							HTML TOOLS
 // this object contains general methods for wading through the DOM and dealing with HTML
 /////////////////////////////////////////////////////////////////////
+
 var nHtml = {
 	xpath:{
 		string : XPathResult.STRING_TYPE,
@@ -334,6 +337,7 @@ var nHtml = {
 //							gm OBJECT
 // this object is used for setting/getting GM specific functions.
 /////////////////////////////////////////////////////////////////////
+
 gm = {
 	// use to log stuff
 	log:function(mess) {
@@ -529,6 +533,7 @@ gm = {
 /////////////////////////////////////////////////////////////////////
 //							move OBJECT
 /////////////////////////////////////////////////////////////////////
+
 Move = {
 	moveHandler:function(e){
 		caapGlob.savedTarget.style.position = 'absolute';
@@ -576,12 +581,10 @@ Move = {
 		return false;
 	}
 };
+
 ////////////////////////////////////////////////////////////////////
-
 //							caap OBJECT
-
 // this is the main object for the game, containing all methods, globals, etc.
-
 /////////////////////////////////////////////////////////////////////
 
 caap={
@@ -605,11 +608,8 @@ firstNumberRe:new RegExp("([0-9]+)"),
 gameName:'castle_age',
 
 /////////////////////////////////////////////////////////////////////
-
 //							UTILITY FUNCTIONS
-
 // Small functions called a lot to reduce duplicate code
-
 /////////////////////////////////////////////////////////////////////
 
 Click:function(obj,loadWaitTime) {
@@ -871,11 +871,8 @@ RemoveHtmlJunk:function(html) {
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							DISPLAY FUNCTIONS
-
 // these functions set up the control applet and allow it to be changed
-
 /////////////////////////////////////////////////////////////////////
 
 SetupDivs:function() {
@@ -1133,7 +1130,8 @@ SetControls:function(force) {
 			htmlCode += '<tr><td>Switch Quest Area</td><td> ' + this.MakeCheckBox('swithQuestArea',false,'','Allows switching quest area') +  "</td></tr>";
 			htmlCode += '<tr><td>Use Only Subquest General</td><td> ' + this.MakeCheckBox('ForceSubGeneral',false,'',forceSubGen) +  "</td></tr></table>";
 		htmlCode += "</div>";
-		if ((autoQuestName = gm.getObjVal('AutoQuest', 'name'))) {
+        var autoQuestName = gm.getObjVal('AutoQuest', 'name');
+		if (autoQuestName) {
 			htmlCode += "<a id='stopAutoQuest' href='javascript:;'>Stop auto quest: "+ autoQuestName +" (energy: "+gm.getObjVal('AutoQuest','energy')+")"+"</a><br />";
 		}
 	htmlCode += "<hr/> </div>";
@@ -1273,7 +1271,6 @@ SetControls:function(force) {
 			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than X*Army </td><td>' + this.MakeNumberForm('ReconPlayerARBase',PRARBaseInstructions,'1',"size='2'  style='font-size: 10px; text-align: right'") + '</td></tr></table>';
 		htmlCode += "</div>";
 	htmlCode += "<hr/> </div>";
-
 
 	// Add General Comboboxes
 	generalList = ['Get General List', 'Use Current', 'Under Level 4'].concat(gm.getList('AllGenerals'));
@@ -1600,13 +1597,12 @@ SetControls:function(force) {
 	}, true);
 
 },
-/////////////////////////////////////////////////////////////////////
 
+/////////////////////////////////////////////////////////////////////
 //						MONSTERS DASHBOARD
-
 // Display the current monsters and stats
-
 /////////////////////////////////////////////////////////////////////
+
 makeCommaValue:function(nStr) {
   nStr += '';
   x = nStr.split('.');
@@ -1738,8 +1734,8 @@ Next we build the HTML to be included into the 'caap_infoTargets1' div. We set o
 table and then build the header row.
 \-------------------------------------------------------------------------------------*/
 	html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-	headers = ['UserId', 'Name', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
-	values = ['nameStr', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
+	headers = ['UserId', 'Name', 'Deity#', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
+	values = ['nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
 	for (var pp in headers) {
         if (headers.hasOwnProperty(pp)) {
             html += "<td><b><font size=1>" + headers[pp] + '</font></b></td>';
@@ -1755,7 +1751,8 @@ in targetOl and build each table row.  Our userid is 'key' so it's the first par
             targetObj = targetList[i];
             userid = targetObj.split(caapGlob.vs)[0];
             html += "<tr>";
-            html += caap.makeTd(userid, 'black');
+            link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
+            html += caap.makeTd(link, 'blue');
 /*-------------------------------------------------------------------------------------\
 We step through each of the additional values we include in the table. If a value is
 null then we build an empty td
@@ -1780,12 +1777,14 @@ all done end the table.  We then add the HTML to the div.
                         var newTime = new Date(parseInt(value, 10));
                         value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
                     }
+
                     html += caap.makeTd(value, 'black');
                 }
             }
             html += '</tr>';
         }
 	}
+
 	html += '</table>';
 	$("#caap_infoTargets1").html(html);
 /*-------------------------------------------------------------------------------------\
@@ -1793,6 +1792,7 @@ We add our listener for the Display Select control.
 \-------------------------------------------------------------------------------------*/
 	caap.AddDBListener();
 },
+
 /*-------------------------------------------------------------------------------------\
 AddDBListener creates the listener for our dashboard controls.
 \-------------------------------------------------------------------------------------*/
@@ -1839,6 +1839,7 @@ AddDBListener:function(){
 		gm.setValue('resetdashboard', true);
 	}, false);
 },
+
 /*-------------------------------------------------------------------------------------\
 DBDropDown is used to make our drop down boxes for dash board controls.  These require
 slightly different HTML from the side controls.
@@ -1892,11 +1893,8 @@ addExpDisplay:function() {
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							EVENT LISTENERS
-
 // Watch for changes and update the controls
-
 /////////////////////////////////////////////////////////////////////
 
 SetDisplay:function(idName,setting){
@@ -2083,11 +2081,8 @@ AddListeners:function(topDivName) {
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							GET STATS
-
 // Functions that records all of base game stats, energy, stamina, etc.
-
 /////////////////////////////////////////////////////////////////////
 
 GetStatusNumbers:function(node) {
@@ -2272,14 +2267,11 @@ GetStats:function() {
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							CHECK RESULTS
-
 // Called each iteration of main loop, this does passive checks for
-
 // results to update other functions.
-
 /////////////////////////////////////////////////////////////////////
+
 SetCheckResultsFunction:function(resultsFunction) {
 	this.JustDidIt('SetResultsFunctionTimer');
 	gm.setValue('ResultsFunction', resultsFunction);
@@ -2319,36 +2311,45 @@ CheckResults:function() {
 	}
 
 	// Check for Gold Stored
-	if (nHtml.FindByAttrContains(document.body,"div","class",'keep_main_section')) {
-		var goldStored = nHtml.FindByAttrContains(document.body,"b","class",'money').firstChild.data.replace(/[^0-9]/g,'');
-		gm.setValue('inStore',goldStored);
+	if (nHtml.FindByAttrContains(document.body, "div", "class", 'keep_main_section')) {
+		var goldStored = nHtml.FindByAttrContains(document.body, "b", "class", 'money').firstChild.data.replace(/[^0-9]/g, '');
+		gm.setValue('inStore', goldStored);
 	}
-	var resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
-	if (resultsDiv)
+
+	var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
+    var resultsText = '';
+	if (resultsDiv) {
 		resultsText = nHtml.GetText(resultsDiv).trim();
-	else resultsText = '';
+	}
 
 	// If set and still recent, go to the function specified in 'ResultsFunction'
-	resultsFunction = gm.getValue('ResultsFunction','');
-	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
+	var resultsFunction = gm.getValue('ResultsFunction', '');
+	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer', 20)) {
+        caap[resultsFunction](resultsText);
+    }
 
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-	if (!(page = gm.getValue('clickUrl'))) return;
+	var page = gm.getValue('clickUrl');
+    if (!page) {
+        return;
+    }
+
 	gm.log('Clicked page is ' + page);
-	if(page.match(/\/[^\/]+.php/i)) page = page.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
-	if (this.pageSpecificCheckFunctions[page])
+	if(page.match(/\/[^\/]+.php/i)) {
+        page = page.match(/\/[^\/]+.php/i)[0].replace('/', '').replace('.php', '');
+    }
+
+	if (this.pageSpecificCheckFunctions[page]) {
 		this[this.pageSpecificCheckFunctions[page]]();
-	gm.setValue('clickUrl','');
+	}
+
+	gm.setValue('clickUrl', '');
 },
 
-
 /////////////////////////////////////////////////////////////////////
-
 //							QUESTING
-
 // Quest function does action, DrawQuest sets up the page and gathers info
-
 /////////////////////////////////////////////////////////////////////
 
 MaxEnergyQuest:function() {
@@ -2356,380 +2357,458 @@ MaxEnergyQuest:function() {
 		gm.log("Changing to idle general to get Max energy");
 		return this.PassiveGeneral();
 	}
-	if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) return this.Quests();
+
+	if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) {
+        return this.Quests();
+    }
+
 	return false;
 },
-baseQuestTable : { 'Land of Fire' :'land_fire', 'Land of Earth':'land_earth', 'Land of Mist':'land_mist', 'Land of Water':'land_water', 'Demon Realm' :'land_demon_realm', 'Undead Realm':'land_undead_realm','Underworld':'tab_underworld'},
+
+baseQuestTable : { 'Land of Fire':'land_fire', 'Land of Earth':'land_earth', 'Land of Mist':'land_mist', 'Land of Water':'land_water', 'Demon Realm' :'land_demon_realm', 'Undead Realm':'land_undead_realm','Underworld':'tab_underworld'},
 demiQuestTable : { 'Ambrosia' : 'energy', 'Malekus':'attack', 'Corvintheus':'defense', 'Aurora':'health', 'Azeron':'stamina'},
 
 Quests:function() {
 	if(gm.getValue('storeRetrieve','') !== ''){
 		if(gm.getValue('storeRetrieve') == 'general'){
-			if (this.SelectGeneral('BuyGeneral')) return true;
-			gm.setValue('storeRetrieve','');
+			if (this.SelectGeneral('BuyGeneral')) {
+                return true;
+            }
+
+			gm.setValue('storeRetrieve', '');
 			return true;
-		}else return this.RetrieveFromBank(gm.getValue('storeRetrieve',''));
+		} else {
+            return this.RetrieveFromBank(gm.getValue('storeRetrieve', ''));
+        }
 	}
-	this.SetDivContent('quest_mess','');
-	if(gm.getValue('WhenQuest','')=='Never') {
-		this.SetDivContent('quest_mess','Questing off');
+
+	this.SetDivContent('quest_mess', '');
+	if(gm.getValue('WhenQuest', '') == 'Never') {
+		this.SetDivContent('quest_mess', 'Questing off');
 		return false;
 	}
-	if(gm.getValue('WhenQuest','') == 'Not Fortifying') {
-		var maxHealthtoQuest=this.GetNumber('MaxHealthtoQuest');
+
+	if(gm.getValue('WhenQuest', '') == 'Not Fortifying') {
+		var maxHealthtoQuest = this.GetNumber('MaxHealthtoQuest');
 		if(!maxHealthtoQuest) {
-			this.SetDivContent('quest_mess','<b>No valid over fortify %</b>');
+			this.SetDivContent('quest_mess', '<b>No valid over fortify %</b>');
 			return false;
 		}
+
 		var fortMon = gm.getValue('targetFromfortify');
 		if (fortMon) {
-			this.SetDivContent('quest_mess','No questing until attack target '+fortMon+" health exceeds "+this.GetNumber('MaxToFortify')+'%');
+			this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + this.GetNumber('MaxToFortify') + '%');
 			return false;
 		}
+
 		var targetFrombattle_monster = gm.getValue('targetFrombattle_monster');
 		if (!targetFrombattle_monster) {
-			if (!(targetFort = gm.getListObjVal('monsterOl',targetFrombattle_monster,'ShipHealth'))) {
+            var targetFort = gm.getListObjVal('monsterOl', targetFrombattle_monster, 'ShipHealth');
+			if (!targetFort) {
 				if(targetFort < maxHealthtoQuest) {
-					this.SetDivContent('quest_mess','No questing until fortify target '+targetFrombattle_monster+' health exceeds '+maxHealthtoQuest+'%');
+					this.SetDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
 					return false;
 				}
 			}
 		}
 	}
-	if(!gm.getObjVal('AutoQuest','name')) {
-		if(gm.getValue('WhyQuest','')=='Manual') {
-			this.SetDivContent('quest_mess','Pick quest manually.');
+
+	if(!gm.getObjVal('AutoQuest', 'name')) {
+		if(gm.getValue('WhyQuest', '') == 'Manual') {
+			this.SetDivContent('quest_mess', 'Pick quest manually.');
 			return false;
 		}
-		this.SetDivContent('quest_mess','Searching for quest.');
-	} else if(!this.IsEnoughEnergyForAutoQuest()) return false;
 
-	if (gm.getObjVal('AutoQuest','general')=='none' || gm.getValue('ForceSubGeneral')) {
-		if (this.SelectGeneral('SubQuestGeneral')) return true;
+		this.SetDivContent('quest_mess', 'Searching for quest.');
+	} else {
+        if(!this.IsEnoughEnergyForAutoQuest()) {
+            return false;
+        }
+    }
+
+	if (gm.getObjVal('AutoQuest', 'general') == 'none' || gm.getValue('ForceSubGeneral')) {
+		if (this.SelectGeneral('SubQuestGeneral')) {
+            return true;
+        }
 	}
 
-	switch (gm.getValue('QuestArea','Quest')) {
+	switch (gm.getValue('QuestArea', 'Quest')) {
 		case 'Quest' :
-			var subQArea = gm.getValue('QuestSubArea','Land of Fire');
+			var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
 			var landPic = this.baseQuestTable[subQArea];
 			if (landPic == 'tab_underworld') {
-				if (this.NavigateTo('quests,jobs_tab_more.gif,'+landPic + '_small.gif',landPic + '_big')) return true;
-			}else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
-				if (this.NavigateTo('quests,jobs_tab_more.gif,'+landPic + '.gif',landPic + '_sel')) return true;
+				if (this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big')) {
+                    return true;
+                }
+			} else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
+				if (this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif',landPic + '_sel')) {
+                    return true;
+                }
 			} else {
-				if (this.NavigateTo('quests,jobs_tab_back.gif,'+landPic + '.gif',landPic + '_sel')) return true;
+				if (this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel')) {
+                    return true;
+                }
 			}
+
 			break;
 		case 'Demi Quests' :
-			if (this.NavigateTo('quests,symbolquests','demi_quest_on.gif')) return true;
-			var subDQArea = gm.getValue('QuestSubArea','Ambrosia');
-			var picSlice = nHtml.FindByAttrContains(document.body,'img','src','deity_'+this.demiQuestTable[subDQArea]);
-			if (picSlice.style.height!='160px') {
-				return this.NavigateTo('deity_'+this.demiQuestTable[subDQArea]);
+			if (this.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
+                return true;
+            }
+
+			var subDQArea = gm.getValue('QuestSubArea', 'Ambrosia');
+			var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + this.demiQuestTable[subDQArea]);
+			if (picSlice.style.height != '160px') {
+				return this.NavigateTo('deity_' + this.demiQuestTable[subDQArea]);
 			}
+
 			break;
 		case 'Atlantis' :
-			if (!this.CheckForImage('tab_atlantis_on.gif')) return this.NavigateTo('quests,monster_quests');
-                        break;
+			if (!this.CheckForImage('tab_atlantis_on.gif')) {
+                return this.NavigateTo('quests,monster_quests');
+            }
+
+            break;
 		default :
 			break;
 	}
 
 	var button = this.CheckForImage('quick_switch_button.gif');
-	if (button && !gm.getValue('ForceSubGeneral',false)) {
+	if (button && !gm.getValue('ForceSubGeneral', false)) {
 		gm.log('Clicking on quick switch general button.');
 		this.Click(button);
 		return true;
 	}
 
-        var costToBuy = '';
-
+    var costToBuy = '';
 	//Buy quest requires popup
-	var itemBuyPopUp = nHtml.FindByAttrContains(document.body,"form","id",'itemBuy');
-	if(itemBuyPopUp){
-		gm.setValue('storeRetrieve','general');
-		if (this.SelectGeneral('BuyGeneral')) return true;
-		gm.setValue('storeRetrieve','');
-		costToBuy = itemBuyPopUp.textContent.replace(/.*\$/,'').replace(/[^0-9]{3,}.*/,'');
+	var itemBuyPopUp = nHtml.FindByAttrContains(document.body, "form", "id", 'itemBuy');
+	if (itemBuyPopUp){
+		gm.setValue('storeRetrieve', 'general');
+		if (this.SelectGeneral('BuyGeneral')) {
+            return true;
+        }
+
+		gm.setValue('storeRetrieve', '');
+		costToBuy = itemBuyPopUp.textContent.replace(/.*\$/, '').replace(/[^0-9]{3,}.*/, '');
 		gm.log("costToBuy = "+costToBuy);
 		if(this.stats.cash < costToBuy) {
 			//Retrieving from Bank
-			if(this.stats.cash+(gm.getValue('inStore')-this.GetNumber('minInStore'))>= costToBuy){
-				gm.log("Trying to retrieve: "+(costToBuy-this.stats.cash));
-				gm.setValue("storeRetrieve",costToBuy-this.stats.cash);
-				return this.RetrieveFromBank(costToBuy-this.stats.cash);
-			}else{
-				gm.setValue('AutoQuest','');
-				gm.setValue('WhyQuest','Manual');
+			if (this.stats.cash + (gm.getValue('inStore') - this.GetNumber('minInStore')) >= costToBuy) {
+				gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
+				gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
+				return this.RetrieveFromBank(costToBuy - this.stats.cash);
+			} else {
+				gm.setValue('AutoQuest', '');
+				gm.setValue('WhyQuest', 'Manual');
 				gm.log("Cant buy requires, stopping quest");
 				caap.SetControls(true);
 				return false;
 			}
 		}
+
 		button = this.CheckForImage('quick_buy_button.jpg');
-		if (button){
+		if (button) {
 			gm.log('Clicking on quick buy button.');
 			this.Click(button);
 			return true;
 		}
+
 		gm.log("Cant find buy button");
 		return false;
 	}
 
 	button = this.CheckForImage('quick_buy_button.jpg');
 	if (button) {
-		gm.setValue('storeRetrieve','general');
-		if (this.SelectGeneral('BuyGeneral')) return true;
-		gm.setValue('storeRetrieve','');
-		costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(/[^0-9]/g,'');
-		gm.log("costToBuy = "+costToBuy);
-			if(this.stats.cash < costToBuy) {
-				//Retrieving from Bank
-				if(this.stats.cash+(gm.getValue('inStore')-this.GetNumber('minInStore'))>= costToBuy){
-					gm.log("Trying to retrieve: "+(costToBuy-this.stats.cash));
-					gm.setValue("storeRetrieve",costToBuy-this.stats.cash);
-					return this.RetrieveFromBank(costToBuy-this.stats.cash);
-				}else{
-					gm.setValue('AutoQuest','');
-					gm.setValue('WhyQuest','Manual');
-					gm.log("Cant buy General, stopping quest");
-					caap.SetControls(true);
-					return false;
-				}
-			}
+		gm.setValue('storeRetrieve', 'general');
+		if (this.SelectGeneral('BuyGeneral')) {
+            return true;
+        }
+
+		gm.setValue('storeRetrieve', '');
+		costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(/[^0-9]/g, '');
+		gm.log("costToBuy = " + costToBuy);
+        if (this.stats.cash < costToBuy) {
+            //Retrieving from Bank
+            if (this.stats.cash + (gm.getValue('inStore') - this.GetNumber('minInStore')) >= costToBuy) {
+                gm.log("Trying to retrieve: "+(costToBuy-this.stats.cash));
+                gm.setValue("storeRetrieve",costToBuy-this.stats.cash);
+                return this.RetrieveFromBank(costToBuy-this.stats.cash);
+            } else {
+                gm.setValue('AutoQuest', '');
+                gm.setValue('WhyQuest', 'Manual');
+                gm.log("Cant buy General, stopping quest");
+                caap.SetControls(true);
+                return false;
+            }
+        }
+
 		gm.log('Clicking on quick buy general button.');
 		this.Click(button);
 		return true;
 	}
-	autoQuestDivs = this.DrawQuests(true);
-	if(!gm.getObjVal('AutoQuest','name')) {
+
+	var autoQuestDivs = this.DrawQuests(true);
+	if (!gm.getObjVal('AutoQuest', 'name')) {
 		gm.log('Could not find autoquest.');
-		this.SetDivContent('quest_mess','Could not find autoquest.');
+		this.SetDivContent('quest_mess', 'Could not find autoquest.');
 		return false;
 	}
-	if(gm.getObjVal('AutoQuest','name')!=autoQuestName) {
+
+    var autoQuestName = gm.getObjVal('AutoQuest', 'name');
+	if(gm.getObjVal('AutoQuest','name') != autoQuestName) {
 		gm.log('New AutoQuest found.');
-		this.SetDivContent('quest_mess','New AutoQuest found.');
+		this.SetDivContent('quest_mess', 'New AutoQuest found.');
 		return true;
 	}
+
 	//if found missing requires, click to buy
-	var background = nHtml.FindByAttrContains(autoQuestDivs.tr,"div","style",'background-color');
-	if(background){
-		if(background.style.backgroundColor == 'rgb(158, 11, 15)'){
-			gm.log(" background.style.backgroundColor = "+background.style.backgroundColor);
-			gm.setValue('storeRetrieve','general');
-			if (this.SelectGeneral('BuyGeneral'))return true;
-			gm.setValue('storeRetrieve','');
+	var background = nHtml.FindByAttrContains(autoQuestDivs.tr, "div", "style", 'background-color');
+	if (background) {
+		if (background.style.backgroundColor == 'rgb(158, 11, 15)') {
+			gm.log(" background.style.backgroundColor = " + background.style.backgroundColor);
+			gm.setValue('storeRetrieve', 'general');
+			if (this.SelectGeneral('BuyGeneral')) {
+                return true;
+            }
+
+			gm.setValue('storeRetrieve', '');
 			if (background.firstChild.firstChild.title) {
-				gm.log("Clicking to buy "+background.firstChild.firstChild.title);
+				gm.log("Clicking to buy " + background.firstChild.firstChild.title);
 				this.Click(background.firstChild.firstChild);
 				return true;
 			}
 		}
 	}
-	general = gm.getObjVal('AutoQuest','general');
-	if (general == 'none' || gm.getValue('ForceSubGeneral',false)) {
-		if (this.SelectGeneral('SubQuestGeneral')) return true;
+
+	var general = gm.getObjVal('AutoQuest', 'general');
+	if (general == 'none' || gm.getValue('ForceSubGeneral', false)) {
+		if (this.SelectGeneral('SubQuestGeneral')) {
+            return true;
+        }
 	} else if ((general) && general != this.GetCurrentGeneral()) {
 		gm.log('Clicking on general ' + general);
 		this.Click(autoQuestDivs.genDiv);
 		return true;
 	}
-	gm.log('Clicking auto quest: '+autoQuestName);
-	gm.setValue('ReleaseControl',true);
-	caap.Click(autoQuestDivs.click,10000);
+
+	gm.log('Clicking auto quest: ' + autoQuestName);
+	gm.setValue('ReleaseControl', true);
+	caap.Click(autoQuestDivs.click, 10000);
 	return true;
 },
 
 DrawQuests:function(pickQuestTF) {
-	var whyQuest = gm.getValue('WhyQuest','');
-	if (pickQuestTF && whyQuest!='Manual') gm.setValue('AutoQuest','');
-	var bestReward=0;
-        var rewardRatio = 0;
+	var whyQuest = gm.getValue('WhyQuest', '');
+	if (pickQuestTF && whyQuest != 'Manual') {
+        gm.setValue('AutoQuest', '');
+    }
+
+	var bestReward = 0;
+    var rewardRatio = 0;
 	var div = document.body;
-        var ss = null;
-        var s = 0;
+    var ss = null;
+    var s = 0;
 	if (this.CheckForImage('demi_quest_on.gif')) {
-		ss=document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",div,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-		for(s=0; s<ss.snapshotLength; s++) {
-			div=ss.snapshotItem(s);
-			if (div.style.display!='none') break;
+		ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]", div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+		for(s = 0; s < ss.snapshotLength; s++) {
+			div = ss.snapshotItem(s);
+			if (div.style.display != 'none') {
+                break;
+            }
 		}
 	}
 
-	ss=document.evaluate(".//div[contains(@class,'quests_background')]",div,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+	ss = document.evaluate(".//div[contains(@class,'quests_background')]", div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 	if (ss.snapshotLength === 0) {
 //		gm.log("Failed to find quests_background");
 		return;
 	}
-	for(s=0; s<ss.snapshotLength; s++) {
-		div=ss.snapshotItem(s);
 
-		if (!(quest_name=this.GetQuestName(div))) continue;
+    var autoQuestDivs = {};
+	for(s = 0; s < ss.snapshotLength; s++) {
+		div = ss.snapshotItem(s);
 
-		var reward=null;
-		var energy=null;
-		var experience=null;
-		var divTxt=nHtml.GetText(div);
-		var expM=this.experienceRe.exec(divTxt);
+        caapGlob.quest_name = this.GetQuestName(div);
+		if (!caapGlob.quest_name) {
+            continue;
+        }
 
+		var reward = null;
+		var energy = null;
+		var experience = null;
+		var divTxt = nHtml.GetText(div);
+		var expM = this.experienceRe.exec(divTxt);
 		if (expM) {
-                        experience=this.NumberOnly(expM[1]);
-                } else {
-			var expObj=nHtml.FindByAttr(div,'div','className','quest_experience');
-			if(expObj) {
-				experience=(this.NumberOnly(nHtml.GetText(expObj)));
+            experience = this.NumberOnly(expM[1]);
+        } else {
+			var expObj = nHtml.FindByAttr(div, 'div', 'className', 'quest_experience');
+			if (expObj) {
+				experience = (this.NumberOnly(nHtml.GetText(expObj)));
 			} else {
-				gm.log('cannot find experience:'+quest_name);
+				gm.log('cannot find experience:' + caapGlob.quest_name);
 			}
 		}
 
-		if((idx=quest_name.indexOf('<br>'))>=0) {
-			quest_name=quest_name.substring(0,idx);
+        var idx = caapGlob.quest_name.indexOf('<br>');
+		if (idx >= 0) {
+			caapGlob.quest_name = caapGlob.quest_name.substring(0, idx);
 		}
 
-
-		var energyM=this.energyRe.exec(divTxt);
-		if(energyM) {
-			energy=this.NumberOnly(energyM[1]);
+		var energyM = this.energyRe.exec(divTxt);
+		if (energyM) {
+			energy = this.NumberOnly(energyM[1]);
 		} else {
-			var eObj=nHtml.FindByAttrContains(div,'div','className','quest_req');
-			if(eObj) {
-				energy=eObj.getElementsByTagName('b')[0];
+			var eObj = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_req');
+			if (eObj) {
+				energy = eObj.getElementsByTagName('b')[0];
 			}
 		}
 
-		if(!energy) {
-			gm.log('cannot find energy for quest:'+quest_name);
+		if (!energy) {
+			gm.log('cannot find energy for quest:' + caapGlob.quest_name);
 			continue;
 		}
 
-		var moneyM=this.moneyRe.exec(this.RemoveHtmlJunk(divTxt));
-		if(moneyM) {
-			var rewardLow=this.NumberOnly(moneyM[1]);
-			var rewardHigh=this.NumberOnly(moneyM[2]);
-			reward=(rewardLow+rewardHigh)/2;
+		var moneyM = this.moneyRe.exec(this.RemoveHtmlJunk(divTxt));
+		if (moneyM) {
+			var rewardLow = this.NumberOnly(moneyM[1]);
+			var rewardHigh = this.NumberOnly(moneyM[2]);
+			reward = (rewardLow + rewardHigh) / 2;
 		} else {
-			gm.log('no money found:'+quest_name+' in ' + divTxt);
+			gm.log('no money found:' + caapGlob.quest_name + ' in ' + divTxt);
 		}
 
-		var click=nHtml.FindByAttr(div,"input","name",/^Do/);
-		if(!click) {
-			gm.log('no button found:'+quest_name);
+		var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
+		if (!click) {
+			gm.log('no button found:' + caapGlob.quest_name);
 			continue;
 		}
-		var influence;
-		var bossList = ["Gift of Earth","Eye of the Storm","A Look into the Darkness","The Rift","Undead Embrace","Confrontation"];
-		if (bossList.indexOf(quest_name) >= 0 && nHtml.FindByClassName(document.body,'div','quests_background_sub')) {
+		var influence = null;
+		var bossList = ["Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
+		if (bossList.indexOf(caapGlob.quest_name) >= 0 && nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
 			//if boss and found sub quests
 			influence = "100";
 		} else {
-			var influenceList=this.influenceRe.exec(divTxt);
+			var influenceList = this.influenceRe.exec(divTxt);
 			if (influenceList) {
 				influence = influenceList[1];
 			} else {
 				gm.log("Influence div not found.");
 			}
 		}
-		if(!influence) {
-			gm.log('no influence found:'+quest_name+' in ' + divTxt);
+
+		if (!influence) {
+			gm.log('no influence found:' + caapGlob.quest_name + ' in ' + divTxt);
 		}
+
 		var general = 'none';
+        var genDiv = null;
 		if (influence && influence < 100) {
-			var genDiv=nHtml.FindByAttrContains(div,'div','className','quest_act_gen');
+			genDiv = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_act_gen');
 			if (genDiv) {
-				genDiv = nHtml.FindByAttrContains(genDiv,'img','src','jpg');
+				genDiv = nHtml.FindByAttrContains(genDiv, 'img', 'src', 'jpg');
 				if (genDiv) {
 					general = genDiv.title;
 				}
 			}
 		}
-		this.LabelQuests(div,energy,reward,experience,click);
-		if(this.CheckCurrentQuestArea(gm.getValue('QuestSubArea','Atlantis'))){
+
+		this.LabelQuests(div, energy, reward, experience, click);
+		if(this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))){
 			switch (whyQuest) {
 				case 'Max Influence' :
-					if(influence) {
-						if (!gm.getObjVal('AutoQuest','name') && this.NumberOnly(influence)<100) gm.setObjVal('AutoQuest','name',quest_name);
+					if (influence) {
+						if (!gm.getObjVal('AutoQuest', 'name') && this.NumberOnly(influence) < 100) {
+                            gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                        }
 					} else {
-						gm.log('cannot find influence:'+quest_name+': '+influence);
+						gm.log('cannot find influence:' + caapGlob.quest_name + ': ' + influence);
 					}
 					break;
 				case 'Max Experience' :
-					rewardRatio=(Math.floor(experience/energy*100)/100);
-					if(bestReward<rewardRatio) gm.setObjVal('AutoQuest','name',quest_name);
+					rewardRatio = (Math.floor(experience / energy * 100) / 100);
+					if (bestReward < rewardRatio) {
+                        gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                    }
 					break;
 				case 'Max Gold' :
-					rewardRatio=(Math.floor(reward/energy*10)/10);
-					if(bestReward<rewardRatio) gm.setObjVal('AutoQuest','name',quest_name);
-                                        break;
+					rewardRatio = (Math.floor(reward / energy * 10) / 10);
+					if (bestReward < rewardRatio) {
+                        gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                    }
+                    break;
 				default :
 					break;
 			}
-			if (gm.getObjVal('AutoQuest','name')==quest_name) {
-				bestReward=rewardRatio;
-				expRatio = experience/energy;
-				gm.setValue('AutoQuest','name' + caapGlob.ls + quest_name + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
-				autoQuestDivs={'click':click,'tr':div,'genDiv':genDiv};
+
+			if (gm.getObjVal('AutoQuest', 'name') == caapGlob.quest_name) {
+				bestReward = rewardRatio;
+				var expRatio = experience / energy;
+				gm.setValue('AutoQuest', 'name' + caapGlob.ls + caapGlob.quest_name + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
+				autoQuestDivs = {'click':click, 'tr':div, 'genDiv':genDiv};
 			}
 		}
 	}
 
 	if (pickQuestTF) {
-		if (gm.getObjVal('AutoQuest','name')) {
+		if (gm.getObjVal('AutoQuest', 'name')) {
 			this.SetControls(true);
 			return autoQuestDivs;
 		}
-		if(whyQuest=='Max Influence' && gm.getValue('swithQuestArea',false)){//if not find quest, probably you already maxed the subarea, try another area
+
+		if (whyQuest == 'Max Influence' && gm.getValue('swithQuestArea', false)) { //if not find quest, probably you already maxed the subarea, try another area
 			var SubAreaQuest = gm.getValue('QuestSubArea');
 			switch (SubAreaQuest) {
 				case 'Land of Fire':
-					gm.setValue('QuestSubArea','Land of Earth');
+					gm.setValue('QuestSubArea', 'Land of Earth');
 					break;
 				case 'Land of Earth':
-					gm.setValue('QuestSubArea','Land of Mist');
+					gm.setValue('QuestSubArea', 'Land of Mist');
 					break;
 				case 'Land of Mist':
-					gm.setValue('QuestSubArea','Land of Water');
+					gm.setValue('QuestSubArea', 'Land of Water');
 					break;
 				case 'Land of Water':
-					gm.setValue('QuestSubArea','Demon Realm');
+					gm.setValue('QuestSubArea', 'Demon Realm');
 					break;
 				case 'Demon Realm':
-					gm.setValue('QuestSubArea','Undead Realm');
+					gm.setValue('QuestSubArea', 'Undead Realm');
 					break;
 				case 'Undead Realm':
-					gm.setValue('QuestSubArea','Underworld');
+					gm.setValue('QuestSubArea', 'Underworld');
 					break;
 				case 'Underworld':
-					gm.setValue('QuestArea','Demi Quests');
-					gm.setValue('QuestSubArea','Ambrosia');
+					gm.setValue('QuestArea', 'Demi Quests');
+					gm.setValue('QuestSubArea', 'Ambrosia');
 					break;
 				case 'Ambrosia':
-					gm.setValue('QuestSubArea','Malekus');
+					gm.setValue('QuestSubArea', 'Malekus');
 					break;
 				case 'Malekus':
-					gm.setValue('QuestSubArea','Corvintheus');
+					gm.setValue('QuestSubArea', 'Corvintheus');
 					break;
 				case 'Corvintheus':
-					gm.setValue('QuestSubArea','Aurora');
+					gm.setValue('QuestSubArea', 'Aurora');
 					break;
 				case 'Aurora':
-					gm.setValue('QuestSubArea','Azeron');
+					gm.setValue('QuestSubArea', 'Azeron');
 					break;
 				case 'Azeron':
-					gm.setValue('QuestArea','Quest');
-					gm.setValue('QuestSubArea','Land of Fire');
+					gm.setValue('QuestArea', 'Quest');
+					gm.setValue('QuestSubArea', 'Land of Fire');
 					break;
 				default :
-					gm.setValue('AutoQuest','');
-					gm.setValue('WhyQuest','Manual');
+					gm.setValue('AutoQuest', '');
+					gm.setValue('WhyQuest', 'Manual');
 					this.SetControls(true);
 					return false;
 			}
 			return false;
 		}
-		gm.setValue('AutoQuest','');
-		gm.setValue('WhyQuest','Manual');
+
+		gm.setValue('AutoQuest', '');
+		gm.setValue('WhyQuest', 'Manual');
 		this.SetControls(true);
 	}
 },
@@ -2737,53 +2816,79 @@ DrawQuests:function(pickQuestTF) {
 CheckCurrentQuestArea:function(SubAreaQuest){
 	switch (SubAreaQuest) {
 		case 'Land of Fire':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_1')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_1')) {
+                return true;
+            }
 			break;
 		case 'Land of Earth':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_2')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_2')) {
+                return true;
+            }
 			break;
 		case 'Land of Mist':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_3')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_3')) {
+                return true;
+            }
 			break;
 		case 'Land of Water':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_4')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_4')) {
+                return true;
+            }
 			break;
 		case 'Demon Realm':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_5')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_5')) {
+                return true;
+            }
 			break;
 		case 'Undead Realm':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_6')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_6')) {
+                return true;
+            }
 			break;
 		case 'Underworld':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_7')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
+                return true;
+            }
 			break;
 		case 'Ambrosia':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_1')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_1')) {
+                return true;
+            }
 			break;
 		case 'Malekus':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_2')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_2')) {
+                return true;
+            }
 			break;
 		case 'Corvintheus':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_3')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_3')) {
+                return true;
+            }
 			break;
 		case 'Aurora':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_4')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_4')) {
+                return true;
+            }
 			break;
 		case 'Azeron':
-			if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_5')) return true;
+			if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_5')) {
+                return true;
+            }
 			break;
 		case 'Atlantis':
-			if (this.CheckForImage('tab_atlantis_on.gif')) return true;
+			if (this.CheckForImage('tab_atlantis_on.gif')) {
+                return true;
+            }
 			break;
 		default :
-			gm.log("Error: cant find SubQuestArea: "+SubAreaQuest);
+			gm.log("Error: cant find SubQuestArea: " + SubAreaQuest);
 			return false;
 	}
 },
 
 GetQuestName:function(questDiv) {
-	var item_title=nHtml.FindByAttrXPath(questDiv,'div',"@class='quest_desc' or @class='quest_sub_title'");
-	if(!item_title) {
+	var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
+	if (!item_title) {
 	//	gm.log("Can't find quest description or sub-title");
 		return false;
 	}
@@ -2792,115 +2897,128 @@ GetQuestName:function(questDiv) {
 		return false;
 	}
 
-	var firstb=item_title.getElementsByTagName('b')[0];
+	var firstb = item_title.getElementsByTagName('b')[0];
 	if (!firstb) {
 		gm.log("Can't get bolded member out of " + item_title.innerHTML.toString());
 		return false;
 	}
 
-	var quest_name=nHtml.StripHtml(firstb.innerHTML.toString()).trim();
-
-	if(!quest_name) {
-		gm.log('no quest name for this row'+div.innerHTML);
+	caapGlob.quest_name = nHtml.StripHtml(firstb.innerHTML.toString()).trim();
+	if (!caapGlob.quest_name) {
+		gm.log('no quest name for this row' + div.innerHTML);
 		return false;
 	}
-	return quest_name;
+
+	return caapGlob.quest_name;
 },
 
 IsEnoughEnergyForAutoQuest:function() {
 	var energy = gm.getObjVal('AutoQuest','energy');
-	if(!this.stats.energy || !energy) { return false; }
-	var whenQuest = gm.getValue('WhenQuest','');
+	if (!this.stats.energy || !energy) {
+        return false;
+    }
 
-	if(whenQuest == 'Energy Available' || whenQuest == 'Not Fortifying') {
-		if (this.stats.energy.num>=energy) return true;
-		this.SetDivContent('quest_mess','Waiting for more energy: '+this.stats.energy.num+"/"+(energy?energy:""));
+    var whenQuest = gm.getValue('WhenQuest','');
+
+	if (whenQuest == 'Energy Available' || whenQuest == 'Not Fortifying') {
+		if (this.stats.energy.num >= energy) {
+            return true;
+        }
+
+		this.SetDivContent('quest_mess', 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
 		return false;
 	} else if (whenQuest == 'At Max Energy') {
 		if (!gm.getValue('MaxIdleEnergy', 0)) {
 			gm.log("Changing to idle general to get Max energy");
 			this.PassiveGeneral();
 		}
-		if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) return true;
-		if (this.InLevelUpMode() && this.stats.energy.num>=energy) {
+
+		if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) {
+            return true;
+        }
+
+		if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
 			this.SetDivContent('quest_mess','Burning all energy to level up');
 			return true;
 		}
-		this.SetDivContent('quest_mess','Waiting for max energy:'+this.stats.energy.num+"/"+gm.getValue('MaxIdleEnergy'));
+
+		this.SetDivContent('quest_mess', 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
 		return false;
 	}
 	return false;
 },
 
-LabelQuests:function(div,energy,reward,experience,click) {
-	if(nHtml.FindByAttr(div,'div','className','autoquest')) return;
+LabelQuests:function(div, energy, reward, experience, click) {
+	if (nHtml.FindByAttr(div, 'div', 'className', 'autoquest')) {
+        return;
+    }
 
 	//var div=document.createElement('div');
-	div=document.createElement('div');
-	div.className='autoquest';
-	div.style.fontSize='10px';
-	div.innerHTML="$ per energy: "+
-		(Math.floor(reward/energy*10)/10)+
-		"<br />Exp per energy: "+
-		(Math.floor(experience/energy*100)/100)+
+	div = document.createElement('div');
+	div.className = 'autoquest';
+	div.style.fontSize = '10px';
+	div.innerHTML = "$ per energy: " +
+		(Math.floor(reward / energy * 10) / 10) +
+		"<br />Exp per energy: " +
+		(Math.floor(experience / energy * 100) / 100) +
 		"<br />";
 
-	if(gm.getObjVal('AutoQuest','name')==quest_name) {
-		var b=document.createElement('b');
-		b.innerHTML="Current auto quest";
+	if (gm.getObjVal('AutoQuest','name') == caapGlob.quest_name) {
+		var b = document.createElement('b');
+		b.innerHTML = "Current auto quest";
 		div.appendChild(b);
 	} else {
-		var setAutoQuest=document.createElement('a');
-		setAutoQuest.innerHTML='Auto run this quest.';
-		setAutoQuest.quest_name=quest_name;
+		var setAutoQuest = document.createElement('a');
+		setAutoQuest.innerHTML = 'Auto run this quest.';
+		setAutoQuest.quest_name = caapGlob.quest_name;
 
-		var quest_nameObj=document.createElement('span');
-		quest_nameObj.innerHTML=quest_name;
-		quest_nameObj.style.display='none';
+		var quest_nameObj = document.createElement('span');
+		quest_nameObj.innerHTML = caapGlob.quest_name;
+		quest_nameObj.style.display = 'none';
 		setAutoQuest.appendChild(quest_nameObj);
 
-		var quest_energyObj=document.createElement('span');
+		var quest_energyObj = document.createElement('span');
 		quest_energyObj.innerHTML=energy;
-		quest_energyObj.style.display='none';
+		quest_energyObj.style.display = 'none';
 		setAutoQuest.appendChild(quest_energyObj);
-		setAutoQuest.addEventListener("click",function(e) {
-			var sps=e.target.getElementsByTagName('span');
-			if(sps.length>0) {
-				gm.setValue('AutoQuest','name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.ls + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
-				gm.setValue('WhyQuest','Manual');
+		setAutoQuest.addEventListener("click", function(e) {
+			var sps = e.target.getElementsByTagName('span');
+			if (sps.length > 0) {
+				gm.setValue('AutoQuest', 'name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.ls + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
+				gm.setValue('WhyQuest', 'Manual');
 				if (caap.CheckForImage('tab_quest_on.gif')) {
-					gm.setValue('QuestArea','Quest');
-					if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_1')){
-						gm.setValue('QuestSubArea','Land of Fire');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_2')){
-						gm.setValue('QuestSubArea','Land of Earth');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_3')){
-						gm.setValue('QuestSubArea','Land of Mist');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_4')){
-						gm.setValue('QuestSubArea','Land of Water');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_5')){
-						gm.setValue('QuestSubArea','Demon Realm');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_6')){
-						gm.setValue('QuestSubArea','Undead Realm');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'quests_stage_7')){
-						gm.setValue('QuestSubArea','Underworld');
+					gm.setValue('QuestArea', 'Quest');
+					if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_1')) {
+						gm.setValue('QuestSubArea', 'Land of Fire');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_2')) {
+						gm.setValue('QuestSubArea', 'Land of Earth');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_3')) {
+						gm.setValue('QuestSubArea', 'Land of Mist');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_4')) {
+						gm.setValue('QuestSubArea', 'Land of Water');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_5')) {
+						gm.setValue('QuestSubArea', 'Demon Realm');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_6')) {
+						gm.setValue('QuestSubArea', 'Undead Realm');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
+						gm.setValue('QuestSubArea', 'Underworld');
 					}
 					gm.log('Seting SubQuest Area to: '+ gm.getValue('QuestSubArea'));
 				} else if (caap.CheckForImage('demi_quest_on.gif')) {
-					gm.setValue('QuestArea','Demi Quests');
+					gm.setValue('QuestArea', 'Demi Quests');
 					// Set Sub Quest Area
-					if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_1')){
-						gm.setValue('QuestSubArea','Ambrosia');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_2')){
-						gm.setValue('QuestSubArea','Malekus');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_3')){
-						gm.setValue('QuestSubArea','Corvintheus');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_4')){
-						gm.setValue('QuestSubArea','Aurora');
-					}else if (nHtml.FindByAttrContains(document.body,"div","class",'symbolquests_stage_5')){
-						gm.setValue('QuestSubArea','Azeron');
+					if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_1')) {
+						gm.setValue('QuestSubArea', 'Ambrosia');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_2')) {
+						gm.setValue('QuestSubArea', 'Malekus');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_3')) {
+						gm.setValue('QuestSubArea', 'Corvintheus');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_4')) {
+						gm.setValue('QuestSubArea', 'Aurora');
+					} else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_5')) {
+						gm.setValue('QuestSubArea', 'Azeron');
 					}
-					gm.log('Seting SubQuest Area to: '+ gm.getValue('QuestSubArea'));
+					gm.log('Seting SubQuest Area to: ' + gm.getValue('QuestSubArea'));
 				} else if (caap.CheckForImage('tab_atlantis_on.gif')) {
 					gm.setValue('QuestArea','Atlantis');
 					gm.deleteValue('QuestSubArea');
@@ -2909,19 +3027,19 @@ LabelQuests:function(div,energy,reward,experience,click) {
 			} else {
 				gm.log('what did we click on?');
 			}
-		},false);
+		}, false);
+
 		div.appendChild(setAutoQuest);
 	}
-	div.style.position='absolute';
-	div.style.background='#B09060';
-	div.style.right="144px";
-	click.parentNode.insertBefore(div,click);
+
+	div.style.position = 'absolute';
+	div.style.background = '#B09060';
+	div.style.right = "144px";
+	click.parentNode.insertBefore(div, click);
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							AUTO BLESSING
-
 /////////////////////////////////////////////////////////////////////
 
 deityTable:{'energy':1, 'attack': 2,'defense': 3,'health': 4,'stamina': 5},
@@ -2929,96 +3047,115 @@ deityTable:{'energy':1, 'attack': 2,'defense': 3,'health': 4,'stamina': 5},
 BlessingResults:function(resultsText) {
 	// Check time until next Oracle Blessing
 	if (resultsText.match(/Please come back in: /)) {
-		var hours = parseInt(resultsText.match(/ \d+ hour/),10);
-		var minutes = parseInt(resultsText.match(/ \d+ minute/),10);
-		this.SetTimer('BlessingTimer',(hours*60+minutes+1)*60);
+		var hours = parseInt(resultsText.match(/ \d+ hour/), 10);
+		var minutes = parseInt(resultsText.match(/ \d+ minute/), 10);
+		this.SetTimer('BlessingTimer',(hours * 60 + minutes + 1) * 60);
 		gm.log('Recorded Blessing Time.  Scheduling next click!');
 	}
 
 	// Recieved Demi Blessing.  Wait 24 hours to try again.
 	if (resultsText.match(/You have paid tribute to/)) {
-		this.SetTimer('BlessingTimer',24*60*60+60);
+		this.SetTimer('BlessingTimer', 24 * 60 * 60 + 60);
 		gm.log('Received blessing.  Scheduling next click!');
 	}
+
 	this.SetCheckResultsFunction('');
 },
-AutoBless:function() {
-	var autoBless=gm.getValue('AutoBless','none').toLowerCase();
-	if (autoBless=='none') return false;
-	if (!this.CheckTimer('BlessingTimer')) return false;
-	if (this.NavigateTo('quests,demi_quest_off','demi_quest_bless')) return true;
 
-	var picSlice =nHtml.FindByAttrContains(document.body,'img','src','deity_'+autoBless);
-	if (!(picSlice =nHtml.FindByAttrContains(document.body,'img','src','deity_'+autoBless))) {
-		gm.log('No diety pics for deity_'+autoBless);
+AutoBless:function() {
+	var autoBless = gm.getValue('AutoBless', 'none').toLowerCase();
+	if (autoBless == 'none') {
+        return false;
+    }
+
+	if (!this.CheckTimer('BlessingTimer')) {
+        return false;
+    }
+
+	if (this.NavigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
+        return true;
+    }
+
+	var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + autoBless);
+	if (!picSlice) {
+		gm.log('No diety pics for deity_' + autoBless);
 		return false;
 	}
 
-	if (picSlice.style.height!='160px') {
-			return this.NavigateTo('deity_'+autoBless);
+	if (picSlice.style.height != '160px') {
+			return this.NavigateTo('deity_' + autoBless);
 	}
-	if (!(picSlice = nHtml.FindByAttrContains(document.body,'form','id','_symbols_form_'+this.deityTable[autoBless]))) {
+
+    picSlice = nHtml.FindByAttrContains(document.body, 'form', 'id', '_symbols_form_' + this.deityTable[autoBless]);
+	if (!picSlice) {
 		gm.log('No form for deity blessing.');
 		return false;
 	}
-	if (!(picSlice = this.CheckForImage('demi_quest_bless',picSlice))) {
+
+    picSlice = this.CheckForImage('demi_quest_bless', picSlice);
+	if (!picSlice) {
 		gm.log('No image for deity blessing.');
 		return false;
 	}
+
 	gm.log('Click deity blessing for ' + autoBless);
-	this.SetTimer('BlessingTimer',60*60);
+	this.SetTimer('BlessingTimer', 60 * 60);
 	this.SetCheckResultsFunction('BlessingResults');
 	caap.Click(picSlice);
 	return true;
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							LAND
-
 // Displays return on lands and perfom auto purchasing
-
 /////////////////////////////////////////////////////////////////////
 
 LandsGetNameFromRow:function(row) {
 	// schoolofmagic, etc. <div class=item_title
-	var infoDiv=nHtml.FindByAttrXPath(row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')");
-	if(!infoDiv) {
+	var infoDiv = nHtml.FindByAttrXPath(row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
+	if (!infoDiv) {
 		gm.log("can't find land_buy_info");
 	}
-	if(infoDiv.className.indexOf('item_title')>=0) {
+
+	if (infoDiv.className.indexOf('item_title') >= 0) {
 		return infoDiv.textContent.trim();
 	}
-	var strongs=infoDiv.getElementsByTagName('strong');
-	if(strongs.length<1) {
+
+	var strongs = infoDiv.getElementsByTagName('strong');
+	if (strongs.length < 1) {
 		return null;
 	}
+
 	return strongs[0].textContent.trim();
 },
 
-bestProp:{prop:'',roi:''},
+bestProp:{prop:'', roi:''},
+
 DrawLands:function() {
-	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_propDone')")) return null;
+	if (!this.CheckForImage('tab_land_on.gif') || nHtml.FindByAttrXPath(document, 'div', "contains(@class,'caap_propDone')")) {
+        return null;
+    }
+
 	gm.deleteValue('BestPropCost');
 	this.sellProp = '';
-	this.bestProp.roi =0;
-	var propByName=this.IterateLands(function(prop) {
+	this.bestProp.roi = 0;
+	var propByName = this.IterateLands(function(prop) {
 		this.SelectLands(prop.row, 2);
-		var roi=(parseInt((prop.income/prop.totalCost)*240000,10) /100);
+		var roi = (parseInt((prop.income / prop.totalCost) * 240000, 10) /100);
 		var selects = prop.row.getElementsByTagName('select');
-		if(!nHtml.FindByAttrXPath(prop.row,'input',"@name='Buy'")) {
+		if (!nHtml.FindByAttrXPath(prop.row, 'input', "@name='Buy'")) {
 			roi = 0;
 			// Lets get our max allowed from the land_buy_info div
-			div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')");
+			div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
 			maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
-			maxAllowed= Number(maxText.replace(/:\s+/,''));
+			maxAllowed = Number(maxText.replace(/:\s+/, ''));
 			// Lets get our owned total from the land_buy_costs div
-			div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_costs')");
+			div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_costs')");
 			ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
-			owned = Number(ownedText.replace(/:\s+/,''));
+			owned = Number(ownedText.replace(/:\s+/, ''));
 			// If we own more than allowed we will set land and selection
-			var selection = new Array(1,5,10);
-			for (var s=2; s>=0; s--) {
+			var selection = [1, 5, 10];
+			for (var s = 2; s >= 0; s--) {
 				if (owned - maxAllowed >= selection[s]) {
 					this.sellProp = prop;
 					this.sellProp.selection = s;
@@ -3026,158 +3163,182 @@ DrawLands:function() {
 				}
 			}
 		}
-		div = nHtml.FindByAttrXPath(prop.row,'div',"contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
-		div[0].innerHTML+=" | "+roi+"% per day.";
-		if(!prop.usedByOther) {
-			if(!(this.bestProp.roi || roi === 0)|| roi>this.bestProp.roi) {
-				this.bestProp.roi=roi;
-				this.bestProp.prop=prop;
-				gm.setValue('BestPropCost',this.bestProp.prop.cost);
+
+		div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
+		div[0].innerHTML += " | " + roi + "% per day.";
+		if (!prop.usedByOther) {
+			if (!(this.bestProp.roi || roi === 0)|| roi > this.bestProp.roi) {
+				this.bestProp.roi = roi;
+				this.bestProp.prop = prop;
+				gm.setValue('BestPropCost', this.bestProp.prop.cost);
 			}
 		}
-		if(prop.row.className == "land_buy_row_unique"){
-			if(nHtml.GetText(prop.row).match(/each consecutive day/i) != null) {
+
+		if (prop.row.className == "land_buy_row_unique") {
+			if (nHtml.GetText(prop.row).match(/each consecutive day/i) !== null) {
 				gm.log("Found unique land, checking timer");
-				if(nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5])){
+				if (nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5])) {
 					resultsText = nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5]).trim();
-					if(resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/)){
+					if (resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/)) {
 						resultsText = resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/).toString().split(',')[0];
 						resultsText = resultsText.split(':');
 						var time=[];
 						for(x = 2; x >= 0 ; x--){
 							time[x] = 0;
 							if(resultsText[x])
-								time[x] = resultsText[resultsText.length-1-x];
+								time[x] = resultsText[resultsText.length - 1 - x];
 						}
-						hours =  time[2];
-						minutes =  time[1];
-						seconds =  time[0];
-						gm.log("hours:"+hours+" minutes:"+minutes+" seconds:"+seconds);
-						if(gm.getValue('LandTimer',9999999999999999999999999) > (new Date().getTime())*1000+hours*3600+minutes*60+seconds){
+
+						hours = time[2];
+						minutes = time[1];
+						seconds = time[0];
+						gm.log("hours:" + hours + " minutes:" + minutes + " seconds:" + seconds);
+						if (gm.getValue('LandTimer', 9999999999999999999999999) > (new Date().getTime()) * 1000 + hours * 3600 + minutes * 60 + seconds) {
 							gm.log("Setting Land Timer");
-							this.SetTimer('LandTimer',hours*3600+minutes*60+seconds);
+							this.SetTimer('LandTimer', hours * 3600 + minutes * 60 + seconds);
 						}
 						//prop.row.childNodes[1].childNodes[7].childNodes[5].childNodes[5].childNodes[1]
-					}else {gm.log("You need to buy a prop first"); this.SetTimer('LandTimer',9999999999999999999999999);}
-				}else gm.log("Error");
+					} else {
+                        gm.log("You need to buy a prop first");
+                        this.SetTimer('LandTimer', 9999999999999999999999999);
+                    }
+				} else {
+                    gm.log("Error");
+                }
 			}
 		}
 	});
-	gm.log("BestPropCost:"+gm.getValue('BestPropCost'));
-	if(!gm.getValue('BestPropCost')){
-		gm.setValue('BestPropCost','none');
+
+	gm.log("BestPropCost:" + gm.getValue('BestPropCost'));
+	if (!gm.getValue('BestPropCost')) {
+		gm.setValue('BestPropCost', 'none');
 	}
-	div=document.createElement('div');
-	div.className='caap_propDone';
-	div.style.display='none';
-	nHtml.FindByAttrContains(document.body,"tr","class",'land_buy_row').appendChild(div);
+
+	div = document.createElement('div');
+	div.className = 'caap_propDone';
+	div.style.display = 'none';
+	nHtml.FindByAttrContains(document.body, "tr", "class", 'land_buy_row').appendChild(div);
 	return null;
 },
 
 IterateLands:function(func) {
-	var content=document.getElementById('content');
-	var ss=document.evaluate(".//tr[contains(@class,'land_buy_row')]",content,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+	var content = document.getElementById('content');
+	var ss = document.evaluate(".//tr[contains(@class,'land_buy_row')]", content, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 	if (!ss || (ss.snapshotLength === 0)) {
 		//gm.log("Can't find land_buy_row");
 		return null;
 	}
-	var builtOnRe=new RegExp('(Built On|Consumes|Requires):\\s*([^<]+)','i');
-	var propByName={};
-	var propNames=[];
+
+	var builtOnRe = new RegExp('(Built On|Consumes|Requires):\\s*([^<]+)', 'i');
+	var propByName = {};
+	var propNames = [];
 
 	//gm.log('forms found:'+ss.snapshotLength);
-	for(var s=0; s<ss.snapshotLength; s++) {
-		var row=ss.snapshotItem(s);
-		if(!row) { continue; }
+	for(var s = 0; s < ss.snapshotLength; s++) {
+		var row = ss.snapshotItem(s);
+		if (!row) {
+            continue;
+        }
 
-		var name=this.LandsGetNameFromRow(row);
+		var name = this.LandsGetNameFromRow(row);
+		if (name === null || name === '') {
+            gm.log("Can't find land name");
+            continue;
+        }
 
-		if(name===null || name==='') { gm.log("Can't find land name"); continue; }
+		var moneyss = document.evaluate(".//*[contains(@class,'gold') or contains(@class,'currency')]", row, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+		if (moneyss.snapshotLength < 2) {
+            gm.log("Can't find 2 gold instances");
+            continue;
+        }
 
-		var moneyss=document.evaluate(".//*[contains(@class,'gold') or contains(@class,'currency')]",row,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-
-		if(moneyss.snapshotLength < 2) { gm.log("Can't find 2 gold instances"); continue; }
-
-                var income = 0;
-		var nums=[];
-		var numberRe=new RegExp("([0-9,]+)");
-		for(var sm=0; sm<moneyss.snapshotLength; sm++) {
-			income=moneyss.snapshotItem(sm);
-			if(income.className.indexOf('label')>=0) {
-				income=income.parentNode;
-				var m=numberRe.exec(income.textContent);
-				if(m && m.length>=2 && m[1].length>1) {
+        var income = 0;
+		var nums = [];
+		var numberRe = new RegExp("([0-9,]+)");
+		for(var sm = 0; sm < moneyss.snapshotLength; sm++) {
+			income = moneyss.snapshotItem(sm);
+			if (income.className.indexOf('label') >= 0) {
+				income = income.parentNode;
+				var m = numberRe.exec(income.textContent);
+				if (m && m.length >= 2 && m[1].length > 1) {
 					// number must be more than a digit or else it could be a "? required" text
-					income=this.NumberOnly(m[1]);
+					income = this.NumberOnly(m[1]);
 				} else {
 					//gm.log('Cannot find income for: '+name+","+income.textContent);
-					income=0;
+					income = 0;
 					continue;
 				}
 			} else {
-				income=this.NumberOnly(income.textContent);
+				income = this.NumberOnly(income.textContent);
 			}
 			nums.push(income);
 		}
 
-		income=nums[0];
-		var cost=nums[1];
-		if(!income || !cost) {
+		income = nums[0];
+		var cost = nums[1];
+		if (!income || !cost) {
 			gm.log("Can't find income or cost for " + name);
 			continue;
 		}
-		if(income>cost) {
+
+		if (income > cost) {
 			// income is always less than the cost of land.
-			income=nums[1]; cost=nums[0];
+			income = nums[1];
+            cost = nums[0];
 		}
 
-		var totalCost=cost;
-
-		var prop={'row':row,'name':name,'income':income,'cost':cost,'totalCost':totalCost,'usedByOther':false};
-
-		propByName[name]=prop;
+		var totalCost = cost;
+		var prop = {'row':row, 'name':name, 'income':income, 'cost':cost, 'totalCost':totalCost, 'usedByOther':false};
+		propByName[name] = prop;
 		propNames.push(name);
 	}
 
-	for(var p=0; p<propNames.length;p++) {
+	for(var p = 0; p < propNames.length; p++) {
 		func.call(this,propByName[propNames[p]]);
 	}
+
 	return propByName;
 },
 
-SelectLands:function(row,val) {
-	var selects=row.getElementsByTagName('select');
-	if(selects.length<1) { return false; }
-	var select=selects[0];
-	select.selectedIndex=val;
+SelectLands:function(row, val) {
+	var selects = row.getElementsByTagName('select');
+	if (selects.length < 1) {
+        return false;
+    }
+
+	var select = selects[0];
+	select.selectedIndex = val;
 	return true;
 },
+
 BuyLand:function(prop) {
 	//this.DrawLands();
-	this.SelectLands(prop.row,2);
-	var button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'");
-	if(button) {
+	this.SelectLands(prop.row, 2);
+	var button = nHtml.FindByAttrXPath(prop.row, 'input', "@type='submit' or @type='image'");
+	if (button) {
 //		gm.log("Clicking buy button:" +button);
-		gm.log("Buying Prop: " +prop.name);
-		this.Click(button,13000);
-		gm.setValue('BestPropCost','');
+		gm.log("Buying Prop: " + prop.name);
+		this.Click(button, 13000);
+		gm.setValue('BestPropCost', '');
 		this.bestProp.roi = '';
 		return true;
 	}
+
 	return false;
 },
 
-SellLand:function(prop,select) {
+SellLand:function(prop, select) {
 	//this.DrawLands();
-	this.SelectLands(prop.row,select);
-	var button=nHtml.FindByAttrXPath(prop.row,'input',"@type='submit' or @type='image'");
+	this.SelectLands(prop.row, select);
+	var button = nHtml.FindByAttrXPath(prop.row, 'input', "@type='submit' or @type='image'");
 	if(button) {
 //		gm.log("Clicking sell button:" +button);
-		gm.log("Selling Prop: " +prop.name);
-		this.Click(button,13000);
+		gm.log("Selling Prop: " + prop.name);
+		this.Click(button, 13000);
 		this.sellProp = '';
 		return true;
 	}
+
 	return false;
 },
 
@@ -3185,57 +3346,72 @@ Lands:function() {
 	/*if(gm.getValue('LandTimer') && this.CheckTimer('LandTimer')) {
 		if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
 	}*/
-	var autoBuyLand=gm.getValue('autoBuyLand',0);
-	if(autoBuyLand) {
+	var autoBuyLand = gm.getValue('autoBuyLand', 0);
+	if (autoBuyLand) {
 		// Do we have lands above our max to sell?
-		if (this.sellProp && gm.getValue('SellLands',true)) {
-			this.SellLand(this.sellProp,this.sellProp.selection);
+		if (this.sellProp && gm.getValue('SellLands', true)) {
+			this.SellLand(this.sellProp, this.sellProp.selection);
 			return true;
 		}
 
-		if(!gm.getValue('BestPropCost')){
+		if (!gm.getValue('BestPropCost')) {
 			gm.log("Going to land to get Best Land Cost");
-			if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
+			if (this.NavigateTo('soldiers,land', 'tab_land_on.gif')) {
+                return true;
+            }
 		}
-		if(gm.getValue('BestPropCost') == 'none'){
+
+		if (gm.getValue('BestPropCost') == 'none') {
 			//gm.log("No Lands avaliable");
 			return false;
 		}
-		if(!gm.getValue('inStore')){
+
+		if (!gm.getValue('inStore')) {
 			gm.log("Going to keep to get Stored Value");
-			if (this.NavigateTo('keep')) return true;
+			if (this.NavigateTo('keep')) {
+                return true;
+            }
 		}
+
 		//Retrieving from Bank
-		if(this.stats.cash+(gm.getValue('inStore')-this.GetNumber('minInStore'))>=10*gm.getValue('BestPropCost') && this.stats.cash < 10*gm.getValue('BestPropCost')){
-			if(this.PassiveGeneral())return true;
-			gm.log("Trying to retrieve: "+(10*gm.getValue('BestPropCost')-this.stats.cash));
-			return this.RetrieveFromBank(10*gm.getValue('BestPropCost')-this.stats.cash);
+		if (this.stats.cash+(gm.getValue('inStore') - this.GetNumber('minInStore')) >= 10 * gm.getValue('BestPropCost') && this.stats.cash < 10 * gm.getValue('BestPropCost')) {
+			if (this.PassiveGeneral()) {
+                return true;
+            }
+
+			gm.log("Trying to retrieve: " + (10 * gm.getValue('BestPropCost') - this.stats.cash));
+			return this.RetrieveFromBank(10 * gm.getValue('BestPropCost') - this.stats.cash);
 		}
 
 // Need to check for enough moneys + do we have enough of the builton type that we already own.
-		if(gm.getValue('BestPropCost') && this.stats.cash >= 10*gm.getValue('BestPropCost')){
-			if(this.PassiveGeneral())return true;
+		if (gm.getValue('BestPropCost') && this.stats.cash >= 10 * gm.getValue('BestPropCost')) {
+			if (this.PassiveGeneral()) {
+                return true;
+            }
+
 			this.NavigateTo('soldiers,land');
-			if(this.CheckForImage('tab_land_on.gif')){
-				gm.log("Buying land: "+caap.bestProp.name);
-				if (this.BuyLand(caap.bestProp.prop))
-				return true;
-			}else return this.NavigateTo('soldiers,land');
+			if (this.CheckForImage('tab_land_on.gif')) {
+				gm.log("Buying land: " + caap.bestProp.name);
+				if (this.BuyLand(caap.bestProp.prop)) {
+                    return true;
+                }
+			} else {
+                return this.NavigateTo('soldiers,land');
+            }
 		}
 	}
+
 	return false;
 },
 
 /////////////////////////////////////////////////////////////////////
-
 //							BATTLING PLAYERS
-
 /////////////////////////////////////////////////////////////////////
 
 // Doesn't appear to be implemented in CA
 /*
 IterateBattleLinks:function(func) {
-	var content=document.getElementById('content');
+	var content = document.getElementById('content');
 	if(!content) { return; }
 	var ss=document.evaluate(".//a[(contains(@href,'xw_controller=stats') and contains(@href,'xw_action=view')) "+
 		"or (contains(@href,'/profile/'))"+
@@ -3276,33 +3452,38 @@ AddBattleLinks:function() {
 */
 
 CheckBattleResults:function() {
-	// Check for Battle results
+    var nameLink = null;
+    var userId = null;
+    var userName = null;
+    var now = null;
+    var newelement = null;
 
-	var resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
+	// Check for Battle results
+	var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
 	if (resultsDiv) {
-		resultsText = nHtml.GetText(resultsDiv).trim();
+		var resultsText = nHtml.GetText(resultsDiv).trim();
 		if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
-			if (!this.doNotBattle) this.doNotBattle = this.lastBattleID;
-			else this.doNotBattle += " " + this.lastBattleID;
+			if (!this.doNotBattle) {
+                this.doNotBattle = this.lastBattleID;
+            } else {
+                this.doNotBattle += " " + this.lastBattleID;
+            }
 		}
 	}
 
-	if (nHtml.FindByAttrContains(document.body,"img","src",'battle_victory.gif')) {
-		winresults = nHtml.FindByAttrContains(document.body,'span','class','positive');
-		bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
-		bpnum = ((/\d+\s+Battle Points/i.test(bptxt))?this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)):0);
-		goldtxt = nHtml.FindByAttrContains(document.body,"b","class",'gold').innerHTML;
-		goldnum = Number(goldtxt.substring(1).replace(/,/,''));
-
-		resultsDiv = nHtml.FindByAttrContains(document.body,'div','id','app_body');
-		nameLink=nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode,"a","href","keep.php?user=");
+	if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
+		var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
+		var bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
+		var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
+		var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
+		var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
+		resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+		nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
 		userId = nameLink.href.match(/user=\d+/i);
 		userId = String(userId).substr(5);
 		userName = nHtml.GetText(nameLink).trim();
-
-		wins = 1;
+		var wins = 1;
 		gm.log("We Defeated " + userName + "!!");
-
 		//Test if we should chain this guy
 		gm.setValue("BattleChainId", '');
 		if (this.GetNumber('ChainBP') !== '') {
@@ -3332,7 +3513,7 @@ CheckBattleResults:function() {
 		}
 
 		if (gm.getValue("BattleChainId", '')) {
-			chainCount = this.GetNumber('ChainCount', 0) + 1;
+			var chainCount = this.GetNumber('ChainCount', 0) + 1;
 			if (chainCount > this.GetNumber('MaxChains', 4)) {
 				gm.log("Lets give this guy a break.");
 				if (!this.doNotBattle) {
@@ -3369,6 +3550,7 @@ CheckBattleResults:function() {
 			newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
 			gm.listPush('BattlesWonList', newelement, 100);
 		}
+
 		this.SetCheckResultsFunction('');
 	} else if (this.CheckForImage('battle_defeat.gif')) {
 		resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
@@ -5745,7 +5927,7 @@ IncreaseStat:function(attribute,attrAdjust){
 AutoStat:function(){
 	if(!gm.getValue('AutoStat'))return false;
 
-	var content=document.getElementById('content');
+	var content = document.getElementById('app46755028429_main_bntp');
 	if(!content) { return false; }
 	var a=nHtml.FindByAttrContains(content,'a','href','keep.php');
 	if(!(this.statsPoints = a.firstChild.firstChild.data.replace(/[^0-9]/g,''))) return false; //gm.log("Dont have any stats points");
