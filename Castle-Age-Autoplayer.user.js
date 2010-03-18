@@ -1293,6 +1293,7 @@ SetControls:function(force) {
 //		nHtml.clearTimeouts();
 		gm.setValue('caapPause','block');
 		caapPaused.style.display='block';
+		caap.SetControls(true);
 		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','block'));
 	},false);
 
@@ -1329,10 +1330,12 @@ SetControls:function(force) {
 	}
 
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
+//      Uncomment this to see the id of domNodes that are inserted
 //		if (event.target.id) alert(event.target.id);
 		if (event.target.id == "app46755028429_app_body" 
 				|| event.target.id == "app46755028429_battle_monster"
-				|| event.target.id == "app46755028429_raid")
+				|| event.target.id == "app46755028429_raid"
+				|| event.target.id == "app46755028429_quests")
 			nHtml.setTimeout(caap.CheckResults, 0);
 	}, true);
 
@@ -1974,14 +1977,14 @@ pageList:{
 	'onRaid'		: {signaturePic: 'raid_back.jpg', 			CheckResultsFunction : 'CheckResults_viewFight'},
 	'land'			: {signaturePic: 'tab_land_on.gif', 		CheckResultsFunction : 'CheckResults_land'},
 	'generals'		: {signaturePic: 'tab_generals_on.gif',		CheckResultsFunction : 'CheckResults_generals'},
+	'quests'		: {signaturePic: 'tab_quest_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
+	'symbolquests'	: {signaturePic: 'demi_quest_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
+	'monster_quests': {signaturePic: 'tab_atlantis_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
 },
 CheckResults:function() {
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	caap.addExpDisplay();
-	caap.DrawQuests(false);
-	caap.selectMonster();
-	caap.monsterDashboard();
 	gm.setValue('page','');
 	var pageUrl = gm.getValue('clickUrl');
 	if (pageUrl.match(/\/[^\/]+.php/i)) page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
@@ -2003,6 +2006,9 @@ CheckResults:function() {
 	if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
 		caap[caap.pageList[page].CheckResultsFunction]();
 	}
+
+	caap.selectMonster();
+	caap.monsterDashboard();
 	// Check for new gifts
 	if (!gm.getValue('HaveGift')) {
 		if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
@@ -2201,7 +2207,7 @@ Quests:function() {
 		this.Click(button);
 		return true;
 	}
-	autoQuestDivs = this.DrawQuests(true);
+	autoQuestDivs = this.CheckResults_quests(true);
 	if(!gm.getObjVal('AutoQuest','name')) {
 		gm.log('Could not find autoquest.');
 		this.SetDivContent('quest_mess','Could not find autoquest.');
@@ -2241,7 +2247,7 @@ Quests:function() {
 	return true;
 },
 
-DrawQuests:function(pickQuestTF) {
+CheckResults_quests:function(pickQuestTF) {
 	var whyQuest = gm.getValue('WhyQuest','');
 	if (pickQuestTF && whyQuest!='Manual') gm.setValue('AutoQuest','');
 	var bestReward=0;
@@ -2698,7 +2704,7 @@ LandsGetNameFromRow:function(row) {
 
 bestLand:{land:'',roi:''},
 CheckResults_land:function() {
-//	if(!this.CheckForImage('tab_land_on.gif')|| nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_landDone')")) return null;
+	if(nHtml.FindByAttrXPath(document,'div',"contains(@class,'caap_landDone')")) return;
 	gm.deleteValue('BestLandCost');
 	this.sellLand = '';
 	this.bestLand.roi =0;
@@ -2853,7 +2859,6 @@ SelectLands:function(row,val) {
 	return true;
 },
 BuyLand:function(land) {
-	//this.DrawLands();
 	this.SelectLands(land.row,2);
 	var button=nHtml.FindByAttrXPath(land.row,'input',"@type='submit' or @type='image'");
 	if(button) {
@@ -2868,7 +2873,6 @@ BuyLand:function(land) {
 },
 
 SellLand:function(land,select) {
-	//this.DrawLands();
 	this.SelectLands(land.row,select);
 	var button=nHtml.FindByAttrXPath(land.row,'input',"@type='submit' or @type='image'");
 	if(button) {
@@ -5854,8 +5858,8 @@ $(function() {
 	gm.log('Full page load completed');
 	if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
 		gm.setValue('caapPause','none');
-		caap.SetControls();
 		if (caapGlob.is_chrome) CE_message("paused", null, gm.getValue('caapPause','none'));
+		caap.SetControls();
 		caap.CheckResults();
 		gm.setValue('ReleaseControl',true);
 	}
