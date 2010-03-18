@@ -1443,7 +1443,7 @@ SetControls:function(force) {
 	caapRestart.addEventListener('click', function(e) {
 		caapPaused.style.display='none';
 		document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-		document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
+		document.getElementById("caap_div").style.background = gm.getValue('StyleOpacityLight', '1');
 		gm.setValue('caapPause','none');
 		if (caapGlob.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
@@ -1508,7 +1508,8 @@ SetControls:function(force) {
 		if (event.target.id == "app46755028429_app_body" 
 				|| event.target.id == "app46755028429_battle_monster"
 				|| event.target.id == "app46755028429_raid"
-				|| event.target.id == "app46755028429_quests")
+				|| event.target.id == "app46755028429_quests"
+				|| event.target.id == "app46755028429_generals")
 			nHtml.setTimeout(caap.CheckResults, 0);
 	}, true);
 
@@ -2186,8 +2187,8 @@ CheckResults:function() {
 		resultsText = nHtml.GetText(resultsDiv).trim();
 	else resultsText = '';
 
-	if (!gm.getValue('page')) return gm.log('Last URL: ' + pageUrl + ' No results check defined for ' + page);
-	else gm.log('Last URL: ' + pageUrl + ' Checking results for ' + page);
+	if (!gm.getValue('page')) return gm.log('No results check defined for ' + page + ' URL: ' + pageUrl);
+	else gm.log('Checking results for ' + page + ' URL: ' + pageUrl);
 
 	if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
 		caap[caap.pageList[page].CheckResultsFunction](resultsText);
@@ -3961,6 +3962,7 @@ CheckResults_viewFight:function() {
 			}
 		}
 	}
+	isTarget = (monster == gm.getValue('targetFromraid','') || monster == gm.getValue('targetFrombattle_monster',''));
 	if(time.length == 3  && caap.CheckForImage('monster_health_background.jpg')) {
 		gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
 		var hpBar = null;
@@ -4006,7 +4008,7 @@ CheckResults_viewFight:function() {
 		}
 	} else {
 		gm.log('Monster is dead?');
-		gm.setValue('resetselectMonster',true);
+		if (isTarget) gm.setValue('resetselectMonster',true);
 		if (!gm.setListObjVal('monsterOl',monster,'status'))
 			gm.setListObjVal('monsterOl',monster,'status','Collect Reward');
 		return;
@@ -4016,7 +4018,6 @@ CheckResults_viewFight:function() {
 	else achLevel = caap.parseCondition('ach',monsterConditions);
 	maxDamage = caap.parseCondition('max',monsterConditions);
 	fortPct = gm.getListObjVal('monsterOl',monster,'Fort%','');
-	isTarget = (monster == gm.getValue('targetFromraid','') || monster == gm.getValue('targetFrombattle_monster',''));
 
 	if (maxDamage && damDone>=maxDamage) {
 		gm.setListObjVal('monsterOl',monster,'color','red');
@@ -4035,7 +4036,7 @@ CheckResults_viewFight:function() {
 
 selectMonster:function() {
 	if (!this.oneMinuteUpdate('selectMonster')) return;
-//	gm.log('Selecting monster');
+	gm.log('Selecting monster');
 
 	// First we forget everything about who we already picked.
 	gm.setValue('targetFrombattle_monster','');
