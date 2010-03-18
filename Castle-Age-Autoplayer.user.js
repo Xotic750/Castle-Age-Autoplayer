@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.17
+// @version        139.18
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -18,7 +18,7 @@
 // Define our global object
 ///////////////////////////
 var caapGlob = {};
-caapGlob.thisVersion = "139.17";
+caapGlob.thisVersion = "139.18";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -1580,6 +1580,7 @@ SetControls:function(force) {
 		   $target.is("#app46755028429_apprentice") ||
 		   $target.is("#app46755028429_news") ||
 		   $target.is("#app46755028429_friend_page") ||
+           $target.is("#app46755028429_comments") ||
 		   $target.is("#app46755028429_army_reqs")) {
             nHtml.setTimeout(caap.addExpDisplay, 0);
 			//gm.log("Listener did: addExpDisplay");
@@ -1616,37 +1617,49 @@ makeCommaValue:function(nStr) {
   }
   return x1;
 },
+
 makeTd:function(text,color) {
-	if (gm.getObjVal(color,'color')) color = gm.getObjVal(color,'color');
-	if (!color) color = 'black';
+	if (gm.getObjVal(color, 'color')) {
+        color = gm.getObjVal(color, 'color');
+    }
+
+	if (!color) {
+        color = 'black';
+    }
+
 	return "<td><font size=1 color='" + color+"'>"+text+"</font></td>";
 },
+
 monsterDashboard:function() {
-	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) return;
+	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) {
+        return;
+    }
+
 	// if not on an individual monster page, delete any monsters without the page info from Engage
 	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
-			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
+			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0) {
 				gm.deleteListObj('monsterOl',monsterObj.split(caapGlob.vs)[0]);
+			}
 		});
 	}
+
 	caap.selectMonster();
 /*-------------------------------------------------------------------------------------\
  Here is where we construct the HTML for our dashboard. We start by building the outer
  container and position it within the main container.
 \-------------------------------------------------------------------------------------*/
-	var layout = "<div id='caap_top' style='position:absolute;top:" + (document.getElementById('app46755028429_main_bn_container').offsetTop-11)
-		+ "px;left:0px;'>";
+	var layout = "<div id='caap_top' style='position:absolute;top:" + (document.getElementById('app46755028429_main_bn_container').offsetTop - 11) + "px;left:0px;'>";
 /*-------------------------------------------------------------------------------------\
  Next we put in our Refresh Monster List button which will only show when we have
  selected the Monster display.
 \-------------------------------------------------------------------------------------*/
-	layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay','Monster')=='Monster'?'block':'none') +"'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 10px; width:50; height:50'></div>";
+	layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster')=='Monster'?'block':'none') +"'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 10px; width:50; height:50'></div>";
 /*-------------------------------------------------------------------------------------\
  Next we put in the Clear Target List button which will only show when we have
  selected the Target List display
 \-------------------------------------------------------------------------------------*/
-	layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay','Monster')=='Target List'?'block':'none') +"'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 10px; width:50; height:50'></div>";
+	layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster')=='Target List'?'block':'none') +"'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 10px; width:50; height:50'></div>";
 /*-------------------------------------------------------------------------------------\
  Then we put in the Live Feed link since we overlay the Castle Age link.
 \-------------------------------------------------------------------------------------*/
@@ -1655,22 +1668,22 @@ monsterDashboard:function() {
  We install the display selection box that allows the user to toggle through the
  available displays.
 \-------------------------------------------------------------------------------------*/
-	var displayList = ['Monster','Target List'];
-	layout += "<div style='font-size: 10px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay',displayList,'',"style='font-size: 9px min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
+	var displayList = ['Monster', 'Target List'];
+	layout += "<div style='font-size: 10px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
 /*-------------------------------------------------------------------------------------\
 And here we build our empty content divs.  We display the appropriate div
 depending on which display was selected using the control above
 \-------------------------------------------------------------------------------------*/
-	layout += "<div id='caap_infoMonster' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay','Monster')=='Monster'?'block':'none') +"'></div>";
-	layout += "<div id='caap_infoTargets1' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay','Monster')=='Target List'?'block':'none') +"'></div>";
-	layout += "<div id='caap_infoTargets2' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay','Monster')=='Target Stats'?'block':'none') +"'></div>";
+	layout += "<div id='caap_infoMonster' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') +"'></div>";
+	layout += "<div id='caap_infoTargets1' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') +"'></div>";
+	layout += "<div id='caap_infoTargets2' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') +"'></div>";
 	layout += "</div>";
 /*-------------------------------------------------------------------------------------\
  No we apply our CSS to our container
 \-------------------------------------------------------------------------------------*/
 	if (!$("#caap_top").length) {
 		$(layout).css({
-			background : gm.getValue("StyleBackgroundLight","white"),
+			background : gm.getValue("StyleBackgroundLight", "white"),
 //			background : "url('http://image2.castleagegame.com/1357/graphics/bg_jobs_tile.jpg')",
 			padding : "5px",
 			width: " 610px",
@@ -1680,30 +1693,40 @@ depending on which display was selected using the control above
 	}
 
 	var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-	displayItemList=['Name','Damage','Damage%','Fort%','TimeLeft','T2K','Phase','Link'];
-	for (var p in displayItemList) html += "<td><b><font size=1>"+displayItemList[p]+'</font></b></td>';
+	displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
+	for (var p in displayItemList) {
+        if (displayItemList.hasOwnProperty(p)) {
+            html += "<td><b><font size=1>" + displayItemList[p] + '</font></b></td>';
+        }
+    }
+
 	html += '</tr>';
 	displayItemList.shift();
-	monsterList=gm.getList('monsterOl');
+	monsterList = gm.getList('monsterOl');
 	monsterList.forEach( function(monsterObj) {
 		monster = monsterObj.split(caapGlob.vs)[0];
 		html += "<tr>";
-		if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster'))
+		if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
 			color = 'green';
-		else if (monster == gm.getValue('targetFromfortify'))
+		} else if (monster == gm.getValue('targetFromfortify')) {
 			color = 'blue';
-		else color = gm.getObjVal(monsterObj,'color','black');
+		} else {
+            color = gm.getObjVal(monsterObj, 'color', 'black');
+        }
+
 		html += caap.makeTd(monster,color);
 		displayItemList.forEach( function(displayItem) {
 //			gm.log(' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
-			if (displayItem == 'Phase' && color == 'grey')
-				html += caap.makeTd(gm.getObjVal(monsterObj,'status'),color);
-			else if ((value = gm.getObjVal(monsterObj,displayItem))) {
-				if (parseInt(value,10).toString() == value)
+			if (displayItem == 'Phase' && color == 'grey') {
+				html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
+			} else if ((value = gm.getObjVal(monsterObj, displayItem))) {
+				if (parseInt(value, 10).toString() == value) {
 					value = caap.makeCommaValue(value);
-				html += caap.makeTd(value+(displayItem.match(/%/) ? '%':''),color);
-			} else
+				}
+				html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
+			} else {
 				html += '<td></td>';
+			}
 		});
 		html += '</tr>';
 	});
@@ -1715,42 +1738,53 @@ Next we build the HTML to be included into the 'caap_infoTargets1' div. We set o
 table and then build the header row.
 \-------------------------------------------------------------------------------------*/
 	html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-	headers = ['UserId','Name','Rank','Rank#','Level','Army','Last Alive'];
-	values = ['nameStr','rankStr','rankNum','levelNum','armyNum','aliveTime'];
-	for (var pp in headers) html += "<td><b><font size=1>"+headers[pp]+'</font></b></td>';
+	headers = ['UserId', 'Name', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
+	values = ['nameStr', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
+	for (var pp in headers) {
+        if (headers.hasOwnProperty(pp)) {
+            html += "<td><b><font size=1>" + headers[pp] + '</font></b></td>';
+        }
+    }
 /*-------------------------------------------------------------------------------------\
 This div will hold data drom the targetsOl repository.  We step through the entries
 in targetOl and build each table row.  Our userid is 'key' so it's the first parameter
 \-------------------------------------------------------------------------------------*/
 	targetList = gm.getList('targetsOl');
 	for (var i in targetList) {
-		targetObj = targetList[i];
-		userid = targetObj.split(caapGlob.vs)[0];
-		html += "<tr>";
-		html += caap.makeTd(userid,'black');
+        if (targetList.hasOwnProperty(i)) {
+            targetObj = targetList[i];
+            userid = targetObj.split(caapGlob.vs)[0];
+            html += "<tr>";
+            html += caap.makeTd(userid, 'black');
 /*-------------------------------------------------------------------------------------\
 We step through each of the additional values we include in the table. If a value is
 null then we build an empty td
 \-------------------------------------------------------------------------------------*/
-		for (var j in values) {
-			value = gm.getObjVal(targetObj,values[j]);
-			if (!value) {
-				html += '<td></td>';
-				continue;
-			}
+            for (var j in values) {
+                if (values.hasOwnProperty(j)) {
+                    value = gm.getObjVal(targetObj, values[j]);
+                    if (!value) {
+                        html += '<td></td>';
+                        continue;
+                    }
 /*-------------------------------------------------------------------------------------\
 We format the values based on the names. Names ending with Num are numbers, ending in
 Time are date/time counts, and Str are strings. We then end the row, and finally when
 all done end the table.  We then add the HTML to the div.
 \-------------------------------------------------------------------------------------*/
-			if (/.+Num/.test(values[j])) value = caap.makeCommaValue(value);
-			if (/.+Time/.test(values[j])) {
-				var newTime = new Date(parseInt(value,10));
-				value = (newTime.getMonth()+1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
-			}
-			html += caap.makeTd(value,'black');
-		}
-		html += '</tr>';
+                    if (/.+Num/.test(values[j])) {
+                        value = caap.makeCommaValue(value);
+                    }
+
+                    if (/.+Time/.test(values[j])) {
+                        var newTime = new Date(parseInt(value, 10));
+                        value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
+                    }
+                    html += caap.makeTd(value, 'black');
+                }
+            }
+            html += '</tr>';
+        }
 	}
 	html += '</table>';
 	$("#caap_infoTargets1").html(html);
@@ -1766,72 +1800,77 @@ AddDBListener:function(){
 	var selectDiv=document.getElementById('caap_DBDisplay');
 	selectDiv.addEventListener('change',function(e) {
 		var value = e.target.options[e.target.selectedIndex].value;
-		gm.setValue('DBDisplay',value);
+		gm.setValue('DBDisplay', value);
 		switch (value) {
 			case "Target List" :
-				caap.SetDisplay('infoMonster',false);
-				caap.SetDisplay('infoTargets1',true);
-				caap.SetDisplay('infoTargets2',false);
-				caap.SetDisplay('buttonMonster',false);
-				caap.SetDisplay('buttonTargets',true);
+				caap.SetDisplay('infoMonster', false);
+				caap.SetDisplay('infoTargets1', true);
+				caap.SetDisplay('infoTargets2', false);
+				caap.SetDisplay('buttonMonster', false);
+				caap.SetDisplay('buttonTargets', true);
 				break;
 			case "Target Stats" :
-				caap.SetDisplay('infoMonster',false);
-				caap.SetDisplay('infoTargets1',false);
-				caap.SetDisplay('infoTargets2',true);
-				caap.SetDisplay('buttonMonster',false);
-				caap.SetDisplay('buttonTargets',true);
+				caap.SetDisplay('infoMonster', false);
+				caap.SetDisplay('infoTargets1', false);
+				caap.SetDisplay('infoTargets2', true);
+				caap.SetDisplay('buttonMonster', false);
+				caap.SetDisplay('buttonTargets', true);
 				break;
 			default :
-				caap.SetDisplay('infoMonster',true);
-				caap.SetDisplay('infoTargets1',false);
-				caap.SetDisplay('infoTargets2',false);
-				caap.SetDisplay('buttonMonster',true);
-				caap.SetDisplay('buttonTargets',false);
+				caap.SetDisplay('infoMonster', true);
+				caap.SetDisplay('infoTargets1', false);
+				caap.SetDisplay('infoTargets2', false);
+				caap.SetDisplay('buttonMonster', true);
+				caap.SetDisplay('buttonTargets', false);
 				break;
 		}
-		gm.setValue('resetdashboard',true);
-	},false);
+		gm.setValue('resetdashboard', true);
+	} ,false);
 
 	var refreshMonsters=document.getElementById('caap_refreshMonsters');
-	refreshMonsters.addEventListener('click',function(e) {
-		gm.setValue('monsterReview',0);
-		gm.setValue('monsterReviewCounter',-3);
-	},false);
+	refreshMonsters.addEventListener('click', function(e) {
+		gm.setValue('monsterReview', 0);
+		gm.setValue('monsterReviewCounter', -3);
+	}, false);
 
 	var clearTargets=document.getElementById('caap_clearTargets');
-	clearTargets.addEventListener('click',function(e) {
-		gm.setValue('targetsOl','');
-		gm.setValue('resetdashboard',true);
-	},false);
+	clearTargets.addEventListener('click', function(e) {
+		gm.setValue('targetsOl', '');
+		gm.setValue('resetdashboard', true);
+	}, false);
 },
 /*-------------------------------------------------------------------------------------\
 DBDropDown is used to make our drop down boxes for dash board controls.  These require
 slightly different HTML from the side controls.
 \-------------------------------------------------------------------------------------*/
-DBDropDown:function(idName, dropDownList,instructions,formatParms) {
-	var selectedItem = gm.getValue(idName,'defaultValue');
-	if (selectedItem=='defaultValue')
+DBDropDown:function(idName, dropDownList, instructions, formatParms) {
+	var selectedItem = gm.getValue(idName, 'defaultValue');
+	if (selectedItem == 'defaultValue') {
 		selectedItem = gm.setValue(idName,dropDownList[0]);
+	}
+
 	var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
 	for (var item in dropDownList) {
-		if (selectedItem!=dropDownList[item]) {
-			if (instructions) {
-				htmlCode+="<option value='" + dropDownList[item] + "' " + ((instructions[item])?" title='" + instructions[item] + "'":'') + ">"  + dropDownList[item];
-			} else {
-				htmlCode+="<option value='" + dropDownList[item] + "'>"  + dropDownList[item];
-			}
-		}
+        if (dropDownList.hasOwnProperty(item)) {
+            if (selectedItem != dropDownList[item]) {
+                if (instructions) {
+                    htmlCode+="<option value='" + dropDownList[item] + "' " + ((instructions[item])?" title='" + instructions[item] + "'":'') + ">"  + dropDownList[item];
+                } else {
+                    htmlCode+="<option value='" + dropDownList[item] + "'>"  + dropDownList[item];
+                }
+            }
+        }
 	}
+
 	htmlCode+='</select>';
 	return htmlCode;
 },
 
 shortenURL:function(long_url, callback) {
 // Called too frequently, the delay can cause the screen to flicker, so disabled by returning for now:
-callback(long_url);
-return;
-
+    callback(long_url);
+    return;
+/*
     GM_xmlhttpRequest({
         method : 'GET',
         url    : 'http://api.bit.ly/shorten?version=2.0.1&longUrl=' + encodeURIComponent(long_url) + '&login=castleage&apiKey=R_438eea4a725a25d92661bce54b17bee1&format=json&history=1',
@@ -1840,12 +1879,16 @@ return;
             callback(result.results ? result.results[long_url].shortUrl : long_url);
         }
     });
+*/
 },
 
 addExpDisplay:function() {
-    if (/\(/.test($("#app46755028429_st_2_5 strong").text())) return false;
+    if (/\(/.test($("#app46755028429_st_2_5 strong").text())) {
+        return false;
+    }
+
     var arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
-    $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>"+(arrExp[1] - arrExp[0])+"</span>)");
+    $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>"+(arrExp[1] - arrExp[0]) + "</span>)");
 },
 
 /////////////////////////////////////////////////////////////////////
@@ -1862,6 +1905,7 @@ SetDisplay:function(idName,setting){
 		gm.log('Unable to find div: ' + idName);
 		return;
 	}
+
 	if (setting === true) {
 		div.style.display = 'block';
 	} else {
@@ -1871,9 +1915,11 @@ SetDisplay:function(idName,setting){
 
 
 AddListeners:function(topDivName) {
-	if(!(div = document.getElementById(topDivName))) return false;
-	var s=0;
+	if(!(div = document.getElementById(topDivName))) {
+        return false;
+    }
 
+	var s=0;
 	var ss=document.evaluate("//input[contains(@id,'caap_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	if(ss.snapshotLength<=0) gm.log('no inputs');
 	for(s=0; s<ss.snapshotLength; s++) {
@@ -3234,28 +3280,48 @@ CheckBattleResults:function() {
 		userName = nHtml.GetText(nameLink).trim();
 
 		wins = 1;
-		gm.log("We Defeated "+userName+"!!");
+		gm.log("We Defeated " + userName + "!!");
 
 		//Test if we should chain this guy
-		gm.setValue("BattleChainId",'');
+		gm.setValue("BattleChainId", '');
 		if (this.GetNumber('ChainBP') !== '') {
 			if (bpnum >= Number(this.GetNumber('ChainBP'))) {
-				gm.setValue("BattleChainId",userId);
+				gm.setValue("BattleChainId", userId);
 				gm.log("Chain Attack " + userId + " Battle Points:" + bpnum );
 			} else {
-				if (!this.doNotBattle) this.doNotBattle = this.lastBattleID;
-				else this.doNotBattle += " " + this.lastBattleID;
+				if (!this.doNotBattle) {
+                    this.doNotBattle = this.lastBattleID;
+                } else {
+                    this.doNotBattle += " " + this.lastBattleID;
+                }
 			}
 		}
+
 		if (this.GetNumber('ChainGold') !== '') {
 			if (goldnum >= Number(this.GetNumber('ChainGold'))) {
-				gm.setValue("BattleChainId",userId);
+				gm.setValue("BattleChainId", userId);
 				gm.log("Chain Attack " + userId + " Gold:" + goldnum);
-			} else 	{
-				if (!this.doNotBattle) this.doNotBattle = this.lastBattleID;
-				else this.doNotBattle += " " + this.lastBattleID;
+			} else {
+				if (!this.doNotBattle) {
+                    this.doNotBattle = this.lastBattleID;
+                } else {
+                    this.doNotBattle += " " + this.lastBattleID;
+                }
 			}
 		}
+
+		if (gm.getValue("BattleChainId",'')) {
+			var chainCount = this.GetNumber('ChainCount', 0) + 1;
+			if (chainCount > this.GetNumber('MaxChains', 4)) {
+				gm.log("Lets give this guy a break.");
+				gm.setValue("BattleChainId", '');
+				chainCount = 0;
+			}
+
+			gm.setValue('ChainCount', chainCount);
+		} else {
+            gm.setValue('ChainCount', 0);
+        }
 
 /* 	Not ready for primtime.   Need to build SliceList to extract our element
 		if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
