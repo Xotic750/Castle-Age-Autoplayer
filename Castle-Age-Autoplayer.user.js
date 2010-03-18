@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.18
+// @version        139.19
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -18,7 +18,7 @@
 // Define our global object
 ///////////////////////////
 var caapGlob = {};
-caapGlob.thisVersion = "139.18";
+caapGlob.thisVersion = "139.19";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -1919,55 +1919,61 @@ AddListeners:function(topDivName) {
         return false;
     }
 
-	var s=0;
-	var ss=document.evaluate("//input[contains(@id,'caap_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if(ss.snapshotLength<=0) gm.log('no inputs');
-	for(s=0; s<ss.snapshotLength; s++) {
-		var inputDiv=ss.snapshotItem(s);
-		if (inputDiv.type=='checkbox') {
-			inputDiv.addEventListener('change',function(e) {
-				var idName = e.target.id.replace(/caap_/i,'');
+	var s = 0;
+	var ss = document.evaluate("//input[contains(@id,'caap_')]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+	if (ss.snapshotLength <=0 ) {
+        gm.log('no inputs');
+    }
+
+	for(s = 0; s < ss.snapshotLength; s++) {
+		var inputDiv = ss.snapshotItem(s);
+		if (inputDiv.type == 'checkbox') {
+			inputDiv.addEventListener('change', function(e) {
+				var idName = e.target.id.replace(/caap_/i, '');
 				var value = e.target.value;
-				gm.setValue(idName,e.target.checked);
-				if (e.target.className) caap.SetDisplay(e.target.className,e.target.checked);
-				else if (idName == 'AutoStatAdv') {
+				gm.setValue(idName, e.target.checked);
+				if (e.target.className) {
+                    caap.SetDisplay(e.target.className, e.target.checked);
+                } else if (idName == 'AutoStatAdv') {
 					if (value) {
-						caap.SetDisplay('Status_Normal',false);
-						caap.SetDisplay('Status_Adv',true);
-						for (var n=1; n<=5; n++) {
-							gm.setValue('AttrValue' + n,'');
+						caap.SetDisplay('Status_Normal', false);
+						caap.SetDisplay('Status_Adv', true);
+						for (var n = 1; n <= 5; n++) {
+							gm.setValue('AttrValue' + n, '');
 						}
 					} else {
-						caap.SetDisplay('Status_Normal',true);
-						caap.SetDisplay('Status_Adv',false);
+						caap.SetDisplay('Status_Normal', true);
+						caap.SetDisplay('Status_Adv', false);
 					}
 					caap.SetControls(true);
 				}
-			},false);
-
-		} else if (inputDiv.type=='text') {
-			var idName = inputDiv.id.replace(/caap_/i,'');
-			inputDiv.value=gm.getValue(idName,'').toString();
-			inputDiv.addEventListener('change',function(e) {
-				var idName = e.target.id.replace(/caap_/i,'');
+			}, false);
+		} else if (inputDiv.type == 'text') {
+			var idName = inputDiv.id.replace(/caap_/i, '');
+			inputDiv.value = gm.getValue(idName, '').toString();
+			inputDiv.addEventListener('change', function(e) {
+				var idName = e.target.id.replace(/caap_/i, '');
 				if (/Style.*/.test(idName)) {
-					gm.setValue("StyleBackgroundLight","#"+gm.getValue("StyleColorStarted","FFF"));
-					gm.setValue("StyleOpacityLight",gm.getValue("StyleTransparencyStarted","1"));
-					gm.setValue("StyleBackgroundDark","#"+gm.getValue("StyleColorStoped","FFF"));
-					gm.setValue("StyleOpacityDark",gm.getValue("StyleTransparencyStoped","1"));
+					gm.setValue("StyleBackgroundLight", "#" + gm.getValue("StyleColorStarted", "FFF"));
+					gm.setValue("StyleOpacityLight", gm.getValue("StyleTransparencyStarted", "1"));
+					gm.setValue("StyleBackgroundDark", "#" + gm.getValue("StyleColorStoped", "FFF"));
+					gm.setValue("StyleOpacityDark", gm.getValue("StyleTransparencyStoped", "1"));
 				}
 				gm.setValue(idName,e.target.value);
-			},false);
+			}, false);
 		}
 	}
 
-	ss=document.evaluate("//select[contains(@id,'caap_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	if(ss.snapshotLength<=0) gm.log('no selects');
-	for(s=0; s<ss.snapshotLength; s++) {
-		var selectDiv=ss.snapshotItem(s);
-		selectDiv.addEventListener('change',function(e) {
+	ss = document.evaluate("//select[contains(@id,'caap_')]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+	if (ss.snapshotLength <= 0) {
+        gm.log('no selects');
+    }
+
+	for(s = 0; s < ss.snapshotLength; s++) {
+		var selectDiv = ss.snapshotItem(s);
+		selectDiv.addEventListener('change', function(e) {
 			if (e.target.selectedIndex > 0) {
-				var idName = e.target.id.replace(/caap_/i,'');
+				var idName = e.target.id.replace(/caap_/i, '');
 				var value = e.target.options[e.target.selectedIndex].value;
 				gm.log('Change: setting ' + idName + ' to ' + value);
 				gm.setValue(idName,value);
@@ -1982,97 +1988,97 @@ AddListeners:function(topDivName) {
 				} else if (idName == 'TargetType') {
 					switch (value) {
 						case "Freshmeat" :
-							caap.SetDisplay('FreshmeatSub',true);
-							caap.SetDisplay('UserIdsSub',false);
+							caap.SetDisplay('FreshmeatSub', true);
+							caap.SetDisplay('UserIdsSub', false);
 							break;
 						case "Userid List" :
-							caap.SetDisplay('FreshmeatSub',false);
-							caap.SetDisplay('UserIdsSub',true);
+							caap.SetDisplay('FreshmeatSub', false);
+							caap.SetDisplay('UserIdsSub', true);
 							break;
 						default :
-							caap.SetDisplay('FreshmeatSub',true);
-							caap.SetDisplay('UserIdsSub',false);
+							caap.SetDisplay('FreshmeatSub', true);
+							caap.SetDisplay('UserIdsSub', false);
 							break;
 					}
 				} else if (/Attribute./.test(idName)) {
-					gm.setValue("SkillPointsNeed",1);
+					gm.setValue("SkillPointsNeed", 1);
 				} else if (idName == 'DisplayStyle') {
 					switch (value) {
 						case "CA Skin" :
-							gm.setValue("StyleBackgroundLight","#E0C691");
-							gm.setValue("StyleBackgroundDark","#B09060");
-							gm.setValue("StyleOpacityLight","1");
-							gm.setValue("StyleOpacityDark","1");
-							if (nHtml.FindByAttr(document.body,'div','id','caap_top')) {
-								nHtml.FindByAttr(document.body,'div','id','caap_top').style.backgroundColor= gm.getValue("StyleBackgroundLight","white");
+							gm.setValue("StyleBackgroundLight", "#E0C691");
+							gm.setValue("StyleBackgroundDark", "#B09060");
+							gm.setValue("StyleOpacityLight", "1");
+							gm.setValue("StyleOpacityDark", "1");
+							if (nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top')) {
+								nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight", "white");
 							}
 							break;
 						case "None" :
-							gm.setValue("StyleBackgroundLight","white");
-							gm.setValue("StyleBackgroundDark","");
-							gm.setValue("StyleOpacityLight","1");
-							gm.setValue("StyleOpacityDark","1");
-							if (nHtml.FindByAttr(document.body,'div','id','caap_top')) {
-								nHtml.FindByAttr(document.body,'div','id','caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight","white");
+							gm.setValue("StyleBackgroundLight", "white");
+							gm.setValue("StyleBackgroundDark", "");
+							gm.setValue("StyleOpacityLight", "1");
+							gm.setValue("StyleOpacityDark", "1");
+							if (nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top')) {
+								nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight", "white");
 							}
 							break;
 						case "Custom" :
-							gm.setValue("StyleBackgroundLight","#"+gm.getValue("StyleColorStarted","FFF"));
-							gm.setValue("StyleOpacityLight",gm.getValue("StyleTransparencyStarted","1"));
-							gm.setValue("StyleBackgroundDark","#"+gm.getValue("StyleColorStoped","FFF"));
-							gm.setValue("StyleOpacityDark",gm.getValue("StyleTransparencyStoped","1"));
-							if (nHtml.FindByAttr(document.body,'div','id','caap_top')) {
-								nHtml.FindByAttr(document.body,'div','id','caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight","white");
+							gm.setValue("StyleBackgroundLight", "#" + gm.getValue("StyleColorStarted", "FFF"));
+							gm.setValue("StyleOpacityLight", gm.getValue("StyleTransparencyStarted", "1"));
+							gm.setValue("StyleBackgroundDark", "#" + gm.getValue("StyleColorStoped", "FFF"));
+							gm.setValue("StyleOpacityDark", gm.getValue("StyleTransparencyStoped", "1"));
+							if (nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top')) {
+								nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight", "white");
 							}
 							break;
 						default :
-							gm.setValue("StyleBackgroundLight","#efe");
-							gm.setValue("StyleBackgroundDark","#fee");
-							gm.setValue("StyleOpacityLight","1");
-							gm.setValue("StyleOpacityDark","1");
-							if (nHtml.FindByAttr(document.body,'div','id','caap_top')) {
-								nHtml.FindByAttr(document.body,'div','id','caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight","white");
+							gm.setValue("StyleBackgroundLight", "#efe");
+							gm.setValue("StyleBackgroundDark", "#fee");
+							gm.setValue("StyleOpacityLight", "1");
+							gm.setValue("StyleOpacityDark", "1");
+							if (nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top')) {
+								nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top').style.backgroundColor = gm.getValue("StyleBackgroundLight", "white");
 							}
 							break;
 					}
 				}
 			}
 			caap.SetControls(true);
-		},false);
+		}, false);
 	}
 
-	ss=document.evaluate("//textarea[contains(@id,'caap_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
+	ss = document.evaluate("//textarea[contains(@id,'caap_')]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 //	if(ss.snapshotLength<=0) gm.log('no textareas');
-	for(s=0; s<ss.snapshotLength; s++) {
-		var textareaDiv=ss.snapshotItem(s);
-		textareaDiv.addEventListener('change',function(e) {
-			var idName = e.target.id.replace(/caap_/i,'');
+	for(s = 0; s < ss.snapshotLength; s++) {
+		var textareaDiv = ss.snapshotItem(s);
+		textareaDiv.addEventListener('change', function(e) {
+			var idName = e.target.id.replace(/caap_/i, '');
 			gm.log('Change: setting ' + idName + ' to something new');
 			if (idName == 'orderbattle_monster' || idName == 'orderraid') {
-				gm.setValue('monsterReview',0);
-				gm.setValue('monsterReviewCounter',-3);
+				gm.setValue('monsterReview', 0);
+				gm.setValue('monsterReviewCounter', -3);
 			}
 			caap.SaveBoxText(idName);
-		},false);
+		}, false);
 	}
 
-	ss=document.evaluate("//a[contains(@id,'caap_Switch_')]",document,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-	for(s=0; s<ss.snapshotLength; s++) {
-		var switchDiv=ss.snapshotItem(s);
-		switchDiv.addEventListener('click',function(e) {
-			var subId = e.target.id.replace(/_Switch/i,'');
+	ss = document.evaluate("//a[contains(@id,'caap_Switch_')]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+	for(s = 0; s < ss.snapshotLength; s++) {
+		var switchDiv = ss.snapshotItem(s);
+		switchDiv.addEventListener('click', function(e) {
+			var subId = e.target.id.replace(/_Switch/i, '');
 			var subDiv = document.getElementById(subId);
 			if(subDiv.style.display == "block") {
 				subDiv.style.display = "none";
-				e.target.innerHTML = e.target.innerHTML.replace(/-/,'+');
-				gm.setValue('Control_' + subId.replace(/caap_/i,''),"none");
+				e.target.innerHTML = e.target.innerHTML.replace(/-/, '+');
+				gm.setValue('Control_' + subId.replace(/caap_/i, ''), "none");
 			}
 			else {
 				subDiv.style.display = "block";
-				e.target.innerHTML = e.target.innerHTML.replace(/\+/,'-');
-				gm.setValue('Control_'+ subId.replace(/caap_/i,''),"block");
+				e.target.innerHTML = e.target.innerHTML.replace(/\+/, '-');
+				gm.setValue('Control_'+ subId.replace(/caap_/i, ''), "block");
 			}
-		},false);
+		}, false);
 	}
 },
 
@@ -2085,174 +2091,184 @@ AddListeners:function(topDivName) {
 /////////////////////////////////////////////////////////////////////
 
 GetStatusNumbers:function(node) {
-	var txt=nHtml.GetText(node);
-	var staminam=this.statusRe.exec(txt);
-	if(staminam) {
-		return {'num':parseInt(staminam[1],10),'max':parseInt(staminam[2],10)};
+	var txt = nHtml.GetText(node);
+	var staminam = this.statusRe.exec(txt);
+	if (staminam) {
+		return {'num':parseInt(staminam[1], 10), 'max':parseInt(staminam[2], 10)};
 	} else {
-		gm.log('Cannot find status:'+txt);
+		gm.log('Cannot find status:' + txt);
 	}
+
 	return null;
 },
 
 GetStats:function() {
-try{
-	this.stats={};
-
-	if (!caapGlob.is_firefox) {
-                if (document.getElementById('app46755028429_healForm')){
-                        // Facebook ID
-                        var webSlice=nHtml.FindByAttrContains(document.body,"a","href","party.php");
-                        if (webSlice) {
-                                var fbidm=this.userRe.exec(webSlice.getAttribute('href'));
-                                if(fbidm) {
-                                        var txtFBID=fbidm[2];
-                                        gm.setValue('FBID',txtFBID);
-                                }
-                        }
+    try{
+        this.stats = {};
+        if (!caapGlob.is_firefox) {
+            if (document.getElementById('app46755028429_healForm')) {
+                // Facebook ID
+                var webSlice = nHtml.FindByAttrContains(document.body, "a", "href", "party.php");
+                if (webSlice) {
+                    var fbidm = this.userRe.exec(webSlice.getAttribute('href'));
+                    if(fbidm) {
+                        var txtFBID = fbidm[2];
+                        gm.setValue('FBID', txtFBID);
+                    }
                 }
-	}
+            }
+        }
 
-	// rank
-	var attrDiv =nHtml.FindByAttrContains(document.body,"div","class",'keep_stat_title');
-	if (attrDiv) {
-		var txtRank = nHtml.GetText(attrDiv);
-		var rankm=this.rankRe.exec(txtRank);
-		if (rankm) {
-			var rank = this.rankTable[rankm[1].toString().toLowerCase().trim()];
-			if (rank != undefined) {
-				this.stats['rank']=rank;
-				gm.setValue('MyRank',this.stats.rank);
-				this.JustDidIt('MyRankLast');
-			} else {
-				gm.log("Unknown rank " + rank + ':' + rankm[1].toString());
-			}
-		}
-		var userName = txtRank.match(/"(.+)"/);
-		gm.setValue('PlayerName',userName[1]);
-	}
+        // rank
+        var attrDiv = nHtml.FindByAttrContains(document.body, "div", "class", 'keep_stat_title');
+        if (attrDiv) {
+            var txtRank = nHtml.GetText(attrDiv);
+            var rankm = this.rankRe.exec(txtRank);
+            if (rankm) {
+                var rank = this.rankTable[rankm[1].toString().toLowerCase().trim()];
+                if (rank !== undefined) {
+                    this.stats.rank = rank;
+                    gm.setValue('MyRank', this.stats.rank);
+                    this.JustDidIt('MyRankLast');
+                } else {
+                    gm.log("Unknown rank " + rank + ':' + rankm[1].toString());
+                }
+            }
+            var userName = txtRank.match(/"(.+)"/);
+            gm.setValue('PlayerName', userName[1]);
+        }
 
-	// health
-	var health=nHtml.FindByAttrContains(document.body,"span","id",'_current_health');
-	var healthMess='';
-	if(!health) {
-		health=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_health') and not(contains(@id,'health_time'))");
-	}
-		this.stats['health']=this.GetStatusNumbers(health.parentNode);
-		if(this.stats.health) {
-			healthMess="Health: "+this.stats.health.num;
-		}
+        // health
+        var health = nHtml.FindByAttrContains(document.body, "span", "id", '_current_health');
+        var healthMess = '';
+        if(!health) {
+            health = nHtml.FindByAttrXPath(document.body, 'span', "contains(@id,'_health') and not(contains(@id,'health_time'))");
+        }
 
-	// stamina
-	this.stats.stamina = null;
-	var stamina=nHtml.FindByAttrContains(document.body,"span","id",'_current_stamina');
-	var staminaMess='';
-	if(!stamina) {
-		stamina=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_stamina') and not(contains(@id,'stamina_time'))");
-	}
-		this.stats['stamina']=this.GetStatusNumbers(stamina.parentNode);
-		if(this.stats.stamina) {
-			staminaMess="Stamina: "+this.stats.stamina.num;
-			if ((gm.getValue('IdleGeneral','').indexOf(this.GetCurrentGeneral()) >= 0) || (gm.getValue('IdleGeneral','').match(/use current/i))) {
-				gm.setValue('MaxIdleStamina', this.stats.stamina.max);
-			}
-		}
+        this.stats.health = this.GetStatusNumbers(health.parentNode);
+        if(this.stats.health) {
+            healthMess="Health: " + this.stats.health.num;
+        }
 
-	// energy
-	var energyMess='';
-	var energy=nHtml.FindByAttrContains(document.body,"span","id",'_current_energy');
-	if(!energy) {
-		energy=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_energy') and not(contains(@id,'energy_time'))");
-	}
-		this.stats['energy']=this.GetStatusNumbers(energy.parentNode);
-		if(this.stats.energy!=null) {
-			energyMess="Energy: "+this.stats.energy.num;
-			//if current general == idle general
-			if ((gm.getValue('IdleGeneral','').indexOf(this.GetCurrentGeneral()) >= 0)
-			|| (gm.getValue('IdleGeneral','').match(/use current/i))
-			|| (gm.getValue('IdleGeneral','').match(/under level 4/i))) {
-				gm.setValue('MaxIdleEnergy', this.stats.energy.max);
-			}
-		}
+        // stamina
+        this.stats.stamina = null;
+        var stamina = nHtml.FindByAttrContains(document.body, "span", "id", '_current_stamina');
+        var staminaMess = '';
+        if(!stamina) {
+            stamina = nHtml.FindByAttrXPath(document.body, 'span', "contains(@id,'_stamina') and not(contains(@id,'stamina_time'))");
+        }
 
-	// level
-	var level=nHtml.FindByAttrContains(document.body,"div","title",'experience points');
-	var levelMess='';
-	var txtlevel=nHtml.GetText(level);
-	var levelm=this.levelRe.exec(txtlevel);
-		if (levelm) {
-			this.stats['level']=parseInt(levelm[1],10);
-			levelMess = "Level: " + this.stats.level;
-			if(gm.getValue('Level',0) != this.stats.level) gm.deleteValue('BestPropCost');
-			gm.setValue('Level',this.stats.level);
-		} else {
-			gm.log('Could not find level re');
-		}
+        this.stats.stamina = this.GetStatusNumbers(stamina.parentNode);
+        if(this.stats.stamina) {
+            staminaMess="Stamina: " + this.stats.stamina.num;
+            if ((gm.getValue('IdleGeneral', '').indexOf(this.GetCurrentGeneral()) >= 0) ||
+                (gm.getValue('IdleGeneral', '').match(/use current/i))) {
+                gm.setValue('MaxIdleStamina', this.stats.stamina.max);
+            }
+        }
 
-	this.stats['rank']=parseInt(gm.getValue('MyRank'),10);
+        // energy
+        var energyMess = '';
+        var energy = nHtml.FindByAttrContains(document.body, "span", "id", '_current_energy');
+        if(!energy) {
+            energy = nHtml.FindByAttrXPath(document.body, 'span', "contains(@id,'_energy') and not(contains(@id,'energy_time'))");
+        }
+            this.stats.energy = this.GetStatusNumbers(energy.parentNode);
+            if(this.stats.energy !== null) {
+                energyMess = "Energy: " + this.stats.energy.num;
+                //if current general == idle general
+                if ((gm.getValue('IdleGeneral', '').indexOf(this.GetCurrentGeneral()) >= 0) ||
+                    (gm.getValue('IdleGeneral', '').match(/use current/i)) ||
+                    (gm.getValue('IdleGeneral', '').match(/under level 4/i))) {
+                    gm.setValue('MaxIdleEnergy', this.stats.energy.max);
+                }
+            }
 
-	// army
-	var td=nHtml.FindByAttrContains(document.body,"div","id","main_bntp");
-		var a=nHtml.FindByAttrContains(td,"a","href","army");
-		var txtArmy = nHtml.GetText(a);
-		var armym=this.armyRe.exec(txtArmy);
-		if (armym) {
-			var army = parseInt(armym[1],10);
-                        army=Math.min(army, 501);
-			this.stats['army']=army;
-			var armyMess = "Army: " + this.stats.army;
-		} else {
-			gm.log("Can't find armyRe in " + txtArmy);
-	}
+        // level
+        var level = nHtml.FindByAttrContains(document.body, "div", "title", 'experience points');
+        var levelMess = '';
+        var txtlevel = nHtml.GetText(level);
+        var levelm = this.levelRe.exec(txtlevel);
+            if (levelm) {
+                this.stats.level = parseInt(levelm[1], 10);
+                levelMess = "Level: " + this.stats.level;
+                if(gm.getValue('Level', 0) != this.stats.level) {
+                    gm.deleteValue('BestPropCost');
+                }
 
-	// gold
-	cashObj=nHtml.FindByAttrXPath(document.body,"strong","contains(string(),'$')");
-		var cashTxt=nHtml.GetText(cashObj);
-		var cash=this.NumberOnly(cashTxt);
-		this.stats.cash=cash;
+                gm.setValue('Level', this.stats.level);
+            } else {
+                gm.log('Could not find level re');
+            }
 
-	// experience
-	var exp=nHtml.FindByAttrContains(document.body,'div','id','st_2_5');
-	this.stats.exp = this.GetStatusNumbers(exp);
+        this.stats.rank = parseInt(gm.getValue('MyRank'), 10);
 
-	// time to next level
-	if (this.stats.exp) {
-		var expPerStamina = 2.3;
-		var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest','expRatio')) || 1.2;
-		var minutesToLevel = (this.stats.exp.max - this.stats.exp.num - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / ( expPerStamina + expPerEnergy ) / 12 * 60;
-		this.stats.levelTime = new Date();
-		var minutes = this.stats.levelTime.getMinutes();
-		minutes += minutesToLevel;
-		this.stats.levelTime.setMinutes(minutes);
+        // army
+        var td = nHtml.FindByAttrContains(document.body, "div", "id", "main_bntp");
+        var a = nHtml.FindByAttrContains(td, "a", "href", "army");
+        var txtArmy = nHtml.GetText(a);
+        var armym = this.armyRe.exec(txtArmy);
+        if (armym) {
+            var army = parseInt(armym[1], 10);
+            army = Math.min(army, 501);
+            this.stats.army = army;
+            var armyMess = "Army: " + this.stats.army;
+        } else {
+            gm.log("Can't find armyRe in " + txtArmy);
+        }
 
-		this.SetDivContent('level_mess','Expected next level: ' + this.FormatTime(this.stats.levelTime));
-	}
+        // gold
+        cashObj = nHtml.FindByAttrXPath(document.body, "strong", "contains(string(),'$')");
+            var cashTxt = nHtml.GetText(cashObj);
+            var cash = this.NumberOnly(cashTxt);
+            this.stats.cash = cash;
 
-	if (this.DisplayTimer('DemiPointTimer')) {
-		if (this.CheckTimer('DemiPointTimer'))
-			this.SetDivContent('demipoint_mess','Battle demipoints cleared');
-		else
-			this.SetDivContent('demipoint_mess','Next Battle DemiPts: ' + this.DisplayTimer('DemiPointTimer'));
-	}
+        // experience
+        var exp = nHtml.FindByAttrContains(document.body, 'div', 'id', 'st_2_5');
+        this.stats.exp = this.GetStatusNumbers(exp);
 
-	if (this.DisplayTimer('BlessingTimer')) {
-		if (this.CheckTimer('BlessingTimer'))
-			this.SetDivContent('demibless_mess','Demi Blessing = none');
-		else
-			this.SetDivContent('demibless_mess','Next Demi Blessing: ' + this.DisplayTimer('BlessingTimer'));
-	}
+        // time to next level
+        if (this.stats.exp) {
+            var expPerStamina = 2.3;
+            var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest','expRatio')) || 1.2;
+            var minutesToLevel = (this.stats.exp.max - this.stats.exp.num - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / ( expPerStamina + expPerEnergy ) / 12 * 60;
+            this.stats.levelTime = new Date();
+            var minutes = this.stats.levelTime.getMinutes();
+            minutes += minutesToLevel;
+            this.stats.levelTime.setMinutes(minutes);
 
-	// time to next paycheck
-	if ((paytime = nHtml.FindByAttrContains(document.body,"span","id",'_gold_time_value'))) {
-		this.stats.paytime = nHtml.GetText(paytime).trim();
-		this.stats.payminute = this.stats.paytime.substr(0,this.stats.paytime.indexOf(':'));
-	}
-	// return true if probably working
-	return cashObj && (health!=null);
-}catch (e){
-	gm.log("ERROR GetStats :"+e);
-	return false;
-}
+            this.SetDivContent('level_mess', 'Expected next level: ' + this.FormatTime(this.stats.levelTime));
+        }
+
+        if (this.DisplayTimer('DemiPointTimer')) {
+            if (this.CheckTimer('DemiPointTimer')) {
+                this.SetDivContent('demipoint_mess', 'Battle demipoints cleared');
+            } else {
+                this.SetDivContent('demipoint_mess', 'Next Battle DemiPts: ' + this.DisplayTimer('DemiPointTimer'));
+            }
+        }
+
+        if (this.DisplayTimer('BlessingTimer')) {
+            if (this.CheckTimer('BlessingTimer')) {
+                this.SetDivContent('demibless_mess', 'Demi Blessing = none');
+            } else {
+                this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + this.DisplayTimer('BlessingTimer'));
+            }
+        }
+
+        // time to next paycheck
+        var paytime = nHtml.FindByAttrContains(document.body, "span", "id", '_gold_time_value');
+        if (paytime) {
+            this.stats.paytime = nHtml.GetText(paytime).trim();
+            this.stats.payminute = this.stats.paytime.substr(0, this.stats.paytime.indexOf(':'));
+        }
+
+        // return true if probably working
+        return cashObj && (health !== null);
+    } catch (e) {
+        gm.log("ERROR GetStats: " + e);
+        return false;
+    }
 },
 
 /////////////////////////////////////////////////////////////////////
@@ -2266,36 +2282,41 @@ try{
 /////////////////////////////////////////////////////////////////////
 SetCheckResultsFunction:function(resultsFunction) {
 	this.JustDidIt('SetResultsFunctionTimer');
-	gm.setValue('ResultsFunction',resultsFunction);
+	gm.setValue('ResultsFunction', resultsFunction);
 },
 
-pageSpecificCheckFunctions:{'battle_monster':'checkMonsterEngage','raid':'checkMonsterEngage'},
+pageSpecificCheckFunctions:{'battle_monster':'checkMonsterEngage', 'raid':'checkMonsterEngage'},
+
 CheckResults:function() {
 	// Check for new gifts
 	if (!gm.getValue('HaveGift')) {
-		if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
+		if (nHtml.FindByAttrContains(document.body, 'a', 'href', 'reqs.php#confirm_')) {
 			gm.log('We have a gift waiting!');
 			gm.setValue('HaveGift',true);
 		} else {
-			var beepDiv = nHtml.FindByAttrContains(document.body,'div','class','UIBeep_Title');
+			var beepDiv = nHtml.FindByAttrContains(document.body, 'div', 'class', 'UIBeep_Title');
 			if (beepDiv) {
 				var beepText = nHtml.GetText(beepDiv).trim();
 				if (beepText.match(/sent you a gift/) && !beepText.match(/notification/)) {
 					gm.log('We have a gift waiting');
-					gm.setValue('HaveGift',true);
+					gm.setValue('HaveGift', true);
 				}
 			}
 		}
 	}
 
-	if (this.stats.level < 10) this.battlePage = 'battle_train,battle_off';
-	else this.battlePage = 'battle';
+	if (this.stats.level < 10) {
+        this.battlePage = 'battle_train,battle_off';
+    } else {
+        this.battlePage = 'battle';
+    }
 
 	//Check for Elite Guard Add image
 	if (this.CheckForImage('elite_guard_add')) {
-		if (gm.getValue('AutoEliteEnd','NoArmy') != 'NoArmy') gm.setValue('AutoEliteGetList',0);
+		if (gm.getValue('AutoEliteEnd', 'NoArmy') != 'NoArmy') {
+            gm.setValue('AutoEliteGetList', 0);
+        }
 	}
-
 
 	// Check for Gold Stored
 	if (nHtml.FindByAttrContains(document.body,"div","class",'keep_main_section')) {
@@ -3310,10 +3331,16 @@ CheckBattleResults:function() {
 			}
 		}
 
-		if (gm.getValue("BattleChainId",'')) {
-			var chainCount = this.GetNumber('ChainCount', 0) + 1;
+		if (gm.getValue("BattleChainId", '')) {
+			chainCount = this.GetNumber('ChainCount', 0) + 1;
 			if (chainCount > this.GetNumber('MaxChains', 4)) {
 				gm.log("Lets give this guy a break.");
+				if (!this.doNotBattle) {
+                    this.doNotBattle = this.lastBattleID;
+                } else {
+                    this.doNotBattle += " " + this.lastBattleID;
+                }
+
 				gm.setValue("BattleChainId", '');
 				chainCount = 0;
 			}
@@ -3335,36 +3362,44 @@ CheckBattleResults:function() {
 			goldnum  = prevGold + goldnum
 		}
 */
-		if (gm.getValue('BattlesWonList','').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
-			(bpnum >= gm.getValue('ReconBPWon',0) || (goldnum >= gm.getValue('ReconGoldWon',0)))) {
+
+		if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
+			(bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
 			now = (new Date().getTime()).toString();
 			newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
-			gm.listPush('BattlesWonList',newelement,100);
+			gm.listPush('BattlesWonList', newelement, 100);
 		}
 		this.SetCheckResultsFunction('');
 	} else if (this.CheckForImage('battle_defeat.gif')) {
-		resultsDiv = nHtml.FindByAttrContains(document.body,'div','id','app_body');
-		nameLink=nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode,"a","href","keep.php?user=");
+		resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+		nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
 		userId = nameLink.href.match(/user=\d+/i);
 		userId = String(userId).substr(5);
 		userName = nHtml.GetText(nameLink).trim();
 
-		gm.log("We Were Defeated By "+userName+".");
+		gm.log("We Were Defeated By " + userName + ".");
+		gm.setValue('ChainCount', 0);
 		if (gm.getValue('BattlesLostList','').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1) {
 			now = (new Date().getTime()).toString();
 			newelement = now + caapGlob.vs + userId + caapGlob.vs + userName;
-			if (!gm.getValue('IgnoreBattleLoss',false)) {
-				gm.listPush('BattlesLostList',newelement,100);
+			if (!gm.getValue('IgnoreBattleLoss', false)) {
+				gm.listPush('BattlesLostList', newelement, 100);
 			}
 		}
+
 /* 	Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
 		if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
 			trash = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
 			elementArray = element.split(caapGlob.vs);
 		}
-*/		this.SetCheckResultsFunction('');
-	}
+*/
+
+        this.SetCheckResultsFunction('');
+	} else {
+        gm.setValue('ChainCount', 0);
+    }
 },
+
 FindBattleForm:function(obj,withOpponent) {
 	var ss=document.evaluate(".//form[contains(@onsubmit,'battle.php')]",obj,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
 	var battleForm=null;
