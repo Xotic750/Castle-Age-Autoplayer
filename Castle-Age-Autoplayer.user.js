@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.21
+// @version        139.22
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -19,7 +19,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.21";
+caapGlob.thisVersion = "139.22";
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -4321,7 +4321,9 @@ parseCondition:function(type,conditions) {
 
     var value = conditions.substring(conditions.indexOf(':' + type) + 4).replace(/:.+/, '');
     if (/k$/i.test(value) || /m$/i.test(value)) {
-        value = parseInt(value, 10) * 1000 * (/\d+k/i.test(value) + /\d+m/i.test(value) * 1000);
+        var first = /\d+k/i.test(value);
+        var second = /\d+m/i.test(value);
+        value = parseInt(value, 10) * 1000 * (first + second * 1000);
     }
 
     return parseInt(value, 10);
@@ -4330,12 +4332,11 @@ parseCondition:function(type,conditions) {
 getMonstType:function(name) {
     var words = name.split(" ");
     var count = words.length - 1;
-    switch (words[count]) {
-        case 'Elemental' :
-            return words[count - 1] + ' ' + words[count];
-        default :
-            return words[count];
+    if (words[count] == 'Elemental') {
+         return words[count - 1] + ' ' + words[count];
     }
+
+    return words[count];
 },
 
 checkMonsterEngage:function() {
@@ -4509,6 +4510,7 @@ checkMonsterDamage:function() {
         gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(shipHealth * 10)) / 10);
     }
 
+    var damDone = 0;
     // Get damage done to monster
     webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
     if (webSlice) {
@@ -4530,7 +4532,7 @@ checkMonsterDamage:function() {
                     gm.setListObjVal('monsterOl', monster, 'Damage', caap.NumberOnly(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim()));
                 }
 
-                var damDone = gm.getListObjVal('monsterOl', monster, 'Damage');
+                damDone = gm.getListObjVal('monsterOl', monster, 'Damage');
                 //if (damDone) gm.log("Damage done = " + gm.getListObjVal('monsterOl',monster,'Damage'));
             } else {
                 gm.log("Player hasn't done damage yet");
@@ -4550,7 +4552,7 @@ checkMonsterDamage:function() {
             gm.log("Could not locate Monster ticker.");
     }
 
-    monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
+    var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
     if (/:ac\b/.test(monsterConditions)) {
         counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
         monsterList = gm.getList('monsterOl');
@@ -4570,6 +4572,7 @@ checkMonsterDamage:function() {
         }
     }
 
+    var hp = 0;
     if(time.length == 3  && caap.CheckForImage('monster_health_background.jpg')) {
         gm.setListObjVal('monsterOl',monster,'TimeLeft',time[0] + ":" + time[1]);
         var hpBar = null;
@@ -4584,9 +4587,9 @@ checkMonsterDamage:function() {
         }
 
         if (hpBar) {
-            var hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
+            hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
             gm.setListObjVal('monsterOl', monster, 'Damage%', hp);
-            boss = caap.bosses[monstType]
+            boss = caap.bosses[monstType];
             if (!boss) {
                 gm.log('Unknown monster');
                 return;
@@ -4656,13 +4659,15 @@ checkMonsterDamage:function() {
 },
 
 selectMonster:function() {
-    if (!this.oneMinuteUpdate('selectMonster')) return;
-//  gm.log('Selecting monster');
+    if (!this.oneMinuteUpdate('selectMonster')) {
+        return;
+    }
 
+//  gm.log('Selecting monster');
     // First we forget everything about who we already picked.
-    gm.setValue('targetFrombattle_monster','');
-    gm.setValue('targetFromfortify','');
-    gm.setValue('targetFromraid','');
+    gm.setValue('targetFrombattle_monster', '');
+    gm.setValue('targetFromfortify', '');
+    gm.setValue('targetFromraid', '');
 
     // Next we get our monster objects from the reposoitory and break them into separarte lists
     // for monster or raid.  If we are serializing then we make one list only.
@@ -4670,14 +4675,16 @@ selectMonster:function() {
     monsterList.battle_monster = [];
     monsterList.raid = [];
     monsterList.any = [];
-    monsterFullList = gm.getList('monsterOl','');
+    monsterFullList = gm.getList('monsterOl', '');
+    var monstPage = '';
     monsterFullList.forEach(function(monsterObj) {
-        gm.setListObjVal('monsterOl',monsterObj.split(caapGlob.vs)[0],'conditions','none');
-        monstPage = gm.getObjVal(monsterObj,'page');
-        if (gm.getValue('SerializeRaidsAndMonsters',false))
-            monsterList['any'].push(monsterObj);
-        else if ((monstPage == 'raid') || (monstPage=='battle_monster'))
+        gm.setListObjVal('monsterOl', monsterObj.split(caapGlob.vs)[0], 'conditions', 'none');
+        monstPage = gm.getObjVal(monsterObj, 'page');
+        if (gm.getValue('SerializeRaidsAndMonsters', false)) {
+            monsterList.any.push(monsterObj);
+        } else if ((monstPage == 'raid') || (monstPage == 'battle_monster')) {
             monsterList[monstPage].push(monsterObj);
+        }
     });
 
     //PLEASE NOTE BEFORE CHANGING
@@ -4685,132 +4692,161 @@ selectMonster:function() {
     //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
     //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
     //a round hole. Please reconsider before doing so.
-    if (gm.getValue('SerializeRaidsAndMonsters',false))  selectTypes = ['any'];
-    else selectTypes = ['battle_monster','raid'];
+    if (gm.getValue('SerializeRaidsAndMonsters', false)) {
+        selectTypes = ['any'];
+    } else {
+        selectTypes = ['battle_monster', 'raid'];
+    }
 
     // We loop through for each selection type (only once if serialized between the two)
     // We then read in the users attack order list
     for (var s in selectTypes) {
-        var selectType = selectTypes[s];
-        firstOverAch = '';
-        firstUnderMax = '';
-        var attackOrderList = [];
-        // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-        switch (selectType) {
-            case 'any' :
-                var attackOrderList1=gm.getValue('orderbattle_monster','').split(/[\n,]/);
-                var attackOrderList2=gm.getValue('orderraid','').split(/[\n,]/).concat('your',"'");
-                attackOrderList=attackOrderList1.concat(attackOrderList2);
-                break;
-            default :
-                attackOrderList=gm.getValue('order'+selectType,'').split(/[\n,]/).concat('your',"'");
-                break;
-        }
+        if (selectTypes.hasOwnProperty(s)) {
+            var selectType = selectTypes[s];
+            var firstOverAch = '';
+            var firstUnderMax = '';
+            var attackOrderList = [];
+            // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
+            if (selectType == 'any') {
+                    var attackOrderList1 = gm.getValue('orderbattle_monster', '').split(/[\n,]/);
+                    var attackOrderList2 = gm.getValue('orderraid', '').split(/[\n,]/).concat('your', "'");
+                    attackOrderList = attackOrderList1.concat(attackOrderList2);
+            } else {
+                    attackOrderList = gm.getValue('order' + selectType, '').split(/[\n,]/).concat('your', "'");
+            }
 
-        // Next we step through the users list getting the name and conditions
-        for (var p in attackOrderList) {
-            if (!(attackOrderList[p].trim())) continue;
-            attackOrderName = attackOrderList[p].match(/^[^:]+/).toString().trim().toLowerCase();
-            monsterConditions= attackOrderList[p].replace(/^[^:]+/,'').toString().trim();
-            monsterListCurrent = monsterList[selectType];
+            var monster = '';
+            var monsterConditions = '';
+            // Next we step through the users list getting the name and conditions
+            for (var p in attackOrderList) {
+                if (attackOrderList.hasOwnProperty(p)) {
+                    if (!(attackOrderList[p].trim())) {
+                        continue;
+                    }
 
-            // Now we try to match the users name agains our list of monsters
-            for (var m in monsterListCurrent) {
-                monsterObj = monsterListCurrent[m];
-                monster = monsterObj.split(caapGlob.vs)[0];
-                monstPage = gm.getObjVal(monsterObj,'page');
+                    var attackOrderName = attackOrderList[p].match(/^[^:]+/).toString().trim().toLowerCase();
+                    monsterConditions = attackOrderList[p].replace(/^[^:]+/, '').toString().trim();
+                    var monsterListCurrent = monsterList[selectType];
+                    // Now we try to match the users name agains our list of monsters
+                    for (var m in monsterListCurrent) {
+                        if (monsterListCurrent.hasOwnProperty(m)) {
+                            var monsterObj = monsterListCurrent[m];
+                            monster = monsterObj.split(caapGlob.vs)[0];
+                            monstPage = gm.getObjVal(monsterObj, 'page');
 
-                // If we set conditions on this monster already then we do not reprocess
-                if (gm.getListObjVal('monsterOl',monster,'conditions') != 'none') continue;
+                            // If we set conditions on this monster already then we do not reprocess
+                            if (gm.getListObjVal('monsterOl', monster, 'conditions') != 'none') {
+                                continue;
+                            }
 
-                //If this monster does not match, skip to next one
-                // Or if this monster is dead, skip to next one
-                // Or if this monster is not the correct type, skip to next one
-                if ((monster.toLowerCase().indexOf(attackOrderName) < 0)
-                    || (selectType != 'any' && monstPage != selectType)) continue;
+                            //If this monster does not match, skip to next one
+                            // Or if this monster is dead, skip to next one
+                            // Or if this monster is not the correct type, skip to next one
+                            if ((monster.toLowerCase().indexOf(attackOrderName) < 0) || (selectType != 'any' && monstPage != selectType)) {
+                                continue;
+                            }
 
-                //Monster is a match so we set the conditions
-                gm.setListObjVal('monsterOl',monster,'conditions',monsterConditions);
+                            //Monster is a match so we set the conditions
+                            gm.setListObjVal('monsterOl', monster, 'conditions', monsterConditions);
 
-                // If it's complete or collect rewards, no need to process further
-                if (gm.getObjVal(monsterObj,'status')) continue;
+                            // If it's complete or collect rewards, no need to process further
+                            if (gm.getObjVal(monsterObj, 'status')) {
+                                continue;
+                            }
 
-                // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                // these to see if this is the monster we should select/
-                color = gm.getObjVal(monsterObj,'color','');
-                over = gm.getObjVal(monsterObj,'over','');
-                if (!firstUnderMax) {
-                    if (over!='max' && color!='purple') {
-                        if (over!='ach')
-                            firstUnderMax = monster;
-                        else if (!firstOverAch)
-                            firstOverAch = monster;
+                            // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
+                            // these to see if this is the monster we should select/
+                            var color = gm.getObjVal(monsterObj, 'color', '');
+                            var over = gm.getObjVal(monsterObj, 'over', '');
+                            if (!firstUnderMax) {
+                                if (over != 'max' && color != 'purple') {
+                                    if (over != 'ach') {
+                                        firstUnderMax = monster;
+                                    } else if (!firstOverAch) {
+                                        firstOverAch = monster;
+                                    }
+                                }
+                            }
+
+                            // If this a monster we need to fortify we check to see if it is under our threshold.
+                            var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 100));
+                            var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
+                            if (monsterFort < maxToFortify && !gm.getValue('targetFromfortify', '')) {
+                                gm.setValue('targetFromfortify', monster);
+                            }
+                        }
                     }
                 }
-
-                // If this a monster we need to fortify we check to see if it is under our threshold.
-                monsterFort = parseFloat(gm.getObjVal(monsterObj,'Fort%',100));
-                maxToFortify = caap.parseCondition('f%',monsterConditions) || caap.GetNumber('MaxToFortify',0);
-                if (monsterFort < maxToFortify && !gm.getValue('targetFromfortify',''))
-                    gm.setValue('targetFromfortify',monster);
             }
-        }
 
-        // Now we use the first under max/under achivment that we found. If we didn't find any under
-        // achievement then we use the first over achievement
-        if (!(monster = firstUnderMax))
-            monster = firstOverAch;
+            // Now we use the first under max/under achivment that we found. If we didn't find any under
+            // achievement then we use the first over achievement
+            monster = firstUnderMax;
+            if (!monster) {
+                monster = firstOverAch;
+            }
 
-        // If we've got a monster for this selection type then we set the GM variables for the name
-        // and stamina requirements
-        if (monster) {
-            monstPage = gm.getListObjVal('monsterOl',monster,'page');
-            gm.setValue('targetFrom'+monstPage,monster);
+            // If we've got a monster for this selection type then we set the GM variables for the name
+            // and stamina requirements
+            if (monster) {
+                monstPage = gm.getListObjVal('monsterOl', monster, 'page');
+                gm.setValue('targetFrom' + monstPage, monster);
+                monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions');
+                var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
+                if (monstPage == 'battle_monster') {
+                    if (caap.bosses[monstType] && caap.bosses[monstType].staUse) {
+                        gm.setValue('MonsterStaminaReq', caap.bosses[monstType].staUse);
+                    } else if ((caap.InLevelUpMode() && caap.stats.stamina.num>=10) || monsterConditions.match(/:pa/i)) {
+                        gm.setValue('MonsterStaminaReq', 5);
+                    } else if (monsterConditions.match(/:sa/i)) {
+                        gm.setValue('MonsterStaminaReq', 1);
+                    } else if (gm.getValue('PowerAttack')) {
+                        gm.setValue('MonsterStaminaReq', 5);
+                    } else{
+                        gm.setValue('MonsterStaminaReq', 1);
+                    }
 
-            monsterConditions = gm.getListObjVal('monsterOl',monster,'conditions');
-            monstType = gm.getListObjVal('monsterOl',monster,'Type','Dragon');
-            if (monstPage == 'battle_monster') {
-                if (caap.bosses[monstType] && caap.bosses[monstType].staUse)
-                    gm.setValue('MonsterStaminaReq',caap.bosses[monstType].staUse);
-                else if ((caap.InLevelUpMode() && caap.stats.stamina.num>=10) || monsterConditions.match(/:pa/i))
-                    gm.setValue('MonsterStaminaReq',5);
-                else if (monsterConditions.match(/:sa/i))
-                    gm.setValue('MonsterStaminaReq',1);
-                else if (gm.getValue('PowerAttack'))
-                    gm.setValue('MonsterStaminaReq',5);
-                else gm.setValue('MonsterStaminaReq',1);
-                if (gm.getValue('MonsterGeneral') == 'Orc King' && gm.getValue('OrcKingPowerAttack',false))
-                    gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
-            } else {
-                // Switch RaidPowerAttack
-                if (gm.getValue('RaidPowerAttack',false) || monsterConditions.match(/:pa/i))
-                    gm.setValue('RaidStaminaReq',5);
-                else if (caap.bosses[monstType] && caap.bosses[monstType].staUse)
-                    gm.setValue('RaidStaminaReq',caap.bosses[monstType].staUse);
-                else gm.setValue('RaidStaminaReq',1);
+                    if (gm.getValue('MonsterGeneral') == 'Orc King' && gm.getValue('OrcKingPowerAttack', false)) {
+                        gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
+                    }
+                } else {
+                    // Switch RaidPowerAttack
+                    if (gm.getValue('RaidPowerAttack', false) || monsterConditions.match(/:pa/i)) {
+                        gm.setValue('RaidStaminaReq', 5);
+                    } else if (caap.bosses[monstType] && caap.bosses[monstType].staUse) {
+                        gm.setValue('RaidStaminaReq', caap.bosses[monstType].staUse);
+                    } else {
+                        gm.setValue('RaidStaminaReq', 1);
+                    }
+                }
             }
         }
     }
-    gm.setValue('resetdashboard',true);
+
+    gm.setValue('resetdashboard', true);
 },
 
 monsterConfirmRightPage:function(webSlice,monster) {
     // Confirm name and type of monster
     var monsterOnPage = nHtml.GetText(webSlice);
-    monsterOnPage = monsterOnPage.substring(0,monsterOnPage.indexOf('You have (')).trim();
+    monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
     if (!caapGlob.is_firefox) {
-        if (nHtml.FindByAttrContains(webSlice,'a','href','id='+gm.getValue('FBID','x')))
-             monsterOnPage = monsterOnPage.replace(/.+'s /,'Your ');
+        if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + gm.getValue('FBID', 'x'))) {
+             monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
+        }
     } else {
-        if (nHtml.FindByAttrContains(webSlice,'a','href','id='+unsafeWindow.Env.user))
-             monsterOnPage = monsterOnPage.replace(/.+'s /,'Your ');
+        if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + unsafeWindow.Env.user)) {
+             monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
+        }
     }
+
     if (monster != monsterOnPage) {
-        gm.log('Looking for ' + monster +  ' but on ' + monsterOnPage + '. Going back to select screen');
-        monstPage = gm.getListObjVal('monsterOl',monster,'page');
+        gm.log('Looking for ' + monster + ' but on ' + monsterOnPage + '. Going back to select screen');
+        monstPage = gm.getListObjVal('monsterOl', monster, 'page');
         return this.NavigateTo('keep,' + monstPage);
     }
 },
+
 MonsterReview:function() {
     // Review all active monsters, try siege weapons on the way
     counter = parseInt(gm.getValue('monsterReviewCounter',-3),10);
@@ -6418,7 +6454,7 @@ Then we get the targets army count and userid.  We'll also save the current time
 found the target alive.
 \-------------------------------------------------------------------------------------*/
         var armyNum = parseInt(levelm[4], 10);
-        var userID = nHtml.FindByAttrXPath(tr,"input","@name='target_id'",pageObj).value;
+        var userID = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'", pageObj).value;
         var aliveTime = (new Date().getTime());
 //      gm.log('Player stats: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
 /*-------------------------------------------------------------------------------------\
