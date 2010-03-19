@@ -1504,7 +1504,7 @@ SetControls:function(force) {
 
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
 //      Uncomment this to see the id of domNodes that are inserted
-//		if (event.target.id) alert(event.target.id);
+		if (event.target.id) alert(event.target.id);
 		if (event.target.id == "app46755028429_app_body" 
 				|| event.target.id == "app46755028429_battle_monster"
 				|| event.target.id == "app46755028429_raid"
@@ -2159,11 +2159,14 @@ pageList:{
 	'quests'		: {signaturePic: 'tab_quest_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
 	'symbolquests'	: {signaturePic: 'demi_quest_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
 	'monster_quests': {signaturePic: 'tab_atlantis_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
-	'reqs'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
+	'army'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
+	'gift'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
 },
 CheckResults:function() {
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
+	if (!caap.WhileSinceDidIt('CheckResultsTimer',0.2)) return;
+	caap.JustDidIt('CheckResultsTimer');
 	caap.addExpDisplay();
 	gm.setValue('page','');
 	var pageUrl = gm.getValue('clickUrl');
@@ -2187,13 +2190,13 @@ CheckResults:function() {
 		resultsText = nHtml.GetText(resultsDiv).trim();
 	else resultsText = '';
 
-	if (!gm.getValue('page')) return gm.log('No results check defined for ' + page + ' URL: ' + pageUrl);
-	else gm.log('Checking results for ' + page + ' URL: ' + pageUrl);
-
-	if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
-		caap[caap.pageList[page].CheckResultsFunction](resultsText);
-	}
-
+	if (gm.getValue('page')) {
+		gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
+		if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
+			caap[caap.pageList[page].CheckResultsFunction](resultsText);
+		}
+	}else gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
+	
 	caap.selectMonster();
 	caap.monsterDashboard();
 	// Check for new gifts
@@ -2227,6 +2230,7 @@ CheckResults:function() {
 		var goldStored = nHtml.FindByAttrContains(document.body,"b","class",'money').firstChild.data.replace(/[^0-9]/g,'');
 		gm.setValue('inStore',goldStored);
 	}
+	gm.log('just before results ' + resultsText);
 	// If set and still recent, go to the function specified in 'ResultsFunction'
 	resultsFunction = gm.getValue('ResultsFunction','');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
@@ -3596,7 +3600,7 @@ Battle:function(mode) {
 			this.SetDivContent('battle_mess','Joining the Raid');
 			if (this.NavigateTo(this.battlePage + ',raid','tab_raid_on.gif')) return true;
 			if (gm.getValue('clearCompleteRaids',false) && this.completeButton.raid) {
-				caap.Click(this.completeButton.raid,1000);
+				caap.Click(this.completeButton.raid);
 				this.completeButton.raid = '';
 				gm.log('Cleared a completed raid');
 				return true;
@@ -4007,7 +4011,7 @@ CheckResults_viewFight:function() {
 			gm.setListObjVal('monsterOl',monster,'Phase',phaseText);
 		}
 	} else {
-		gm.log('Monster is dead?');
+		gm.log('Monster is dead or fled.');
 		if (isTarget) gm.setValue('resetselectMonster',true);
 		if (!gm.setListObjVal('monsterOl',monster,'status'))
 			gm.setListObjVal('monsterOl',monster,'status','Collect Reward');
@@ -4335,7 +4339,7 @@ Monsters:function() {
 	if (this.NavigateTo('keep,battle_monster','tab_monster_on.jpg')) return true;
 
 	if (gm.getValue('clearCompleteMonsters',false) && this.completeButton.battle_monster) {
-		caap.Click(this.completeButton.battle_monster,1000);
+		caap.Click(this.completeButton.battle_monster);
 		gm.log('Cleared a completed monster');
 		this.completeButton.battle_monster = '';
 		return true;
@@ -5235,7 +5239,7 @@ ImmediateAutoStat:function() {
 
 /////////////////////////////////////////////////////////////////////
 
-CheckResults_army:function(resultsText) {
+CheckResults_gift:function(resultsText) {
 	// Confirm gifts actually sent
 	if (resultsText.match(/^\d+ requests? sent\.$/)) {
 		gm.log('Confirmed gifts sent out.');
