@@ -1504,12 +1504,9 @@ SetControls:function(force) {
 
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
 //      Uncomment this to see the id of domNodes that are inserted
-		if (event.target.id) alert(event.target.id);
-		if (event.target.id == "app46755028429_app_body" 
-				|| event.target.id == "app46755028429_battle_monster"
-				|| event.target.id == "app46755028429_raid"
-				|| event.target.id == "app46755028429_quests"
-				|| event.target.id == "app46755028429_generals")
+//		if (event.target.id) alert(event.target.id);
+		var $target = $(event.target);
+		if($target.is("#app46755028429_app_body") || event.target.querySelector("#app46755028429_app_body")) 
 			nHtml.setTimeout(caap.CheckResults, 0);
 	}, true);
 
@@ -2162,7 +2159,16 @@ pageList:{
 	'army'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
 	'gift'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
 },
+trackPerformance:true,
+performanceTimer:function(marker) {
+	if (!caap.trackPerformance) return;
+	var now = (new Date().getTime());
+	elapsedTime = now - parseInt(gm.getValue('performanceTimer',0),10);
+	gm.log('Performance Timer: At ' + marker + ' Time elapsed: '+ elapsedTime);
+	gm.setValue('performanceTimer',now.toString());
+},
 CheckResults:function() {
+	caap.performanceTimer('Start CheckResults');
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	if (!caap.WhileSinceDidIt('CheckResultsTimer',0.2)) return;
@@ -2197,8 +2203,11 @@ CheckResults:function() {
 		}
 	}else gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
 	
+	caap.performanceTimer('Before selectMonster');
 	caap.selectMonster();
+	caap.performanceTimer('Done selectMonster');
 	caap.monsterDashboard();
+	caap.performanceTimer('Done Dashboard');
 	// Check for new gifts
 	if (!gm.getValue('HaveGift')) {
 		if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
@@ -2230,10 +2239,11 @@ CheckResults:function() {
 		var goldStored = nHtml.FindByAttrContains(document.body,"b","class",'money').firstChild.data.replace(/[^0-9]/g,'');
 		gm.setValue('inStore',goldStored);
 	}
-	gm.log('just before results ' + resultsText);
 	// If set and still recent, go to the function specified in 'ResultsFunction'
 	resultsFunction = gm.getValue('ResultsFunction','');
+	caap.performanceTimer('Done CheckResults');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
+	caap.performanceTimer('Done CheckResults');
 },
 /////////////////////////////////////////////////////////////////////
 
