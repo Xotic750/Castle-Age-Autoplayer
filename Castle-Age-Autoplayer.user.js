@@ -1504,7 +1504,7 @@ SetControls:function(force) {
 
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
 //      Uncomment this to see the id of domNodes that are inserted
-		if (event.target.id) alert(event.target.id);
+//		if (event.target.id) alert(event.target.id);
 		if (event.target.id == "app46755028429_app_body" 
 				|| event.target.id == "app46755028429_battle_monster"
 				|| event.target.id == "app46755028429_raid"
