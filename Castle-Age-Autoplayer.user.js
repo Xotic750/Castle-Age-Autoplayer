@@ -1505,12 +1505,35 @@ SetControls:function(force) {
 	globalContainer.addEventListener('DOMNodeInserted', function(event) {
 //      Uncomment this to see the id of domNodes that are inserted
 //		if (event.target.id) alert(event.target.id);
-		if (event.target.id == "app46755028429_app_body" 
-				|| event.target.id == "app46755028429_battle_monster"
-				|| event.target.id == "app46755028429_raid"
-				|| event.target.id == "app46755028429_quests"
-				|| event.target.id == "app46755028429_generals")
+		var $target = $(event.target);
+		if ($target.is("#app46755028429_index") ||
+		   $target.is("#app46755028429_app_body") ||
+		   $target.is("#app46755028429_keep") ||
+		   $target.is("#app46755028429_app_body") ||
+		   $target.is("#app46755028429_generals") ||
+		   $target.is("#app46755028429_battle_monster") ||
+		   $target.is("#app46755028429_battle") ||
+		   $target.is("#app46755028429_battlerank") ||
+		   $target.is("#app46755028429_battle_train") ||
+		   $target.is("#app46755028429_quests") ||
+		   $target.is("#app46755028429_raid") ||
+		   $target.is("#app46755028429_symbolquests") ||
+		   $target.is("#app46755028429_alchemy") ||
+		   $target.is("#app46755028429_soldiers") ||
+		   $target.is("#app46755028429_item") ||
+		   $target.is("#app46755028429_land") ||
+		   $target.is("#app46755028429_magic") ||
+		   $target.is("#app46755028429_oracle") ||
+		   $target.is("#app46755028429_symbols") ||
+		   $target.is("#app46755028429_treasure_chest") ||
+		   $target.is("#app46755028429_gift") ||
+		   $target.is("#app46755028429_apprentice") ||
+		   $target.is("#app46755028429_news") ||
+		   $target.is("#app46755028429_friend_page") ||
+		   $target.is("#app46755028429_comments") ||
+		   $target.is("#app46755028429_army_reqs")) {
 			nHtml.setTimeout(caap.CheckResults, 0);
+		}
 	}, true);
 
 	globalContainer.addEventListener('click', function(event) {
