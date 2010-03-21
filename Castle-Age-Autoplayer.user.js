@@ -2230,7 +2230,6 @@ CheckResults:function() {
 		var goldStored = nHtml.FindByAttrContains(document.body,"b","class",'money').firstChild.data.replace(/[^0-9]/g,'');
 		gm.setValue('inStore',goldStored);
 	}
-	gm.log('just before results ' + resultsText);
 	// If set and still recent, go to the function specified in 'ResultsFunction'
 	resultsFunction = gm.getValue('ResultsFunction','');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
@@ -3986,7 +3985,7 @@ CheckResults_viewFight:function() {
 				gm.log('Unknown monster');
 				return;
 			}
-			var T2K = (100/(100-hp))*(boss.duration - (parseInt(time[0],10) + (parseInt(time[1],10)*0.0166)) );
+			var T2K = hp/(100-hp)*(boss.duration - (parseInt(time[0],10) + (parseInt(time[1],10)*0.0166)) );
 			T2K = Math.round(T2K*10)/10; //fix two 1 decimal place
 			gm.setListObjVal('monsterOl',monster,'T2K',T2K.toString()+ ' hr');
 		}
@@ -4216,6 +4215,7 @@ MonsterReview:function() {
 					if (monster.indexOf('Siege')>=0) {
 						link += '&rix='+gm.getObjVal(monsterObj,'rix','2');
 					}
+					link = link.replace('&action=doObjective','');
 				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege',true)
 						|| this.stats.stamina.num === 0) {
 					link = link.replace('&action=doObjective','');
