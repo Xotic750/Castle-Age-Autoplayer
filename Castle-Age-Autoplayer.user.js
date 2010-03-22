@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.24
+// @version        139.25
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -14,12 +14,16 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,CM_Listener,CE_message */
+
 ///////////////////////////
 // Define our global object
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.24";
+caapGlob.thisVersion = "139.25";
+caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -40,6 +44,9 @@ caapGlob.dragOK = false;
 caapGlob.quest_name = null;
 caapGlob.attackButton = null;
 caapGlob.currentColor = null;
+caapGlob.ColorDiv = null;
+caapGlob.arrows = null;
+caapGlob.circle = null;
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
@@ -53,6 +60,8 @@ caapGlob.symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AA
 caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQxIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
 ///////////////////////////
 
+var style = {};
+
 if (caapGlob.is_chrome) {
     CM_Listener();
 }
@@ -61,15 +70,224 @@ if (!caapGlob.is_chrome) {
     if (!GM_log) {
         GM_log = console.debug;
     }
+}
 
-    if (parseInt(GM_getValue('SUC_remote_version', 0), 10) > caapGlob.thisVersion) {
+/////////////////////////////////////////////////////////////////////
+//                          gm OBJECT
+// this object is used for setting/getting GM specific functions.
+/////////////////////////////////////////////////////////////////////
+
+var gm = {
+    // use to log stuff
+    log: function (mess) {
+        GM_log('v' + caapGlob.thisVersion + ': ' + mess);
+    },
+
+    debug: function (mess) {
+        if (caapGlob.debug) {
+            gm.log(mess);
+        }
+    },
+
+    // use these to set/get values in a way that prepends the game's name
+    setValue: function (n, v) {
+        gm.debug('Set ' + n + ' to ' + v);
+        GM_setValue(caapGlob.gameName + "__" + n, v);
+        return v;
+    },
+    getValue: function (n, v) {
+        gm.debug('Get ' + n + ' value ' + GM_getValue(caapGlob.gameName + "__" + n, v));
+        return GM_getValue(caapGlob.gameName + "__" + n, v);
+    },
+
+    deleteValue: function (n) {
+        gm.debug('Delete ' + n + ' value ');
+        return GM_deleteValue(caapGlob.gameName + "__" + n);
+    },
+
+    IsArray: function (testObject) {
+        return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
+    },
+
+    setList: function (n, v) {
+        if (!gm.IsArray(v)) {
+            gm.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
+            return;
+        }
+
+        return GM_setValue(caapGlob.gameName + "__" + n, v.join(caapGlob.os));
+    },
+
+    getList: function (n) {
+        var getTheList = GM_getValue(caapGlob.gameName + "__" + n, '');
+        gm.debug('GetList ' + n + ' value ' + GM_getValue(caapGlob.gameName + "__" + n));
+        return (getTheList) ? getTheList.split(caapGlob.os) : [];
+    },
+
+    listAddBefore: function (listName, addList) {
+        var newList = addList.concat(gm.getList(listName));
+        gm.setList(listName, newList);
+        return newList;
+    },
+
+    listPop: function (listName) {
+        var popList = gm.getList(listName);
+        if (!popList.length) {
+            return '';
+        }
+
+        var popItem = popList.pop();
+        gm.setList(listName, popList);
+        return popItem;
+    },
+
+    listPush: function (listName, pushItem, max) {
+        var list = gm.getList(listName);
+
+        // Only add if it isn't already there.
+        if (list.indexOf(pushItem) != -1) {
+            return;
+        }
+
+        list.push(pushItem);
+        if (max > 0) {
+            while (max < list.length) {
+                pushItem = list.shift();
+                gm.debug('Removing ' + pushItem + ' from ' + listName + '.');
+            }
+        }
+
+        gm.setList(listName, list);
+    },
+
+    listFindItemByPrefix: function (list, prefix) {
+        var itemList = list.filter(function (item) {
+            return item.indexOf(prefix) === 0;
+        });
+
+        //gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
+        if (itemList.length) {
+            return itemList[0];
+        }
+    },
+
+    setObjVal: function (objName, label, value) {
+        var objStr = gm.getValue(objName);
+        if (!objStr) {
+            gm.setValue(objName, label + caapGlob.ls + value);
+            return;
+        }
+
+        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        if (!itemStr) {
+            gm.setValue(objName, label + caapGlob.ls + value + caapGlob.vs + objStr);
+            return;
+        }
+
+        var objList = objStr.split(caapGlob.vs);
+        objList.splice(objList.indexOf(itemStr), 1, label + caapGlob.ls + value);
+        gm.setValue(objName, objList.join(caapGlob.vs));
+    },
+
+    getObjVal: function (objName, label, defaultValue) {
+        var objStr;
+        if (objName.indexOf(caapGlob.ls) < 0) {
+            objStr = gm.getValue(objName);
+        } else {
+            objStr = objName;
+        }
+
+        if (!objStr) {
+            return defaultValue;
+        }
+
+        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        if (!itemStr) {
+            return defaultValue;
+        }
+
+        return itemStr.split(caapGlob.ls)[1];
+    },
+
+    getListObjVal: function (listName, objName, label, defaultValue) {
+        var gLOVlist = gm.getList(listName);
+        if (!(gLOVlist.length)) {
+            return defaultValue;
+        }
+
+        //gm.log('have list '+gLOVlist);
+        var objStr = gm.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
+        if (!objStr) {
+            return defaultValue;
+        }
+
+        //gm.log('have obj ' + objStr);
+        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        if (!itemStr) {
+            return defaultValue;
+        }
+
+        //gm.log('have val '+itemStr);
+        return itemStr.split(caapGlob.ls)[1];
+    },
+
+    setListObjVal: function (listName, objName, label, value, max) {
+        var objList = gm.getList(listName);
+        if (!(objList.length)) {
+            gm.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
+            return;
+        }
+
+        var objStr = gm.listFindItemByPrefix(objList, objName + caapGlob.vs);
+        if (!objStr) {
+            gm.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
+            return;
+        }
+
+        var valList = objStr.split(caapGlob.vs);
+        var valStr = gm.listFindItemByPrefix(valList, label + caapGlob.ls);
+        if (!valStr) {
+            valList.push(label + caapGlob.ls + value);
+            objList.splice(objList.indexOf(objStr), 1, objStr + caapGlob.vs + label + caapGlob.ls + value);
+            gm.setList(listName, objList);
+            return;
+        }
+
+        valList.splice(valList.indexOf(valStr), 1, label + caapGlob.ls + value);
+        objList.splice(objList.indexOf(objStr), 1, valList.join(caapGlob.vs));
+        gm.setList(listName, objList);
+    },
+
+    deleteListObj: function (listName, objName) {
+        var objList = gm.getList(listName);
+        if (!(objList.length)) {
+            return false;
+        }
+
+        var objStr = gm.listFindItemByPrefix(objList, objName);
+        if (objStr) {
+            objList.splice(objList.indexOf(objStr), 1);
+            gm.setList(listName, objList);
+        }
+    }
+};
+
+/////////////////////////////////////////////////////////////////////
+//                          userscript updater
+// Used by browsers other than Chrome (namely Firefox and Flock)
+// to get updates from userscripts.org
+// Needs to be modifed to work from GitHub instead
+/////////////////////////////////////////////////////////////////////
+
+if (!caapGlob.is_chrome) {
+    if (parseInt(gm.getValue('SUC_remote_version', 0), 10) > caapGlob.thisVersion) {
         caapGlob.newVersionAvailable = true;
     }
 
     // update script from: http://userscripts.org/scripts/review/57917
     try {
         function updateCheck(forced) {
-            if ((forced) || (parseInt(GM_getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
+            if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
                 try {
                     GM_xmlhttpRequest({
                         method: 'GET',
@@ -79,10 +297,10 @@ if (!caapGlob.is_chrome) {
                             var rt = resp.responseText;
                             var remote_version = parseInt(/@version\s*(.*?)\s*$/m.exec(rt)[1], 10);
                             var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
-                            GM_setValue('SUC_last_update', new Date().getTime() + '');
-                            GM_setValue('SUC_target_script_name', script_name);
-                            GM_setValue('SUC_remote_version', remote_version);
-                            GM_log('remote version ' + remote_version);
+                            gm.setValue('SUC_last_update', new Date().getTime() + '');
+                            gm.setValue('SUC_target_script_name', script_name);
+                            gm.setValue('SUC_remote_version', remote_version);
+                            gm.log('remote version ' + remote_version);
                             if (remote_version > caapGlob.thisVersion) {
                                 caapGlob.newVersionAvailable = true;
                                 if (forced) {
@@ -103,7 +321,7 @@ if (!caapGlob.is_chrome) {
             }
         }
 
-        GM_registerMenuCommand(GM_getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+        GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
             updateCheck(true);
         });
 
@@ -295,7 +513,7 @@ var nHtml = {
     OpenInIFrame: function (url, key) {
         //if (!iframe = document.getElementById(key))
         var iframe = document.createElement("iframe");
-        //GM_log ("Navigating iframe to " + url);
+        //gm.log ("Navigating iframe to " + url);
         iframe.setAttribute("src", url);
         iframe.setAttribute("id", key);
         iframe.setAttribute("style", "width:0;height:0;");
@@ -329,7 +547,7 @@ var nHtml = {
     },
 
     ScrollToBottom: function () {
-        //GM_log("Scroll Height: " + document.body.scrollHeight);
+        //gm.log("Scroll Height: " + document.body.scrollHeight);
         if (document.body.scrollHeight) {
             window.scrollBy(0, document.body.scrollHeight);
         }// else if (screen.height) {}
@@ -346,210 +564,10 @@ var nHtml = {
 };
 
 /////////////////////////////////////////////////////////////////////
-//                          gm OBJECT
-// this object is used for setting/getting GM specific functions.
-/////////////////////////////////////////////////////////////////////
-
-gm = {
-    // use to log stuff
-    log: function (mess) {
-        GM_log('v' + caapGlob.thisVersion + ': ' + mess);
-    },
-
-    debug: function (mess) {
-        if (caapGlob.debug) {
-            gm.log(mess);
-        }
-    },
-
-    // use these to set/get values in a way that prepends the game's name
-    setValue: function (n, v) {
-        gm.debug('Set ' + n + ' to ' + v);
-        GM_setValue(caap.gameName + "__" + n, v);
-        return v;
-    },
-    getValue: function (n, v) {
-        gm.debug('Get ' + n + ' value ' + GM_getValue(caap.gameName + "__" + n, v));
-        return GM_getValue(caap.gameName + "__" + n, v);
-    },
-
-    deleteValue: function (n) {
-        gm.debug('Delete ' + n + ' value ');
-        return GM_deleteValue(caap.gameName + "__" + n);
-    },
-
-    IsArray: function (testObject) {
-        return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
-    },
-
-    setList: function (n, v) {
-        if (!gm.IsArray(v)) {
-            gm.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
-            return;
-        }
-        return GM_setValue(caap.gameName + "__" + n, v.join(caapGlob.os));
-    },
-
-    getList: function (n) {
-        getList = GM_getValue(caap.gameName + "__" + n, '');
-        gm.debug('GetList ' + n + ' value ' + GM_getValue(caap.gameName + "__" + n));
-        return (getList) ? getList.split(caapGlob.os) : [];
-    },
-
-    listAddBefore: function (listName, addList) {
-        newList = addList.concat(gm.getList(listName));
-        gm.setList(listName, newList);
-        return newList;
-    },
-
-    listPop: function (listName) {
-        popList = gm.getList(listName);
-        if (!popList.length) {
-            return '';
-        }
-
-        popItem = popList.pop();
-        gm.setList(listName, popList);
-        return popItem;
-    },
-
-    listPush: function (listName, pushItem, max) {
-        var list = gm.getList(listName);
-
-        // Only add if it isn't already there.
-        if (list.indexOf(pushItem) != -1) {
-            return;
-        }
-
-        list.push(pushItem);
-        if (max > 0) {
-            while (max < list.length) {
-                //var pushItem = list.shift();
-                pushItem = list.shift();
-                gm.debug('Removing ' + pushItem + ' from ' + listName + '.');
-            }
-        }
-
-        gm.setList(listName, list);
-    },
-
-    listFindItemByPrefix: function (list, prefix) {
-        var itemList = list.filter(function (item) {
-            return item.indexOf(prefix) === 0;
-        });
-
-        //gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
-        if (itemList.length) {
-            return itemList[0];
-        }
-    },
-
-    setObjVal: function (objName, label, value) {
-        var objStr = gm.getValue(objName);
-        if (!objStr) {
-            gm.setValue(objName, label + caapGlob.ls + value);
-            return;
-        }
-
-        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
-        if (!itemStr) {
-            gm.setValue(objName, label + caapGlob.ls + value + caapGlob.vs + objStr);
-            return;
-        }
-
-        objList = objStr.split(caapGlob.vs);
-        objList.splice(objList.indexOf(itemStr), 1, label + caapGlob.ls + value);
-        gm.setValue(objName, objList.join(caapGlob.vs));
-    },
-
-    getObjVal: function (objName, label, defaultValue) {
-        var objStr;
-        if (objName.indexOf(caapGlob.ls) < 0) {
-            objStr = gm.getValue(objName);
-        } else {
-            objStr = objName;
-        }
-
-        if (!objStr) {
-            return defaultValue;
-        }
-
-        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
-        if (!itemStr) {
-            return defaultValue;
-        }
-
-        return itemStr.split(caapGlob.ls)[1];
-    },
-
-    getListObjVal: function (listName, objName, label, defaultValue) {
-        var gLOVlist = gm.getList(listName);
-        if (!(gLOVlist.length)) {
-            return defaultValue;
-        }
-
-        //gm.log('have list '+gLOVlist);
-        var objStr = gm.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
-        if (!objStr) {
-            return defaultValue;
-        }
-
-        //gm.log('have obj ' + objStr);
-        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
-        if (!itemStr) {
-            return defaultValue;
-        }
-
-        //gm.log('have val '+itemStr);
-        return itemStr.split(caapGlob.ls)[1];
-    },
-
-    setListObjVal: function (listName, objName, label, value, max) {
-        var objList = gm.getList(listName);
-        if (!(objList.length)) {
-            gm.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
-            return;
-        }
-
-        var objStr = gm.listFindItemByPrefix(objList, objName + caapGlob.vs);
-        if (!objStr) {
-            gm.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
-            return;
-        }
-
-        var valList = objStr.split(caapGlob.vs);
-        var valStr = gm.listFindItemByPrefix(valList, label + caapGlob.ls);
-        if (!valStr) {
-            valList.push(label + caapGlob.ls + value);
-            objList.splice(objList.indexOf(objStr), 1, objStr + caapGlob.vs + label + caapGlob.ls + value);
-            gm.setList(listName, objList);
-            return;
-        }
-
-        valList.splice(valList.indexOf(valStr), 1, label + caapGlob.ls + value);
-        objList.splice(objList.indexOf(objStr), 1, valList.join(caapGlob.vs));
-        gm.setList(listName, objList);
-    },
-
-    deleteListObj: function (listName, objName) {
-        var objList = gm.getList(listName);
-        if (!(objList.length)) {
-            return false;
-        }
-
-        var objStr = gm.listFindItemByPrefix(objList, objName);
-        if (objStr) {
-            objList.splice(objList.indexOf(objStr), 1);
-            gm.setList(listName, objList);
-        }
-    }
-};
-
-/////////////////////////////////////////////////////////////////////
 //                          move OBJECT
 /////////////////////////////////////////////////////////////////////
 
-Move = {
+var Move = {
     moveHandler: function (e) {
         caapGlob.savedTarget.style.position = 'absolute';
         if (e === null) {
@@ -597,893 +615,12 @@ Move = {
     }
 };
 
-/////////////////////////////////////////////////////////////////////
-//                          style OBJECT
-/////////////////////////////////////////////////////////////////////
-
-var style = {
-    CreateMenu: function () {
-        newDiv = document.createElement("div");
-        newDiv.setAttribute("id", "ColorSelectorDiv");
-        newDiv.setAttribute("style", "display: none; position: fixed; left: " + ((window.innerWidth / 2) - 290) + "px; top: " + ((window.innerHeight / 2) - 200) + "px; z-index: 1337; background: #fff; border: 2px solid #000; padding: 3px; width: 577px");
-        newDiv.innerHTML += "<center><b><h1>Select Color<h1></b><div id='SelectColorType'></div></center><br/>";
-        newDiv.innerHTML += '<div style="position:relative;height:286px;width:531px;border:1px solid black;">\n' +
-        '  <div id="gradientBox" style="cursor:crosshair;top:15px;position:absolute;\n' +
-        '                              left:15px;width:256px;height:256px;">\n' +
-        '    <img id="gradientImg" style="display:block;width:256px;height:256px;"\n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_gradient.png" />\n' +
-        '   <img id="circle" style="position:absolute;height:11px;width:11px;"\n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_circle.gif" />\n' +
-        '  </div>\n' +
-        '  <div id="hueBarDiv" style="position:absolute;left:310px;width:35px;\n' +
-        '                            height:256px;top:15px;">\n' +
-        '    <img style="position:absolute;height:256px; width:19px;left:8px;" \n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_bar.png" />\n' +
-        '    <img id="arrows" style="position:absolute;height:9px;width:35px;left:0px;" \n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_arrows.gif" />\n' +
-        '  </div>\n' +
-        '  <div style="position:absolute;left:370px;width:145px;height:256px;top:15px;">\n' +
-        '  <div style="position:absolute;border: 1px solid black;\n' +
-        '             height:50px;width:145px;top:0px;left:0px;">\n' +
-        '    <div id="quickColor" style="position:absolute;height:50px;width:73px;\n' +
-        '                               top:0px;left:0px;">\n' +
-        '    </div>\n' +
-        '    <div id="staticColor" style="position:absolute;height:50px;width:72px;\n' +
-        '                                top:0px;left:73px;">\n' +
-        '    </div>\n' +
-        '  </div>\n' +
-        '  <br />\n' +
-        '  <table width="100%" style="position:absolute;top:55px;">\n' +
-        '    <tr>\n' +
-        '      <td>Hex: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="hexBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Red: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="redBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Green: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="greenBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Blue: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="blueBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Hue: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="hueBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Saturation: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="saturationBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Value: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="valueBox" />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '  </table>\n' +
-        '  </div>\n' +
-        '</div>';
-        newDiv.innerHTML += '<div style="float:right"><input type="button" value="Accept" id="ColorMenuAccept"><input type="button" value="Cancel" id="ColorMenuCancel"></div>';
-        document.body.appendChild(newDiv);
-        /////////////////Event Listeners\\\\\\\\\\\\\\\\\\\\\
-        var state = gm.getValue('state', 'Start');
-        var AddChangers = document.getElementById('ColorMenuAccept');
-        AddChangers.addEventListener('click', function (e) {
-            ColorDiv.style.display = 'none';
-            style.ChangeBackGround();
-            gm.deleteValue('state');
-        }, false);
-
-        AddChangers = document.getElementById('ColorMenuCancel');
-        AddChangers.addEventListener('click', function (e) {
-            ColorDiv.style.display = 'none';
-            style.CancelChangeBackGround();
-            gm.deleteValue('state');
-        }, false);
-
-        AddChangers = document.getElementById('hexBox');
-        AddChangers.addEventListener('change', function (e) {
-            //gm.log("StyleColorStoped: "+gm.getValue('StyleColorStoped'));
-            //gm.log("document.getElementById(hexBox).value: "+document.getElementById("hexBox").value);
-            style.ChangeBackGround();
-            style.hexBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('redBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.redBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('greenBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.greenBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('blueBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.blueBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('hueBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.hueBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('saturationBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.saturationBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('valueBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.valueBoxChanged();
-        }, false);
-
-        this.pointerOffset = new style.Position(0, navigator.userAgent.indexOf("Firefox") >= 0 ? 1 : 0);
-        this.circleOffset = new style.Position(5, 5);
-        this.arrowsOffset = new style.Position(0, 4);
-        this.arrowsLowBounds = new style.Position(0, -4);
-        this.arrowsUpBounds = new style.Position(0, 251);
-        this.circleLowBounds = new style.Position(-5, -5);
-        this.circleUpBounds = new style.Position(250, 250);
-        style.fixGradientImg();
-    },
-
-    LoadMenu: function (state) {
-        style.colorChanged('box');
-        var oldColor = 0;
-        if (state == 'Start') {
-            oldColor = document.getElementById("caap_StyleColorStarted").value;
-        } else {
-            oldColor = document.getElementById("caap_StyleColorStoped").value;
-        }
-
-        gm.setValue('oldColor', oldColor);
-        //gm.log("oldColor:"+oldColor)
-        //gm.log("state: "+state)
-        gm.setValue('state', state);
-        ColorDiv = document.getElementById('ColorSelectorDiv');
-        document.getElementById('SelectColorType').innerHTML = state;
-        ColorDiv.style.display = 'block';
-    },
-
-    ChangeBackGround: function () {
-        var state = gm.getValue('state', 'Start');
-        if (state == 'Start') {
-            gm.setValue('StyleColorStarted', document.getElementById("hexBox").value.replace(/#/, ''));
-            gm.setValue('StyleBackgroundLight', document.getElementById("hexBox").value);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-        } else {
-            gm.setValue('StyleColorStoped', document.getElementById("hexBox").value.replace(/#/, ''));
-            gm.setValue('StyleBackgroundDark', document.getElementById("hexBox").value);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-        }
-
-        caap.SetControls(true);
-    },
-
-    CancelChangeBackGround: function () {
-        var state = gm.getValue('state', 'Start');
-        var oldColor = gm.getValue('oldColor', 'FFFFFF');
-        if (state == 'Start') {
-            gm.setValue('StyleColorStarted', oldColor);
-            gm.setValue('StyleBackgroundLight', '#' + oldColor);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-        } else {
-            gm.setValue('StyleColorStoped', oldColor);
-            gm.setValue('StyleBackgroundDark', '#' + oldColor);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-        }
-
-        caap.SetControls(true);
-    },
-
-    Colors: new function () {
-        this.ColorFromHSV = function (hue, sat, val) {
-            var color = new Color();
-            color.SetHSV(hue, sat, val);
-            return color;
-        };
-
-        this.ColorFromRGB = function (r, g, b) {
-            var color = new Color();
-            color.SetRGB(r, g, b);
-            return color;
-        };
-
-        this.ColorFromHex = function (hexStr) {
-            var color = new Color();
-            color.SetHexString(hexStr);
-            return color;
-        };
-
-        function Color() {
-            //Stored as values between 0 and 1
-            var red = 0;
-            var green = 0;
-            var blue = 0;
-            //Stored as values between 0 and 360
-            var hue = 0;
-            //Strored as values between 0 and 1
-            var saturation = 0;
-            var value = 0;
-            this.SetRGB = function (r, g, b) {
-                if (isNaN(r) || isNaN(g) || isNaN(b)) {
-                    return false;
-                }
-
-                r = r / 255.0;
-                red = r > 1 ? 1 : r < 0 ? 0 : r;
-                g = g / 255.0;
-                green = g > 1 ? 1 : g < 0 ? 0 : g;
-                b = b / 255.0;
-                blue = b > 1 ? 1 : b < 0 ? 0 : b;
-                calculateHSV();
-                return true;
-            };
-
-            this.Red = function () {
-                return Math.round(red * 255);
-            };
-
-            this.Green = function () {
-                return Math.round(green * 255);
-            };
-
-            this.Blue = function () {
-                return Math.round(blue * 255);
-            };
-
-            this.SetHSV = function (h, s, v) {
-                if (isNaN(h) || isNaN(s) || isNaN(v)) {
-                    return false;
-                }
-
-                hue = (h >= 360) ? 359.99 : (h < 0) ? 0 : h;
-                saturation = (s > 1) ? 1 : (s < 0) ? 0 : s;
-                value = (v > 1) ? 1 : (v < 0) ? 0 : v;
-                calculateRGB();
-                return true;
-            };
-
-            this.Hue = function () {
-                return hue;
-            };
-
-            this.Saturation = function () {
-                return saturation;
-            };
-
-            this.Value = function () {
-                return value;
-            };
-
-            this.SetHexString = function (hexString) {
-                if (hexString === null || typeof(hexString) != "string") {
-                    return false;
-                }
-
-                if (hexString.substr(0, 1) == '#') {
-                    hexString = hexString.substr(1);
-                }
-
-                if (hexString.length != 6) {
-                    return false;
-                }
-
-                var r = parseInt(hexString.substr(0, 2), 16);
-                var g = parseInt(hexString.substr(2, 2), 16);
-                var b = parseInt(hexString.substr(4, 2), 16);
-
-                return this.SetRGB(r, g, b);
-            };
-
-            this.HexString = function () {
-                var rStr = this.Red().toString(16);
-                if (rStr.length == 1) {
-                    rStr = '0' + rStr;
-                }
-
-                var gStr = this.Green().toString(16);
-                if (gStr.length == 1) {
-                    gStr = '0' + gStr;
-                }
-
-                var bStr = this.Blue().toString(16);
-                if (bStr.length == 1) {
-                    bStr = '0' + bStr;
-                }
-
-                return ('#' + rStr + gStr + bStr).toUpperCase();
-            };
-
-            this.Complement = function () {
-                var newHue = (hue >= 180) ? hue - 180 : hue + 180;
-                var newVal = (value * (saturation - 1) + 1);
-                var newSat = (value * saturation) / newVal;
-                var newColor = new Color();
-                newColor.SetHSV(newHue, newSat, newVal);
-                return newColor;
-            };
-
-            function calculateHSV() {
-                var max = Math.max(Math.max(red, green), blue);
-                var min = Math.min(Math.min(red, green), blue);
-                value = max;
-
-                saturation = 0;
-                if (max !== 0) {
-                    saturation = 1 - min / max;
-                }
-
-                hue = 0;
-                if (min == max) {
-                    return;
-                }
-
-                var delta = (max - min);
-                if (red == max) {
-                    hue = (green - blue) / delta;
-                } else if (green == max) {
-                    hue = 2 + ((blue - red) / delta);
-                } else {
-                    hue = 4 + ((red - green) / delta);
-                }
-
-                hue = hue * 60;
-                if (hue < 0) {
-                    hue += 360;
-                }
-            }
-
-            function calculateRGB()
-            {
-                red = value;
-                green = value;
-                blue = value;
-
-                if (value === 0 || saturation === 0) {
-                    return;
-                }
-
-                var tHue = (hue / 60);
-                var i = Math.floor(tHue);
-                var f = tHue - i;
-                var p = value * (1 - saturation);
-                var q = value * (1 - saturation * f);
-                var t = value * (1 - saturation * (1 - f));
-                switch (i) {
-                case 0:
-                    red = value;
-                    green = t;
-                    blue = p;
-                    break;
-                case 1:
-                    red = q;
-                    green = value;
-                    blue = p;
-                    break;
-                case 2:
-                    red = p;
-                    green = value;
-                    blue = t;
-                    break;
-                case 3:
-                    red = p;
-                    green = q;
-                    blue = value;
-                    break;
-                case 4:
-                    red = t;
-                    green = p;
-                    blue = value;
-                    break;
-                default:
-                    red = value;
-                    green = p;
-                    blue = q;
-                    break;
-                }
-            }
-        }
-    }(),
-
-    Position: function (x, y) {
-        this.X = x;
-        this.Y = y;
-
-        this.Add = function (val) {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val !== null) {
-                if (!isNaN(val.X)) {
-                    newPos.X += val.X;
-                }
-
-                if (!isNaN(val.Y)) {
-                    newPos.Y += val.Y;
-                }
-            }
-
-            return newPos;
-        };
-
-        this.Subtract = function (val) {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val !== null) {
-                if (!isNaN(val.X)) {
-                    newPos.X -= val.X;
-                }
-
-                if (!isNaN(val.Y)) {
-                    newPos.Y -= val.Y;
-                }
-            }
-
-            return newPos;
-        };
-
-        this.Min = function (val) {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val === null) {
-                return newPos;
-            }
-
-            if (!isNaN(val.X) && this.X > val.X) {
-                newPos.X = val.X;
-            }
-
-            if (!isNaN(val.Y) && this.Y > val.Y) {
-                newPos.Y = val.Y;
-            }
-
-            return newPos;
-        };
-
-        this.Max = function (val)
-        {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val === null) {
-                return newPos;
-            }
-
-            if (!isNaN(val.X) && this.X < val.X) {
-                newPos.X = val.X;
-            }
-
-            if (!isNaN(val.Y) && this.Y < val.Y) {
-                newPos.Y = val.Y;
-            }
-
-            return newPos;
-        };
-
-        this.Bound = function (lower, upper) {
-            var newPos = this.Max(lower);
-            return newPos.Min(upper);
-        };
-
-        this.Check = function () {
-            var newPos = new style.Position(this.X, this.Y);
-            if (isNaN(newPos.X)) {
-                newPos.X = 0;
-            }
-
-            if (isNaN(newPos.Y)) {
-                newPos.Y = 0;
-            }
-
-            return newPos;
-        };
-
-        this.Apply = function (element) {
-            if (typeof(element) == "string") {
-                element = document.getElementById(element);
-            }
-
-            if (element === null) {
-                return;
-            }
-
-            if (!isNaN(this.X)) {
-                element.style.left = this.X + 'px';
-            }
-
-            if (!isNaN(this.Y)) {
-                element.style.top = this.Y + 'px';
-            }
-        };
-    },
-
-    correctOffset: function (pos, offset, neg) {
-        if (neg) {
-            return pos.Subtract(offset);
-        }
-
-        return pos.Add(offset);
-    },
-
-    hookEvent: function (element, eventName, callback) {
-        if (typeof(element) == "string") {
-            element = document.getElementById(element);
-        }
-
-        if (element === null) {
-            return;
-        }
-
-        if (element.addEventListener) {
-            element.addEventListener(eventName, callback, false);
-        } else if (element.attachEvent) {
-            element.attachEvent("on" + eventName, callback);
-        }
-    },
-
-    unhookEvent: function (element, eventName, callback) {
-        if (typeof(element) == "string") {
-            element = document.getElementById(element);
-        }
-
-        if (element === null) {
-            return;
-        }
-
-        if (element.removeEventListener) {
-            element.removeEventListener(eventName, callback, false);
-        } else if (element.detachEvent) {
-            element.detachEvent("on" + eventName, callback);
-        }
-    },
-
-    cancelEvent: function (e) {
-        e = e ? e : window.event;
-        if (e.stopPropagation) {
-            e.stopPropagation();
-        }
-
-        if (e.preventDefault) {
-            e.preventDefault();
-        }
-
-        e.cancelBubble = true;
-        e.cancel = true;
-        e.returnValue = false;
-        return false;
-    },
-
-    getMousePos: function (eventObj) {
-        eventObj = eventObj ? eventObj : window.event;
-        var pos;
-        if (isNaN(eventObj.layerX)) {
-            pos = new style.Position(eventObj.offsetX, eventObj.offsetY);
-        } else {
-            pos = new style.Position(eventObj.layerX, eventObj.layerY);
-        }
-
-        return style.correctOffset(pos, style.pointerOffset, true);
-    },
-
-    getEventTarget: function (e) {
-        e = e ? e : window.event;
-        return e.target ? e.target : e.srcElement;
-    },
-
-    absoluteCursorPostion: function (eventObj) {
-        eventObj = eventObj ? eventObj : window.event;
-        if (isNaN(window.scrollX)) {
-            return new style.Position(eventObj.clientX + document.documentElement.scrollLeft + document.body.scrollLeft,
-                                      eventObj.clientY + document.documentElement.scrollTop + document.body.scrollTop);
-        } else {
-            return new style.Position(eventObj.clientX + window.scrollX, eventObj.clientY + window.scrollY);
-        }
-    },
-
-    dragObject: function (element, attachElement, lowerBound, upperBound, startCallback, moveCallback, endCallback, attachLater) {
-        if (typeof(element) == "string") {
-            element = document.getElementById(element);
-        }
-
-        if (element === null) {
-            return;
-        }
-
-        if (lowerBound !== null && upperBound !== null) {
-            var temp = lowerBound.Min(upperBound);
-            upperBound = lowerBound.Max(upperBound);
-            lowerBound = temp;
-        }
-
-        var cursorStartPos = null;
-        var elementStartPos = null;
-        var dragging = false;
-        var listening = false;
-        var disposed = false;
-
-        function dragStart(eventObj) {
-            if (dragging || !listening || disposed) {
-                return;
-            }
-
-            dragging = true;
-            if (startCallback !== null) {
-                startCallback(eventObj, element);
-            }
-
-            cursorStartPos = style.absoluteCursorPostion(eventObj);
-            elementStartPos = new style.Position(parseInt(element.style.left, 10), parseInt(element.style.top, 10));
-            elementStartPos = elementStartPos.Check();
-            style.hookEvent(document, "mousemove", dragGo);
-            style.hookEvent(document, "mouseup", dragStopHook);
-            return style.cancelEvent(eventObj);
-        }
-
-        function dragGo(eventObj) {
-            if (!dragging || disposed) {
-                return;
-            }
-
-            var newPos = style.absoluteCursorPostion(eventObj);
-            newPos = newPos.Add(elementStartPos).Subtract(cursorStartPos);
-            newPos = newPos.Bound(lowerBound, upperBound);
-            newPos.Apply(element);
-            if (moveCallback !== null) {
-                moveCallback(newPos, element);
-            }
-
-            return style.cancelEvent(eventObj);
-        }
-
-        function dragStopHook(eventObj) {
-            dragStop();
-            return style.cancelEvent(eventObj);
-        }
-
-        function dragStop() {
-            if (!dragging || disposed) {
-                return;
-            }
-
-            style.unhookEvent(document, "mousemove", dragGo);
-            style.unhookEvent(document, "mouseup", dragStopHook);
-            cursorStartPos = null;
-            elementStartPos = null;
-            if (endCallback !== null) {
-                endCallback(element);
-            }
-
-            dragging = false;
-        }
-
-        this.Dispose = function () {
-            if (disposed) {
-                return;
-            }
-
-            this.StopListening(true);
-            element = null;
-            attachElement = null;
-            lowerBound = null;
-            upperBound = null;
-            startCallback = null;
-            moveCallback = null;
-            endCallback = null;
-            disposed = true;
-        };
-
-        this.StartListening = function () {
-            if (listening || disposed) {
-                return;
-            }
-
-            listening = true;
-            style.hookEvent(attachElement, "mousedown", dragStart);
-        };
-
-        this.StopListening = function (stopCurrentDragging) {
-            if (!listening || disposed) {
-                return;
-            }
-
-            style.unhookEvent(attachElement, "mousedown", dragStart);
-            listening = false;
-            if (stopCurrentDragging && dragging) {
-                dragStop();
-            }
-        };
-
-        this.IsDragging = function () {
-            return dragging;
-        };
-
-        this.IsListening = function () {
-            return listening;
-        };
-
-        this.IsDisposed = function () {
-            return disposed;
-        };
-
-        if (typeof(attachElement) == "string") {
-            attachElement = document.getElementById(attachElement);
-        }
-
-        if (attachElement === null) {
-            attachElement = element;
-        }
-
-        if (!attachLater) {
-            this.StartListening();
-        }
-    },
-
-    arrowsDown: function (e, arrows) {
-        var pos = style.getMousePos(e);
-        if (style.getEventTarget(e) == arrows) {
-            pos.Y += parseInt(arrows.style.top, 10);
-        }
-
-        pos = style.correctOffset(pos, style.arrowsOffset, true);
-        pos = pos.Bound(style.arrowsLowBounds, style.arrowsUpBounds);
-        pos.Apply(arrows);
-        style.arrowsMoved(pos);
-    },
-
-    circleDown: function (e, circle) {
-        var pos = style.getMousePos(e);
-        if (style.getEventTarget(e) == circle) {
-            pos.X += parseInt(circle.style.left, 10);
-            pos.Y += parseInt(circle.style.top, 10);
-        }
-
-        pos = style.correctOffset(pos, style.circleOffset, true);
-        pos = pos.Bound(style.circleLowBounds, style.circleUpBounds);
-        pos.Apply(circle);
-        style.circleMoved(pos);
-    },
-
-    arrowsMoved: function (pos, element) {
-        pos = style.correctOffset(pos, style.arrowsOffset, false);
-        caapGlob.currentColor.SetHSV((256 - pos.Y) * 359.99 / 255, caapGlob.currentColor.Saturation(), caapGlob.currentColor.Value());
-        style.colorChanged("arrows");
-    },
-
-    circleMoved: function (pos, element) {
-        pos = style.correctOffset(pos, style.circleOffset, false);
-        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), 1 - pos.Y / 255.0, pos.X / 255.0);
-        style.colorChanged("circle");
-    },
-
-    colorChanged: function (source) {
-        document.getElementById("hexBox").value = caapGlob.currentColor.HexString();
-        document.getElementById("redBox").value = caapGlob.currentColor.Red();
-        document.getElementById("greenBox").value = caapGlob.currentColor.Green();
-        document.getElementById("blueBox").value = caapGlob.currentColor.Blue();
-        document.getElementById("hueBox").value = Math.round(caapGlob.currentColor.Hue());
-        var str = (caapGlob.currentColor.Saturation() * 100).toString();
-        if (str.length > 4) {
-            str = str.substr(0, 4);
-        }
-
-        document.getElementById("saturationBox").value = str;
-        str = (caapGlob.currentColor.Value() * 100).toString();
-        if (str.length > 4) {
-            str = str.substr(0, 4);
-        }
-
-        document.getElementById("valueBox").value = str;
-        if (source == "arrows" || source == "box") {
-            document.getElementById("gradientBox").style.backgroundColor = style.Colors.ColorFromHSV(caapGlob.currentColor.Hue(), 1, 1).HexString();
-        }
-
-        if (source == "box") {
-            var el = document.getElementById("arrows");
-            el.style.top = (256 - caapGlob.currentColor.Hue() * 255 / 359.99 - style.arrowsOffset.Y) + 'px';
-            var pos = new style.Position(caapGlob.currentColor.Value() * 255, (1 - caapGlob.currentColor.Saturation()) * 255);
-            pos = style.correctOffset(pos, style.circleOffset, true);
-            pos.Apply("circle");
-            style.endMovement();
-        }
-
-        document.getElementById("quickColor").style.backgroundColor = caapGlob.currentColor.HexString();
-    },
-
-    endMovement: function () {
-        if (document.getElementById("caap_div") && gm.getValue('state')) {
-            style.ChangeBackGround(gm.getValue('state', 'Start'));
-        }
-
-        document.getElementById("staticColor").style.backgroundColor = caapGlob.currentColor.HexString();
-    },
-
-    hexBoxChanged: function (e) {
-        caapGlob.currentColor.SetHexString(document.getElementById("hexBox").value);
-        style.colorChanged("box");
-    },
-
-    redBoxChanged: function (e) {
-        caapGlob.currentColor.SetRGB(parseInt(document.getElementById("redBox").value, 10), caapGlob.currentColor.Green(), caapGlob.currentColor.Blue());
-        style.colorChanged("box");
-    },
-
-    greenBoxChanged: function (e) {
-        caapGlob.currentColor.SetRGB(caapGlob.currentColor.Red(), parseInt(document.getElementById("greenBox").value, 10), caapGlob.currentColor.Blue());
-        style.colorChanged("box");
-    },
-
-    blueBoxChanged: function (e) {
-        caapGlob.currentColor.SetRGB(caapGlob.currentColor.Red(), caapGlob.currentColor.Green(), parseInt(document.getElementById("blueBox").value, 10));
-        style.colorChanged("box");
-    },
-
-    hueBoxChanged: function (e) {
-        caapGlob.currentColor.SetHSV(parseFloat(document.getElementById("hueBox").value), caapGlob.currentColor.Saturation(), caapGlob.currentColor.Value());
-        style.colorChanged("box");
-    },
-
-    saturationBoxChanged: function (e) {
-        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), parseFloat(document.getElementById("saturationBox").value) / 100.0, caapGlob.currentColor.Value());
-        style.colorChanged("box");
-    },
-
-    valueBoxChanged: function (e) {
-        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), caapGlob.currentColor.Saturation(), parseFloat(document.getElementById("valueBox").value) / 100.0);
-        style.colorChanged("box");
-    },
-
-    fixPNG: function (myImage) {
-        if (!document.body.filters) {
-            return;
-        }
-
-        var arVersion = navigator.appVersion.split("MSIE");
-        var version = parseFloat(arVersion[1]);
-        if (version < 5.5 || version >= 7) {
-            return;
-        }
-
-        var imgID = (myImage.id) ? "id='" + myImage.id + "' " : "";
-        var imgStyle = "display:inline-block;" + myImage.style.cssText;
-        var strNewHTML = "<span " + imgID +
-                    " style=\"" + "width:" + myImage.width +
-                    "px; height:" + myImage.height +
-                    "px;" + imgStyle + ";" +
-                    "filter:progid:DXImageTransform.Microsoft.AlphaImageLoader" +
-                    "(src=\'" + myImage.src + "\', sizingMethod='scale');\"></span>";
-        myImage.outerHTML = strNewHTML;
-    },
-
-    fixGradientImg: function () {
-        style.fixPNG(document.getElementById("gradientImg"));
-    }
-};
-
 ////////////////////////////////////////////////////////////////////
 //                          caap OBJECT
 // this is the main object for the game, containing all methods, globals, etc.
 /////////////////////////////////////////////////////////////////////
 
-caap = {
+var caap = {
     stats: {},
     lastReload: new Date(),
     autoReloadMilliSecs: 15 * 60 * 1000,
@@ -1501,7 +638,6 @@ caap = {
     gainLevelRe: new RegExp("gain\\s+level\\s+([0-9]+)\\s+in", "i"),
     moneyRe: new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
     firstNumberRe: new RegExp("([0-9]+)"),
-    gameName: 'castle_age',
 
     /////////////////////////////////////////////////////////////////////
     //                          UTILITY FUNCTIONS
@@ -1578,7 +714,8 @@ caap = {
     },
 
     SelectGeneral: function (whichGeneral) {
-        if (!(general = gm.getValue(whichGeneral, ''))) {
+        var general = gm.getValue(whichGeneral, '');
+        if (!general) {
             return false;
         }
 
@@ -1622,7 +759,7 @@ caap = {
             return (genImg.indexOf(general.replace(/:.+/, '')) >= 0);
         };
 
-        generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/.+:/, '');
+        var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/.+:/, '');
         if (this.CheckForImage(generalImage)) {
             return this.NavigateTo(generalImage);
         }
@@ -1730,7 +867,7 @@ caap = {
 
     // Returns true if timer is passed, or undefined
     CheckTimer: function (name) {
-        nameTimer = gm.getValue(name);
+        var nameTimer = gm.getValue(name);
         if (!nameTimer) {
             return true;
         }
@@ -1744,7 +881,7 @@ caap = {
     },
 
     DisplayTimer: function (name) {
-        nameTimer = gm.getValue(name);
+        var nameTimer = gm.getValue(name);
         if (!nameTimer) {
             return false;
         }
@@ -1965,7 +1102,6 @@ caap = {
     },
 
     SetControls: function (force) {
-
         var controlDiv = document.getElementById('caap_control');
         if (controlDiv && controlDiv.innerHTML.length > 0 && !force) {
             // we already have the controls
@@ -2174,7 +1310,7 @@ caap = {
         htmlCode += "<hr/> </div>";
 
         // Add General Comboboxes
-        generalList = ['Get General List', 'Use Current', 'Under Level 4'].concat(gm.getList('AllGenerals'));
+        var generalList = ['Get General List', 'Use Current', 'Under Level 4'].concat(gm.getList('AllGenerals'));
         var crossList = function (checkItem) {
             return (generalList.indexOf(checkItem) >= 0);
         };
@@ -2200,7 +1336,7 @@ caap = {
         var statusInstructions = "Automatically increase attributes when upgrade skill points are available.";
         var statusAdvInstructions = "USE WITH CAUTION: You can use numbers or formulas(ie. level * 2 + 10). Variable keywords include energy, health, stamina, attack, defense, and level. JS functions can be used (Math.min, Math.max, etc) !!!Remember your math class: 'level + 20' not equals 'level * 2 + 10'!!!";
         var statImmedInstructions = "Update Stats Immediately";
-        attrList = ['', 'energy', 'attack', 'defense', 'stamina', 'health'];
+        var attrList = ['', 'energy', 'attack', 'defense', 'stamina', 'health'];
         htmlCode += this.ToggleControl('Status', 'UPGRADE SKILL POINTS');
         htmlCode += '<table width=170 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Auto Add Upgrade Points</td><td> ' + this.MakeCheckBox('AutoStat', false, '', statusInstructions) + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>";
@@ -2325,7 +1461,7 @@ caap = {
 
         var unlockMenuBox = document.getElementById('unlockMenu');
         unlockMenuBox.addEventListener('change', function (e) {
-            div = document.getElementById("caap_div");
+            var div = document.getElementById("caap_div");
             if (unlockMenuBox.checked) {
                 $(":input[id^='caap_']").attr({disabled: true});
                 div.style.cursor = 'move';
@@ -2355,7 +1491,7 @@ caap = {
 
         var resetMenuLocation = document.getElementById('caap_ResetMenuLocation');
         resetMenuLocation.addEventListener('click', function (e) {
-            div = document.getElementById("caap_div");
+            var div = document.getElementById("caap_div");
             div.style.cursor = '';
             div.style.position = '';
             div.removeEventListener('mousedown', Move.dragHandler, false);
@@ -2375,6 +1511,7 @@ caap = {
         var caapRestart = document.getElementById('caapRestart');
         var caapPaused = document.getElementById('caapPaused');
         caapRestart.addEventListener('click', function (e) {
+            var div = document.getElementById("caap_div");
             caapPaused.style.display = 'none';
             document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
             document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
@@ -2397,6 +1534,7 @@ caap = {
         }, false);
 
         controlDiv.addEventListener('mousedown', function (e) {
+            var div = document.getElementById("caap_div");
             document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
             document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
     //      nHtml.clearTimeouts();
@@ -2410,6 +1548,7 @@ caap = {
         if (caapGlob.is_chrome) {
             var caapPauseDiv = document.getElementById('caapPauseA');
             caapPauseDiv.addEventListener('click', function (e) {
+                var div = document.getElementById("caap_div");
                 document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
                 document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
     //          nHtml.clearTimeouts();
@@ -2436,7 +1575,8 @@ caap = {
             this.SetControls(true);
         }
 
-        if (!(globalContainer = document.getElementById('app46755028429_globalContainer'))) {
+        var globalContainer = document.getElementById('app46755028429_globalContainer');
+        if (!globalContainer) {
             gm.log('Global Container not found');
             return;
         }
@@ -2506,8 +1646,8 @@ caap = {
 
     makeCommaValue: function (nStr) {
         nStr += '';
-        x = nStr.split('.');
-        x1 = x[0];
+        var x = nStr.split('.');
+        var x1 = x[0];
         var rgx = /(\d+)(\d{3})/;
         while (rgx.test(x1)) {
             x1 = x1.replace(rgx, '$1' + ',' + '$2');
@@ -2591,7 +1731,7 @@ caap = {
         }
 
         var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-        displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
+        var displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
         for (var p in displayItemList) {
             if (displayItemList.hasOwnProperty(p)) {
                 html += "<td><b><font size=1>" + displayItemList[p] + '</font></b></td>';
@@ -2600,9 +1740,10 @@ caap = {
 
         html += '</tr>';
         displayItemList.shift();
-        monsterList = gm.getList('monsterOl');
+        var monsterList = gm.getList('monsterOl');
         monsterList.forEach(function (monsterObj) {
-            monster = monsterObj.split(caapGlob.vs)[0];
+            var monster = monsterObj.split(caapGlob.vs)[0];
+            var color = '';
             html += "<tr>";
             if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
                 color = 'green';
@@ -2617,13 +1758,16 @@ caap = {
     //          gm.log(' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
                 if (displayItem == 'Phase' && color == 'grey') {
                     html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
-                } else if ((value = gm.getObjVal(monsterObj, displayItem))) {
-                    if (parseInt(value, 10).toString() == value) {
-                        value = caap.makeCommaValue(value);
-                    }
-                    html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
                 } else {
-                    html += '<td></td>';
+                    var value = gm.getObjVal(monsterObj, displayItem);
+                    if (value) {
+                        if (parseInt(value, 10).toString() == value) {
+                            value = caap.makeCommaValue(value);
+                        }
+                        html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
+                    } else {
+                        html += '<td></td>';
+                    }
                 }
             });
             html += '</tr>';
@@ -2636,8 +1780,8 @@ caap = {
     table and then build the header row.
     \-------------------------------------------------------------------------------------*/
         html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-        headers = ['UserId', 'Name', 'Deity#', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
-        values = ['nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
+        var headers = ['UserId', 'Name', 'Deity#', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
+        var values = ['nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
         for (var pp in headers) {
             if (headers.hasOwnProperty(pp)) {
                 html += "<td><b><font size=1>" + headers[pp] + '</font></b></td>';
@@ -2647,13 +1791,13 @@ caap = {
     This div will hold data drom the targetsOl repository.  We step through the entries
     in targetOl and build each table row.  Our userid is 'key' so it's the first parameter
     \-------------------------------------------------------------------------------------*/
-        targetList = gm.getList('targetsOl');
+        var targetList = gm.getList('targetsOl');
         for (var i in targetList) {
             if (targetList.hasOwnProperty(i)) {
-                targetObj = targetList[i];
-                userid = targetObj.split(caapGlob.vs)[0];
+                var targetObj = targetList[i];
+                var userid = targetObj.split(caapGlob.vs)[0];
                 html += "<tr>";
-                link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
+                var link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
                 html += caap.makeTd(link, 'blue');
     /*-------------------------------------------------------------------------------------\
     We step through each of the additional values we include in the table. If a value is
@@ -2661,7 +1805,7 @@ caap = {
     \-------------------------------------------------------------------------------------*/
                 for (var j in values) {
                     if (values.hasOwnProperty(j)) {
-                        value = gm.getObjVal(targetObj, values[j]);
+                        var value = gm.getObjVal(targetObj, values[j]);
                         if (!value) {
                             html += '<td></td>';
                             continue;
@@ -2816,7 +1960,8 @@ caap = {
 
 
     AddListeners: function (topDivName) {
-        if (!(div = document.getElementById(topDivName))) {
+        var div = document.getElementById(topDivName);
+        if (!div) {
             return false;
         }
 
@@ -3116,7 +2261,7 @@ caap = {
             }
 
             // gold
-            cashObj = nHtml.FindByAttrXPath(document.body, "strong", "contains(string(),'$')");
+            var cashObj = nHtml.FindByAttrXPath(document.body, "strong", "contains(string(),'$')");
             var cashTxt = nHtml.GetText(cashObj);
             var cash = this.NumberOnly(cashTxt);
             this.stats.cash = cash;
@@ -3810,7 +2955,8 @@ caap = {
 
         caapGlob.quest_name = nHtml.StripHtml(firstb.innerHTML.toString()).trim();
         if (!caapGlob.quest_name) {
-            gm.log('no quest name for this row' + div.innerHTML);
+            //gm.log('no quest name for this row: ' + div.innerHTML);
+            gm.log('no quest name for this row: ');
             return false;
         }
 
@@ -4048,16 +3194,17 @@ caap = {
             this.SelectLands(prop.row, 2);
             var roi = (parseInt((prop.income / prop.totalCost) * 240000, 10) / 100);
             var selects = prop.row.getElementsByTagName('select');
+            var div = null;
             if (!nHtml.FindByAttrXPath(prop.row, 'input', "@name='Buy'")) {
                 roi = 0;
                 // Lets get our max allowed from the land_buy_info div
                 div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
-                maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
-                maxAllowed = Number(maxText.replace(/:\s+/, ''));
+                var maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
+                var maxAllowed = Number(maxText.replace(/:\s+/, ''));
                 // Lets get our owned total from the land_buy_costs div
                 div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_costs')");
-                ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
-                owned = Number(ownedText.replace(/:\s+/, ''));
+                var ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
+                var owned = Number(ownedText.replace(/:\s+/, ''));
                 // If we own more than allowed we will set land and selection
                 var selection = [1, 5, 10];
                 for (var s = 2; s >= 0; s--) {
@@ -4083,21 +3230,21 @@ caap = {
                 if (nHtml.GetText(prop.row).match(/each consecutive day/i) !== null) {
                     gm.log("Found unique land, checking timer");
                     if (nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5])) {
-                        resultsText = nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5]).trim();
+                        var resultsText = nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5]).trim();
                         if (resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/)) {
                             resultsText = resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/).toString().split(',')[0];
                             resultsText = resultsText.split(':');
                             var time = [];
-                            for (x = 2; x >= 0 ; x--) {
+                            for (var x = 2; x >= 0 ; x--) {
                                 time[x] = 0;
                                 if (resultsText[x]) {
                                     time[x] = resultsText[resultsText.length - 1 - x];
                                 }
                             }
 
-                            hours = time[2];
-                            minutes = time[1];
-                            seconds = time[0];
+                            var hours = time[2];
+                            var minutes = time[1];
+                            var seconds = time[0];
                             gm.log("hours:" + hours + " minutes:" + minutes + " seconds:" + seconds);
                             if (gm.getValue('LandTimer', 9999999999999999999999999) > (new Date().getTime()) * 1000 + hours * 3600 + minutes * 60 + seconds) {
                                 gm.log("Setting Land Timer");
@@ -4120,7 +3267,7 @@ caap = {
             gm.setValue('BestPropCost', 'none');
         }
 
-        div = document.createElement('div');
+        var div = document.createElement('div');
         div.className = 'caap_propDone';
         div.style.display = 'none';
         nHtml.FindByAttrContains(document.body, "tr", "class", 'land_buy_row').appendChild(div);
@@ -4652,6 +3799,7 @@ caap = {
                         gm.log("Can't match battleRaidRe in " + txt);
                         continue;
                     }
+
                     rank = parseInt(levelm[1], 10);
                     level = parseInt(levelm[3], 10);
                     army = parseInt(levelm[5], 10);
@@ -4662,8 +3810,8 @@ caap = {
 
                     //  If looking for demi points, and already full, continue
                     if (gm.getValue('DemiPointsFirst', '') && !gm.getValue('DemiPointsDone', true)) {
-                        deityNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1;
-                        demiPointList = gm.getList('DemiPointList');
+                        var deityNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1;
+                        var demiPointList = gm.getList('DemiPointList');
                         if (parseInt(demiPointList[deityNumber], 10) == 10 || !gm.getValue('DemiPoint' + deityNumber)) {
                             continue;
                         }
@@ -4738,7 +3886,7 @@ caap = {
                     plusOneSafe = true;
                 }
 
-                for (x = 0; x < count; x++) {
+                for (var x = 0; x < count; x++) {
                     for (var y = 0 ; y < x ; y++) {
                         if (safeTargets[y].score < safeTargets[y + 1].score) {
                             temp = safeTargets[y];
@@ -4773,7 +3921,7 @@ caap = {
                         form = anyButton.parentNode.parentNode;
                         inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
                         if (inp) {
-                            firstId = inp.value;
+                            var firstId = inp.value;
                             inp.value = '200000000000001';
                             gm.log("Target ID Overriden For +1 Kill. Expected Defender: " + firstId);
                             this.ClickBattleButton(anyButton);
@@ -4788,17 +3936,17 @@ caap = {
                         gm.log("Not safe for +1 kill.");
                     }
                 } else {
-                    for (x = 0; x < count; x++) {
-                        //gm.log("safeTargets["+x+"].id = "+safeTargets[x].id+" safeTargets["+x+"].score = "+safeTargets[x].score);
-                        if (!this.lastBattleID && this.lastBattleID == safeTargets[x].id && x < count - 1) {
+                    for (var z = 0; z < count; z++) {
+                        //gm.log("safeTargets["+z+"].id = "+safeTargets[z].id+" safeTargets["+z+"].score = "+safeTargets[z].score);
+                        if (!this.lastBattleID && this.lastBattleID == safeTargets[z].id && z < count - 1) {
                             continue;
                         }
 
-                        var bestButton = safeTargets[x].button;
+                        var bestButton = safeTargets[z].button;
                         if (bestButton !== null) {
-                            gm.log('Found Target score: ' + safeTargets[x].score + ' id: ' + safeTargets[x].id + ' Number: ' + safeTargets[x].targetNumber);
+                            gm.log('Found Target score: ' + safeTargets[z].score + ' id: ' + safeTargets[z].id + ' Number: ' + safeTargets[z].targetNumber);
                             this.ClickBattleButton(bestButton);
-                            this.lastBattleID = safeTargets[x].id;
+                            this.lastBattleID = safeTargets[z].id;
                             this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
                             this.notSafeCount = 0;
                             return true;
@@ -4868,6 +4016,7 @@ caap = {
                 return true;
             }
 
+            var chainButton = null;
             if (gm.getValue('BattleType') == 'Invade') {
                 chainButton = this.CheckForImage('battle_invade_again.gif');
             } else {
@@ -5255,6 +4404,7 @@ caap = {
             return false;
         }
 
+        var page = '';
         if (caap.CheckForImage('tab_monster_on.jpg')) {
             page = 'battle_monster';
         } else if (caap.CheckForImage('tab_raid_on.gif')) {
@@ -5326,7 +4476,8 @@ caap = {
             if (monstType == 'Siege') {
                 siege = "&action=doObjective";
             } else {
-                siege = ((boss = caap.bosses[monstType]) && boss.siege) ? "&action=doObjective" : '';
+                var boss = caap.bosses[monstType];
+                siege = (boss && boss.siege) ? "&action=doObjective" : '';
             }
 
             var link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
@@ -5334,7 +4485,7 @@ caap = {
         }
 
         gm.getList('monsterOl').forEach(function (monsterObj) {
-            monster = monsterObj.split(caapGlob.vs)[0];
+            var monster = monsterObj.split(caapGlob.vs)[0];
             if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0) {
                 gm.deleteListObj('monsterOl', monster);
             } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + caapGlob.ls + page) >= 0) {
@@ -5380,7 +4531,7 @@ caap = {
             }
         }
 
-        lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
+        var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
         gm.setListObjVal('monsterOl', monster, 'Type', monstType);
         // Extract info
         var time = [];
@@ -5459,8 +4610,8 @@ caap = {
 
         var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
         if (/:ac\b/.test(monsterConditions)) {
-            counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-            monsterList = gm.getList('monsterOl');
+            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+            var monsterList = gm.getList('monsterOl');
             if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
                 (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
                  nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
@@ -5583,7 +4734,7 @@ caap = {
         monsterList.battle_monster = [];
         monsterList.raid = [];
         monsterList.any = [];
-        monsterFullList = gm.getList('monsterOl', '');
+        var monsterFullList = gm.getList('monsterOl', '');
         var monstPage = '';
         monsterFullList.forEach(function (monsterObj) {
             gm.setListObjVal('monsterOl', monsterObj.split(caapGlob.vs)[0], 'conditions', 'none');
@@ -5600,6 +4751,7 @@ caap = {
         //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
         //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
         //a round hole. Please reconsider before doing so.
+        var selectTypes = [];
         if (gm.getValue('SerializeRaidsAndMonsters', false)) {
             selectTypes = ['any'];
         } else {
@@ -5750,7 +4902,7 @@ caap = {
 
         if (monster != monsterOnPage) {
             gm.log('Looking for ' + monster + ' but on ' + monsterOnPage + '. Going back to select screen');
-            monstPage = gm.getListObjVal('monsterOl', monster, 'page');
+            var monstPage = gm.getListObjVal('monsterOl', monster, 'page');
             return this.NavigateTo('keep,' + monstPage);
         }
     },
@@ -5930,6 +5082,7 @@ caap = {
             }
 
             if (attackButton) {
+                var attackMess = '';
                 if (fightMode == 'Fortify') {
                     attackMess = 'Fortifying ' + monster;
                 } else {
@@ -6000,7 +5153,7 @@ caap = {
         if (this.CheckForImage('battle_on.gif')) {
             var smallDeity = this.CheckForImage('symbol_tiny_1.jpg');
             if (smallDeity) {
-                demiPointList = nHtml.GetText(smallDeity.parentNode.parentNode.parentNode).match(/\d+ \/ 10/g);
+                var demiPointList = nHtml.GetText(smallDeity.parentNode.parentNode.parentNode).match(/\d+ \/ 10/g);
                 gm.setList('DemiPointList', demiPointList);
                 gm.log('DemiPointList: ' + demiPointList);
                 if (this.CheckTimer('DemiPointTimer')) {
@@ -6127,6 +5280,7 @@ caap = {
             return true;
         }
 
+        var chainButton = null;
         if (gm.getValue('BattleType') == 'Invade') {
             chainButton = this.CheckForImage('battle_invade_again.gif');
         } else {
@@ -6182,45 +5336,237 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     monstArgs: {
-        'doaid'         : {fname:'Any Weapon Aid', sname:'Aid', urlid:'doObjective'},
-        'urlix'         : {fname:'Any Monster', sname:'Any',urlid:'user'},
-        'legio'         : {fname:'Battle of the Dark Legion', sname:'Legion', nname:'castle', imgid:'cta_castle_', twt2: 'corc_'},
-        'hydra'         : {fname:'Cronus, The World Hydra ', sname:'Cronus', nname:'hydra', imgid:'twitter_hydra_objective', twt2: 'hydra_'},
-        //'elems'           : {fname:'Any Elemental', sname:'Elemental', nname:'elems', imgid:'', twt2: ''},
-        'earth'         : {fname:'Genesis, The Earth Elemental ', sname:'Genesis', nname:'earthelemental', imgid:'cta_earth_', twt2: 'earth_'},
-        'ice'           : {fname:'Ragnarok, The Ice Elemental ', sname:'Ragnarok', nname:'iceelemental', imgid:'cta_water_', twt2: 'water_'},
-        'kull'          : {fname:'Kull, the Orc Captain', sname:'Kull', nname:'captain', imgid:'cta_orc_captain.gif', twt2: 'bosscaptain'},
-        'gilda'         : {fname:'Gildamesh, the Orc King', sname:'Gildamesh', nname:'king', imgid:'cta_orc_king.gif', twt2: 'bossgilda'},
-        'colos'         : {fname:'Colossus of Terra', sname:'Colossus', nname:'stone', imgid:'cta_stone.gif', twt2: 'bosscolossus'},
-        'sylva'         : {fname:'Sylvanas the Sorceress Queen', sname:'Sylvanas', nname:'sylvanas', imgid:'cta_sylvanas.gif', twt2: 'bosssylvanus'},
-        'mephi'         : {fname:'Mephistophles', sname:'Mephisto', nname:'mephi', imgid:'cta_mephi.gif', twt2: 'bossmephistopheles'},
-        'keira'         : {fname:'Keira', sname:'keira', nname:'keira', imgid:'cta_keira.gif', twt2: 'boss_img'},
-        'lotus'         : {fname:'Lotus Ravenmoore', sname:'Ravenmoore', nname:'lotus', imgid:'cta_lotus.gif', twt2: 'bosslotus_'},
-        'skaar'         : {fname:'Skaar Deathrune',sname:'Deathrune', nname:'skaar', imgid:'cta_death_',twt2: 'death_', deadimg: 'cta_death_dead.gif'},
-        'serps'         : {fname:'Any Serpent', sname:'Serpent', nname:'seamonster', imgid:'twitter_seamonster_', twt2: 'sea_'},
-        'eserp'         : {fname:'Emerald Serpent', sname:'Emerald Serpent', nname:'greenseamonster', imgid:'twitter_seamonster_green_1', twt2: 'sea_'},
-        'sserp'         : {fname:'Saphire Serpent', sname:'Saphire Serpent', nname:'blueseamonster', imgid:'twitter_seamonster_blue_1', twt2: 'sea_'},
-        'aserp'         : {fname:'Amethyst Serpent', sname:'Amethyst Serpent', nname:'purpleseamonster', imgid:'twitter_seamonster_purple_1', twt2: 'sea_'},
-        'rserp'         : {fname:'Ancient Serpent', sname:'Ancient Serpent', nname:'redseamonster', imgid:'twitter_seamonster_red_1', twt2: 'sea_'},
-        'drags'         : {fname:'Any Dragon', sname:'Dragon', nname:'drag', imgid:'_dragon.gif', twt2: 'dragon_'},
-        'edrag'         : {fname:'Emerald Dragon', sname:'Emerald Dragon', nname:'greendragon', imgid:'cta_green_dragon.gif', twt2: 'dragon_'},
-        'fdrag'         : {fname:'Frost Dragon', sname:'Frost Dragon', nname:'bluedragon', imgid:'cta_blue_dragon.gif', twt2: 'dragon_'},
-        'gdrag'         : {fname:'Gold Dragon', sname:'Gold Dragon', nname:'yellowdragon', imgid:'cta_yellow_dragon.gif"', twt2: 'dragon_'},
-        'rdrag'         : {fname:'Ancient Red Dragon', sname:'Red Dragon', nname:'reddragon', imgid:'cta_red_dragon.gif', twt2: 'dragon_'},
-        'deas'          : {fname:'Any Deathrune Raid', sname:'Deathrune Raid', nname:'deathrune', imgid:'raid_deathrune_', twt2: 'deathrune_'},
-        'a1dea'         : {fname:'Deathrune Raid I Part 1', sname:'Deathrune Raid A1', nname:'deathrunea1', imgid:'raid_deathrune_a1.gif', twt2: 'deathrune_'},
-        'a2dea'         : {fname:'Deathrune Raid I Part 2', sname:'Deathrune Raid A2', nname:'deathrunea2', imgid:'raid_deathrune_a2.gif', twt2: 'deathrune_'},
-        'b1dea'         : {fname:'Deathrune Raid II Part 1', sname:'Deathrune Raid B1', nname:'deathruneb1', imgid:'raid_deathrune_b1.gif', twt2: 'deathrune_'},
-        'b2dea'         : {fname:'Deathrune Raid II Part 2', sname:'Deathrune Raid B2', nname:'deathruneb2', imgid:'raid_deathrune_b2.gif', twt2: 'deathrune_'}
+        'doaid': {
+            fname: 'Any Weapon Aid',
+            sname: 'Aid',
+            urlid: 'doObjective'
+        },
+        'urlix': {
+            fname: 'Any Monster',
+            sname: 'Any',
+            urlid: 'user'
+        },
+        'legio': {
+            fname: 'Battle of the Dark Legion',
+            sname: 'Legion',
+            nname: 'castle',
+            imgid: 'cta_castle_',
+            twt2: 'corc_'
+        },
+        'hydra': {
+            fname: 'Cronus, The World Hydra ',
+            sname: 'Cronus',
+            nname: 'hydra',
+            imgid: 'twitter_hydra_objective',
+            twt2: 'hydra_'
+        },
+        /*
+        'elems': {
+            fname: 'Any Elemental',
+            sname:'Elemental',
+            nname:'elems',
+            imgid:'',
+            twt2: ''
+        },
+        */
+        'earth': {
+            fname: 'Genesis, The Earth Elemental ',
+            sname: 'Genesis',
+            nname: 'earthelemental',
+            imgid: 'cta_earth_',
+            twt2: 'earth_'
+        },
+        'ice': {
+            fname: 'Ragnarok, The Ice Elemental ',
+            sname: 'Ragnarok',
+            nname: 'iceelemental',
+            imgid: 'cta_water_',
+            twt2: 'water_'
+        },
+        'kull': {
+            fname: 'Kull, the Orc Captain',
+            sname: 'Kull',
+            nname: 'captain',
+            imgid: 'cta_orc_captain.gif',
+            twt2: 'bosscaptain'
+        },
+        'gilda': {
+            fname: 'Gildamesh, the Orc King',
+            sname: 'Gildamesh',
+            nname: 'king',
+            imgid: 'cta_orc_king.gif',
+            twt2: 'bossgilda'
+        },
+        'colos': {
+            fname: 'Colossus of Terra',
+            sname: 'Colossus',
+            nname: 'stone',
+            imgid: 'cta_stone.gif',
+            twt2: 'bosscolossus'
+        },
+        'sylva': {
+            fname: 'Sylvanas the Sorceress Queen',
+            sname: 'Sylvanas',
+            nname: 'sylvanas',
+            imgid: 'cta_sylvanas.gif',
+            twt2: 'bosssylvanus'
+        },
+        'mephi': {
+            fname: 'Mephistophles',
+            sname: 'Mephisto',
+            nname: 'mephi',
+            imgid: 'cta_mephi.gif',
+            twt2: 'bossmephistopheles'
+        },
+        'keira': {
+            fname: 'Keira',
+            sname: 'keira',
+            nname: 'keira',
+            imgid: 'cta_keira.gif',
+            twt2: 'boss_img'
+        },
+        'lotus': {
+            fname: 'Lotus Ravenmoore',
+            sname: 'Ravenmoore',
+            nname: 'lotus',
+            imgid: 'cta_lotus.gif',
+            twt2: 'bosslotus_'
+        },
+        'skaar': {
+            fname: 'Skaar Deathrune',
+            sname: 'Deathrune',
+            nname: 'skaar',
+            imgid: 'cta_death_',
+            twt2: 'death_',
+            deadimg: 'cta_death_dead.gif'
+        },
+        'serps': {
+            fname: 'Any Serpent',
+            sname: 'Serpent',
+            nname: 'seamonster',
+            imgid: 'twitter_seamonster_',
+            twt2: 'sea_'
+        },
+        'eserp': {
+            fname: 'Emerald Serpent',
+            sname: 'Emerald Serpent',
+            nname: 'greenseamonster',
+            imgid: 'twitter_seamonster_green_1',
+            twt2: 'sea_'
+        },
+        'sserp': {
+            fname: 'Saphire Serpent',
+            sname: 'Saphire Serpent',
+            nname: 'blueseamonster',
+            imgid: 'twitter_seamonster_blue_1',
+            twt2: 'sea_'
+        },
+        'aserp': {
+            fname: 'Amethyst Serpent',
+            sname: 'Amethyst Serpent',
+            nname: 'purpleseamonster',
+            imgid: 'twitter_seamonster_purple_1',
+            twt2: 'sea_'
+        },
+        'rserp': {
+            fname: 'Ancient Serpent',
+            sname: 'Ancient Serpent',
+            nname: 'redseamonster',
+            imgid: 'twitter_seamonster_red_1',
+            twt2: 'sea_'
+        },
+        'drags': {
+            fname: 'Any Dragon',
+            sname: 'Dragon',
+            nname: 'drag',
+            imgid: '_dragon.gif',
+            twt2: 'dragon_'
+        },
+        'edrag': {
+            fname: 'Emerald Dragon',
+            sname: 'Emerald Dragon',
+            nname: 'greendragon',
+            imgid: 'cta_green_dragon.gif',
+            twt2: 'dragon_'
+        },
+        'fdrag': {
+            fname: 'Frost Dragon',
+            sname: 'Frost Dragon',
+            nname: 'bluedragon',
+            imgid: 'cta_blue_dragon.gif',
+            twt2: 'dragon_'
+        },
+        'gdrag': {
+            fname: 'Gold Dragon',
+            sname: 'Gold Dragon',
+            nname: 'yellowdragon',
+            imgid: 'cta_yellow_dragon.gif"',
+            twt2: 'dragon_'
+        },
+        'rdrag': {
+            fname: 'Ancient Red Dragon',
+            sname: 'Red Dragon',
+            nname: 'reddragon',
+            imgid: 'cta_red_dragon.gif',
+            twt2: 'dragon_'
+        },
+        'deas': {
+            fname: 'Any Deathrune Raid',
+            sname: 'Deathrune Raid',
+            nname: 'deathrune',
+            imgid: 'raid_deathrune_',
+            twt2: 'deathrune_'
+        },
+        'a1dea': {
+            fname: 'Deathrune Raid I Part 1',
+            sname: 'Deathrune Raid A1',
+            nname: 'deathrunea1',
+            imgid: 'raid_deathrune_a1.gif',
+            twt2: 'deathrune_'
+        },
+        'a2dea': {
+            fname: 'Deathrune Raid I Part 2',
+            sname: 'Deathrune Raid A2',
+            nname: 'deathrunea2',
+            imgid: 'raid_deathrune_a2.gif',
+            twt2: 'deathrune_'
+        },
+        'b1dea': {
+            fname: 'Deathrune Raid II Part 1',
+            sname: 'Deathrune Raid B1',
+            nname: 'deathruneb1',
+            imgid: 'raid_deathrune_b1.gif',
+            twt2: 'deathrune_'
+        },
+        'b2dea': {
+            fname: 'Deathrune Raid II Part 2',
+            sname: 'Deathrune Raid B2',
+            nname: 'deathruneb2',
+            imgid: 'raid_deathrune_b2.gif',
+            twt2: 'deathrune_'
+        }
     },
 
     monstGroups: {
-        'doaid'         : {monst:'legio~hydra~earth~ice~sylva~skaar~a1dea~a2dea~b1dea~b2dea'},
-        'world'         : {monst:'legio~hydra~earth~ice', max: '5'},
-        'serps'         : {monst:'eserp~sserp~aserp~rserp'},
-        'drags'         : {monst:'edrag~fdrag~gdrag~rdrag'},
-        'deas'          : {monst:'a1dea~a2dea~b1dea~b2dea'},
-        'elems'         : {monst:'earth~ice'}
+        'doaid': {
+            monst: 'legio~hydra~earth~ice~sylva~skaar~a1dea~a2dea~b1dea~b2dea'
+        },
+        'world': {
+            monst: 'legio~hydra~earth~ice',
+            max: '5'
+        },
+        'serps': {
+            monst: 'eserp~sserp~aserp~rserp'
+        },
+        'drags': {
+            monst: 'edrag~fdrag~gdrag~rdrag'
+        },
+        'deas': {
+            monst: 'a1dea~a2dea~b1dea~b2dea'
+        },
+        'elems': {
+            monst: 'earth~ice'
+        }
     },
 
     MonsterFinder: function () {
@@ -6236,7 +5582,7 @@ caap = {
         }
 
         gm.log("All checks passed to enter Monster Finder");
-        if (window.location.href.indexOf("filter=app_46755028429") < 0 ) {
+        if (window.location.href.indexOf("filter=app_46755028429") < 0) {
             var mfstatus = gm.getValue("mfStatus", "");
             if (mfstatus == "OpenMonster") {
                 caap.CheckMonster();
@@ -6245,7 +5591,7 @@ caap = {
                 caap.VisitUrl("http://apps.facebook.com/castle_age" + gm.getValue("navLink"));
                 gm.setValue("mfStatus", "");
                 return true;
-            } else if ( (mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed', 60 * 60 * 2)) || (!this.WhileSinceDidIt('checkedFeed', 60 * gm.getValue("MonsterFinderFeedMin", 5))) ) {
+            } else if ((mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed', 60 * 60 * 2)) || (!this.WhileSinceDidIt('checkedFeed', 60 * gm.getValue("MonsterFinderFeedMin", 5)))) {
                 caap.selectMonst();
             } else {
                 caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
@@ -6366,7 +5712,7 @@ caap = {
             var monstType = this.getMonstType(monsterName);
             webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
             if (webSlice) {
-                webSlice = nHtml.FindByAttrContains(webSlice,"td", "valign", "top");
+                webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
                 if (webSlice) {
                     webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + unsafeWindow.Env.user);
                     if (webSlice) {
@@ -6393,8 +5739,8 @@ caap = {
     },
 
     mfMain : function () {
-        gm.log("Do Stuff " + new Date() );
-        if (gm.getValue("urlix","") === "") {
+        gm.log("Do Stuff " + new Date());
+        if (gm.getValue("urlix", "") === "") {
             this.clearLinks();
         }
 
@@ -6424,13 +5770,20 @@ caap = {
     olderPosts: function () {
         var itRun = gm.getValue("iterationsRun", 0);
         if (itRun > 0) {
-            var showMore = nHtml.getX('//a[@class=\'PagerMoreLink\']', document, nHtml.xpath.unordered);
-            showMore.click();
+            //var showMore = nHtml.getX('//a[@class=\'PagerMoreLink\']', document, nHtml.xpath.unordered);
+            var showMore = nHtml.FindByAttrContains(document, "a", "class", "PagerMoreLink");
+            if (showMore) {
+                gm.log("Showing more ...");
+                caap.Click(showMore);
+                gm.log("Link clicked.");
+            } else {
+                gm.log("PagerMoreLink not found.");
+            }
         }
 
         //this.NavigateTo("Older Posts");
         gm.setValue("iterationsRun", ++itRun);
-        gm.log("Get More Iteration " + gm.getValue("iterationsRun") + " of " + gm.getValue("iterations") + new Date() );
+        gm.log("Get More Iterations " + gm.getValue("iterationsRun") + " of " + gm.getValue("iterations") + " " + new Date());
         if (gm.getValue("iterationsRun") < gm.getValue("iterations")) {
             nHtml.setTimeout(function () {
                 caap.bottomScroll();
@@ -6449,7 +5802,7 @@ caap = {
         }
 
         gm.log("Select Monst Function");
-        var monstPriority = gm.getValue("MonsterFinderOrder") ;
+        var monstPriority = gm.getValue("MonsterFinderOrder");
 
         gm.log("Monst Priority: " + monstPriority);
 
@@ -6457,7 +5810,7 @@ caap = {
         gm.log("MonstArray: " + monstArray[0]);
         for (var x = 0; x < monstArray.length; x++) {
             if (gm.getValue(monstArray[x], "~") == "~") {
-                gm.setValue(monstArray[x],"~");
+                gm.setValue(monstArray[x], "~");
             }
 
             gm.log("monstArray[x]: " + monstArray[x]);
@@ -6484,7 +5837,7 @@ caap = {
                         numlinks += 1;
                         gm.log("Trimming already checked URL, Monst Type: " + monstType);
                         //var newVal = gm.getValue(monstArray[x],"~").replace("~" + link, "");
-                        gm.setValue(monstType, gm.getValue(monstType).replace("~" + link,"").replace(/~~/g,"~"), "~");
+                        gm.setValue(monstType, gm.getValue(monstType).replace("~" + link, "").replace(/~~/g, "~"), "~");
                     }
                 }
             }
@@ -6497,9 +5850,9 @@ caap = {
         gm.setValue("mfStatus", "");
         var numurl = gm.getValue("urlix", "~");
         if (nHtml.CountInstances(numurl) > 100) {
-                gm.log("Idle- Resetting Monster Searcher Values, #-" + numurl);
-                caap.clearLinks(true);
-                gm.setValue("LastAction", "");
+            gm.log("Idle- Resetting Monster Searcher Values, #-" + numurl);
+            caap.clearLinks(true);
+            gm.setValue("LastAction", "");
         }
 
         this.VisitUrl("http://apps.facebook.com/castle_age/index.php?bm=1");
@@ -6550,7 +5903,7 @@ caap = {
 
     handleCTA : function () {
         var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, nHtml.xpath.unordered);
-        gm.log ("Number of entries- " + ctas.snapshotLength);
+        gm.log("Number of entries- " + ctas.snapshotLength);
         for (var x = 0; x < ctas.snapshotLength; x++) {
             var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), nHtml.xpath.string).replace("http://apps.facebook.com/castle_age", "");
             var fid = nHtml.Gup("user", url);
@@ -6596,7 +5949,7 @@ caap = {
                     } else if (src.indexOf("raid_deathrune_a2.gif") >= 0) { // Deathrune Raid Part 2 Under Level 50 Summoner (a2)
                         monst = gm.getValue("a2dea", "~");
                         if (monst.indexOf(url) == -1) {
-                            gm.setValue("a2dea", gm.getValue("a2dea","") + "~" + url);
+                            gm.setValue("a2dea", gm.getValue("a2dea", "") + "~" + url);
                         }
                     } else if (src.indexOf("raid_deathrune_b1.gif") >= 0) { // Deathrune Raid Part 1 Over Level 50 Summoner (b1)
                         monst = gm.getValue("b1dea", "~");
@@ -6775,7 +6128,7 @@ caap = {
         gm.log('Depositing into bank');
         this.Click(depositButton);
         if (nHtml.FindByAttrContains(document.body, "div", "class", 'result').innerHTML) {
-            if (nHtml.FindByAttrContains(document.body,"div", "class", 'result').firstChild.data.indexOf("You have stashed") < 0) {
+            if (nHtml.FindByAttrContains(document.body, "div", "class", 'result').firstChild.data.indexOf("You have stashed") < 0) {
                 return true;
             }
         }
@@ -6796,7 +6149,7 @@ caap = {
             return this.NavigateTo('keep');
         }
 
-        if (!(minInStore === ''|| minInStore <= gm.getValue('inStore', 0) - num)) {
+        if (!(minInStore === '' || minInStore <= gm.getValue('inStore', 0) - num)) {
             return false;
         }
 
@@ -6848,7 +6201,7 @@ caap = {
         }
 
         if (this.stats.stamina.num < minStamToHeal) {
-            this.SetDivContent('heal_mess', 'Waiting for stamina to heal: ' + this.stats.stamina.num + '/' + minStamToHeal );
+            this.SetDivContent('heal_mess', 'Waiting for stamina to heal: ' + this.stats.stamina.num + '/' + minStamToHeal);
             return false;
         }
 
@@ -6985,7 +6338,7 @@ caap = {
             var ss = document.evaluate(".//div[contains(@id,'_gift')]", giftEntry.parentNode, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             for (var s = 0; s < ss.snapshotLength; s++) {
                 var giftDiv = ss.snapshotItem(s);
-                giftName = nHtml.GetText(giftDiv).trim().replace(/!/i, '');
+                var giftName = nHtml.GetText(giftDiv).trim().replace(/!/i, '');
                 if (gm.getValue("GiftList").indexOf(giftName) >= 0) {
                     giftName += ' #2';
                 }
@@ -7046,7 +6399,7 @@ caap = {
                 return true;
             }
 
-            gm.setValue('HaveGift',false);
+            gm.setValue('HaveGift', false);
             return this.NavigateTo('gift');
         }
 
@@ -7077,7 +6430,7 @@ caap = {
 
         // CA send gift button
         if (gm.getValue('CASendList', '')) {
-            sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
+            var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
             if (sendForm) {
                 button = nHtml.FindByAttrContains(sendForm, 'input', 'id', 'send');
                 if (button) {
@@ -7108,7 +6461,7 @@ caap = {
             gm.setList('ReceivedList', []);
         }
 
-        giverList = gm.getList('ReceivedList');
+        var giverList = gm.getList('ReceivedList');
         if (!giverList.length) {
             return false;
         }
@@ -7128,44 +6481,44 @@ caap = {
         var giftChoice = gm.getValue('GiftChoice');
         //if (caapGlob.is_chrome) giftChoice = 'Random Gift';
         switch (giftChoice) {
-            case 'Random Gift':
-                giftPic = gm.getValue('RandomGiftPic');
-                if (giftPic) {
-                    break;
-                }
+        case 'Random Gift':
+            giftPic = gm.getValue('RandomGiftPic');
+            if (giftPic) {
+                break;
+            }
 
-                var picNum = Math.floor(Math.random()* (gm.getList('GiftList').length));
-                var n = 0;
-                for (var picN in giftNamePic) {
-                    if (giftNamePic.hasOwnProperty(picN)) {
-                        if (n++ == picNum) {
-                            giftPic = giftNamePic[picN];
-                            gm.setValue('RandomGiftPic', giftPic);
-                            break;
-                        }
+            var picNum = Math.floor(Math.random() * (gm.getList('GiftList').length));
+            var n = 0;
+            for (var picN in giftNamePic) {
+                if (giftNamePic.hasOwnProperty(picN)) {
+                    if (n++ == picNum) {
+                        giftPic = giftNamePic[picN];
+                        gm.setValue('RandomGiftPic', giftPic);
+                        break;
                     }
                 }
-                if (!giftPic) {
-                    gm.log('No gift type match. GiverList: ' + giverList);
-                    return false;
-                }
-                break;
-            case 'Same Gift As Received':
-                if (giverList[0].indexOf('Unknown Gift') >= 0) {
-                    givenGiftType = gm.getList('GiftList').shift();
-                } else {
-                    givenGiftType = giverList[0].split(caapGlob.vs)[2];
-                }
-                gm.log('Looking for same gift as ' + givenGiftType);
-                giftPic = giftNamePic[givenGiftType];
-                if (!giftPic) {
-                    gm.log('No gift type match. GiverList: ' + giverList);
-                    return false;
-                }
-                break;
-            default:
-                giftPic = giftNamePic[gm.getValue('GiftChoice')];
-                break;
+            }
+            if (!giftPic) {
+                gm.log('No gift type match. GiverList: ' + giverList);
+                return false;
+            }
+            break;
+        case 'Same Gift As Received':
+            if (giverList[0].indexOf('Unknown Gift') >= 0) {
+                givenGiftType = gm.getList('GiftList').shift();
+            } else {
+                givenGiftType = giverList[0].split(caapGlob.vs)[2];
+            }
+            gm.log('Looking for same gift as ' + givenGiftType);
+            giftPic = giftNamePic[givenGiftType];
+            if (!giftPic) {
+                gm.log('No gift type match. GiverList: ' + giverList);
+                return false;
+            }
+            break;
+        default:
+            giftPic = giftNamePic[gm.getValue('GiftChoice')];
+            break;
         }
 
         // Move to gifts page
@@ -7192,7 +6545,7 @@ caap = {
         gm.setList('ReceivedList', []);
         for (var p in giverList) {
             if (giverList.hasOwnProperty(p)) {
-                if ( p > 10) {
+                if (p > 10) {
                     gm.listPush('ReceivedList', giverList[p]);
                     continue;
                 }
@@ -7202,7 +6555,7 @@ caap = {
                 var giftType = giverData[2];
                 if (giftChoice == 'Same Gift As Received' && giftType != givenGiftType && giftType != 'Unknown Gift') {
                     gm.log('giftType ' + giftType + ' givenGiftType ' + givenGiftType);
-                    gm.listPush('ReceivedList',giverList[p]);
+                    gm.listPush('ReceivedList', giverList[p]);
                     continue;
                 }
 
@@ -7223,7 +6576,7 @@ caap = {
                     gm.log('Moved ID ' + giverID);
                 } else {
                     gm.log('NOT moved ID ' + giverID);
-                    gm.listPush('NotFoundIDs',giverList[p]);
+                    gm.listPush('NotFoundIDs', giverList[p]);
                     this.JustDidIt('WaitForNotFoundIDs');
                 }
             }
@@ -7256,7 +6609,7 @@ caap = {
                     continue;
                 }
 
-                giftType = giftDiv.value.replace(/^Accept /i,'').trim();
+                var giftType = giftDiv.value.replace(/^Accept /i, '').trim();
                 if (gm.getList('GiftList').indexOf(giftType) < 0) {
                     gm.log('Unknown gift type.');
                     giftType = 'Unknown Gift';
@@ -7266,7 +6619,7 @@ caap = {
                     gm.listPush('ReceivedList', giftEntry + caapGlob.vs + giftType);
                 }
 
-                gm.log ('This giver: ' + user + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
+                gm.log('This giver: ' + user + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
                 caap.Click(giftDiv);
                 gm.setValue('GiftEntry', '');
                 return true;
@@ -7294,24 +6647,24 @@ caap = {
     IncreaseStat: function (attribute, attrAdjust, atributeSlice) {
         var button = '';
         switch (attribute) {
-            case "energy" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max');
-                break;
-            case "stamina" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max');
-                break;
-            case "attack" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack');
-                break;
-            case "defense" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense');
-                break;
-            case "health" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max');
-                break;
-            default :
-                gm.log("Unable to identify attribute " + attribute);
-                return "Fail";
+        case "energy" :
+            button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max');
+            break;
+        case "stamina" :
+            button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max');
+            break;
+        case "attack" :
+            button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack');
+            break;
+        case "defense" :
+            button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense');
+            break;
+        case "health" :
+            button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max');
+            break;
+        default :
+            gm.log("Unable to identify attribute " + attribute);
+            return "Fail";
         }
 
         if (!button) {
@@ -7398,14 +6751,14 @@ caap = {
         }
 
         for (var n = 1; n <= 5; n++) {
-            if (gm.getValue('Attribute' + n,'') != '') {
+            if (gm.getValue('Attribute' + n, '') !== '') {
                 switch (this.IncreaseStat(gm.getValue('Attribute' + n, ''), gm.getValue('AttrValue' + n, 0), atributeSlice)) {
-                    case "Next" :
-                        continue;
-                    case "Click" :
-                        return true;
-                    default :
-                        return false;
+                case "Next" :
+                    continue;
+                case "Click" :
+                    return true;
+                default :
+                    return false;
                 }
             } else {
                 return false;
@@ -7421,7 +6774,7 @@ caap = {
             this.clearLinks(true);
         }
 
-        try{
+        try {
             //if we need to add some army member
             if (gm.getValue('FillArmy', false)) {
                 if (!this.CheckForImage('invite_on.gif')) {
@@ -7455,7 +6808,7 @@ caap = {
                                 if (response.status == 200 && excludeMatch) { //if response == ok
                                     gm.deleteValue('waiting');
                                     gm.log(response.statusText);
-                                    var IdsList = excludeMatch.toString().replace(/[^0-9,]/g,'').split(',');
+                                    var IdsList = excludeMatch.toString().replace(/[^0-9,]/g, '').split(',');
                                     for (var x in IdsListNotArmyAll) { //search for CA friends not in army
                                         if (IdsListNotArmyAll.hasOwnProperty(x)) {
                                             for (var y in IdsList) {
@@ -7508,7 +6861,7 @@ caap = {
                                         gm.setValue('FillArmy', false);
                                         gm.deleteValue("ArmyCount");
                                     }
-                                }else{//if response != ok
+                                } else {//if response != ok
                                     caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
                                     window.setTimeout(function () {
                                         caap.SetDivContent('idle_mess', '');
@@ -7610,7 +6963,7 @@ caap = {
     \-------------------------------------------------------------------------------------*/
             for (var s = 0; s < ss.snapshotLength; s++) {
                 var obj = ss.snapshotItem(s);
-                while(obj.tagName.toLowerCase() != "tr") {
+                while (obj.tagName.toLowerCase() != "tr") {
                     obj = obj.parentNode;
                 }
 
@@ -7618,7 +6971,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     We get the deity number for the target
     \-------------------------------------------------------------------------------------*/
-                deityNum = this.NumberOnly(this.CheckForImage('symbol_', tr, pageObj).src.match(/\d+\.jpg/i).toString());
+                var deityNum = this.NumberOnly(this.CheckForImage('symbol_', tr, pageObj).src.match(/\d+\.jpg/i).toString());
     /*-------------------------------------------------------------------------------------\
     We also get the targets actual name, level and rank from the text string
     \-------------------------------------------------------------------------------------*/
@@ -7732,11 +7085,11 @@ caap = {
         }
     },
 
-    currentPage:"",
+    currentPage: "",
 
-    currentTab:"",
+    currentTab: "",
 
-    waitMilliSecs:5000,
+    waitMilliSecs: 5000,
 
     /////////////////////////////////////////////////////////////////////
     //                          MAIN LOOP
@@ -7744,14 +7097,14 @@ caap = {
     // click before returning back here.
     /////////////////////////////////////////////////////////////////////
 
-    actionDescTable: {'AutoIncome':'Awaiting Income', 'AutoStat':'Upgrade Skill Points', 'MaxEnergyQuest':'At Max Energy Quest', 'PassiveGeneral':'Setting Idle General', 'ImmediateBanking':'Immediate Banking', 'Battle':'Battling Players', 'MonsterReview':'Reviewing Monsters/Raids'},
+    actionDescTable: {'AutoIncome': 'Awaiting Income', 'AutoStat': 'Upgrade Skill Points', 'MaxEnergyQuest': 'At Max Energy Quest', 'PassiveGeneral': 'Setting Idle General', 'ImmediateBanking': 'Immediate Banking', 'Battle': 'Battling Players', 'MonsterReview': 'Reviewing Monsters/Raids'},
 
     CheckLastAction: function (thisAction) {
         var lastAction = gm.getValue('LastAction', 'none');
         if (this.actionDescTable[thisAction]) {
             this.SetDivContent('activity_mess', 'Current activity: ' + this.actionDescTable[thisAction]);
         } else {
-            this.SetDivContent('activity_mess','Current activity: ' + thisAction);
+            this.SetDivContent('activity_mess', 'Current activity: ' + thisAction);
         }
 
         if (lastAction != thisAction) {
@@ -7784,10 +7137,10 @@ caap = {
         }
 
         if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
-            if (gm.getValue("mfStatus","") == "OpenMonster") {
+            if (gm.getValue("mfStatus", "") == "OpenMonster") {
                 gm.log("Opening Monster " + gm.getValue("navLink"));
                 this.CheckMonster();
-            } else if (gm.getValue("mfStatus","") == "CheckMonster") {
+            } else if (gm.getValue("mfStatus", "") == "CheckMonster") {
                 gm.log("Scanning URL for new monster");
                 this.selectMonst();
             }
@@ -7818,7 +7171,7 @@ caap = {
         }
 
         if (!this.GetStats()) {
-            noWindowLoad = gm.getValue('NoWindowLoad', 0);
+            var noWindowLoad = gm.getValue('NoWindowLoad', 0);
             if (noWindowLoad === 0) {
                 this.JustDidIt('NoWindowLoadTimer');
                 gm.setValue('NoWindowLoad', 1);
@@ -7851,6 +7204,7 @@ caap = {
         }
 
         if (gm.getValue('caapPause', 'none') != 'none') {
+            var div = document.getElementById("caap_div");
             document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
             document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
             this.WaitMainLoop();
@@ -7863,7 +7217,7 @@ caap = {
             return;
         }
 
-        var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters','Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         if (!gm.getValue('ReleaseControl', false)) {
             actionsList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
@@ -7909,20 +7263,21 @@ caap = {
         nHtml.setTimeout(function () {
             caap.ReloadCastleAge();
             caap.ReloadOccasionally();
-        }, 1000*60*8 + (8 * 60 * 1000 * Math.random()));
+        }, 1000 * 60 * 8 + (8 * 60 * 1000 * Math.random()));
     }
 };
 
 if (gm.getValue('SetTitle')) {
-    document.title=gm.getValue('PlayerName', 'CAAP');
+    document.title = gm.getValue('PlayerName', 'CAAP');
 }
 
-if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
+if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
     // Put code to be run once to upgrade an old version's variables to new format or such here.
     if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
         gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
     }
 
+    // This needs looking at, although not really used, need to check we are using caap keys
     if (parseInt(gm.getValue('LastVersion', 0), 10) < 126) {
         var storageKeys = GM_listValues();
         for (var key = 0; key < storageKeys.length; key++) {
@@ -7933,12 +7288,12 @@ if (gm.getValue('LastVersion',0) != caapGlob.thisVersion) {
     }
 
     if (parseInt(gm.getValue('LastVersion', 0), 10) < 130 && gm.getValue('MonsterGeneral')) {
-        gm.setValue('AttackGeneral',gm.getValue('MonsterGeneral'));
+        gm.setValue('AttackGeneral', gm.getValue('MonsterGeneral'));
         gm.deleteValue('MonsterGeneral');
     }
 
     if (parseInt(gm.getValue('LastVersion', 0), 10) < 133) {
-        clearList = ['FreshMeatMaxLevel', 'FreshMeatARMax', 'FreshMeatARMin'];
+        var clearList = ['FreshMeatMaxLevel', 'FreshMeatARMax', 'FreshMeatARMin'];
         clearList.forEach(function (gmVal) {
             gm.setValue(gmVal, '');
         });
@@ -7951,7 +7306,7 @@ $(function () {
     gm.log('Full page load completed');
     gm.setValue('caapPause', 'none');
     if (caapGlob.is_chrome) {
-        CE_message("paused", null, gm.getValue('caapPause','none'));
+        CE_message("paused", null, gm.getValue('caapPause', 'none'));
     }
 
     gm.setValue('clickUrl', window.location.href);
@@ -7966,9 +7321,890 @@ $(function () {
 
 caap.ReloadOccasionally();
 
+/////////////////////////////////////////////////////////////////////
+//                          style OBJECT
+/////////////////////////////////////////////////////////////////////
+
+var style = {
+    CreateMenu: function () {
+        var newDiv = document.createElement("div");
+        newDiv.setAttribute("id", "ColorSelectorDiv");
+        newDiv.setAttribute("style", "display: none; position: fixed; left: " + ((window.innerWidth / 2) - 290) + "px; top: " + ((window.innerHeight / 2) - 200) + "px; z-index: 1337; background: #fff; border: 2px solid #000; padding: 3px; width: 577px");
+        newDiv.innerHTML += "<center><b><h1>Select Color<h1></b><div id='SelectColorType'></div></center><br/>";
+        newDiv.innerHTML += '<div style="position:relative;height:286px;width:531px;border:1px solid black;">\n' +
+        '  <div id="gradientBox" style="cursor:crosshair;top:15px;position:absolute;\n' +
+        '                              left:15px;width:256px;height:256px;">\n' +
+        '    <img id="gradientImg" style="display:block;width:256px;height:256px;"\n' +
+        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_gradient.png" />\n' +
+        '   <img id="circle" style="position:absolute;height:11px;width:11px;"\n' +
+        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_circle.gif" />\n' +
+        '  </div>\n' +
+        '  <div id="hueBarDiv" style="position:absolute;left:310px;width:35px;\n' +
+        '                            height:256px;top:15px;">\n' +
+        '    <img style="position:absolute;height:256px; width:19px;left:8px;" \n' +
+        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_bar.png" />\n' +
+        '    <img id="arrows" style="position:absolute;height:9px;width:35px;left:0px;" \n' +
+        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_arrows.gif" />\n' +
+        '  </div>\n' +
+        '  <div style="position:absolute;left:370px;width:145px;height:256px;top:15px;">\n' +
+        '  <div style="position:absolute;border: 1px solid black;\n' +
+        '             height:50px;width:145px;top:0px;left:0px;">\n' +
+        '    <div id="quickColor" style="position:absolute;height:50px;width:73px;\n' +
+        '                               top:0px;left:0px;">\n' +
+        '    </div>\n' +
+        '    <div id="staticColor" style="position:absolute;height:50px;width:72px;\n' +
+        '                                top:0px;left:73px;">\n' +
+        '    </div>\n' +
+        '  </div>\n' +
+        '  <br />\n' +
+        '  <table width="100%" style="position:absolute;top:55px;">\n' +
+        '    <tr>\n' +
+        '      <td>Hex: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="hexBox"  />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td>Red: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="redBox"  />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td>Green: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="greenBox"  />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td>Blue: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="blueBox"  />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td>Hue: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="hueBox"  />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td>Saturation: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="saturationBox"  />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '    <tr>\n' +
+        '      <td>Value: </td>\n' +
+        '      <td>\n' +
+        '        <input size="8" type="text" id="valueBox" />\n' +
+        '      </td>\n' +
+        '    </tr>\n' +
+        '  </table>\n' +
+        '  </div>\n' +
+        '</div>';
+        newDiv.innerHTML += '<div style="float:right"><input type="button" value="Accept" id="ColorMenuAccept"><input type="button" value="Cancel" id="ColorMenuCancel"></div>';
+        document.body.appendChild(newDiv);
+        /////////////////Event Listeners\\\\\\\\\\\\\\\\\\\\\
+        var state = gm.getValue('state', 'Start');
+        var AddChangers = document.getElementById('ColorMenuAccept');
+        AddChangers.addEventListener('click', function (e) {
+            caapGlob.ColorDiv.style.display = 'none';
+            style.ChangeBackGround();
+            gm.deleteValue('state');
+        }, false);
+
+        AddChangers = document.getElementById('ColorMenuCancel');
+        AddChangers.addEventListener('click', function (e) {
+            caapGlob.ColorDiv.style.display = 'none';
+            style.CancelChangeBackGround();
+            gm.deleteValue('state');
+        }, false);
+
+        AddChangers = document.getElementById('hexBox');
+        AddChangers.addEventListener('change', function (e) {
+            //gm.log("StyleColorStoped: "+gm.getValue('StyleColorStoped'));
+            //gm.log("document.getElementById(hexBox).value: "+document.getElementById("hexBox").value);
+            style.ChangeBackGround();
+            style.hexBoxChanged();
+        }, false);
+
+        AddChangers = document.getElementById('redBox');
+        AddChangers.addEventListener('change', function (e) {
+            style.ChangeBackGround();
+            style.redBoxChanged();
+        }, false);
+
+        AddChangers = document.getElementById('greenBox');
+        AddChangers.addEventListener('change', function (e) {
+            style.ChangeBackGround();
+            style.greenBoxChanged();
+        }, false);
+
+        AddChangers = document.getElementById('blueBox');
+        AddChangers.addEventListener('change', function (e) {
+            style.ChangeBackGround();
+            style.blueBoxChanged();
+        }, false);
+
+        AddChangers = document.getElementById('hueBox');
+        AddChangers.addEventListener('change', function (e) {
+            style.ChangeBackGround();
+            style.hueBoxChanged();
+        }, false);
+
+        AddChangers = document.getElementById('saturationBox');
+        AddChangers.addEventListener('change', function (e) {
+            style.ChangeBackGround();
+            style.saturationBoxChanged();
+        }, false);
+
+        AddChangers = document.getElementById('valueBox');
+        AddChangers.addEventListener('change', function (e) {
+            style.ChangeBackGround();
+            style.valueBoxChanged();
+        }, false);
+
+        this.pointerOffset = new style.Position(0, navigator.userAgent.indexOf("Firefox") >= 0 ? 1 : 0);
+        this.circleOffset = new style.Position(5, 5);
+        this.arrowsOffset = new style.Position(0, 4);
+        this.arrowsLowBounds = new style.Position(0, -4);
+        this.arrowsUpBounds = new style.Position(0, 251);
+        this.circleLowBounds = new style.Position(-5, -5);
+        this.circleUpBounds = new style.Position(250, 250);
+        style.fixGradientImg();
+    },
+
+    LoadMenu: function (state) {
+        style.colorChanged('box');
+        var oldColor = 0;
+        if (state == 'Start') {
+            oldColor = document.getElementById("caap_StyleColorStarted").value;
+        } else {
+            oldColor = document.getElementById("caap_StyleColorStoped").value;
+        }
+
+        gm.setValue('oldColor', oldColor);
+        //gm.log("oldColor:"+oldColor)
+        //gm.log("state: "+state)
+        gm.setValue('state', state);
+        caapGlob.ColorDiv = document.getElementById('ColorSelectorDiv');
+        document.getElementById('SelectColorType').innerHTML = state;
+        caapGlob.ColorDiv.style.display = 'block';
+    },
+
+    ChangeBackGround: function () {
+        var state = gm.getValue('state', 'Start');
+        if (state == 'Start') {
+            gm.setValue('StyleColorStarted', document.getElementById("hexBox").value.replace(/#/, ''));
+            gm.setValue('StyleBackgroundLight', document.getElementById("hexBox").value);
+            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
+        } else {
+            gm.setValue('StyleColorStoped', document.getElementById("hexBox").value.replace(/#/, ''));
+            gm.setValue('StyleBackgroundDark', document.getElementById("hexBox").value);
+            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
+        }
+
+        caap.SetControls(true);
+    },
+
+    CancelChangeBackGround: function () {
+        var state = gm.getValue('state', 'Start');
+        var oldColor = gm.getValue('oldColor', 'FFFFFF');
+        if (state == 'Start') {
+            gm.setValue('StyleColorStarted', oldColor);
+            gm.setValue('StyleBackgroundLight', '#' + oldColor);
+            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
+        } else {
+            gm.setValue('StyleColorStoped', oldColor);
+            gm.setValue('StyleBackgroundDark', '#' + oldColor);
+            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
+        }
+
+        caap.SetControls(true);
+    },
+
+    Colors: new function () {
+        function Color() {
+            //Stored as values between 0 and 1
+            var red = 0;
+            var green = 0;
+            var blue = 0;
+            //Stored as values between 0 and 360
+            var hue = 0;
+            //Strored as values between 0 and 1
+            var saturation = 0;
+            var value = 0;
+            function calculateHSV() {
+                var max = Math.max(Math.max(red, green), blue);
+                var min = Math.min(Math.min(red, green), blue);
+                value = max;
+
+                saturation = 0;
+                if (max !== 0) {
+                    saturation = 1 - min / max;
+                }
+
+                hue = 0;
+                if (min == max) {
+                    return;
+                }
+
+                var delta = (max - min);
+                if (red == max) {
+                    hue = (green - blue) / delta;
+                } else if (green == max) {
+                    hue = 2 + ((blue - red) / delta);
+                } else {
+                    hue = 4 + ((red - green) / delta);
+                }
+
+                hue = hue * 60;
+                if (hue < 0) {
+                    hue += 360;
+                }
+            }
+
+            this.SetRGB = function (r, g, b) {
+                if (isNaN(r) || isNaN(g) || isNaN(b)) {
+                    return false;
+                }
+
+                r = r / 255.0;
+                red = r > 1 ? 1 : r < 0 ? 0 : r;
+                g = g / 255.0;
+                green = g > 1 ? 1 : g < 0 ? 0 : g;
+                b = b / 255.0;
+                blue = b > 1 ? 1 : b < 0 ? 0 : b;
+                calculateHSV();
+                return true;
+            };
+
+            this.Red = function () {
+                return Math.round(red * 255);
+            };
+
+            this.Green = function () {
+                return Math.round(green * 255);
+            };
+
+            this.Blue = function () {
+                return Math.round(blue * 255);
+            };
+
+            function calculateRGB()
+            {
+                red = value;
+                green = value;
+                blue = value;
+
+                if (value === 0 || saturation === 0) {
+                    return;
+                }
+
+                var tHue = (hue / 60);
+                var i = Math.floor(tHue);
+                var f = tHue - i;
+                var p = value * (1 - saturation);
+                var q = value * (1 - saturation * f);
+                var t = value * (1 - saturation * (1 - f));
+                switch (i) {
+                case 0:
+                    red = value;
+                    green = t;
+                    blue = p;
+                    break;
+                case 1:
+                    red = q;
+                    green = value;
+                    blue = p;
+                    break;
+                case 2:
+                    red = p;
+                    green = value;
+                    blue = t;
+                    break;
+                case 3:
+                    red = p;
+                    green = q;
+                    blue = value;
+                    break;
+                case 4:
+                    red = t;
+                    green = p;
+                    blue = value;
+                    break;
+                default:
+                    red = value;
+                    green = p;
+                    blue = q;
+                    break;
+                }
+            }
+
+            this.SetHSV = function (h, s, v) {
+                if (isNaN(h) || isNaN(s) || isNaN(v)) {
+                    return false;
+                }
+
+                hue = (h >= 360) ? 359.99 : (h < 0) ? 0 : h;
+                saturation = (s > 1) ? 1 : (s < 0) ? 0 : s;
+                value = (v > 1) ? 1 : (v < 0) ? 0 : v;
+                calculateRGB();
+                return true;
+            };
+
+            this.Hue = function () {
+                return hue;
+            };
+
+            this.Saturation = function () {
+                return saturation;
+            };
+
+            this.Value = function () {
+                return value;
+            };
+
+            this.SetHexString = function (hexString) {
+                if (hexString === null || typeof(hexString) != "string") {
+                    return false;
+                }
+
+                if (hexString.substr(0, 1) == '#') {
+                    hexString = hexString.substr(1);
+                }
+
+                if (hexString.length != 6) {
+                    return false;
+                }
+
+                var r = parseInt(hexString.substr(0, 2), 16);
+                var g = parseInt(hexString.substr(2, 2), 16);
+                var b = parseInt(hexString.substr(4, 2), 16);
+
+                return this.SetRGB(r, g, b);
+            };
+
+            this.HexString = function () {
+                var rStr = this.Red().toString(16);
+                if (rStr.length == 1) {
+                    rStr = '0' + rStr;
+                }
+
+                var gStr = this.Green().toString(16);
+                if (gStr.length == 1) {
+                    gStr = '0' + gStr;
+                }
+
+                var bStr = this.Blue().toString(16);
+                if (bStr.length == 1) {
+                    bStr = '0' + bStr;
+                }
+
+                return ('#' + rStr + gStr + bStr).toUpperCase();
+            };
+
+            this.Complement = function () {
+                var newHue = (hue >= 180) ? hue - 180 : hue + 180;
+                var newVal = (value * (saturation - 1) + 1);
+                var newSat = (value * saturation) / newVal;
+                var newColor = new Color();
+                newColor.SetHSV(newHue, newSat, newVal);
+                return newColor;
+            };
+        }
+
+        this.ColorFromHSV = function (hue, sat, val) {
+            var color = new Color();
+            color.SetHSV(hue, sat, val);
+            return color;
+        };
+
+        this.ColorFromRGB = function (r, g, b) {
+            var color = new Color();
+            color.SetRGB(r, g, b);
+            return color;
+        };
+
+        this.ColorFromHex = function (hexStr) {
+            var color = new Color();
+            color.SetHexString(hexStr);
+            return color;
+        };
+    }(),
+
+    Position: function (x, y) {
+        this.X = x;
+        this.Y = y;
+
+        this.Add = function (val) {
+            var newPos = new style.Position(this.X, this.Y);
+            if (val !== null) {
+                if (!isNaN(val.X)) {
+                    newPos.X += val.X;
+                }
+
+                if (!isNaN(val.Y)) {
+                    newPos.Y += val.Y;
+                }
+            }
+
+            return newPos;
+        };
+
+        this.Subtract = function (val) {
+            var newPos = new style.Position(this.X, this.Y);
+            if (val !== null) {
+                if (!isNaN(val.X)) {
+                    newPos.X -= val.X;
+                }
+
+                if (!isNaN(val.Y)) {
+                    newPos.Y -= val.Y;
+                }
+            }
+
+            return newPos;
+        };
+
+        this.Min = function (val) {
+            var newPos = new style.Position(this.X, this.Y);
+            if (val === null) {
+                return newPos;
+            }
+
+            if (!isNaN(val.X) && this.X > val.X) {
+                newPos.X = val.X;
+            }
+
+            if (!isNaN(val.Y) && this.Y > val.Y) {
+                newPos.Y = val.Y;
+            }
+
+            return newPos;
+        };
+
+        this.Max = function (val)
+        {
+            var newPos = new style.Position(this.X, this.Y);
+            if (val === null) {
+                return newPos;
+            }
+
+            if (!isNaN(val.X) && this.X < val.X) {
+                newPos.X = val.X;
+            }
+
+            if (!isNaN(val.Y) && this.Y < val.Y) {
+                newPos.Y = val.Y;
+            }
+
+            return newPos;
+        };
+
+        this.Bound = function (lower, upper) {
+            var newPos = this.Max(lower);
+            return newPos.Min(upper);
+        };
+
+        this.Check = function () {
+            var newPos = new style.Position(this.X, this.Y);
+            if (isNaN(newPos.X)) {
+                newPos.X = 0;
+            }
+
+            if (isNaN(newPos.Y)) {
+                newPos.Y = 0;
+            }
+
+            return newPos;
+        };
+
+        this.Apply = function (element) {
+            if (typeof(element) == "string") {
+                element = document.getElementById(element);
+            }
+
+            if (element === null) {
+                return;
+            }
+
+            if (!isNaN(this.X)) {
+                element.style.left = this.X + 'px';
+            }
+
+            if (!isNaN(this.Y)) {
+                element.style.top = this.Y + 'px';
+            }
+        };
+    },
+
+    correctOffset: function (pos, offset, neg) {
+        if (neg) {
+            return pos.Subtract(offset);
+        }
+
+        return pos.Add(offset);
+    },
+
+    hookEvent: function (element, eventName, callback) {
+        if (typeof(element) == "string") {
+            element = document.getElementById(element);
+        }
+
+        if (element === null) {
+            return;
+        }
+
+        if (element.addEventListener) {
+            element.addEventListener(eventName, callback, false);
+        } else if (element.attachEvent) {
+            element.attachEvent("on" + eventName, callback);
+        }
+    },
+
+    unhookEvent: function (element, eventName, callback) {
+        if (typeof(element) == "string") {
+            element = document.getElementById(element);
+        }
+
+        if (element === null) {
+            return;
+        }
+
+        if (element.removeEventListener) {
+            element.removeEventListener(eventName, callback, false);
+        } else if (element.detachEvent) {
+            element.detachEvent("on" + eventName, callback);
+        }
+    },
+
+    cancelEvent: function (e) {
+        e = e ? e : window.event;
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+
+        e.cancelBubble = true;
+        e.cancel = true;
+        e.returnValue = false;
+        return false;
+    },
+
+    getMousePos: function (eventObj) {
+        eventObj = eventObj ? eventObj : window.event;
+        var pos;
+        if (isNaN(eventObj.layerX)) {
+            pos = new style.Position(eventObj.offsetX, eventObj.offsetY);
+        } else {
+            pos = new style.Position(eventObj.layerX, eventObj.layerY);
+        }
+
+        return style.correctOffset(pos, style.pointerOffset, true);
+    },
+
+    getEventTarget: function (e) {
+        e = e ? e : window.event;
+        return e.target ? e.target : e.srcElement;
+    },
+
+    absoluteCursorPostion: function (eventObj) {
+        eventObj = eventObj ? eventObj : window.event;
+        if (isNaN(window.scrollX)) {
+            return new style.Position(eventObj.clientX + document.documentElement.scrollLeft + document.body.scrollLeft,
+                                      eventObj.clientY + document.documentElement.scrollTop + document.body.scrollTop);
+        } else {
+            return new style.Position(eventObj.clientX + window.scrollX, eventObj.clientY + window.scrollY);
+        }
+    },
+
+    dragObject: function (element, attachElement, lowerBound, upperBound, startCallback, moveCallback, endCallback, attachLater) {
+        if (typeof(element) == "string") {
+            element = document.getElementById(element);
+        }
+
+        if (element === null) {
+            return;
+        }
+
+        if (lowerBound !== null && upperBound !== null) {
+            var temp = lowerBound.Min(upperBound);
+            upperBound = lowerBound.Max(upperBound);
+            lowerBound = temp;
+        }
+
+        var cursorStartPos = null;
+        var elementStartPos = null;
+        var dragging = false;
+        var listening = false;
+        var disposed = false;
+
+        function dragGo(eventObj) {
+            if (!dragging || disposed) {
+                return;
+            }
+
+            var newPos = style.absoluteCursorPostion(eventObj);
+            newPos = newPos.Add(elementStartPos).Subtract(cursorStartPos);
+            newPos = newPos.Bound(lowerBound, upperBound);
+            newPos.Apply(element);
+            if (moveCallback !== null) {
+                moveCallback(newPos, element);
+            }
+
+            return style.cancelEvent(eventObj);
+        }
+
+        function dragStop() {
+            if (!dragging || disposed) {
+                return;
+            }
+
+            style.unhookEvent(document, "mousemove", dragGo);
+            style.unhookEvent(document, "mouseup", dragStopHook);
+            cursorStartPos = null;
+            elementStartPos = null;
+            if (endCallback !== null) {
+                endCallback(element);
+            }
+
+            dragging = false;
+        }
+
+        function dragStopHook(eventObj) {
+            dragStop();
+            return style.cancelEvent(eventObj);
+        }
+
+        function dragStart(eventObj) {
+            if (dragging || !listening || disposed) {
+                return;
+            }
+
+            dragging = true;
+            if (startCallback !== null) {
+                startCallback(eventObj, element);
+            }
+
+            cursorStartPos = style.absoluteCursorPostion(eventObj);
+            elementStartPos = new style.Position(parseInt(element.style.left, 10), parseInt(element.style.top, 10));
+            elementStartPos = elementStartPos.Check();
+            style.hookEvent(document, "mousemove", dragGo);
+            style.hookEvent(document, "mouseup", dragStopHook);
+            return style.cancelEvent(eventObj);
+        }
+
+        this.Dispose = function () {
+            if (disposed) {
+                return;
+            }
+
+            this.StopListening(true);
+            element = null;
+            attachElement = null;
+            lowerBound = null;
+            upperBound = null;
+            startCallback = null;
+            moveCallback = null;
+            endCallback = null;
+            disposed = true;
+        };
+
+        this.StartListening = function () {
+            if (listening || disposed) {
+                return;
+            }
+
+            listening = true;
+            style.hookEvent(attachElement, "mousedown", dragStart);
+        };
+
+        this.StopListening = function (stopCurrentDragging) {
+            if (!listening || disposed) {
+                return;
+            }
+
+            style.unhookEvent(attachElement, "mousedown", dragStart);
+            listening = false;
+            if (stopCurrentDragging && dragging) {
+                dragStop();
+            }
+        };
+
+        this.IsDragging = function () {
+            return dragging;
+        };
+
+        this.IsListening = function () {
+            return listening;
+        };
+
+        this.IsDisposed = function () {
+            return disposed;
+        };
+
+        if (typeof(attachElement) == "string") {
+            attachElement = document.getElementById(attachElement);
+        }
+
+        if (attachElement === null) {
+            attachElement = element;
+        }
+
+        if (!attachLater) {
+            this.StartListening();
+        }
+    },
+
+    arrowsDown: function (e, arrows) {
+        var pos = style.getMousePos(e);
+        if (style.getEventTarget(e) == arrows) {
+            pos.Y += parseInt(arrows.style.top, 10);
+        }
+
+        pos = style.correctOffset(pos, style.arrowsOffset, true);
+        pos = pos.Bound(style.arrowsLowBounds, style.arrowsUpBounds);
+        pos.Apply(arrows);
+        style.arrowsMoved(pos);
+    },
+
+    circleDown: function (e, circle) {
+        var pos = style.getMousePos(e);
+        if (style.getEventTarget(e) == circle) {
+            pos.X += parseInt(circle.style.left, 10);
+            pos.Y += parseInt(circle.style.top, 10);
+        }
+
+        pos = style.correctOffset(pos, style.circleOffset, true);
+        pos = pos.Bound(style.circleLowBounds, style.circleUpBounds);
+        pos.Apply(circle);
+        style.circleMoved(pos);
+    },
+
+    arrowsMoved: function (pos, element) {
+        pos = style.correctOffset(pos, style.arrowsOffset, false);
+        caapGlob.currentColor.SetHSV((256 - pos.Y) * 359.99 / 255, caapGlob.currentColor.Saturation(), caapGlob.currentColor.Value());
+        style.colorChanged("arrows");
+    },
+
+    circleMoved: function (pos, element) {
+        pos = style.correctOffset(pos, style.circleOffset, false);
+        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), 1 - pos.Y / 255.0, pos.X / 255.0);
+        style.colorChanged("circle");
+    },
+
+    colorChanged: function (source) {
+        document.getElementById("hexBox").value = caapGlob.currentColor.HexString();
+        document.getElementById("redBox").value = caapGlob.currentColor.Red();
+        document.getElementById("greenBox").value = caapGlob.currentColor.Green();
+        document.getElementById("blueBox").value = caapGlob.currentColor.Blue();
+        document.getElementById("hueBox").value = Math.round(caapGlob.currentColor.Hue());
+        var str = (caapGlob.currentColor.Saturation() * 100).toString();
+        if (str.length > 4) {
+            str = str.substr(0, 4);
+        }
+
+        document.getElementById("saturationBox").value = str;
+        str = (caapGlob.currentColor.Value() * 100).toString();
+        if (str.length > 4) {
+            str = str.substr(0, 4);
+        }
+
+        document.getElementById("valueBox").value = str;
+        if (source == "arrows" || source == "box") {
+            document.getElementById("gradientBox").style.backgroundColor = style.Colors.ColorFromHSV(caapGlob.currentColor.Hue(), 1, 1).HexString();
+        }
+
+        if (source == "box") {
+            var el = document.getElementById("arrows");
+            el.style.top = (256 - caapGlob.currentColor.Hue() * 255 / 359.99 - style.arrowsOffset.Y) + 'px';
+            var pos = new style.Position(caapGlob.currentColor.Value() * 255, (1 - caapGlob.currentColor.Saturation()) * 255);
+            pos = style.correctOffset(pos, style.circleOffset, true);
+            pos.Apply("circle");
+            style.endMovement();
+        }
+
+        document.getElementById("quickColor").style.backgroundColor = caapGlob.currentColor.HexString();
+    },
+
+    endMovement: function () {
+        if (document.getElementById("caap_div") && gm.getValue('state')) {
+            style.ChangeBackGround(gm.getValue('state', 'Start'));
+        }
+
+        document.getElementById("staticColor").style.backgroundColor = caapGlob.currentColor.HexString();
+    },
+
+    hexBoxChanged: function (e) {
+        caapGlob.currentColor.SetHexString(document.getElementById("hexBox").value);
+        style.colorChanged("box");
+    },
+
+    redBoxChanged: function (e) {
+        caapGlob.currentColor.SetRGB(parseInt(document.getElementById("redBox").value, 10), caapGlob.currentColor.Green(), caapGlob.currentColor.Blue());
+        style.colorChanged("box");
+    },
+
+    greenBoxChanged: function (e) {
+        caapGlob.currentColor.SetRGB(caapGlob.currentColor.Red(), parseInt(document.getElementById("greenBox").value, 10), caapGlob.currentColor.Blue());
+        style.colorChanged("box");
+    },
+
+    blueBoxChanged: function (e) {
+        caapGlob.currentColor.SetRGB(caapGlob.currentColor.Red(), caapGlob.currentColor.Green(), parseInt(document.getElementById("blueBox").value, 10));
+        style.colorChanged("box");
+    },
+
+    hueBoxChanged: function (e) {
+        caapGlob.currentColor.SetHSV(parseFloat(document.getElementById("hueBox").value), caapGlob.currentColor.Saturation(), caapGlob.currentColor.Value());
+        style.colorChanged("box");
+    },
+
+    saturationBoxChanged: function (e) {
+        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), parseFloat(document.getElementById("saturationBox").value) / 100.0, caapGlob.currentColor.Value());
+        style.colorChanged("box");
+    },
+
+    valueBoxChanged: function (e) {
+        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), caapGlob.currentColor.Saturation(), parseFloat(document.getElementById("valueBox").value) / 100.0);
+        style.colorChanged("box");
+    },
+
+    fixPNG: function (myImage) {
+        if (!document.body.filters) {
+            return;
+        }
+
+        var arVersion = navigator.appVersion.split("MSIE");
+        var version = parseFloat(arVersion[1]);
+        if (version < 5.5 || version >= 7) {
+            return;
+        }
+
+        var imgID = (myImage.id) ? "id='" + myImage.id + "' " : "";
+        var imgStyle = "display:inline-block;" + myImage.style.cssText;
+        var strNewHTML = "<span " + imgID +
+                    " style=\"" + "width:" + myImage.width +
+                    "px; height:" + myImage.height +
+                    "px;" + imgStyle + ";" +
+                    "filter:progid:DXImageTransform.Microsoft.AlphaImageLoader" +
+                    "(src=\'" + myImage.src + "\', sizingMethod='scale');\"></span>";
+        myImage.outerHTML = strNewHTML;
+    },
+
+    fixGradientImg: function () {
+        style.fixPNG(document.getElementById("gradientImg"));
+    }
+};
+
 style.CreateMenu();
 caapGlob.currentColor = style.Colors.ColorFromRGB(64, 128, 128);
-new style.dragObject("arrows", "hueBarDiv", style.arrowsLowBounds, style.arrowsUpBounds, style.arrowsDown, style.arrowsMoved, style.endMovement);
-new style.dragObject("circle", "gradientBox", style.circleLowBounds, style.circleUpBounds, style.circleDown, style.circleMoved, style.endMovement);
+caapGlob.arrows = new style.dragObject("arrows", "hueBarDiv", style.arrowsLowBounds, style.arrowsUpBounds, style.arrowsDown, style.arrowsMoved, style.endMovement);
+caapGlob.circle = new style.dragObject("circle", "gradientBox", style.circleLowBounds, style.circleUpBounds, style.circleDown, style.circleMoved, style.endMovement);
 
 // ENDOFSCRIPT
