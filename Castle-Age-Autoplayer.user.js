@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.25
+// @version        139.26
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -15,14 +15,14 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,CM_Listener,CE_message */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message */
 
 ///////////////////////////
 // Define our global object
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.25";
+caapGlob.thisVersion = "139.26";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -534,7 +534,7 @@ var nHtml = {
         }
     },
 
-    Gup : function (name, href) {
+    Gup: function (name, href) {
         name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
         var regexS = "[\\?&]" + name + "=([^&#]*)";
         var regex = new RegExp(regexS);
@@ -549,12 +549,31 @@ var nHtml = {
     ScrollToBottom: function () {
         //gm.log("Scroll Height: " + document.body.scrollHeight);
         if (document.body.scrollHeight) {
-            window.scrollBy(0, document.body.scrollHeight);
+            if (caapGlob.is_chrome) {
+                var dh = document.body.scrollHeight;
+                var ch = document.body.clientHeight;
+                if (dh > ch) {
+                    var moveme = dh - ch;
+                    gm.log("Scrolling down by: "+ moveme + "px");
+                    window.scroll(0, moveme);
+                    gm.log("Scrolled ok");
+                } else {
+                    gm.log("Not scrolling to bottom. Client height is greater than document height!");
+                }
+            } else {
+                window.scrollBy(0, document.body.scrollHeight);
+            }
         }// else if (screen.height) {}
     },
 
     ScrollToTop: function () {
-        window.scrollByPages(-1000);
+        if (caapGlob.is_chrome) {
+            gm.log("Scrolling to top");
+            window.scroll(0, 0);
+            gm.log("Scrolled ok");
+        } else {
+            window.scrollByPages(-1000);
+        }
     },
 
     CountInstances: function (string, word) {
@@ -1701,7 +1720,11 @@ var caap = {
     /*-------------------------------------------------------------------------------------\
      Then we put in the Live Feed link since we overlay the Castle Age link.
     \-------------------------------------------------------------------------------------*/
-        layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
+        if (caapGlob.is_chrome) {
+            layout += "<div style='font-size: 9px'<a href='http://apps.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
+        } else {
+            layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
+        }
     /*-------------------------------------------------------------------------------------\
      We install the display selection box that allows the user to toggle through the
      available displays.
@@ -3567,7 +3590,7 @@ var caap = {
 
             if (gm.getValue("BattleChainId", '')) {
                 var chainCount = this.GetNumber('ChainCount', 0) + 1;
-                if (chainCount > this.GetNumber('MaxChains', 4)) {
+                if (chainCount >= this.GetNumber('MaxChains', 4)) {
                     gm.log("Lets give this guy a break.");
                     if (!this.doNotBattle) {
                         this.doNotBattle = this.lastBattleID;
@@ -3870,6 +3893,11 @@ var caap = {
                     continue;
                 }
 
+                // don't battle people we've already battled too much
+                if (this.doNotBattle && this.doNotBattle.indexOf(id) >= 0) {
+                    continue;
+                }
+
                 var thisScore = rank - (army / levelMultiplier / this.stats.army);
                 if (id == chainId) {
                     chainAttack = true;
@@ -4136,6 +4164,7 @@ var caap = {
                 return true;
             }
 
+            gm.setValue('BattleChainId', '');
             this.SetDivContent('battle_mess', 'Battling User ' + target);
             if (this.BattleUserId(target)) {
                 this.NextBattleTarget();
@@ -4171,7 +4200,6 @@ var caap = {
 
         var target = gm.getValue('BattleChainId');
         if (target) {
-            gm.setValue('BattleChainId', '');
             return target;
         }
 
@@ -5594,12 +5622,16 @@ var caap = {
             } else if ((mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed', 60 * 60 * 2)) || (!this.WhileSinceDidIt('checkedFeed', 60 * gm.getValue("MonsterFinderFeedMin", 5)))) {
                 caap.selectMonst();
             } else {
-                caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
+                if (caapGlob.is_chrome) {
+                    caap.VisitUrl("http://apps.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
+                } else {
+                    caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
+                }
+
                 gm.setValue("mfStatus", "MFOFB");
                 return false;
             }
         }
-
     },
 
     MonsterFinderOnFB: function () {
@@ -5738,7 +5770,7 @@ var caap = {
         return damDone;
     },
 
-    mfMain : function () {
+    mfMain: function () {
         gm.log("Do Stuff " + new Date());
         if (gm.getValue("urlix", "") === "") {
             this.clearLinks();
@@ -5753,7 +5785,7 @@ var caap = {
         this.selectMonst();
     },
 
-    redirectLinks : function () {
+    redirectLinks: function () {
         for (var x = 0; x < document.getElementsByTagName("a").length; x++) {
             document.getElementsByTagName('a')[x].target = "child_frame";
         }
@@ -5777,7 +5809,7 @@ var caap = {
                 caap.Click(showMore);
                 gm.log("Link clicked.");
             } else {
-                gm.log("PagerMoreLink not found.");
+                gm.log("PagerMoreLink not found!");
             }
         }
 
@@ -5901,7 +5933,7 @@ var caap = {
         this.JustDidIt("clearedMonsterFinderLinks");
     },
 
-    handleCTA : function () {
+    handleCTA: function () {
         var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, nHtml.xpath.unordered);
         gm.log("Number of entries- " + ctas.snapshotLength);
         for (var x = 0; x < ctas.snapshotLength; x++) {
@@ -6127,14 +6159,19 @@ var caap = {
 
         gm.log('Depositing into bank');
         this.Click(depositButton);
-        if (nHtml.FindByAttrContains(document.body, "div", "class", 'result').innerHTML) {
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'result').firstChild.data.indexOf("You have stashed") < 0) {
-                return true;
-            }
+        // added a true result by default until we can find a fix for the result check
+        return true;
+
+        /*
+        var checkBanked = nHtml.FindByAttrContains(div, "div", "class", 'result');
+        if (checkBanked && (checkBanked.firstChild.data.indexOf("You have stashed") < 0)) {
+            gm.log('Banking succeeded!');
+            return true;
         }
 
-        gm.log('Cannot find deposited value.');
+        gm.log('Banking failed! Cannot find result or not stashed!');
         return false;
+        */
     },
 
     RetrieveFromBank: function (num) {
@@ -6586,9 +6623,16 @@ var caap = {
     },
 
     AcceptGiftOnFB: function () {
-        if (window.location.href.indexOf('www.facebook.com/reqs.php') < 0 && window.location.href.indexOf('www.facebook.com/home.php') < 0) {
-            return false;
+        if (caapGlob.is_chrome) {
+            if (window.location.href.indexOf('apps.facebook.com/reqs.php') < 0 && window.location.href.indexOf('apps.facebook.com/home.php') < 0) {
+                return false;
+            }
+        } else {
+            if (window.location.href.indexOf('www.facebook.com/reqs.php') < 0 && window.location.href.indexOf('www.facebook.com/home.php') < 0) {
+                return false;
+            }
         }
+
         var giftEntry = gm.getValue('GiftEntry', '');
         if (!giftEntry) {
             return false;
@@ -7136,7 +7180,25 @@ var caap = {
             return;
         }
 
-        if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
+        if (gm.getValue("fbFilter", false) && (window.location.href.indexOf('apps.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('apps.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0)) {
+            var css = "#contentArea div[id^=\"div_story_\"]:not([class*=\"46755028429\"]) {\ndisplay:none !important;\n}";
+            if (typeof GM_addStyle != "undefined") {
+                GM_addStyle(css);
+            }
+        }
+
+        var locationFBMF = false;
+        if (caapGlob.is_chrome) {
+            if (window.location.href.indexOf('apps.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('apps.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
+                locationFBMF = true;
+            }
+        } else {
+            if (window.location.href.indexOf('www.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('www.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
+                locationFBMF = true;
+            }
+        }
+
+        if (locationFBMF) {
             if (gm.getValue("mfStatus", "") == "OpenMonster") {
                 gm.log("Opening Monster " + gm.getValue("navLink"));
                 this.CheckMonster();
