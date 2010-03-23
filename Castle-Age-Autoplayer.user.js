@@ -5262,7 +5262,7 @@ ImmediateAutoStat:function() {
 
 /////////////////////////////////////////////////////////////////////
 
-CheckResults_gift:function(resultsText) {
+CheckResults_army:function(resultsText) {
 	// Confirm gifts actually sent
 	if (resultsText.match(/^\d+ requests? sent\.$/)) {
 		gm.log('Confirmed gifts sent out.');
