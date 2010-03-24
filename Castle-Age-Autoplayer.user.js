@@ -1577,12 +1577,6 @@ monsterDashboard:function() {
 //	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) return;
 	if (!this.oneMinuteUpdate('dashboard')) return;
 	// if not on an individual monster page, delete any monsters without the page info from monster list
-	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
-		gm.getList('monsterOl').forEach(function(monsterObj) {
-			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
-				gm.deleteListObj('monsterOl',monsterObj.split(caapGlob.vs)[0]);
-		});
-	}
 /*-------------------------------------------------------------------------------------\
  Here is where we construct the HTML for our dashboard. We start by building the outer
  container and position it within the main container.
@@ -3889,6 +3883,8 @@ CheckResults_fightList:function() {
 	gm.getList('monsterOl').forEach(function(monsterObj) {
 		monster = monsterObj.split(caapGlob.vs)[0];
 		if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
+			gm.deleteListObj('monsterOl',monster);
+		else if (monsterList.indexOf(monster)<0 && monsterObj.indexOf('page'+caapGlob.ls+page)>=0)
 			gm.deleteListObj('monsterOl',monster);
 	});
 //	gm.setValue('resetdashboard',true);
