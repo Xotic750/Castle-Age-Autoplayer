@@ -1577,13 +1577,12 @@ monsterDashboard:function() {
 //	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) return;
 	if (!this.oneMinuteUpdate('dashboard')) return;
 	// if not on an individual monster page, delete any monsters without the page info from monster list
-/*	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
+	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
 			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
 				gm.deleteListObj('monsterOl',monsterObj.split(caapGlob.vs)[0]);
 		});
 	}
-//	caap.performanceTimer('Dash done filtering non-page monsters'); */
 /*-------------------------------------------------------------------------------------\
  Here is where we construct the HTML for our dashboard. We start by building the outer
  container and position it within the main container.
