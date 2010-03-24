@@ -1532,6 +1532,8 @@ SetControls:function(force) {
 		   $target.is("#app46755028429_friend_page") ||
 		   $target.is("#app46755028429_comments") ||
 		   $target.is("#app46755028429_army_reqs")) {
+
+//		if($target.is("#app46755028429_app_body") || event.target.querySelector("#app46755028429_app_body")) 
 			nHtml.setTimeout(caap.CheckResults, 0);
 		}
 	}, true);
@@ -1572,14 +1574,16 @@ makeTd:function(text,color) {
 	return "<td><font size=1 color='" + color+"'>"+text+"</font></td>";
 },
 monsterDashboard:function() {
-	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) return;
+//	if ($("#caap_infoMonster") && !this.oneMinuteUpdate('dashboard')) return;
+	if (!this.oneMinuteUpdate('dashboard')) return;
 	// if not on an individual monster page, delete any monsters without the page info from monster list
-	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
+/*	if (!caap.CheckForImage('dragon_title_owner.jpg')) {
 		gm.getList('monsterOl').forEach(function(monsterObj) {
 			if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
 				gm.deleteListObj('monsterOl',monsterObj.split(caapGlob.vs)[0]);
 		});
 	}
+//	caap.performanceTimer('Dash done filtering non-page monsters'); */
 /*-------------------------------------------------------------------------------------\
  Here is where we construct the HTML for our dashboard. We start by building the outer
  container and position it within the main container.
@@ -1634,6 +1638,7 @@ depending on which display was selected using the control above
 	html += '</tr>';
 	displayItemList.shift();
 	monsterList=gm.getList('monsterOl');
+//	caap.performanceTimer('Dash before cycling monsters');
 	monsterList.forEach( function(monsterObj) {
 		monster = monsterObj.split(caapGlob.vs)[0];
 		html += "<tr>";
@@ -1656,6 +1661,7 @@ depending on which display was selected using the control above
 		});
 		html += '</tr>';
 	});
+//	caap.performanceTimer('Dash done cycling monsters');
 	html += '</table>';
 	$("#caap_infoMonster").html(html);
 
@@ -2067,16 +2073,7 @@ try{
 	if(!energy) {
 		energy=nHtml.FindByAttrXPath(document.body,'span',"contains(@id,'_energy') and not(contains(@id,'energy_time'))");
 	}
-		this.stats['energy']=this.GetStatusNumbers(energy.parentNode);
-		if(this.stats.energy!=null) {
-			energyMess="Energy: "+this.stats.energy.num;
-			//if current general == idle general
-			if ((gm.getValue('IdleGeneral','').indexOf(this.GetCurrentGeneral()) >= 0)
-			|| (gm.getValue('IdleGeneral','').match(/use current/i))
-			|| (gm.getValue('IdleGeneral','').match(/under level 4/i))) {
-				gm.setValue('MaxIdleEnergy', this.stats.energy.max);
-			}
-		}
+	this.stats['energy']=this.GetStatusNumbers(energy.parentNode);
 
 	// level
 	var level=nHtml.FindByAttrContains(document.body,"div","title",'experience points');
@@ -2185,10 +2182,19 @@ pageList:{
 	'army'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
 	'gift'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
 },
+trackPerformance:false,
+performanceTimer:function(marker) {
+	if (!caap.trackPerformance) return;
+	var now = (new Date().getTime());
+	elapsedTime = now - parseInt(gm.getValue('performanceTimer',0),10);
+	gm.log('Performance Timer At ' + marker + ' Time elapsed: '+ elapsedTime);
+	gm.setValue('performanceTimer',now.toString());
+},
 CheckResults:function() {
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
 	if (!caap.WhileSinceDidIt('CheckResultsTimer',0.2)) return;
+	caap.performanceTimer('Start CheckResults');
 	caap.JustDidIt('CheckResultsTimer');
 	caap.addExpDisplay();
 	gm.setValue('page','');
@@ -2207,12 +2213,10 @@ CheckResults:function() {
 			});
 		}
 	}
-
 	var resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
 	if (resultsDiv)
 		resultsText = nHtml.GetText(resultsDiv).trim();
-	else resultsText = '';
-
+	else resultsText = '';	
 	if (gm.getValue('page')) {
 		gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
 		if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
@@ -2220,8 +2224,11 @@ CheckResults:function() {
 		}
 	}else gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
 	
+	caap.performanceTimer('Before selectMonster');
 	caap.selectMonster();
+	caap.performanceTimer('Done selectMonster');
 	caap.monsterDashboard();
+	caap.performanceTimer('Done Dashboard');
 	// Check for new gifts
 	if (!gm.getValue('HaveGift')) {
 		if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
@@ -2256,6 +2263,7 @@ CheckResults:function() {
 	// If set and still recent, go to the function specified in 'ResultsFunction'
 	resultsFunction = gm.getValue('ResultsFunction','');
 	if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
+	caap.performanceTimer('Done CheckResults');
 },
 /////////////////////////////////////////////////////////////////////
 
@@ -2277,6 +2285,7 @@ baseQuestTable : { 'Land of Fire' :'land_fire', 'Land of Earth':'land_earth', 'L
 demiQuestTable : { 'Ambrosia' : 'energy', 'Malekus':'attack', 'Corvintheus':'defense', 'Aurora':'health', 'Azeron':'stamina'},
 
 Quests:function() {
+gm.log('In Quest 1');
 	if(gm.getValue('storeRetrieve','') !== ''){
 		if(gm.getValue('storeRetrieve') == 'general'){
 			if (this.SelectGeneral('BuyGeneral')) return true;
@@ -2310,6 +2319,7 @@ Quests:function() {
 			}
 		}
 	}
+gm.log('In Quest 2');
 	if(!gm.getObjVal('AutoQuest','name')) {
 		if(gm.getValue('WhyQuest','')=='Manual') {
 			this.SetDivContent('quest_mess','Pick quest manually.');
@@ -2321,6 +2331,7 @@ Quests:function() {
 	if (gm.getObjVal('AutoQuest','general')=='none' || gm.getValue('ForceSubGeneral')) {
 		if (this.SelectGeneral('SubQuestGeneral')) return true;
 	}
+gm.log('In Quest 3');
 
 	switch (gm.getValue('QuestArea','Quest')) {
 		case 'Quest' :
@@ -2348,6 +2359,7 @@ Quests:function() {
 		default :
 			break;
 	}
+gm.log('In Quest 4');
 
 	var button = this.CheckForImage('quick_switch_button.gif');
 	if (button && !gm.getValue('ForceSubGeneral',false)) {
@@ -2389,6 +2401,7 @@ Quests:function() {
 		gm.log("Cant find buy button");
 		return false;
 	}
+gm.log('In Quest 4');
 
 	button = this.CheckForImage('quick_buy_button.jpg');
 	if (button) {
@@ -2415,7 +2428,9 @@ Quests:function() {
 		this.Click(button);
 		return true;
 	}
+gm.log('In Quest 5');
 	autoQuestDivs = this.CheckResults_quests(true);
+gm.log('In Quest 6');
 	if(!gm.getObjVal('AutoQuest','name')) {
 		gm.log('Could not find autoquest.');
 		this.SetDivContent('quest_mess','Could not find autoquest.');
@@ -3884,7 +3899,7 @@ CheckResults_fightList:function() {
 		if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0)
 			gm.deleteListObj('monsterOl',monster);
 	});
-	gm.setValue('resetdashboard',true);
+//	gm.setValue('resetdashboard',true);
 },
 CheckResults_viewFight:function() {
 	// Get name and type of monster
@@ -4057,7 +4072,7 @@ CheckResults_viewFight:function() {
 		gm.setListObjVal('monsterOl',monster,'over','ach');
 		if (isTarget && lastDamDone < achLevel)	gm.setValue('resetselectMonster',true);
 	}
-	gm.setValue('resetdashboard',true);
+//	gm.setValue('resetdashboard',true);
 },
 
 selectMonster:function() {
@@ -5228,7 +5243,9 @@ AutoElite:function() {
 /////////////////////////////////////////////////////////////////////
 
 PassiveGeneral:function() {
-	return this.SelectGeneral('IdleGeneral');
+	if (this.SelectGeneral('IdleGeneral')) return true;
+	gm.setValue('MaxIdleEnergy', this.stats.energy.max);
+	return false;
 },
 
 /////////////////////////////////////////////////////////////////////
