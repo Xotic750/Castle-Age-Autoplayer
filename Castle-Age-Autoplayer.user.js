@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.28
+// @version        139.29
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.28";
+caapGlob.thisVersion = "139.29";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -6819,25 +6819,25 @@ var caap = {
         }
 
         if (!gm.getValue("statsMatch", true)) {
-            gm.log("User must change stats rules");
+            //gm.log("User must change stats rules");
             return false;
         }
 
         var content = document.getElementById('app46755028429_main_bntp');
         if (!content) {
-            gm.log("id:main_bntp not found");
+            //gm.log("id:main_bntp not found");
             return false;
         }
 
         var a = nHtml.FindByAttrContains(content, 'a', 'href', 'keep.php');
         if (!a) {
-            gm.log("a:href:keep.php not found");
+            //gm.log("a:href:keep.php not found");
             return false;
         }
 
         this.statsPoints = a.firstChild.firstChild.data.replace(/[^0-9]/g, '');
         if (!this.statsPoints || this.statsPoints < gm.getValue("SkillPointsNeed", 1)) {
-            gm.log("Dont have enough stats points");
+            //gm.log("Dont have enough stats points");
             return false;
         }
 
