@@ -2193,7 +2193,7 @@ performanceTimer:function(marker) {
 CheckResults:function() {
 	// Check page to see if we should go to a page specific check function
 	// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-	if (!caap.WhileSinceDidIt('CheckResultsTimer',0.2)) return;
+	if (!caap.WhileSinceDidIt('CheckResultsTimer',1)) return;
 	caap.performanceTimer('Start CheckResults');
 	caap.JustDidIt('CheckResultsTimer');
 	caap.addExpDisplay();
@@ -2285,7 +2285,6 @@ baseQuestTable : { 'Land of Fire' :'land_fire', 'Land of Earth':'land_earth', 'L
 demiQuestTable : { 'Ambrosia' : 'energy', 'Malekus':'attack', 'Corvintheus':'defense', 'Aurora':'health', 'Azeron':'stamina'},
 
 Quests:function() {
-gm.log('In Quest 1');
 	if(gm.getValue('storeRetrieve','') !== ''){
 		if(gm.getValue('storeRetrieve') == 'general'){
 			if (this.SelectGeneral('BuyGeneral')) return true;
@@ -2319,7 +2318,6 @@ gm.log('In Quest 1');
 			}
 		}
 	}
-gm.log('In Quest 2');
 	if(!gm.getObjVal('AutoQuest','name')) {
 		if(gm.getValue('WhyQuest','')=='Manual') {
 			this.SetDivContent('quest_mess','Pick quest manually.');
@@ -2331,7 +2329,6 @@ gm.log('In Quest 2');
 	if (gm.getObjVal('AutoQuest','general')=='none' || gm.getValue('ForceSubGeneral')) {
 		if (this.SelectGeneral('SubQuestGeneral')) return true;
 	}
-gm.log('In Quest 3');
 
 	switch (gm.getValue('QuestArea','Quest')) {
 		case 'Quest' :
@@ -2359,7 +2356,6 @@ gm.log('In Quest 3');
 		default :
 			break;
 	}
-gm.log('In Quest 4');
 
 	var button = this.CheckForImage('quick_switch_button.gif');
 	if (button && !gm.getValue('ForceSubGeneral',false)) {
@@ -2401,7 +2397,6 @@ gm.log('In Quest 4');
 		gm.log("Cant find buy button");
 		return false;
 	}
-gm.log('In Quest 4');
 
 	button = this.CheckForImage('quick_buy_button.jpg');
 	if (button) {
@@ -2428,9 +2423,7 @@ gm.log('In Quest 4');
 		this.Click(button);
 		return true;
 	}
-gm.log('In Quest 5');
 	autoQuestDivs = this.CheckResults_quests(true);
-gm.log('In Quest 6');
 	if(!gm.getObjVal('AutoQuest','name')) {
 		gm.log('Could not find autoquest.');
 		this.SetDivContent('quest_mess','Could not find autoquest.');
