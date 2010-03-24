@@ -1,7 +1,7 @@
 {
    "content_scripts": [ {
       "exclude_globs": [ "http://apps.facebook.com/castle_age/*#iframe*" ],
-      "include_globs": [ "http://apps.facebook.com/castle_age/*", "http://apps.facebook.com/*filter=app_46755028429*" ],
+      "include_globs": [ "http://apps.facebook.com/castle_age/*", "http://apps.facebook.com/*filter=app_46755028429*", "http://apps.facebook.com/reqs.php#confirm_46755028429_0" ],
       "js": [ "jquery-1.4.2.min.js", "gm_functions.js", "chrome_support.js", "options.js", "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*", "https://*/*" ]
    } ],
@@ -20,5 +20,5 @@
    "name": "Castle Age Autoplayer - Alpha Patched",
    "background_page": "background.html",
    "permissions": [ "tabs", "http://apps.facebook.com/castle_age/*" ],
-   "version": "139.26"
+   "version": "139.27"
 }

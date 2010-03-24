@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.26
+// @version        139.27
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -15,14 +15,14 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle */
 
 ///////////////////////////
 // Define our global object
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.26";
+caapGlob.thisVersion = "139.27";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -95,6 +95,7 @@ var gm = {
         GM_setValue(caapGlob.gameName + "__" + n, v);
         return v;
     },
+
     getValue: function (n, v) {
         gm.debug('Get ' + n + ' value ' + GM_getValue(caapGlob.gameName + "__" + n, v));
         return GM_getValue(caapGlob.gameName + "__" + n, v);
@@ -554,7 +555,7 @@ var nHtml = {
                 var ch = document.body.clientHeight;
                 if (dh > ch) {
                     var moveme = dh - ch;
-                    gm.log("Scrolling down by: "+ moveme + "px");
+                    gm.log("Scrolling down by: " + moveme + "px");
                     window.scroll(0, moveme);
                     gm.log("Scrolled ok");
                 } else {
@@ -896,7 +897,34 @@ var caap = {
     },
 
     FormatTime: function (time) {
-        return time.toDateString().match(/^\w+ /) + time.toLocaleTimeString().replace(/:\d+ /i, ' ').replace(/:\d+$/i, '');
+        var d_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        var t_day = time.getDay();
+        var t_hour = time.getHours();
+        var t_min = time.getMinutes();
+
+        if (gm.getValue("use24hr", true)) {
+            return d_names[t_day] + " " + t_hour + ":" + t_min;
+        } else {
+            var a_p = "PM";
+            if (t_hour < 12) {
+                a_p = "AM";
+            }
+
+            if (t_hour === 0) {
+                t_hour = 12;
+            }
+
+            if (t_hour > 12) {
+                t_hour = t_hour - 12;
+            }
+
+            t_min = t_min + "";
+            if (t_min.length === 1) {
+                t_min = "0" + t_min;
+            }
+
+            return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
+        }
     },
 
     DisplayTimer: function (name) {
@@ -1638,6 +1666,7 @@ var caap = {
                $target.is("#app46755028429_news") ||
                $target.is("#app46755028429_friend_page") ||
                $target.is("#app46755028429_comments") ||
+               $target.is("#app46755028429_army") ||
                $target.is("#app46755028429_army_reqs")) {
                 nHtml.setTimeout(caap.addExpDisplay, 0);
                 //gm.log("Listener did: addExpDisplay");
@@ -1867,6 +1896,10 @@ var caap = {
     \-------------------------------------------------------------------------------------*/
     AddDBListener: function () {
         var selectDiv = document.getElementById('caap_DBDisplay');
+        if (!selectDiv) {
+            this.ReloadCastleAge();
+        }
+
         selectDiv.addEventListener('change', function (e) {
             var value = e.target.options[e.target.selectedIndex].value;
             gm.setValue('DBDisplay', value);
@@ -2302,7 +2335,6 @@ var caap = {
                 var minutes = this.stats.levelTime.getMinutes();
                 minutes += minutesToLevel;
                 this.stats.levelTime.setMinutes(minutes);
-
                 this.SetDivContent('level_mess', 'Expected next level: ' + this.FormatTime(this.stats.levelTime));
             }
 
@@ -6415,24 +6447,24 @@ var caap = {
                     return false;
                 }
 
-                var giverName = nHtml.GetText(nHtml.FindByAttrContains(acceptDiv.parentNode.parentNode, 'a', 'href', 'profile.php')).trim();
+                var profDiv = nHtml.FindByAttrContains(acceptDiv.parentNode.parentNode, 'a', 'href', 'profile.php');
+                if (!profDiv) {
+                    profDiv = nHtml.FindByAttrContains(acceptDiv.parentNode.parentNode, 'div', 'style', 'overflow: hidden; text-align: center; width: 170px;');
+                }
+
+                var giverName = "Unknown"
+                if (profDiv) {
+                    giverName = nHtml.GetText(profDiv).trim();
+                }
+
                 gm.setValue('GiftEntry', giverId[2] + caapGlob.vs + giverName);
                 gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
                 this.JustDidIt('ClickedFacebookURL');
                 if (caapGlob.is_chrome) {
-                    /*
-                    var giftType = 'Unknown Gift';
-                    var giftEntry = gm.getValue('GiftEntry','');
-                    if (giftEntry) {
-                        if (gm.getValue('ReceivedList',' ').indexOf(giftEntry)<0) gm.listPush('ReceivedList',giftEntry + caapGlob.vs + giftType);
-                        gm.log ('This giver: ' + giverId[2] + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
-                        gm.setValue('GiftEntry','');
-                    }
-                    */
-                    this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&rqtp=army&uid=" + giverId[2]);
-                } else {
-                    this.VisitUrl(acceptDiv.href);
+                    acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
                 }
+
+                this.VisitUrl(acceptDiv.href);
                 return true;
             }
 
@@ -6494,7 +6526,7 @@ var caap = {
             gm.setList('NotFoundIDs', []);
         }
 
-        if (gm.getValue('DisableGiftReturn', false)) {
+        if (gm.getValue('DisableGiftReturn', false) || caapGlob.is_chrome) {
             gm.setList('ReceivedList', []);
         }
 
