@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.29
+// @version        139.30
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.29";
+caapGlob.thisVersion = "139.30";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1136,6 +1136,12 @@ var caap = {
     },
 
     SetDivContent: function (idName, mess) {
+        /*
+        if (idName == "activity_mess") {
+            document.title = mess.replace("Current activity: ", '');
+        }
+        */
+
         this.SetupDivs();
         var d = document.getElementById('caap_' + idName);
         if (d) {
@@ -1724,6 +1730,7 @@ var caap = {
         }
 
         // if not on an individual monster page, delete any monsters without the page info from Engage
+        /*
         if (!caap.CheckForImage('dragon_title_owner.jpg')) {
             gm.getList('monsterOl').forEach(function (monsterObj) {
                 if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0) {
@@ -1731,6 +1738,7 @@ var caap = {
                 }
             });
         }
+        */
 
         caap.selectMonster();
     /*-------------------------------------------------------------------------------------\
@@ -4733,7 +4741,7 @@ var caap = {
                     return;
                 }
 
-                var T2K = (100 / (100 - hp)) * (boss.duration - (parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166)));
+                var T2K = (hp / (100 - hp)) * (boss.duration - (parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166)));
                 T2K = Math.round(T2K * 10) / 10; //fix two 1 decimal place
                 gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
@@ -5020,6 +5028,8 @@ var caap = {
                         if (monster.indexOf('Siege') >= 0) {
                             link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
                         }
+
+                        link = link.replace('&action=doObjective','');
                     } else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
                         link = link.replace('&action=doObjective', '');
                     }
@@ -5225,6 +5235,7 @@ var caap = {
         } else {
             this.JustDidIt('NotargetFrombattle_monster');
             gm.log('No "Engage" button for ' + monster);
+            gm.setValue('resetselectMonster', true);
             return false;
         }
     },
@@ -6884,6 +6895,7 @@ var caap = {
                     caap.SetDivContent('idle_mess', 'Filling Army');
                     this.NavigateTo('army');
                 } else { //get not army members
+                    gm.log("Getting FB friends");
                     var IdsListNotArmyAll = "//div[@class='unselected_list']//label[@class='clearfix']";
                     var results = document.evaluate(IdsListNotArmyAll, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                     var i = 0;
@@ -6940,7 +6952,7 @@ var caap = {
                                         } else {
                                             count++;
                                             GM_xmlhttpRequest({
-                                                url: 'http://apps.facebook.com/castle_age//index.php?tp=cht&lka=' + Ids[ID] + '&buf=1',
+                                                url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[ID] + '&buf=1',
                                                 method: "GET",
                                                 onload: function (response) {
                                                     count--;
@@ -6961,8 +6973,6 @@ var caap = {
                                         }, 5000);
 
                                         gm.log("Fill Army Completed");
-                                        gm.setValue('FillArmy', false);
-                                        gm.deleteValue("ArmyCount");
                                     }
                                 } else {//if response != ok
                                     caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
@@ -6972,15 +6982,16 @@ var caap = {
 
                                     gm.log("Fill Army Not Completed, cant get CA friends list");
                                     gm.log("Response.status: " + response.statusText);
-                                    gm.setValue('FillArmy', false);
-                                    gm.deleteValue("ArmyCount");
-                                    gm.deleteValue('waiting');
                                 }
                             }
                         });
-                    }
 
+                        gm.setValue('FillArmy', false);
+                        gm.deleteValue("ArmyCount");
+                        gm.deleteValue('waiting');
+                    }
                 }
+
                 return true;
             }
         } catch (e) {
@@ -7339,6 +7350,8 @@ var caap = {
         }
 
         var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        //var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        //var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         if (!gm.getValue('ReleaseControl', false)) {
             actionsList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
@@ -7425,6 +7438,8 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
 
 $(function () {
     gm.log('Full page load completed');
+    gm.deleteValue("ArmyCount");
+    gm.deleteValue('waiting');
     gm.setValue('caapPause', 'none');
     if (caapGlob.is_chrome) {
         CE_message("paused", null, gm.getValue('caapPause', 'none'));
