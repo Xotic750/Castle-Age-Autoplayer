@@ -4394,6 +4394,7 @@ Monsters:function() {
 	} else {
 		this.JustDidIt('NotargetFrombattle_monster');
 		gm.log('No "Engage" button for ' + monster);
+		gm.setValue('resetselectMonster',true);
 		return false;
 	}
 },
