@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.30
+// @version        139.31
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.30";
+caapGlob.thisVersion = "139.31";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -684,9 +684,9 @@ var caap = {
 
     VisitUrl: function (url, loadWaitTime) {
         this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-    //  this.setTimeout(function () {
+        //this.setTimeout(function () {
         document.location.href = url;
-    //  },1000+Math.floor(Math.random()*1000));
+        //},1000+Math.floor(Math.random()*1000));
     },
 
     GetCurrentGeneral: function () {
@@ -712,11 +712,11 @@ var caap = {
             var gen = nHtml.getX('./div[@class=\'general_name_div3\']/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
             var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
             img = nHtml.getHTMLPredicate(img);
-    //      var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
-    //      var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string);
-    //      var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/gm,'');
+            //var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
+            //var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string);
+            //var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/gm,'');
             var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/Level /gi, '').replace(/[\t\r\n]/g, '');
-    //      var genatts = gen + ":" + atk + "/" + def + ":L" + level + ":" + img + ","
+            //var genatts = gen + ":" + atk + "/" + def + ":L" + level + ":" + img + ","
             gm.listPush('AllGenerals', gen);
             gm.listPush('GeneralImages', gen + ':' + img);
             if (level < 4) {
@@ -724,7 +724,7 @@ var caap = {
             }
         }
         gm.setList('AllGenerals', gm.getList('AllGenerals').sort());
-    //  gm.log("All Generals: " + gm.getList('AllGenerals'));
+        //gm.log("All Generals: " + gm.getList('AllGenerals'));
     },
 
     ClearGeneral: function (whichGeneral) {
@@ -1249,7 +1249,7 @@ var caap = {
                           'Never - disables player battles'];
         var typeList = ['Invade', 'Duel'];
         var typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though'];
-        var targetList = ['Freshmeat', 'Userid List', 'Raid'];
+        var targetList = ['Freshmeat', 'Userid List', 'Raid', 'Arena'];
         var targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'];
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Battle When:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px min-width: 90px; max-width: 90px; width : 90px;'") + '</td></tr></table>';
@@ -1273,9 +1273,10 @@ var caap = {
         htmlCode += "Join Raids in this order: <a href='http://userscripts.org/topics/43757' target='_blank'><font color='red'>?</font></a><br />";
         htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3'");
         htmlCode += "</div>";
+        htmlCode += 'Attack targets that are:';
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Min Relative Rank&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Army Ratio Base&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Lower Than Rank Minus </td><td>' + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than X*Army </td><td>' + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
         htmlCode += "</div>";
         htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
         htmlCode += this.MakeTextBox('BattleTargets', userIdInstructions, " rows='2'");
@@ -1789,7 +1790,7 @@ var caap = {
         if (!$("#caap_top").length) {
             $(layout).css({
                 background: gm.getValue("StyleBackgroundLight", "white"),
-    //          background : "url('http://image2.castleagegame.com/1357/graphics/bg_jobs_tile.jpg')",
+                //background : "url('http://image2.castleagegame.com/1357/graphics/bg_jobs_tile.jpg')",
                 padding: "5px",
                 width: " 610px",
                 margin: "0 auto",
@@ -1822,7 +1823,7 @@ var caap = {
 
             html += caap.makeTd(monster, color);
             displayItemList.forEach(function (displayItem) {
-    //          gm.log(' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
+                //gm.log(' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
                 if (displayItem == 'Phase' && color == 'grey') {
                     html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
                 } else {
@@ -2174,7 +2175,7 @@ var caap = {
         }
 
         ss = document.evaluate("//textarea[contains(@id,'caap_')]", document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-    //  if (ss.snapshotLength<=0) gm.log('no textareas');
+        //if (ss.snapshotLength<=0) gm.log('no textareas');
         for (s = 0; s < ss.snapshotLength; s++) {
             var textareaDiv = ss.snapshotItem(s);
             textareaDiv.addEventListener('change', function (e) {
@@ -2430,7 +2431,7 @@ var caap = {
             this.battlePage = 'battle';
         }
 
-        //Check for Elite Guard Add image
+        // Check for Elite Guard Add image
         if (this.CheckForImage('elite_guard_add')) {
             if (gm.getValue('AutoEliteEnd', 'NoArmy') != 'NoArmy') {
                 gm.setValue('AutoEliteGetList', 0);
@@ -2568,20 +2569,21 @@ var caap = {
 
         switch (gm.getValue('QuestArea', 'Quest')) {
         case 'Quest' :
+            //var stageSet0 = $("#app46755028429_stage_set_0").css("display") == 'block' ? true : false;
+            //var stageSet1 = $("#app46755028429_stage_set_1").css("display") == 'block' ? true : false;
             var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
             var landPic = this.baseQuestTable[subQArea];
+            var imgExist = false;
             if (landPic == 'tab_underworld') {
-                if (this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big')) {
-                    return true;
-                }
+                imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
             } else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
-                if (this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel')) {
-                    return true;
-                }
+                imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
             } else {
-                if (this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel')) {
-                    return true;
-                }
+                imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+            }
+
+            if (imgExist) {
+                return true;
             }
 
             break;
@@ -2755,7 +2757,7 @@ var caap = {
 
         ss = document.evaluate(".//div[contains(@class,'quests_background')]", div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         if (ss.snapshotLength === 0) {
-    //      gm.log("Failed to find quests_background");
+            //gm.log("Failed to find quests_background");
             return;
         }
 
@@ -3024,7 +3026,7 @@ var caap = {
     GetQuestName: function (questDiv) {
         var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
         if (!item_title) {
-        //  gm.log("Can't find quest description or sub-title");
+            //gm.log("Can't find quest description or sub-title");
             return false;
         }
 
@@ -3454,7 +3456,7 @@ var caap = {
         this.SelectLands(prop.row, 2);
         var button = nHtml.FindByAttrXPath(prop.row, 'input', "@type='submit' or @type='image'");
         if (button) {
-    //      gm.log("Clicking buy button:" +button);
+            //gm.log("Clicking buy button:" + button);
             gm.log("Buying Prop: " + prop.name);
             this.Click(button, 13000);
             gm.setValue('BestPropCost', '');
@@ -3470,7 +3472,7 @@ var caap = {
         this.SelectLands(prop.row, select);
         var button = nHtml.FindByAttrXPath(prop.row, 'input', "@type='submit' or @type='image'");
         if (button) {
-    //      gm.log("Clicking sell button:" +button);
+            //gm.log("Clicking sell button:" + button);
             gm.log("Selling Prop: " + prop.name);
             this.Click(button, 13000);
             this.sellProp = '';
@@ -3601,6 +3603,7 @@ var caap = {
         if (resultsDiv) {
             var resultsText = nHtml.GetText(resultsDiv).trim();
             if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
+				gm.log("This opponent is dead or hiding: " + this.lastBattleID);
                 if (!this.doNotBattle) {
                     this.doNotBattle = this.lastBattleID;
                 } else {
@@ -3609,87 +3612,110 @@ var caap = {
             }
         }
 
+        var webSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'arena_arena_guard');
+		if (webSlice) {
+			gm.log('Checking Arena Guard');
+			webSlice = webSlice.parentNode.parentNode;
+			var ss = document.evaluate(".//img[contains(@src,'profile.ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+			gm.log('Arena Guard Slots Filled: ' + ss.snapshotLength);
+			if ((ss.snapshotLength < 10) && gm.getValue('ArenaEliteEnd', 'NoArmy') != 'NoArmy') {
+				gm.setValue('ArenaEliteNeeded', true);
+				gm.log('Arena Guard Needs To Be Filed.' + ss.snapshotLength);
+			}
+		}
+
+
+
         if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
-            var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
-            var bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
-            var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
-            var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
-            var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
-            resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-            nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
-            userId = nameLink.href.match(/user=\d+/i);
-            userId = String(userId).substr(5);
-            userName = nHtml.GetText(nameLink).trim();
-            var wins = 1;
-            gm.log("We Defeated " + userName + "!!");
-            //Test if we should chain this guy
-            gm.setValue("BattleChainId", '');
-            if (this.GetNumber('ChainBP') !== '') {
-                if (bpnum >= Number(this.GetNumber('ChainBP'))) {
-                    gm.setValue("BattleChainId", userId);
-                    gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
-                } else {
-                    if (!this.doNotBattle) {
-                        this.doNotBattle = this.lastBattleID;
-                    } else {
-                        this.doNotBattle += " " + this.lastBattleID;
-                    }
-                }
-            }
+			if (this.CheckForImage('tab_arena_on')) {
+				resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+				nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+				userId = nameLink.href.match(/user=\d+/i);
+				userId = String(userId).substr(5);
+				gm.setValue("ArenaChainId", userId);
+                gm.log("Chain Attack: " + userId + "  Arena Battle");
+			} else {
+				var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
+				var bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
+				var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
+				var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
+				var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
+				resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+				nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+				userId = nameLink.href.match(/user=\d+/i);
+				userId = String(userId).substr(5);
+				userName = nHtml.GetText(nameLink).trim();
+				var wins = 1;
+				gm.log("We Defeated " + userName + "!!");
+				//Test if we should chain this guy
+				gm.setValue("BattleChainId", '');
+				if (this.GetNumber('ChainBP') !== '') {
+					if (bpnum >= Number(this.GetNumber('ChainBP'))) {
+						gm.setValue("BattleChainId", userId);
+						gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
+					} else {
+						if (!this.doNotBattle) {
+							this.doNotBattle = this.lastBattleID;
+						} else {
+							this.doNotBattle += " " + this.lastBattleID;
+						}
+					}
+				}
 
-            if (this.GetNumber('ChainGold') !== '') {
-                if (goldnum >= Number(this.GetNumber('ChainGold'))) {
-                    gm.setValue("BattleChainId", userId);
-                    gm.log("Chain Attack " + userId + " Gold:" + goldnum);
-                } else {
-                    if (!this.doNotBattle) {
-                        this.doNotBattle = this.lastBattleID;
-                    } else {
-                        this.doNotBattle += " " + this.lastBattleID;
-                    }
-                }
-            }
+				if (this.GetNumber('ChainGold') !== '') {
+					if (goldnum >= Number(this.GetNumber('ChainGold'))) {
+						gm.setValue("BattleChainId", userId);
+						gm.log("Chain Attack " + userId + " Gold:" + goldnum);
+					} else {
+						if (!this.doNotBattle) {
+							this.doNotBattle = this.lastBattleID;
+						} else {
+							this.doNotBattle += " " + this.lastBattleID;
+						}
+					}
+				}
 
-            if (gm.getValue("BattleChainId", '')) {
-                var chainCount = this.GetNumber('ChainCount', 0) + 1;
-                if (chainCount >= this.GetNumber('MaxChains', 4)) {
-                    gm.log("Lets give this guy a break.");
-                    if (!this.doNotBattle) {
-                        this.doNotBattle = this.lastBattleID;
-                    } else {
-                        this.doNotBattle += " " + this.lastBattleID;
-                    }
+				if (gm.getValue("BattleChainId", '')) {
+					var chainCount = this.GetNumber('ChainCount', 0) + 1;
+					if (chainCount >= this.GetNumber('MaxChains', 4)) {
+						gm.log("Lets give this guy a break.");
+						if (!this.doNotBattle) {
+							this.doNotBattle = this.lastBattleID;
+						} else {
+							this.doNotBattle += " " + this.lastBattleID;
+						}
 
-                    gm.setValue("BattleChainId", '');
-                    chainCount = 0;
-                }
+						gm.setValue("BattleChainId", '');
+						chainCount = 0;
+					}
 
-                gm.setValue('ChainCount', chainCount);
-            } else {
-                gm.setValue('ChainCount', 0);
-            }
+					gm.setValue('ChainCount', chainCount);
+				} else {
+					gm.setValue('ChainCount', 0);
+				}
 
-    /*  Not ready for primtime.   Need to build SliceList to extract our element
-            if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
-                element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
-                elementArray = element.split(caapGlob.vs);
-                prevWins = Number(elementArray[3]);
-                prevBPs = Number(elementArray[4]);
-                prevGold = Number(elementArray[5]);
-                wins = prevWins + wins;
-                bpnum = prevBPs + bpnum;
-                goldnum  = prevGold + goldnum
-            }
-    */
+		/*  Not ready for primtime.   Need to build SliceList to extract our element
+				if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
+					element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
+					elementArray = element.split(caapGlob.vs);
+					prevWins = Number(elementArray[3]);
+					prevBPs = Number(elementArray[4]);
+					prevGold = Number(elementArray[5]);
+					wins = prevWins + wins;
+					bpnum = prevBPs + bpnum;
+					goldnum  = prevGold + goldnum
+				}
+		*/
 
-            if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
-                (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
-                now = (new Date().getTime()).toString();
-                newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
-                gm.listPush('BattlesWonList', newelement, 100);
-            }
+				if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
+					(bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
+					now = (new Date().getTime()).toString();
+					newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
+					gm.listPush('BattlesWonList', newelement, 100);
+				}
 
-            this.SetCheckResultsFunction('');
+				this.SetCheckResultsFunction('');
+			}
         } else if (this.CheckForImage('battle_defeat.gif')) {
             resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
             nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
@@ -3788,25 +3814,37 @@ var caap = {
     BattleUserId: function (userid) {
         gm.log('Battle user:' + userid);
         var target = '';
-        if (gm.getValue('BattleType', 'Invade') == "Duel") {
-            target = "battle_02.gif";
-        } else {
-            target = "battle_01.gif";
-        }
+		if (gm.getValue('TargetType', '') == 'Arena') {
+			if (gm.getValue('BattleType', 'Invade') == "Duel") {
+				target = "arena_duel.gif";
+			} else {
+				target = "arena_invade.gif";
+			}
+		} else {
+			if (gm.getValue('BattleType', 'Invade') == "Duel") {
+				target = "battle_02.gif";
+			} else {
+				target = "battle_01.gif";
+			}
+		}
 
         var battleButton = nHtml.FindByAttrContains(document.body, "input", "src", target);
         if (battleButton) {
             var form = battleButton.parentNode.parentNode;
-            var inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
-            if (inp) {
-                inp.value = userid;
-                this.lastBattleID = userid;
-                this.ClickBattleButton(battleButton);
-                this.notSafeCount = 0;
-                return true;
-            } else {
+            if (form) {
+                var inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
+                if (inp) {
+                    inp.value = userid;
+                    this.lastBattleID = userid;
+                    this.ClickBattleButton(battleButton);
+                    this.notSafeCount = 0;
+                    return true;
+                }
+
                 gm.log("target_id not found in battleForm");
             }
+
+            gm.log("form not found in battleButton");
         } else {
             gm.log("battleButton not found");
         }
@@ -3815,6 +3853,8 @@ var caap = {
     },
 
     rankTable: {'acolyte': 0, 'scout': 1, 'soldier': 2, 'elite soldier': 3, 'squire': 4, 'knight': 5, 'first knight': 6, 'legionnaire': 7, 'centurion': 8, 'champion': 9, 'lieutenant commander': 10, 'commander': 11, 'high commander': 12, 'lieutenant general': 13, 'general': 14, 'high general': 15, 'baron': 16, 'earl': 17, 'duke': 18, 'prince': 19, 'king': 20, 'high king': 21},
+
+    arenaTable: {'brawler': 1, 'swordsman': 2, 'warrior': 3, 'gladiator': 4, 'hero': 5, 'legend': 6},
 
     ClickBattleButton: function (battleButton) {
         gm.setValue('ReleaseControl', true);
@@ -3838,6 +3878,13 @@ var caap = {
             regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
             refresh : 'battle_on.gif',
             image : 'battle_on.gif'
+        },
+        'Arena': {
+            Invade : 'arena_invade.gif',
+            Duel : 'arena_duel.gif',
+            regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
+            refresh : 'tab_arena_on.gif',
+            image : 'tab_arena_on.gif'
         }
     },
 
@@ -3857,12 +3904,23 @@ var caap = {
             var bestID = 0;
             var safeTargets = [];
             var count = 0;
-            var chainId = gm.getValue('BattleChainId', '');
+
+            var chainId = '';
             var chainAttack = false;
             var inp = null;
-            gm.setValue('BattleChainId', '');
+			if (type == 'Arena') {
+				chainId = gm.getValue('ArenaChainId', '');
+				//chainAttack = false;
+				//inp = null;
+				gm.setValue('ArenaChainId', '');
+			} else {
+				chainId = gm.getValue('BattleChainId', '');
+				//chainAttack = false;
+				//inp = null;
+				gm.setValue('BattleChainId', '');
+			}
 
-        //  gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
+            //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
                 var button = ss.snapshotItem(s);
                 var tr = button;
@@ -3872,6 +3930,7 @@ var caap = {
                 }
 
                 var rank = 0;
+                var yourRank = 0;
                 var level = 0;
                 var army = 0;
                 var txt = '';
@@ -3893,7 +3952,7 @@ var caap = {
                         tr = tr.parentNode;
                     }
 
-                    //  If looking for demi points, and already full, continue
+                    // If looking for demi points, and already full, continue
                     if (gm.getValue('DemiPointsFirst', '') && !gm.getValue('DemiPointsDone', true)) {
                         var deityNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1;
                         var demiPointList = gm.getList('DemiPointList');
@@ -3911,7 +3970,24 @@ var caap = {
 
                     level = parseInt(levelm[1], 10);
                     var rankStr = levelm[2].toLowerCase().trim();
-                    rank = this.rankTable[rankStr];
+					if (type == 'Arena') {
+						rank = this.arenaTable[rankStr];
+                        var webSlice = nHtml.FindByAttrContains(document.body, 'div', 'id', 'arena_body');
+						if (webSlice) {
+							var txtRank = nHtml.GetText(webSlice);
+							var yourRankStrObj = /:([A-Za-z ]+)/.exec(txtRank);
+							var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
+							yourRank = this.arenaTable[yourRankStr];
+							// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank);
+						}
+
+						gm.log('Unable To Find Your Arena Rank');
+						yourRank = 0;
+					} else {
+						rank = this.rankTable[rankStr];
+						yourRank = this.stats.rank;
+					}
+
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                     army = parseInt(nHtml.GetText(subtd.snapshotItem(2)).trim(), 10);
                 }
@@ -3927,9 +4003,10 @@ var caap = {
                     continue;
                 }
 
-                if (this.stats.rank && (this.stats.rank - rank  > minRank)) {
-                    continue;
-                }
+
+				if (yourRank && (yourRank - rank  > minRank)) {
+					continue;
+				}
 
                 var levelMultiplier = this.stats.level / level;
                 var armyRatio = ARBase * levelMultiplier;
@@ -3940,7 +4017,7 @@ var caap = {
                     continue;
                 }
 
-        //      gm.log("Army Ratio:" + armyRatio + " Level:" + level + " Rank:" + rank + " Army: " + army)
+				gm.log("Army Ratio:" + armyRatio + " Level:" + level + " Rank:" + rank + " Army: " + army);
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (this.stats.army && (army > (this.stats.army * armyRatio))) {
@@ -3952,13 +4029,15 @@ var caap = {
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
                 if (dfl.indexOf(caapGlob.vs + id + caapGlob.vs) >= 0) {
+					gm.log("We lost to this id before: " + id);
                     continue;
                 }
 
                 // don't battle people we've already battled too much
-                if (this.doNotBattle && this.doNotBattle.indexOf(id) >= 0) {
-                    continue;
-                }
+				if (this.doNotBattle && this.doNotBattle.indexOf(id) >= 0) {
+					gm.log("We attacked this id before: " + id);
+					continue;
+				}
 
                 var thisScore = rank - (army / levelMultiplier / this.stats.army);
                 if (id == chainId) {
@@ -4002,9 +4081,9 @@ var caap = {
                         this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
                         this.notSafeCount = 0;
                         return true;
-                    } else {
-                        gm.log("Could not find 'target_id' input");
                     }
+
+                    gm.log("Could not find 'target_id' input");
                 } else if (gm.getValue('PlusOneKills', false) && type == 'Raid') {
                     if (plusOneSafe) {
                         anyButton = ss.snapshotItem(0);
@@ -4019,9 +4098,9 @@ var caap = {
                             this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
                             this.notSafeCount = 0;
                             return true;
-                        } else {
-                            gm.log("Could not find 'target_id' input");
                         }
+
+                        gm.log("Could not find 'target_id' input");
                     } else {
                         gm.log("Not safe for +1 kill.");
                     }
@@ -4040,9 +4119,9 @@ var caap = {
                             this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
                             this.notSafeCount = 0;
                             return true;
-                        } else {
-                            gm.log('Attack button is null');
                         }
+
+                        gm.log('Attack button is null');
                     }
                 }
             }
@@ -4065,7 +4144,9 @@ var caap = {
                 } else {
                     this.NavigateTo(this.battlePage + ',raid');
                 }
-            } else {
+            } else if (type == 'Arena')  {
+                this.NavigateTo(this.battlePage + ',arena_on.gif');
+			} else {
                 this.NavigateTo(this.battlePage + ',battle_on.gif');
             }
 
@@ -4078,8 +4159,19 @@ var caap = {
     },
 
     Battle: function (mode) {
+		if (this.stats.health.num < 10) {
+			return false;
+		}
+
+        var target = this.GetCurrentBattleTarget(mode);
+        if (!target) {
+            return false;
+        }
+
+        target = target.toLowerCase();
+
         if (!this.CheckNotHiding("Battle")) {
-    //      gm.log("Not Hiding Mode: Safe To Wait For Monster.")
+            //gm.log("Not Hiding Mode: Safe To Wait For Monster.")
             this.SetDivContent('battle_mess', 'Safe To Wait For Monster');
             return false;
         }
@@ -4090,7 +4182,7 @@ var caap = {
             }
         }
 
-        if (!this.CheckStamina('Battle')) {
+        if (!this.CheckStamina('Battle', ((target == 'arena') ? 5 : 1))) {
             return false;
         }
 
@@ -4113,25 +4205,31 @@ var caap = {
                 chainButton = this.CheckForImage('battle_duel_again.gif');
             }
 
-            if (chainButton && gm.getValue("BattleChainId", '') !== '') {
-                this.SetDivContent('battle_mess', 'Chain Attack In Progress');
-                this.ClickBattleButton(chainButton);
-                gm.setValue("BattleChainId", '');
-                return true;
-            }
+			if (chainButton) {
+				if (target != 'arena' && gm.getValue("BattleChainId", '')) {
+					this.SetDivContent('battle_mess', 'Chain Attack In Progress');
+					gm.log('Chaining Target: ' + gm.getValue("BattleChainId", ''));
+					this.ClickBattleButton(chainButton);
+					gm.setValue("BattleChainId", '');
+					return true;
+				}
+
+				if (target == 'arena' && gm.getValue("ArenaChainId", '') && this.CheckStamina('Battle', 5)) {
+					this.SetDivContent('battle_mess', 'Chain Attack In Progress');
+					gm.log('Chaining Target: ' + gm.getValue("ArenaChainId", ''));
+					this.ClickBattleButton(chainButton);
+					gm.setValue("ArenaChainId", '');
+					return true;
+				}
+			}
         }
+
+		gm.log('Battle Target: ' + target);
 
         if (!this.notSafeCount) {
             this.notSafeCount = 0;
         }
 
-        var target = this.GetCurrentBattleTarget(mode);
-        if (!target) {
-            return false;
-        }
-
-        target = target.toLowerCase();
-        gm.log('Battle Target: ' + target);
         if (this.SelectGeneral('BattleGeneral')) {
             return true;
         }
@@ -4160,10 +4258,10 @@ var caap = {
                     caap.Click(engageButton);
                     gm.setValue('resetmonsterDamage', true);
                     return true;
-                } else {
-                    gm.log('Unable to engage raid ' + raidName);
-                    return false;
                 }
+
+                gm.log('Unable to engage raid ' + raidName);
+                return false;
             }
 
             if (this.monsterConfirmRightPage(webSlice, raidName)) {
@@ -4183,9 +4281,9 @@ var caap = {
                     }
 
                     return true;
-                } else {
-                    return false;
                 }
+
+                return false;
             }
 
             return this.BattleFreshmeat('Raid');
@@ -4208,12 +4306,37 @@ var caap = {
                     }
 
                     return true;
-                } else {
-                    return false;
                 }
+
+                return false;
             }
 
             return this.BattleFreshmeat('Freshmeat');
+        case 'arena' :
+            if (this.NavigateTo(this.battlePage + ',arena', 'arena_on.gif')) {
+                return true;
+            }
+
+            this.SetDivContent('battle_mess', 'Arena Battle');
+            // The user can specify 'arena' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
+            if (gm.getValue('TargetType', '') == "Userid List") {
+                if (this.BattleFreshmeat('Arena')) {
+                    if (nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body')) {
+                        this.NextBattleTarget();
+                    }
+
+                    if (this.notSafeCount > 10) {
+                        this.notSafeCount = 0;
+                        this.NextBattleTarget();
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+
+            return this.BattleFreshmeat('Arena');
         default:
             var dfl = gm.getValue('BattlesLostList', '');
             if (dfl.indexOf(caapGlob.vs + target + caapGlob.vs) >= 0) {
@@ -4222,11 +4345,20 @@ var caap = {
                 return true;
             }
 
-            if (this.NavigateTo(this.battlePage, 'battle_on.gif')) {
+			var navigate = this.battlePage;
+            var image = 'battle_on.gif';
+            var chainid = 'BattleChainId';
+			if (gm.getValue('TargetType', '') == 'Arena') {
+				navigate = this.battlePage + ',arena';
+				image = 'tab_arena_on.gif';
+				chainid = 'ArenaChainId';
+			}
+
+            if (this.NavigateTo(navigate, image)) {
                 return true;
             }
 
-            gm.setValue('BattleChainId', '');
+            gm.setValue(chainid, '');
             this.SetDivContent('battle_mess', 'Battling User ' + target);
             if (this.BattleUserId(target)) {
                 this.NextBattleTarget();
@@ -4246,27 +4378,37 @@ var caap = {
         if (mode == 'DemiPoints') {
             if (gm.getValue('targetFromraid', '') && gm.getValue('TargetType', '') == 'Raid') {
                 return 'Raid';
-            } else {
-                return 'Freshmeat';
             }
+
+            return 'Freshmeat';
         }
 
         if (gm.getValue('TargetType', '') == 'Raid') {
             if (gm.getValue('targetFromraid', '')) {
                 return 'Raid';
-            } else {
-                this.SetDivContent('battle_mess', 'No Raid To Attack');
-                return false;
             }
-        }
 
-        var target = gm.getValue('BattleChainId');
-        if (target) {
-            return target;
+            this.SetDivContent('battle_mess', 'No Raid To Attack');
+            return false;
         }
 
         if (gm.getValue('TargetType', '') == 'Freshmeat') {
             return 'Freshmeat';
+        }
+
+
+        if (gm.getValue('TargetType', '') == 'Arena') {
+			if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
+				return 'Arena';
+			}
+
+            return 'Freshmeat';
+        }
+
+
+        var target = gm.getValue('BattleChainId');
+        if (target) {
+            return target;
         }
 
         target = gm.getValue('BattleTargets', '');
@@ -4288,11 +4430,11 @@ var caap = {
         if (targets[battleUpto].toLowerCase() == 'raid') {
             if (gm.getValue('targetFromraid', '')) {
                 return 'Raid';
-            } else {
-                this.SetDivContent('battle_mess', 'No Raid To Attack');
-                this.NextBattleTarget();
-                return false;
             }
+
+            this.SetDivContent('battle_mess', 'No Raid To Attack');
+            this.NextBattleTarget();
+            return false;
         }
 
         gm.log('nth battle target: ' + battleUpto + ':' + targets[battleUpto]);
@@ -4818,7 +4960,7 @@ var caap = {
             return;
         }
 
-    //  gm.log('Selecting monster');
+        //gm.log('Selecting monster');
         // First we forget everything about who we already picked.
         gm.setValue('targetFrombattle_monster', '');
         gm.setValue('targetFromfortify', '');
@@ -5029,7 +5171,7 @@ var caap = {
                             link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
                         }
 
-                        link = link.replace('&action=doObjective','');
+                        link = link.replace('&action=doObjective', '');
                     } else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
                         link = link.replace('&action=doObjective', '');
                     }
@@ -6388,6 +6530,76 @@ var caap = {
     },
 
     /////////////////////////////////////////////////////////////////////
+    //                          Arena ELITE GUARD
+    /////////////////////////////////////////////////////////////////////
+
+    ArenaElite: function () {
+        if (!gm.getValue('ArenaEliteNeeded', false)) {
+            return false;
+        }
+
+        if (String(window.location).indexOf('arena.php?user=')) {
+            var res = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
+            if (res) {
+                res = nHtml.GetText(res);
+                if (res.match(/You.+Arena Guard is FULL/i)) {
+                    gm.setValue('ArenaEliteTodo', '');
+                    gm.log('Arena guard is full');
+                    gm.setValue('ArenaEliteNeeded', false);
+                    gm.setValue('ArenaEliteEnd', 'Full');
+                    return false;
+                }
+            }
+        }
+
+        var user = '';
+        var eliteList = gm.getValue('ArenaEliteTodo', '').trim();
+        if (eliteList === '') {
+            if (this.CheckForImage('view_army_on.gif')) {
+                gm.log('Load auto elite list');
+                var armyList = gm.getValue('EliteArmyList', '');
+                if (/[^0-9,]/.test(armyList) && /\n/.test(armyList)) {
+                    armyList = armyList.replace(/\n/gi, ',');
+                }
+
+                if (armyList !== '') {
+                    armyList += ',';
+                }
+
+                var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                for (var s = 0; s < ss.snapshotLength; s++) {
+                    var a = ss.snapshotItem(s);
+                    user = a.href.match(/user=\d+/i);
+                    if (user) {
+                        armyList += String(user).substr(5) + ',';
+                    }
+                }
+
+                if (armyList !== '' || (this.stats.army <= 1)) {
+                    gm.setValue('ArenaEliteTodo', armyList);
+                }
+
+            } else {
+                return this.NavigateTo('army,army_member');
+            }
+        } else if (this.WhileSinceDidIt('ArenaEliteReqNext', 7)) {
+            user = eliteList.substring(0, eliteList.indexOf(','));
+            gm.log('add elite ' + user);
+            this.VisitUrl("http://apps.facebook.com/castle_age/arena.php?user=" + user + "&lka=" + user + "&agtw=1&ref=nf");
+            eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
+            gm.setValue('ArenaEliteTodo', eliteList);
+            this.JustDidIt('ArenaEliteReqNext');
+            if (eliteList == '') {
+                gm.setValue('ArenaEliteNeeded', false);
+                gm.setValue('ArenaEliteEnd', 'NoArmy');
+                gm.log('Army list exhausted');
+            }
+        }
+
+        return true;
+    },
+
+    /////////////////////////////////////////////////////////////////////
     //                          PASSIVE GENERALS
     /////////////////////////////////////////////////////////////////////
 
@@ -6441,10 +6653,10 @@ var caap = {
 
                 gm.listPush('GiftList', giftName);
                 giftNamePic[giftName] = this.CheckForImage('mystery', giftDiv).src.match(/[\w_\.]+$/i).toString();
-    //          gm.log('Gift name: ' + giftName + ' pic ' + giftNamePic[giftName] + ' hidden ' + giftExtraGiftTF[giftName]);
+                //gm.log('Gift name: ' + giftName + ' pic ' + giftNamePic[giftName] + ' hidden ' + giftExtraGiftTF[giftName]);
             }
 
-    //      gm.log('Gift list: ' + gm.getList('GiftList'));
+            //gm.log('Gift list: ' + gm.getList('GiftList'));
             if (gm.getValue('GiftChoice') == 'Get Gift List') {
                 gm.setValue('GiftChoice', 'Same Gift As Received');
                 this.SetControls(true);
@@ -6912,7 +7124,7 @@ var caap = {
                         gm.log("Getting CA friend's list");
                         gm.setValue('waiting', true);
                         window.setTimeout(function () {
-                            gm.setValue('waiting', false);
+                            gm.deleteValue('waiting');
                         }, 10000);
 
                         GM_xmlhttpRequest({
@@ -7061,7 +7273,8 @@ var caap = {
                 caap.SetDivContent('idle_mess', '');
                 return false;
             }
-    //  gm.log("Found targets: "+ss.snapshotLength);
+
+            //gm.log("Found targets: "+ss.snapshotLength);
     /*-------------------------------------------------------------------------------------\
     Next we get our Recon Player settings for lowest rank, highest level, and army ratio
     base multiplier.
@@ -7108,7 +7321,7 @@ var caap = {
                 var armyNum = parseInt(levelm[4], 10);
                 var userID = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'", pageObj).value;
                 var aliveTime = (new Date().getTime());
-    //      gm.log('Player stats: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
+                //gm.log('Player stats: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
     /*-------------------------------------------------------------------------------------\
     We filter out targets that are above the recon max level or below the recon min rank
     \-------------------------------------------------------------------------------------*/
@@ -7134,7 +7347,7 @@ var caap = {
                 if (armyNum > (this.stats.army * armyRatio)) {
                     continue;
                 }
-    //      gm.log('Target Found: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
+                //gm.log('Target Found: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
     /*-------------------------------------------------------------------------------------\
     Ok, recon has found a viable target. We get any existing values from the targetsOL
     database.
@@ -7291,7 +7504,7 @@ var caap = {
         }
 
         this.SetupDivs();
-    //  this.AddBattleLinks();
+        //this.AddBattleLinks();
         if (gm.getValue('Disabled', false)) {
             if (caapGlob.is_chrome) {
                 CE_message("disabled", null, gm.getValue('Disabled', false));
