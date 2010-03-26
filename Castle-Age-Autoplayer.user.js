@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        139.31
+// @version        139.32
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "139.31";
+caapGlob.thisVersion = "139.32";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -3979,10 +3979,10 @@ var caap = {
 							var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
 							yourRank = this.arenaTable[yourRankStr];
 							// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank);
-						}
-
-						gm.log('Unable To Find Your Arena Rank');
-						yourRank = 0;
+						} else {
+    						gm.log('Unable To Find Your Arena Rank');
+                            yourRank = 0;
+                        }
 					} else {
 						rank = this.rankTable[rankStr];
 						yourRank = this.stats.rank;
