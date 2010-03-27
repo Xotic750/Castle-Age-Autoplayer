@@ -6564,7 +6564,7 @@ var caap = {
 
         var user = '';
         var eliteList = gm.getValue('ArenaEliteTodo', '').trim();
-        if (eliteList === '') {
+        if (eliteList == '') {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
                 var armyList = gm.getValue('EliteArmyList', '');
@@ -7572,7 +7572,7 @@ var caap = {
             return;
         }
 
-        var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         //var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         //var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         if (!gm.getValue('ReleaseControl', false)) {
