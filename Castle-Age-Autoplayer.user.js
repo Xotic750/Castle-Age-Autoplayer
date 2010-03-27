@@ -2,7 +2,11 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
+<<<<<<< HEAD
 // @version        140.0
+=======
+// @version        139.34
+>>>>>>> 7cc1458ad17335f07bdc4808abb851aff1d080ee
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +26,11 @@
 ///////////////////////////
 
 var caapGlob = {};
+<<<<<<< HEAD
 caapGlob.thisVersion = "140.0";
+=======
+caapGlob.thisVersion = "139.34";
+>>>>>>> 7cc1458ad17335f07bdc4808abb851aff1d080ee
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -6490,7 +6498,7 @@ var caap = {
 
         var user = '';
         var eliteList = gm.getValue('ArenaEliteTodo', '').trim();
-        if (eliteList === '') {
+        if (eliteList == '') {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
                 var armyList = gm.getValue('EliteArmyList', '');
@@ -7482,7 +7490,13 @@ var caap = {
             return;
         }
 
+<<<<<<< HEAD
         var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+=======
+        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        //var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        //var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+>>>>>>> 7cc1458ad17335f07bdc4808abb851aff1d080ee
         if (!gm.getValue('ReleaseControl', false)) {
             actionsList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
