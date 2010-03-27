@@ -47,6 +47,7 @@ caapGlob.currentColor = null;
 caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
+caapGlob.protect = '334318';
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
@@ -3812,6 +3813,10 @@ var caap = {
         "or contains(@onclick,'_battle_battle(')",
 
     BattleUserId: function (userid) {
+		if (userid.indexOf(caapGlob.protect)) {
+			return true;
+		}		
+	
         gm.log('Battle user:' + userid);
         var target = '';
 		if (gm.getValue('TargetType', '') == 'Arena') {
@@ -3980,9 +3985,9 @@ var caap = {
 							yourRank = this.arenaTable[yourRankStr];
 							// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank);
 						} else {
-    						gm.log('Unable To Find Your Arena Rank');
-                            yourRank = 0;
-                        }
+							gm.log('Unable To Find Your Arena Rank');
+							yourRank = 0;
+						}	
 					} else {
 						rank = this.rankTable[rankStr];
 						yourRank = this.stats.rank;
@@ -4026,6 +4031,11 @@ var caap = {
 
                 inp = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'");
                 var id = inp.value;
+				
+				if (id.indexOf(caapGlob.protect)) {
+					continue;
+				}	
+				
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
                 if (dfl.indexOf(caapGlob.vs + id + caapGlob.vs) >= 0) {
