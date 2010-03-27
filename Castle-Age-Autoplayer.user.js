@@ -1434,6 +1434,8 @@ var caap = {
         }
 
         this.SetDivContent('control', htmlCode);
+		
+        this.AddListeners('caap_div');
 
         var SetTitleBox = document.getElementById('caap_SetTitle');
         var SetTitle = gm.getValue('SetTitle', false);
