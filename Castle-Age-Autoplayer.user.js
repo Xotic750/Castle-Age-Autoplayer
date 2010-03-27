@@ -4411,6 +4411,7 @@ var caap = {
     bosses: {
         'Deathrune' : {
             duration : 168,
+			hp : 100000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -4473,6 +4474,7 @@ var caap = {
         },
         'Legion' : {
             duration : 168,
+			hp : 100000,
             ach : 1000,
             siege : 6,
             siegeClicks : [10, 20, 40, 80, 150, 300],
@@ -4676,6 +4678,50 @@ var caap = {
 //      gm.setValue('resetdashboard', true);
     },
 
+	
+	
+	t2kCalc:function(boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
+		var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+		var timeUsed = (boss.duration - timeLeft);
+		gm.log('boss.siege ' + boss.siege);
+		if (!boss.siege) {
+			return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
+		}
+		var T2K = 0;
+		var hpLeft = 0;
+		var totalSiegeDamage = 0;
+		var totalSiegeClicks = 0;
+		for (var s in boss.siegeClicks) {
+			gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft); 
+			if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
+				totalSiegeDamage =+ boss.siegeDam[s];
+				totalSiegeClicks =+ boss.siegeClicks[s];
+			}
+			if (s == siegeStage - 1) {
+				damageDone = (100-percentHealthLeft ) * boss.hp /100;
+				gm.log('damageDone '+ damageDone + ' boss.hp ' + boss.hp + ' percentHealthLeft.hp ' + percentHealthLeft );
+				hpLeft = (boss.hp - damageDone);
+				gm.log('hpLeft '+ hpLeft);
+				attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
+				gm.log('attackDamPerHour '+ attackDamPerHour);
+				clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
+				gm.log('clicksPerHour '+ clicksPerHour);
+			} 
+			if (s > siegeStage - 1  || clicksNeededInCurrentStage === 0) {
+				nextSiegeAttackPlusSiegeDamage =- (boss.siegeDam[s] + boss.siegeClicks[s] / clicksPerHour * attackDamPerHour);
+				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0 || s == boss.siegeDam[s].length -1) {
+					T2K =+  hpLeft / attackDamPerHour;
+					break;
+				}
+				T2K =+ boss.siegeClicks[s] / clicksPerHour;
+				hpLeft =- nextSiegeAttackPlusSiegeDamage;
+			}
+		}
+		return Math.round(T2K * 10) / 10;
+	},
+
+	
+	
     CheckResults_viewFight: function () {
         // Check if on monster page
         var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
@@ -4825,10 +4871,6 @@ var caap = {
                     gm.log('Unknown monster');
                     return;
                 }
-
-                var T2K = (hp / (100 - hp)) * (boss.duration - (parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166)));
-                T2K = Math.round(T2K * 10) / 10; //fix two 1 decimal place
-                gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
 
             if (boss && boss.siege) {
@@ -4856,6 +4898,8 @@ var caap = {
 
                 var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(+miss) ? 0 : miss);
                 gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
+				T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
+                gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
         } else {
             gm.log('Monster is dead?');
