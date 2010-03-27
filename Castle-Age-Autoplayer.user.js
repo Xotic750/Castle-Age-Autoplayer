@@ -4690,7 +4690,8 @@ var caap = {
 			return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
 		}
 		var T2K = 0;
-		var hpLeft = 0;
+		var hpLeft = boss.hp - damageDone;
+		var damageDone = (100-percentHealthLeft)/100 * boss.hp ;
 		var totalSiegeDamage = 0;
 		var totalSiegeClicks = 0;
 		for (var s in boss.siegeClicks) {
@@ -4700,22 +4701,19 @@ var caap = {
 				totalSiegeClicks =+ boss.siegeClicks[s];
 			}
 			if (s == siegeStage - 1) {
-				damageDone = (100-percentHealthLeft ) * boss.hp /100;
-				gm.log('damageDone '+ damageDone + ' boss.hp ' + boss.hp + ' percentHealthLeft.hp ' + percentHealthLeft );
-				hpLeft = (boss.hp - damageDone);
-				gm.log('hpLeft '+ hpLeft);
-				attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
+				var attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
 				gm.log('attackDamPerHour '+ attackDamPerHour);
-				clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
+				var clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
 				gm.log('clicksPerHour '+ clicksPerHour);
-			} 
-			if (s > siegeStage - 1  || clicksNeededInCurrentStage === 0) {
-				nextSiegeAttackPlusSiegeDamage =- (boss.siegeDam[s] + boss.siegeClicks[s] / clicksPerHour * attackDamPerHour);
-				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0 || s == boss.siegeDam[s].length -1) {
+			}
+			if (s >= siegeStage - 1) {
+				clicksToNextSiege = boss.siegeClicks[s] - ((s == siegeStage - 1) ? clicksNeededInCurrentStage : 0);
+				nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
+				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
 					T2K =+  hpLeft / attackDamPerHour;
 					break;
 				}
-				T2K =+ boss.siegeClicks[s] / clicksPerHour;
+				T2K =+ clicksToNextSiege / clicksPerHour;
 				hpLeft =- nextSiegeAttackPlusSiegeDamage;
 			}
 		}
