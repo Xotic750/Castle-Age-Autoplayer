@@ -3761,7 +3761,7 @@ var caap = {
         "or contains(@onclick,'_battle_battle(')",
 
     BattleUserId: function (userid) {
-		if (userid.indexOf(caapGlob.protect)) {
+		if (userid.indexOf(caapGlob.protect) >= 0) {
 			return true;
 		}		
 	
@@ -3979,7 +3979,7 @@ var caap = {
                 inp = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'");
                 var id = inp.value;
 				
-				if (id.indexOf(caapGlob.protect)) {
+				if (id.indexOf(caapGlob.protect) >= 0) {
 					continue;
 				}	
 				
