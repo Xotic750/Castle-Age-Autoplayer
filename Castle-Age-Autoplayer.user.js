@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.0
+// @version        140.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.0";
+caapGlob.thisVersion = "140.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1434,6 +1434,8 @@ var caap = {
         }
 
         this.SetDivContent('control', htmlCode);
+		
+        this.AddListeners('caap_div');
 
         var SetTitleBox = document.getElementById('caap_SetTitle');
         var SetTitle = gm.getValue('SetTitle', false);
@@ -6532,7 +6534,7 @@ var caap = {
 
         var user = '';
         var eliteList = gm.getValue('ArenaEliteTodo', '').trim();
-        if (eliteList === '') {
+        if (eliteList == '') {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
                 var armyList = gm.getValue('EliteArmyList', '');
