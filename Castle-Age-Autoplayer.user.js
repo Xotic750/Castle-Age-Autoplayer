@@ -1687,7 +1687,6 @@ var caap = {
         if (!this.oneMinuteUpdate('dashboard')) {
             return;
         }
-        caap.selectMonster();
     /*-------------------------------------------------------------------------------------\
      Here is where we construct the HTML for our dashboard. We start by building the outer
      container and position it within the main container.
