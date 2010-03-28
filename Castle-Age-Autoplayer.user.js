@@ -4586,16 +4586,7 @@ var caap = {
         if (ss.snapshotLength === 0) {
             return false;
         }
-
-        var page = '';
-        if (caap.CheckForImage('tab_monster_on.jpg')) {
-            page = 'battle_monster';
-        } else if (caap.CheckForImage('tab_raid_on.gif')) {
-            page = 'raid';
-        } else {
-            return;
-        }
-
+        var page = gm.getValue('page','battle_monster');
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
         if (!caapGlob.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
@@ -4661,7 +4652,9 @@ var caap = {
                 siege = (boss && boss.siege) ? "&action=doObjective" : '';
             }
 
-            var link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
+            var link = "<a href='http://apps.facebook.com/castle_age/" + page +
+					".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
+					mpool + siege + "'>Link</a>";
             gm.setListObjVal('monsterOl', monster, 'Link', link);
         }
 
