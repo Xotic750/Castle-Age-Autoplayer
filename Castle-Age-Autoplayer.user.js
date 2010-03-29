@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.2
+// @version        140.2.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.2";
+caapGlob.thisVersion = "140.2.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1262,27 +1262,27 @@ var caap = {
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Target Type: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('TargetType', targetList, targetInst, "style='font-size: 10px min-width: 90px; max-width: 90px; width : 90px;'") + '</td></tr></table>';
         htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (gm.getValue('TargetType', false) != 'Userid List' ? 'block' : 'none') + "'>";
-			htmlCode += 'Attack targets that are:';
-			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Lower Than Rank Minus </td><td>' + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-			htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than X*Army </td><td>' + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-		htmlCode += "</div>";				
-		htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
-		htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-		htmlCode += '<tr><td>Attempt +1 Kills</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('PlusOneKills', false, '', plusonekillsInstructions) + '</td></tr></table>';
-		htmlCode += "Join Raids in this order: <a href='http://userscripts.org/topics/43757' target='_blank'><font color='red'>?</font></a><br />";
-		htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3'");
-		htmlCode += "</div>";
-		htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
-			htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-			var typelist = ['None', 'Freshmeat', 'Raid'];
-			htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide',typelist,'', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
-				htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
-				htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-				htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Health Below</td><td>' + this.MakeNumberForm('ArenaMaxHealth', FMRankInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';	
-				htmlCode += '&nbsp;&nbsp;&nbsp<b>OR</b>';
-				htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Stamina Above</td><td>' + this.MakeNumberForm('ArenaMinStamina', FMRankInstructions, "35", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';		
-			htmlCode += "</div>";			
+        htmlCode += 'Attack targets that are:';
+        htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Lower Than Rank Minus </td><td>' + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Not Higher Than X*Army </td><td>' + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
+        htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+        htmlCode += '<tr><td>Attempt +1 Kills</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('PlusOneKills', false, '', plusonekillsInstructions) + '</td></tr></table>';
+        htmlCode += "Join Raids in this order: <a href='http://userscripts.org/topics/43757' target='_blank'><font color='red'>?</font></a><br />";
+        htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3'");
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
+        htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+        var typelist = ['None', 'Freshmeat', 'Raid'];
+        htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide', typelist, '', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
+        htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Health Below</td><td>' + this.MakeNumberForm('ArenaMaxHealth', FMRankInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += '&nbsp;&nbsp;&nbsp<b>OR</b>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Stamina Above</td><td>' + this.MakeNumberForm('ArenaMinStamina', FMRankInstructions, "35", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
         htmlCode += "</div>";
         htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
         htmlCode += this.MakeTextBox('BattleTargets', userIdInstructions, " rows='2'");
@@ -1653,7 +1653,7 @@ var caap = {
                 $target.is("#app46755028429_battle") ||
                 $target.is("#app46755028429_battlerank") ||
                 $target.is("#app46755028429_battle_train") ||
-                $target.is("#app46755028429_arena") ||				
+                $target.is("#app46755028429_arena") ||
                 $target.is("#app46755028429_quests") ||
                 $target.is("#app46755028429_raid") ||
                 $target.is("#app46755028429_symbolquests") ||
@@ -2100,38 +2100,38 @@ var caap = {
                         gm.setValue('MaxIdleEnergy', 0);
                         gm.setValue('MaxIdleStamina', 0);
                     } else if (idName == 'ArenaHide') {
-						caap.SetDisplay('ArenaHSub', (value != 'None'));
-					} else if (idName == 'TargetType') {
+                        caap.SetDisplay('ArenaHSub', (value != 'None'));
+                    } else if (idName == 'TargetType') {
                         switch (value) {
                         case "Freshmeat" :
                             caap.SetDisplay('FreshmeatSub', true);
                             caap.SetDisplay('UserIdsSub', false);
-							caap.SetDisplay('RaidSub', false);
-							caap.SetDisplay('ArenaSub', false);
+                            caap.SetDisplay('RaidSub', false);
+                            caap.SetDisplay('ArenaSub', false);
                             break;
                         case "Userid List" :
                             caap.SetDisplay('FreshmeatSub', false);
                             caap.SetDisplay('UserIdsSub', true);
-							caap.SetDisplay('RaidSub', false);
-							caap.SetDisplay('ArenaSub', false);							
+                            caap.SetDisplay('RaidSub', false);
+                            caap.SetDisplay('ArenaSub', false);
                             break;
                         case "Raid" :
                             caap.SetDisplay('FreshmeatSub', true);
                             caap.SetDisplay('UserIdsSub', false);
-							caap.SetDisplay('RaidSub', true);
-							caap.SetDisplay('ArenaSub', false);							
-                            break;	
+                            caap.SetDisplay('RaidSub', true);
+                            caap.SetDisplay('ArenaSub', false);
+                            break;
                         case "ArenaSub" :
                             caap.SetDisplay('FreshmeatSub', true);
                             caap.SetDisplay('UserIdsSub', false);
-							caap.SetDisplay('RaidSub', false);
-							caap.SetDisplay('ArenaSub', true);							
-                            break;								
+                            caap.SetDisplay('RaidSub', false);
+                            caap.SetDisplay('ArenaSub', true);
+                            break;
                         default :
                             caap.SetDisplay('FreshmeatSub', true);
                             caap.SetDisplay('UserIdsSub', false);
-							caap.SetDisplay('RaidSub', false);
-							caap.SetDisplay('ArenaSub', false);
+                            caap.SetDisplay('RaidSub', false);
+                            caap.SetDisplay('ArenaSub', false);
                             break;
                         }
                     } else if (/Attribute./.test(idName)) {
@@ -2420,7 +2420,7 @@ var caap = {
         'arena': {
             signaturePic: 'tab_arena_on.gif',
             CheckResultsFunction : 'CheckBattleResults'
-        },		
+        },
         'land': {
             signaturePic: 'tab_land_on.gif',
             CheckResultsFunction: 'CheckResults_land'
@@ -3683,7 +3683,7 @@ var caap = {
         var now = null;
         var newelement = null;
 
-		// Check for Battle results
+        // Check for Battle results
         var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
         if (resultsDiv) {
             var resultsText = nHtml.GetText(resultsDiv).trim();
@@ -4485,12 +4485,15 @@ var caap = {
 
 
         if (gm.getValue('TargetType', '') == 'Arena') {
-			if (gm.getValue('ArenaHide','None') == 'None') return 'Arena';
+            if (gm.getValue('ArenaHide', 'None') == 'None') {
+                return 'Arena';
+            }
+
             if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
                 return 'Arena';
             }
 
-            return gm.getValue('ArenaHide','');
+            return gm.getValue('ArenaHide', '');
         }
 
 
@@ -5965,8 +5968,7 @@ var caap = {
         }
 
         if (caapGlob.attackButton) {
-            var dam = this.checkMonsterDamage();
-            //var dam = this.monstDamage();
+            var dam = this.CheckResults_viewFight();
             gm.log("Found Attack Button.  Dam: " + dam);
             if (!dam) {
                 gm.log("No Damage to monster, Attacking");
