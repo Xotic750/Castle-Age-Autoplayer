@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.1
+// @version        140.11
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -15,14 +15,14 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message */
 
 ///////////////////////////
 // Define our global object
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.1";
+caapGlob.thisVersion = "140.11";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -720,6 +720,7 @@ var caap = {
                 gm.listPush('LevelUpGenerals', gen);
             }
         }
+
         gm.setList('AllGenerals', gm.getList('AllGenerals').sort());
         //gm.log("All Generals: " + gm.getList('AllGenerals'));
     },
@@ -901,6 +902,16 @@ var caap = {
         var t_min = time.getMinutes();
 
         if (gm.getValue("use24hr", true)) {
+            t_hour = t_hour + "";
+            if (t_hour.length === 1) {
+                t_hour = "0" + t_hour;
+            }
+
+            t_min = t_min + "";
+            if (t_min.length === 1) {
+                t_min = "0" + t_min;
+            }
+
             return d_names[t_day] + " " + t_hour + ":" + t_min;
         } else {
             var a_p = "PM";
@@ -1080,58 +1091,71 @@ var caap = {
     },
 
     SetControls: function (force) {
-		if(!document.getElementById('caap_div')) {
-			var div=document.createElement('div');
-			//var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
-			div.id='caap_div';
-			div.style.top='100px';
-			div.style.left='940px';
-			div.style.width='180px';
+        if (!document.getElementById('caap_div')) {
+            var div = document.createElement('div');
+            //var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
+            div.id = 'caap_div';
+            if (gm.getValue('menuTop', '') && gm.getValue('menuLeft', '')) {
+                div.style.position = 'absolute';
+                div.style.top = gm.getValue('menuTop');
+                div.style.left = gm.getValue('menuLeft');
+            } else {
+                div.style.top = '100px';
+                div.style.left = '940px';
+            }
 
-			div.style.padding='4px';
-			div.style.border='2px solid #444';
-			div.style.background = gm.getValue('StyleBackgroundLight','#E0C691');
-			div.style.opacity = gm.getValue('StyleOpacityLight','1');
-			div.style.color='#000';
-			div.style.cssFloat='right';
-			if (gm.getValue('HideAds',false))
-				nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display='none';
-			var divList = ['activity_mess','idle_mess','quest_mess','battle_mess','heal_mess','demipoint_mess','demibless_mess','level_mess','control'];
-			for (var divID in divList) {
-				var addDiv=document.createElement('div');
-				addDiv.id='caap_' + divList[divID];
-				div.appendChild(addDiv);
-			}
-			// todo: check these out to see which one actually works on CA and remove the rest
-			var b=nHtml.FindByAttrContains(document.body, 'div', 'className', 'UIStandardFrame_Container');
-			if(b) {
-				b.insertBefore(div,b.childNodes[1]);
-			} else {
+            div.style.width = '180px';
+            div.style.padding = '4px';
+            div.style.border = '2px solid #444';
+            div.style.background = gm.getValue('StyleBackgroundLight', '#E0C691');
+            div.style.opacity = gm.getValue('StyleOpacityLight', '1');
+            div.style.color = '#000';
+            div.style.cssFloat = 'right';
+            if (gm.getValue('HideAds', false)) {
+                nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display = 'none';
+            }
 
-				var app=document.getElementById('fb_sell_profile');
-				if(!app) {
-					app=nHtml.FindByAttr(document.body,'div','className','app');
-				}
-				if(!app) {
-					app=nHtml.FindByAttr(document.body,'div','id',/^app.*header$/);
-				}
-				if(app) {
-					if(app.parentNode.parentNode) {
-						// some ajax games won't reload before the app's area, let's insert the div there.
-						app.parentNode.parentNode.insertBefore(div,app.parentNode);
-					} else {
-						app.insertBefore(div,app.childNodes[0]);
-					}
-				} else {
-					gm.log('cannot find app div');
-				}
-			}
-		}
-		var controlDiv=document.getElementById('caap_control');
-		if(controlDiv && controlDiv.innerHTML.length>0 && !force) {
-			// we already have the controls
-			return;
-		}
+            var divList = ['activity_mess', 'idle_mess', 'quest_mess', 'battle_mess', 'heal_mess', 'demipoint_mess', 'demibless_mess', 'level_mess', 'control'];
+            for (var divID in divList) {
+                if (divList.hasOwnProperty(divID)) {
+                    var addDiv = document.createElement('div');
+                    addDiv.id = 'caap_' + divList[divID];
+                    div.appendChild(addDiv);
+                }
+            }
+
+        //check these out to see which one actually works on CA and remove the rest
+            var b = nHtml.FindByAttrContains(document.body, 'div', 'className', 'UIStandardFrame_Container');
+            if (b) {
+                b.insertBefore(div, b.childNodes[1]);
+            } else {
+                var app = document.getElementById('fb_sell_profile');
+                if (!app) {
+                    app = nHtml.FindByAttr(document.body, 'div', 'className', 'app');
+                }
+
+                if (!app) {
+                    app = nHtml.FindByAttr(document.body, 'div', 'id', /^app.*header$/);
+                }
+
+                if (app) {
+                    if (app.parentNode.parentNode) {
+                        // some ajax games won't reload before the app's area, let's insert the div there.
+                        app.parentNode.parentNode.insertBefore(div, app.parentNode);
+                    } else {
+                        app.insertBefore(div, app.childNodes[0]);
+                    }
+                } else {
+                    gm.log('cannot find app div');
+                }
+            }
+        }
+
+        var controlDiv = document.getElementById('caap_control');
+        if (controlDiv && controlDiv.innerHTML.length > 0 && !force) {
+            // we already have the controls
+            return;
+        }
 
         this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
@@ -1434,7 +1458,6 @@ var caap = {
         }
 
         this.SetDivContent('control', htmlCode);
-		
         this.AddListeners('caap_div');
 
         var SetTitleBox = document.getElementById('caap_SetTitle');
@@ -1602,42 +1625,44 @@ var caap = {
             return;
         }
 
-		globalContainer.addEventListener('DOMNodeInserted', function(event) {
-	//      Uncomment this to see the id of domNodes that are inserted
-	//		if (event.target.id) alert(event.target.id);
-			var $target = $(event.target);
-			if ($target.is("#app46755028429_index") ||
-			   $target.is("#app46755028429_app_body") ||
-			   $target.is("#app46755028429_keep") ||
-			   $target.is("#app46755028429_app_body") ||
-			   $target.is("#app46755028429_generals") ||
-			   $target.is("#app46755028429_battle_monster") ||
-			   $target.is("#app46755028429_battle") ||
-			   $target.is("#app46755028429_battlerank") ||
-			   $target.is("#app46755028429_battle_train") ||
-			   $target.is("#app46755028429_quests") ||
-			   $target.is("#app46755028429_raid") ||
-			   $target.is("#app46755028429_symbolquests") ||
-			   $target.is("#app46755028429_alchemy") ||
-			   $target.is("#app46755028429_soldiers") ||
-			   $target.is("#app46755028429_item") ||
-			   $target.is("#app46755028429_land") ||
-			   $target.is("#app46755028429_magic") ||
-			   $target.is("#app46755028429_oracle") ||
-			   $target.is("#app46755028429_symbols") ||
-			   $target.is("#app46755028429_treasure_chest") ||
-			   $target.is("#app46755028429_gift") ||
-			   $target.is("#app46755028429_apprentice") ||
-			   $target.is("#app46755028429_news") ||
-			   $target.is("#app46755028429_friend_page") ||
-			   $target.is("#app46755028429_comments") ||
-			   $target.is("#app46755028429_army_reqs")) {
+        globalContainer.addEventListener('DOMNodeInserted', function (event) {
+            // Uncomment this to see the id of domNodes that are inserted
+            /*
+            if (event.target.id) {
+                alert(event.target.id);
+            }
+            */
 
-	//		if($target.is("#app46755028429_app_body") || event.target.querySelector("#app46755028429_app_body")) 
-				nHtml.setTimeout(caap.CheckResults, 0);
-			}
-		}, true);
-
+            var $target = $(event.target);
+            if ($target.is("#app46755028429_app_body") ||
+                $target.is("#app46755028429_index") ||
+                $target.is("#app46755028429_keep") ||
+                $target.is("#app46755028429_generals") ||
+                $target.is("#app46755028429_battle_monster") ||
+                $target.is("#app46755028429_battle") ||
+                $target.is("#app46755028429_battlerank") ||
+                $target.is("#app46755028429_battle_train") ||
+                $target.is("#app46755028429_quests") ||
+                $target.is("#app46755028429_raid") ||
+                $target.is("#app46755028429_symbolquests") ||
+                $target.is("#app46755028429_alchemy") ||
+                $target.is("#app46755028429_soldiers") ||
+                $target.is("#app46755028429_item") ||
+                $target.is("#app46755028429_land") ||
+                $target.is("#app46755028429_magic") ||
+                $target.is("#app46755028429_oracle") ||
+                $target.is("#app46755028429_symbols") ||
+                $target.is("#app46755028429_treasure_chest") ||
+                $target.is("#app46755028429_gift") ||
+                $target.is("#app46755028429_apprentice") ||
+                $target.is("#app46755028429_news") ||
+                $target.is("#app46755028429_friend_page") ||
+                $target.is("#app46755028429_comments") ||
+                $target.is("#app46755028429_army") ||
+                $target.is("#app46755028429_army_reqs")) {
+                nHtml.setTimeout(caap.CheckResults, 0);
+            }
+        }, true);
 
         globalContainer.addEventListener('click', function (event) {
             var obj = event.target;
@@ -1687,6 +1712,7 @@ var caap = {
         if (!this.oneMinuteUpdate('dashboard')) {
             return;
         }
+
         caap.selectMonster();
     /*-------------------------------------------------------------------------------------\
      Here is where we construct the HTML for our dashboard. We start by building the outer
@@ -1778,14 +1804,17 @@ var caap = {
                         if (parseInt(value, 10).toString() == value) {
                             value = caap.makeCommaValue(value);
                         }
+
                         html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
                     } else {
                         html += '<td></td>';
                     }
                 }
             });
+
             html += '</tr>';
         });
+
         html += '</table>';
         $("#caap_infoMonster").html(html);
 
@@ -1841,6 +1870,7 @@ var caap = {
                         html += caap.makeTd(value, 'black');
                     }
                 }
+
                 html += '</tr>';
             }
         }
@@ -1933,10 +1963,11 @@ var caap = {
     },
 
     shortenURL: function (long_url, callback) {
-    // Called too frequently, the delay can cause the screen to flicker, so disabled by returning for now:
+        // Called too frequently, the delay can cause the screen to flicker, so disabled by returning for now:
         callback(long_url);
         return;
-    /*
+
+        /*
         GM_xmlhttpRequest({
             method : 'GET',
             url    : 'http://api.bit.ly/shorten?version=2.0.1&longUrl=' + encodeURIComponent(long_url) + '&login=castleage&apiKey=R_438eea4a725a25d92661bce54b17bee1&format=json&history=1',
@@ -1945,7 +1976,7 @@ var caap = {
                 callback(result.results ? result.results[long_url].shortUrl : long_url);
             }
         });
-    */
+        */
     },
 
     addExpDisplay: function () {
@@ -2330,107 +2361,174 @@ var caap = {
     // results to update other functions.
     /////////////////////////////////////////////////////////////////////
 
-	 SetCheckResultsFunction:function(resultsFunction) {
-		this.JustDidIt('SetResultsFunctionTimer');
-		gm.setValue('ResultsFunction',resultsFunction);
-	},
+    SetCheckResultsFunction: function (resultsFunction) {
+        this.JustDidIt('SetResultsFunctionTimer');
+        gm.setValue('ResultsFunction', resultsFunction);
+    },
 
-	pageList:{
-		'battle_monster': {signaturePic: 'tab_monster_on.jpg', 		CheckResultsFunction : 'CheckResults_fightList', subpages: ['onMonster']},
-		'onMonster'		: {signaturePic: 'tab_monster_active.jpg', 	CheckResultsFunction : 'CheckResults_viewFight'},
-		'raid'			: {signaturePic: 'tab_raid_on.gif', 		CheckResultsFunction : 'CheckResults_fightList', subpages: ['onRaid']},
-		'onRaid'		: {signaturePic: 'raid_back.jpg', 			CheckResultsFunction : 'CheckResults_viewFight'},
-		'land'			: {signaturePic: 'tab_land_on.gif', 		CheckResultsFunction : 'CheckResults_land'},
-		'generals'		: {signaturePic: 'tab_generals_on.gif',		CheckResultsFunction : 'CheckResults_generals'},
-		'quests'		: {signaturePic: 'tab_quest_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
-		'symbolquests'	: {signaturePic: 'demi_quest_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
-		'monster_quests': {signaturePic: 'tab_atlantis_on.gif',		CheckResultsFunction : 'CheckResults_quests'},
-		'army'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
-		'gift'			: {signaturePic: 'invite_on.gif',			CheckResultsFunction : 'CheckResults_army'},
-	},
-	trackPerformance:false,
-	performanceTimer:function(marker) {
-		if (!caap.trackPerformance) return;
-		var now = (new Date().getTime());
-		elapsedTime = now - parseInt(gm.getValue('performanceTimer',0),10);
-		gm.log('Performance Timer At ' + marker + ' Time elapsed: '+ elapsedTime);
-		gm.setValue('performanceTimer',now.toString());
-	},
-	CheckResults:function() {
-		// Check page to see if we should go to a page specific check function
-		// todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-		if (!caap.WhileSinceDidIt('CheckResultsTimer',1)) return;
-		caap.performanceTimer('Start CheckResults');
-		caap.JustDidIt('CheckResultsTimer');
-		caap.addExpDisplay();
-		gm.setValue('page','');
-		var pageUrl = gm.getValue('clickUrl');
-		if (pageUrl.match(/\/[^\/]+.php/i)) page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/','').replace('.php','');
-		else page = 'None';
-		if (caap.pageList[page]) {
-			if (caap.CheckForImage(caap.pageList[page].signaturePic)) {
-				page = gm.setValue('page',page);
-			}
-			if (caap.pageList[page].subpages) {
-				caap.pageList[page].subpages.forEach( function(subpage) {
-					if (caap.CheckForImage(caap.pageList[subpage].signaturePic)) {
-						page = gm.setValue('page',subpage);
-					}
-				});
-			}
-		}
-		var resultsDiv = nHtml.FindByAttrContains(document.body,'span','class','result_body');
-		if (resultsDiv)
-			resultsText = nHtml.GetText(resultsDiv).trim();
-		else resultsText = '';	
-		if (gm.getValue('page')) {
-			gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
-			if(typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
-				caap[caap.pageList[page].CheckResultsFunction](resultsText);
-			}
-		}else gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
-		
-		caap.performanceTimer('Before selectMonster');
-		caap.selectMonster();
-		caap.performanceTimer('Done selectMonster');
-		caap.monsterDashboard();
-		caap.performanceTimer('Done Dashboard');
-		// Check for new gifts
-		if (!gm.getValue('HaveGift')) {
-			if (nHtml.FindByAttrContains(document.body,'a','href','reqs.php#confirm_')) {
-				gm.log('We have a gift waiting!');
-				gm.setValue('HaveGift',true);
-			} else {
-				var beepDiv = nHtml.FindByAttrContains(document.body,'div','class','UIBeep_Title');
-				if (beepDiv) {
-					var beepText = nHtml.GetText(beepDiv).trim();
-					if (beepText.match(/sent you a gift/) && !beepText.match(/notification/)) {
-						gm.log('We have a gift waiting');
-						gm.setValue('HaveGift',true);
-					}
-				}
-			}
-		}
+    pageList: {
+        'battle_monster': {
+            signaturePic: 'tab_monster_on.jpg',
+            CheckResultsFunction: 'CheckResults_fightList',
+            subpages: ['onMonster']
+        },
+        'onMonster': {
+            signaturePic: 'tab_monster_active.jpg',
+            CheckResultsFunction: 'CheckResults_viewFight'
+        },
+        'raid': {
+            signaturePic: 'tab_raid_on.gif',
+            CheckResultsFunction: 'CheckResults_fightList',
+            subpages: ['onRaid']
+        },
+        'onRaid': {
+            signaturePic: 'raid_back.jpg',
+            CheckResultsFunction : 'CheckResults_viewFight'
+        },
+        'land': {
+            signaturePic: 'tab_land_on.gif',
+            CheckResultsFunction: 'CheckResults_land'
+        },
+        'generals': {
+            signaturePic: 'tab_generals_on.gif',
+            CheckResultsFunction: 'CheckResults_generals'
+        },
+        'quests': {
+            signaturePic: 'tab_quest_on.gif',
+            CheckResultsFunction: 'CheckResults_quests'
+        },
+        'symbolquests': {
+            signaturePic: 'demi_quest_on.gif',
+            CheckResultsFunction: 'CheckResults_quests'
+        },
+        'monster_quests': {
+            signaturePic: 'tab_atlantis_on.gif',
+            CheckResultsFunction: 'CheckResults_quests'
+        },
+        'army': {
+            signaturePic: 'invite_on.gif',
+            CheckResultsFunction: 'CheckResults_army'
+        },
+        'gift': {
+            signaturePic: 'invite_on.gif',
+            CheckResultsFunction: 'CheckResults_army'
+        }
+    },
 
-		if (caap.stats.level < 10) caap.battlePage = 'battle_train,battle_off';
-		else caap.battlePage = 'battle';
+    trackPerformance: false,
 
-		//Check for Elite Guard Add image
-		if (caap.CheckForImage('elite_guard_add')) {
-			if (gm.getValue('AutoEliteEnd','NoArmy') != 'NoArmy') gm.setValue('AutoEliteGetList',0);
-		}
+    performanceTimer: function (marker) {
+        if (!caap.trackPerformance) {
+            return;
+        }
 
+        var now = (new Date().getTime());
+        var elapsedTime = now - parseInt(gm.getValue('performanceTimer', 0), 10);
+        gm.log('Performance Timer At ' + marker + ' Time elapsed: ' + elapsedTime);
+        gm.setValue('performanceTimer', now.toString());
+    },
 
-		// Check for Gold Stored
-		if (nHtml.FindByAttrContains(document.body,"div","class",'keep_main_section')) {
-			var goldStored = nHtml.FindByAttrContains(document.body,"b","class",'money').firstChild.data.replace(/[^0-9]/g,'');
-			gm.setValue('inStore',goldStored);
-		}
-		// If set and still recent, go to the function specified in 'ResultsFunction'
-		resultsFunction = gm.getValue('ResultsFunction','');
-		if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer',20)) caap[resultsFunction](resultsText);
-		caap.performanceTimer('Done CheckResults');
-	},
+    CheckResults: function () {
+        // Check page to see if we should go to a page specific check function
+        // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
+        if (!caap.WhileSinceDidIt('CheckResultsTimer', 1)) {
+            return;
+        }
+
+        caap.performanceTimer('Start CheckResults');
+        caap.JustDidIt('CheckResultsTimer');
+        caap.addExpDisplay();
+        gm.setValue('page', '');
+        var pageUrl = gm.getValue('clickUrl');
+        var page = 'None';
+        if (pageUrl.match(/\/[^\/]+.php/i)) {
+            page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/', '').replace('.php', '');
+        }
+
+        if (caap.pageList[page]) {
+            if (caap.CheckForImage(caap.pageList[page].signaturePic)) {
+                page = gm.setValue('page', page);
+            }
+
+            if (caap.pageList[page].subpages) {
+                caap.pageList[page].subpages.forEach(function (subpage) {
+                    if (caap.CheckForImage(caap.pageList[subpage].signaturePic)) {
+                        page = gm.setValue('page', subpage);
+                    }
+                });
+            }
+        }
+
+        var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
+        var resultsText = '';
+        if (resultsDiv) {
+            resultsText = nHtml.GetText(resultsDiv).trim();
+        }
+
+        if (gm.getValue('page')) {
+            gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
+            if (typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
+                caap[caap.pageList[page].CheckResultsFunction](resultsText);
+            }
+        } else {
+            gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
+        }
+
+        caap.performanceTimer('Before selectMonster');
+        caap.selectMonster();
+        caap.performanceTimer('Done selectMonster');
+        caap.monsterDashboard();
+        caap.performanceTimer('Done Dashboard');
+        // Check for new gifts
+        if (!gm.getValue('HaveGift')) {
+            if (nHtml.FindByAttrContains(document.body, 'a', 'href', 'reqs.php#confirm_')) {
+                gm.log('We have a gift waiting!');
+                gm.setValue('HaveGift', true);
+            } else {
+                var beepDiv = nHtml.FindByAttrContains(document.body, 'div', 'class', 'UIBeep_Title');
+                if (beepDiv) {
+                    var beepText = nHtml.GetText(beepDiv).trim();
+                    if (beepText.match(/sent you a gift/) && !beepText.match(/notification/)) {
+                        gm.log('We have a gift waiting');
+                        gm.setValue('HaveGift', true);
+                    }
+                }
+            }
+        }
+
+        if (caap.stats.level < 10) {
+            caap.battlePage = 'battle_train,battle_off';
+        } else {
+            caap.battlePage = 'battle';
+        }
+
+        // Check for Elite Guard Add image
+        if (caap.CheckForImage('elite_guard_add')) {
+            if (gm.getValue('AutoEliteEnd', 'NoArmy') != 'NoArmy') {
+                gm.setValue('AutoEliteGetList', 0);
+            }
+        }
+
+        // Check for Gold Stored
+        var keepDiv = nHtml.FindByAttrContains(document.body, "div", "class", 'statsTB');
+        if (keepDiv) {
+            var moneyElem = nHtml.FindByAttrContains(keepDiv, "b", "class", 'money');
+            if (moneyElem) {
+                var goldStored = moneyElem.firstChild.data.replace(/[^0-9]/g, '');
+                if (goldStored >= 0) {
+                    gm.setValue('inStore', goldStored);
+                }
+            }
+        }
+
+        // If set and still recent, go to the function specified in 'ResultsFunction'
+        var resultsFunction = gm.getValue('ResultsFunction', '');
+        if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer', 20)) {
+            caap[resultsFunction](resultsText);
+        }
+
+        caap.performanceTimer('Done CheckResults');
+    },
 
     /////////////////////////////////////////////////////////////////////
     //                          QUESTING
@@ -3554,7 +3652,7 @@ var caap = {
         if (resultsDiv) {
             var resultsText = nHtml.GetText(resultsDiv).trim();
             if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
-				gm.log("This opponent is dead or hiding: " + this.lastBattleID);
+                gm.log("This opponent is dead or hiding: " + this.lastBattleID);
                 if (!this.doNotBattle) {
                     this.doNotBattle = this.lastBattleID;
                 } else {
@@ -3564,109 +3662,107 @@ var caap = {
         }
 
         var webSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'arena_arena_guard');
-		if (webSlice) {
-			gm.log('Checking Arena Guard');
-			webSlice = webSlice.parentNode.parentNode;
-			var ss = document.evaluate(".//img[contains(@src,'profile.ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-			gm.log('Arena Guard Slots Filled: ' + ss.snapshotLength);
-			if ((ss.snapshotLength < 10) && gm.getValue('ArenaEliteEnd', 'NoArmy') != 'NoArmy') {
-				gm.setValue('ArenaEliteNeeded', true);
-				gm.log('Arena Guard Needs To Be Filed.' + ss.snapshotLength);
-			}
-		}
-
-
+        if (webSlice) {
+            gm.log('Checking Arena Guard');
+            webSlice = webSlice.parentNode.parentNode;
+            var ss = document.evaluate(".//img[contains(@src,'profile.ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            gm.log('Arena Guard Slots Filled: ' + ss.snapshotLength);
+            if ((ss.snapshotLength < 10) && gm.getValue('ArenaEliteEnd', '') != 'NoArmy') {
+                gm.setValue('ArenaEliteNeeded', true);
+                gm.log('Arena Guard Needs To Be Filed.' + ss.snapshotLength);
+            }
+        }
 
         if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
-			if (this.CheckForImage('tab_arena_on')) {
-				resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-				nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
-				userId = nameLink.href.match(/user=\d+/i);
-				userId = String(userId).substr(5);
-				gm.setValue("ArenaChainId", userId);
+            if (this.CheckForImage('tab_arena_on')) {
+                resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+                nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                userId = nameLink.href.match(/user=\d+/i);
+                userId = String(userId).substr(5);
+                gm.setValue("ArenaChainId", userId);
                 gm.log("Chain Attack: " + userId + "  Arena Battle");
-			} else {
-				var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
-				var bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
-				var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
-				var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
-				var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
-				resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-				nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
-				userId = nameLink.href.match(/user=\d+/i);
-				userId = String(userId).substr(5);
-				userName = nHtml.GetText(nameLink).trim();
-				var wins = 1;
-				gm.log("We Defeated " + userName + "!!");
-				//Test if we should chain this guy
-				gm.setValue("BattleChainId", '');
-				if (this.GetNumber('ChainBP') !== '') {
-					if (bpnum >= Number(this.GetNumber('ChainBP'))) {
-						gm.setValue("BattleChainId", userId);
-						gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
-					} else {
-						if (!this.doNotBattle) {
-							this.doNotBattle = this.lastBattleID;
-						} else {
-							this.doNotBattle += " " + this.lastBattleID;
-						}
-					}
-				}
+            } else {
+                var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
+                var bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
+                var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
+                var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
+                var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
+                resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+                nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                userId = nameLink.href.match(/user=\d+/i);
+                userId = String(userId).substr(5);
+                userName = nHtml.GetText(nameLink).trim();
+                var wins = 1;
+                gm.log("We Defeated " + userName + "!!");
+                //Test if we should chain this guy
+                gm.setValue("BattleChainId", '');
+                if (this.GetNumber('ChainBP') !== '') {
+                    if (bpnum >= Number(this.GetNumber('ChainBP'))) {
+                        gm.setValue("BattleChainId", userId);
+                        gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
+                    } else {
+                        if (!this.doNotBattle) {
+                            this.doNotBattle = this.lastBattleID;
+                        } else {
+                            this.doNotBattle += " " + this.lastBattleID;
+                        }
+                    }
+                }
 
-				if (this.GetNumber('ChainGold') !== '') {
-					if (goldnum >= Number(this.GetNumber('ChainGold'))) {
-						gm.setValue("BattleChainId", userId);
-						gm.log("Chain Attack " + userId + " Gold:" + goldnum);
-					} else {
-						if (!this.doNotBattle) {
-							this.doNotBattle = this.lastBattleID;
-						} else {
-							this.doNotBattle += " " + this.lastBattleID;
-						}
-					}
-				}
+                if (this.GetNumber('ChainGold') !== '') {
+                    if (goldnum >= Number(this.GetNumber('ChainGold'))) {
+                        gm.setValue("BattleChainId", userId);
+                        gm.log("Chain Attack " + userId + " Gold:" + goldnum);
+                    } else {
+                        if (!this.doNotBattle) {
+                            this.doNotBattle = this.lastBattleID;
+                        } else {
+                            this.doNotBattle += " " + this.lastBattleID;
+                        }
+                    }
+                }
 
-				if (gm.getValue("BattleChainId", '')) {
-					var chainCount = this.GetNumber('ChainCount', 0) + 1;
-					if (chainCount >= this.GetNumber('MaxChains', 4)) {
-						gm.log("Lets give this guy a break.");
-						if (!this.doNotBattle) {
-							this.doNotBattle = this.lastBattleID;
-						} else {
-							this.doNotBattle += " " + this.lastBattleID;
-						}
+                if (gm.getValue("BattleChainId", '')) {
+                    var chainCount = this.GetNumber('ChainCount', 0) + 1;
+                    if (chainCount >= this.GetNumber('MaxChains', 4)) {
+                        gm.log("Lets give this guy a break.");
+                        if (!this.doNotBattle) {
+                            this.doNotBattle = this.lastBattleID;
+                        } else {
+                            this.doNotBattle += " " + this.lastBattleID;
+                        }
 
-						gm.setValue("BattleChainId", '');
-						chainCount = 0;
-					}
+                        gm.setValue("BattleChainId", '');
+                        chainCount = 0;
+                    }
 
-					gm.setValue('ChainCount', chainCount);
-				} else {
-					gm.setValue('ChainCount', 0);
-				}
+                    gm.setValue('ChainCount', chainCount);
+                } else {
+                    gm.setValue('ChainCount', 0);
+                }
 
-		/*  Not ready for primtime.   Need to build SliceList to extract our element
-				if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
-					element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
-					elementArray = element.split(caapGlob.vs);
-					prevWins = Number(elementArray[3]);
-					prevBPs = Number(elementArray[4]);
-					prevGold = Number(elementArray[5]);
-					wins = prevWins + wins;
-					bpnum = prevBPs + bpnum;
-					goldnum  = prevGold + goldnum
-				}
-		*/
+        /*  Not ready for primtime.   Need to build SliceList to extract our element
+                if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
+                    element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
+                    elementArray = element.split(caapGlob.vs);
+                    prevWins = Number(elementArray[3]);
+                    prevBPs = Number(elementArray[4]);
+                    prevGold = Number(elementArray[5]);
+                    wins = prevWins + wins;
+                    bpnum = prevBPs + bpnum;
+                    goldnum  = prevGold + goldnum
+                }
+        */
 
-				if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
-					(bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
-					now = (new Date().getTime()).toString();
-					newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
-					gm.listPush('BattlesWonList', newelement, 100);
-				}
+                if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
+                    (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
+                    now = (new Date().getTime()).toString();
+                    newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
+                    gm.listPush('BattlesWonList', newelement, 100);
+                }
 
-				this.SetCheckResultsFunction('');
-			}
+                this.SetCheckResultsFunction('');
+            }
         } else if (this.CheckForImage('battle_defeat.gif')) {
             resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
             nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
@@ -3763,25 +3859,25 @@ var caap = {
         "or contains(@onclick,'_battle_battle(')",
 
     BattleUserId: function (userid) {
-		if (userid.indexOf(caapGlob.protect) >= 0) {
-			return true;
-		}		
-	
+        if (userid.indexOf(caapGlob.protect) >= 0) {
+            return true;
+        }
+
         gm.log('Battle user:' + userid);
         var target = '';
-		if (gm.getValue('TargetType', '') == 'Arena') {
-			if (gm.getValue('BattleType', 'Invade') == "Duel") {
-				target = "arena_duel.gif";
-			} else {
-				target = "arena_invade.gif";
-			}
-		} else {
-			if (gm.getValue('BattleType', 'Invade') == "Duel") {
-				target = "battle_02.gif";
-			} else {
-				target = "battle_01.gif";
-			}
-		}
+        if (gm.getValue('TargetType', '') == 'Arena') {
+            if (gm.getValue('BattleType', 'Invade') == "Duel") {
+                target = "arena_duel.gif";
+            } else {
+                target = "arena_invade.gif";
+            }
+        } else {
+            if (gm.getValue('BattleType', 'Invade') == "Duel") {
+                target = "battle_02.gif";
+            } else {
+                target = "battle_01.gif";
+            }
+        }
 
         var battleButton = nHtml.FindByAttrContains(document.body, "input", "src", target);
         if (battleButton) {
@@ -3862,17 +3958,17 @@ var caap = {
             var chainId = '';
             var chainAttack = false;
             var inp = null;
-			if (type == 'Arena') {
-				chainId = gm.getValue('ArenaChainId', '');
-				//chainAttack = false;
-				//inp = null;
-				gm.setValue('ArenaChainId', '');
-			} else {
-				chainId = gm.getValue('BattleChainId', '');
-				//chainAttack = false;
-				//inp = null;
-				gm.setValue('BattleChainId', '');
-			}
+            if (type == 'Arena') {
+                chainId = gm.getValue('ArenaChainId', '');
+                //chainAttack = false;
+                //inp = null;
+                gm.setValue('ArenaChainId', '');
+            } else {
+                chainId = gm.getValue('BattleChainId', '');
+                //chainAttack = false;
+                //inp = null;
+                gm.setValue('BattleChainId', '');
+            }
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
@@ -3924,23 +4020,23 @@ var caap = {
 
                     level = parseInt(levelm[1], 10);
                     var rankStr = levelm[2].toLowerCase().trim();
-					if (type == 'Arena') {
-						rank = this.arenaTable[rankStr];
+                    if (type == 'Arena') {
+                        rank = this.arenaTable[rankStr];
                         var webSlice = nHtml.FindByAttrContains(document.body, 'div', 'id', 'arena_body');
-						if (webSlice) {
-							var txtRank = nHtml.GetText(webSlice);
-							var yourRankStrObj = /:([A-Za-z ]+)/.exec(txtRank);
-							var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
-							yourRank = this.arenaTable[yourRankStr];
-							// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank);
-						} else {
-							gm.log('Unable To Find Your Arena Rank');
-							yourRank = 0;
-						}	
-					} else {
-						rank = this.rankTable[rankStr];
-						yourRank = this.stats.rank;
-					}
+                        if (webSlice) {
+                            var txtRank = nHtml.GetText(webSlice);
+                            var yourRankStrObj = /:([A-Za-z ]+)/.exec(txtRank);
+                            var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
+                            yourRank = this.arenaTable[yourRankStr];
+                            // gm.log('Your rank: ' + yourRankStr + ' ' + yourRank);
+                        } else {
+                            gm.log('Unable To Find Your Arena Rank');
+                            yourRank = 0;
+                        }
+                    } else {
+                        rank = this.rankTable[rankStr];
+                        yourRank = this.stats.rank;
+                    }
 
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                     army = parseInt(nHtml.GetText(subtd.snapshotItem(2)).trim(), 10);
@@ -3958,9 +4054,9 @@ var caap = {
                 }
 
 
-				if (yourRank && (yourRank - rank  > minRank)) {
-					continue;
-				}
+                if (yourRank && (yourRank - rank  > minRank)) {
+                    continue;
+                }
 
                 var levelMultiplier = this.stats.level / level;
                 var armyRatio = ARBase * levelMultiplier;
@@ -3971,7 +4067,7 @@ var caap = {
                     continue;
                 }
 
-				gm.log("Army Ratio:" + armyRatio + " Level:" + level + " Rank:" + rank + " Army: " + army);
+                gm.log("Army Ratio:" + armyRatio + " Level:" + level + " Rank:" + rank + " Army: " + army);
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (this.stats.army && (army > (this.stats.army * armyRatio))) {
@@ -3980,23 +4076,22 @@ var caap = {
 
                 inp = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'");
                 var id = inp.value;
-				
-				if (id.indexOf(caapGlob.protect) >= 0) {
-					continue;
-				}	
-				
+                if (id.indexOf(caapGlob.protect) >= 0) {
+                    continue;
+                }
+
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
                 if (dfl.indexOf(caapGlob.vs + id + caapGlob.vs) >= 0) {
-					gm.log("We lost to this id before: " + id);
+                    gm.log("We lost to this id before: " + id);
                     continue;
                 }
 
                 // don't battle people we've already battled too much
-				if (this.doNotBattle && this.doNotBattle.indexOf(id) >= 0) {
-					gm.log("We attacked this id before: " + id);
-					continue;
-				}
+                if (this.doNotBattle && this.doNotBattle.indexOf(id) >= 0) {
+                    gm.log("We attacked this id before: " + id);
+                    continue;
+                }
 
                 var thisScore = rank - (army / levelMultiplier / this.stats.army);
                 if (id == chainId) {
@@ -4105,7 +4200,7 @@ var caap = {
                 }
             } else if (type == 'Arena')  {
                 this.NavigateTo(this.battlePage + ',arena_on.gif');
-			} else {
+            } else {
                 this.NavigateTo(this.battlePage + ',battle_on.gif');
             }
 
@@ -4118,9 +4213,9 @@ var caap = {
     },
 
     Battle: function (mode) {
-		if (this.stats.health.num < 10) {
-			return false;
-		}
+        if (this.stats.health.num < 10) {
+            return false;
+        }
 
         var target = this.GetCurrentBattleTarget(mode);
         if (!target) {
@@ -4164,26 +4259,26 @@ var caap = {
                 chainButton = this.CheckForImage('battle_duel_again.gif');
             }
 
-			if (chainButton) {
-				if (target != 'arena' && gm.getValue("BattleChainId", '')) {
-					this.SetDivContent('battle_mess', 'Chain Attack In Progress');
-					gm.log('Chaining Target: ' + gm.getValue("BattleChainId", ''));
-					this.ClickBattleButton(chainButton);
-					gm.setValue("BattleChainId", '');
-					return true;
-				}
+            if (chainButton) {
+                if (target != 'arena' && gm.getValue("BattleChainId", '')) {
+                    this.SetDivContent('battle_mess', 'Chain Attack In Progress');
+                    gm.log('Chaining Target: ' + gm.getValue("BattleChainId", ''));
+                    this.ClickBattleButton(chainButton);
+                    gm.setValue("BattleChainId", '');
+                    return true;
+                }
 
-				if (target == 'arena' && gm.getValue("ArenaChainId", '') && this.CheckStamina('Battle', 5)) {
-					this.SetDivContent('battle_mess', 'Chain Attack In Progress');
-					gm.log('Chaining Target: ' + gm.getValue("ArenaChainId", ''));
-					this.ClickBattleButton(chainButton);
-					gm.setValue("ArenaChainId", '');
-					return true;
-				}
-			}
+                if (target == 'arena' && gm.getValue("ArenaChainId", '') && this.CheckStamina('Battle', 5)) {
+                    this.SetDivContent('battle_mess', 'Chain Attack In Progress');
+                    gm.log('Chaining Target: ' + gm.getValue("ArenaChainId", ''));
+                    this.ClickBattleButton(chainButton);
+                    gm.setValue("ArenaChainId", '');
+                    return true;
+                }
+            }
         }
 
-		gm.log('Battle Target: ' + target);
+        gm.log('Battle Target: ' + target);
 
         if (!this.notSafeCount) {
             this.notSafeCount = 0;
@@ -4301,14 +4396,14 @@ var caap = {
                 return true;
             }
 
-			var navigate = this.battlePage;
+            var navigate = this.battlePage;
             var image = 'battle_on.gif';
             var chainid = 'BattleChainId';
-			if (gm.getValue('TargetType', '') == 'Arena') {
-				navigate = this.battlePage + ',arena';
-				image = 'tab_arena_on.gif';
-				chainid = 'ArenaChainId';
-			}
+            if (gm.getValue('TargetType', '') == 'Arena') {
+                navigate = this.battlePage + ',arena';
+                image = 'tab_arena_on.gif';
+                chainid = 'ArenaChainId';
+            }
 
             if (this.NavigateTo(navigate, image)) {
                 return true;
@@ -4354,9 +4449,9 @@ var caap = {
 
 
         if (gm.getValue('TargetType', '') == 'Arena') {
-			if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
-				return 'Arena';
-			}
+            if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
+                return 'Arena';
+            }
 
             return 'Freshmeat';
         }
@@ -4380,6 +4475,7 @@ var caap = {
         }
 
         if (!targets[battleUpto]) {
+            this.NextBattleTarget();
             return false;
         }
 
@@ -4675,7 +4771,7 @@ var caap = {
             }
         });
 
-//      gm.setValue('resetdashboard', true);
+    //  gm.setValue('resetdashboard',true);
     },
 
     CheckResults_viewFight: function () {
@@ -4890,14 +4986,14 @@ var caap = {
         } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
             gm.setListObjVal('monsterOl', monster, 'color', 'orange');
             gm.setListObjVal('monsterOl', monster, 'over', 'ach');
-            if (isTarget && lastDamDone < achLevel)	{
+            if (isTarget && lastDamDone < achLevel) {
                 gm.setValue('resetselectMonster', true);
             }
         } else {
             gm.setListObjVal('monsterOl', monster, 'color', 'black');
         }
 
-//      gm.setValue('resetdashboard', true);
+    //  gm.setValue('resetdashboard',true);
     },
 
     selectMonster: function () {
@@ -6490,7 +6586,7 @@ var caap = {
 
         var user = '';
         var eliteList = gm.getValue('ArenaEliteTodo', '').trim();
-        if (eliteList == '') {
+        if (eliteList === '') {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
                 var armyList = gm.getValue('EliteArmyList', '');
@@ -6525,7 +6621,7 @@ var caap = {
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('ArenaEliteTodo', eliteList);
             this.JustDidIt('ArenaEliteReqNext');
-            if (eliteList == '') {
+            if (eliteList === '') {
                 gm.setValue('ArenaEliteNeeded', false);
                 gm.setValue('ArenaEliteEnd', 'NoArmy');
                 gm.log('Army list exhausted');
@@ -6539,12 +6635,15 @@ var caap = {
     //                          PASSIVE GENERALS
     /////////////////////////////////////////////////////////////////////
 
-	PassiveGeneral:function() {
-		if (this.SelectGeneral('IdleGeneral')) return true;
-		gm.setValue('MaxIdleEnergy', this.stats.energy.max);
-		gm.setValue('MaxIdleStamina', this.stats.stamina.max);
-		return false;
-	},
+    PassiveGeneral: function () {
+        if (this.SelectGeneral('IdleGeneral')) {
+            return true;
+        }
+
+        gm.setValue('MaxIdleEnergy', this.stats.energy.max);
+        gm.setValue('MaxIdleStamina', this.stats.stamina.max);
+        return false;
+    },
 
     /////////////////////////////////////////////////////////////////////
     //                          AUTOINCOME
@@ -7482,7 +7581,9 @@ var caap = {
             return;
         }
 
-        var actionsList = ['AutoElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         if (!gm.getValue('ReleaseControl', false)) {
             actionsList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
@@ -7567,21 +7668,23 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
     gm.setValue('LastVersion', caapGlob.thisVersion);
 }
 
-$(function() {
-	gm.log('Full page load completed');
-	gm.setValue('clickUrl',window.location.href);
-	if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
-		gm.deleteValue("ArmyCount");
-		gm.deleteValue('waiting');
-		gm.setValue('caapPause','none');
-		if (caapGlob.is_chrome) {
-			CE_message("paused", null, gm.getValue('caapPause', 'none'));
-		}
-		caap.SetControls();
-		caap.CheckResults();
-		gm.setValue('ReleaseControl',true);
-	}
-	caap.WaitMainLoop();
+$(function () {
+    gm.log('Full page load completed');
+    gm.setValue('clickUrl', window.location.href);
+    if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
+        gm.deleteValue("ArmyCount");
+        gm.deleteValue('waiting');
+        gm.setValue('caapPause', 'none');
+        if (caapGlob.is_chrome) {
+            CE_message("paused", null, gm.getValue('caapPause', 'none'));
+        }
+
+        caap.SetControls();
+        caap.CheckResults();
+        gm.setValue('ReleaseControl', true);
+    }
+
+    caap.WaitMainLoop();
 });
 
 caap.ReloadOccasionally();
