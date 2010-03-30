@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.2.1
+// @version        140.12.0
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.2.1";
+caapGlob.thisVersion = "140.12.0";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5889,7 +5889,7 @@ var caap = {
         }
 
         var urlix = gm.getValue("urlix", "").replace("~", "");
-        if (urlix === "" && gm.getValue("mfStatus", "") != "OpenMonster") {
+        if (urlix === "" && gm.getValue("mfStatus", "") != "OpenMonster" && caap.WhileSinceDidIt("clearedMonsterFinderLinks", 24 * 60 * 60)) {
             gm.setValue("mfStatus", "");
             gm.log("Resetting monster finder history");
             this.clearLinks();
