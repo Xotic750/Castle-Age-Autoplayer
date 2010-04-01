@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.12.2
+// @version        140.12.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.12.2";
+caapGlob.thisVersion = "140.12.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1671,6 +1671,7 @@ var caap = {
                 $target.is("#app46755028429_friend_page") ||
                 $target.is("#app46755028429_comments") ||
                 $target.is("#app46755028429_army") ||
+                $target.is("#app46755028429_army_news_feed") ||
                 $target.is("#app46755028429_army_reqs")) {
                 nHtml.setTimeout(caap.CheckResults, 0);
             }
@@ -1740,33 +1741,36 @@ var caap = {
      Next we put in our Refresh Monster List button which will only show when we have
      selected the Monster display.
     \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 10px; width:50; height:50'></div>";
+        layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 9px; width:50; height:50'></div>";
     /*-------------------------------------------------------------------------------------\
      Next we put in the Clear Target List button which will only show when we have
      selected the Target List display
     \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 10px; width:50; height:50'></div>";
+        layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 9px; width:50; height:50'></div>";
     /*-------------------------------------------------------------------------------------\
      Then we put in the Live Feed link since we overlay the Castle Age link.
     \-------------------------------------------------------------------------------------*/
+        layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:0px;'><input id='caap_liveFeed' type='button' value='LIVE FEED! Your friends are calling.' style='font-size: 9px; width:50; height:50'></div>";
+        /*
         if (caapGlob.is_chrome) {
             layout += "<div style='font-size: 9px'<a href='http://apps.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
         } else {
             layout += "<div style='font-size: 9px'<a href='http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf'><b>LIVE FEED!</b> Your friends are calling.</a></div>";
         }
+        */
     /*-------------------------------------------------------------------------------------\
      We install the display selection box that allows the user to toggle through the
      available displays.
     \-------------------------------------------------------------------------------------*/
         var displayList = ['Monster', 'Target List'];
-        layout += "<div style='font-size: 10px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
+        layout += "<div style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
     /*-------------------------------------------------------------------------------------\
     And here we build our empty content divs.  We display the appropriate div
     depending on which display was selected using the control above
     \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_infoMonster' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'></div>";
-        layout += "<div id='caap_infoTargets1' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'></div>";
-        layout += "<div id='caap_infoTargets2' style='width:610px;height:175px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') + "'></div>";
+        layout += "<div id='caap_infoMonster' style='position:relative;top:8px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'></div>";
+        layout += "<div id='caap_infoTargets1' style='position:relative;top:8px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'></div>";
+        layout += "<div id='caap_infoTargets2' style='position:relative;top:8px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') + "'></div>";
         layout += "</div>";
     /*-------------------------------------------------------------------------------------\
      No we apply our CSS to our container
@@ -1938,6 +1942,11 @@ var caap = {
         refreshMonsters.addEventListener('click', function (e) {
             gm.setValue('monsterReview', 0);
             gm.setValue('monsterReviewCounter', -3);
+        }, false);
+
+        var liveFeed = document.getElementById('caap_liveFeed');
+        liveFeed.addEventListener('click', function (e) {
+            $("img[src*='button_feed2.gif']").click();
         }, false);
 
         var clearTargets = document.getElementById('caap_clearTargets');
