@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.12.0
+// @version        140.12.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.12.0";
+caapGlob.thisVersion = "140.12.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -706,7 +706,7 @@ var caap = {
         gm.setValue('GeneralImages', '');
         gm.setValue('LevelUpGenerals', '');
         for (var x = 0; x < gens.snapshotLength; x++) {
-            var gen = nHtml.getX('./div[@class=\'general_name_div3\']/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
+            var gen = nHtml.getX('./div[@class=\'general_name_div3\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
             var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
             img = nHtml.getHTMLPredicate(img);
             //var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
@@ -2449,6 +2449,13 @@ var caap = {
             signaturePic: 'invite_on.gif',
             CheckResultsFunction: 'CheckResults_army'
         }
+        /*
+        ,
+        'keep': {
+            signaturePic: 'tab_stats_on.gif',
+            CheckResultsFunction: 'CheckResults_keep'
+        }
+        */
     },
 
     trackPerformance: false,
@@ -3167,6 +3174,7 @@ var caap = {
             this.SetDivContent('quest_mess', 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
             return false;
         }
+
         return false;
     },
 
@@ -3568,9 +3576,12 @@ var caap = {
     },
 
     Lands: function () {
-        /*if (gm.getValue('LandTimer') && this.CheckTimer('LandTimer')) {
+        /*
+        if (gm.getValue('LandTimer') && this.CheckTimer('LandTimer')) {
             if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
-        }*/
+        }
+        */
+
         var autoBuyLand = gm.getValue('autoBuyLand', 0);
         if (autoBuyLand) {
             // Do we have lands above our max to sell?
@@ -3598,7 +3609,7 @@ var caap = {
                 }
             }
 
-            //Retrieving from Bank
+            // Retrieving from Bank
             if (this.stats.cash + (gm.getValue('inStore') - this.GetNumber('minInStore')) >= 10 * gm.getValue('BestPropCost') && this.stats.cash < 10 * gm.getValue('BestPropCost')) {
                 if (this.PassiveGeneral()) {
                     return true;
@@ -3608,7 +3619,7 @@ var caap = {
                 return this.RetrieveFromBank(10 * gm.getValue('BestPropCost') - this.stats.cash);
             }
 
-    // Need to check for enough moneys + do we have enough of the builton type that we already own.
+            // Need to check for enough moneys + do we have enough of the builton type that we already own.
             if (gm.getValue('BestPropCost') && this.stats.cash >= 10 * gm.getValue('BestPropCost')) {
                 if (this.PassiveGeneral()) {
                     return true;
@@ -6399,6 +6410,96 @@ var caap = {
     },
 
     /////////////////////////////////////////////////////////////////////
+    //                          POTIONS
+    /////////////////////////////////////////////////////////////////////
+
+    /*
+    CheckResults_keep: function () {
+    },
+    */
+
+    AutoPotions: function () {
+        if (!gm.getValue('AutoPotion', true) || !(this.WhileSinceDidIt('AutoPotionTimer', 6 * 60 * 60))) {
+            return false;
+        }
+
+        var checkConsumables = nHtml.FindByAttr(document.body, "div", "class", "statsTTitle");
+        if (!checkConsumables) {
+            gm.log("Going to keep for potions");
+            if (this.NavigateTo('keep')) {
+                return true;
+            }
+        }
+
+        gm.log("Checking energy potions");
+        var energyPotions = $("img[title='Energy Potion']").parent().next().text().replace(/[^0-9\.]/g, "");
+        if (!energyPotions) {
+            energyPotions = 0;
+        }
+
+        gm.log("Energy Potions: " + energyPotions);
+
+        gm.log("Checking stamina potions");
+        var staminaPotions = $("img[title='Stamina Potion']").parent().next().text().replace(/[^0-9\.]/g, "");
+        if (!staminaPotions) {
+            staminaPotions = 0;
+        }
+
+        gm.log("Stamina Potions: " + staminaPotions);
+
+        if (this.stats.energy.num < this.stats.energy.max - 10 &&
+            energyPotions > gm.getValue("energyPotionsKeepUnder", 0) &&
+            energyPotions > gm.getValue("energyPotionsSpendOver", 39)) {
+            gm.log("Spending energy potions");
+            var energySlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_1");
+            if (energySlice) {
+                var energyButton = nHtml.FindByAttrContains(energySlice, "input", "src", 'potion_consume.gif');
+                if (energyButton) {
+                    gm.log("Consume energy potion");
+                    caap.Click(energyButton);
+                    // Check consumed
+                    return true;
+                } else {
+                    gm.log("Could not find consume energy button");
+                }
+            } else {
+                gm.log("Could not find energy consume form");
+            }
+
+            return false;
+        } else {
+            gm.log("Energy potion conditions not met");
+        }
+
+        if (this.stats.stamina.num < this.stats.stamina.max - 10 &&
+            staminaPotions > gm.getValue("staminaPotionsKeepUnder", 0) &&
+            staminaPotions > gm.getValue("staminaPotionsSpendOver", 39)) {
+            gm.log("Spending stamina potions");
+            var staminaSlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_2");
+            if (staminaSlice) {
+                var staminaButton = nHtml.FindByAttrContains(staminaSlice, "input", "src", 'potion_consume.gif');
+                if (staminaButton) {
+                    gm.log("Consume stamina potion");
+                    caap.Click(staminaButton);
+                    // Check consumed
+                    return true;
+                } else {
+                    gm.log("Could not find consume stamina button");
+                }
+            } else {
+                gm.log("Could not find stamina consume form");
+            }
+
+            return false;
+        } else {
+            gm.log("Stamina potion conditions not met");
+        }
+
+        this.JustDidIt('AutoPotionTimer');
+        return true;
+    },
+
+    /////////////////////////////////////////////////////////////////////
     //                          BANKING
     // Keep it safe!
     /////////////////////////////////////////////////////////////////////
@@ -7620,7 +7721,7 @@ var caap = {
             return;
         }
 
-        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'AutoPotions', 'Idle'];
         //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         if (!gm.getValue('ReleaseControl', false)) {
