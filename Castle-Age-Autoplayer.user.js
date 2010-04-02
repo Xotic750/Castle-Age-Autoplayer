@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.13
+// @version        140.13.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.13";
+caapGlob.thisVersion = "140.13.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -3731,7 +3731,7 @@ var caap = {
         if (webSlice) {
             gm.log('Checking Arena Guard');
             webSlice = webSlice.parentNode.parentNode;
-            var ss = document.evaluate(".//img[contains(@src,'profile.ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            var ss = document.evaluate(".//img[contains(@src,'ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             gm.log('Arena Guard Slots Filled: ' + ss.snapshotLength);
             if ((ss.snapshotLength < 10) && gm.getValue('ArenaEliteEnd', '') != 'NoArmy') {
                 gm.setValue('ArenaEliteNeeded', true);
@@ -4033,7 +4033,7 @@ var caap = {
 					var yourRankStrObj = /:([A-Za-z ]+)/.exec(txt);
 					var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
 					yourRank = this.arenaTable[yourRankStr];
-					var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
+					// var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
 					// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
 				} else {
 					gm.log('Unable To Find Your Arena Rank');
