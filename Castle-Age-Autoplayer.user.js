@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.12.4
+// @version        140.13
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.12.4";
+caapGlob.thisVersion = "140.13";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1235,12 +1235,12 @@ var caap = {
         var raidOrderInstructions = "List of search words that decide which raids to participate in first.  Use words in player name or in raid name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million.";
         var ignorebattlelossInstructions = "Ignore battle losses and attack regardless.  This will also delete all battle loss records.";
         htmlCode += this.ToggleControl('Battling', 'BATTLE');
-        var battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Not Hiding', 'Never'];
+        var battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Never'];
         var battleInst = ['Stamina Available will battle whenever you have enough stamina',
                           'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
                           'At X Stamina you can set maximum and minimum stamina to battle',
                           'No Monster will battle only when there are no active monster battles',
-                          'Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted',
+                          'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER OR ARENA TO "STAY HIDDEN" TO USE THIS FEATURE.',
                           'Never - disables player battles'];
         var typeList = ['Invade', 'Duel'];
         var typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though'];
@@ -1276,12 +1276,17 @@ var caap = {
         htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         var typelist = ['None', 'Freshmeat', 'Raid'];
+		var typeInst = ['Never switch from battling in the Aeena',
+						'Switch fom Arena to fresmeat battles to reduce health below specifed level',
+						'Switch fom Arena to raid battles to reduce health below specifed level'];
+        var ArenaHealthInstructions = "If your health is below this value, you will continue to stay in the Arena. If your health is above this level, your stamina will be checked to see if it is above the stamina threshold to stay in the Arena.";
+        var ArenaStaminaInstructions = "If your stamina is above this value, you will continue to stay in the Arena. If your stamina is below this level, your health will be checked to see if it is below the health thershold for you to stay in the Arena. ";							
         htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide', typelist, '', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
         htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Health Below</td><td>' + this.MakeNumberForm('ArenaMaxHealth', FMRankInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Health Below</td><td>' + this.MakeNumberForm('ArenaMaxHealth', ArenaHealthInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += '&nbsp;&nbsp;&nbsp<b>OR</b>';
-        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Stamina Above</td><td>' + this.MakeNumberForm('ArenaMinStamina', FMRankInstructions, "35", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Stamina Above</td><td>' + this.MakeNumberForm('ArenaMinStamina', ArenaStaminaInstructions, "35", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
         htmlCode += "</div>";
         htmlCode += "</div>";
         htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
@@ -1301,11 +1306,11 @@ var caap = {
         var powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible";
         var dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.";
         htmlCode += this.ToggleControl('Monster', 'MONSTER');
-        var mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Not Hiding', 'Never'];
+        var mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Never'];
         var mbattleInst = ['Stamina Available will attack whenever you have enough stamina',
                            'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
                            'At X Stamina you can set maximum and minimum stamina to battle',
-                           'Not Hiding uses stamina to try to keep you under 10 health so you cannot be attacked, but making sure no stamina is wasted',
+                           'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                            'Never - disables attacking monsters'];
         htmlCode += '<table width=189 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Attack When:</td><td>' + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px min-width: 105px; max-width: 105px; width : 105px;'") + '</td></tr></table>';
@@ -1625,10 +1630,10 @@ var caap = {
             }, false);
         }
 
-        if (gm.getValue('WhenBattle') == 'Not Hiding' && gm.getValue('WhenMonster') != 'Not Hiding') {
-            gm.setValue('WhenMonster', 'Not Hiding');
-            this.SetControls(true);
-        }
+        // if (gm.getValue('WhenBattle') == 'Not Hiding' && gm.getValue('WhenMonster') != 'Not Hiding') {
+            // gm.setValue('WhenMonster', 'Not Hiding');
+            // this.SetControls(true);
+        // }
 
         var globalContainer = document.getElementById('app46755028429_globalContainer');
         if (!globalContainer) {
@@ -4021,15 +4026,25 @@ var caap = {
             var inp = null;
             if (type == 'Arena') {
                 chainId = gm.getValue('ArenaChainId', '');
-                //chainAttack = false;
-                //inp = null;
                 gm.setValue('ArenaChainId', '');
+				var webSlice = nHtml.FindByAttrContains(document.body, 'div', 'id', 'arena_body');
+				if (webSlice) {
+					var txt = nHtml.GetText(webSlice);
+					var yourRankStrObj = /:([A-Za-z ]+)/.exec(txt);
+					var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
+					yourRank = this.arenaTable[yourRankStr];
+					var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
+					// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
+				} else {
+					gm.log('Unable To Find Your Arena Rank');
+					yourRank = 0;
+				}				
             } else {
                 chainId = gm.getValue('BattleChainId', '');
-                //chainAttack = false;
-                //inp = null;
                 gm.setValue('BattleChainId', '');
+				yourRank = this.stats.rank;				
             }
+		
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
@@ -4083,20 +4098,8 @@ var caap = {
                     var rankStr = levelm[2].toLowerCase().trim();
                     if (type == 'Arena') {
                         rank = this.arenaTable[rankStr];
-                        var webSlice = nHtml.FindByAttrContains(document.body, 'div', 'id', 'arena_body');
-                        if (webSlice) {
-                            var txtRank = nHtml.GetText(webSlice);
-                            var yourRankStrObj = /:([A-Za-z ]+)/.exec(txtRank);
-                            var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
-                            yourRank = this.arenaTable[yourRankStr];
-                            // gm.log('Your rank: ' + yourRankStr + ' ' + yourRank);
-                        } else {
-                            gm.log('Unable To Find Your Arena Rank');
-                            yourRank = 0;
-                        }
                     } else {
                         rank = this.rankTable[rankStr];
-                        yourRank = this.stats.rank;
                     }
 
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -4285,9 +4288,9 @@ var caap = {
 
         target = target.toLowerCase();
 
-        if (!this.CheckNotHiding("Battle")) {
-            //gm.log("Not Hiding Mode: Safe To Wait For Monster.")
-            this.SetDivContent('battle_mess', 'Safe To Wait For Monster');
+        if (gm.getValue('WhenBattle') == 'Stay Hidden' && !this.NeedToHide()) {
+            //gm.log("Not Hiding Mode: Safe To Wait For Other Activity.")
+            this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
             return false;
         }
 
@@ -5301,8 +5304,8 @@ var caap = {
     Monsters: function () {
     ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
-        if (!this.CheckNotHiding("Monster") && this.CheckStamina('Monster', 1)) {
-            gm.log("Not Hiding Mode: We're not safe. Go battle.");
+        if (gm.getValue('WhenMonster') == 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
+            gm.log("Stay Hidden Mode: We're not safe. Go battle.");
             this.SetDivContent('battle_mess', 'Not Safe For Monster. Battle!');
             return false;
         }
@@ -5613,60 +5616,58 @@ var caap = {
         this.SetDivContent('battle_mess', 'Waiting for more stamina: ' + this.stats.stamina.num + "/" + attackMinStamina);
         return false;
     },
+    /*-------------------------------------------------------------------------------------\
 
-    CheckNotHiding: function (attackType) {
-        if ((gm.getValue('WhenBattle') != "Not Hiding") || (gm.getValue('WhenMonster') != "Not Hiding")) {
-            return true;
-        }
+    \-------------------------------------------------------------------------------------*/
+    NeedToHide: function () {
+	/*-------------------------------------------------------------------------------------\
+	The riskConstant helps us determine how much we stay in hiding and how much we are willing
+	to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to 
+	stay in hiding. The	higher the risk constant, the more we attempt to use our stamina for 
+	non-hiding activities.  The below matrix shows the default riskConstant of 1.7 
+	
+				S	T	A	M	I	N	A		
+				1	2	3	4	5	6	7	8	9        -  Indicates we use stamina to hide
+		H	10	-	-	+	+	+	+	+	+	+        +  Indicates we use stamina as requested
+		E	11	-	-	+	+	+	+	+	+	+
+		A	12	-	-	+	+	+	+	+	+	+
+		L	13	-	-	+	+	+	+	+	+	+
+		T	14	-	-	-	+	+	+	+	+	+
+		H	15	-	-	-	+	+	+	+	+	+
+			16	-	-	-	-	+	+	+	+	+
+			17	-	-	-	-	-	+	+	+	+
+			18	-	-	-	-	-	+	+	+	+
+			
+	Setting our riskConstant down to 1 will result in us spending out stamina to hide much
+	more often:
 
-        var chainButton = null;
-        if (gm.getValue('BattleType') == 'Invade') {
-            chainButton = this.CheckForImage('battle_invade_again.gif');
-        } else {
-            chainButton = this.CheckForImage('battle_duel_again.gif');
-        }
+				S	T	A	M	I	N	A		
+				1	2	3	4	5	6	7	8	9        -  Indicates we use stamina to hide
+		H	10	-	-	+	+	+	+	+	+	+        +  Indicates we use stamina as requested
+		E	11	-	-	+	+	+	+	+	+	+
+		A	12	-	-	-	+	+	+	+	+	+
+		L	13	-	-	-	-	+	+	+	+	+
+		T	14	-	-	-	-	-	+	+	+	+
+		H	15	-	-	-	-	-	-	+	+	+
+			16	-	-	-	-	-	-	-	+	+
+			17	-	-	-	-	-	-	-	-	+
+			18	-	-	-	-	-	-	-	-	-
 
-        if (chainButton) {
-            if (attackType == "Monster") {
-                return false;
-            }
-
-            if (attackType == "Battle") {
-                return true;
-            }
-        }
-
-        if (gm.getValue('TargetType') == 'Raid' && !gm.getValue('targetFromraid', '')) {
-            if (attackType == "Monster") {
-                return true;
-            }
-
-            if (attackType == "Battle") {
-                return false;
-            }
-        }
-
-        // The lower the risk constant, the more you stay in hiding
-        var riskConstant = 1.7;
-        // Formula to calculate when to use your stamina for hiding
-        // If (health - (estimated dmg from next atack) puts us below 10)  AND (current stamina can reach 5 using staminatime/healthtime ratio) then stamina can be used/saved for Monster
-
+    \-------------------------------------------------------------------------------------*/
+        var riskConstant = gm.getValue('HidingRiskConstant',1.7);
+	/*-------------------------------------------------------------------------------------\
+	The formula for determining if we should hide goes something like this:
+	
+		If 	(health - (estimated dmg from next attacks) puts us below 10)  AND 
+			(current stamina will be at least 5 using staminatime/healthtime ratio) 
+		Then stamina can be used/saved for normal process
+		Else stamina is used for us to hide
+		
+    \-------------------------------------------------------------------------------------*/	
         if ((this.stats.health.num - ((this.stats.stamina.num - 1) * riskConstant) < 10) && (this.stats.stamina.num * (5 / 3) >= 5)) {
-            if (attackType == "Monster") {
-                return true;
-            }
-
-            if ((attackType == "Battle") && (!gm.getValue('targetFrombattle_monster'))) {
-                return true;
-            }
-
-            return false;
+			return false;
         } else {
-            if (attackType == "Battle") {
-                return true;
-            }
-
-            return false;
+			return true;
         }
     },
 
@@ -6720,6 +6721,10 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     ArenaElite: function () {
+		if (this.WhileSinceDidIt('ArenaEliteTimer',6 * 60 * 60)) {
+			gm.setValue('ArenaEliteEnd', '');
+		}	
+	
         if (!gm.getValue('ArenaEliteNeeded', false)) {
             return false;
         }
@@ -6771,13 +6776,14 @@ var caap = {
         } else if (this.WhileSinceDidIt('ArenaEliteReqNext', 7)) {
             user = eliteList.substring(0, eliteList.indexOf(','));
             gm.log('add elite ' + user);
-            this.VisitUrl("http://apps.facebook.com/castle_age/arena.php?user=" + user + "&lka=" + user + "&agtw=1&ref=nf");
+            this.VisitUrl("	");
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('ArenaEliteTodo', eliteList);
             this.JustDidIt('ArenaEliteReqNext');
             if (eliteList === '') {
                 gm.setValue('ArenaEliteNeeded', false);
                 gm.setValue('ArenaEliteEnd', 'NoArmy');
+				this.JustDidIt('ArenaEliteTimer');
                 gm.log('Army list exhausted');
             }
         }
