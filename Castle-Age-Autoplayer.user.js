@@ -4036,13 +4036,14 @@ var caap = {
 					var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
 					yourRank = this.arenaTable[yourRankStr];
 					var yourArenaPoints
-					if (pointstxt = txt.match(/Points: \d+\ /i)) {
+					if (pointstxt = txt.match(/Points:\s+.+\s+/i)) {
 						yourArenaPoints = Number(this.NumberOnly(pointstxt));
 					} 	
 					// var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
-					// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
+					gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
 					
-					if (yourArenaGoal = gm.getValue('ArenaGoal','') && yourArenaPoints) {
+					if ((yourArenaGoal = gm.getValue('ArenaGoal','')) && yourArenaPoints) {
+						yourArenaGoal = yourArenaGoal.toLowerCase();
 						if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) { 
 							if (this.GetNumber('APLimt',0) == 0) {
 								gm.setValue('APLimit',yourArenaPoints + this.GetNumber('ArenaRankBuffer',500));
@@ -4066,7 +4067,6 @@ var caap = {
                 gm.setValue('BattleChainId', '');
 				yourRank = this.stats.rank;				
             }
-		
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
