@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.13.2
+// @version        140.14
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.13.2";
+caapGlob.thisVersion = "140.14";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1275,13 +1275,15 @@ var caap = {
         htmlCode += "</div>";
         htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
+		var goallist = ['', 'Swordsman', 'Warrior', 'Gladiator', 'Hero', 'Legend'];
         var typelist = ['None', 'Freshmeat', 'Raid'];
-		var typeInst = ['Never switch from battling in the Aeena',
+		var typeInst = ['Never switch from battling in the Arena',
 						'Switch fom Arena to fresmeat battles to reduce health below specifed level',
 						'Switch fom Arena to raid battles to reduce health below specifed level'];
         var ArenaHealthInstructions = "If your health is below this value, you will continue to stay in the Arena. If your health is above this level, your stamina will be checked to see if it is above the stamina threshold to stay in the Arena.";
-        var ArenaStaminaInstructions = "If your stamina is above this value, you will continue to stay in the Arena. If your stamina is below this level, your health will be checked to see if it is below the health thershold for you to stay in the Arena. ";							
-        htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide', typelist, '', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
+        var ArenaStaminaInstructions = "If your stamina is above this value, you will continue to stay in the Arena. If your stamina is below this level, your health will be checked to see if it is below the health thershold for you to stay in the Arena. ";		
+        htmlCode += '<tr><td>Maintain Rank</td><td>&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaGoal', goallist, '', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';		
+        htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide', typelist, typeInst, "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
         htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Health Below</td><td>' + this.MakeNumberForm('ArenaMaxHealth', ArenaHealthInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
@@ -4033,8 +4035,28 @@ var caap = {
 					var yourRankStrObj = /:([A-Za-z ]+)/.exec(txt);
 					var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
 					yourRank = this.arenaTable[yourRankStr];
+					var yourArenaPoints
+					if (pointstxt = txt.match(/Points: \d+\ /i)) {
+						yourArenaPoints = this.NumberOnly(pointstxt);
+					} 	
 					// var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
 					// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
+					
+					if (yourArenaGoal = gm.getValue('ArenaGoal','')) {
+						if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) { 
+							if (this.GetNumber('APLimt',0) == 0) {
+								gm.setValue('APLimit',yourArenaPoints + this.GetNumber('ArenaRankBuffer',500));
+								gm.log('We need '+this.GetNumber('APLimit')+' as a buffer for current rank');
+							} else if (this.GetNumber('APLimt',0) <= yourArenaPoints) {
+								this.JustDidIt('ArenaRankTimer');
+								gm.log('We are safely at rank: '+ yourRankStr + ' Points:' + yourArenaPoints);
+								this.SetDivContent('battle_mess', 'Arena Rank ' + yourArenaGoal + ' Achieved');
+								return false;
+							}	
+						} else {
+							gm.setValue('APLimit',0);
+						}
+					}		
 				} else {
 					gm.log('Unable To Find Your Arena Rank');
 					yourRank = 0;
@@ -4513,6 +4535,15 @@ var caap = {
 
 
         if (gm.getValue('TargetType', '') == 'Arena') {
+			if (!this.WhileSinceDidIt('ArenaRankTimer',1*60*60)) {
+				this.SetDivContent('battle_mess', 'Arena Rank Achieved');
+				if (gm.getValue('ArenaHide', 'None') == 'None') {
+					return false;
+				} else {
+					return gm.getValue('ArenaHide', '');
+				}	
+			}	
+		
             if (gm.getValue('ArenaHide', 'None') == 'None') {
                 return 'Arena';
             }
