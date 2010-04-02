@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.2
+// @version        140.14.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.2";
+caapGlob.thisVersion = "140.14.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1115,7 +1115,7 @@ var caap = {
                 nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display = 'none';
             }
 
-            var divList = ['activity_mess', 'idle_mess', 'quest_mess', 'battle_mess', 'heal_mess', 'demipoint_mess', 'demibless_mess', 'level_mess', 'control'];
+            var divList = ['activity_mess', 'idle_mess', 'quest_mess', 'battle_mess', 'heal_mess', 'demipoint_mess', 'demibless_mess', 'level_mess', 'arena_mess', 'control'];
             for (var divID in divList) {
                 if (divList.hasOwnProperty(divID)) {
                     var addDiv = document.createElement('div');
@@ -2390,6 +2390,14 @@ var caap = {
                     this.SetDivContent('demibless_mess', 'Demi Blessing = none');
                 } else {
                     this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + this.DisplayTimer('BlessingTimer'));
+                }
+            }
+			
+			if (this.DisplayTimer('ArenaRankTimer')) {
+                if (this.CheckTimer('ArenaRankTimer')) {
+                    this.SetDivContent('arena_mess', '');
+                } else {
+                    this.SetDivContent('arena_mess', 'Next Arena Rank Check: ' + this.DisplayTimer('ArenaRankTimer'));
                 }
             }
 
@@ -4045,11 +4053,11 @@ var caap = {
 					if ((yourArenaGoal = gm.getValue('ArenaGoal','')) && yourArenaPoints) {
 						yourArenaGoal = yourArenaGoal.toLowerCase();
 						if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) { 
-							if (this.GetNumber('APLimt',0) == 0) {
+							if (this.GetNumber('APLimit',0) == 0) {
 								gm.setValue('APLimit',yourArenaPoints + this.GetNumber('ArenaRankBuffer',500));
 								gm.log('We need '+this.GetNumber('APLimit')+' as a buffer for current rank');
-							} else if (this.GetNumber('APLimt',0) <= yourArenaPoints) {
-								this.JustDidIt('ArenaRankTimer');
+							} else if (this.GetNumber('APLimit',0) <= yourArenaPoints) {
+								this.SetTimer('ArenaRankTimer',1*60*60);
 								gm.log('We are safely at rank: '+ yourRankStr + ' Points:' + yourArenaPoints);
 								this.SetDivContent('battle_mess', 'Arena Rank ' + yourArenaGoal + ' Achieved');
 								return false;
@@ -4535,12 +4543,16 @@ var caap = {
 
 
         if (gm.getValue('TargetType', '') == 'Arena') {
-			if (!this.WhileSinceDidIt('ArenaRankTimer',1*60*60)) {
+			if (!this.CheckTimer('ArenaRankTimer')) {
 				this.SetDivContent('battle_mess', 'Arena Rank Achieved');
 				if (gm.getValue('ArenaHide', 'None') == 'None') {
 					return false;
 				} else {
-					return gm.getValue('ArenaHide', '');
+					if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
+						return false;
+					} else {
+						return gm.getValue('ArenaHide', '');
+					}	
 				}	
 			}	
 		
