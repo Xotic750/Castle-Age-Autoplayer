@@ -4037,12 +4037,12 @@ var caap = {
 					yourRank = this.arenaTable[yourRankStr];
 					var yourArenaPoints
 					if (pointstxt = txt.match(/Points: \d+\ /i)) {
-						yourArenaPoints = this.NumberOnly(pointstxt);
+						yourArenaPoints = Number(this.NumberOnly(pointstxt));
 					} 	
 					// var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
 					// gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
 					
-					if (yourArenaGoal = gm.getValue('ArenaGoal','')) {
+					if (yourArenaGoal = gm.getValue('ArenaGoal','') && yourArenaPoints) {
 						if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) { 
 							if (this.GetNumber('APLimt',0) == 0) {
 								gm.setValue('APLimit',yourArenaPoints + this.GetNumber('ArenaRankBuffer',500));
@@ -4054,7 +4054,7 @@ var caap = {
 								return false;
 							}	
 						} else {
-							gm.setValue('APLimit',0);
+							gm.setValue('APLimit','0');
 						}
 					}		
 				} else {
