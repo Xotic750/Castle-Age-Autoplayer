@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.3
+// @version        140.14.4
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.3";
+caapGlob.thisVersion = "140.14.4";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1248,6 +1248,12 @@ var caap = {
         var targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'];
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Battle When:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px min-width: 90px; max-width: 90px; width : 90px;'") + '</td></tr></table>';
+		htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('WhenMonster', false) != 'Stay Hidden' ? 'block' : 'none') + "'>";
+		htmlCode += "<font color='red'> <b>Warning: Monster Not Set To 'Stay Hidden' </b></font>";
+		htmlCode += "</div>";	
+		htmlCode += "<div id='caap_WhenBattleStayHidden2' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None' ? 'block' : 'none') + "'>";
+		htmlCode += "<font color='red'> <b>Warning: Arena Must Have 'Hide Using' Active To Support Hiding </b></font>";
+		htmlCode += "</div>";			
         htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (gm.getValue('WhenBattle', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
         htmlCode += '<tr><td>Start Battles with</td><td>' + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='1' style='font-size: 10px'") + ' Stamina</td></tr><br/>';
         htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Keep</td><td>' + this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='1'  style='font-size: 10px'") + ' Stamina Points</td></tr>';
@@ -5373,7 +5379,7 @@ var caap = {
             }
         }
 
-        if (!this.WhileSinceDidIt('NotargetFrombattle_monster', 60)) {
+        if (!this.CheckTimer('NotargetFrombattle_monster')) {
             return false;
         }
 
@@ -5403,6 +5409,7 @@ var caap = {
             if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && gm.getListObjVal('monsterOl', monster, 'page') == 'battle_monster') {
                 fightMode = gm.setValue('fightMode', 'Monster');
             } else {
+				this.SetTimer('NotargetFrombattle_monster',60);
                 return false;
             }
         }
@@ -5520,7 +5527,7 @@ var caap = {
             caap.Click(engageButton);
             return true;
         } else {
-            this.JustDidIt('NotargetFrombattle_monster');
+            this.SetTimer('NotargetFrombattle_monster',60);
             gm.log('No "Engage" button for ' + monster);
             return false;
         }
@@ -5660,9 +5667,15 @@ var caap = {
         return false;
     },
     /*-------------------------------------------------------------------------------------\
-
+	NeedToHide will return true if the current stamina and health indicate we need to bring
+	our health down through battles (hiding).  It also returns true if there is no other outlet
+	for our stamina (currently this just means Monsters, but will eventually incorporate
+	other stamina uses).  
     \-------------------------------------------------------------------------------------*/
     NeedToHide: function () {
+		if (gm.getValue('WhenMonster','') == 'Never' || !this.CheckTimer('NotargetFrombattle_monster')) {
+			return true;
+		}
 	/*-------------------------------------------------------------------------------------\
 	The riskConstant helps us determine how much we stay in hiding and how much we are willing
 	to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to 
@@ -7801,7 +7814,7 @@ var caap = {
                     this.CheckLastAction(actionsList[action]);
                     break;
                 }
-            }
+            }		
         }
 
         this.WaitMainLoop();
