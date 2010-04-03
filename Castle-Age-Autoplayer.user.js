@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.4
+// @version        140.14.5
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.4";
+caapGlob.thisVersion = "140.14.5";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1738,8 +1738,6 @@ var caap = {
         if (!this.oneMinuteUpdate('dashboard')) {
             return;
         }
-
-        caap.selectMonster();
     /*-------------------------------------------------------------------------------------\
      Here is where we construct the HTML for our dashboard. We start by building the outer
      container and position it within the main container.
@@ -4800,16 +4798,7 @@ var caap = {
         if (ss.snapshotLength === 0) {
             return false;
         }
-
-        var page = '';
-        if (caap.CheckForImage('tab_monster_on.jpg')) {
-            page = 'battle_monster';
-        } else if (caap.CheckForImage('tab_raid_on.gif')) {
-            page = 'raid';
-        } else {
-            return;
-        }
-
+        var page = gm.getValue('page','battle_monster');
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
         if (!caapGlob.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
@@ -4875,7 +4864,9 @@ var caap = {
                 siege = (boss && boss.siege) ? "&action=doObjective" : '';
             }
 
-            var link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
+            var link = "<a href='http://apps.facebook.com/castle_age/" + page +
+					".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
+					mpool + siege + "'>Link</a>";
             gm.setListObjVal('monsterOl', monster, 'Link', link);
         }
 
@@ -5673,7 +5664,12 @@ var caap = {
 	other stamina uses).  
     \-------------------------------------------------------------------------------------*/
     NeedToHide: function () {
-		if (gm.getValue('WhenMonster','') == 'Never' || !this.CheckTimer('NotargetFrombattle_monster')) {
+		if (gm.getValue('WhenMonster','') == 'Never') {
+			gm.log('Stay Hidden Mode: Monster battle not enabled');
+			return true;
+		}
+		if (!this.CheckTimer('NotargetFrombattle_monster')) {
+			gm.log('Stay Hidden Mode: No monster to battle');
 			return true;
 		}
 	/*-------------------------------------------------------------------------------------\
@@ -5710,7 +5706,7 @@ var caap = {
 			18	-	-	-	-	-	-	-	-	-
 
     \-------------------------------------------------------------------------------------*/
-        var riskConstant = gm.getValue('HidingRiskConstant',1.7);
+        var riskConstant = this.GetNumber('HidingRiskConstant',1.7);
 	/*-------------------------------------------------------------------------------------\
 	The formula for determining if we should hide goes something like this:
 	
