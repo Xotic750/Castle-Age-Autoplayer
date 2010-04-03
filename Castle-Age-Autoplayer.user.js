@@ -7901,6 +7901,7 @@ $(function () {
         gm.setValue('ReleaseControl', true);
     }
 
+    this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
 });
 
