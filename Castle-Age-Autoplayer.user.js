@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.6
+// @version        140.14.7
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -1091,6 +1091,11 @@ var caap = {
     },
 
     SetControls: function (force) {
+		// If unable to read in gm.values, then reload the page
+		if (gm.getValue('caapPause','none') !== 'none' && gm.getValue('caapPause','none') !== 'block') {
+			gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
+            window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
+		}
         if (!document.getElementById('caap_div')) {
             var div = document.createElement('div');
             //var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
