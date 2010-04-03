@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.5
+// @version        140.14.6
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.5";
+caapGlob.thisVersion = "140.14.6";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5668,7 +5668,7 @@ var caap = {
 			gm.log('Stay Hidden Mode: Monster battle not enabled');
 			return true;
 		}
-		if (!this.CheckTimer('NotargetFrombattle_monster')) {
+		if (!gm.getValue('targetFrombattle_monster','')) {
 			gm.log('Stay Hidden Mode: No monster to battle');
 			return true;
 		}
