@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.8
+// @version        140.14.9
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.8";
+caapGlob.thisVersion = "140.14.9";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -4095,7 +4095,6 @@ var caap = {
                 }
 
                 var rank = 0;
-                var yourRank = 0;
                 var level = 0;
                 var army = 0;
                 var txt = '';
@@ -6571,6 +6570,75 @@ var caap = {
         return true;
     },
 
+    /*-------------------------------------------------------------------------------------\
+	AutoAlchemy perform aclchemy combines for all recipes that do not have missing 
+	ingredients.  By default, it also will not combine Battle Hearts.  
+	First we make sure the option is set and that we haven't been here for a while.
+    \-------------------------------------------------------------------------------------*/	
+	AutoAlchemy:function(){try{
+		if (!gm.getValue('AutoAlchemy',false)) {
+			return false;
+		}
+		if (!this.CheckTimer('AlchemyTimer')) {
+			return false;
+		}
+    /*-------------------------------------------------------------------------------------\
+	Now we navigate to the Alchemy Recipe page.
+    \-------------------------------------------------------------------------------------*/		
+		if (!this.NavigateTo('keep,alchemy','alchemy_banner.jpg')) {
+			if (document.getElementById('app46755028429_recipe_list').className != 'show_items') {
+				if (button = nHtml.FindByAttrContains(document.body, 'div', 'id', 'alchemy_item_tab')) {
+					this.Click(button, 5000);
+					return true;
+				} else {
+					gm.log('Cant find recipe div');
+					return false;
+				}	
+			}
+    /*-------------------------------------------------------------------------------------\
+	We close the results of our combines so they don't hog up our screen
+    \-------------------------------------------------------------------------------------*/			
+			if (button = this.CheckForImage('help_close_x.gif')) {
+				this.Click(button, 1000);
+				return true;
+			}	
+    /*-------------------------------------------------------------------------------------\
+	Now we get all of the recipes and step through them one by one
+    \-------------------------------------------------------------------------------------*/			
+			var ss = document.evaluate(".//div[@class='alchemyRecipeBack']", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+			for (var s = 0; s < ss.snapshotLength; s++) {
+				var recipeDiv = ss.snapshotItem(s);
+    /*-------------------------------------------------------------------------------------\
+	If we are missing an ingredient then skip it
+    \-------------------------------------------------------------------------------------*/				
+				if (nHtml.FindByAttrContains(recipeDiv, 'div', 'class', 'missing')) {
+					// gm.log('Skipping Recipe');
+					continue;
+				}
+    /*-------------------------------------------------------------------------------------\
+	If we are skipping battle hearts then skip it
+    \-------------------------------------------------------------------------------------*/				
+				if (this.CheckForImage('raid_hearts',recipeDiv) && gm.getValue('AlchemySkipHearts',true)) {
+					gm.log('Skipping Hearts');
+					continue;	
+				}
+    /*-------------------------------------------------------------------------------------\
+	Find our button and click it
+    \-------------------------------------------------------------------------------------*/				
+				if (button = nHtml.FindByAttrXPath(recipeDiv, 'input', "@type='image'")) {
+					this.Click(button, 2000);
+					return true;
+				} else gm.log('Cant Find Item Image Button');
+			}
+    /*-------------------------------------------------------------------------------------\
+	All done. Set te timer to check back in 3 hours.
+    \-------------------------------------------------------------------------------------*/			
+			this.SetTimer('AlchemyTimer',3*60);
+			return false;
+		}
+	} catch (e){gm.log("ERROR in Alchemy :"+e); return false;}	
+	},	
+
     /////////////////////////////////////////////////////////////////////
     //                          BANKING
     // Keep it safe!
@@ -7798,7 +7866,7 @@ var caap = {
             return;
         }
 
-        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'AutoPotions', 'Idle'];
+        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'AutoPotions', 'AutoAlchemy', 'Idle'];
         //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
         if (!gm.getValue('ReleaseControl', false)) {
