@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.7
+// @version        140.14.8
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -1094,7 +1094,8 @@ var caap = {
 		// If unable to read in gm.values, then reload the page
 		if (gm.getValue('caapPause','none') !== 'none' && gm.getValue('caapPause','none') !== 'block') {
 			gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
-            window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
+            window.location = window.location.href;
+//            window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
 		}
         if (!document.getElementById('caap_div')) {
             var div = document.createElement('div');
@@ -1957,7 +1958,7 @@ var caap = {
         var refreshMonsters = document.getElementById('caap_refreshMonsters');
         refreshMonsters.addEventListener('click', function (e) {
             gm.setValue('monsterReview', 0);
-            gm.setValue('monsterReviewCounter', -3);
+            gm.setValue('monsterReviewCounter', -2);
         }, false);
 
         var liveFeed = document.getElementById('caap_liveFeed');
@@ -2222,7 +2223,7 @@ var caap = {
                 gm.log('Change: setting ' + idName + ' to something new');
                 if (idName == 'orderbattle_monster' || idName == 'orderraid') {
                     gm.setValue('monsterReview', 0);
-                    gm.setValue('monsterReviewCounter', -3);
+                    gm.setValue('monsterReviewCounter', -2);
                 }
                 caap.SaveBoxText(idName);
             }, false);
@@ -4996,7 +4997,7 @@ var caap = {
 
         var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
         if (/:ac\b/.test(monsterConditions)) {
-            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+            var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
             var monsterList = gm.getList('monsterOl');
             if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
                 (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
@@ -5301,12 +5302,17 @@ var caap = {
 
     MonsterReview: function () {
         // Review all active monsters, try siege weapons on the way
-        var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-        //gm.log("this.WhileSinceDidIt('monsterReview',60*60) && counter >=-1   && (this.CheckStamina('Monster',1) || gm.getValue('monsterReview')==0) " + this.WhileSinceDidIt('monsterReview',60*60) +' '+ counter +' '+ this.stats.stamina.num > 0 +' '+ gm.getValue('monsterReview'));
-        if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter >= -1 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
+        var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
+        if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter >= 0 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
             // Check raids and monster individual pages
             var monsterObjList = gm.getList('monsterOl');
-            while (++counter < monsterObjList.length) {
+			if (gm.getObjVal(monsterObjList[counter],'Damage','Undefined') != 'Undefined' && !gm.getValue('monsterReviewRetryDone',false)) {
+				counter++;
+				gm.setValue('monsterReviewRetryDone',true);
+			} else {
+				gm.setValue('monsterReviewRetryDone',false);
+			}
+            while (counter < monsterObjList.length) {
                 var monsterObj = monsterObjList[counter];
                 if (!monsterObj) {
                     continue;
@@ -5340,7 +5346,7 @@ var caap = {
             this.JustDidIt('monsterReview');
             gm.setValue('resetselectMonster', true);
             gm.log('Done with monster/raid review.');
-            gm.setValue('monsterReviewCounter', -3);
+            gm.setValue('monsterReviewCounter', -2);
         }
 
         return false;
@@ -5355,16 +5361,16 @@ var caap = {
             return false;
         }
 
-        var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-        if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter < -1 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
+        var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
+        if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter < 0 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
             // Check Monster page
-            if (counter == -3) {
+            if (counter == -2) {
                 gm.setValue('monsterOl', '');
                 gm.setValue('monsterReviewCounter', ++counter);
                 return this.NavigateTo('battle_monster');
             }
 
-            if (counter == -2) {
+            if (counter == -1) {
                 if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
                     return true;
                 }
