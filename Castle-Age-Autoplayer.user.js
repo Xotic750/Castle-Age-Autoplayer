@@ -4086,6 +4086,13 @@ var caap = {
 				yourRank = this.stats.rank;				
             }
 
+			// Lets get our Freshmeat user settings
+			var minRank = this.GetNumber("FreshMeatMinRank", 99);
+			var maxLevel = this.GetNumber("FreshMeatMaxLevel", ((invadeOrDuel == 'Invade') ? 1000 : 15));
+			var ARBase = this.GetNumber("FreshMeatARBase", 0.5);
+			var ARMax = this.GetNumber("FreshMeatARMax", 1000);
+			var ARMin = this.GetNumber("FreshMeatARMin", 0);
+
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
                 var button = ss.snapshotItem(s);
@@ -4101,6 +4108,7 @@ var caap = {
                 var army = 0;
                 var txt = '';
                 var levelm = '';
+
                 if (type == 'Raid') {
                     tr = tr.parentNode.parentNode.parentNode.parentNode.parentNode;
                     txt = tr.childNodes[3].childNodes[3].textContent;
@@ -4145,23 +4153,12 @@ var caap = {
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                     army = parseInt(nHtml.GetText(subtd.snapshotItem(2)).trim(), 10);
                 }
-
-                // Lets get our Freshmeat user settings
-                var minRank = this.GetNumber("FreshMeatMinRank", 99);
-                var maxLevel = this.GetNumber("FreshMeatMaxLevel", ((invadeOrDuel == 'Invade') ? 1000 : 15));
-                var ARBase = this.GetNumber("FreshMeatARBase", 0.5);
-                var ARMax = this.GetNumber("FreshMeatARMax", 1000);
-                var ARMin = this.GetNumber("FreshMeatARMin", 0);
-
                 if (level - this.stats.level > maxLevel) {
                     continue;
                 }
-
-
                 if (yourRank && (yourRank - rank  > minRank)) {
                     continue;
                 }
-
                 var levelMultiplier = this.stats.level / level;
                 var armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
@@ -4197,7 +4194,7 @@ var caap = {
                     continue;
                 }
 
-                var thisScore = rank - (army / levelMultiplier / this.stats.army);
+                var thisScore = (type == 'Raid' ? 0 : rank) - (army / levelMultiplier / this.stats.army);
                 if (id == chainId) {
                     chainAttack = true;
                 }
@@ -4323,6 +4320,7 @@ var caap = {
 
         var target = this.GetCurrentBattleTarget(mode);
         if (!target) {
+			gm.log('No valid battle target');
             return false;
         }
 
@@ -4331,6 +4329,7 @@ var caap = {
         if (gm.getValue('WhenBattle') == 'Stay Hidden' && !this.NeedToHide()) {
             //gm.log("Not Hiding Mode: Safe To Wait For Other Activity.")
             this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
+			gm.log('We Dont Need To Hide Yet');
             return false;
         }
 
@@ -4437,7 +4436,7 @@ var caap = {
 
                     return true;
                 }
-
+				gm.log('Doing Raid UserID list, but no target');
                 return false;
             }
 
@@ -4462,7 +4461,7 @@ var caap = {
 
                     return true;
                 }
-
+				gm.log('Doing Freshmeat UserID list, but no target');
                 return false;
             }
 
@@ -4488,6 +4487,7 @@ var caap = {
                     return true;
                 }
 
+				gm.log('Doing Arena UserID list, but no target');
                 return false;
             }
 
@@ -4519,7 +4519,7 @@ var caap = {
                 this.NextBattleTarget();
                 return true;
             }
-
+			gm.log('Doing default UserID list, but no target');
             return false;
         }
     },
