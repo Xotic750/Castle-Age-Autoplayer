@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.12
+// @version        140.14.13
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.12";
+caapGlob.thisVersion = "140.14.13";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5304,7 +5304,10 @@ var caap = {
         var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
         if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter >= 0 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
             // Check raids and monster individual pages
-            var monsterObjList = gm.getList('monsterOl');
+            if (!(gm.getValue('monsterOl',''))) {
+				return false;
+			}	
+			var monsterObjList = gm.getList('monsterOl');
 			if (gm.getObjVal(monsterObjList[counter],'Damage','Undefined') != 'Undefined' && !gm.getValue('monsterReviewRetryDone',false)) {
 				counter++;
 				gm.setValue('monsterReviewRetryDone',true);
@@ -7325,14 +7328,16 @@ var caap = {
             gm.log("Unable to locate upgrade button for " + attribute);
             return "Fail";
         }
-
+		
+		var level = this.stats.level;
         var attrCurrent = parseInt(button.parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
         var energy = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
         var stamina = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-        var attack = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-        var defense = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-        var health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-        var level = this.stats.level;
+		if (level >= 10 ) {
+			var attack = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+			var defense = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+			var health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+		}	
         //gm.log("Energy ="+energy+" Stamina ="+stamina+" Attack ="+attack+" Defense ="+defense+" Heath ="+health);
         var ajaxLoadIcon = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app46755028429_AjaxLoadIcon');
         if (!ajaxLoadIcon || ajaxLoadIcon.style.display !== 'none') {
