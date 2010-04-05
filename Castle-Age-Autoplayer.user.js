@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.11
+// @version        140.14.12
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.11";
+caapGlob.thisVersion = "140.14.12";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -7485,6 +7485,7 @@ var caap = {
 
                                     caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
                                     for (ID; ID < Ids.length ; ID++) {
+										caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
                                         if (count >= 5) { //don't spam requests
                                             this.waitMilliSecs = 1000;
                                             break;
@@ -7512,6 +7513,9 @@ var caap = {
                                         }, 5000);
 
                                         gm.log("Fill Army Completed");
+										gm.setValue('FillArmy', false);
+										gm.deleteValue("ArmyCount");
+										gm.deleteValue('waiting');										
                                     }
                                 } else {//if response != ok
                                     caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
@@ -7521,13 +7525,15 @@ var caap = {
 
                                     gm.log("Fill Army Not Completed, cant get CA friends list");
                                     gm.log("Response.status: " + response.statusText);
+									gm.setValue('FillArmy', false);
+									gm.deleteValue("ArmyCount");
+									gm.deleteValue('waiting');										
+									
                                 }
                             }
                         });
 
-                        gm.setValue('FillArmy', false);
-                        gm.deleteValue("ArmyCount");
-                        gm.deleteValue('waiting');
+
                     }
                 }
 
