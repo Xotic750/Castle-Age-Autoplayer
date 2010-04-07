@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.14.14
+// @version        140.15.0
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.14.14";
+caapGlob.thisVersion = "140.15.0";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -48,17 +48,116 @@ caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
 caapGlob.protect = '334318';
+caapGlob.actionsList = [];
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
-caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMIACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu0QD6Y//9k%3D";
+caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAA" +
+    "gFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMI" +
+    "ACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYika" +
+    "Gx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNeh" +
+    "EjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC" +
+    "4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLL" +
+    "mscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LK" +
+    "jfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn72" +
+    "9uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfv" +
+    "AJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENei" +
+    "rcMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX" +
+    "8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCW" +
+    "sN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQ" +
+    "uYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8" +
+    "Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu" +
+    "0QD6Y//9k%3D";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_2.jpg
-caapGlob.symbol_tiny_2 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAAgFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERITBggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicbEyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVTogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVHSdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOsUbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptbBsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCOimfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXcp8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIifZ9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/wDH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXcqmc+53P5QMf/2Q%3D%3D";
+caapGlob.symbol_tiny_2 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAA" +
+    "gFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERIT" +
+    "BggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicb" +
+    "EyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6" +
+    "UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVT" +
+    "ogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ" +
+    "6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO" +
+    "+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVH" +
+    "SdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOs" +
+    "UbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS" +
+    "2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptb" +
+    "BsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7" +
+    "fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCO" +
+    "imfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXc" +
+    "p8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIif" +
+    "Z9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0" +
+    "geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/w" +
+    "DH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXc" +
+    "qmc+53P5QMf/2Q%3D%3D";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_3.jpg
-caapGlob.symbol_tiny_3 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAAgHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcIExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFLHB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66ttjBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LGlImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjUqBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJEBlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFHwg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCFHOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjtBB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfHH//Z";
+caapGlob.symbol_tiny_3 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAA" +
+    "gHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcI" +
+    "ExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFL" +
+    "HB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah" +
+    "0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66tt" +
+    "jBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LG" +
+    "lImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4" +
+    "hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86" +
+    "XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjU" +
+    "qBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR" +
+    "1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJE" +
+    "BlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX" +
+    "7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9" +
+    "WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFH" +
+    "wg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh" +
+    "+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCF" +
+    "HOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjt" +
+    "BB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfH" +
+    "H//Z";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_4.jpg
-caapGlob.symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAAgJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMHFAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZGh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YSOG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfPUeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+tKDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAsJCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWnY5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5RkasZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cYtrbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSaln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/mc/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D";
+caapGlob.symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAA" +
+    "gJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMH" +
+    "FAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZ" +
+    "Gh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK" +
+    "8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YS" +
+    "OG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfP" +
+    "UeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+t" +
+    "KDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAs" +
+    "JCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWn" +
+    "Y5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I" +
+    "1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+" +
+    "2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5" +
+    "oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5Rkas" +
+    "ZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cY" +
+    "trbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSa" +
+    "ln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/m" +
+    "c/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D";
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_5.jpg
-caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQxIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z";
+caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAA" +
+    "gJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQx" +
+    "IhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58et" +
+    "hnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5u" +
+    "pxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzI" +
+    "nKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda" +
+    "2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwf" +
+    "b8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6ty" +
+    "usymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrn" +
+    "cfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5b" +
+    "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
+    "PV1fzwToWcv//Z";
 ///////////////////////////
 
 var style = {};
@@ -1091,12 +1190,11 @@ var caap = {
     },
 
     SetControls: function (force) {
-		// If unable to read in gm.values, then reload the page
-		if (gm.getValue('caapPause','none') !== 'none' && gm.getValue('caapPause','none') !== 'block') {
-			gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
-            window.location = window.location.href;
-//            window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
-		}
+        // If unable to read in gm.values, then reload the page
+        if (gm.getValue('caapPause', 'none') !== 'none' && gm.getValue('caapPause', 'none') !== 'block') {
+            gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
+            window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
+        }
         if (!document.getElementById('caap_div')) {
             var div = document.createElement('div');
             //var b=nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_Container clearfix');
@@ -1121,7 +1219,19 @@ var caap = {
                 nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display = 'none';
             }
 
-            var divList = ['activity_mess', 'idle_mess', 'quest_mess', 'battle_mess', 'heal_mess', 'demipoint_mess', 'demibless_mess', 'level_mess', 'arena_mess', 'control'];
+            var divList = [
+                'activity_mess',
+                'idle_mess',
+                'quest_mess',
+                'battle_mess',
+                'heal_mess',
+                'demipoint_mess',
+                'demibless_mess',
+                'level_mess',
+                'arena_mess',
+                'control'
+            ];
+
             for (var divID in divList) {
                 if (divList.hasOwnProperty(divID)) {
                     var addDiv = document.createElement('div');
@@ -1130,7 +1240,7 @@ var caap = {
                 }
             }
 
-        //check these out to see which one actually works on CA and remove the rest
+            //check these out to see which one actually works on CA and remove the rest
             var b = nHtml.FindByAttrContains(document.body, 'div', 'className', 'UIStandardFrame_Container');
             if (b) {
                 b.insertBefore(div, b.childNodes[1]);
@@ -1196,11 +1306,20 @@ var caap = {
 
         var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.";
         htmlCode += this.ToggleControl('Quests', 'QUEST');
-        var questList = ['Energy Available', 'At Max Energy', 'Not Fortifying', 'Never'];
+        var questList = [
+            'Energy Available',
+            'At Max Energy',
+            'Not Fortifying',
+            'Never'
+        ];
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td width=80>Quest When:</td><td>' + this.MakeDropDown('WhenQuest', questList, '', "style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr></table>';
         htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest', false) != 'Never' ? 'block' : 'none') + "'>";
-        questList = ['Quest', 'Demi Quests', 'Atlantis'];
+        questList = [
+            'Quest',
+            'Demi Quests',
+            'Atlantis'
+        ];
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Pick Quest Area:</td><td>' + this.MakeDropDown('QuestArea', questList, '', "style='font-size: 10px min-width: 110px; max-width: 110px; width : 110px;'") + '</td></tr>';
         switch (gm.getValue('QuestArea', questList[0])) {
@@ -1231,35 +1350,79 @@ var caap = {
 
         var XBattleInstructions = "Start battling if stamina is above this points";
         var XMinBattleInstructions = "Don't battle if stamina is below this points";
-        var userIdInstructions = "User IDs(not user name).  Click with the right mouse button on the link to the users profile & copy link.  Then paste it here and remove everything but the last numbers. (ie. 123456789)";
-        var chainBPInstructions = "Number of battle points won to initiate a chain attack. Specify 0 to always chain attack.";
-        var chainGoldInstructions = "Amount of gold won to initiate a chain attack. Specify 0 to always chain attack.";
-        var FMRankInstructions = "The lowest relative rank below yours that you are willing to spend your stamina on. Leave blank to attack any rank.";
-        var FMARBaseInstructions = "This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. A value of 1 means you will battle an opponent the same level as you with an army the same size as you or less. Default .5";
-        var dontbattleInstructions = "Remember an opponents id after a loss and don't battle him again";
-        var plusonekillsInstructions = "Force +1 kill scenario if 80% or more of targets are withn freshmeat settings. Note: Since Castle Age choses the target, selecting this option could result in a greater chance of loss.";
-        var raidOrderInstructions = "List of search words that decide which raids to participate in first.  Use words in player name or in raid name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million.";
-        var ignorebattlelossInstructions = "Ignore battle losses and attack regardless.  This will also delete all battle loss records.";
+        var userIdInstructions = "User IDs(not user name).  Click with the " +
+            "right mouse button on the link to the users profile & copy link." +
+            "  Then paste it here and remove everything but the last numbers." +
+            " (ie. 123456789)";
+        var chainBPInstructions = "Number of battle points won to initiate a " +
+            "chain attack. Specify 0 to always chain attack.";
+        var chainGoldInstructions = "Amount of gold won to initiate a chain " +
+            "attack. Specify 0 to always chain attack.";
+        var FMRankInstructions = "The lowest relative rank below yours that " +
+            "you are willing to spend your stamina on. Leave blank to attack " +
+            "any rank.";
+        var FMARBaseInstructions = "This value sets the base for your army " +
+            "ratio calculation. It is basically a multiplier for the army " +
+            "size of a player at your equal level. A value of 1 means you " +
+            "will battle an opponent the same level as you with an army the " +
+            "same size as you or less. Default .5";
+        var dontbattleInstructions = "Remember an opponents id after a loss " +
+            "and don't battle him again";
+        var plusonekillsInstructions = "Force +1 kill scenario if 80% or more" +
+            " of targets are withn freshmeat settings. Note: Since Castle Age" +
+            " choses the target, selecting this option could result in a " +
+            "greater chance of loss.";
+        var raidOrderInstructions = "List of search words that decide which " +
+            "raids to participate in first.  Use words in player name or in " +
+            "raid name. To specify max damage follow keyword with :max token " +
+            "and specifiy max damage values. Use 'k' and 'm' suffixes for " +
+            "thousand and million.";
+        var ignorebattlelossInstructions = "Ignore battle losses and attack " +
+            "regardless.  This will also delete all battle loss records.";
         htmlCode += this.ToggleControl('Battling', 'BATTLE');
-        var battleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'No Monster', 'Stay Hidden', 'Never'];
-        var battleInst = ['Stamina Available will battle whenever you have enough stamina',
-                          'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
-                          'At X Stamina you can set maximum and minimum stamina to battle',
-                          'No Monster will battle only when there are no active monster battles',
-                          'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER OR ARENA TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                          'Never - disables player battles'];
-        var typeList = ['Invade', 'Duel'];
-        var typeInst = ['Battle using Invade button', 'Battle using Duel button - no guarentee you will win though'];
-        var targetList = ['Freshmeat', 'Userid List', 'Raid', 'Arena'];
-        var targetInst = ['Use settings to select a target from the Battle Page', 'Select target from the supplied list of userids', 'Raid Battles'];
+        var battleList = [
+            'Stamina Available',
+            'At Max Stamina',
+            'At X Stamina',
+            'No Monster',
+            'Stay Hidden',
+            'Never'
+        ];
+        var battleInst = [
+            'Stamina Available will battle whenever you have enough stamina',
+            'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
+            'At X Stamina you can set maximum and minimum stamina to battle',
+            'No Monster will battle only when there are no active monster battles',
+            'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER OR ARENA TO "STAY HIDDEN" TO USE THIS FEATURE.',
+            'Never - disables player battles'
+        ];
+        var typeList = [
+            'Invade',
+            'Duel'
+        ];
+        var typeInst = [
+            'Battle using Invade button',
+            'Battle using Duel button - no guarentee you will win though'
+        ];
+        var targetList = [
+            'Freshmeat',
+            'Userid List',
+            'Raid',
+            'Arena'
+        ];
+        var targetInst = [
+            'Use settings to select a target from the Battle Page',
+            'Select target from the supplied list of userids',
+            'Raid Battles'
+        ];
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Battle When:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td>' + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px min-width: 90px; max-width: 90px; width : 90px;'") + '</td></tr></table>';
-		htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('WhenMonster', false) != 'Stay Hidden' ? 'block' : 'none') + "'>";
-		htmlCode += "<font color='red'> <b>Warning: Monster Not Set To 'Stay Hidden' </b></font>";
-		htmlCode += "</div>";	
-		htmlCode += "<div id='caap_WhenBattleStayHidden2' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None' ? 'block' : 'none') + "'>";
-		htmlCode += "<font color='red'> <b>Warning: Arena Must Have 'Hide Using' Active To Support Hiding </b></font>";
-		htmlCode += "</div>";			
+        htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('WhenMonster', false) != 'Stay Hidden' ? 'block' : 'none') + "'>";
+        htmlCode += "<font color='red'> <b>Warning: Monster Not Set To 'Stay Hidden' </b></font>";
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_WhenBattleStayHidden2' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None' ? 'block' : 'none') + "'>";
+        htmlCode += "<font color='red'> <b>Warning: Arena Must Have 'Hide Using' Active To Support Hiding </b></font>";
+        htmlCode += "</div>";
         htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (gm.getValue('WhenBattle', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
         htmlCode += '<tr><td>Start Battles with</td><td>' + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='1' style='font-size: 10px'") + ' Stamina</td></tr><br/>';
         htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;&nbsp;Keep</td><td>' + this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='1'  style='font-size: 10px'") + ' Stamina Points</td></tr>';
@@ -1287,15 +1450,34 @@ var caap = {
         htmlCode += "</div>";
         htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
-		var goallist = ['', 'Swordsman', 'Warrior', 'Gladiator', 'Hero', 'Legend'];
-        var typelist = ['None', 'Freshmeat', 'Raid'];
-		var typeInst = ['Never switch from battling in the Arena',
-						'Switch fom Arena to fresmeat battles to reduce health below specifed level',
-						'Switch fom Arena to raid battles to reduce health below specifed level'];
-        var ArenaHealthInstructions = "If your health is below this value, you will continue to stay in the Arena. If your health is above this level, your stamina will be checked to see if it is above the stamina threshold to stay in the Arena.";
-        var ArenaStaminaInstructions = "If your stamina is above this value, you will continue to stay in the Arena. If your stamina is below this level, your health will be checked to see if it is below the health thershold for you to stay in the Arena. ";		
-        htmlCode += '<tr><td>Maintain Rank</td><td>&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaGoal', goallist, '', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';		
-        htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide', typelist, typeInst, "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
+        var goallist = [
+            '',
+            'Swordsman',
+            'Warrior',
+            'Gladiator',
+            'Hero',
+            'Legend'
+        ];
+        typeList = [
+            'None',
+            'Freshmeat',
+            'Raid'
+        ];
+        typeInst = [
+            'Never switch from battling in the Arena',
+            'Switch fom Arena to fresmeat battles to reduce health below specifed level',
+            'Switch fom Arena to raid battles to reduce health below specifed level'
+        ];
+        var ArenaHealthInstructions = "If your health is below this value, " +
+            "you will continue to stay in the Arena. If your health is above " +
+            "this level, your stamina will be checked to see if it is above " +
+            "the stamina threshold to stay in the Arena.";
+        var ArenaStaminaInstructions = "If your stamina is above this value, " +
+            "you will continue to stay in the Arena. If your stamina is " +
+            "below this level, your health will be checked to see if it is " +
+            "below the health thershold for you to stay in the Arena. ";
+        htmlCode += '<tr><td>Maintain Rank</td><td>&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaGoal', goallist, '', "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
+        htmlCode += '<tr><td>Hide Using</td><td>&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;' + this.MakeDropDown('ArenaHide', typeList, typeInst, "style='font-size: 10px min-width: 85px; max-width: 85px; width : 85px;'") + '</td></tr></table>';
         htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>&nbsp;&nbsp;&nbsp;Arena If Health Below</td><td>' + this.MakeNumberForm('ArenaMaxHealth', ArenaHealthInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
@@ -1320,12 +1502,20 @@ var caap = {
         var powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible";
         var dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.";
         htmlCode += this.ToggleControl('Monster', 'MONSTER');
-        var mbattleList = ['Stamina Available', 'At Max Stamina', 'At X Stamina', 'Stay Hidden', 'Never'];
-        var mbattleInst = ['Stamina Available will attack whenever you have enough stamina',
-                           'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
-                           'At X Stamina you can set maximum and minimum stamina to battle',
-                           'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                           'Never - disables attacking monsters'];
+        var mbattleList = [
+            'Stamina Available',
+            'At Max Stamina',
+            'At X Stamina',
+            'Stay Hidden',
+            'Never'
+        ];
+        var mbattleInst = [
+            'Stamina Available will attack whenever you have enough stamina',
+            'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
+            'At X Stamina you can set maximum and minimum stamina to battle',
+            'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
+            'Never - disables attacking monsters'
+        ];
         htmlCode += '<table width=189 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Attack When:</td><td>' + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px min-width: 105px; max-width: 105px; width : 105px;'") + '</td></tr></table>';
         htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (gm.getValue('WhenMonster', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
@@ -1340,8 +1530,20 @@ var caap = {
         htmlCode += '<tr><td>Clear Complete Monsters</td><td> ' + this.MakeCheckBox('clearCompleteMonsters', false, '') + '</td></tr>';
         htmlCode += '<tr><td>Achievement Mode</td><td> ' + this.MakeCheckBox('AchievementMode', true, '', monsterachieveInstructions) + '</td></tr>';
         htmlCode += '<tr><td>Get Demi Points First</td><td> ' + this.MakeCheckBox('DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true) + '</td></tr>';
-        var demiPoint = ['Ambrosia', 'Malekus', 'Corvintheus', 'Aurora', 'Azeron'];
-        var demiPtList = ['<img src="' + caapGlob.symbol_tiny_1 + '" height="15" width="14"/>', '<img src="' + caapGlob.symbol_tiny_2 + '" height="15" width="14"/>', '<img src="' + caapGlob.symbol_tiny_3 + '" height="15" width="14"/>', '<img src="' + caapGlob.symbol_tiny_4 + '" height="15" width="14"/>', '<img src="' + caapGlob.symbol_tiny_5 + '" height="15" width="14"/>'];
+        var demiPoint = [
+            'Ambrosia',
+            'Malekus',
+            'Corvintheus',
+            'Aurora',
+            'Azeron'
+        ];
+        var demiPtList = [
+            '<img src="' + caapGlob.symbol_tiny_1 + '" height="15" width="14"/>',
+            '<img src="' + caapGlob.symbol_tiny_2 + '" height="15" width="14"/>',
+            '<img src="' + caapGlob.symbol_tiny_3 + '" height="15" width="14"/>',
+            '<img src="' + caapGlob.symbol_tiny_4 + '" height="15" width="14"/>',
+            '<img src="' + caapGlob.symbol_tiny_5 + '" height="15" width="14"/>'
+        ];
         for (var demiPtItem in demiPtList) {
             if (demiPtList.hasOwnProperty(demiPtItem)) {
                 htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
@@ -1374,10 +1576,23 @@ var caap = {
         htmlCode += "</table><hr/> </div>";
 
         //Recon Controls
-        var PReconInstructions = "Enable player battle reconnaissance to run as an idle background task. Battle targets will be collected and can be displayed using the 'Target List' selection on the dashboard.";
-        var PRRankInstructions = "Provide the number of ranks below you which recon will use to filter targets. This value will be subtracted from your rank to establish the minimum rank that recon will consider as a viable target. Default 3.";
-        var PRLevelInstructions = "Provide the number of levels above you which recon will use to filter targets. This value will be added to your level to establish the maximum level that recon will consider as a viable target. Default 10.";
-        var PRARBaseInstructions = "This value sets the base for your army ratio calculation. It is basically a multiplier for the army size of a player at your equal level. For example, a value of .5 means you will battle an opponent the same level as you with an army half the size of your army or less. Default 1.";
+        var PReconInstructions = "Enable player battle reconnaissance to run " +
+            "as an idle background task. Battle targets will be collected and" +
+            " can be displayed using the 'Target List' selection on the " +
+            "dashboard.";
+        var PRRankInstructions = "Provide the number of ranks below you which" +
+            " recon will use to filter targets. This value will be subtracted" +
+            " from your rank to establish the minimum rank that recon will " +
+            "consider as a viable target. Default 3.";
+        var PRLevelInstructions = "Provide the number of levels above you " +
+            "which recon will use to filter targets. This value will be added" +
+            " to your level to establish the maximum level that recon will " +
+            "consider as a viable target. Default 10.";
+        var PRARBaseInstructions = "This value sets the base for your army " +
+            "ratio calculation. It is basically a multiplier for the army " +
+            "size of a player at your equal level. For example, a value of " +
+            ".5 means you will battle an opponent the same level as you with " +
+            "an army half the size of your army or less. Default 1.";
         htmlCode += this.ToggleControl('Recon', 'RECON');
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Enable Player Recon </td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ' + this.MakeCheckBox('DoPlayerRecon', false, 'PlayerReconControl', PReconInstructions, true) + '</td></tr></table>';
@@ -1390,16 +1605,40 @@ var caap = {
         htmlCode += "<hr/> </div>";
 
         // Add General Comboboxes
-        var generalList = ['Get General List', 'Use Current', 'Under Level 4'].concat(gm.getList('AllGenerals'));
+        var generalList = [
+            'Get General List',
+            'Use Current',
+            'Under Level 4'
+        ].concat(gm.getList('AllGenerals'));
+
         var crossList = function (checkItem) {
             return (generalList.indexOf(checkItem) >= 0);
         };
 
-        var generalIncomeList = ['Get General List', 'Mercedes', 'Cid', 'Use Current'].filter(crossList);
-        var generalBankingList = ['Get General List', 'Aeris', 'Use Current'].filter(crossList);
+        var generalIncomeList = [
+            'Get General List',
+            'Mercedes',
+            'Cid',
+            'Use Current'
+        ].filter(crossList);
+
+        var generalBankingList = [
+            'Get General List',
+            'Aeris',
+            'Use Current'
+        ].filter(crossList);
+
         var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up";
         htmlCode += this.ToggleControl('Generals', 'GENERALS');
-        var dropDownList = ['Idle', 'Monster', 'Fortify', 'Battle', 'SubQuest', 'Buy'];
+        var dropDownList = [
+            'Idle',
+            'Monster',
+            'Fortify',
+            'Battle',
+            'SubQuest',
+            'Buy'
+        ];
+
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
         for (var dropDownItem in dropDownList) {
             if (dropDownList.hasOwnProperty(dropDownItem)) {
@@ -1416,7 +1655,14 @@ var caap = {
         var statusInstructions = "Automatically increase attributes when upgrade skill points are available.";
         var statusAdvInstructions = "USE WITH CAUTION: You can use numbers or formulas(ie. level * 2 + 10). Variable keywords include energy, health, stamina, attack, defense, and level. JS functions can be used (Math.min, Math.max, etc) !!!Remember your math class: 'level + 20' not equals 'level * 2 + 10'!!!";
         var statImmedInstructions = "Update Stats Immediately";
-        var attrList = ['', 'energy', 'attack', 'defense', 'stamina', 'health'];
+        var attrList = [
+            '',
+            'energy',
+            'attack',
+            'defense',
+            'stamina',
+            'health'
+        ];
         htmlCode += this.ToggleControl('Status', 'UPGRADE SKILL POINTS');
         htmlCode += '<table width=170 cellpadding=0 cellspacing=0>';
         htmlCode += '<tr><td>Auto Add Upgrade Points</td><td> ' + this.MakeCheckBox('AutoStat', false, '', statusInstructions) + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>";
@@ -1449,7 +1695,10 @@ var caap = {
         var titleInstructions = "Set the title bar to the player name.";
         var hideAdsInstructions = "Hides the sidebar adverts.";
         htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
-        var giftChoiceList = ['Same Gift As Received', 'Random Gift'];
+        var giftChoiceList = [
+            'Same Gift As Received',
+            'Random Gift'
+        ];
         giftChoiceList = giftChoiceList.concat(gm.getList('GiftList'));
         giftChoiceList.push('Get Gift List');
         htmlCode += '<table width=180 cellpadding=0 cellspacing=0>';
@@ -2402,8 +2651,8 @@ var caap = {
                     this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + this.DisplayTimer('BlessingTimer'));
                 }
             }
-			
-			if (this.DisplayTimer('ArenaRankTimer')) {
+
+            if (this.DisplayTimer('ArenaRankTimer')) {
                 if (this.CheckTimer('ArenaRankTimer')) {
                     this.SetDivContent('arena_mess', '');
                 } else {
@@ -2578,9 +2827,9 @@ var caap = {
             }
         }
 
-		if (!caap.stats.level) {
-			caap.GetStats();
-		}	
+        if (!caap.stats.level) {
+            caap.GetStats();
+        }
         if (caap.stats.level < 10) {
             caap.battlePage = 'battle_train,battle_off';
         } else {
@@ -3869,12 +4118,12 @@ var caap = {
                 }
             }
 
-    /*  Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
+            /*  Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
             if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
                 trash = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
                 elementArray = element.split(caapGlob.vs);
             }
-    */
+            */
 
             this.SetCheckResultsFunction('');
         } else {
@@ -3992,9 +4241,39 @@ var caap = {
         return false;
     },
 
-    rankTable: {'acolyte': 0, 'scout': 1, 'soldier': 2, 'elite soldier': 3, 'squire': 4, 'knight': 5, 'first knight': 6, 'legionnaire': 7, 'centurion': 8, 'champion': 9, 'lieutenant commander': 10, 'commander': 11, 'high commander': 12, 'lieutenant general': 13, 'general': 14, 'high general': 15, 'baron': 16, 'earl': 17, 'duke': 18, 'prince': 19, 'king': 20, 'high king': 21},
+    rankTable: {
+        'acolyte': 0,
+        'scout': 1,
+        'soldier': 2,
+        'elite soldier': 3,
+        'squire': 4,
+        'knight': 5,
+        'first knight': 6,
+        'legionnaire': 7,
+        'centurion': 8,
+        'champion': 9,
+        'lieutenant commander': 10,
+        'commander': 11,
+        'high commander': 12,
+        'lieutenant general': 13,
+        'general': 14,
+        'high general': 15,
+        'baron': 16,
+        'earl': 17,
+        'duke': 18,
+        'prince': 19,
+        'king': 20,
+        'high king': 21
+    },
 
-    arenaTable: {'brawler': 1, 'swordsman': 2, 'warrior': 3, 'gladiator': 4, 'hero': 5, 'legend': 6},
+    arenaTable: {
+        'brawler': 1,
+        'swordsman': 2,
+        'warrior': 3,
+        'gladiator': 4,
+        'hero': 5,
+        'legend': 6
+    },
 
     ClickBattleButton: function (battleButton) {
         gm.setValue('ReleaseControl', true);
@@ -4047,54 +4326,59 @@ var caap = {
             var chainId = '';
             var chainAttack = false;
             var inp = null;
+            var yourRank = 0;
+            var txt = '';
+            var yourArenaGoal = gm.getValue('ArenaGoal', '');
             if (type == 'Arena') {
                 chainId = gm.getValue('ArenaChainId', '');
                 gm.setValue('ArenaChainId', '');
-				var webSlice = nHtml.FindByAttrContains(document.body, 'div', 'id', 'arena_body');
-				if (webSlice) {
-					var txt = nHtml.GetText(webSlice);
-					var yourRankStrObj = /:([A-Za-z ]+)/.exec(txt);
-					var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
-					yourRank = this.arenaTable[yourRankStr];
-					var yourArenaPoints
-					if (pointstxt = txt.match(/Points:\s+.+\s+/i)) {
-						yourArenaPoints = Number(this.NumberOnly(pointstxt));
-					} 	
-					// var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
-					gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
-					
-					if ((yourArenaGoal = gm.getValue('ArenaGoal','')) && yourArenaPoints) {
-						yourArenaGoal = yourArenaGoal.toLowerCase();
-						if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) { 
-							if (this.GetNumber('APLimit',0) == 0) {
-								gm.setValue('APLimit',yourArenaPoints + this.GetNumber('ArenaRankBuffer',500));
-								gm.log('We need '+this.GetNumber('APLimit')+' as a buffer for current rank');
-							} else if (this.GetNumber('APLimit',0) <= yourArenaPoints) {
-								this.SetTimer('ArenaRankTimer',1*60*60);
-								gm.log('We are safely at rank: '+ yourRankStr + ' Points:' + yourArenaPoints);
-								this.SetDivContent('battle_mess', 'Arena Rank ' + yourArenaGoal + ' Achieved');
-								return false;
-							}	
-						} else {
-							gm.setValue('APLimit','0');
-						}
-					}		
-				} else {
-					gm.log('Unable To Find Your Arena Rank');
-					yourRank = 0;
-				}				
+                var webSlice = nHtml.FindByAttrContains(document.body, 'div', 'id', 'arena_body');
+                if (webSlice) {
+                    txt = nHtml.GetText(webSlice);
+                    var yourRankStrObj = /:([A-Za-z ]+)/.exec(txt);
+                    var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
+                    yourRank = this.arenaTable[yourRankStr];
+                    var yourArenaPoints = 0;
+                    var pointstxt = txt.match(/Points:\s+.+\s+/i);
+                    if (pointstxt) {
+                        yourArenaPoints = Number(this.NumberOnly(pointstxt));
+                    }
+                    // var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
+                    gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
+
+
+                    if (yourArenaGoal && yourArenaPoints) {
+                        yourArenaGoal = yourArenaGoal.toLowerCase();
+                        if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) {
+                            if (this.GetNumber('APLimit', 0) === 0) {
+                                gm.setValue('APLimit', yourArenaPoints + this.GetNumber('ArenaRankBuffer', 500));
+                                gm.log('We need ' + this.GetNumber('APLimit') + ' as a buffer for current rank');
+                            } else if (this.GetNumber('APLimit', 0) <= yourArenaPoints) {
+                                this.SetTimer('ArenaRankTimer', 1 * 60 * 60);
+                                gm.log('We are safely at rank: ' + yourRankStr + ' Points:' + yourArenaPoints);
+                                this.SetDivContent('battle_mess', 'Arena Rank ' + yourArenaGoal + ' Achieved');
+                                return false;
+                            }
+                        } else {
+                            gm.setValue('APLimit', '0');
+                        }
+                    }
+                } else {
+                    gm.log('Unable To Find Your Arena Rank');
+                    yourRank = 0;
+                }
             } else {
                 chainId = gm.getValue('BattleChainId', '');
                 gm.setValue('BattleChainId', '');
-				yourRank = this.stats.rank;				
+                yourRank = this.stats.rank;
             }
 
-			// Lets get our Freshmeat user settings
-			var minRank = this.GetNumber("FreshMeatMinRank", 99);
-			var maxLevel = this.GetNumber("FreshMeatMaxLevel", ((invadeOrDuel == 'Invade') ? 1000 : 15));
-			var ARBase = this.GetNumber("FreshMeatARBase", 0.5);
-			var ARMax = this.GetNumber("FreshMeatARMax", 1000);
-			var ARMin = this.GetNumber("FreshMeatARMin", 0);
+            // Lets get our Freshmeat user settings
+            var minRank = this.GetNumber("FreshMeatMinRank", 99);
+            var maxLevel = this.GetNumber("FreshMeatMaxLevel", ((invadeOrDuel == 'Invade') ? 1000 : 15));
+            var ARBase = this.GetNumber("FreshMeatARBase", 0.5);
+            var ARMax = this.GetNumber("FreshMeatARMax", 1000);
+            var ARMin = this.GetNumber("FreshMeatARMin", 0);
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
@@ -4106,11 +4390,11 @@ var caap = {
                 }
 
                 var rank = 0;
+                yourRank = 0;
                 var level = 0;
                 var army = 0;
-                var txt = '';
+                txt = '';
                 var levelm = '';
-
                 if (type == 'Raid') {
                     tr = tr.parentNode.parentNode.parentNode.parentNode.parentNode;
                     txt = tr.childNodes[3].childNodes[3].textContent;
@@ -4158,9 +4442,12 @@ var caap = {
                 if (level - this.stats.level > maxLevel) {
                     continue;
                 }
+
+
                 if (yourRank && (yourRank - rank  > minRank)) {
                     continue;
                 }
+
                 var levelMultiplier = this.stats.level / level;
                 var armyRatio = ARBase * levelMultiplier;
                 armyRatio = Math.min(armyRatio, ARMax);
@@ -4322,7 +4609,7 @@ var caap = {
 
         var target = this.GetCurrentBattleTarget(mode);
         if (!target) {
-			gm.log('No valid battle target');
+            gm.log('No valid battle target');
             return false;
         }
 
@@ -4331,7 +4618,7 @@ var caap = {
         if (gm.getValue('WhenBattle') == 'Stay Hidden' && !this.NeedToHide()) {
             //gm.log("Not Hiding Mode: Safe To Wait For Other Activity.")
             this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
-			gm.log('We Dont Need To Hide Yet');
+            gm.log('We Dont Need To Hide Yet');
             return false;
         }
 
@@ -4438,7 +4725,7 @@ var caap = {
 
                     return true;
                 }
-				gm.log('Doing Raid UserID list, but no target');
+                gm.log('Doing Raid UserID list, but no target');
                 return false;
             }
 
@@ -4463,7 +4750,7 @@ var caap = {
 
                     return true;
                 }
-				gm.log('Doing Freshmeat UserID list, but no target');
+                gm.log('Doing Freshmeat UserID list, but no target');
                 return false;
             }
 
@@ -4489,7 +4776,7 @@ var caap = {
                     return true;
                 }
 
-				gm.log('Doing Arena UserID list, but no target');
+                gm.log('Doing Arena UserID list, but no target');
                 return false;
             }
 
@@ -4521,7 +4808,7 @@ var caap = {
                 this.NextBattleTarget();
                 return true;
             }
-			gm.log('Doing default UserID list, but no target');
+            gm.log('Doing default UserID list, but no target');
             return false;
         }
     },
@@ -4555,19 +4842,19 @@ var caap = {
 
 
         if (gm.getValue('TargetType', '') == 'Arena') {
-			if (!this.CheckTimer('ArenaRankTimer')) {
-				this.SetDivContent('battle_mess', 'Arena Rank Achieved');
-				if (gm.getValue('ArenaHide', 'None') == 'None') {
-					return false;
-				} else {
-					if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
-						return false;
-					} else {
-						return gm.getValue('ArenaHide', '');
-					}	
-				}	
-			}	
-		
+            if (!this.CheckTimer('ArenaRankTimer')) {
+                this.SetDivContent('battle_mess', 'Arena Rank Achieved');
+                if (gm.getValue('ArenaHide', 'None') == 'None') {
+                    return false;
+                } else {
+                    if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
+                        return false;
+                    } else {
+                        return gm.getValue('ArenaHide', '');
+                    }
+                }
+            }
+
             if (gm.getValue('ArenaHide', 'None') == 'None') {
                 return 'Arena';
             }
@@ -4806,7 +5093,7 @@ var caap = {
         if (ss.snapshotLength === 0) {
             return false;
         }
-        var page = gm.getValue('page','battle_monster');
+        var page = gm.getValue('page', 'battle_monster');
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
         if (!caapGlob.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
@@ -4873,8 +5160,8 @@ var caap = {
             }
 
             var link = "<a href='http://apps.facebook.com/castle_age/" + page +
-					".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
-					mpool + siege + "'>Link</a>";
+                    ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
+                    mpool + siege + "'>Link</a>";
             gm.setListObjVal('monsterOl', monster, 'Link', link);
         }
 
@@ -5307,16 +5594,16 @@ var caap = {
         var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
         if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter >= 0 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
             // Check raids and monster individual pages
-            if (!(gm.getValue('monsterOl',''))) {
-				return false;
-			}	
-			var monsterObjList = gm.getList('monsterOl');
-			if (gm.getObjVal(monsterObjList[counter],'Damage','Undefined') != 'Undefined' && !gm.getValue('monsterReviewRetryDone',false)) {
-				counter++;
-				gm.setValue('monsterReviewRetryDone',true);
-			} else {
-				gm.setValue('monsterReviewRetryDone',false);
-			}
+            if (!(gm.getValue('monsterOl', ''))) {
+                return false;
+            }
+            var monsterObjList = gm.getList('monsterOl');
+            if (gm.getObjVal(monsterObjList[counter], 'Damage', 'Undefined') != 'Undefined' && !gm.getValue('monsterReviewRetryDone', false)) {
+                counter++;
+                gm.setValue('monsterReviewRetryDone', true);
+            } else {
+                gm.setValue('monsterReviewRetryDone', false);
+            }
             while (counter < monsterObjList.length) {
                 var monsterObj = monsterObjList[counter];
                 if (!monsterObj) {
@@ -5416,7 +5703,7 @@ var caap = {
             if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && gm.getListObjVal('monsterOl', monster, 'page') == 'battle_monster') {
                 fightMode = gm.setValue('fightMode', 'Monster');
             } else {
-				this.SetTimer('NotargetFrombattle_monster',60);
+                this.SetTimer('NotargetFrombattle_monster', 60);
                 return false;
             }
         }
@@ -5534,7 +5821,7 @@ var caap = {
             caap.Click(engageButton);
             return true;
         } else {
-            this.SetTimer('NotargetFrombattle_monster',60);
+            this.SetTimer('NotargetFrombattle_monster', 60);
             gm.log('No "Engage" button for ' + monster);
             return false;
         }
@@ -5674,68 +5961,68 @@ var caap = {
         return false;
     },
     /*-------------------------------------------------------------------------------------\
-	NeedToHide will return true if the current stamina and health indicate we need to bring
-	our health down through battles (hiding).  It also returns true if there is no other outlet
-	for our stamina (currently this just means Monsters, but will eventually incorporate
-	other stamina uses).  
+    NeedToHide will return true if the current stamina and health indicate we need to bring
+    our health down through battles (hiding).  It also returns true if there is no other outlet
+    for our stamina (currently this just means Monsters, but will eventually incorporate
+    other stamina uses).
     \-------------------------------------------------------------------------------------*/
     NeedToHide: function () {
-		if (gm.getValue('WhenMonster','') == 'Never') {
-			gm.log('Stay Hidden Mode: Monster battle not enabled');
-			return true;
-		}
-		if (!gm.getValue('targetFrombattle_monster','')) {
-			gm.log('Stay Hidden Mode: No monster to battle');
-			return true;
-		}
-	/*-------------------------------------------------------------------------------------\
-	The riskConstant helps us determine how much we stay in hiding and how much we are willing
-	to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to 
-	stay in hiding. The	higher the risk constant, the more we attempt to use our stamina for 
-	non-hiding activities.  The below matrix shows the default riskConstant of 1.7 
-	
-				S	T	A	M	I	N	A		
-				1	2	3	4	5	6	7	8	9        -  Indicates we use stamina to hide
-		H	10	-	-	+	+	+	+	+	+	+        +  Indicates we use stamina as requested
-		E	11	-	-	+	+	+	+	+	+	+
-		A	12	-	-	+	+	+	+	+	+	+
-		L	13	-	-	+	+	+	+	+	+	+
-		T	14	-	-	-	+	+	+	+	+	+
-		H	15	-	-	-	+	+	+	+	+	+
-			16	-	-	-	-	+	+	+	+	+
-			17	-	-	-	-	-	+	+	+	+
-			18	-	-	-	-	-	+	+	+	+
-			
-	Setting our riskConstant down to 1 will result in us spending out stamina to hide much
-	more often:
+        if (gm.getValue('WhenMonster', '') == 'Never') {
+            gm.log('Stay Hidden Mode: Monster battle not enabled');
+            return true;
+        }
+        if (!gm.getValue('targetFrombattle_monster', '')) {
+            gm.log('Stay Hidden Mode: No monster to battle');
+            return true;
+        }
+    /*-------------------------------------------------------------------------------------\
+    The riskConstant helps us determine how much we stay in hiding and how much we are willing
+    to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to
+    stay in hiding. The higher the risk constant, the more we attempt to use our stamina for
+    non-hiding activities.  The below matrix shows the default riskConstant of 1.7
 
-				S	T	A	M	I	N	A		
-				1	2	3	4	5	6	7	8	9        -  Indicates we use stamina to hide
-		H	10	-	-	+	+	+	+	+	+	+        +  Indicates we use stamina as requested
-		E	11	-	-	+	+	+	+	+	+	+
-		A	12	-	-	-	+	+	+	+	+	+
-		L	13	-	-	-	-	+	+	+	+	+
-		T	14	-	-	-	-	-	+	+	+	+
-		H	15	-	-	-	-	-	-	+	+	+
-			16	-	-	-	-	-	-	-	+	+
-			17	-	-	-	-	-	-	-	-	+
-			18	-	-	-	-	-	-	-	-	-
+                S   T   A   M   I   N   A
+                1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
+        H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
+        E   11  -   -   +   +   +   +   +   +   +
+        A   12  -   -   +   +   +   +   +   +   +
+        L   13  -   -   +   +   +   +   +   +   +
+        T   14  -   -   -   +   +   +   +   +   +
+        H   15  -   -   -   +   +   +   +   +   +
+            16  -   -   -   -   +   +   +   +   +
+            17  -   -   -   -   -   +   +   +   +
+            18  -   -   -   -   -   +   +   +   +
+
+    Setting our riskConstant down to 1 will result in us spending out stamina to hide much
+    more often:
+
+                S   T   A   M   I   N   A
+                1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
+        H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
+        E   11  -   -   +   +   +   +   +   +   +
+        A   12  -   -   -   +   +   +   +   +   +
+        L   13  -   -   -   -   +   +   +   +   +
+        T   14  -   -   -   -   -   +   +   +   +
+        H   15  -   -   -   -   -   -   +   +   +
+            16  -   -   -   -   -   -   -   +   +
+            17  -   -   -   -   -   -   -   -   +
+            18  -   -   -   -   -   -   -   -   -
 
     \-------------------------------------------------------------------------------------*/
-        var riskConstant = this.GetNumber('HidingRiskConstant',1.7);
-	/*-------------------------------------------------------------------------------------\
-	The formula for determining if we should hide goes something like this:
-	
-		If 	(health - (estimated dmg from next attacks) puts us below 10)  AND 
-			(current stamina will be at least 5 using staminatime/healthtime ratio) 
-		Then stamina can be used/saved for normal process
-		Else stamina is used for us to hide
-		
-    \-------------------------------------------------------------------------------------*/	
+        var riskConstant = this.GetNumber('HidingRiskConstant', 1.7);
+    /*-------------------------------------------------------------------------------------\
+    The formula for determining if we should hide goes something like this:
+
+        If  (health - (estimated dmg from next attacks) puts us below 10)  AND
+            (current stamina will be at least 5 using staminatime/healthtime ratio)
+        Then stamina can be used/saved for normal process
+        Else stamina is used for us to hide
+
+    \-------------------------------------------------------------------------------------*/
         if ((this.stats.health.num - ((this.stats.stamina.num - 1) * riskConstant) < 10) && (this.stats.stamina.num * (5 / 3) >= 5)) {
-			return false;
+            return false;
         } else {
-			return true;
+            return true;
         }
     },
 
@@ -6583,73 +6870,84 @@ var caap = {
     },
 
     /*-------------------------------------------------------------------------------------\
-	AutoAlchemy perform aclchemy combines for all recipes that do not have missing 
-	ingredients.  By default, it also will not combine Battle Hearts.  
-	First we make sure the option is set and that we haven't been here for a while.
-    \-------------------------------------------------------------------------------------*/	
-	AutoAlchemy:function(){try{
-		if (!gm.getValue('AutoAlchemy',false)) {
-			return false;
-		}
-		if (!this.CheckTimer('AlchemyTimer')) {
-			return false;
-		}
+    AutoAlchemy perform aclchemy combines for all recipes that do not have missing
+    ingredients.  By default, it also will not combine Battle Hearts.
+    First we make sure the option is set and that we haven't been here for a while.
+    \-------------------------------------------------------------------------------------*/
+    AutoAlchemy: function () {
+        try {
+            if (!gm.getValue('AutoAlchemy', false)) {
+                return false;
+            }
+
+            if (!this.CheckTimer('AlchemyTimer')) {
+                return false;
+            }
     /*-------------------------------------------------------------------------------------\
-	Now we navigate to the Alchemy Recipe page.
-    \-------------------------------------------------------------------------------------*/		
-		if (!this.NavigateTo('keep,alchemy','alchemy_banner.jpg')) {
-			if (document.getElementById('app46755028429_recipe_list').className != 'show_items') {
-				if (button = nHtml.FindByAttrContains(document.body, 'div', 'id', 'alchemy_item_tab')) {
-					this.Click(button, 5000);
-					return true;
-				} else {
-					gm.log('Cant find recipe div');
-					return false;
-				}	
-			}
+    Now we navigate to the Alchemy Recipe page.
+    \-------------------------------------------------------------------------------------*/
+            if (!this.NavigateTo('keep,alchemy', 'alchemy_banner.jpg')) {
+                var button = null;
+                if (document.getElementById('app46755028429_recipe_list').className != 'show_items') {
+                    button = nHtml.FindByAttrContains(document.body, 'div', 'id', 'alchemy_item_tab');
+                    if (button) {
+                        this.Click(button, 5000);
+                        return true;
+                    } else {
+                        gm.log('Cant find recipe div');
+                        return false;
+                    }
+                }
     /*-------------------------------------------------------------------------------------\
-	We close the results of our combines so they don't hog up our screen
-    \-------------------------------------------------------------------------------------*/			
-			if (button = this.CheckForImage('help_close_x.gif')) {
-				this.Click(button, 1000);
-				return true;
-			}	
+    We close the results of our combines so they don't hog up our screen
+    \-------------------------------------------------------------------------------------*/
+                button = this.CheckForImage('help_close_x.gif');
+                if (button) {
+                    this.Click(button, 1000);
+                    return true;
+                }
     /*-------------------------------------------------------------------------------------\
-	Now we get all of the recipes and step through them one by one
-    \-------------------------------------------------------------------------------------*/			
-			var ss = document.evaluate(".//div[@class='alchemyRecipeBack']", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-			for (var s = 0; s < ss.snapshotLength; s++) {
-				var recipeDiv = ss.snapshotItem(s);
+    Now we get all of the recipes and step through them one by one
+    \-------------------------------------------------------------------------------------*/
+                var ss = document.evaluate(".//div[@class='alchemyRecipeBack']", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                for (var s = 0; s < ss.snapshotLength; s++) {
+                    var recipeDiv = ss.snapshotItem(s);
     /*-------------------------------------------------------------------------------------\
-	If we are missing an ingredient then skip it
-    \-------------------------------------------------------------------------------------*/				
-				if (nHtml.FindByAttrContains(recipeDiv, 'div', 'class', 'missing')) {
-					// gm.log('Skipping Recipe');
-					continue;
-				}
+    If we are missing an ingredient then skip it
+        \-------------------------------------------------------------------------------------*/
+                    if (nHtml.FindByAttrContains(recipeDiv, 'div', 'class', 'missing')) {
+                        // gm.log('Skipping Recipe');
+                        continue;
+                    }
     /*-------------------------------------------------------------------------------------\
-	If we are skipping battle hearts then skip it
-    \-------------------------------------------------------------------------------------*/				
-				if (this.CheckForImage('raid_hearts',recipeDiv) && gm.getValue('AlchemySkipHearts',true)) {
-					gm.log('Skipping Hearts');
-					continue;	
-				}
+    If we are skipping battle hearts then skip it
+    \-------------------------------------------------------------------------------------*/
+                    if (this.CheckForImage('raid_hearts', recipeDiv) && gm.getValue('AlchemySkipHearts', true)) {
+                        gm.log('Skipping Hearts');
+                        continue;
+                    }
     /*-------------------------------------------------------------------------------------\
-	Find our button and click it
-    \-------------------------------------------------------------------------------------*/				
-				if (button = nHtml.FindByAttrXPath(recipeDiv, 'input', "@type='image'")) {
-					this.Click(button, 2000);
-					return true;
-				} else gm.log('Cant Find Item Image Button');
-			}
+    Find our button and click it
+    \-------------------------------------------------------------------------------------*/
+                    button = nHtml.FindByAttrXPath(recipeDiv, 'input', "@type='image'");
+                    if (button) {
+                        this.Click(button, 2000);
+                        return true;
+                    } else {
+                        gm.log('Cant Find Item Image Button');
+                    }
+                }
     /*-------------------------------------------------------------------------------------\
-	All done. Set te timer to check back in 3 hours.
-    \-------------------------------------------------------------------------------------*/			
-			this.SetTimer('AlchemyTimer',3*60*60);
-			return false;
-		}
-	} catch (e){gm.log("ERROR in Alchemy :"+e); return false;}	
-	},	
+    All done. Set te timer to check back in 3 hours.
+    \-------------------------------------------------------------------------------------*/
+                this.SetTimer('AlchemyTimer', 3 * 60 * 60);
+                return false;
+            }
+        } catch (e) {
+            gm.log("ERROR in Alchemy: " + e);
+            return false;
+        }
+    },
 
     /////////////////////////////////////////////////////////////////////
     //                          BANKING
@@ -6858,10 +7156,10 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     ArenaElite: function () {
-		if (this.WhileSinceDidIt('ArenaEliteTimer',6 * 60 * 60)) {
-			gm.setValue('ArenaEliteEnd', '');
-		}	
-	
+        if (this.WhileSinceDidIt('ArenaEliteTimer', 6 * 60 * 60)) {
+            gm.setValue('ArenaEliteEnd', '');
+        }
+
         if (!gm.getValue('ArenaEliteNeeded', false)) {
             return false;
         }
@@ -6920,7 +7218,7 @@ var caap = {
             if (eliteList === '') {
                 gm.setValue('ArenaEliteNeeded', false);
                 gm.setValue('ArenaEliteEnd', 'NoArmy');
-				this.JustDidIt('ArenaEliteTimer');
+                this.JustDidIt('ArenaEliteTimer');
                 gm.log('Army list exhausted');
             }
         }
@@ -7331,16 +7629,20 @@ var caap = {
             gm.log("Unable to locate upgrade button for " + attribute);
             return "Fail";
         }
-		
-		var level = this.stats.level;
+
+        var level = this.stats.level;
         var attrCurrent = parseInt(button.parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
         var energy = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
         var stamina = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-		if (level >= 10 ) {
-			var attack = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-			var defense = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-			var health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-		}	
+        var attack = 0;
+        var defense = 0;
+        var health = 0;
+        if (level >= 10) {
+            attack = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+            defense = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+            health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+        }
+
         //gm.log("Energy ="+energy+" Stamina ="+stamina+" Attack ="+attack+" Defense ="+defense+" Heath ="+health);
         var ajaxLoadIcon = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app46755028429_AjaxLoadIcon');
         if (!ajaxLoadIcon || ajaxLoadIcon.style.display !== 'none') {
@@ -7493,7 +7795,7 @@ var caap = {
 
                                     caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
                                     for (ID; ID < Ids.length ; ID++) {
-										caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
+                                        caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
                                         if (count >= 5) { //don't spam requests
                                             this.waitMilliSecs = 1000;
                                             break;
@@ -7521,9 +7823,9 @@ var caap = {
                                         }, 5000);
 
                                         gm.log("Fill Army Completed");
-										gm.setValue('FillArmy', false);
-										gm.deleteValue("ArmyCount");
-										gm.deleteValue('waiting');										
+                                        gm.setValue('FillArmy', false);
+                                        gm.deleteValue("ArmyCount");
+                                        gm.deleteValue('waiting');
                                     }
                                 } else {//if response != ok
                                     caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
@@ -7533,15 +7835,12 @@ var caap = {
 
                                     gm.log("Fill Army Not Completed, cant get CA friends list");
                                     gm.log("Response.status: " + response.statusText);
-									gm.setValue('FillArmy', false);
-									gm.deleteValue("ArmyCount");
-									gm.deleteValue('waiting');										
-									
+                                    gm.setValue('FillArmy', false);
+                                    gm.deleteValue("ArmyCount");
+                                    gm.deleteValue('waiting');
                                 }
                             }
                         });
-
-
                     }
                 }
 
@@ -7765,7 +8064,15 @@ var caap = {
     // click before returning back here.
     /////////////////////////////////////////////////////////////////////
 
-    actionDescTable: {'AutoIncome': 'Awaiting Income', 'AutoStat': 'Upgrade Skill Points', 'MaxEnergyQuest': 'At Max Energy Quest', 'PassiveGeneral': 'Setting Idle General', 'ImmediateBanking': 'Immediate Banking', 'Battle': 'Battling Players', 'MonsterReview': 'Reviewing Monsters/Raids'},
+    actionDescTable: {
+        'AutoIncome': 'Awaiting Income',
+        'AutoStat': 'Upgrade Skill Points',
+        'MaxEnergyQuest': 'At Max Energy Quest',
+        'PassiveGeneral': 'Setting Idle General',
+        'ImmediateBanking': 'Immediate Banking',
+        'Battle': 'Battling Players',
+        'MonsterReview': 'Reviewing Monsters/Raids'
+    },
 
     CheckLastAction: function (thisAction) {
         var lastAction = gm.getValue('LastAction', 'none');
@@ -7779,6 +8086,120 @@ var caap = {
             gm.log('Changed from doing ' + lastAction + ' to ' + thisAction);
             gm.setValue('LastAction', thisAction);
         }
+    },
+
+    GetActionList: function () {
+        var actionsList = [];
+        if (caapGlob.actionsList.length === 0) {
+            gm.log("Loading a fresh Action List");
+            // The Master Action List
+            var masterActionList = {
+                0x00: 'AutoElite',
+                0x01: 'ArenaElite',
+                0x02: 'Heal',
+                0x03: 'ImmediateBanking',
+                0x04: 'ImmediateAutoStat',
+                0x05: 'MaxEnergyQuest',
+                0x06: 'DemiPoints',
+                0x07: 'Monsters',
+                0x08: 'Battle',
+                0x09: 'MonsterFinder',
+                0x0A: 'Quests',
+                0x0B: 'PassiveGeneral',
+                0x0C: 'Lands',
+                0x0D: 'Bank',
+                0x0E: 'AutoBless',
+                0x0F: 'AutoStat',
+                0x10: 'AutoGift',
+                0x11: 'MonsterReview',
+                0x12: 'AutoPotions',
+                0x13: 'Idle'
+            };
+
+            // actionOrder is a comma seperated string of action numbers as hex pairs
+            // and can be referenced in the Master Action List
+            // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13"
+            var action = '';
+            var actionOrderArray = [];
+            var masterActionListCount = 0;
+            var actionOrderUser = gm.getValue("actionOrder", '');
+            if (actionOrderUser !== '') {
+                // We are using the user defined actionOrder set in the Advanced Hidden Options
+                gm.log("Trying user defined Action Order");
+                // We take the User Action Order and convert it from a comma separated list into an array
+                actionOrderArray = actionOrderUser.split(",");
+                // We count the number of actions contained in the Master Action list
+                for (action in masterActionList) {
+                    if (masterActionList.hasOwnProperty(action)) {
+                        masterActionListCount++;
+                        //gm.log("Counting Action List: " + masterActionListCount);
+                    } else {
+                        gm.log("Error Getting Master Action List length!");
+                        gm.log("Skipping 'action' from masterActionList: " + action);
+                    }
+                }
+            } else {
+                // We are building the Action Order Array from the Master Action List
+                gm.log("Building the default Action Order");
+                for (action in masterActionList) {
+                    if (masterActionList.hasOwnProperty(action)) {
+                        masterActionListCount = actionOrderArray.push(action);
+                        //gm.log("Action Added: " + action);
+                    } else {
+                        gm.log("Error Building Default Action Order!");
+                        gm.log("Skipping 'action' from masterActionList: " + action);
+                    }
+                }
+            }
+
+            // We notify if the number of actions are not sensible or the same as in the Master Action List
+            var actionOrderArrayCount = actionOrderArray.length;
+            if (actionOrderArrayCount === 0) {
+                gm.log("Error! Action Order Array is empty!");
+            }
+
+            if (actionOrderArrayCount < masterActionListCount) {
+                gm.log("Warning! Action Order Array has fewer orders than default!");
+            }
+
+            if (actionOrderArrayCount > masterActionListCount) {
+                gm.log("Warning! Action Order Array has more orders than default!");
+            }
+
+            // We build the Action List
+            //gm.log("Building Action List ...");
+            for (var itemCount = 0; itemCount !== actionOrderArrayCount; itemCount++) {
+                var actionItem = '';
+                if (actionOrderUser !== '') {
+                    // We are using the user defined comma separated list of hex pairs
+                    actionItem = masterActionList[parseInt(actionOrderArray[itemCount], 16)];
+                    //gm.log("(" + itemCount + ") Converted user defined hex pair to action: " + actionItem);
+                } else {
+                    // We are using the Master Action List
+                    actionItem = masterActionList[actionOrderArray[itemCount]];
+                    //gm.log("(" + itemCount + ") Converted Master Action List entry to an action: " + actionItem);
+                }
+
+                // Check the Action Item exists in the Master Action List
+                if (actionItem === masterActionList[itemCount]) {
+                    // We add the Action Item to the Action List
+                    actionsList.push(actionItem);
+                    //gm.log("Added action to the list: " + actionItem);
+                } else {
+                    gm.log("Error! Skipping actionItem");
+                    gm.log("Action Item: " + actionItem);
+                    gm.log("Item Count: " + itemCount);
+                    gm.log("Master Action Item: " + masterActionList[itemCount]);
+                }
+
+                caapGlob.actionsList = actionsList;
+            }
+        } else {
+            actionsList = caapGlob.actionsList;
+        }
+
+        //gm.log("Action List: " + actionsList);
+        return actionsList;
     },
 
     MainLoop: function () {
@@ -7886,16 +8307,16 @@ var caap = {
             return;
         }
 
-        var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'Quests', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'AutoPotions', 'AutoAlchemy', 'Idle'];
-        //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'Quests', 'DemiPoints', 'Monsters', 'Battle', 'MonsterFinder', 'PassiveGeneral', 'Lands', 'Bank', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
-        //var actionsList = ['AutoElite', 'ArenaElite', 'Heal', 'ImmediateBanking', 'ImmediateAutoStat', 'MaxEnergyQuest', 'DemiPoints', 'Quests', 'Monsters', 'Battle', 'MonsterFinder', 'Bank', 'PassiveGeneral', 'Lands', 'AutoBless', 'AutoStat', 'AutoGift', 'MonsterReview', 'Idle'];
+        var actionsList = this.GetActionList();
+
+        //gm.log("Action List: " + actionsList);
         if (!gm.getValue('ReleaseControl', false)) {
             actionsList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
             gm.setValue('ReleaseControl', false);
         }
 
-        //gm.log('Action list: ' + actionsList);
+        //gm.log('Action List: ' + actionsList);
         for (var action in actionsList) {
             if (actionsList.hasOwnProperty(action)) {
                 //gm.log('Action: ' + actionsList[action]);
@@ -7903,7 +8324,7 @@ var caap = {
                     this.CheckLastAction(actionsList[action]);
                     break;
                 }
-            }		
+            }
         }
 
         this.WaitMainLoop();
@@ -8003,7 +8424,10 @@ var style = {
     CreateMenu: function () {
         var newDiv = document.createElement("div");
         newDiv.setAttribute("id", "ColorSelectorDiv");
-        newDiv.setAttribute("style", "display: none; position: fixed; left: " + ((window.innerWidth / 2) - 290) + "px; top: " + ((window.innerHeight / 2) - 200) + "px; z-index: 1337; background: #fff; border: 2px solid #000; padding: 3px; width: 577px");
+        newDiv.setAttribute("style", "display: none; position: fixed; left: " +
+                            ((window.innerWidth / 2) - 290) + "px; top: " +
+                            ((window.innerHeight / 2) - 200) +
+                            "px; z-index: 1337; background: #fff; border: 2px solid #000; padding: 3px; width: 577px");
         newDiv.innerHTML += "<center><b><h1>Select Color<h1></b><div id='SelectColorType'></div></center><br/>";
         newDiv.innerHTML += '<div style="position:relative;height:286px;width:531px;border:1px solid black;">\n' +
         '  <div id="gradientBox" style="cursor:crosshair;top:15px;position:absolute;\n' +
@@ -8863,11 +9287,11 @@ var style = {
         var imgID = (myImage.id) ? "id='" + myImage.id + "' " : "";
         var imgStyle = "display:inline-block;" + myImage.style.cssText;
         var strNewHTML = "<span " + imgID +
-                    " style=\"" + "width:" + myImage.width +
-                    "px; height:" + myImage.height +
-                    "px;" + imgStyle + ";" +
-                    "filter:progid:DXImageTransform.Microsoft.AlphaImageLoader" +
-                    "(src=\'" + myImage.src + "\', sizingMethod='scale');\"></span>";
+            " style=\"" + "width:" + myImage.width +
+            "px; height:" + myImage.height +
+            "px;" + imgStyle + ";" +
+            "filter:progid:DXImageTransform.Microsoft.AlphaImageLoader" +
+            "(src=\'" + myImage.src + "\', sizingMethod='scale');\"></span>";
         myImage.outerHTML = strNewHTML;
     },
 
@@ -8878,7 +9302,11 @@ var style = {
 
 style.CreateMenu();
 caapGlob.currentColor = style.Colors.ColorFromRGB(64, 128, 128);
-caapGlob.arrows = new style.dragObject("arrows", "hueBarDiv", style.arrowsLowBounds, style.arrowsUpBounds, style.arrowsDown, style.arrowsMoved, style.endMovement);
-caapGlob.circle = new style.dragObject("circle", "gradientBox", style.circleLowBounds, style.circleUpBounds, style.circleDown, style.circleMoved, style.endMovement);
+caapGlob.arrows = new style.dragObject("arrows", "hueBarDiv",
+    style.arrowsLowBounds, style.arrowsUpBounds, style.arrowsDown,
+    style.arrowsMoved, style.endMovement);
+caapGlob.circle = new style.dragObject("circle", "gradientBox",
+    style.circleLowBounds, style.circleUpBounds, style.circleDown,
+    style.circleMoved, style.endMovement);
 
 // ENDOFSCRIPT
