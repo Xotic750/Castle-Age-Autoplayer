@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.15.1
+// @version        140.15.2
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.15.1";
+caapGlob.thisVersion = "140.15.2";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -7395,6 +7395,7 @@ var caap = {
             gm.setList('NotFoundIDs', []);
         }
 
+        //if (gm.getValue('DisableGiftReturn', false)) {
         if (gm.getValue('DisableGiftReturn', false) || caapGlob.is_chrome) {
             gm.setList('ReceivedList', []);
         }
@@ -8179,19 +8180,20 @@ var caap = {
                     //gm.log("(" + itemCount + ") Converted Master Action List entry to an action: " + actionItem);
                 }
 
-                // Check the Action Item exists in the Master Action List
-                if (actionItem === masterActionList[itemCount]) {
+                // Check the Action Item
+                if (actionItem.length > 0 && typeof(actionItem) === "string" ) {
                     // We add the Action Item to the Action List
                     actionsList.push(actionItem);
                     //gm.log("Added action to the list: " + actionItem);
                 } else {
                     gm.log("Error! Skipping actionItem");
-                    gm.log("Action Item: " + actionItem);
-                    gm.log("Item Count: " + itemCount);
-                    gm.log("Master Action Item: " + masterActionList[itemCount]);
+                    gm.log("Action Item(" + itemCount + "): " + actionItem);
                 }
+            }
 
-                caapGlob.actionsList = actionsList;
+            caapGlob.actionsList = actionsList;
+            if (actionOrderUser !== '') {
+                gm.log("Action List: " + actionsList);
             }
         } else {
             actionsList = caapGlob.actionsList;
