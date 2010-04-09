@@ -1192,8 +1192,8 @@ var caap = {
     SetControls: function (force) {
         // If unable to read in gm.values, then reload the page
         if (gm.getValue('caapPause', 'none') !== 'none' && gm.getValue('caapPause', 'none') !== 'block') {
-            gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
-            window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
+			gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
+            window.location = window.location.href;
         }
         if (!document.getElementById('caap_div')) {
             var div = document.createElement('div');
@@ -5597,12 +5597,12 @@ var caap = {
                 return false;
             }
             var monsterObjList = gm.getList('monsterOl');
-            if (gm.getObjVal(monsterObjList[counter], 'Damage', 'Undefined') != 'Undefined' && !gm.getValue('monsterReviewRetryDone', false)) {
-                counter++;
-                gm.setValue('monsterReviewRetryDone', true);
-            } else {
-                gm.setValue('monsterReviewRetryDone', false);
-            }
+			if (gm.getObjVal(monsterObjList[counter],'Damage','Undefined') != 'Undefined' || gm.getValue('monsterReviewRetryDone',false)) {
+				counter++;
+				gm.setValue('monsterReviewRetryDone',false);
+			} else {
+				gm.setValue('monsterReviewRetryDone',true);
+			}
             while (counter < monsterObjList.length) {
                 var monsterObj = monsterObjList[counter];
                 if (!monsterObj) {
