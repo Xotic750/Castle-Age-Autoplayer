@@ -8402,13 +8402,14 @@ $(function () {
         gm.deleteValue("ArmyCount");
         gm.deleteValue('waiting');
         gm.setValue('caapPause', 'none');
+        gm.setValue('ReleaseControl', true);
         if (caapGlob.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
         }
-
-        caap.SetControls();
-        caap.CheckResults();
-        gm.setValue('ReleaseControl', true);
+        nHtml.setTimeout(function () {
+			caap.SetControls();
+			caap.CheckResults();
+        }, 500);
     }
 
     this.waitMilliSecs = 8000;
