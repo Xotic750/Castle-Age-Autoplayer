@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.16.1
+// @version        140.16.2
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.16.1";
+caapGlob.thisVersion = "140.16.2";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -49,6 +49,11 @@ caapGlob.arrows = null;
 caapGlob.circle = null;
 caapGlob.protect = '334318';
 caapGlob.actionsList = [];
+caapGlob.arrExp = [];
+caapGlob.ucfirst = function (str) {
+    var firstLetter = str.substr(0, 1);
+    return firstLetter.toUpperCase() + str.substr(1);
+};
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
@@ -1768,6 +1773,8 @@ var caap = {
         var autoPotionsInstructions3 = "Number of energy potions at which to " +
             "begin consuming.";
         var autoPotionsInstructions4 = "Number of energy potions to keep.";
+        var autoPotionsInstructions5 = "Do not consume potions if the " +
+            "experience points to the next level are within this value.";
         var autoEliteInstructions = "Enable or disable Auto Elite function";
         htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
         var giftChoiceList = [
@@ -1793,10 +1800,11 @@ var caap = {
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-        htmlCode += "<tr><td style='padding-left: 10px'>Consume Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += "<tr><td style='padding-left: 10px'>Consume Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" + this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
         htmlCode += '</div>';
 
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -2474,8 +2482,8 @@ var caap = {
             return false;
         }
 
-        var arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
-        $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (arrExp[1] - arrExp[0]) + "</span>)");
+        caapGlob.arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
+        $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (caapGlob.arrExp[1] - caapGlob.arrExp[0]) + "</span>)");
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -6989,7 +6997,9 @@ var caap = {
 
     AutoPotions: function () {
         try {
-            if (!gm.getValue('AutoPotion', true) || !(this.WhileSinceDidIt('AutoPotionTimer', 6 * 60 * 60))) {
+            if (!gm.getValue('AutoPotion', true) ||
+                !(this.WhileSinceDidIt('AutoPotionTimer', 6 * 60 * 60)) ||
+                !(this.WhileSinceDidIt('AutoPotionTimerDelay', 10 * 60))) {
                 return false;
             }
 
@@ -7023,6 +7033,13 @@ var caap = {
             if (staminaPotions >= this.GetNumber("staminaPotionsSpendOver", 40)) {
                 gm.setValue("Consume_Stamina", true);
                 gm.log("Stamina potions ready to consume");
+            }
+
+            gm.log("Checking experience to next level");
+            if (caapGlob.arrExp[0] - caapGlob.arrExp[1] < this.GetNumber("potionsExperience", 20)) {
+                gm.log("Not spending potions, experience to next level condition. Delaying 10 minutes");
+                this.JustDidIt('AutoPotionTimerDelay');
+                return true;
             }
 
             if (this.stats.energy.num < this.stats.energy.max - 10 &&
@@ -7829,30 +7846,31 @@ var caap = {
 
     IncreaseStat: function (attribute, attrAdjust, atributeSlice) {
         try {
+            var lc_attribute = attribute.toLowerCase();
             var button = '';
-            switch (attribute) {
-            case "Energy" :
+            switch (lc_attribute) {
+            case "energy" :
                 button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max');
                 break;
-            case "Stamina" :
+            case "stamina" :
                 button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max');
                 break;
-            case "Attack" :
+            case "attack" :
                 button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack');
                 break;
-            case "Defense" :
+            case "defense" :
                 button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense');
                 break;
-            case "Health" :
+            case "health" :
                 button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max');
                 break;
             default :
-                gm.log("Unable to identify attribute " + attribute);
+                gm.log("Unable to identify attribute " + lc_attribute);
                 return "Fail";
             }
 
             if (!button) {
-                gm.log("Unable to locate upgrade button for " + attribute);
+                gm.log("Unable to locate upgrade button for " + lc_attribute);
                 return "Fail";
             }
 
@@ -7876,7 +7894,7 @@ var caap = {
                 return "Fail";
             }
 
-            if ((attribute == 'Stamina') && (this.statsPoints < 2)) {
+            if ((lc_attribute == 'stamina') && (this.statsPoints < 2)) {
                 gm.setValue("SkillPointsNeed", 2);
                 return "Fail";
             }
@@ -7891,7 +7909,7 @@ var caap = {
             }
 
             if (attrAdjustNew > attrCurrent) {
-                gm.log("Status Before:  " + attribute + "=" + attrCurrent + " Adjusting To:" + logTxt);
+                gm.log("Status Before:  " + lc_attribute + "=" + attrCurrent + " Adjusting To:" + logTxt);
                 this.Click(button);
                 return "Click";
             }
@@ -8669,6 +8687,16 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
         alert("You are using a user defined Action List!\n" +
               "The Master Action List has changed!\n" +
               "You must update your Action List!");
+    }
+
+    if (gm.getValue('LastVersion', 0) < '140.16.2') {
+        for (var a = 1; a <= 5; a++) {
+            var attribute = gm.getValue("Attribute" + a, '');
+            if (attribute !== '') {
+                gm.setValue("Attribute" + a, caapGlob.ucfirst(attribute));
+                gm.log("Converted Attribute" + a + ": " + attribute + "   to: " + caapGlob.ucfirst(attribute));
+            }
+        }
     }
 
     gm.setValue('LastVersion', caapGlob.thisVersion);
