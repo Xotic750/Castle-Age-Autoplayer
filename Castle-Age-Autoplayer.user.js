@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.16.3
+// @version        140.16.4
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.16.3";
+caapGlob.thisVersion = "140.16.4";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1759,6 +1759,7 @@ var caap = {
         var titleInstructions0 = "Set the title bar.";
         var titleInstructions1 = "Add the current action.";
         var titleInstructions2 = "Add the player name.";
+        var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.";
         var hideAdsInstructions = "Hides the sidebar adverts.";
         var autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
             "that do not have missing ingredients. By default, it will not " +
@@ -1792,6 +1793,7 @@ var caap = {
         htmlCode += '</div>';
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
+        htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectkMA', true, '', autoCollectMAInstructions);
         htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
@@ -8012,6 +8014,37 @@ var caap = {
         }
     },
 
+    AutoCollectMA: function () {
+        try {
+            if (!gm.getValue('AutoCheckMA', true) ||
+                !(this.WhileSinceDidIt('AutoCollectMATimer', 24 * 60 * 60))) {
+                return false;
+            }
+
+            gm.log("Collecting Master and Apprentice reward");
+            caap.SetDivContent('idle_mess', 'Collect MA Reward');
+            var button = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main");
+            if (!button) {
+                gm.log("Going to home");
+                if (this.NavigateTo('index')) {
+                    return true;
+                }
+            }
+
+            this.Click(button);
+            caap.SetDivContent('idle_mess', 'Collected MA Reward');
+            window.setTimeout(function () {
+                caap.SetDivContent('idle_mess', '');
+            }, 5000);
+            this.JustDidIt('AutoCollectMATimer');
+            gm.log("Collected Master and Apprentice reward");
+            return true;
+        } catch (e) {
+            gm.log("ERROR in AutoCollectMA: " + e);
+            return false;
+        }
+    },
+
     Idle: function () {
         //Update Monster Finder
         if (caap.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
@@ -8139,6 +8172,7 @@ var caap = {
             gm.deleteValue('waiting');
         }
 
+        this.AutoCollectMA();
         this.ReconPlayers();
         gm.setValue('ReleaseControl', true);
         return true;
