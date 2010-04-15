@@ -5150,12 +5150,8 @@ var caap = {
     //http://castleage.wikidot.com/monster for monster info
     bosses: {
         'Deathrune' : {
-<<<<<<< HEAD
             duration : 96,
-=======
-            duration : 168,
 			hp : 100000000,
->>>>>>> 7a263da0c95f0163a045391a779c3aea93f3796b
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
