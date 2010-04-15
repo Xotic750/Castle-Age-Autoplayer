@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.16.2
+// @version        140.16.5
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.16.2";
+caapGlob.thisVersion = "140.16.5";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -49,7 +49,7 @@ caapGlob.arrows = null;
 caapGlob.circle = null;
 caapGlob.protect = '334318';
 caapGlob.actionsList = [];
-caapGlob.arrExp = [];
+//caapGlob.arrExp = [];
 caapGlob.ucfirst = function (str) {
     var firstLetter = str.substr(0, 1);
     return firstLetter.toUpperCase() + str.substr(1);
@@ -1759,6 +1759,7 @@ var caap = {
         var titleInstructions0 = "Set the title bar.";
         var titleInstructions1 = "Add the current action.";
         var titleInstructions2 = "Add the player name.";
+        var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.";
         var hideAdsInstructions = "Hides the sidebar adverts.";
         var autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
             "that do not have missing ingredients. By default, it will not " +
@@ -1792,6 +1793,7 @@ var caap = {
         htmlCode += '</div>';
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
+        htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectkMA', true, '', autoCollectMAInstructions);
         htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
@@ -2478,12 +2480,27 @@ var caap = {
     },
 
     addExpDisplay: function () {
-        if (/\(/.test($("#app46755028429_st_2_5 strong").text())) {
+        try {
+            /*
+            if (/\(/.test($("#app46755028429_st_2_5 strong").text())) {
+                return false;
+            }
+
+            caapGlob.arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
+            $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (caapGlob.arrExp[1] - caapGlob.arrExp[0]) + "</span>)");
+            */
+
+            var exp = nHtml.FindByAttrContains(document.body, 'div', 'id', 'st_2_5');
+            if (!exp) {
+                return false;
+            }
+
+            this.stats.exp = this.GetStatusNumbers(exp);
+            $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (this.stats.exp.dif) + "</span>)");
+        } catch (e) {
+            gm.log("ERROR in addExpDisplay: " + e);
             return false;
         }
-
-        caapGlob.arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
-        $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (caapGlob.arrExp[1] - caapGlob.arrExp[0]) + "</span>)");
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -2712,11 +2729,14 @@ var caap = {
         var txt = nHtml.GetText(node);
         var staminam = this.statusRe.exec(txt);
         if (staminam) {
-            return {'num': parseInt(staminam[1], 10), 'max': parseInt(staminam[2], 10)};
-        } else {
-            gm.log('Cannot find status:' + txt);
+            return {
+                'num': parseInt(staminam[1], 10),
+                'max': parseInt(staminam[2], 10),
+                'dif': parseInt(staminam[2], 10) - parseInt(staminam[1], 10)
+            };
         }
 
+        gm.log('Cannot find status:' + txt);
         return null;
     },
 
@@ -2834,7 +2854,7 @@ var caap = {
             if (this.stats.exp) {
                 var expPerStamina = 2.3;
                 var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || 1.2;
-                var minutesToLevel = (this.stats.exp.max - this.stats.exp.num - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / (expPerStamina + expPerEnergy) / 12 * 60;
+                var minutesToLevel = (this.stats.exp.dif - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / (expPerStamina + expPerEnergy) / 12 * 60;
                 this.stats.levelTime = new Date();
                 var minutes = this.stats.levelTime.getMinutes();
                 minutes += minutesToLevel;
@@ -4407,7 +4427,7 @@ var caap = {
             return true;
         }
 
-        gm.log('Battle user:' + userid);
+        gm.log('Battle user: ' + userid);
         var target = '';
         if (gm.getValue('TargetType', '') == 'Arena') {
             if (gm.getValue('BattleType', 'Invade') == "Duel") {
@@ -4813,8 +4833,15 @@ var caap = {
         }
 
         var target = this.GetCurrentBattleTarget(mode);
+        //gm.log('Mode: ' + mode);
+        //gm.log('Target: ' + target);
         if (!target) {
             gm.log('No valid battle target');
+            return false;
+        }
+
+        if (target == 'NoRaid') {
+            //gm.log('No Raid To Attack');
             return false;
         }
 
@@ -5038,7 +5065,7 @@ var caap = {
             }
 
             this.SetDivContent('battle_mess', 'No Raid To Attack');
-            return false;
+            return 'NoRaid';
         }
 
         if (gm.getValue('TargetType', '') == 'Freshmeat') {
@@ -7036,7 +7063,10 @@ var caap = {
             }
 
             gm.log("Checking experience to next level");
-            if (caapGlob.arrExp[0] - caapGlob.arrExp[1] < this.GetNumber("potionsExperience", 20)) {
+            //gm.log("Experience to next level: " + this.stats.exp.dif);
+            //gm.log("Potions experience set: " + this.GetNumber("potionsExperience", 20));
+            if ((gm.getValue("Consume_Energy", false) || gm.getValue("Consume_Stamina", false)) &&
+                this.stats.exp.dif <= this.GetNumber("potionsExperience", 20)) {
                 gm.log("Not spending potions, experience to next level condition. Delaying 10 minutes");
                 this.JustDidIt('AutoPotionTimerDelay');
                 return true;
@@ -7984,6 +8014,37 @@ var caap = {
         }
     },
 
+    AutoCollectMA: function () {
+        try {
+            if (!gm.getValue('AutoCollectMA', true) ||
+                !(this.WhileSinceDidIt('AutoCollectMATimer', 24 * 60 * 60))) {
+                return false;
+            }
+
+            gm.log("Collecting Master and Apprentice reward");
+            caap.SetDivContent('idle_mess', 'Collect MA Reward');
+            var button = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main");
+            if (!button) {
+                gm.log("Going to home");
+                if (this.NavigateTo('index')) {
+                    return true;
+                }
+            }
+
+            this.Click(button);
+            caap.SetDivContent('idle_mess', 'Collected MA Reward');
+            window.setTimeout(function () {
+                caap.SetDivContent('idle_mess', '');
+            }, 5000);
+            this.JustDidIt('AutoCollectMATimer');
+            gm.log("Collected Master and Apprentice reward");
+            return true;
+        } catch (e) {
+            gm.log("ERROR in AutoCollectMA: " + e);
+            return false;
+        }
+    },
+
     Idle: function () {
         //Update Monster Finder
         if (caap.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
@@ -8111,6 +8172,7 @@ var caap = {
             gm.deleteValue('waiting');
         }
 
+        this.AutoCollectMA();
         this.ReconPlayers();
         gm.setValue('ReleaseControl', true);
         return true;
