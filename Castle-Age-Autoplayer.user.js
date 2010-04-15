@@ -5416,13 +5416,13 @@ var caap = {
 	t2kCalc:function(boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
 		var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
 		var timeUsed = (boss.duration - timeLeft);
-		gm.log('boss.siege ' + boss.siege);
+		gm.log('boss.siege ' + boss.siege + " siege stage " + siegeStage);
 		if (!boss.siege) {
 			return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
 		}
 		var T2K = 0;
-		var hpLeft = boss.hp - damageDone;
 		var damageDone = (100-percentHealthLeft)/100 * boss.hp ;
+		var hpLeft = boss.hp - damageDone;
 		var totalSiegeDamage = 0;
 		var totalSiegeClicks = 0;
 		for (var s in boss.siegeClicks) {
@@ -5433,19 +5433,21 @@ var caap = {
 			}
 			if (s == siegeStage - 1) {
 				var attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
-				gm.log('attackDamPerHour '+ attackDamPerHour);
+				gm.log('attackDamPerHour '+ attackDamPerHour+ ' damageDone ' + damageDone+ ' totalSiegeDamage ' + totalSiegeDamage+ ' timeUsed ' + timeUsed);
 				var clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
 				gm.log('clicksPerHour '+ clicksPerHour);
 			}
 			if (s >= siegeStage - 1) {
-				clicksToNextSiege = boss.siegeClicks[s] - ((s == siegeStage - 1) ? clicksNeededInCurrentStage : 0);
+				clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
+				gm.log('clicksToNextSiege '+ clicksToNextSiege+ ' boss.siegeClicks[s] ' + boss.siegeClicks[s]+ ' s  ' + s + ' clicksNeededInCurrentStage ' + clicksNeededInCurrentStage);
 				nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
+				gm.log('nextSiegeAttackPlusSiegeDamage '+ nextSiegeAttackPlusSiegeDamage+ ' boss.siegeDam[s] ' + boss.siegeDam[s]);
 				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
-					T2K =+  hpLeft / attackDamPerHour;
+					T2K +=  hpLeft / attackDamPerHour;
 					break;
 				}
-				T2K =+ clicksToNextSiege / clicksPerHour;
-				hpLeft =- nextSiegeAttackPlusSiegeDamage;
+				T2K += clicksToNextSiege / clicksPerHour;
+				hpLeft -= nextSiegeAttackPlusSiegeDamage;
 			}
 		}
 		return Math.round(T2K * 10) / 10;
