@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.16.6
+// @version        140.16.7
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.16.5";
+caapGlob.thisVersion = "140.16.7";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -2481,17 +2481,12 @@ var caap = {
 
     addExpDisplay: function () {
         try {
-            /*
-            if (/\(/.test($("#app46755028429_st_2_5 strong").text())) {
+            var exp = nHtml.FindByAttrContains(document.body, 'div', 'id', 'st_2_5');
+            if (!exp) {
                 return false;
             }
 
-            caapGlob.arrExp = $("#app46755028429_st_2_5 strong").text().split("/");
-            $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (caapGlob.arrExp[1] - caapGlob.arrExp[0]) + "</span>)");
-            */
-
-            var exp = nHtml.FindByAttrContains(document.body, 'div', 'id', 'st_2_5');
-            if (!exp) {
+            if (/\(/.test($("#app46755028429_st_2_5 strong").text())) {
                 return false;
             }
 
