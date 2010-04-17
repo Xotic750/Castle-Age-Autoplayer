@@ -7633,7 +7633,7 @@ var caap = {
             if (gm.getValue('CASendList', '')) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
                 if (sendForm) {
-                    button = nHtml.FindByAttrContains(sendForm, 'input', 'id', 'send');
+                    button = nHtml.FindByAttrContains(sendForm, 'input', 'name', 'send');
                     if (button) {
                         gm.log('Clicked CA send gift button');
                         gm.listAddBefore('FBSendList', gm.getList('CASendList'));
