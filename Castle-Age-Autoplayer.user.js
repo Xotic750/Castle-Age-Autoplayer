@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.16.8
+// @version        140.16.9
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.16.8";
+caapGlob.thisVersion = "140.16.9";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -48,8 +48,6 @@ caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
 caapGlob.protect = '334318';
-caapGlob.actionsList = [];
-//caapGlob.arrExp = [];
 caapGlob.ucfirst = function (str) {
     var firstLetter = str.substr(0, 1);
     return firstLetter.toUpperCase() + str.substr(1);
@@ -379,29 +377,28 @@ var gm = {
 };
 
 /////////////////////////////////////////////////////////////////////
-//                          userscript updater
+//                          GitHub updater
 // Used by browsers other than Chrome (namely Firefox and Flock)
-// to get updates from userscripts.org
-// Needs to be modifed to work from GitHub instead
+// to get updates from github.com
 /////////////////////////////////////////////////////////////////////
 
 if (!caapGlob.is_chrome) {
-    if (parseInt(gm.getValue('SUC_remote_version', 0), 10) > caapGlob.thisVersion) {
+    if (gm.getValue('SUC_remote_version', 0) > caapGlob.thisVersion) {
         caapGlob.newVersionAvailable = true;
     }
 
-    // update script from: http://userscripts.org/scripts/review/57917
+    // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
     try {
         function updateCheck(forced) {
             if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
                 try {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: 'http://userscripts.org/scripts/source/' + caapGlob.SUC_script_num + '.meta.js?' + new Date().getTime(),
+                        url: 'http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js',
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
                             var rt = resp.responseText;
-                            var remote_version = parseInt(/@version\s*(.*?)\s*$/m.exec(rt)[1], 10);
+                            var remote_version = /@version\s*(.*?)\s*$/m.exec(rt)[1];
                             var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
                             gm.setValue('SUC_last_update', new Date().getTime() + '');
                             gm.setValue('SUC_target_script_name', script_name);
@@ -411,7 +408,7 @@ if (!caapGlob.is_chrome) {
                                 caapGlob.newVersionAvailable = true;
                                 if (forced) {
                                     if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                        GM_openInTab('http://userscripts.org/scripts/show/' + caapGlob.SUC_script_num);
+                                        GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
                                     }
                                 }
                             } else if (forced) {
@@ -1855,7 +1852,7 @@ var caap = {
         htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='font-size: 10px; width: 55px'></td><td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
         htmlCode += "Version: " + caapGlob.thisVersion + " - <a href='" + caapGlob.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
         if (caapGlob.newVersionAvailable) {
-            htmlCode += "<a href='http://userscripts.org/scripts/source/" + caapGlob.SUC_script_num + ".user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+            htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
         }
 
         this.SetDivContent('control', htmlCode);
@@ -8406,36 +8403,37 @@ var caap = {
         }
     },
 
-    GetActionList: function () {
-        try {
-            var actionsList = [];
-            if (caapGlob.actionsList.length === 0) {
-                gm.log("Loading a fresh Action List");
-                // The Master Action List
-                var masterActionList = {
-                    0x00: 'AutoElite',
-                    0x01: 'ArenaElite',
-                    0x02: 'Heal',
-                    0x03: 'ImmediateBanking',
-                    0x04: 'ImmediateAutoStat',
-                    0x05: 'MaxEnergyQuest',
-                    0x06: 'DemiPoints',
-                    0x07: 'Monsters',
-                    0x08: 'Battle',
-                    0x09: 'MonsterFinder',
-                    0x0A: 'Quests',
-                    0x0B: 'PassiveGeneral',
-                    0x0C: 'Lands',
-                    0x0D: 'Bank',
-                    0x0E: 'AutoBless',
-                    0x0F: 'AutoStat',
-                    0x10: 'AutoGift',
-                    0x11: 'MonsterReview',
-                    0x12: 'AutoPotions',
-                    0x13: 'AutoAlchemy',
-                    0x14: 'Idle'
-                };
+    // The Master Action List
+    masterActionList: {
+        0x00: 'AutoElite',
+        0x01: 'ArenaElite',
+        0x02: 'Heal',
+        0x03: 'ImmediateBanking',
+        0x04: 'ImmediateAutoStat',
+        0x05: 'MaxEnergyQuest',
+        0x06: 'DemiPoints',
+        0x07: 'Monsters',
+        0x08: 'Battle',
+        0x09: 'MonsterFinder',
+        0x0A: 'Quests',
+        0x0B: 'PassiveGeneral',
+        0x0C: 'Lands',
+        0x0D: 'Bank',
+        0x0E: 'AutoBless',
+        0x0F: 'AutoStat',
+        0x10: 'AutoGift',
+        0x11: 'MonsterReview',
+        0x12: 'AutoPotions',
+        0x13: 'AutoAlchemy',
+        0x14: 'Idle'
+    },
 
+    actionsList: [],
+
+    MakeActionsList: function () {
+        try {
+            if (this.actionsList.length === 0) {
+                gm.log("Loading a fresh Action List");
                 // actionOrder is a comma seperated string of action numbers as
                 // hex pairs and can be referenced in the Master Action List
                 // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14"
@@ -8452,8 +8450,8 @@ var caap = {
                     actionOrderArray = actionOrderUser.split(",");
                     // We count the number of actions contained in the
                     // Master Action list
-                    for (action in masterActionList) {
-                        if (masterActionList.hasOwnProperty(action)) {
+                    for (action in this.masterActionList) {
+                        if (this.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount++;
                             //gm.log("Counting Action List: " + masterActionListCount);
                         } else {
@@ -8465,8 +8463,8 @@ var caap = {
                     // We are building the Action Order Array from the
                     // Master Action List
                     gm.log("Building the default Action Order");
-                    for (action in masterActionList) {
-                        if (masterActionList.hasOwnProperty(action)) {
+                    for (action in this.masterActionList) {
+                        if (this.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount = actionOrderArray.push(action);
                             //gm.log("Action Added: " + action);
                         } else {
@@ -8500,18 +8498,18 @@ var caap = {
                     if (actionOrderUser !== '') {
                         // We are using the user defined comma separated list
                         // of hex pairs
-                        actionItem = masterActionList[parseInt(actionOrderArray[itemCount], 16)];
+                        actionItem = this.masterActionList[parseInt(actionOrderArray[itemCount], 16)];
                         //gm.log("(" + itemCount + ") Converted user defined hex pair to action: " + actionItem);
                     } else {
                         // We are using the Master Action List
-                        actionItem = masterActionList[actionOrderArray[itemCount]];
+                        actionItem = this.masterActionList[actionOrderArray[itemCount]];
                         //gm.log("(" + itemCount + ") Converted Master Action List entry to an action: " + actionItem);
                     }
 
                     // Check the Action Item
                     if (actionItem.length > 0 && typeof(actionItem) === "string") {
                         // We add the Action Item to the Action List
-                        actionsList.push(actionItem);
+                        this.actionsList.push(actionItem);
                         //gm.log("Added action to the list: " + actionItem);
                     } else {
                         gm.log("Error! Skipping actionItem");
@@ -8519,23 +8517,39 @@ var caap = {
                     }
                 }
 
-                caapGlob.actionsList = actionsList;
                 if (actionOrderUser !== '') {
-                    gm.log("Action List: " + actionsList);
+                    gm.log("Get Action List: " + this.actionsList);
                 }
-            } else {
-                actionsList = caapGlob.actionsList;
             }
 
-            //gm.log("Action List: " + actionsList);
-            return actionsList;
+            return true;
         } catch (e) {
             // Something went wrong, log it and use the emergency Action List.
-            gm.log("ERROR in GetActionList: " + e);
-            return "AutoElite,ArenaElite,Heal,ImmediateBanking," +
-                "ImmediateAutoStat,MaxEnergyQuest,DemiPoints,Monsters,Battle," +
-                "MonsterFinder,Quests,PassiveGeneral,Lands,Bank,AutoBless," +
-                "AutoStat,AutoGift,MonsterReview,AutoPotions,AutoAlchemy,Idle";
+            gm.log("ERROR in MakeActionsList: " + e);
+            this.actionsList = [
+                "AutoElite",
+                "ArenaElite",
+                "Heal",
+                "ImmediateBanking",
+                "ImmediateAutoStat",
+                "MaxEnergyQuest",
+                "DemiPoints",
+                "Monsters",
+                "Battle",
+                "MonsterFinder",
+                "Quests",
+                "PassiveGeneral",
+                "Lands",
+                "Bank",
+                "AutoBless",
+                "AutoStat",
+                "AutoGift",
+                "MonsterReview",
+                "AutoPotions",
+                "AutoAlchemy",
+                "Idle"
+            ];
+            return false;
         }
     },
 
@@ -8644,21 +8658,23 @@ var caap = {
             return;
         }
 
-        var actionsList = this.GetActionList();
+        this.MakeActionsList();
+        //var actionsListCopy = [].concat(this.actionsList);
+        var actionsListCopy = this.actionsList.slice();
 
-        //gm.log("Action List: " + actionsList);
+        //gm.log("Action List: " + actionsListCopy);
         if (!gm.getValue('ReleaseControl', false)) {
-            actionsList.unshift(gm.getValue('LastAction', 'Idle'));
+            actionsListCopy.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
             gm.setValue('ReleaseControl', false);
         }
 
-        //gm.log('Action List: ' + actionsList);
-        for (var action in actionsList) {
-            if (actionsList.hasOwnProperty(action)) {
-                //gm.log('Action: ' + actionsList[action]);
-                if (this[actionsList[action]]()) {
-                    this.CheckLastAction(actionsList[action]);
+        //gm.log('Action List2: ' + actionsListCopy);
+        for (var action in actionsListCopy) {
+            if (actionsListCopy.hasOwnProperty(action)) {
+                //gm.log('Action: ' + actionsListCopy[action]);
+                if (this[actionsListCopy[action]]()) {
+                    this.CheckLastAction(actionsListCopy[action]);
                     break;
                 }
             }
