@@ -5163,6 +5163,7 @@ var caap = {
         },
         'Ice Elemental' : {
             duration : 168,
+			hp : 100000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -5181,6 +5182,7 @@ var caap = {
         },
         'Earth Elemental' : {
             duration : 168,
+			hp : 100000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -5199,6 +5201,7 @@ var caap = {
         },
         'Hydra' : {
             duration : 168,
+			hp : 100000000,
             ach : 500000,
             siege : 6,
             siegeClicks : [10, 20, 50, 100, 200, 300],
@@ -5423,6 +5426,7 @@ var caap = {
 		var T2K = 0;
 		var damageDone = (100-percentHealthLeft)/100 * boss.hp ;
 		var hpLeft = boss.hp - damageDone;
+		gm.log('hpLeft '+ hpLeft+ ' boss.hp ' + boss.hp+ ' damageDone' + damageDone+ ' percentHealthLeft ' + percentHealthLeft);
 		var totalSiegeDamage = 0;
 		var totalSiegeClicks = 0;
 		for (var s in boss.siegeClicks) {
@@ -5450,6 +5454,7 @@ var caap = {
 				hpLeft -= nextSiegeAttackPlusSiegeDamage;
 			}
 		}
+        gm.log('T2K new ' + T2K + ' old ' + percentHealthLeft / (100 - percentHealthLeft) * timeLeft);
 		return Math.round(T2K * 10) / 10;
 	},
 
@@ -7677,7 +7682,7 @@ var caap = {
             if (gm.getValue('CASendList', '')) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
                 if (sendForm) {
-                    button = nHtml.FindByAttrContains(sendForm, 'input', 'id', 'send');
+                    button = nHtml.FindByAttrContains(sendForm, 'input', 'name', 'send');
                     if (button) {
                         gm.log('Clicked CA send gift button');
                         gm.listAddBefore('FBSendList', gm.getList('CASendList'));
@@ -8693,21 +8698,23 @@ var caap = {
             return;
         }
 
-        var actionsList = this.GetActionList();
+        var actionsList;
+		actionsList = this.GetActionList();
+		var tempActionList = actionsList;
 
-        //gm.log("Action List: " + actionsList);
+        gm.log("Action List: " + tempActionList);
         if (!gm.getValue('ReleaseControl', false)) {
-            actionsList.unshift(gm.getValue('LastAction', 'Idle'));
+            tempActionList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
             gm.setValue('ReleaseControl', false);
         }
 
-        //gm.log('Action List: ' + actionsList);
-        for (var action in actionsList) {
-            if (actionsList.hasOwnProperty(action)) {
-                //gm.log('Action: ' + actionsList[action]);
-                if (this[actionsList[action]]()) {
-                    this.CheckLastAction(actionsList[action]);
+        gm.log('After release Action List: ' + tempActionList);
+        for (var action in tempActionList) {
+            if (tempActionList.hasOwnProperty(action)) {
+                //gm.log('Action: ' + tempActionList[action]);
+                if (this[tempActionList[action]]()) {
+                    this.CheckLastAction(tempActionList[action]);
                     break;
                 }
             }
