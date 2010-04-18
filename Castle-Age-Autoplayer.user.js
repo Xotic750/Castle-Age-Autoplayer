@@ -2844,8 +2844,8 @@ var caap = {
 
             // time to next level
             if (this.stats.exp) {
-                var expPerStamina = 2.7;
-                var expPerEnergy = 1.725;
+                var expPerStamina = 2.4;
+                var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || 1.4;
                 var minutesToLevel = (this.stats.exp.dif - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / (expPerStamina + expPerEnergy) / 12 * 60;
                 this.stats.levelTime = new Date();
                 var minutes = this.stats.levelTime.getMinutes();
@@ -8679,7 +8679,6 @@ var caap = {
                 gm.setValue('NoWindowLoad', noWindowLoad + 1);
                 this.ReloadCastleAge();
             }
-
             gm.log('Page no-load count: ' + noWindowLoad);
             this.WaitMainLoop();
             return;
@@ -8695,6 +8694,11 @@ var caap = {
             return;
         }
 
+        if (this.WhileSinceDidIt('clickedOnSomething',25) && !this.newDomLoaded) {
+            gm.log('Clicked on something, but nothing new loaded.  Reloading page.');
+            this.ReloadCastleAge();
+        }
+		
         if (this.AutoIncome()) {
             this.CheckLastAction('AutoIncome');
             this.WaitMainLoop();
@@ -8736,12 +8740,9 @@ var caap = {
     ReloadCastleAge: function () {
         // better than reload... no prompt on forms!
         if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
-            gm.setValue('ReleaseControl', true);
-            gm.setValue('caapPause', 'none');
             if (caapGlob.is_chrome) {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
-
             window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
         }
     },
@@ -8839,7 +8840,7 @@ $(function () {
     caap.WaitMainLoop();
 });
 
-caap.ReloadOccasionally();
+//caap.ReloadOccasionally();
 
 /////////////////////////////////////////////////////////////////////
 //                          style OBJECT
