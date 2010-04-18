@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.16.9
+// @version        140.17.0
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.16.9";
+caapGlob.thisVersion = "140.17.0";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -2844,8 +2844,8 @@ var caap = {
 
             // time to next level
             if (this.stats.exp) {
-                var expPerStamina = 2.3;
-                var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || 1.2;
+                var expPerStamina = 2.7;
+                var expPerEnergy = 1.725;
                 var minutesToLevel = (this.stats.exp.dif - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / (expPerStamina + expPerEnergy) / 12 * 60;
                 this.stats.levelTime = new Date();
                 var minutes = this.stats.levelTime.getMinutes();
@@ -5143,6 +5143,7 @@ var caap = {
     bosses: {
         'Deathrune' : {
             duration : 96,
+			hp : 100000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -5154,6 +5155,7 @@ var caap = {
         },
         'Ice Elemental' : {
             duration : 168,
+			hp : 100000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -5172,6 +5174,7 @@ var caap = {
         },
         'Earth Elemental' : {
             duration : 168,
+			hp : 100000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -5190,6 +5193,7 @@ var caap = {
         },
         'Hydra' : {
             duration : 168,
+			hp : 100000000,
             ach : 500000,
             siege : 6,
             siegeClicks : [10, 20, 50, 100, 200, 300],
@@ -5205,6 +5209,7 @@ var caap = {
         },
         'Legion' : {
             duration : 168,
+			hp : 100000,
             ach : 1000,
             siege : 6,
             siegeClicks : [10, 20, 40, 80, 150, 300],
@@ -5401,6 +5406,47 @@ var caap = {
     //  gm.setValue('resetdashboard',true);
     },
 
+	
+	
+	t2kCalc:function(boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
+		var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+		var timeUsed = (boss.duration - timeLeft);
+		if (!boss.siege || !boss.hp) {
+			return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
+		}
+		var T2K = 0;
+		var damageDone = (100-percentHealthLeft)/100 * boss.hp ;
+		var hpLeft = boss.hp - damageDone;
+		var totalSiegeDamage = 0;
+		var totalSiegeClicks = 0;
+		for (var s in boss.siegeClicks) {
+			//gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft); 
+			if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
+				totalSiegeDamage =+ boss.siegeDam[s];
+				totalSiegeClicks =+ boss.siegeClicks[s];
+			}
+			if (s == siegeStage - 1) {
+				var attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
+				var clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
+				gm.log('Attack Damage Per Hour: '+ attackDamPerHour+ ' Damage Done: ' + damageDone+ ' Total Siege Damage: ' + totalSiegeDamage+ ' Time Used: ' + timeUsed + ' Clicks Per Hour: '+ clicksPerHour);
+			}
+			if (s >= siegeStage - 1) {
+				clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
+				nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
+				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
+					T2K +=  hpLeft / attackDamPerHour;
+					break;
+				}
+				T2K += clicksToNextSiege / clicksPerHour;
+				hpLeft -= nextSiegeAttackPlusSiegeDamage;
+			}
+		}
+        gm.log('T2K based on siege: ' + T2K + ' T2K estimate without calculating siege impacts: ' + percentHealthLeft / (100 - percentHealthLeft) * timeLeft);
+		return Math.round(T2K * 10) / 10;
+	},
+
+	
+	
     CheckResults_viewFight: function () {
         // Check if on monster page
         var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
@@ -5550,10 +5596,6 @@ var caap = {
                     gm.log('Unknown monster');
                     return;
                 }
-
-                var T2K = (hp / (100 - hp)) * (boss.duration - (parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166)));
-                T2K = Math.round(T2K * 10) / 10; //fix two 1 decimal place
-                gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
 
             if (boss && boss.siege) {
@@ -5581,6 +5623,8 @@ var caap = {
 
                 var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(+miss) ? 0 : miss);
                 gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
+				T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
+                gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
         } else {
             gm.log('Monster is dead?');
@@ -8521,7 +8565,6 @@ var caap = {
                     gm.log("Get Action List: " + this.actionsList);
                 }
             }
-
             return true;
         } catch (e) {
             // Something went wrong, log it and use the emergency Action List.
@@ -8659,7 +8702,6 @@ var caap = {
         }
 
         this.MakeActionsList();
-        //var actionsListCopy = [].concat(this.actionsList);
         var actionsListCopy = this.actionsList.slice();
 
         //gm.log("Action List: " + actionsListCopy);
@@ -8791,9 +8833,8 @@ $(function () {
         nHtml.setTimeout(function () {
             caap.SetControls();
             caap.CheckResults();
-        }, 500);
+        }, 200);
     }
-
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
 });
