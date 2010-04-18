@@ -8824,14 +8824,8 @@ $(function () {
             caap.CheckResults();
         }, 200);
     }
-
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
-	var original= [1,2];
-	var copy= [].concat(original);
-	copy.unshift(3);
-	gm.log('original=' + original+ ' copy=' + copy);
-	
 });
 
 caap.ReloadOccasionally();
