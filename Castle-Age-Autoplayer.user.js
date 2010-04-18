@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.17.2
+// @version        140.17.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.17.2";
+caapGlob.thisVersion = "140.17.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5406,47 +5406,53 @@ var caap = {
     //  gm.setValue('resetdashboard',true);
     },
 
-	
-	
-	t2kCalc:function(boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
+	t2kCalc: function (boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
 		var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
 		var timeUsed = (boss.duration - timeLeft);
 		if (!boss.siege || !boss.hp) {
 			return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
 		}
+
 		var T2K = 0;
-		var damageDone = (100-percentHealthLeft)/100 * boss.hp ;
+		var damageDone = (100 - percentHealthLeft) / 100 * boss.hp;
 		var hpLeft = boss.hp - damageDone;
 		var totalSiegeDamage = 0;
 		var totalSiegeClicks = 0;
+        var attackDamPerHour = 0;
+        var clicksPerHour = 0;
+        var clicksToNextSiege = 0;
+        var nextSiegeAttackPlusSiegeDamage = 0;
 		for (var s in boss.siegeClicks) {
-			//gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft); 
-			if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
-				totalSiegeDamage =+ boss.siegeDam[s];
-				totalSiegeClicks =+ boss.siegeClicks[s];
-			}
-			if (s == siegeStage - 1) {
-				var attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
-				var clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
-				gm.log('Attack Damage Per Hour: '+ attackDamPerHour+ ' Damage Done: ' + damageDone+ ' Total Siege Damage: ' + totalSiegeDamage+ ' Time Used: ' + timeUsed + ' Clicks Per Hour: '+ clicksPerHour);
-			}
-			if (s >= siegeStage - 1) {
-				clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
-				nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
-					T2K +=  hpLeft / attackDamPerHour;
-					break;
-				}
-				T2K += clicksToNextSiege / clicksPerHour;
-				hpLeft -= nextSiegeAttackPlusSiegeDamage;
-			}
+            if (boss.siegeClicks.hasOwnProperty(s)) {
+                //gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft);
+                if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
+                    totalSiegeDamage += boss.siegeDam[s];
+                    totalSiegeClicks += boss.siegeClicks[s];
+                }
+                if (s == siegeStage - 1) {
+                    attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
+                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
+                    gm.log('Attack Damage Per Hour: ' + attackDamPerHour + ' Damage Done: ' + damageDone + ' Total Siege Damage: ' + totalSiegeDamage + ' Time Used: ' + timeUsed + ' Clicks Per Hour: ' + clicksPerHour);
+                }
+                if (s >= siegeStage - 1) {
+                    clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
+                    nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
+                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
+                        T2K +=  hpLeft / attackDamPerHour;
+                        break;
+                    }
+                    T2K += clicksToNextSiege / clicksPerHour;
+                    hpLeft -= nextSiegeAttackPlusSiegeDamage;
+                }
+            }
 		}
+
         gm.log('T2K based on siege: ' + T2K + ' T2K estimate without calculating siege impacts: ' + percentHealthLeft / (100 - percentHealthLeft) * timeLeft);
 		return Math.round(T2K * 10) / 10;
 	},
 
-	
-	
+
+
     CheckResults_viewFight: function () {
         // Check if on monster page
         var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
@@ -5625,7 +5631,7 @@ var caap = {
                 gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
             }
             if (boss) {
-				T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
+				var T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
 				gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
 			}
         } else {
