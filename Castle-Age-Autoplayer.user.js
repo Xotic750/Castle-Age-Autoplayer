@@ -2852,8 +2852,8 @@ var caap = {
 
             // time to next level
             if (this.stats.exp) {
-                var expPerStamina = 2.3;
-                var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || 1.2;
+                var expPerStamina = 2.7;
+                var expPerEnergy = 1.725;
                 var minutesToLevel = (this.stats.exp.dif - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / (expPerStamina + expPerEnergy) / 12 * 60;
                 this.stats.levelTime = new Date();
                 var minutes = this.stats.levelTime.getMinutes();
@@ -5419,33 +5419,28 @@ var caap = {
 	t2kCalc:function(boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
 		var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
 		var timeUsed = (boss.duration - timeLeft);
-		gm.log('boss.siege ' + boss.siege + " siege stage " + siegeStage);
-		if (!boss.siege) {
+		if (!boss.siege || !boss.hp) {
 			return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
 		}
 		var T2K = 0;
 		var damageDone = (100-percentHealthLeft)/100 * boss.hp ;
 		var hpLeft = boss.hp - damageDone;
-		gm.log('hpLeft '+ hpLeft+ ' boss.hp ' + boss.hp+ ' damageDone' + damageDone+ ' percentHealthLeft ' + percentHealthLeft);
 		var totalSiegeDamage = 0;
 		var totalSiegeClicks = 0;
 		for (var s in boss.siegeClicks) {
-			gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft); 
+			//gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft); 
 			if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
 				totalSiegeDamage =+ boss.siegeDam[s];
 				totalSiegeClicks =+ boss.siegeClicks[s];
 			}
 			if (s == siegeStage - 1) {
 				var attackDamPerHour = (damageDone - totalSiegeDamage )/timeUsed;
-				gm.log('attackDamPerHour '+ attackDamPerHour+ ' damageDone ' + damageDone+ ' totalSiegeDamage ' + totalSiegeDamage+ ' timeUsed ' + timeUsed);
 				var clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
-				gm.log('clicksPerHour '+ clicksPerHour);
+				gm.log('Attack Damage Per Hour: '+ attackDamPerHour+ ' Damage Done: ' + damageDone+ ' Total Siege Damage: ' + totalSiegeDamage+ ' Time Used: ' + timeUsed + ' Clicks Per Hour: '+ clicksPerHour);
 			}
 			if (s >= siegeStage - 1) {
 				clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
-				gm.log('clicksToNextSiege '+ clicksToNextSiege+ ' boss.siegeClicks[s] ' + boss.siegeClicks[s]+ ' s  ' + s + ' clicksNeededInCurrentStage ' + clicksNeededInCurrentStage);
 				nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-				gm.log('nextSiegeAttackPlusSiegeDamage '+ nextSiegeAttackPlusSiegeDamage+ ' boss.siegeDam[s] ' + boss.siegeDam[s]);
 				if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
 					T2K +=  hpLeft / attackDamPerHour;
 					break;
@@ -5454,7 +5449,7 @@ var caap = {
 				hpLeft -= nextSiegeAttackPlusSiegeDamage;
 			}
 		}
-        gm.log('T2K new ' + T2K + ' old ' + percentHealthLeft / (100 - percentHealthLeft) * timeLeft);
+        gm.log('T2K based on siege: ' + T2K + ' T2K estimate without calculating siege impacts: ' + percentHealthLeft / (100 - percentHealthLeft) * timeLeft);
 		return Math.round(T2K * 10) / 10;
 	},
 
@@ -8577,12 +8572,10 @@ var caap = {
                 if (actionOrderUser !== '') {
                     gm.log("Action List: " + actionsList);
                 }
-            } else {
-                actionsList = caapGlob.actionsList;
             }
-
+			
             //gm.log("Action List: " + actionsList);
-            return actionsList;
+            return caapGlob.actionsList;
         } catch (e) {
             // Something went wrong, log it and use the emergency Action List.
             gm.log("ERROR in GetActionList: " + e);
@@ -8698,23 +8691,21 @@ var caap = {
             return;
         }
 
-        var actionsList;
-		actionsList = this.GetActionList();
-		var tempActionList = actionsList;
+        var actionsList = [].concat(this.GetActionList());
 
-        gm.log("Action List: " + tempActionList);
+        //gm.log("Action List: " + actionsList);
         if (!gm.getValue('ReleaseControl', false)) {
-            tempActionList.unshift(gm.getValue('LastAction', 'Idle'));
+            actionsList.unshift(gm.getValue('LastAction', 'Idle'));
         } else {
             gm.setValue('ReleaseControl', false);
         }
 
-        gm.log('After release Action List: ' + tempActionList);
-        for (var action in tempActionList) {
-            if (tempActionList.hasOwnProperty(action)) {
-                //gm.log('Action: ' + tempActionList[action]);
-                if (this[tempActionList[action]]()) {
-                    this.CheckLastAction(tempActionList[action]);
+        //gm.log('After release Action List: ' + actionsList);
+        for (var action in actionsList) {
+            if (actionsList.hasOwnProperty(action)) {
+                //gm.log('Action: ' + actionsList[action]);
+                if (this[actionsList[action]]()) {
+                    this.CheckLastAction(actionsList[action]);
                     break;
                 }
             }
@@ -8831,11 +8822,16 @@ $(function () {
         nHtml.setTimeout(function () {
             caap.SetControls();
             caap.CheckResults();
-        }, 500);
+        }, 200);
     }
 
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
+	var original= [1,2];
+	var copy= [].concat(original);
+	copy.unshift(3);
+	gm.log('original=' + original+ ' copy=' + copy);
+	
 });
 
 caap.ReloadOccasionally();
