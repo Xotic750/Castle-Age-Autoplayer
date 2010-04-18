@@ -2844,8 +2844,8 @@ var caap = {
 
             // time to next level
             if (this.stats.exp) {
-                var expPerStamina = 2.7;
-                var expPerEnergy = 1.725;
+                var expPerStamina = 2.4;
+                var expPerEnergy = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || 1.4;
                 var minutesToLevel = (this.stats.exp.dif - this.stats.stamina.num * expPerStamina - this.stats.energy.num * expPerEnergy) / (expPerStamina + expPerEnergy) / 12 * 60;
                 this.stats.levelTime = new Date();
                 var minutes = this.stats.levelTime.getMinutes();
