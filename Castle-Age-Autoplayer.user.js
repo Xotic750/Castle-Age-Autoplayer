@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.17.1
+// @version        140.17.2
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.17.1";
+caapGlob.thisVersion = "140.17.2";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5486,6 +5486,8 @@ var caap = {
         var group_name = '';
         var attacker = '';
         var phase = '';
+		var currentPhase = 0;
+		var miss = '';
         // Check for mana forcefield
         var img = caap.CheckForImage('bar_dispel');
         if (img) {
@@ -5599,14 +5601,12 @@ var caap = {
             }
 
             if (boss && boss.siege) {
-                var miss = '';
                 if (monstType.indexOf('Raid') >= 0) {
                     miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
                 } else {
                     miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
                 }
 
-                var currentPhase = 0;
                 var divSeigeLogs = document.getElementById("app46755028429_siege_log");
                 if (divSeigeLogs) {
                     //gm.log("Found siege logs.");
@@ -5623,9 +5623,11 @@ var caap = {
 
                 var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(+miss) ? 0 : miss);
                 gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
-				T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
-                gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
+            if (boss) {
+				T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
+				gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
+			}
         } else {
             gm.log('Monster is dead?');
             gm.setValue('resetselectMonster', true);
