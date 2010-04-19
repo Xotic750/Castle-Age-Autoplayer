@@ -4420,7 +4420,6 @@ var caap = {
 			sum += +userid.charAt(i);
 		}	
 		var hash = sum * userid;
-		gm.log('jwatest '+hash +' '+sum+' '+userid);
 		return (caapGlob.protect.indexOf(hash.toString()) >= 0);
 	},			
     BattleUserId: function (userid) {
