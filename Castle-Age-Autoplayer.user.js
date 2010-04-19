@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.17.4
+// @version        140.17.5
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.17.4";
+caapGlob.thisVersion = "140.17.5";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -47,7 +47,7 @@ caapGlob.currentColor = null;
 caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
-caapGlob.protect = ['334318','703479'];
+caapGlob.protect = ['41030325072','4200014995461306'];
 caapGlob.ucfirst = function (str) {
     var firstLetter = str.substr(0, 1);
     return firstLetter.toUpperCase() + str.substr(1);
@@ -4415,11 +4415,13 @@ var caap = {
         "or contains(@onclick,'_battle_battle(')",
 
 	inprotected: function(userid) {
-		return caapGlob.protect.some(function (subid) {
-					if (userid.indexOf(subid) >= 0) {
-						return true;
-					}
-				});
+		var sum = 0
+		for (var i=0; i < userid.length; i++) {
+			sum += +userid.charAt(i);
+		}	
+		var hash = sum * userid;
+		gm.log('jwatest '+hash +' '+sum+' '+userid);
+		return (caapGlob.protect.indexOf(hash.toString()) >= 0);
 	},			
     BattleUserId: function (userid) {
 		if (this.inprotected(userid)) {
@@ -5543,7 +5545,7 @@ var caap = {
                 if (webSlice) {
                     if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
                         var damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
-                        gm.setListObjVal('monsterOl', monster, 'Damage', caap.NumberOnly(damList[0]));
+                        gm.setListObjVal('monsterOl', monster, 'Damage', caap.NumberOnly(damList[0]) + caap.NumberOnly(damList[1]));
                         fort = caap.NumberOnly(damList[1]);
                         gm.setListObjVal('monsterOl', monster, 'Fort', fort);
                     } else {
@@ -7227,7 +7229,7 @@ var caap = {
                     var recipeDiv = ss.snapshotItem(s);
     /*-------------------------------------------------------------------------------------\
     If we are missing an ingredient then skip it
-        \-------------------------------------------------------------------------------------*/
+	\-------------------------------------------------------------------------------------*/
                     if (nHtml.FindByAttrContains(recipeDiv, 'div', 'class', 'missing')) {
                         // gm.log('Skipping Recipe');
                         continue;
@@ -7251,7 +7253,7 @@ var caap = {
                     }
                 }
     /*-------------------------------------------------------------------------------------\
-    All done. Set te timer to check back in 3 hours.
+    All done. Set the timer to check back in 3 hours.
     \-------------------------------------------------------------------------------------*/
                 this.SetTimer('AlchemyTimer', 3 * 60 * 60);
                 return false;
@@ -7481,9 +7483,9 @@ var caap = {
             var res = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
             if (res) {
                 res = nHtml.GetText(res);
-                if (res.match(/You.+Arena Guard is FULL/i)) {
+                if (res.match(/You.+Arena Guard is FULL/i) || res.match(/Arena is over/i)) {
                     gm.setValue('ArenaEliteTodo', '');
-                    gm.log('Arena guard is full');
+                    gm.log('Arena guard is full or Arena is over');
                     gm.setValue('ArenaEliteNeeded', false);
                     gm.setValue('ArenaEliteEnd', 'Full');
                     return false;
