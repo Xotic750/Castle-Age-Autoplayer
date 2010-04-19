@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.0
+// @version        140.18.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.0";
+caapGlob.thisVersion = "140.18.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -47,7 +47,7 @@ caapGlob.currentColor = null;
 caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
-caapGlob.protect = ['41030325072','4200014995461306'];
+caapGlob.protect = ['41030325072', '4200014995461306'];
 caapGlob.ucfirst = function (str) {
     var firstLetter = str.substr(0, 1);
     return firstLetter.toUpperCase() + str.substr(1);
@@ -833,16 +833,16 @@ var caap = {
     },
 
     SelectGeneral: function (whichGeneral) {
-		if (gm.getValue('LevelUpGeneral','Use Current') != 'Use Current') {
+		if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current') {
 			var generalType = whichGeneral.replace(/General/i, '').trim();
-			if (gm.getValue(generalType+'LevelUpGeneral',false) 
-				&& this.stats.exp.dif 
-				&& this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp',0)) {
+			if (gm.getValue(generalType + 'LevelUpGeneral', false) &&
+                this.stats.exp.dif &&
+                this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
 				whichGeneral = 'LevelUpGeneral';
 				gm.log('Using level up general');
 			}
-		}	
-				
+		}
+
         var general = gm.getValue(whichGeneral, '');
         if (!general) {
             return false;
@@ -1711,19 +1711,19 @@ var caap = {
 
 		var LevelUpGenExpInstructions = "Specify the number of experience points below the next level up to " +
 			"begin using the level up general.";
-		var LevelUpGenInstructions1 = "Use the Level Up General for Idle mode."	
-		var LevelUpGenInstructions2 = "Use the Level Up General for Monster mode."	
-		var LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode."	
-		var LevelUpGenInstructions4 = "Use the Level Up General for Battle mode."	
-		var LevelUpGenInstructions5 = "Use the Level Up General for doing sub-quests."	
+		var LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.";
+		var LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.";
+		var LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.";
+		var LevelUpGenInstructions4 = "Use the Level Up General for Battle mode.";
+		var LevelUpGenInstructions5 = "Use the Level Up General for doing sub-quests.";
 		var LevelUpGenInstructions6 = "Use the Level Up General for doing primary quests " +
-			"(Warning: May cause you not to gain influence if wrong general is equipped.)"
+			"(Warning: May cause you not to gain influence if wrong general is equipped.)";
         //<input type='button' id='caap_resetGeneralList' value='Do Now' style='font-size: 10px; width:50; height:50'>" + '</td></tr>'
         htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + this.MakeDropDown('IncomeGeneral', generalIncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
         htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + this.MakeDropDown('BankingGeneral', generalBankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
 		htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', generalList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
 		htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (gm.getValue('LevelUpGeneral', false) != 'Use Current' ? 'block' : 'none') + "'>";
-		htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";	
+		htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += "<tr><td>Exp To Use LevelUp Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
 		htmlCode += this.MakeCheckTR("Level Up Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
 		htmlCode += this.MakeCheckTR("Level Up Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
@@ -2618,7 +2618,7 @@ var caap = {
                     gm.setValue(idName, value);
                     e.target.options[0].value = value;
                     if (idName == 'WhenQuest' || idName == 'WhenBattle' || idName == 'WhenMonster' || idName == 'LevelUpGeneral') {
-                        caap.SetDisplay(idName + 'Hide', (value != 'Never'));	
+                        caap.SetDisplay(idName + 'Hide', (value != 'Never'));
                     } else if (idName == 'QuestArea' || idName == 'QuestSubArea' || idName == 'WhyQuest') {
                         gm.setValue('AutoQuest', '');
                     } else if (idName == 'IdleGeneral') {
@@ -3197,16 +3197,16 @@ var caap = {
                 return true;
             }
         }
-		
-		if (gm.getValue('LevelUpGeneral','Use Current') != 'Use Current'
-			&& gm.getValue('QuestLevelUpGeneral',false) 
-			&& this.stats.exp.dif 
-			&& this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp',0)) {
+
+		if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
+            gm.getValue('QuestLevelUpGeneral', false) &&
+            this.stats.exp.dif &&
+            this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
 			if (this.SelectGeneral('LevelUpGeneral')) {
 				return true;
 			}
 			gm.log('Using level up general');
-		} 	
+		}
 
         switch (gm.getValue('QuestArea', 'Quest')) {
         case 'Quest' :
@@ -3252,10 +3252,10 @@ var caap = {
 
         var button = this.CheckForImage('quick_switch_button.gif');
         if (button && !gm.getValue('ForceSubGeneral', false)) {
-			if (gm.getValue('LevelUpGeneral','Use Current') != 'Use Current'
-				&& gm.getValue('QuestLevelUpGeneral',false) 
-				&& this.stats.exp.dif 
-				&& this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp',0)) {
+			if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
+                gm.getValue('QuestLevelUpGeneral', false) &&
+                this.stats.exp.dif &&
+                this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
 				if (this.SelectGeneral('LevelUpGeneral')) {
 					return true;
 				}
@@ -3265,7 +3265,7 @@ var caap = {
 				this.Click(button);
 				return true;
 			}
-		}	
+		}
 
         var costToBuy = '';
         //Buy quest requires popup
@@ -3374,10 +3374,10 @@ var caap = {
                 return true;
             }
         } else if ((general) && general != this.GetCurrentGeneral()) {
-			if (gm.getValue('LevelUpGeneral','Use Current') != 'Use Current'
-				&& gm.getValue('QuestLevelUpGeneral',false) 
-				&& this.stats.exp.dif 
-				&& this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp',0)) {
+			if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
+                gm.getValue('QuestLevelUpGeneral', false) &&
+                this.stats.exp.dif &&
+                this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
 				if (this.SelectGeneral('LevelUpGeneral')) {
 					return true;
 				}
@@ -3386,7 +3386,7 @@ var caap = {
 				gm.log('Clicking on general ' + general);
 				this.Click(autoQuestDivs.genDiv);
 				return true;
-			}	
+			}
         }
 
         gm.log('Clicking auto quest: ' + autoQuestName);
@@ -4474,18 +4474,19 @@ var caap = {
         "or contains(@onclick,'directAttack')" +
         "or contains(@onclick,'_battle_battle(')",
 
-	inprotected: function(userid) {
-		var sum = 0
-		for (var i=0; i < userid.length; i++) {
+	inprotected: function (userid) {
+		var sum = 0;
+		for (var i = 0; i < userid.length; i++) {
 			sum += +userid.charAt(i);
-		}	
+		}
 		var hash = sum * userid;
 		return (caapGlob.protect.indexOf(hash.toString()) >= 0);
-	},			
+	},
+
     BattleUserId: function (userid) {
 		if (this.inprotected(userid)) {
 			return true;
-		}	
+		}
 
         gm.log('Battle user: ' + userid);
         var target = '';
@@ -4724,10 +4725,10 @@ var caap = {
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                     army = parseInt(nHtml.GetText(subtd.snapshotItem(2)).trim(), 10);
                 }
+
                 if (level - this.stats.level > maxLevel) {
                     continue;
                 }
-
 
                 if (yourRank && (yourRank - rank  > minRank)) {
                     continue;
@@ -4742,7 +4743,7 @@ var caap = {
                     continue;
                 }
 
-                gm.log("Army Ratio:" + armyRatio + " Level:" + level + " Rank:" + rank + " Army: " + army);
+                gm.log("Army Ratio: " + armyRatio + " Level: " + level + " Rank: " + rank + " Army: " + army);
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (this.stats.army && (army > (this.stats.army * armyRatio))) {
@@ -4750,11 +4751,16 @@ var caap = {
                 }
 
                 inp = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'");
-                userid = inp.value;
-				
+                if (!inp) {
+                    gm.log("Could not find 'target_id' input");
+                    continue;
+                }
+
+                var userid = inp.value;
+
 				if (this.inprotected(userid)) {
 					continue;
-				}		
+				}
 
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
