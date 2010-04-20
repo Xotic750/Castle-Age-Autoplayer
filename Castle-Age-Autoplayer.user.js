@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.2
+// @version        140.18.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.2";
+caapGlob.thisVersion = "140.18.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -8146,21 +8146,31 @@ var caap = {
 
             gm.log("Collecting Master and Apprentice reward");
             caap.SetDivContent('idle_mess', 'Collect MA Reward');
-            var button = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main");
-            if (!button) {
+            var buttonMas = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main");
+            var buttonApp = nHtml.FindByAttrContains(document.body, "img", "src", "ma_main_learn_more");
+            if (!buttonMas && !buttonApp) {
                 gm.log("Going to home");
                 if (this.NavigateTo('index')) {
                     return true;
                 }
             }
 
-            this.Click(button);
-            caap.SetDivContent('idle_mess', 'Collected MA Reward');
+            if (buttonMas) {
+                this.Click(buttonMas);
+                caap.SetDivContent('idle_mess', 'Collected MA Reward');
+                gm.log("Collected Master and Apprentice reward");
+            }
+
+            if (!buttonMas && buttonApp) {
+                caap.SetDivContent('idle_mess', 'No MA Rewards');
+                gm.log("No Master and Apprentice rewards");
+            }
+
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
             }, 5000);
             this.JustDidIt('AutoCollectMATimer');
-            gm.log("Collected Master and Apprentice reward");
+            gm.log("Collect Master and Apprentice reward completed");
             return true;
         } catch (e) {
             gm.log("ERROR in AutoCollectMA: " + e);
