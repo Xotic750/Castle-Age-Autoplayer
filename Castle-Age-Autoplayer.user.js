@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.1
+// @version        140.18.2
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.1";
+caapGlob.thisVersion = "140.18.2";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1499,7 +1499,7 @@ var caap = {
         htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
-        htmlCode += "Join Raids in this order <a href='http://userscripts.org/topics/43757' target='_blank'><font color='red'>?</font></a><br />";
+        htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=696.0' target='_blank'><font color='red'>?</font></a><br />";
         htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3' cols='25'");
         htmlCode += "</div>";
         var goalList = [
@@ -1616,7 +1616,7 @@ var caap = {
         htmlCode += "<tr><td>Fortify If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MaxToFortify', fortifyInstructions, 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td style='padding-left: 10px'>Quest If Percentage Over</td><td style='text-align: right'>" + this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-        htmlCode += "Attack Monsters in this order <a href='http://userscripts.org/topics/43757' target='_blank'><font color='red'>?</font></a><br />";
+        htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=696.0' target='_blank'><font color='red'>?</font></a><br />";
         htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, " rows='3' cols='25'");
         htmlCode += "</div>";
         htmlCode += "<hr/></div>";
@@ -5478,7 +5478,7 @@ var caap = {
             }
         });
 
-    //  gm.setValue('resetdashboard',true);
+        //gm.setValue('resetdashboard',true);
     },
 
 	t2kCalc: function (boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
@@ -5983,7 +5983,10 @@ var caap = {
 
                     gm.log('MonsterObj ' + counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
                     gm.setValue('ReleaseControl', true);
-                    caap.VisitUrl(link);
+                    link = link.replace('http://apps.facebook.com/castle_age/', '');
+                    link = link.replace('?', '?twt2&');
+                    //gm.log("Link: " + link);
+                    location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
                     return true;
                 }
             }
@@ -6062,7 +6065,7 @@ var caap = {
         }
 
         // Set right general
-        var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
+        //var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
         if (this.SelectGeneral(fightMode + 'General')) {
             return true;
         }
@@ -7517,7 +7520,8 @@ var caap = {
         } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
             user = eliteList.substring(0, eliteList.indexOf(','));
             gm.log('add elite ' + user);
-            this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
+            //this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
+            location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', 'party.php?twt=jneg&jneg=true&user=" + user + "'))";
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('MyEliteTodo', eliteList);
             this.JustDidIt('AutoEliteReqNext');
