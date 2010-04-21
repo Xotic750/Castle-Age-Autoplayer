@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.3
+// @version        140.18.4
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.3";
+caapGlob.thisVersion = "140.18.4";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -2145,7 +2145,8 @@ var caap = {
             if (event.target.id) {
                 alert(event.target.id);
             }
-            */
+			*/
+           
 
             var $target = $(event.target);
             if ($target.is("#app46755028429_app_body") ||
@@ -2179,7 +2180,7 @@ var caap = {
                 nHtml.setTimeout(caap.CheckResults, 0);
             }
         }, true);
-
+		
         globalContainer.addEventListener('click', function (event) {
             var obj = event.target;
             while (obj && !obj.href) {
@@ -3043,7 +3044,7 @@ var caap = {
         if (resultsDiv) {
             resultsText = nHtml.GetText(resultsDiv).trim();
         }
-
+	
         if (gm.getValue('page')) {
             gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
             if (typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
@@ -5534,7 +5535,7 @@ var caap = {
         if (!webSlice) {
             return;
         }
-
+		
         // Get name and type of monster
         var monster = nHtml.GetText(webSlice);
         monster = monster.substring(0, monster.indexOf('You have (')).trim();
@@ -5987,6 +5988,7 @@ var caap = {
                     link = link.replace('?', '?twt2&');
                     //gm.log("Link: " + link);
                     location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+					gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
                     return true;
                 }
             }
@@ -7522,6 +7524,7 @@ var caap = {
             gm.log('add elite ' + user);
             //this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
             location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', 'party.php?twt=jneg&jneg=true&user=" + user + "'))";
+			gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('MyEliteTodo', eliteList);
             this.JustDidIt('AutoEliteReqNext');
