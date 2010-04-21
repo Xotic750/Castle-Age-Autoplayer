@@ -5735,7 +5735,9 @@ var caap = {
 
         var maxDamage = caap.parseCondition('max', monsterConditions);
         var fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
-        var isTarget = (monster == gm.getValue('targetFromraid', '') || monster == gm.getValue('targetFrombattle_monster', ''));
+        var isTarget = (monster == gm.getValue('targetFromraid', '') ||
+				monster == gm.getValue('targetFrombattle_monster', '') ||
+				monster == gm.getValue('targetFromfortify', ''));
         if (maxDamage && damDone >= maxDamage) {
             gm.setListObjVal('monsterOl', monster, 'color', 'red');
             gm.setListObjVal('monsterOl', monster, 'over', 'max');
@@ -5808,6 +5810,8 @@ var caap = {
                 var selectType = selectTypes[s];
                 var firstOverAch = '';
                 var firstUnderMax = '';
+                var firstFortOverAch = '';
+                var firstFortUnderMax = '';
                 var attackOrderList = [];
                 // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                 if (selectType == 'any') {
@@ -5861,33 +5865,39 @@ var caap = {
                                 // these to see if this is the monster we should select/
                                 var color = gm.getObjVal(monsterObj, 'color', '');
                                 var over = gm.getObjVal(monsterObj, 'over', '');
-                                if (!firstUnderMax) {
-                                    if (over != 'max' && color != 'purple') {
-                                        if (over != 'ach') {
-                                            firstUnderMax = monster;
-                                        } else if (!firstOverAch) {
-                                            firstOverAch = monster;
-                                        }
-                                    }
-                                }
-
-                                // If this a monster we need to fortify we check to see if it is under our threshold.
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 100));
                                 var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
-                                if (monsterFort < maxToFortify && !gm.getValue('targetFromfortify', '')) {
-                                    gm.setValue('targetFromfortify', monster);
-                                }
+								if (over == 'ach') {
+									if (!firstUnderMax && !firstOverAch && color != 'purple') {
+										firstOverAch = monster;
+									}
+									if (monsterFort < maxToFortify && !firstFortUnderMax && !firstFortOverAch) {
+										firstFortOverAch = monster;
+									}
+								} else if (over != 'max' ) {
+									if (monsterFort < maxToFortify && !firstFortUnderMax) {
+										firstFortUnderMax = monster;
+									}
+									if (!firstUnderMax && color != 'purple') {
+										firstUnderMax = monster;
+									}
+								}
                             }
                         }
                     }
                 }
 
-                // Now we use the first under max/under achivment that we found. If we didn't find any under
+                // Now we use the first under max/under achievement that we found. If we didn't find any under
                 // achievement then we use the first over achievement
                 monster = firstUnderMax;
                 if (!monster) {
                     monster = firstOverAch;
                 }
+                gm.setValue('targetFromfortify', firstFortUnderMax);
+                if (!gm.getValue('targetFromfortify', '')) {
+                    gm.setValue('targetFromfortify', firstFortOverAch);
+                }
+				gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
