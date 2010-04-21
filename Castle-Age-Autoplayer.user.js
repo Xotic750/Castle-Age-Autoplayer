@@ -5871,7 +5871,7 @@ var caap = {
 									if (!firstUnderMax && !firstOverAch && color != 'purple') {
 										firstOverAch = monster;
 									}
-									if (monsterFort < maxToFortify && !firstFortUnderMax && !firstFortOverAch) {
+									if ((monsterFort < maxToFortify) && !firstFortUnderMax && !firstFortOverAch) {
 										firstFortOverAch = monster;
 									}
 								} else if (over != 'max' ) {
