@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.7
+// @version        140.18.8
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.7";
+caapGlob.thisVersion = "140.18.8";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5934,11 +5934,11 @@ var caap = {
         var monsterOnPage = nHtml.GetText(webSlice);
         monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
         if (!caapGlob.is_firefox) {
-            if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + gm.getValue('FBID', 'x'))) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
             }
         } else {
-            if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + unsafeWindow.Env.user)) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
                 monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
             }
         }
