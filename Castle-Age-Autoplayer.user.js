@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.6
+// @version        140.19.0
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.6";
+caapGlob.thisVersion = "140.19.0";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1831,9 +1831,9 @@ var caap = {
         htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" + this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
         htmlCode += '</div>';
 
@@ -3049,7 +3049,9 @@ var caap = {
             gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
             if (typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
                 caap[caap.pageList[page].CheckResultsFunction](resultsText);
-            }
+            } else {
+				gm.log('Check Results function not found: '+ caap[caap.pageList[page].CheckResultsFunction]);
+			}	
         } else {
             gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
         }
@@ -5225,7 +5227,7 @@ var caap = {
     },
 
     //http://castleage.wikidot.com/monster for monster info
-    bosses: {
+    monsterInfo: {
         'Deathrune' : {
             duration : 96,
 			hp : 100000000,
@@ -5236,7 +5238,10 @@ var caap = {
             siege_img : '/graphics/death_siege_small',
             fort : true,
             staUse : 5,
-            general : 'Orc King'
+			reqAtkButton : 'attack_monster_button.jpg',
+			pwrAtkButton : 'attack_monster_button2.jpg',
+			defButton : 'button_dispel.gif',
+            general : ''
         },
         'Ice Elemental' : {
             duration : 168,
@@ -5248,7 +5253,10 @@ var caap = {
             siege_img : '/graphics/water_siege_small',
             fort : true,
             staUse : 5,
-            general: 'Orc King'
+			reqAtkButton : 'attack_monster_button.jpg',
+			pwrAtkButton : 'attack_monster_button2.jpg',
+			defButton : 'button_dispel.gif',
+            general: ''
     /*
             , levels : {
             'Levels 90+'   : caap.group('90+: '  ,40),
@@ -5267,7 +5275,10 @@ var caap = {
             siege_img : '/graphics/earth_siege_small',
             fort : true,
             staUse : 5,
-            general: 'Orc King'
+			reqAtkButton : 'attack_monster_button.jpg',
+			pwrAtkButton : 'attack_monster_button2.jpg',
+			defButton : 'attack_monster_button3.jpg',
+            general: ''
     /*
             , levels : {
             'Levels 90+'   : caap.group('90+: '  ,40),
@@ -5302,13 +5313,62 @@ var caap = {
             siege_img : '/graphics/castle_siege_small',
             fort : true,
             staUse : 5,
-            general : 'Orc King'
+            general : ''
         },
-        'Dragon' : {
+        'Emerald Dragon' : {
             duration : 72,
             ach : 100000,
             siege : 0
         },
+        'Frost Dragon' : {
+            duration : 72,
+            ach : 100000,
+            siege : 0
+        },
+        'Gold Dragon' : {
+            duration : 72,
+            ach : 100000,
+            siege : 0
+        },
+        'Red Dragon' : {
+            duration : 72,
+            ach : 100000,
+            siege : 0
+        },
+        'Volcanic Dragon' : {
+            duration : 168,
+			hp : 100000000,
+            ach : 1000000,
+            siege : 5,
+            siegeClicks : [30, 60, 90, 120, 200],
+            siegeDam : [7896000, 9982500, 11979000, 15972000, 19965000],
+            siege_img : '/graphics/water_siege_small',
+            fort : true,
+            staUse : 5,
+            general: '',
+			charClass : {
+				'Warrior' : {
+					statusWord		: 'jaws',
+					pwrAtkButton	: 'nm_primary',
+					defButton		: 'nm_secondary',
+				},
+				'Rogue' : {
+					statusWord 		: 'heal',
+					pwrAtkButton	: 'nm_primary',
+					defButton		: 'nm_secondary',
+				},
+				'Mage' : {
+					statusWord		: 'lava',
+					pwrAtkButton	: 'nm_primary',
+					defButton		: 'nm_secondary',
+				},
+				'Cleric' : {
+					status 			: 'mana',
+					pwrAtkButton	: 'nm_primary',
+					defButton		: 'nm_secondary',
+				},
+			},	
+        },		
         'King' : {
             duration : 72,
             ach : 15000,
@@ -5335,7 +5395,10 @@ var caap = {
         'Knight' : {
             duration : 48,
             ach : 30000,
-            siege : 0
+            siege : 0,
+			reqAtkButton : 'event_attack1.gif',
+			pwrAtkButton : 'event_attack2.gif',
+			defButton : null
         },
         'Serpent' : {
             duration : 72,
@@ -5393,7 +5456,7 @@ var caap = {
     getMonstType: function (name) {
         var words = name.split(" ");
         var count = words.length - 1;
-        if (words[count] == 'Elemental') {
+        if (words[count] == 'Elemental' || words[count] == 'Dragon') {
             return words[count - 1] + ' ' + words[count];
         }
 
@@ -5468,7 +5531,7 @@ var caap = {
             if (monstType == 'Siege') {
                 siege = "&action=doObjective";
             } else {
-                var boss = caap.bosses[monstType];
+                var boss = caap.monsterInfo[monstType];
                 siege = (boss && boss.siege) ? "&action=doObjective" : '';
             }
 
@@ -5538,15 +5601,24 @@ var caap = {
 
 
     CheckResults_viewFight: function () {
-        // Check if on monster page
-        var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
-        if (!webSlice) {
-            return;
+        // Check if on monster page (nm_top.jpg for Volcanic Dragon)
+		if (!(webSlice = caap.CheckForImage('dragon_title_owner.jpg'))) {
+			if (!(webSlice = caap.CheckForImage('nm_top.jpg'))) {
+				gm.log('Can not find identifier for monster fight page.');
+				return;
+			}
         }
-
+		
         // Get name and type of monster
         var monster = nHtml.GetText(webSlice);
-        monster = monster.substring(0, monster.indexOf('You have (')).trim();
+		
+		if (caap.CheckForImage('nm_volcanic_title.jpg')) {
+			monster = monster.match(/.+'s /) + 'Bahamut, the Volcanic Dragon';
+			monster = monster.trim();
+		} else {
+			monster = monster.substring(0, monster.indexOf('You have (')).trim();
+		}	
+		
         var fort = null;
         var monstType = '';
         if (caap.CheckForImage('raid_1_large.jpg')) {
@@ -5558,11 +5630,11 @@ var caap = {
         }
 
         if (!caapGlob.is_firefox) {
-            if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + gm.getValue('FBID', 'x'))) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monster = monster.replace(/.+'s /, 'Your ');
             }
         } else {
-            if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + unsafeWindow.Env.user)) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
                 monster = monster.replace(/.+'s /, 'Your ');
             }
         }
@@ -5578,13 +5650,15 @@ var caap = {
         var phase = '';
 		var currentPhase = 0;
 		var miss = '';
+		
+ 	
         // Check for mana forcefield
+		var fortPct = null;
         var img = caap.CheckForImage('bar_dispel');
         if (img) {
             var manaHealth = img.parentNode.style.width;
             manaHealth = manaHealth.substring(0, manaHealth.length - 1);
-            manaHealth = 100 - Number(manaHealth);
-            gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(manaHealth * 10)) / 10);
+            fortPct = 100 - Number(manaHealth);
         } else {
 			// Check fortify stuff
 			img = caap.CheckForImage('seamonster_ship_health');
@@ -5596,16 +5670,25 @@ var caap = {
 					if (img) {
 						var extraHealth = img.parentNode.style.width;
 						extraHealth = extraHealth.substring(0, extraHealth.length - 1);
-						shipHealth = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
+						fortPct = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
 					}
 				}
-
-				gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(shipHealth * 10)) / 10);
 			} else {
-				monsterFort = gm.setListObjVal('monsterOl','Fort%',100);
+				// Check party health - Volcanic dragon 
+				img = caap.CheckForImage('nm_green');
+				if (img) {
+					var partyHealth = img.parentNode.style.width;
+					fortPct = partyHealth.substring(0, partyHealth.length - 1);
+				}
 			}
 		}
-        var damDone = 0;
+		if (fortPct === null) {
+			monsterFort = gm.setListObjVal('monsterOl','Fort%',100);
+		} else {
+			gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(partyHealth * 10)) / 10);
+		}
+
+		var damDone = 0;
         // Get damage done to monster
         webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
         if (webSlice) {
@@ -5626,7 +5709,7 @@ var caap = {
                     } else {
                         gm.setListObjVal('monsterOl', monster, 'Damage', caap.NumberOnly(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim()));
                     }
-
+				
                     damDone = gm.getListObjVal('monsterOl', monster, 'Damage');
                     //if (damDone) gm.log("Damage done = " + gm.getListObjVal('monsterOl',monster,'Damage'));
                 } else {
@@ -5639,8 +5722,8 @@ var caap = {
             gm.log("couldn't get dragoncontainer");
         }
 
-        var monsterTicker = nHtml.FindByAttrContains(document.body, "div", "id", "app46755028429_monsterTicker");
-        if (monsterTicker) {
+		if ((monsterTicker = nHtml.FindByAttrContains(document.body, "div", "id", "app46755028429_monsterTicker"))
+			|| (monsterTicker = nHtml.FindByAttrContains(document.body, "span", "id", "app46755028429_monsterTicker"))) {
             //gm.log("Monster ticker found.");
             time = $("#app46755028429_monsterTicker").text().split(":");
         } else {
@@ -5668,10 +5751,16 @@ var caap = {
         }
 
         var hp = 0;
-        if (time.length == 3  && caap.CheckForImage('monster_health_background.jpg')) {
+		if (monstType == 'Volcanic Dragon') {
+			var monstHealthImg = 'nm_red.jpg';
+		} else { 
+			var monstHealthImg = 'monster_health_background.jpg';
+		}
+		
+        if (time.length == 3  && caap.CheckForImage(monstHealthImg)) {
             gm.setListObjVal('monsterOl', monster, 'TimeLeft', time[0] + ":" + time[1]);
             var hpBar = null;
-            var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", "monster_health_background.jpg");
+            var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
             if (imgHealthBar) {
                 //gm.log("Found monster health div.");
                 var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
@@ -5684,7 +5773,7 @@ var caap = {
             if (hpBar) {
                 hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
                 gm.setListObjVal('monsterOl', monster, 'Damage%', hp);
-                boss = caap.bosses[monstType];
+                boss = caap.monsterInfo[monstType];
                 if (!boss) {
                     gm.log('Unknown monster');
                     return;
@@ -5725,7 +5814,7 @@ var caap = {
             return;
         }
 
-        boss = caap.bosses[monstType];
+        boss = caap.monsterInfo[monstType];
         var achLevel = null;
         if (boss) {
             achLevel = caap.parseCondition('ach', monsterConditions) || boss.ach;
@@ -5914,10 +6003,10 @@ var caap = {
                     monstPage = gm.getListObjVal('monsterOl', monster, 'page');
                     gm.setValue('targetFrom' + monstPage, monster);
                     monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions');
-                    var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
+                    var monstType = gm.getListObjVal('monsterOl', monster, 'Type', '');
                     if (monstPage == 'battle_monster') {
-                        if (caap.bosses[monstType] && caap.bosses[monstType].staUse) {
-                            gm.setValue('MonsterStaminaReq', caap.bosses[monstType].staUse);
+                        if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].staUse) {
+                            gm.setValue('MonsterStaminaReq', caap.monsterInfo[monstType].staUse);
                         } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterConditions.match(/:pa/i)) {
                             gm.setValue('MonsterStaminaReq', 5);
                         } else if (monsterConditions.match(/:sa/i)) {
@@ -5935,8 +6024,8 @@ var caap = {
                         // Switch RaidPowerAttack
                         if (gm.getValue('RaidPowerAttack', false) || monsterConditions.match(/:pa/i)) {
                             gm.setValue('RaidStaminaReq', 5);
-                        } else if (caap.bosses[monstType] && caap.bosses[monstType].staUse) {
-                            gm.setValue('RaidStaminaReq', caap.bosses[monstType].staUse);
+                        } else if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].staUse) {
+                            gm.setValue('RaidStaminaReq', caap.monsterInfo[monstType].staUse);
                         } else {
                             gm.setValue('RaidStaminaReq', 1);
                         }
@@ -5950,17 +6039,24 @@ var caap = {
 
     monsterConfirmRightPage: function (webSlice, monster) {
         // Confirm name and type of monster
-        var monsterOnPage = nHtml.GetText(webSlice);
-        monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
-        if (!caapGlob.is_firefox) {
-            if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + gm.getValue('FBID', 'x'))) {
+		var monsterOnPage = nHtml.GetText(webSlice);
+		if (caap.CheckForImage('nm_volcanic_title.jpg')) {
+			monsterOnPage = monsterOnPage.match(/.+'s /) + 'Bahamut, the Volcanic Dragon';
+			monsterOnPage = monsterOnPage.trim()
+		} else {
+			monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
+		}	
+        
+		if (!caapGlob.is_firefox) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
             }
         } else {
-            if (nHtml.FindByAttrContains(webSlice, 'a', 'href', 'id=' + unsafeWindow.Env.user)) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
                 monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
             }
         }
+		
 
         if (monster != monsterOnPage) {
             gm.log('Looking for ' + monster + ' but on ' + monsterOnPage + '. Going back to select screen');
@@ -6025,6 +6121,7 @@ var caap = {
             gm.setValue('resetselectMonster', true);
             gm.log('Done with monster/raid review.');
             gm.setValue('monsterReviewCounter', -2);
+            this.SetDivContent('battle_mess', '');
         }
 
         return false;
@@ -6099,9 +6196,14 @@ var caap = {
         if (this.SelectGeneral(fightMode + 'General')) {
             return true;
         }
-
+		
         // Check if on engage monster page
-        var webSlice = this.CheckForImage('dragon_title_owner.jpg');
+		if (caap.getMonstType(monster) == 'Volcanic Dragon') {
+			var imageTest = 'nm_top.jpg';
+		} else {
+			var imageTest = 'dragon_title_owner.jpg';
+		}	
+        var webSlice = this.CheckForImage(imageTest);
         if (webSlice) {
             if (this.monsterConfirmRightPage(webSlice, monster)) {
                 return true;
@@ -6111,12 +6213,15 @@ var caap = {
             // Find the attack or fortify button
             if (fightMode == 'Fortify') {
                 attackButton = this.CheckForImage('seamonster_fortify.gif');
-                if (!attackButton) {
-                    attackButton = this.CheckForImage('button_dispel.gif');
-                    if (!attackButton) {
-                        attackButton = this.CheckForImage('attack_monster_button3.jpg');
-                    }
-                }
+				if (!attackButton) {
+					attackButton = this.CheckForImage('nm_secondary_');
+					if (!attackButton) {
+						attackButton = this.CheckForImage('button_dispel.gif');
+						if (!attackButton) {
+							attackButton = this.CheckForImage('attack_monster_button3.jpg');
+						}
+					}
+				}	
             } else if (gm.getValue('MonsterStaminaReq', 1) == 1) {
                 // not power attack only normal attacks
                 attackButton = this.CheckForImage('attack_monster_button.jpg');
@@ -6140,20 +6245,23 @@ var caap = {
                 // power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
                 attackButton = this.CheckForImage('attack_monster_button2.jpg');
                 if (!attackButton) {
-                    attackButton = this.CheckForImage('event_attack2.gif');
+					attackButton = this.CheckForImage('nm_primary_');
                     if (!attackButton) {
-                        attackButton = this.CheckForImage('seamonster_power.gif');
-                        if (!attackButton) {
-                            attackButton = this.CheckForImage('event_attack1.gif');
-                            if (!attackButton) {
-                                attackButton = this.CheckForImage('attack_monster_button.jpg');
-                            }
+						attackButton = this.CheckForImage('event_attack2.gif');
+						if (!attackButton) {
+							attackButton = this.CheckForImage('seamonster_power.gif');
+							if (!attackButton) {
+								attackButton = this.CheckForImage('event_attack1.gif');
+								if (!attackButton) {
+									attackButton = this.CheckForImage('attack_monster_button.jpg');
+								}
 
-                            if (attackButton) {
-                                gm.setValue('MonsterStaminaReq', 1);
-                            }
-                        }
-                    }
+								if (attackButton) {
+									gm.setValue('MonsterStaminaReq', 1);
+								}
+							}
+						}
+					}	
                 }
             }
 
@@ -6787,7 +6895,12 @@ var caap = {
 
     monstDamage: function () {    // Get damage done to monster
         var damDone = 0;
-        var webSlice = this.CheckForImage('dragon_title_owner.jpg');
+		if (caap.getMonstType(monster) == 'Volcanic Dragon') {
+			var imageTest = 'nm_top.jpg';
+		} else {
+			var imageTest = 'dragon_title_owner.jpg';
+		}	
+        var webSlice = this.CheckForImage(imageTest);
         if (webSlice && caapGlob.attackButton) {
             // Get name and type of monster
             var monsterName = nHtml.GetText(webSlice);
@@ -7225,7 +7338,7 @@ var caap = {
             }
 
             if (this.stats.energy.num < this.stats.energy.max - 10 &&
-                energyPotions > this.GetNumber("energyPotionsKeepUnder", 0) &&
+                energyPotions > this.GetNumber("energyPotionsKeepUnder", 35) &&
                 gm.getValue("Consume_Energy", false)) {
                 gm.log("Spending energy potions");
                 var energySlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_1");
@@ -7234,7 +7347,7 @@ var caap = {
                     if (energyButton) {
                         gm.log("Consume energy potion");
                         caap.Click(energyButton);
-                        // Check consumed
+                        // Check consumed should happen here if needed
                         return true;
                     } else {
                         gm.log("Could not find consume energy button");
@@ -7250,7 +7363,7 @@ var caap = {
             }
 
             if (this.stats.stamina.num < this.stats.stamina.max - 10 &&
-                staminaPotions > this.GetNumber("staminaPotionsKeepUnder", 0) &&
+                staminaPotions > this.GetNumber("staminaPotionsKeepUnder", 35) &&
                 gm.getValue("Consume_Stamina", false)) {
                 gm.log("Spending stamina potions");
                 var staminaSlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_2");
@@ -7259,7 +7372,7 @@ var caap = {
                     if (staminaButton) {
                         gm.log("Consume stamina potion");
                         caap.Click(staminaButton);
-                        // Check consumed
+                        // Check consumed should happen here if needed
                         return true;
                     } else {
                         gm.log("Could not find consume stamina button");
@@ -7687,6 +7800,14 @@ var caap = {
                 return false;
             }
 
+            /*
+            var iframeFB = document.getElementById("generic_dialog_iframe");
+            if (iframeFB) {
+                iframeFB.src = "//apps.facebook.com/common/blank.html";
+                gm.log("iframe src set");
+            }
+            */
+
             var giftNamePic = {};
             var giftEntry = nHtml.FindByAttrContains(document.body, 'div', 'id', '_gift1');
             if (giftEntry) {
@@ -8017,7 +8138,7 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     ImmediateAutoStat: function () {
-        if (!gm.getValue("StatImmed")) {
+        if (!gm.getValue("StatImmed") || this.stats.level < 10) {
             return false;
         }
 
@@ -8107,7 +8228,7 @@ var caap = {
 
     AutoStat: function () {
         try {
-            if (!gm.getValue('AutoStat')) {
+            if (!gm.getValue('AutoStat') || this.stats.level < 10) {
                 return false;
             }
 
