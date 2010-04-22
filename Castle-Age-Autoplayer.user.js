@@ -2303,10 +2303,10 @@ var caap = {
             var monster = monsterObj.split(caapGlob.vs)[0];
             var color = '';
             html += "<tr>";
-            if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
-                color = 'green';
-            } else if (monster == gm.getValue('targetFromfortify')) {
+            if (monster == gm.getValue('targetFromfortify') && caap.stats.energy && caap.stats.energy.num >= 10) {
                 color = 'blue';
+            } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
+                color = 'green';
             } else {
                 color = gm.getObjVal(monsterObj, 'color', 'black');
             }
@@ -5381,13 +5381,12 @@ var caap = {
             return 0;
         }
 
-        var value = conditions.substring(conditions.indexOf(':' + type) + 4).replace(/:.+/, '');
+        var value = conditions.match(/[\d\.]+[km]?/i)[0];
         if (/k$/i.test(value) || /m$/i.test(value)) {
             var first = /\d+k/i.test(value);
             var second = /\d+m/i.test(value);
             value = parseInt(value, 10) * 1000 * (first + second * 1000);
         }
-
         return parseInt(value, 10);
     },
 
@@ -5586,25 +5585,26 @@ var caap = {
             manaHealth = manaHealth.substring(0, manaHealth.length - 1);
             manaHealth = 100 - Number(manaHealth);
             gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(manaHealth * 10)) / 10);
-        }
+        } else {
+			// Check fortify stuff
+			img = caap.CheckForImage('seamonster_ship_health');
+			if (img) {
+				var shipHealth = img.parentNode.style.width;
+				shipHealth = shipHealth.substring(0, shipHealth.length - 1);
+				if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
+					img = caap.CheckForImage('repair_bar_grey');
+					if (img) {
+						var extraHealth = img.parentNode.style.width;
+						extraHealth = extraHealth.substring(0, extraHealth.length - 1);
+						shipHealth = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
+					}
+				}
 
-        // Check fortify stuff
-        img = caap.CheckForImage('seamonster_ship_health');
-        if (img) {
-            var shipHealth = img.parentNode.style.width;
-            shipHealth = shipHealth.substring(0, shipHealth.length - 1);
-            if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
-                img = caap.CheckForImage('repair_bar_grey');
-                if (img) {
-                    var extraHealth = img.parentNode.style.width;
-                    extraHealth = extraHealth.substring(0, extraHealth.length - 1);
-                    shipHealth = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
-                }
-            }
-
-            gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(shipHealth * 10)) / 10);
-        }
-
+				gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(shipHealth * 10)) / 10);
+			} else {
+				monsterFort = gm.setListObjVal('monsterOl','Fort%',100);
+			}
+		}
         var damDone = 0;
         // Get damage done to monster
         webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
@@ -5865,21 +5865,28 @@ var caap = {
                                 // these to see if this is the monster we should select/
                                 var color = gm.getObjVal(monsterObj, 'color', '');
                                 var over = gm.getObjVal(monsterObj, 'over', '');
-                                var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 100));
-                                var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
-								if (over == 'ach') {
-									if (!firstUnderMax && !firstOverAch && color != 'purple') {
-										firstOverAch = monster;
-									}
-									if ((monsterFort < maxToFortify) && !firstFortUnderMax && !firstFortOverAch) {
-										firstFortOverAch = monster;
-									}
-								} else if (over != 'max' ) {
-									if (monsterFort < maxToFortify && !firstFortUnderMax) {
-										firstFortUnderMax = monster;
-									}
-									if (!firstUnderMax && color != 'purple') {
+								if (!firstUnderMax && color != 'purple') {
+									if (over == 'ach') {
+										if (!firstOverAch) {
+											firstOverAch = monster;
+										}
+									} else if (over != 'max' ) {
 										firstUnderMax = monster;
+									}
+								}
+
+                                var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
+                                var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
+								//gm.log('monsterFort ' + monsterFort + ' maxToFortify ' + maxToFortify + ' monster ' + monster);
+								if (!firstFortUnderMax && monsterFort < maxToFortify && monstPage == 'battle_monster') {
+									if (over == 'ach') {
+										if (!firstFortOverAch) {
+											//gm.log('hitit');
+											firstFortOverAch = monster;
+										}
+									} else if (over != 'max' ) {
+										//gm.log('norm hitit');
+										firstFortUnderMax = monster;
 									}
 								}
                             }
@@ -5893,11 +5900,13 @@ var caap = {
                 if (!monster) {
                     monster = firstOverAch;
                 }
-                gm.setValue('targetFromfortify', firstFortUnderMax);
-                if (!gm.getValue('targetFromfortify', '')) {
-                    gm.setValue('targetFromfortify', firstFortOverAch);
-                }
-				gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
+				if (selectType != 'raid') {
+					gm.setValue('targetFromfortify', firstFortUnderMax);
+					if (!gm.getValue('targetFromfortify', '')) {
+						gm.setValue('targetFromfortify', firstFortOverAch);
+					}
+					gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
+				}
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
@@ -6073,7 +6082,7 @@ var caap = {
         var fightMode = '';
         // Check to see if we should fortify, attack monster, or battle raid
         var monster = gm.getValue('targetFromfortify');
-        if (monster && this.stats.energy.num >= 10) {
+        if (monster && caap.stats.energy.num >= 10) {
             fightMode = gm.setValue('fightMode', 'Fortify');
         } else {
             monster = gm.getValue('targetFrombattle_monster');
