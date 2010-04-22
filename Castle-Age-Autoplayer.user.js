@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.18.6
+// @version        140.18.7
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.18.6";
+caapGlob.thisVersion = "140.18.7";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1831,9 +1831,9 @@ var caap = {
         htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
         htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" + this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
         htmlCode += '</div>';
 
@@ -6006,6 +6006,7 @@ var caap = {
             gm.setValue('resetselectMonster', true);
             gm.log('Done with monster/raid review.');
             gm.setValue('monsterReviewCounter', -2);
+            this.SetDivContent('battle_mess', '');
         }
 
         return false;
@@ -7206,7 +7207,7 @@ var caap = {
             }
 
             if (this.stats.energy.num < this.stats.energy.max - 10 &&
-                energyPotions > this.GetNumber("energyPotionsKeepUnder", 0) &&
+                energyPotions > this.GetNumber("energyPotionsKeepUnder", 35) &&
                 gm.getValue("Consume_Energy", false)) {
                 gm.log("Spending energy potions");
                 var energySlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_1");
@@ -7215,7 +7216,7 @@ var caap = {
                     if (energyButton) {
                         gm.log("Consume energy potion");
                         caap.Click(energyButton);
-                        // Check consumed
+                        // Check consumed should happen here if needed
                         return true;
                     } else {
                         gm.log("Could not find consume energy button");
@@ -7231,7 +7232,7 @@ var caap = {
             }
 
             if (this.stats.stamina.num < this.stats.stamina.max - 10 &&
-                staminaPotions > this.GetNumber("staminaPotionsKeepUnder", 0) &&
+                staminaPotions > this.GetNumber("staminaPotionsKeepUnder", 35) &&
                 gm.getValue("Consume_Stamina", false)) {
                 gm.log("Spending stamina potions");
                 var staminaSlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_2");
@@ -7240,7 +7241,7 @@ var caap = {
                     if (staminaButton) {
                         gm.log("Consume stamina potion");
                         caap.Click(staminaButton);
-                        // Check consumed
+                        // Check consumed should happen here if needed
                         return true;
                     } else {
                         gm.log("Could not find consume stamina button");
@@ -7668,6 +7669,14 @@ var caap = {
                 return false;
             }
 
+            /*
+            var iframeFB = document.getElementById("generic_dialog_iframe");
+            if (iframeFB) {
+                iframeFB.src = "//apps.facebook.com/common/blank.html";
+                gm.log("iframe src set");
+            }
+            */
+
             var giftNamePic = {};
             var giftEntry = nHtml.FindByAttrContains(document.body, 'div', 'id', '_gift1');
             if (giftEntry) {
@@ -7998,7 +8007,7 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     ImmediateAutoStat: function () {
-        if (!gm.getValue("StatImmed")) {
+        if (!gm.getValue("StatImmed") || this.stats.level < 10) {
             return false;
         }
 
@@ -8088,7 +8097,7 @@ var caap = {
 
     AutoStat: function () {
         try {
-            if (!gm.getValue('AutoStat')) {
+            if (!gm.getValue('AutoStat') || this.stats.level < 10) {
                 return false;
             }
 
