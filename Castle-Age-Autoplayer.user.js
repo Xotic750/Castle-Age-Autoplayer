@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.19.0
+// @version        140.19.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.19.0";
+caapGlob.thisVersion = "140.19.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -2226,16 +2226,18 @@ var caap = {
     },
 
     monsterDashboard: function () {
-        if (!this.oneMinuteUpdate('dashboard')) {
+        if (!this.oneMinuteUpdate('dashboard') && document.getElementById('caap_top')) {
             return;
         }
+		
     /*-------------------------------------------------------------------------------------\
      Here is where we construct the HTML for our dashboard. We start by building the outer
      container and position it within the main container.
     \-------------------------------------------------------------------------------------*/
         var containerDiv = document.getElementById('app46755028429_main_bn_container');
         if (!containerDiv) {
-            this.ReloadCastleAge();
+        //    this.ReloadCastleAge();
+			return;
         }
 
         var layout = "<div id='caap_top' style='position:absolute;top:" + (containerDiv.offsetTop - 11) + "px;left:0px;'>";
@@ -2443,7 +2445,9 @@ var caap = {
         var refreshMonsters = document.getElementById('caap_refreshMonsters');
         refreshMonsters.addEventListener('click', function (e) {
             gm.setValue('monsterReview', 0);
-            gm.setValue('monsterReviewCounter', -2);
+            gm.setValue('monsterReviewCounter', -3);
+			gm.setValue('NotargetFrombattle_monster',0);
+			gm.setValue('ReleaseControl', true);
         }, false);
 
         var liveFeed = document.getElementById('caap_liveFeed');
@@ -2718,7 +2722,7 @@ var caap = {
                 gm.log('Change: setting ' + idName + ' to something new');
                 if (idName == 'orderbattle_monster' || idName == 'orderraid') {
                     gm.setValue('monsterReview', 0);
-                    gm.setValue('monsterReviewCounter', -2);
+                    gm.setValue('monsterReviewCounter', -3);
                 }
                 caap.SaveBoxText(idName);
             }, false);
@@ -3014,6 +3018,12 @@ var caap = {
         if (!caap.WhileSinceDidIt('CheckResultsTimer', 1)) {
             return;
         }
+		
+		caap.performanceTimer('Before selectMonster');
+        caap.selectMonster();
+        caap.performanceTimer('Done selectMonster');
+        caap.monsterDashboard();
+        caap.performanceTimer('Done Dashboard');
 
         caap.performanceTimer('Start CheckResults');
         caap.JustDidIt('CheckResultsTimer');
@@ -3056,11 +3066,7 @@ var caap = {
             gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
         }
 
-        caap.performanceTimer('Before selectMonster');
-        caap.selectMonster();
-        caap.performanceTimer('Done selectMonster');
-        caap.monsterDashboard();
-        caap.performanceTimer('Done Dashboard');
+
         // Check for new gifts
         if (!gm.getValue('HaveGift')) {
             if (nHtml.FindByAttrContains(document.body, 'a', 'href', 'reqs.php#confirm_')) {
@@ -5004,7 +5010,7 @@ var caap = {
                 gm.log('Cleared a completed raid');
                 return true;
             }
-
+			
             var raidName = gm.getValue('targetFromraid', '');
             var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
             if (!webSlice) {
@@ -5017,11 +5023,11 @@ var caap = {
                 gm.log('Unable to engage raid ' + raidName);
                 return false;
             }
-
+			
             if (this.monsterConfirmRightPage(webSlice, raidName)) {
                 return true;
             }
-
+			
             // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
             if (gm.getValue('TargetType', '') == "Userid List") {
                 if (this.BattleFreshmeat('Raid')) {
@@ -5039,7 +5045,7 @@ var caap = {
                 gm.log('Doing Raid UserID list, but no target');
                 return false;
             }
-
+			
             return this.BattleFreshmeat('Raid');
         case 'freshmeat' :
             if (this.NavigateTo(this.battlePage, 'battle_on.gif')) {
@@ -5467,9 +5473,10 @@ var caap = {
     CheckResults_fightList: function () {
         // get all buttons to check monsterObjectList
         var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        if (ss.snapshotLength === 0) {
+		if (ss.snapshotLength === 0) {
             return false;
         }
+		
         var page = gm.getValue('page', 'battle_monster');
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
         if (!caapGlob.is_firefox) {
@@ -5485,7 +5492,7 @@ var caap = {
                 return false;
             }
         }
-
+		
         // Review monsters and find attack and fortify button
         var monsterList = [];
         for (var s = 0; s < ss.snapshotLength; s++) {
@@ -5541,6 +5548,7 @@ var caap = {
                     mpool + siege + "'>Link</a>";
             gm.setListObjVal('monsterOl', monster, 'Link', link);
         }
+		gm.setValue('reviewDone',1);
 
         gm.getList('monsterOl').forEach(function (monsterObj) {
             var monster = monsterObj.split(caapGlob.vs)[0];
@@ -5731,7 +5739,7 @@ var caap = {
 
         var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
         if (/:ac\b/.test(monsterConditions)) {
-            var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
+            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
             var monsterList = gm.getList('monsterOl');
             if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
                 (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
@@ -6044,67 +6052,120 @@ var caap = {
             return this.NavigateTo('keep,' + monstPage);
         }
     },
-
+	/*-------------------------------------------------------------------------------------\
+    MonsterReview is a primary action subroutine to mange the monster and raid list
+	on the dashboard
+    \-------------------------------------------------------------------------------------*/
     MonsterReview: function () {
-        // Review all active monsters, try siege weapons on the way
-        var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
-        if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter >= 0 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
-            // Check raids and monster individual pages
-            if (!(gm.getValue('monsterOl', ''))) {
-                return false;
-            }
+	/*-------------------------------------------------------------------------------------\
+	We do monster review once an hour.  Some routines may reset this timer to drive 
+	MonsterReview immediately. 
+    \-------------------------------------------------------------------------------------*/	
+		if(!this.WhileSinceDidIt('monsterReview', 60 * 60)) {
+			return false;
+		} 
 
-            var monsterObjList = gm.getList('monsterOl');
-            if (gm.getObjVal(monsterObjList[counter], 'Damage', 'Undefined') != 'Undefined' || gm.getValue('monsterReviewRetryDone', false)) {
-                counter++;
-                gm.setValue('monsterReviewRetryDone', false);
-            } else {
-                gm.setValue('monsterReviewRetryDone', true);
-            }
+	/*-------------------------------------------------------------------------------------\
+	We get the monsterReviewCounter.  This will be set to -3 if we are supposed to refresh
+	the monsterOl completely. Otherwise it will be our index into how far we are into 
+	reviewing monsterOl.
+    \-------------------------------------------------------------------------------------*/		
+        var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+		if (counter == -3) {
+			gm.setValue('monsterOl', '');
+			gm.setValue('monsterReviewCounter', ++counter);
+			return true;
+		}
+		if (counter == -2) {
+			if (this.NavigateTo('battle_monster','tab_monster_on.jpg')) {
+				gm.setValue('reviewDone',0);
+				return true;
+			}
+			if (gm.getValue('reviewDone',1) > 0) {
+				gm.setValue('monsterReviewCounter', ++counter);
+			}
+			return true;	
+		}
+		if (counter == -1) {
+			if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
+				gm.setValue('reviewDone',0);
+				return true;
+			}
+			if (gm.getValue('reviewDone',1) > 0 ) {
+				gm.setValue('monsterReviewCounter', ++counter);
+			}
+			return true;		
+		}
 
-            while (counter < monsterObjList.length) {
-                var monsterObj = monsterObjList[counter];
-                if (!monsterObj) {
-                    continue;
-                }
+		if (!(gm.getValue('monsterOl', ''))) {
+			return false;
+		}
 
-                var monster = monsterObj.split(caapGlob.vs)[0];
-                this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
-                gm.setValue('monsterReviewCounter', counter);
-                var link = gm.getObjVal(monsterObj, 'Link');
-                if (/href/.test(link)) {
-                    link = link.split("'")[1];
-                    var conditions = gm.getObjVal(monsterObj, 'conditions');
-                    if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') == 'Collect Reward') {
-                        link += '&action=collectReward';
-                        if (monster.indexOf('Siege') >= 0) {
-                            link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
-                        }
+	/*-------------------------------------------------------------------------------------\
+	Now we step through the monsterOl objects. We set monsterReviewCounter to the next 
+	index for the next reiteration since we will be doing a click and return in here.
+    \-------------------------------------------------------------------------------------*/			
+		var monsterObjList = gm.getList('monsterOl');
+		while (counter < monsterObjList.length) {
+			var monsterObj = monsterObjList[counter];
+			if (!monsterObj) {
+				counter++;
+				continue;
+			}
+			gm.setValue('monsterReviewCounter', ++counter);
 
-                        link = link.replace('&action=doObjective', '');
-                    } else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
-                        link = link.replace('&action=doObjective', '');
-                    }
+	/*-------------------------------------------------------------------------------------\
+	We get our monster name and link 
+    \-------------------------------------------------------------------------------------*/	
+			var monster = monsterObj.split(caapGlob.vs)[0];
+			this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
+			var link = gm.getObjVal(monsterObj, 'Link');
+	/*-------------------------------------------------------------------------------------\
+	If the link is good then we get the url and any conditions for monster
+    \-------------------------------------------------------------------------------------*/			
+			if (/href/.test(link)) {
+				link = link.split("'")[1];
+				var conditions = gm.getObjVal(monsterObj, 'conditions');
+	/*-------------------------------------------------------------------------------------\
+	If the autocollect tyoken was specified then we set the link to do auto collect. If 
+	the conditions indicate we should not do sieges then we fix the link.
+    \-------------------------------------------------------------------------------------*/					
+				if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') == 'Collect Reward') {
+					link += '&action=collectReward';
+					if (monster.indexOf('Siege') >= 0) {
+						link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
+					}
 
-                    gm.log('MonsterObj ' + counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
-                    gm.setValue('ReleaseControl', true);
-                    link = link.replace('http://apps.facebook.com/castle_age/', '');
-                    link = link.replace('?', '?twt2&');
-                    //gm.log("Link: " + link);
-                    location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
-                    gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-                    return true;
-                }
-            }
+					link = link.replace('&action=doObjective', '');
+				} else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
+					link = link.replace('&action=doObjective', '');
+				}
+	/*-------------------------------------------------------------------------------------\
+	Now we use ajaxSendLink to display the monsters page. 
+    \-------------------------------------------------------------------------------------*/	
+				gm.log('MonsterObj ' + counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
+				gm.setValue('ReleaseControl', true);
+				link = link.replace('http://apps.facebook.com/castle_age/', '');
+				link = link.replace('?', '?twt2&');
+				//gm.log("Link: " + link);
+				location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+				gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+				gm.setValue('resetselectMonster', true);
+				gm.setValue('resetdashboard', true);
+				return true;
+			}
+		}
+	/*-------------------------------------------------------------------------------------\
+	All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
+	We set the monsterReviewCounter to do a full refresh next time through.
+    \-------------------------------------------------------------------------------------*/	
+		this.JustDidIt('monsterReview');
+		gm.setValue('resetselectMonster', true);
+		gm.setValue('resetdashboard', true);
+		gm.setValue('monsterReviewCounter', -3);
+		gm.log('Done with monster/raid review.');
+		this.SetDivContent('battle_mess', '');
 
-            this.JustDidIt('monsterReview');
-            gm.setValue('resetselectMonster', true);
-            gm.log('Done with monster/raid review.');
-            gm.setValue('monsterReviewCounter', -2);
-            this.SetDivContent('battle_mess', '');
-        }
-
-        return false;
     },
 
     Monsters: function () {
@@ -6114,26 +6175,6 @@ var caap = {
             gm.log("Stay Hidden Mode: We're not safe. Go battle.");
             this.SetDivContent('battle_mess', 'Not Safe For Monster. Battle!');
             return false;
-        }
-
-        var counter = parseInt(gm.getValue('monsterReviewCounter', -2), 10);
-        if (this.WhileSinceDidIt('monsterReview', 60 * 60) && counter < 0 && (this.stats.stamina.num > 0 || gm.getValue('monsterReview') === 0)) {
-            // Check Monster page
-            if (counter == -2) {
-                gm.setValue('monsterOl', '');
-                gm.setValue('monsterReviewCounter', ++counter);
-                return this.NavigateTo('battle_monster');
-            }
-
-            if (counter == -1) {
-                if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
-                    return true;
-                }
-
-                // Read in conditions like no siege and auto collect
-                gm.setValue('monsterReviewCounter', ++counter);
-                gm.setValue('resetselectMonster', true);
-            }
         }
 
         if (!this.CheckTimer('NotargetFrombattle_monster')) {
@@ -8684,6 +8725,7 @@ var caap = {
         0x03: 'ImmediateBanking',
         0x04: 'ImmediateAutoStat',
         0x05: 'MaxEnergyQuest',
+        0x11: 'MonsterReview',		
         0x06: 'DemiPoints',
         0x07: 'Monsters',
         0x08: 'Battle',
@@ -8695,7 +8737,6 @@ var caap = {
         0x0E: 'AutoBless',
         0x0F: 'AutoStat',
         0x10: 'AutoGift',
-        0x11: 'MonsterReview',
         0x12: 'AutoPotions',
         0x13: 'AutoAlchemy',
         0x14: 'Idle'
