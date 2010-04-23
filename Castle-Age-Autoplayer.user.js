@@ -745,6 +745,8 @@ var Move = {
 var caap = {
     stats: {},
     lastReload: new Date(),
+    newDomLoaded : false,
+	node_trigger : null,
     autoReloadMilliSecs: 15 * 60 * 1000,
 
     userRe: new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)"),
@@ -2073,6 +2075,7 @@ var caap = {
         var caapPaused = document.getElementById('caapPaused');
         caapRestart.addEventListener('click', function (e) {
             var div = document.getElementById("caap_div");
+			caap.newDomLoaded = true;
             caapPaused.style.display = 'none';
             document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
             document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
@@ -2129,27 +2132,32 @@ var caap = {
             }, false);
         }
 
-        // if (gm.getValue('WhenBattle') == 'Not Hiding' && gm.getValue('WhenMonster') != 'Not Hiding') {
-            // gm.setValue('WhenMonster', 'Not Hiding');
-            // this.SetControls(true);
-        // }
-
         var globalContainer = document.getElementById('app46755028429_globalContainer');
         if (!globalContainer) {
             gm.log('Global Container not found');
             return;
         }
 
+/*		
+		$('body').bind('DOMNodeInserted', function(event){
+            var $target = $(event.target);
+			if (!caap.node_trigger && (
+				caap.newDomLoaded = true;
+				caap.node_trigger = window.setTimeout(function(){caap.node_trigger=null;caap.CheckResults();},100);
+			}
+		});
+*/		
+		
         globalContainer.addEventListener('DOMNodeInserted', function (event) {
             // Uncomment this to see the id of domNodes that are inserted
             /*
             if (event.target.id) {
                 alert(event.target.id);
             }
-            */
-
+           */
+			caap.newDomLoaded = true;
             var $target = $(event.target);
-            if ($target.is("#app46755028429_app_body") ||
+            if (!caap.node_trigger && ($target.is("#app46755028429_app_body") ||
                 $target.is("#app46755028429_index") ||
                 $target.is("#app46755028429_keep") ||
                 $target.is("#app46755028429_generals") ||
@@ -2176,12 +2184,18 @@ var caap = {
                 $target.is("#app46755028429_comments") ||
                 $target.is("#app46755028429_army") ||
                 $target.is("#app46755028429_army_news_feed") ||
-                $target.is("#app46755028429_army_reqs")) {
-                nHtml.setTimeout(caap.CheckResults, 0);
+                $target.is("#app46755028429_army_reqs"))) {
+				caap.newDomLoaded = true;
+				caap.node_trigger = window.setTimeout(function(){caap.node_trigger=null;caap.CheckResults();},100);
+//                nHtml.setTimeout(caap.CheckResults, 0);
             }
         }, true);
 
         globalContainer.addEventListener('click', function (event) {
+			if (caap.newDomLoaded == true) {
+				caap.JustDidIt('clickedOnSomething');
+				caap.newDomLoaded = false;
+			}
             var obj = event.target;
             while (obj && !obj.href) {
                 obj = obj.parentNode;
@@ -2303,7 +2317,7 @@ var caap = {
             var monster = monsterObj.split(caapGlob.vs)[0];
             var color = '';
             html += "<tr>";
-            if (monster == gm.getValue('targetFromfortify') && caap.stats.energy && caap.stats.energy.num >= 10) {
+            if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10)) {
                 color = 'blue';
             } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
                 color = 'green';
@@ -3046,14 +3060,14 @@ var caap = {
         }
 
         if (gm.getValue('page')) {
-            gm.log('Checking results for ' + page + ' \nURL: ' + pageUrl);
+            gm.log('Checking results for ' + page);
             if (typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
                 caap[caap.pageList[page].CheckResultsFunction](resultsText);
             } else {
 				gm.log('Check Results function not found: '+ caap[caap.pageList[page].CheckResultsFunction]);
 			}	
         } else {
-            gm.log('No results check defined for ' + page + ' \nURL: ' + pageUrl);
+            gm.log('No results check defined for ' + page);
         }
 
         caap.performanceTimer('Before selectMonster');
@@ -3190,7 +3204,7 @@ var caap = {
 
             this.SetDivContent('quest_mess', 'Searching for quest.');
         } else {
-            if (!this.IsEnoughEnergyForAutoQuest()) {
+            if (!this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'))) {
                 return false;
             }
         }
@@ -3723,8 +3737,8 @@ var caap = {
         return caapGlob.quest_name;
     },
 
-    IsEnoughEnergyForAutoQuest: function () {
-        var energy = gm.getObjVal('AutoQuest', 'energy');
+    CheckEnergy: function (energy) {
+//        var energy = gm.getObjVal('AutoQuest', 'energy');
         if (!this.stats.energy || !energy) {
             return false;
         }
@@ -6179,7 +6193,7 @@ var caap = {
         var fightMode = '';
         // Check to see if we should fortify, attack monster, or battle raid
         var monster = gm.getValue('targetFromfortify');
-        if (monster && caap.stats.energy.num >= 10) {
+        if (monster && caap.CheckEnergy(10)) {
             fightMode = gm.setValue('fightMode', 'Fortify');
         } else {
             monster = gm.getValue('targetFrombattle_monster');
