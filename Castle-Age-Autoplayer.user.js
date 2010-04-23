@@ -5994,7 +5994,7 @@ var caap = {
 					if (!gm.getValue('targetFromfortify', '')) {
 						gm.setValue('targetFromfortify', firstFortOverAch);
 					}
-					gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
+					//gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
 				}
 
                 // If we've got a monster for this selection type then we set the GM variables for the name
