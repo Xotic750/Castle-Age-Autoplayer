@@ -5685,7 +5685,7 @@ var caap = {
 		if (fortPct === null) {
 			monsterFort = gm.setListObjVal('monsterOl','Fort%',100);
 		} else {
-			gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(partyHealth * 10)) / 10);
+			gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
 		}
 
 		var damDone = 0;
