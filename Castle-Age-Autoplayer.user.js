@@ -5458,7 +5458,7 @@ var caap = {
             return 0;
         }
 
-        var value = conditions.match(/[\d\.]+[km]?/i)[0];
+        var value = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(/:.+/, '');
         if (/k$/i.test(value) || /m$/i.test(value)) {
             var first = /\d+k/i.test(value);
             var second = /\d+m/i.test(value);
@@ -5697,7 +5697,7 @@ var caap = {
 			}
 		}
 		if (fortPct === null) {
-			monsterFort = gm.setListObjVal('monsterOl','Fort%',100);
+			gm.setListObjVal('monsterOl','Fort%',100);
 		} else {
 			gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
 		}
@@ -5838,9 +5838,13 @@ var caap = {
 
         var maxDamage = caap.parseCondition('max', monsterConditions);
         var fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
+		var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
         var isTarget = (monster == gm.getValue('targetFromraid', '') ||
 				monster == gm.getValue('targetFrombattle_monster', '') ||
 				monster == gm.getValue('targetFromfortify', ''));
+		if (monster == gm.getValue('targetFromfortify', '') && fortPct > maxToFortify) {
+			gm.setValue('resetselectMonster', true);
+		}
         if (maxDamage && damDone >= maxDamage) {
             gm.setListObjVal('monsterOl', monster, 'color', 'red');
             gm.setListObjVal('monsterOl', monster, 'over', 'max');
@@ -5980,7 +5984,7 @@ var caap = {
 
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
                                 var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
-								//gm.log('monsterFort ' + monsterFort + ' maxToFortify ' + maxToFortify + ' monster ' + monster);
+								//gm.log('monster ' + monster + ' maxToFortify ' + maxToFortify + ' monsterFort ' + monsterFort);
 								if (!firstFortUnderMax && monsterFort < maxToFortify && monstPage == 'battle_monster') {
 									if (over == 'ach') {
 										if (!firstFortOverAch) {
@@ -6120,7 +6124,7 @@ var caap = {
                         link = link.replace('&action=doObjective', '');
                     }
 
-                    gm.log('MonsterObj ' + counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
+                    gm.log('MonsterObj ' + counter + '/' + monsterObjList.length + ' monster ' + monster);
                     gm.setValue('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '');
                     link = link.replace('?', '?twt2&');
