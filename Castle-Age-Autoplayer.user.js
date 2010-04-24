@@ -2,7 +2,11 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
+<<<<<<< HEAD
 // @version        140.20.0
+=======
+// @version        140.19.4
+>>>>>>> cc5d11e0bb80106cc6c99864b04939ffe7fb9150
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +26,11 @@
 ///////////////////////////
 
 var caapGlob = {};
+<<<<<<< HEAD
 caapGlob.thisVersion = "140.20.0";
+=======
+caapGlob.thisVersion = "140.19.4";
+>>>>>>> cc5d11e0bb80106cc6c99864b04939ffe7fb9150
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5797,6 +5805,9 @@ var caap = {
                 boss = caap.monsterInfo[monstType];
                 if (!boss) {
                     gm.log('Unknown monster');
+					if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
+						gm.setListObjVal('monsterOl', monster, 'review','done');
+					}	
                     return;
                 }
             }
@@ -5837,6 +5848,9 @@ var caap = {
         } else {
             gm.log('Monster is dead?');
             gm.setValue('resetselectMonster', true);
+			if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
+				gm.setListObjVal('monsterOl', monster, 'review','done');
+			}	
             return;
         }
 
@@ -5881,6 +5895,7 @@ var caap = {
 		if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
 			gm.setListObjVal('monsterOl', monster, 'review','done');
 		}	
+		
     //  gm.setValue('resetdashboard',true);
     },
 
