@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.20.1
+// @version        140.20.2
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.20.1";
+caapGlob.thisVersion = "140.20.2";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -8223,7 +8223,7 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     ImmediateAutoStat: function () {
-        if (!gm.getValue("StatImmed") || this.stats.level < 10) {
+        if (!gm.getValue("StatImmed")) {
             return false;
         }
 
@@ -8313,7 +8313,7 @@ var caap = {
 
     AutoStat: function () {
         try {
-            if (!gm.getValue('AutoStat') || this.stats.level < 10) {
+            if (!gm.getValue('AutoStat')) {
                 return false;
             }
 
@@ -8351,6 +8351,11 @@ var caap = {
                     //gm.log("Attribute" + n + " is blank: continue");
                     continue;
                 }
+				if (this.stats.level < 10) {
+					if (gm.getValue('Attribute' + n, '') === 'Attack' || gm.getValue('Attribute' + n, '') === 'Defense') {
+						continue;
+					}
+				}		
 
                 switch (this.IncreaseStat(gm.getValue('Attribute' + n, ''), gm.getValue('AttrValue' + n, 0), atributeSlice)) {
                 case "Next" :
