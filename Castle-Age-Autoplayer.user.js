@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.20.0
+// @version        140.20.1
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.20.0";
+caapGlob.thisVersion = "140.20.1";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -6010,8 +6010,8 @@ var caap = {
 								//gm.log('monster ' + monster + ' maxToFortify ' + maxToFortify + ' monsterFort ' + monsterFort);
 								if (!firstFortUnderMax && monsterFort < maxToFortify &&
 										monstPage == 'battle_monster' &&
-										!(caap.monsterInfo[monstType] &&
-										caap.monsterInfo[monstType].fort === false)) {
+										caap.monsterInfo[monstType] &&
+										caap.monsterInfo[monstType].fort) {
 									if (over == 'ach') {
 										if (!firstFortOverAch) {
 											//gm.log('hitit');
