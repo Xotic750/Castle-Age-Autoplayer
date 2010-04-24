@@ -1823,7 +1823,7 @@ var caap = {
         htmlCode += '</div>';
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
-        htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectkMA', true, '', autoCollectMAInstructions);
+        htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', true, '', autoCollectMAInstructions);
         htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
@@ -5800,29 +5800,30 @@ var caap = {
             }
 
             if (boss && boss.siege) {
-                if (monstType.indexOf('Raid') >= 0) {
-                    miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
-                } else if (monstType.indexOf('Volcanic') >= 0) {
+                if (monstType.indexOf('Volcanic') >= 0) {
                     miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
 //                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
 					currentPhase = Math.min($("img[src*="+boss.siege_img+"]").size(),boss.siege)
                 } else {
-                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
-                }
-
-                var divSeigeLogs = document.getElementById("app46755028429_siege_log");
-                if (divSeigeLogs && !currentPhase) {
-                    //gm.log("Found siege logs.");
-                    var divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
-                    if (divSeigeCount) {
-                        //gm.log("Got count for siege logs.");
-                        currentPhase = Math.round(divSeigeCount / 4) + 1;
-                    } else {
-                        gm.log("Could not count siege logs.");
-                    }
-                } else {
-                    gm.log("Could not find siege logs.");
-                }
+					if (monstType.indexOf('Raid') >= 0) {
+						miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
+					} else {
+						miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+					}
+					var divSeigeLogs = document.getElementById("app46755028429_siege_log");
+					if (divSeigeLogs && !currentPhase) {
+						//gm.log("Found siege logs.");
+						var divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
+						if (divSeigeCount) {
+							//gm.log("Got count for siege logs.");
+							currentPhase = Math.round(divSeigeCount / 4) + 1;
+						} else {
+							gm.log("Could not count siege logs.");
+						}
+					} else {
+						gm.log("Could not find siege logs.");
+					}
+				}
 
                 var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(+miss) ? 0 : miss);
                 gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
