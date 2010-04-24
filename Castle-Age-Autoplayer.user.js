@@ -745,7 +745,7 @@ var Move = {
 var caap = {
     stats: {},
     lastReload: new Date(),
-    newDomLoaded : false,
+    waitingForDomLoad : false,
 	node_trigger : null,
     autoReloadMilliSecs: 15 * 60 * 1000,
 
@@ -2075,7 +2075,7 @@ var caap = {
         var caapPaused = document.getElementById('caapPaused');
         caapRestart.addEventListener('click', function (e) {
             var div = document.getElementById("caap_div");
-			caap.newDomLoaded = true;
+			caap.waitingForDomLoad = false;
             caapPaused.style.display = 'none';
             document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
             document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
@@ -2142,7 +2142,7 @@ var caap = {
 		$('body').bind('DOMNodeInserted', function(event){
             var $target = $(event.target);
 			if (!caap.node_trigger && (
-				caap.newDomLoaded = true;
+				caap.waitingForDomLoad = true;
 				caap.node_trigger = window.setTimeout(function(){caap.node_trigger=null;caap.CheckResults();},100);
 			}
 		});
@@ -2155,46 +2155,45 @@ var caap = {
                 alert(event.target.id);
             }
            */
-			caap.newDomLoaded = true;
             var $target = $(event.target);
             if (!caap.node_trigger && ($target.is("#app46755028429_app_body") ||
-                $target.is("#app46755028429_index") ||
-                $target.is("#app46755028429_keep") ||
-                $target.is("#app46755028429_generals") ||
-                $target.is("#app46755028429_battle_monster") ||
-                $target.is("#app46755028429_battle") ||
-                $target.is("#app46755028429_battlerank") ||
-                $target.is("#app46755028429_battle_train") ||
-                $target.is("#app46755028429_arena") ||
-                $target.is("#app46755028429_quests") ||
-                $target.is("#app46755028429_raid") ||
-                $target.is("#app46755028429_symbolquests") ||
-                $target.is("#app46755028429_alchemy") ||
-                $target.is("#app46755028429_soldiers") ||
-                $target.is("#app46755028429_item") ||
-                $target.is("#app46755028429_land") ||
-                $target.is("#app46755028429_magic") ||
-                $target.is("#app46755028429_oracle") ||
-                $target.is("#app46755028429_symbols") ||
-                $target.is("#app46755028429_treasure_chest") ||
-                $target.is("#app46755028429_gift") ||
-                $target.is("#app46755028429_apprentice") ||
-                $target.is("#app46755028429_news") ||
-                $target.is("#app46755028429_friend_page") ||
-                $target.is("#app46755028429_comments") ||
-                $target.is("#app46755028429_army") ||
-                $target.is("#app46755028429_army_news_feed") ||
-                $target.is("#app46755028429_army_reqs"))) {
-				caap.newDomLoaded = true;
+					$target.is("#app46755028429_index") ||
+					$target.is("#app46755028429_keep") ||
+					$target.is("#app46755028429_generals") ||
+					$target.is("#app46755028429_battle_monster") ||
+					$target.is("#app46755028429_battle") ||
+					$target.is("#app46755028429_battlerank") ||
+					$target.is("#app46755028429_battle_train") ||
+					$target.is("#app46755028429_arena") ||
+					$target.is("#app46755028429_quests") ||
+					$target.is("#app46755028429_raid") ||
+					$target.is("#app46755028429_symbolquests") ||
+					$target.is("#app46755028429_alchemy") ||
+					$target.is("#app46755028429_soldiers") ||
+					$target.is("#app46755028429_item") ||
+					$target.is("#app46755028429_land") ||
+					$target.is("#app46755028429_magic") ||
+					$target.is("#app46755028429_oracle") ||
+					$target.is("#app46755028429_symbols") ||
+					$target.is("#app46755028429_treasure_chest") ||
+					$target.is("#app46755028429_gift") ||
+					$target.is("#app46755028429_apprentice") ||
+					$target.is("#app46755028429_news") ||
+					$target.is("#app46755028429_friend_page") ||
+					$target.is("#app46755028429_comments") ||
+					$target.is("#app46755028429_army") ||
+					$target.is("#app46755028429_army_news_feed") ||
+					$target.is("#app46755028429_army_reqs"))) {
+				caap.waitingForDomLoad = false;
 				caap.node_trigger = window.setTimeout(function(){caap.node_trigger=null;caap.CheckResults();},100);
 //                nHtml.setTimeout(caap.CheckResults, 0);
             }
         }, true);
 
         globalContainer.addEventListener('click', function (event) {
-			if (caap.newDomLoaded == true) {
+			if (caap.waitingForDomLoad == false) {
 				caap.JustDidIt('clickedOnSomething');
-				caap.newDomLoaded = false;
+				caap.waitingForDomLoad = true;
 			}
             var obj = event.target;
             while (obj && !obj.href) {
@@ -2334,7 +2333,7 @@ var caap = {
                     html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
                 } else {
                     var value = gm.getObjVal(monsterObj, displayItem);
-                    if (value) {
+                    if (value && !(displayItem == 'Fort%' && value == 101)) {
                         if (parseInt(value, 10).toString() == value) {
                             value = caap.makeCommaValue(value);
                         }
@@ -3033,12 +3032,6 @@ var caap = {
             return;
         }
 		
-		caap.performanceTimer('Before selectMonster');
-        caap.selectMonster();
-        caap.performanceTimer('Done selectMonster');
-        caap.monsterDashboard();
-        caap.performanceTimer('Done Dashboard');
-
         caap.performanceTimer('Start CheckResults');
         caap.JustDidIt('CheckResultsTimer');
         caap.addExpDisplay();
@@ -3080,6 +3073,11 @@ var caap = {
             gm.log('No results check defined for ' + page);
         }
 
+		caap.performanceTimer('Before selectMonster');
+        caap.selectMonster();
+        caap.performanceTimer('Done selectMonster');
+        caap.monsterDashboard();
+        caap.performanceTimer('Done Dashboard');
 
         // Check for new gifts
         if (!gm.getValue('HaveGift')) {
@@ -5362,7 +5360,7 @@ var caap = {
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
             siegeDam : [7896000, 9982500, 11979000, 15972000, 19965000],
-            siege_img : '/graphics/water_siege_small',
+            siege_img : '/graphics/water_siege_',
             fort : true,
             staUse : 5,
             general: '',
@@ -5601,7 +5599,7 @@ var caap = {
                 if (s == siegeStage - 1) {
                     attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
                     clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
-                    gm.log('Attack Damage Per Hour: ' + attackDamPerHour + ' Damage Done: ' + damageDone + ' Total Siege Damage: ' + totalSiegeDamage + ' Time Used: ' + timeUsed + ' Clicks Per Hour: ' + clicksPerHour);
+                    //gm.log('Attack Damage Per Hour: ' + attackDamPerHour + ' Damage Done: ' + damageDone + ' Total Siege Damage: ' + totalSiegeDamage + ' Time Used: ' + timeUsed + ' Clicks Per Hour: ' + clicksPerHour);
                 }
                 if (s >= siegeStage - 1) {
                     clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
@@ -5615,8 +5613,7 @@ var caap = {
                 }
             }
 		}
-
-        gm.log('T2K based on siege: ' + T2K + ' T2K estimate without calculating siege impacts: ' + percentHealthLeft / (100 - percentHealthLeft) * timeLeft);
+        gm.log('T2K based on siege: ' + Math.round(T2K * 10) / 10 + ' T2K estimate without calculating siege impacts: ' + Math.round(percentHealthLeft / (100 - percentHealthLeft) * timeLeft * 10) / 10);
 		return Math.round(T2K * 10) / 10;
 	},
 
@@ -5704,9 +5701,9 @@ var caap = {
 				}
 			}
 		}
-		if (fortPct === null) {
-			gm.setListObjVal('monsterOl','Fort%',100);
-		} else {
+		if (fortPct != null) {
+//			gm.setListObjVal('monsterOl',monster,'Fort%',101);
+//		} else {
 			gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
 		}
 
@@ -5805,12 +5802,16 @@ var caap = {
             if (boss && boss.siege) {
                 if (monstType.indexOf('Raid') >= 0) {
                     miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
+                } else if (monstType.indexOf('Volcanic') >= 0) {
+                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+//                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+					currentPhase = Math.min($("img[src*="+boss.siege_img+"]").size(),boss.siege)
                 } else {
                     miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
                 }
 
                 var divSeigeLogs = document.getElementById("app46755028429_siege_log");
-                if (divSeigeLogs) {
+                if (divSeigeLogs && !currentPhase) {
                     //gm.log("Found siege logs.");
                     var divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
                     if (divSeigeCount) {
@@ -5992,8 +5993,12 @@ var caap = {
 
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
                                 var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
+								var monstType = gm.getObjVal(monsterObj, 'Type', '');
 								//gm.log('monster ' + monster + ' maxToFortify ' + maxToFortify + ' monsterFort ' + monsterFort);
-								if (!firstFortUnderMax && monsterFort < maxToFortify && monstPage == 'battle_monster') {
+								if (!firstFortUnderMax && monsterFort < maxToFortify &&
+										monstPage == 'battle_monster' &&
+										!(caap.monsterInfo[monstType] &&
+										caap.monsterInfo[monstType].fort === false)) {
 									if (over == 'ach') {
 										if (!firstFortOverAch) {
 											//gm.log('hitit');
@@ -6181,7 +6186,7 @@ var caap = {
 	/*-------------------------------------------------------------------------------------\
 	Now we use ajaxSendLink to display the monsters page. 
     \-------------------------------------------------------------------------------------*/	
-				gm.log('Monster Review ' + counter + '/' + monsterObjList.length + ' monster ' + monster);
+				gm.log('Reviewing ' + counter + '/' + monsterObjList.length + ' ' + monster);
 				gm.setValue('ReleaseControl', true);
 				link = link.replace('http://apps.facebook.com/castle_age/', '');
 				link = link.replace('?', '?twt2&');
@@ -6207,7 +6212,6 @@ var caap = {
     },
 
     Monsters: function () {
-gm.log('monster 1');
     ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
         if (gm.getValue('WhenMonster') == 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
@@ -6220,7 +6224,6 @@ gm.log('monster 1');
             return false;
         }
 
-gm.log('monster 2');
     ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
     // Establish a delay timer when we are 1 stamina below attack level. Timer includes 5 min for stamina tick plus user defined random interval
@@ -6230,7 +6233,6 @@ gm.log('monster 2');
             return false;
         }
 
-gm.log('monster 3');
         if (!this.CheckTimer('battleTimer')) {
             if (this.stats.stamina.num < gm.getValue('MaxIdleStamina', this.stats.stamina.max)) {
                 this.SetDivContent('fight_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
@@ -6238,7 +6240,6 @@ gm.log('monster 3');
             }
         }
 
-gm.log('monster 4');
         var fightMode = '';
         // Check to see if we should fortify, attack monster, or battle raid
         var monster = gm.getValue('targetFromfortify');
@@ -6254,7 +6255,6 @@ gm.log('monster 4');
             }
         }
 
-gm.log('monster 5');
         // Set right general
         //var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
         if (this.SelectGeneral(fightMode + 'General')) {
@@ -9007,7 +9007,7 @@ gm.log('monster 5');
             return;
         }
 
-        if (this.WhileSinceDidIt('clickedOnSomething',25) && !this.newDomLoaded) {
+        if (this.WhileSinceDidIt('clickedOnSomething',25) && this.waitingForDomLoad) {
             gm.log('Clicked on something, but nothing new loaded.  Reloading page.');
             this.ReloadCastleAge();
         }
