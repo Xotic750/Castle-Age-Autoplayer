@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.19.1
+// @version        140.19.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.19.1";
+caapGlob.thisVersion = "140.19.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -4505,6 +4505,9 @@ var caap = {
         "or contains(@onclick,'_battle_battle(')",
 
 	inprotected: function (userid) {
+		if (!gm.getValue('AllowProtected',true)) {
+			return false
+		}	
 		var sum = 0;
 		for (var i = 0; i < userid.length; i++) {
 			sum += +userid.charAt(i);
@@ -4732,7 +4735,8 @@ var caap = {
                     if (gm.getValue('DemiPointsFirst', '') && !gm.getValue('DemiPointsDone', true)) {
                         var deityNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1;
                         var demiPointList = gm.getList('DemiPointList');
-                        if (parseInt(demiPointList[deityNumber], 10) == 10 || !gm.getValue('DemiPoint' + deityNumber)) {
+						var demiPoints = demiPointList[deityNumber].split('/');
+                        if (parseInt(demiPoints[0], 10) >= 10 || !gm.getValue('DemiPoint' + deityNumber)) {
                             continue;
                         }
                     }
@@ -5381,7 +5385,7 @@ var caap = {
 					defButton		: 'nm_secondary',
 				},
 				'Cleric' : {
-					status 			: 'mana',
+					statusWord		: 'mana',
 					pwrAtkButton	: 'nm_primary',
 					defButton		: 'nm_secondary',
 				},
@@ -5423,8 +5427,8 @@ var caap = {
             ach : 250000,
             siege : 0,
             fort : true,
-            staUse : 5,
-            general : 'Orc King'
+ //         staUse : 5,
+            general : ''
         },
         'Raid I' : {
             duration : 88,
@@ -5670,43 +5674,41 @@ var caap = {
 		var currentPhase = 0;
 		var miss = '';
 		
- 	
-        // Check for mana forcefield
-		var fortPct = null;
-        var img = caap.CheckForImage('bar_dispel');
-        if (img) {
-            var manaHealth = img.parentNode.style.width;
-            manaHealth = manaHealth.substring(0, manaHealth.length - 1);
-            fortPct = 100 - Number(manaHealth);
-        } else {
-			// Check fortify stuff
-			img = caap.CheckForImage('seamonster_ship_health');
+		if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].fort) {
+			// Check for mana forcefield
+			var fortPct = null;
+			var img = caap.CheckForImage('bar_dispel');
 			if (img) {
-				var shipHealth = img.parentNode.style.width;
-				shipHealth = shipHealth.substring(0, shipHealth.length - 1);
-				if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
-					img = caap.CheckForImage('repair_bar_grey');
+				var manaHealth = img.parentNode.style.width;
+				manaHealth = manaHealth.substring(0, manaHealth.length - 1);
+				fortPct = 100 - Number(manaHealth);
+			} else {
+				// Check fortify stuff
+				img = caap.CheckForImage('seamonster_ship_health');
+				if (img) {
+					var shipHealth = img.parentNode.style.width;
+					shipHealth = shipHealth.substring(0, shipHealth.length - 1);
+					if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
+						img = caap.CheckForImage('repair_bar_grey');
+						if (img) {
+							var extraHealth = img.parentNode.style.width;
+							extraHealth = extraHealth.substring(0, extraHealth.length - 1);
+							fortPct = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
+						}
+					}
+				} else {
+					// Check party health - Volcanic dragon 
+					img = caap.CheckForImage('nm_green');
 					if (img) {
-						var extraHealth = img.parentNode.style.width;
-						extraHealth = extraHealth.substring(0, extraHealth.length - 1);
-						fortPct = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
+						var partyHealth = img.parentNode.style.width;
+						fortPct = partyHealth.substring(0, partyHealth.length - 1);
 					}
 				}
-			} else {
-				// Check party health - Volcanic dragon 
-				img = caap.CheckForImage('nm_green');
-				if (img) {
-					var partyHealth = img.parentNode.style.width;
-					fortPct = partyHealth.substring(0, partyHealth.length - 1);
-				}
+			}
+			if (fortPct != null) {
+				gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
 			}
 		}
-		if (fortPct != null) {
-//			gm.setListObjVal('monsterOl',monster,'Fort%',101);
-//		} else {
-			gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
-		}
-
 		var damDone = 0;
         // Get damage done to monster
         webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
@@ -5875,7 +5877,10 @@ var caap = {
         } else {
             gm.setListObjVal('monsterOl', monster, 'color', 'black');
         }
-
+		
+		if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
+			gm.setListObjVal('monsterOl', monster, 'review','done');
+		}	
     //  gm.setValue('resetdashboard',true);
     },
 
@@ -6156,12 +6161,18 @@ var caap = {
 				counter++;
 				continue;
 			}
-			gm.setValue('monsterReviewCounter', ++counter);
-
 	/*-------------------------------------------------------------------------------------\
-	We get our monster name and link 
-    \-------------------------------------------------------------------------------------*/	
+	The check results will set the review object to 'done' if we are done this one
+    \-------------------------------------------------------------------------------------*/
 			var monster = monsterObj.split(caapGlob.vs)[0];
+			if (gm.getObjVal(monsterObj, 'review','') == 'done') {
+				gm.setListObjVal('monsterOl', monster, 'review','');
+				gm.setValue('monsterReviewCounter', ++counter);
+				return true;
+			}			
+	/*-------------------------------------------------------------------------------------\
+	We get our monster link
+    \-------------------------------------------------------------------------------------*/	
 			this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
 			var link = gm.getObjVal(monsterObj, 'Link');
 	/*-------------------------------------------------------------------------------------\
@@ -6192,6 +6203,7 @@ var caap = {
 				link = link.replace('http://apps.facebook.com/castle_age/', '');
 				link = link.replace('?', '?twt2&');
 				//gm.log("Link: " + link);
+				gm.setListObjVal('monsterOl', monster, 'review','pending');
 				location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
 				gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
 				gm.setValue('resetselectMonster', true);
@@ -6409,7 +6421,8 @@ var caap = {
                 gm.setValue('DemiPointsDone', true);
                 for (var demiPtItem in demiPointList) {
                     if (demiPointList.hasOwnProperty(demiPtItem)) {
-                        if (demiPointList[demiPtItem] != '10 / 10' && gm.getValue('DemiPoint' + demiPtItem)) {
+						var demiPoints = demiPointList[demiPtItem].split('/');
+                        if (parseInt(demiPoints[0], 10) < 10 && gm.getValue('DemiPoint' + demiPtItem)) {
                             gm.setValue('DemiPointsDone', false);
                             break;
                         }
