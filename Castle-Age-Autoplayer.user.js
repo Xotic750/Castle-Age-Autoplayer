@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.19.2
+// @version        140.19.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.19.2";
+caapGlob.thisVersion = "140.19.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -5858,7 +5858,10 @@ var caap = {
         } else {
             gm.setListObjVal('monsterOl', monster, 'color', 'black');
         }
-
+		
+		if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
+			gm.setListObjVal('monsterOl', monster, 'review','done');
+		}	
     //  gm.setValue('resetdashboard',true);
     },
 
@@ -6118,12 +6121,18 @@ var caap = {
 				counter++;
 				continue;
 			}
-			gm.setValue('monsterReviewCounter', ++counter);
-
 	/*-------------------------------------------------------------------------------------\
-	We get our monster name and link 
-    \-------------------------------------------------------------------------------------*/	
+	The check results will set the review object to 'done' if we are done this one
+    \-------------------------------------------------------------------------------------*/
 			var monster = monsterObj.split(caapGlob.vs)[0];
+			if (gm.getObjVal(monsterObj, 'review','') == 'done') {
+				gm.setListObjVal('monsterOl', monster, 'review','');
+				gm.setValue('monsterReviewCounter', ++counter);
+				return true;
+			}			
+	/*-------------------------------------------------------------------------------------\
+	We get our monster link
+    \-------------------------------------------------------------------------------------*/	
 			this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
 			var link = gm.getObjVal(monsterObj, 'Link');
 	/*-------------------------------------------------------------------------------------\
@@ -6154,6 +6163,7 @@ var caap = {
 				link = link.replace('http://apps.facebook.com/castle_age/', '');
 				link = link.replace('?', '?twt2&');
 				//gm.log("Link: " + link);
+				gm.setListObjVal('monsterOl', monster, 'review','pending');
 				location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
 				gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
 				gm.setValue('resetselectMonster', true);
