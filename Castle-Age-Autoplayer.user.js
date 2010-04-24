@@ -6181,7 +6181,7 @@ var caap = {
 	/*-------------------------------------------------------------------------------------\
 	Now we use ajaxSendLink to display the monsters page. 
     \-------------------------------------------------------------------------------------*/	
-				gm.log('MonsterObj ' + counter + '/' + monsterObjList.length + ' monster ' + monster + ' conditions ' + conditions + ' link ' + link);
+				gm.log('Monster Review ' + counter + '/' + monsterObjList.length + ' monster ' + monster);
 				gm.setValue('ReleaseControl', true);
 				link = link.replace('http://apps.facebook.com/castle_age/', '');
 				link = link.replace('?', '?twt2&');
@@ -6207,6 +6207,7 @@ var caap = {
     },
 
     Monsters: function () {
+gm.log('monster 1');
     ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
         if (gm.getValue('WhenMonster') == 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
@@ -6219,6 +6220,7 @@ var caap = {
             return false;
         }
 
+gm.log('monster 2');
     ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
     // Establish a delay timer when we are 1 stamina below attack level. Timer includes 5 min for stamina tick plus user defined random interval
@@ -6228,6 +6230,7 @@ var caap = {
             return false;
         }
 
+gm.log('monster 3');
         if (!this.CheckTimer('battleTimer')) {
             if (this.stats.stamina.num < gm.getValue('MaxIdleStamina', this.stats.stamina.max)) {
                 this.SetDivContent('fight_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
@@ -6235,6 +6238,7 @@ var caap = {
             }
         }
 
+gm.log('monster 4');
         var fightMode = '';
         // Check to see if we should fortify, attack monster, or battle raid
         var monster = gm.getValue('targetFromfortify');
@@ -6250,6 +6254,7 @@ var caap = {
             }
         }
 
+gm.log('monster 5');
         // Set right general
         //var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
         if (this.SelectGeneral(fightMode + 'General')) {
@@ -6463,6 +6468,10 @@ var caap = {
         }
 
         if (when == 'At X Stamina') {
+            if (this.InLevelUpMode() && this.stats.stamina.num >= attackMinStamina) {
+                this.SetDivContent('battle_mess', 'Burning stamina to level up');
+                return true;
+            }
             var staminaMF = battleOrBattle + 'Stamina';
             if (gm.getValue('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= gm.getValue('X' + staminaMF, 1)) {
                 if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= gm.getValue('XMin' + staminaMF, 0)) {
@@ -6475,11 +6484,6 @@ var caap = {
                 return true;
             } else {
                 gm.setValue('BurnMode_' + staminaMF, false);
-            }
-
-            if (this.InLevelUpMode() && this.stats.stamina.num >= attackMinStamina) {
-                this.SetDivContent('battle_mess', 'Burning stamina to level up');
-                return true;
             }
 
             this.SetDivContent('battle_mess', 'Waiting for stamina: ' + this.stats.stamina.num + "/" + gm.getValue('X' + staminaMF, 1));
@@ -7832,7 +7836,8 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     AutoIncome: function () {
-        if (this.stats.payminute < 1 && this.stats.paytime.match(/\d/)) {
+        if (this.stats.payminute < 1 && this.stats.paytime.match(/\d/) &&
+				gm.getValue('IncomeGeneral') != 'Use Current') {
             this.SelectGeneral('IncomeGeneral');
             return true;
         }
@@ -8763,7 +8768,6 @@ var caap = {
         0x03: 'ImmediateBanking',
         0x04: 'ImmediateAutoStat',
         0x05: 'MaxEnergyQuest',
-        0x11: 'MonsterReview',		
         0x06: 'DemiPoints',
         0x07: 'Monsters',
         0x08: 'Battle',
@@ -8775,6 +8779,7 @@ var caap = {
         0x0E: 'AutoBless',
         0x0F: 'AutoStat',
         0x10: 'AutoGift',
+        0x11: 'MonsterReview',		
         0x12: 'AutoPotions',
         0x13: 'AutoAlchemy',
         0x14: 'Idle'
