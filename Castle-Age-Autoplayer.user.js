@@ -773,8 +773,11 @@ var caap = {
             gm.log('ERROR: Null object passed to Click');
             return;
         }
-
-        this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+		if (caap.waitingForDomLoad == false) {
+			caap.JustDidIt('clickedOnSomething');
+			caap.waitingForDomLoad = true;
+		}
+       this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
         var evt = document.createEvent("MouseEvents");
         evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
         return !obj.dispatchEvent(evt);
@@ -2191,10 +2194,6 @@ var caap = {
         }, true);
 
         globalContainer.addEventListener('click', function (event) {
-			if (caap.waitingForDomLoad == false) {
-				caap.JustDidIt('clickedOnSomething');
-				caap.waitingForDomLoad = true;
-			}
             var obj = event.target;
             while (obj && !obj.href) {
                 obj = obj.parentNode;
@@ -9028,6 +9027,7 @@ var caap = {
             return;
         }
 
+		gm.log('Click ' + gm.getValue('clickedOnSomething','n/a') + ' Load: ' + this.waitingForDomLoad);
         if (this.WhileSinceDidIt('clickedOnSomething',25) && this.waitingForDomLoad) {
             gm.log('Clicked on something, but nothing new loaded.  Reloading page.');
             this.ReloadCastleAge();
@@ -9083,7 +9083,10 @@ var caap = {
 
     ReloadOccasionally: function () {
         nHtml.setTimeout(function () {
-            caap.ReloadCastleAge();
+			if (caap.WhileSinceDidIt('clickedOnSomething',5*60)) {
+				gm.log('Reloading page after inactivity');
+				caap.ReloadCastleAge();
+			}
             caap.ReloadOccasionally();
         }, 1000 * 60 * 8 + (8 * 60 * 1000 * Math.random()));
     }
@@ -9174,7 +9177,7 @@ $(function () {
     caap.WaitMainLoop();
 });
 
-//caap.ReloadOccasionally();
+caap.ReloadOccasionally();
 
 /////////////////////////////////////////////////////////////////////
 //                          style OBJECT
