@@ -768,6 +768,10 @@ var caap = {
     // Small functions called a lot to reduce duplicate code
     /////////////////////////////////////////////////////////////////////
 
+	
+	//this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
+
+	
     Click: function (obj, loadWaitTime) {
         if (!obj) {
             gm.log('ERROR: Null object passed to Click');
@@ -781,6 +785,20 @@ var caap = {
         var evt = document.createEvent("MouseEvents");
         evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
         return !obj.dispatchEvent(evt);
+    },
+
+    ClickAjax: function (link, loadWaitTime) {
+        if (!link) {
+            gm.log('ERROR: No link passed to Click Ajax');
+            return;
+        }
+		if (caap.waitingForDomLoad == false) {
+			caap.JustDidIt('clickedOnSomething');
+			caap.waitingForDomLoad = true;
+		}
+       this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+       location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+       gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
     },
 
     ClickWait: function (obj, loadWaitTime) {
@@ -5837,11 +5855,12 @@ var caap = {
 				gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
 			}
         } else {
-            gm.log('Monster is dead?');
-            gm.setValue('resetselectMonster', true);
+            gm.log('Monster is dead or fled');
+            gm.setListObjVal('monsterOl', monster, 'color', 'grey');
 			if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
 				gm.setListObjVal('monsterOl', monster, 'review','done');
 			}	
+            gm.setValue('resetselectMonster', true);
             return;
         }
 
@@ -5895,7 +5914,7 @@ var caap = {
             return;
         }
 
-        //gm.log('Selecting monster');
+        gm.log('Selecting monster');
         // First we forget everything about who we already picked.
         gm.setValue('targetFrombattle_monster', '');
         gm.setValue('targetFromfortify', '');
@@ -5985,13 +6004,13 @@ var caap = {
                                 gm.setListObjVal('monsterOl', monster, 'conditions', monsterConditions);
 
                                 // If it's complete or collect rewards, no need to process further
-                                if (gm.getObjVal(monsterObj, 'status')) {
+                                var color = gm.getObjVal(monsterObj, 'color', '');
+                                if (color == 'grey') {
                                     continue;
                                 }
 
                                 // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                                 // these to see if this is the monster we should select/
-                                var color = gm.getObjVal(monsterObj, 'color', '');
                                 var over = gm.getObjVal(monsterObj, 'over', '');
 								if (!firstUnderMax && color != 'purple') {
 									if (over == 'ach') {
@@ -6005,8 +6024,8 @@ var caap = {
 
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
                                 var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
-								var monstType = gm.getObjVal(monsterObj, 'Type', '');
-								//gm.log('monster ' + monster + ' maxToFortify ' + maxToFortify + ' monsterFort ' + monsterFort);
+					            var monstType = this.getMonstType(monster);
+								//gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' caap.monsterInfo[monstType] ' + caap.monsterInfo[monstType]+ ' caap.monsterInfo[monstType].fort ' + caap.monsterInfo[monstType].fort);
 								if (!firstFortUnderMax && monsterFort < maxToFortify &&
 										monstPage == 'battle_monster' &&
 										caap.monsterInfo[monstType] &&
@@ -6210,8 +6229,7 @@ var caap = {
 				link = link.replace('?', '?twt2&');
 				//gm.log("Link: " + link);
 				gm.setListObjVal('monsterOl', monster, 'review','pending');
-				location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
-				gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+				caap.ClickAjax(link);
 				gm.setValue('resetselectMonster', true);
 				gm.setValue('resetdashboard', true);
 				return true;
@@ -7747,8 +7765,7 @@ var caap = {
             user = eliteList.substring(0, eliteList.indexOf(','));
             gm.log('add elite ' + user);
             //this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
-            location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', 'party.php?twt=jneg&jneg=true&user=" + user + "'))";
-            gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=' + user);
+			caap.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('MyEliteTodo', eliteList);
             this.JustDidIt('AutoEliteReqNext');
@@ -9078,7 +9095,8 @@ var caap = {
 
     ReloadCastleAge: function () {
         // better than reload... no prompt on forms!
-        if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
+        if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') &&
+				(gm.getValue('caapPause') == 'none')) {
             if (caapGlob.is_chrome) {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
