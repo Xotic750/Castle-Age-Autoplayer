@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.20.2
+// @version        140.20.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.20.2";
+caapGlob.thisVersion = "140.20.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -304,7 +304,7 @@ var gm = {
         if (!objStr) {
             return defaultValue;
         }
-
+		
         var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
         if (!itemStr) {
             return defaultValue;
@@ -1394,8 +1394,9 @@ var caap = {
         ];
         htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', questList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-        htmlCode += this.MakeCheckTR("Switch Quest Area", 'swithQuestArea', false, '', 'Allows switching quest area');
-        htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen) + "</table>";
+        htmlCode += this.MakeCheckTR("Switch Quest Area", 'swithQuestArea', false, '', 'Allows switching quest area after Advancement or Max Influence');
+        htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
+		htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
         htmlCode += "</div>";
         var autoQuestName = gm.getObjVal('AutoQuest', 'name');
         if (autoQuestName) {
@@ -3442,6 +3443,12 @@ var caap = {
             //gm.log("Failed to find quests_background");
             return;
         }
+		
+		var haveOrb = false;
+		if (nHtml.FindByAttrContains(div, 'img', 'src', 'alchemy_summon')) {
+			haveOrb = true;
+		}	
+		
 
         var autoQuestDivs = {};
         for (s = 0; s < ss.snapshotLength; s++) {
@@ -3531,14 +3538,27 @@ var caap = {
                     }
                 }
             }
+			
+			var questType = 'subquest';
+			if (div.className == 'quests_background') {
+				var questType = 'primary';
+			} else if (div.className == 'quests_background_special') {
+				var questType = 'boss';
+			} 	
 
             this.LabelQuests(div, energy, reward, experience, click);
             if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
+				if (gm.getValue('GetOrbs',false) && !haveOrb && questType == 'boss' && whyQuest != 'Manual') {
+					gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+					pickQuestTF = true;
+				}		
+				
                 switch (whyQuest) {
                 case 'Advancement' :
                     if (influence) {
-                        if (!gm.getObjVal('AutoQuest', 'name') && genDiv && this.NumberOnly(influence) < 100) {
+                        if (!gm.getObjVal('AutoQuest', 'name') && questType == 'primary' && this.NumberOnly(influence) < 100) {
                             gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+							pickQuestTF = true;
                         }
                     } else {
                         gm.log('cannot find influence:' + caapGlob.quest_name + ': ' + influence);
@@ -3548,6 +3568,7 @@ var caap = {
                     if (influence) {
                         if (!gm.getObjVal('AutoQuest', 'name') && this.NumberOnly(influence) < 100) {
                             gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+							pickQuestTF = true;
                         }
                     } else {
                         gm.log('cannot find influence:' + caapGlob.quest_name + ': ' + influence);
@@ -3557,12 +3578,14 @@ var caap = {
                     rewardRatio = (Math.floor(experience / energy * 100) / 100);
                     if (bestReward < rewardRatio) {
                         gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+						pickQuestTF = true;
                     }
                     break;
                 case 'Max Gold' :
                     rewardRatio = (Math.floor(reward / energy * 10) / 10);
                     if (bestReward < rewardRatio) {
                         gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+						pickQuestTF = true;
                     }
                     break;
                 default :
@@ -3577,7 +3600,7 @@ var caap = {
                 }
             }
         }
-
+		
         if (pickQuestTF) {
             if (gm.getObjVal('AutoQuest', 'name')) {
                 this.SetControls(true);
@@ -3639,6 +3662,7 @@ var caap = {
             gm.setValue('WhyQuest', 'Manual');
             this.SetControls(true);
         }
+		
     },
 
     CheckCurrentQuestArea: function (SubAreaQuest) {
@@ -3813,7 +3837,7 @@ var caap = {
             setAutoQuest.addEventListener("click", function (e) {
                 var sps = e.target.getElementsByTagName('span');
                 if (sps.length > 0) {
-                    gm.setValue('AutoQuest', 'name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.ls + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
+                    gm.setValue('AutoQuest', 'name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.vs + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
                     gm.setValue('WhyQuest', 'Manual');
                     if (caap.CheckForImage('tab_quest_on.gif')) {
                         gm.setValue('QuestArea', 'Quest');
@@ -5687,15 +5711,15 @@ var caap = {
 				img = caap.CheckForImage('seamonster_ship_health');
 				if (img) {
 					var shipHealth = img.parentNode.style.width;
-					shipHealth = shipHealth.substring(0, shipHealth.length - 1);
+					fortPct = shipHealth.substring(0, shipHealth.length - 1);
 					if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
 						img = caap.CheckForImage('repair_bar_grey');
 						if (img) {
 							var extraHealth = img.parentNode.style.width;
 							extraHealth = extraHealth.substring(0, extraHealth.length - 1);
-							fortPct = Math.round(Number(shipHealth) * (100 / (100 - Number(extraHealth))));
+							fortPct = Math.round(Number(fortPct) * (100 / (100 - Number(extraHealth))));
 						}
-					}
+					} 
 				} else {
 					// Check party health - Volcanic dragon 
 					img = caap.CheckForImage('nm_green');
@@ -5705,6 +5729,7 @@ var caap = {
 					}
 				}
 			}
+			
 			if (fortPct != null) {
 				gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
 			}
@@ -6312,7 +6337,7 @@ var caap = {
                 if (!attackButton) {
                     attackButton = this.CheckForImage('event_attack1.gif');
                     if (!attackButton) {
-                        attackButton = this.CheckForImage('seamonster_power.gif');
+                        attackButton = this.CheckForImage('seamonster_attack.gif');
                         if (!attackButton) {
                             attackButton = this.CheckForImage('event_attack2.gif');
                             if (!attackButton) {
@@ -8795,6 +8820,7 @@ var caap = {
         0x04: 'ImmediateAutoStat',
         0x05: 'MaxEnergyQuest',
         0x06: 'DemiPoints',
+		0x11: 'MonsterReview',			
         0x07: 'Monsters',
         0x08: 'Battle',
         0x09: 'MonsterFinder',
@@ -8804,8 +8830,7 @@ var caap = {
         0x0D: 'Bank',
         0x0E: 'AutoBless',
         0x0F: 'AutoStat',
-        0x10: 'AutoGift',
-        0x11: 'MonsterReview',		
+        0x10: 'AutoGift',	
         0x12: 'AutoPotions',
         0x13: 'AutoAlchemy',
         0x14: 'Idle'
@@ -8916,6 +8941,7 @@ var caap = {
                 "ImmediateAutoStat",
                 "MaxEnergyQuest",
                 "DemiPoints",
+                "MonsterReview",
                 "Monsters",
                 "Battle",
                 "MonsterFinder",
@@ -8926,7 +8952,6 @@ var caap = {
                 "AutoBless",
                 "AutoStat",
                 "AutoGift",
-                "MonsterReview",
                 "AutoPotions",
                 "AutoAlchemy",
                 "Idle"
@@ -9087,10 +9112,11 @@ var caap = {
     },
 
     ReloadOccasionally: function () {
+		var reloadMin = caap.GetNumber('ReloadFrequency',8); 
         nHtml.setTimeout(function () {
             caap.ReloadCastleAge();
             caap.ReloadOccasionally();
-        }, 1000 * 60 * 8 + (8 * 60 * 1000 * Math.random()));
+        }, 1000 * 60 * reloadMin + (reloadMin * 60 * 1000 * Math.random()));
     }
 };
 
