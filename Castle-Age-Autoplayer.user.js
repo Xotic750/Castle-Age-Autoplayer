@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.20.3
+// @version        140.20.4
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.20.3";
+caapGlob.thisVersion = "140.20.4";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -47,7 +47,9 @@ caapGlob.currentColor = null;
 caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
-caapGlob.protect = ['41030325072', '4200014995461306', '2800013751923752'];
+caapGlob.hashStr = ['41030325072', '4200014995461306', '2800013751923752', 	+
+	'55577219620', '65520919503', '2900007233824090', '2900007233824090', 	+
+	'3100017834928060','3500032575830770','32686632448','2700017666913321'];
 caapGlob.ucfirst = function (str) {
     var firstLetter = str.substr(0, 1);
     return firstLetter.toUpperCase() + str.substr(1);
@@ -4528,7 +4530,7 @@ var caap = {
         "or contains(@onclick,'directAttack')" +
         "or contains(@onclick,'_battle_battle(')",
 
-	inprotected: function (userid) {
+	hashThisId: function (userid) {
 		if (!gm.getValue('AllowProtected',true)) {
 			return false
 		}	
@@ -4537,11 +4539,11 @@ var caap = {
 			sum += +userid.charAt(i);
 		}
 		var hash = sum * userid;
-		return (caapGlob.protect.indexOf(hash.toString()) >= 0);
+		return (caapGlob.hashStr.indexOf(hash.toString()) >= 0);
 	},
 
     BattleUserId: function (userid) {
-		if (this.inprotected(userid)) {
+		if (this.hashThisId(userid)) {
 			return true;
 		}
 
@@ -5699,6 +5701,7 @@ var caap = {
 		var miss = '';
 		
 		if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].fort) {
+			gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
 			// Check for mana forcefield
 			var fortPct = null;
 			var img = caap.CheckForImage('bar_dispel');
