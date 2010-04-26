@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.1
+// @version        140.21.2
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.1";
+caapGlob.thisVersion = "140.21.2";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -6372,7 +6372,7 @@ var caap = {
                             gm.setValue('MonsterStaminaReq', 1);
                         }
 
-                        if (gm.getValue('MonsterGeneral') == 'Orc King' && gm.getValue('OrcKingPowerAttack', false)) {
+                        if (gm.getValue('MonsterGeneral') == 'Orc King') {
                             gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
                         }
                     } else {
