@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.4
+// @version        140.21.5
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.4";
+caapGlob.thisVersion = "140.21.5";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -3614,9 +3614,9 @@ var caap = {
 
 		var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
         var haveOrb = false;
-        if (nHtml.FindByAttrContains(div, 'img', 'src', 'alchemy_summon')) {
+        if (nHtml.FindByAttrContains(div, 'input', 'src', 'alchemy_summon')) {
             haveOrb = true;
-			if (bossList.indexOf(caapGlob.quest_name) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
+			if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
 				gm.setValue('AutoQuest', '');
 			}
         }
