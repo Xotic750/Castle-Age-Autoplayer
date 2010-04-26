@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.2
+// @version        140.21.3
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.2";
+caapGlob.thisVersion = "140.21.3";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -3611,9 +3611,13 @@ var caap = {
             return;
         }
 
+		var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
         var haveOrb = false;
         if (nHtml.FindByAttrContains(div, 'img', 'src', 'alchemy_summon')) {
             haveOrb = true;
+			if (bossList.indexOf(caapGlob.quest_name) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
+				gm.setValue('AutoQuest', '');
+			}
         }
 
         this.RemoveLabelListeners();
@@ -3676,10 +3680,13 @@ var caap = {
                 continue;
             }
             var influence = null;
-            var bossList = ["Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
-            if (bossList.indexOf(caapGlob.quest_name) >= 0 && nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
-                //if boss and found sub quests
-                influence = "100";
+            if (bossList.indexOf(caapGlob.quest_name) >= 0) { 
+				if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
+					//if boss and found sub quests
+					influence = "100";
+				} else {
+					influence = "0";
+				}		
             } else {
                 var influenceList = this.influenceRe.exec(divTxt);
                 if (influenceList) {
@@ -3720,9 +3727,11 @@ var caap = {
             this.LabelQuests(div, energy, reward, experience, click);
             //gm.log(gm.getValue('QuestSubArea', 'Atlantis'));
             if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
-                if (gm.getValue('GetOrbs', false) && !haveOrb && questType == 'boss' && whyQuest != 'Manual') {
-                    gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
-                    pickQuestTF = true;
+                if (gm.getValue('GetOrbs', false) && questType == 'boss' && whyQuest != 'Manual') {
+					if (!haveOrb) {
+						gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+						pickQuestTF = true;
+					} 	
                 }
 
                 switch (whyQuest) {
@@ -5090,7 +5099,7 @@ var caap = {
 
                 var userid = inp.value;
 
-                if (this.inprotected(userid)) {
+                if (this.hashThisId(userid)) {
                     continue;
                 }
 
@@ -6487,6 +6496,14 @@ var caap = {
                 gm.setValue('monsterReviewCounter', ++counter);
                 return true;
             }
+    /*-------------------------------------------------------------------------------------\
+    No need to review completed monsters.
+    \-------------------------------------------------------------------------------------*/
+			if (gm.getObjVal(monsterObj, 'status') == 'Complete') {
+				gm.setListObjVal('monsterOl', monster, 'review', '');
+                gm.setValue('monsterReviewCounter', ++counter);
+                return true;
+			}		
     /*-------------------------------------------------------------------------------------\
     We get our monster link
     \-------------------------------------------------------------------------------------*/
