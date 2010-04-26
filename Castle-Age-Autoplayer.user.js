@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.3
+// @version        140.21.4
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.3";
+caapGlob.thisVersion = "140.21.4";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1401,6 +1401,7 @@ var caap = {
                 'idle_mess',
                 'quest_mess',
                 'battle_mess',
+				'fortify_mess',
                 'heal_mess',
                 'demipoint_mess',
                 'demibless_mess',
@@ -2117,7 +2118,7 @@ var caap = {
             var monster = monsterObj.split(caapGlob.vs)[0];
             var color = '';
             html += "<tr>";
-            if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10)) {
+            if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10,gm.getValue('WhenFortify','Energy Available'),'fortify_mess')) {
                 color = 'blue';
             } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
                 color = 'green';
@@ -3366,7 +3367,7 @@ var caap = {
             this.SetDivContent('quest_mess', 'Searching for quest.');
             gm.log("Searching for quest");
         } else {
-            if (!this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'))) {
+            if (!this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'),gm.getValue('WhenQuest','Never'),'quest_mess')) {
                 return false;
             }
         }
@@ -3977,21 +3978,25 @@ var caap = {
         return caapGlob.quest_name;
     },
 
-    CheckEnergy: function (energy) {
-        //var energy = gm.getObjVal('AutoQuest', 'energy');
+	/*------------------------------------------------------------------------------------\
+	CheckEnergy gets passed the default energy requirement plus the condition text from		
+	the 'Whenxxxxx' setting and the message div name.  
+	\------------------------------------------------------------------------------------*/	
+    CheckEnergy: function (energy, condition, msgdiv) {
         if (!this.stats.energy || !energy) {
             return false;
         }
 
-        var whenQuest = gm.getValue('WhenQuest', '');
-        if (whenQuest == 'Energy Available' || whenQuest == 'Not Fortifying') {
+        if (condition == 'Energy Available' || condition == 'Not Fortifying') {
             if (this.stats.energy.num >= energy) {
                 return true;
             }
-
-            this.SetDivContent('quest_mess', 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
+			
+			if (msgdiv) {
+				this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
+			}	
             return false;
-        } else if (whenQuest == 'At Max Energy') {
+        } else if (condition == 'At Max Energy') {
             if (!gm.getValue('MaxIdleEnergy', 0)) {
                 gm.log("Changing to idle general to get Max energy");
                 this.PassiveGeneral();
@@ -4002,11 +4007,15 @@ var caap = {
             }
 
             if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
-                this.SetDivContent('quest_mess', 'Burning all energy to level up');
+				if (msgdiv) {
+					this.SetDivContent(msgdiv, 'Burning all energy to level up');
+				}	
                 return true;
             }
 
-            this.SetDivContent('quest_mess', 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
+			if (msgdiv) {	
+				this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
+			}	
             return false;
         }
 
@@ -6591,7 +6600,7 @@ var caap = {
         var fightMode = '';
         // Check to see if we should fortify, attack monster, or battle raid
         var monster = gm.getValue('targetFromfortify');
-        if (monster && caap.CheckEnergy(10)) {
+        if (monster && caap.CheckEnergy(10,gm.getValue('WhenFortify','Energy Available'),'fortify_mess')) {
             fightMode = gm.setValue('fightMode', 'Fortify');
         } else {
             monster = gm.getValue('targetFrombattle_monster');
