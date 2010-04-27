@@ -1002,9 +1002,12 @@ var caap = {
         return false;
     },
 
-    WhileSinceDidIt: function (name, seconds) {
+    WhileSinceDidIt: function (nameOrNumber, seconds) {
+		if (!/\d+/.test(nameOrNumber)) {
+			nameOrNumber = gm.getValue(nameOrNumber,0);
+		}
         var now = (new Date().getTime());
-        return (!gm.getValue(name) || (parseInt(gm.getValue(name), 10) < (now - 1000 * seconds)));
+        return (parseInt(nameOrNumber, 10) < (now - 1000 * seconds));
     },
 
     JustDidIt: function (name) {
@@ -4056,6 +4059,7 @@ var caap = {
                     }
                 }
             }
+
         });
 
         gm.log("BestPropCost:" + gm.getValue('BestPropCost'));
@@ -5658,6 +5662,7 @@ var caap = {
 		} else {
 			monster = monster.substring(0, monster.indexOf('You have (')).trim();
 		}	
+
 		
         var fort = null;
         var monstType = '';
@@ -5678,6 +5683,9 @@ var caap = {
                 monster = monster.replace(/.+'s /, 'Your ');
             }
         }
+
+        var now = (new Date().getTime());
+		gm.setListObjVal('monsterOl', monster, 'review',now.toString());
 
         var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
         gm.setListObjVal('monsterOl', monster, 'Type', monstType);
@@ -5776,7 +5784,8 @@ var caap = {
                 (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
                  nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
                 gm.log('Collecting Reward');
-                gm.setValue('monsterReviewCounter', counter - 1);
+				gm.setListObjVal('monsterOl', monster, 'review',"1");
+                gm.setValue('monsterReviewCounter', --counter);
                 gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
                 if (monster.indexOf('Siege') >= 0) {
                     if (nHtml.FindByAttrContains(document.body, 'a', 'href', '&rix=1')) {
@@ -5814,9 +5823,6 @@ var caap = {
                 boss = caap.monsterInfo[monstType];
                 if (!boss) {
                     gm.log('Unknown monster');
-					if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
-						gm.setListObjVal('monsterOl', monster, 'review','done');
-					}	
                     return;
                 }
             }
@@ -5857,9 +5863,6 @@ var caap = {
         } else {
             gm.log('Monster is dead or fled');
             gm.setListObjVal('monsterOl', monster, 'color', 'grey');
-			if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
-				gm.setListObjVal('monsterOl', monster, 'review','done');
-			}	
             gm.setValue('resetselectMonster', true);
             return;
         }
@@ -5902,10 +5905,6 @@ var caap = {
             gm.setListObjVal('monsterOl', monster, 'color', 'black');
         }
 		
-		if (gm.getListObjVal('monsterOl', monster, 'review','') == 'pending') {	
-			gm.setListObjVal('monsterOl', monster, 'review','done');
-		}	
-		
     //  gm.setValue('resetdashboard',true);
     },
 
@@ -5914,7 +5913,7 @@ var caap = {
             return;
         }
 
-        gm.log('Selecting monster');
+        //gm.log('Selecting monster');
         // First we forget everything about who we already picked.
         gm.setValue('targetFrombattle_monster', '');
         gm.setValue('targetFromfortify', '');
@@ -6157,8 +6156,9 @@ var caap = {
 			}
 			if (gm.getValue('reviewDone',1) > 0) {
 				gm.setValue('monsterReviewCounter', ++counter);
+			} else {
+				return true;	
 			}
-			return true;	
 		}
 		if (counter == -1) {
 			if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
@@ -6167,8 +6167,9 @@ var caap = {
 			}
 			if (gm.getValue('reviewDone',1) > 0 ) {
 				gm.setValue('monsterReviewCounter', ++counter);
+			} else {
+				return true;	
 			}
-			return true;		
 		}
 
 		if (!(gm.getValue('monsterOl', ''))) {
@@ -6183,21 +6184,20 @@ var caap = {
 		while (counter < monsterObjList.length) {
 			var monsterObj = monsterObjList[counter];
 			if (!monsterObj) {
-				counter++;
+				gm.setValue('monsterReviewCounter', ++counter);
 				continue;
 			}
 	/*-------------------------------------------------------------------------------------\
-	The check results will set the review object to 'done' if we are done this one
+	If we looked at this monster more recently than an hour ago, skip it
     \-------------------------------------------------------------------------------------*/
-			var monster = monsterObj.split(caapGlob.vs)[0];
-			if (gm.getObjVal(monsterObj, 'review','') == 'done') {
-				gm.setListObjVal('monsterOl', monster, 'review','');
+			if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'),60*60)) {
 				gm.setValue('monsterReviewCounter', ++counter);
-				return true;
+				continue;
 			}			
 	/*-------------------------------------------------------------------------------------\
 	We get our monster link
     \-------------------------------------------------------------------------------------*/	
+			var monster = monsterObj.split(caapGlob.vs)[0];
 			this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
 			var link = gm.getObjVal(monsterObj, 'Link');
 	/*-------------------------------------------------------------------------------------\
@@ -6228,7 +6228,7 @@ var caap = {
 				link = link.replace('http://apps.facebook.com/castle_age/', '');
 				link = link.replace('?', '?twt2&');
 				//gm.log("Link: " + link);
-				gm.setListObjVal('monsterOl', monster, 'review','pending');
+				//gm.setListObjVal('monsterOl', monster, 'review','pending');
 				caap.ClickAjax(link);
 				gm.setValue('resetselectMonster', true);
 				gm.setValue('resetdashboard', true);
@@ -9049,7 +9049,7 @@ var caap = {
             return;
         }
 
-		gm.log('Click ' + gm.getValue('clickedOnSomething','n/a') + ' Load: ' + this.waitingForDomLoad);
+		//gm.log('Click ' + gm.getValue('clickedOnSomething','n/a') + ' Load: ' + this.waitingForDomLoad);
         if (this.WhileSinceDidIt('clickedOnSomething',25) && this.waitingForDomLoad) {
             gm.log('Clicked on something, but nothing new loaded.  Reloading page.');
             this.ReloadCastleAge();
@@ -9107,8 +9107,15 @@ var caap = {
     ReloadOccasionally: function () {
         nHtml.setTimeout(function () {
 			if (caap.WhileSinceDidIt('clickedOnSomething',5*60)) {
-				gm.log('Reloading page after inactivity');
-				caap.ReloadCastleAge();
+				gm.log('Reloading if not paused after inactivity');
+			   if (window.location.href.indexOf('castle_age') >= 0 &&
+						!gm.getValue('Disabled') &&
+						(gm.getValue('caapPause') == 'none')) {
+					if (caapGlob.is_chrome) {
+						CE_message("paused", null, gm.getValue('caapPause', 'none'));
+					}
+					window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
+				}
 			}
             caap.ReloadOccasionally();
         }, 1000 * 60 * 8 + (8 * 60 * 1000 * Math.random()));
@@ -9198,6 +9205,7 @@ $(function () {
     }
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
+	gm.setListObjVal('monsterOl', "Ai Wen's The Deathrune Siege", 'review','2000000000000');
 });
 
 caap.ReloadOccasionally();
