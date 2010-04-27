@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.9
+// @version        140.21.10
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.9";
+caapGlob.thisVersion = "140.21.10";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -6034,7 +6034,11 @@ var caap = {
         var fortPct = null;
 
         if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].fort) {
-            gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
+			if (monstType == "Deathrune" || monstType == 'Ice Elemental') {
+				gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
+			} else {	
+				gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
+			}	
             // Check for mana forcefield
             var img = caap.CheckForImage('bar_dispel');
             if (img) {
