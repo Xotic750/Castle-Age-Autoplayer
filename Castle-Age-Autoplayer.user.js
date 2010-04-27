@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.5
+// @version        140.21.6
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -22,7 +22,7 @@
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.5";
+caapGlob.thisVersion = "140.21.6";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1503,7 +1503,7 @@ var caap = {
             break;
         default :
             gm.deleteValue('QuestSubArea');
-            htmlCode += "<tr id='trQuestSubArea' style='display: none'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            htmlCode += "<tr id='trQuestSubArea' style='display: none'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + '</td></tr>';
             //htmlCode += "<div id='AutoSubArea'></div>";
             break;
         }
@@ -2519,6 +2519,7 @@ var caap = {
                         case "Atlantis" :
                             $("#trQuestSubArea").css('display', 'none');
                             caap.ChangeDropDownList('QuestSubArea', []);
+							gm.deleteValue('QuestSubArea');
                             break;
                         default :
                         }
@@ -6636,7 +6637,7 @@ var caap = {
             if (fightMode == 'Fortify') {
                 attackButton = this.CheckForImage('seamonster_fortify.gif');
                 if (!attackButton) {
-                    attackButton = this.CheckForImage('nm_secondary_');
+                    attackButton = nHtml.FindByAttrContains(document.body, "input", "src", 'nm_secondary_');
                     if (!attackButton) {
                         attackButton = this.CheckForImage('button_dispel.gif');
                         if (!attackButton) {
