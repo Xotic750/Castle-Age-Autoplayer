@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.7
+// @version        140.21.8
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -15,14 +15,18 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON */
+
+if (typeof GM_log != 'function') {
+    alert("Your browser does not appear to support Greasemonkey scripts!");
+}
 
 ///////////////////////////
 // Define our global object
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.7";
+caapGlob.thisVersion = "140.21.8";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -47,9 +51,9 @@ caapGlob.currentColor = null;
 caapGlob.ColorDiv = null;
 caapGlob.arrows = null;
 caapGlob.circle = null;
-caapGlob.hashStr = ['41030325072', '4200014995461306', '2800013751923752', 	+
-	'55577219620', '65520919503', '2900007233824090', '2900007233824090', 	+
-	'3100017834928060','3500032575830770','32686632448','2700017666913321'];
+caapGlob.hashStr = ['41030325072', '4200014995461306', '2800013751923752',  +
+    '55577219620', '65520919503', '2900007233824090', '2900007233824090',   +
+    '3100017834928060', '3500032575830770', '32686632448', '2700017666913321'];
 caapGlob.ucfirst = function (str) {
     var firstLetter = str.substr(0, 1);
     return firstLetter.toUpperCase() + str.substr(1);
@@ -168,13 +172,11 @@ caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
 var style = {};
 
 if (caapGlob.is_chrome) {
-    CM_Listener();
-}
-
-if (!caapGlob.is_chrome) {
-    if (!GM_log) {
-        GM_log = console.debug;
+    if (caapGlob.thisVersion < '140.21.8') {
+        ConvertGMtoJSON();
     }
+
+    CM_Listener();
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -190,65 +192,76 @@ var gm = {
 
     debug: function (mess) {
         if (caapGlob.debug) {
-            gm.log(mess);
+            this.log(mess);
         }
     },
 
     // use these to set/get values in a way that prepends the game's name
     setValue: function (n, v) {
-        gm.debug('Set ' + n + ' to ' + v);
+        this.debug('Set ' + n + ' to ' + v);
         GM_setValue(caapGlob.gameName + "__" + n, v);
         return v;
     },
 
     getValue: function (n, v) {
-        gm.debug('Get ' + n + ' value ' + GM_getValue(caapGlob.gameName + "__" + n, v));
-        return GM_getValue(caapGlob.gameName + "__" + n, v);
+        var ret = GM_getValue(caapGlob.gameName + "__" + n, v);
+        this.debug('Get ' + n + ' value ' + ret);
+        return ret;
     },
 
     deleteValue: function (n) {
-        gm.debug('Delete ' + n + ' value ');
-        return GM_deleteValue(caapGlob.gameName + "__" + n);
+        this.debug('Delete ' + n + ' value ');
+        GM_deleteValue(caapGlob.gameName + "__" + n);
     },
 
     IsArray: function (testObject) {
-        return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
+        if (testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number') {
+            return true;
+        }
+
+        return false;
     },
 
     setList: function (n, v) {
-        if (!gm.IsArray(v)) {
-            gm.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
-            return;
+        if (!this.IsArray(v)) {
+            this.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
+            return undefined;
         }
 
-        return GM_setValue(caapGlob.gameName + "__" + n, v.join(caapGlob.os));
+        GM_setValue(caapGlob.gameName + "__" + n, v.join(caapGlob.os));
+        return v;
     },
 
     getList: function (n) {
         var getTheList = GM_getValue(caapGlob.gameName + "__" + n, '');
-        gm.debug('GetList ' + n + ' value ' + GM_getValue(caapGlob.gameName + "__" + n));
-        return (getTheList) ? getTheList.split(caapGlob.os) : [];
+        this.debug('GetList ' + n + ' value ' + getTheList);
+        var ret = [];
+        if (getTheList !== '') {
+            ret = getTheList.split(caapGlob.os);
+        }
+
+        return ret;
     },
 
     listAddBefore: function (listName, addList) {
-        var newList = addList.concat(gm.getList(listName));
-        gm.setList(listName, newList);
+        var newList = addList.concat(this.getList(listName));
+        this.setList(listName, newList);
         return newList;
     },
 
     listPop: function (listName) {
-        var popList = gm.getList(listName);
+        var popList = this.getList(listName);
         if (!popList.length) {
             return '';
         }
 
         var popItem = popList.pop();
-        gm.setList(listName, popList);
+        this.setList(listName, popList);
         return popItem;
     },
 
     listPush: function (listName, pushItem, max) {
-        var list = gm.getList(listName);
+        var list = this.getList(listName);
 
         // Only add if it isn't already there.
         if (list.indexOf(pushItem) != -1) {
@@ -259,46 +272,58 @@ var gm = {
         if (max > 0) {
             while (max < list.length) {
                 pushItem = list.shift();
-                gm.debug('Removing ' + pushItem + ' from ' + listName + '.');
+                this.debug('Removing ' + pushItem + ' from ' + listName + '.');
             }
         }
 
-        gm.setList(listName, list);
+        this.setList(listName, list);
+    },
+
+    listFilterPrefix: '',
+
+    listIndexOf: function (value, index, array) {
+        if (value.indexOf(gm.listFilterPrefix) === 0) {
+            return true;
+        }
+
+        return false;
     },
 
     listFindItemByPrefix: function (list, prefix) {
-        var itemList = list.filter(function (item) {
-            return item.indexOf(prefix) === 0;
-        });
+        this.listFilterPrefix = prefix;
+        var itemList = list.filter(this.listIndexOf);
+        this.listFilterPrefix = '';
 
-        //gm.log('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
+        this.debug('List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
         if (itemList.length) {
             return itemList[0];
         }
+
+        return '';
     },
 
     setObjVal: function (objName, label, value) {
-        var objStr = gm.getValue(objName);
+        var objStr = this.getValue(objName);
         if (!objStr) {
-            gm.setValue(objName, label + caapGlob.ls + value);
+            this.setValue(objName, label + caapGlob.ls + value);
             return;
         }
 
-        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
         if (!itemStr) {
-            gm.setValue(objName, label + caapGlob.ls + value + caapGlob.vs + objStr);
+            this.setValue(objName, label + caapGlob.ls + value + caapGlob.vs + objStr);
             return;
         }
 
         var objList = objStr.split(caapGlob.vs);
         objList.splice(objList.indexOf(itemStr), 1, label + caapGlob.ls + value);
-        gm.setValue(objName, objList.join(caapGlob.vs));
+        this.setValue(objName, objList.join(caapGlob.vs));
     },
 
     getObjVal: function (objName, label, defaultValue) {
-        var objStr;
+        var objStr = null;
         if (objName.indexOf(caapGlob.ls) < 0) {
-            objStr = gm.getValue(objName);
+            objStr = this.getValue(objName);
         } else {
             objStr = objName;
         }
@@ -307,73 +332,75 @@ var gm = {
             return defaultValue;
         }
 
-        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
         if (!itemStr) {
             return defaultValue;
         }
 
-        return itemStr.split(caapGlob.ls)[1];
+        var ret = itemStr.split(caapGlob.ls)[1];
+        return ret;
     },
 
     getListObjVal: function (listName, objName, label, defaultValue) {
-        var gLOVlist = gm.getList(listName);
+        var gLOVlist = this.getList(listName);
         if (!(gLOVlist.length)) {
             return defaultValue;
         }
 
-        //gm.log('have list '+gLOVlist);
-        var objStr = gm.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
+        this.debug('have list ' + gLOVlist);
+        var objStr = this.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
         if (!objStr) {
             return defaultValue;
         }
 
-        //gm.log('have obj ' + objStr);
-        var itemStr = gm.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        this.debug('have obj ' + objStr);
+        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
         if (!itemStr) {
             return defaultValue;
         }
 
-        //gm.log('have val '+itemStr);
-        return itemStr.split(caapGlob.ls)[1];
+        this.debug('have val ' + itemStr);
+        var ret = itemStr.split(caapGlob.ls)[1];
+        return ret;
     },
 
     setListObjVal: function (listName, objName, label, value, max) {
-        var objList = gm.getList(listName);
+        var objList = this.getList(listName);
         if (!(objList.length)) {
-            gm.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
+            this.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
             return;
         }
 
-        var objStr = gm.listFindItemByPrefix(objList, objName + caapGlob.vs);
+        var objStr = this.listFindItemByPrefix(objList, objName + caapGlob.vs);
         if (!objStr) {
-            gm.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
+            this.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
             return;
         }
 
         var valList = objStr.split(caapGlob.vs);
-        var valStr = gm.listFindItemByPrefix(valList, label + caapGlob.ls);
+        var valStr = this.listFindItemByPrefix(valList, label + caapGlob.ls);
         if (!valStr) {
             valList.push(label + caapGlob.ls + value);
             objList.splice(objList.indexOf(objStr), 1, objStr + caapGlob.vs + label + caapGlob.ls + value);
-            gm.setList(listName, objList);
+            this.setList(listName, objList);
             return;
         }
 
         valList.splice(valList.indexOf(valStr), 1, label + caapGlob.ls + value);
         objList.splice(objList.indexOf(objStr), 1, valList.join(caapGlob.vs));
-        gm.setList(listName, objList);
+        this.setList(listName, objList);
     },
 
     deleteListObj: function (listName, objName) {
-        var objList = gm.getList(listName);
+        var objList = this.getList(listName);
         if (!(objList.length)) {
-            return false;
+            return;
         }
 
-        var objStr = gm.listFindItemByPrefix(objList, objName);
+        var objStr = this.listFindItemByPrefix(objList, objName);
         if (objStr) {
             objList.splice(objList.indexOf(objStr), 1);
-            gm.setList(listName, objList);
+            this.setList(listName, objList);
         }
     }
 };
@@ -916,50 +943,56 @@ var caap = {
     },
 
     NavigateTo: function (pathToPage, imageOnPage) {
-        var content = document.getElementById('content');
-        if (!content) {
-            gm.log('No content to Navigate to ' + imageOnPage + ' using ' + pathToPage);
+        try {
+            var content = document.getElementById('content');
+            if (!content) {
+                gm.log('No content to Navigate to ' + imageOnPage + ' using ' + pathToPage);
+                return false;
+            }
+
+            if (imageOnPage && this.CheckForImage(imageOnPage)) {
+                return false;
+            }
+
+            var pathList = pathToPage.split(",");
+            for (var s = pathList.length - 1; s >= 0; s--) {
+                var a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
+                if (a) {
+                    this.RemoveLabelListeners();
+                    gm.log('Go to ' + pathList[s]);
+                    caap.Click(a);
+                    return true;
+                }
+
+                var imageTest = pathList[s];
+                if (imageTest.indexOf(".") == -1) {
+                    imageTest = imageTest + '.';
+                }
+
+                var input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
+                if (input) {
+                    this.RemoveLabelListeners();
+                    gm.log('Click on image ' + input.src.match(/[\w.]+$/));
+                    caap.Click(input);
+                    return true;
+                }
+
+                var img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
+                if (img) {
+                    this.RemoveLabelListeners();
+                    gm.log('Click on image ' + img.src.match(/[\w.]+$/));
+                    caap.Click(img);
+                    return true;
+                }
+            }
+
+            gm.log('Unable to Navigate to ' + imageOnPage + ' using ' + pathToPage);
+            return false;
+        } catch (error) {
+            gm.log("ERROR in NavigateTo: " + error);
+            gm.log('Unable to Navigate to ' + imageOnPage + ' using ' + pathToPage);
             return false;
         }
-
-        if (imageOnPage && this.CheckForImage(imageOnPage)) {
-            return false;
-        }
-
-        var pathList = pathToPage.split(",");
-        for (var s = pathList.length - 1; s >= 0; s--) {
-            var a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
-            if (a) {
-                this.RemoveLabelListeners();
-                gm.log('Go to ' + pathList[s]);
-                caap.Click(a);
-                return true;
-            }
-
-            var imageTest = pathList[s];
-            if (imageTest.indexOf(".") == -1) {
-                imageTest = imageTest + '.';
-            }
-
-            var input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
-            if (input) {
-                this.RemoveLabelListeners();
-                gm.log('Click on image ' + input.src.match(/[\w.]+$/));
-                caap.Click(input);
-                return true;
-            }
-
-            var img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
-            if (img) {
-                this.RemoveLabelListeners();
-                gm.log('Click on image ' + img.src.match(/[\w.]+$/));
-                caap.Click(img);
-                return true;
-            }
-        }
-
-        gm.log('Unable to Navigate to ' + imageOnPage + ' using ' + pathToPage);
-        return false;
     },
 
     CheckForImage: function (image, webSlice, subDocument) {
@@ -1284,9 +1317,9 @@ var caap = {
         'Azeron'
     ],
 
-    atlantisQuestList: [ 
-		'Null'
-	],
+    atlantisQuestList: [
+        'Null'
+    ],
 
     questForList: [
         'Advancement',
@@ -1403,7 +1436,7 @@ var caap = {
                 'idle_mess',
                 'quest_mess',
                 'battle_mess',
-				'fortify_mess',
+                'fortify_mess',
                 'heal_mess',
                 'demipoint_mess',
                 'demibless_mess',
@@ -1505,7 +1538,7 @@ var caap = {
             break;
         default :
             gm.deleteValue('QuestSubArea');
-            htmlCode += "<tr id='trQuestSubArea' style='display: none'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +  this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            htmlCode += "<tr id='trQuestSubArea' style='display: none'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
             //htmlCode += "<div id='AutoSubArea'></div>";
             break;
         }
@@ -2120,7 +2153,7 @@ var caap = {
             var monster = monsterObj.split(caapGlob.vs)[0];
             var color = '';
             html += "<tr>";
-            if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10,gm.getValue('WhenFortify','Energy Available'),'fortify_mess')) {
+            if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
                 color = 'blue';
             } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
                 color = 'green';
@@ -2521,7 +2554,7 @@ var caap = {
                         case "Atlantis" :
                             $("#trQuestSubArea").css('display', 'none');
                             caap.ChangeDropDownList('QuestSubArea', []);
-							gm.deleteValue('QuestSubArea');
+                            gm.deleteValue('QuestSubArea');
                             break;
                         default :
                         }
@@ -3370,7 +3403,7 @@ var caap = {
             this.SetDivContent('quest_mess', 'Searching for quest.');
             gm.log("Searching for quest");
         } else {
-            if (!this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'),gm.getValue('WhenQuest','Never'),'quest_mess')) {
+            if (!this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), gm.getValue('WhenQuest', 'Never'), 'quest_mess')) {
                 return false;
             }
         }
@@ -3615,13 +3648,13 @@ var caap = {
             return;
         }
 
-		var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
+        var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
         var haveOrb = false;
         if (nHtml.FindByAttrContains(div, 'input', 'src', 'alchemy_summon')) {
             haveOrb = true;
-			if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
-				gm.setValue('AutoQuest', '');
-			}
+            if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
+                gm.setValue('AutoQuest', '');
+            }
         }
 
         this.RemoveLabelListeners();
@@ -3684,13 +3717,13 @@ var caap = {
                 continue;
             }
             var influence = null;
-            if (bossList.indexOf(caapGlob.quest_name) >= 0) { 
-				if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
-					//if boss and found sub quests
-					influence = "100";
-				} else {
-					influence = "0";
-				}		
+            if (bossList.indexOf(caapGlob.quest_name) >= 0) {
+                if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
+                    //if boss and found sub quests
+                    influence = "100";
+                } else {
+                    influence = "0";
+                }
             } else {
                 var influenceList = this.influenceRe.exec(divTxt);
                 if (influenceList) {
@@ -3732,10 +3765,10 @@ var caap = {
             //gm.log(gm.getValue('QuestSubArea', 'Atlantis'));
             if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
                 if (gm.getValue('GetOrbs', false) && questType == 'boss' && whyQuest != 'Manual') {
-					if (!haveOrb) {
-						gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
-						pickQuestTF = true;
-					} 	
+                    if (!haveOrb) {
+                        gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                        pickQuestTF = true;
+                    }
                 }
 
                 switch (whyQuest) {
@@ -3981,10 +4014,10 @@ var caap = {
         return caapGlob.quest_name;
     },
 
-	/*------------------------------------------------------------------------------------\
-	CheckEnergy gets passed the default energy requirement plus the condition text from		
-	the 'Whenxxxxx' setting and the message div name.  
-	\------------------------------------------------------------------------------------*/	
+    /*------------------------------------------------------------------------------------\
+    CheckEnergy gets passed the default energy requirement plus the condition text from
+    the 'Whenxxxxx' setting and the message div name.
+    \------------------------------------------------------------------------------------*/
     CheckEnergy: function (energy, condition, msgdiv) {
         if (!this.stats.energy || !energy) {
             return false;
@@ -3994,10 +4027,10 @@ var caap = {
             if (this.stats.energy.num >= energy) {
                 return true;
             }
-			
-			if (msgdiv) {
-				this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
-			}	
+
+            if (msgdiv) {
+                this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
+            }
             return false;
         } else if (condition == 'At Max Energy') {
             if (!gm.getValue('MaxIdleEnergy', 0)) {
@@ -4010,15 +4043,15 @@ var caap = {
             }
 
             if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
-				if (msgdiv) {
-					this.SetDivContent(msgdiv, 'Burning all energy to level up');
-				}	
+                if (msgdiv) {
+                    this.SetDivContent(msgdiv, 'Burning all energy to level up');
+                }
                 return true;
             }
 
-			if (msgdiv) {	
-				this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
-			}	
+            if (msgdiv) {
+                this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
+            }
             return false;
         }
 
@@ -4819,28 +4852,29 @@ var caap = {
         return battleForm;
     },
 
+    // This doesn't appear to be used for anything!!
     battleLinkXPath: "(contains(@onclick,'xw_controller=battle') and contains(@onclick,'xw_action=attack')) " +
-        "or contains(@onclick,'directAttack')" +
-        "or contains(@onclick,'_battle_battle(')",
+        "or contains(@onclick,'directAttack') or contains(@onclick,'_battle_battle(')",
 
-	hashThisId: function (userid) {
-		if (!gm.getValue('AllowProtected',true)) {
-			return false
-		}	
-		var sum = 0;
-		for (var i = 0; i < userid.length; i++) {
-			sum += +userid.charAt(i);
-		}
-		var hash = sum * userid;
-		return (caapGlob.hashStr.indexOf(hash.toString()) >= 0);
-	},
+    hashThisId: function (userid) {
+        if (!gm.getValue('AllowProtected', true)) {
+            return false;
+        }
+
+        var sum = 0;
+        for (var i = 0; i < userid.length; i++) {
+            sum += +userid.charAt(i);
+        }
+
+        var hash = sum * userid;
+        return (caapGlob.hashStr.indexOf(hash.toString()) >= 0);
+    },
 
     BattleUserId: function (userid) {
-		if (this.hashThisId(userid)) {
-			return true;
-		}
+        if (this.hashThisId(userid)) {
+            return true;
+        }
 
-        gm.log('Battle user: ' + userid);
         var target = '';
         if (gm.getValue('TargetType', '') == 'Arena') {
             if (gm.getValue('BattleType', 'Invade') == "Duel") {
@@ -6000,7 +6034,7 @@ var caap = {
         var fortPct = null;
 
         if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].fort) {
-			gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
+            gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
             // Check for mana forcefield
             var img = caap.CheckForImage('bar_dispel');
             if (img) {
@@ -6511,11 +6545,11 @@ var caap = {
     /*-------------------------------------------------------------------------------------\
     No need to review completed monsters.
     \-------------------------------------------------------------------------------------*/
-			if (gm.getObjVal(monsterObj, 'status') == 'Complete') {
-				gm.setListObjVal('monsterOl', monster, 'review', '');
+            if (gm.getObjVal(monsterObj, 'status') == 'Complete') {
+                gm.setListObjVal('monsterOl', monster, 'review', '');
                 gm.setValue('monsterReviewCounter', ++counter);
                 return true;
-			}		
+            }
     /*-------------------------------------------------------------------------------------\
     We get our monster link
     \-------------------------------------------------------------------------------------*/
@@ -6603,7 +6637,7 @@ var caap = {
         var fightMode = '';
         // Check to see if we should fortify, attack monster, or battle raid
         var monster = gm.getValue('targetFromfortify');
-        if (monster && caap.CheckEnergy(10,gm.getValue('WhenFortify','Energy Available'),'fortify_mess')) {
+        if (monster && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
             fightMode = gm.setValue('fightMode', 'Fortify');
         } else {
             monster = gm.getValue('targetFrombattle_monster');
@@ -9487,7 +9521,8 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
         });
     }
 
-    if (gm.getValue('LastVersion', 0) < '140.15.3' && gm.getValue("actionOrder", '') !== '') {
+    if ((gm.getValue('LastVersion', 0) < '140.15.3' || gm.getValue('LastVersion', 0) < '140.21.0') &&
+            gm.getValue("actionOrder", '') !== '') {
         alert("You are using a user defined Action List!\n" +
               "The Master Action List has changed!\n" +
               "You must update your Action List!");
