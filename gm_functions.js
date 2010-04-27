@@ -2,7 +2,7 @@
         GM Function support for Chrome for the use with
         the Castle Age Autoplayer script.
 
-        Version 1.0.4.0
+        Version 1.0.4.1
 */
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
@@ -169,7 +169,7 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
     };
 
     ConvertGMtoJSON = function () {
-        if (GM_getValue('castle_age__convertDB', true)) {
+        if (GM_getValue('caap__convertDB', true)) {
             localStorage.setItem('castle_age__caapPause', 'sblock');
             localStorage.setItem('castle_age__Disabled', 'btrue');
             GM_log("Attempting to convert settings");
@@ -193,9 +193,8 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
                 savedData.push(key);
             }
 
-            localStorage.clear();
-
             for (var j = 0; j < savedData.length; j++) {
+                GM_deleteValue(savedData[j].name);
                 GM_log("Write: Name: " + savedData[j].name + " Value: " + savedData[j].value + " Type: " + savedData[j].type);
                 switch (savedData[j].type) {
                 case 'b':
@@ -215,7 +214,7 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
                 }
             }
 
-            GM_setValue('castle_age__convertDB', false);
+            GM_setValue('caap__convertDB', false);
             GM_log("Convert settings completed");
         }
     };
