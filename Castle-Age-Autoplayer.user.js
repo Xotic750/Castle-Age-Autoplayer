@@ -3077,7 +3077,7 @@ var caap = {
                 this.stats.level = parseInt(levelm[1], 10);
                 levelMess = "Level: " + this.stats.level;
                 if (gm.getValue('Level', 0) != this.stats.level) {
-                    gm.deleteValue('BestPropCost');
+                    gm.deleteValue('BestLandCost');
                 }
 
                 gm.setValue('Level', this.stats.level);
@@ -4346,60 +4346,60 @@ var caap = {
         return strongs[0].textContent.trim();
     },
 
-    bestProp: {
-        prop: '',
+    bestLand: {
+        land: '',
         roi: ''
     },
 
     CheckResults_land: function () {
-        if (nHtml.FindByAttrXPath(document, 'div', "contains(@class,'caap_propDone')")) {
+        if (nHtml.FindByAttrXPath(document, 'div', "contains(@class,'caap_landDone')")) {
             return null;
         }
 
-        gm.deleteValue('BestPropCost');
-        this.sellProp = '';
-        this.bestProp.roi = 0;
-        var propByName = this.IterateLands(function (prop) {
-            this.SelectLands(prop.row, 2);
-            var roi = (parseInt((prop.income / prop.totalCost) * 240000, 10) / 100);
-            var selects = prop.row.getElementsByTagName('select');
+        gm.deleteValue('BestLandCost');
+        this.sellLand = '';
+        this.bestLand.roi = 0;
+        var landByName = this.IterateLands(function (land) {
+            this.SelectLands(land.row, 2);
+            var roi = (parseInt((land.income / land.totalCost) * 240000, 10) / 100);
+            var selects = land.row.getElementsByTagName('select');
             var div = null;
-            if (!nHtml.FindByAttrXPath(prop.row, 'input', "@name='Buy'")) {
+            if (!nHtml.FindByAttrXPath(land.row, 'input', "@name='Buy'")) {
                 roi = 0;
                 // Lets get our max allowed from the land_buy_info div
-                div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
+                div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
                 var maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
                 var maxAllowed = Number(maxText.replace(/:\s+/, ''));
                 // Lets get our owned total from the land_buy_costs div
-                div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_costs')");
+                div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_costs')");
                 var ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
                 var owned = Number(ownedText.replace(/:\s+/, ''));
                 // If we own more than allowed we will set land and selection
                 var selection = [1, 5, 10];
                 for (var s = 2; s >= 0; s--) {
                     if (owned - maxAllowed >= selection[s]) {
-                        this.sellProp = prop;
-                        this.sellProp.selection = s;
+                        this.sellLand = land;
+                        this.sellLand.selection = s;
                         break;
                     }
                 }
             }
 
-            div = nHtml.FindByAttrXPath(prop.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
+            div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
             div[0].innerHTML += " | " + roi + "% per day.";
-            if (!prop.usedByOther) {
-                if (!(this.bestProp.roi || roi === 0) || roi > this.bestProp.roi) {
-                    this.bestProp.roi = roi;
-                    this.bestProp.prop = prop;
-                    gm.setValue('BestPropCost', this.bestProp.prop.cost);
+            if (!land.usedByOther) {
+                if (!(this.bestLand.roi || roi === 0) || roi > this.bestLand.roi) {
+                    this.bestLand.roi = roi;
+                    this.bestLand.land = land;
+                    gm.setValue('BestLandCost', this.bestLand.land.cost);
                 }
             }
 
-            if (prop.row.className == "land_buy_row_unique") {
-                if (nHtml.GetText(prop.row).match(/each consecutive day/i) !== null) {
+            if (land.row.className == "land_buy_row_unique") {
+                if (nHtml.GetText(land.row).match(/each consecutive day/i) !== null) {
                     gm.log("Found unique land, checking timer");
-                    if (nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5])) {
-                        var resultsText = nHtml.GetText(prop.row.childNodes[1].childNodes[7].childNodes[5]).trim();
+                    if (nHtml.GetText(land.row.childNodes[1].childNodes[7].childNodes[5])) {
+                        var resultsText = nHtml.GetText(land.row.childNodes[1].childNodes[7].childNodes[5]).trim();
                         if (resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/)) {
                             resultsText = resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/).toString().split(',')[0];
                             resultsText = resultsText.split(':');
@@ -4419,9 +4419,9 @@ var caap = {
                                 gm.log("Setting Land Timer");
                                 this.SetTimer('LandTimer', hours * 3600 + minutes * 60 + seconds);
                             }
-                            //prop.row.childNodes[1].childNodes[7].childNodes[5].childNodes[5].childNodes[1]
+                            //land.row.childNodes[1].childNodes[7].childNodes[5].childNodes[5].childNodes[1]
                         } else {
-                            gm.log("You need to buy a prop first");
+                            gm.log("You need to buy a land first");
                             this.SetTimer('LandTimer', 9999999999999999999999999);
                         }
                     } else {
@@ -4432,13 +4432,13 @@ var caap = {
 
         });
 
-        gm.log("BestPropCost:" + gm.getValue('BestPropCost'));
-        if (!gm.getValue('BestPropCost')) {
-            gm.setValue('BestPropCost', 'none');
+        gm.log("BestLandCost:" + gm.getValue('BestLandCost'));
+        if (!gm.getValue('BestLandCost')) {
+            gm.setValue('BestLandCost', 'none');
         }
 
         var div = document.createElement('div');
-        div.className = 'caap_propDone';
+        div.className = 'caap_landDone';
         div.style.display = 'none';
         nHtml.FindByAttrContains(document.body, "tr", "class", 'land_buy_row').appendChild(div);
         return null;
@@ -4453,8 +4453,8 @@ var caap = {
         }
 
         var builtOnRe = new RegExp('(Built On|Consumes|Requires):\\s*([^<]+)', 'i');
-        var propByName = {};
-        var propNames = [];
+        var landByName = {};
+        var landNames = [];
 
         //gm.log('forms found:'+ss.snapshotLength);
         for (var s = 0; s < ss.snapshotLength; s++) {
@@ -4511,7 +4511,7 @@ var caap = {
             }
 
             var totalCost = cost;
-            var prop = {
+            var land = {
                 'row': row,
                 'name': name,
                 'income': income,
@@ -4519,15 +4519,15 @@ var caap = {
                 'totalCost': totalCost,
                 'usedByOther': false
             };
-            propByName[name] = prop;
-            propNames.push(name);
+            landByName[name] = land;
+            landNames.push(name);
         }
 
-        for (var p = 0; p < propNames.length; p++) {
-            func.call(this, propByName[propNames[p]]);
+        for (var p = 0; p < landNames.length; p++) {
+            func.call(this, landByName[landNames[p]]);
         }
 
-        return propByName;
+        return landByName;
     },
 
     SelectLands: function (row, val) {
@@ -4541,31 +4541,31 @@ var caap = {
         return true;
     },
 
-    BuyLand: function (prop) {
+    BuyLand: function (land) {
         //this.DrawLands();
-        this.SelectLands(prop.row, 2);
-        var button = nHtml.FindByAttrXPath(prop.row, 'input', "@type='submit' or @type='image'");
+        this.SelectLands(land.row, 2);
+        var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
         if (button) {
             //gm.log("Clicking buy button:" + button);
-            gm.log("Buying Prop: " + prop.name);
+            gm.log("Buying Land: " + land.name);
             this.Click(button, 13000);
-            gm.setValue('BestPropCost', '');
-            this.bestProp.roi = '';
+            gm.setValue('BestLandCost', '');
+            this.bestLand.roi = '';
             return true;
         }
 
         return false;
     },
 
-    SellLand: function (prop, select) {
+    SellLand: function (land, select) {
         //this.DrawLands();
-        this.SelectLands(prop.row, select);
-        var button = nHtml.FindByAttrXPath(prop.row, 'input', "@type='submit' or @type='image'");
+        this.SelectLands(land.row, select);
+        var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
         if (button) {
             //gm.log("Clicking sell button:" + button);
-            gm.log("Selling Prop: " + prop.name);
+            gm.log("Selling Land: " + land.name);
             this.Click(button, 13000);
-            this.sellProp = '';
+            this.sellLand = '';
             return true;
         }
 
@@ -4582,19 +4582,19 @@ var caap = {
         var autoBuyLand = gm.getValue('autoBuyLand', 0);
         if (autoBuyLand) {
             // Do we have lands above our max to sell?
-            if (this.sellProp && gm.getValue('SellLands', true)) {
-                this.SellLand(this.sellProp, this.sellProp.selection);
+            if (this.sellLand && gm.getValue('SellLands', true)) {
+                this.SellLand(this.sellLand, this.sellLand.selection);
                 return true;
             }
 
-            if (!gm.getValue('BestPropCost')) {
+            if (!gm.getValue('BestLandCost')) {
                 gm.log("Going to land to get Best Land Cost");
                 if (this.NavigateTo('soldiers,land', 'tab_land_on.gif')) {
                     return true;
                 }
             }
 
-            if (gm.getValue('BestPropCost') == 'none') {
+            if (gm.getValue('BestLandCost') == 'none') {
                 //gm.log("No Lands avaliable");
                 return false;
             }
@@ -4607,25 +4607,25 @@ var caap = {
             }
 
             // Retrieving from Bank
-            if (this.stats.cash + (gm.getValue('inStore') - this.GetNumber('minInStore')) >= 10 * gm.getValue('BestPropCost') && this.stats.cash < 10 * gm.getValue('BestPropCost')) {
+            if (this.stats.cash + (gm.getValue('inStore') - this.GetNumber('minInStore')) >= 10 * gm.getValue('BestLandCost') && this.stats.cash < 10 * gm.getValue('BestLandCost')) {
                 if (this.PassiveGeneral()) {
                     return true;
                 }
 
-                gm.log("Trying to retrieve: " + (10 * gm.getValue('BestPropCost') - this.stats.cash));
-                return this.RetrieveFromBank(10 * gm.getValue('BestPropCost') - this.stats.cash);
+                gm.log("Trying to retrieve: " + (10 * gm.getValue('BestLandCost') - this.stats.cash));
+                return this.RetrieveFromBank(10 * gm.getValue('BestLandCost') - this.stats.cash);
             }
 
             // Need to check for enough moneys + do we have enough of the builton type that we already own.
-            if (gm.getValue('BestPropCost') && this.stats.cash >= 10 * gm.getValue('BestPropCost')) {
+            if (gm.getValue('BestLandCost') && this.stats.cash >= 10 * gm.getValue('BestLandCost')) {
                 if (this.PassiveGeneral()) {
                     return true;
                 }
 
                 this.NavigateTo('soldiers,land');
                 if (this.CheckForImage('tab_land_on.gif')) {
-                    gm.log("Buying land: " + caap.bestProp.name);
-                    if (this.BuyLand(caap.bestProp.prop)) {
+                    gm.log("Buying land: " + caap.bestLand.name);
+                    if (this.BuyLand(caap.bestLand.land)) {
                         return true;
                     }
                 } else {
