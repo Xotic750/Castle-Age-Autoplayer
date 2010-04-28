@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.21.11
+// @version        140.22.0
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.21.11";
+caapGlob.thisVersion = "140.22.0";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -38,13 +38,6 @@ caapGlob.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') != -1
 caapGlob.os = '\n'; // Object separator - used to separate objects
 caapGlob.vs = '\t'; // Value separator - used to separate name/values within the objects
 caapGlob.ls = '\f'; // Label separator - used to separate the name from the value
-caapGlob.savedTarget = {};
-caapGlob.savedTarget.style = {};
-caapGlob.savedTarget.style.left = null;
-caapGlob.savedTarget.style.top = null;
-caapGlob.dragXoffset = null;
-caapGlob.dragYoffset = null;
-caapGlob.dragOK = false;
 caapGlob.quest_name = null;
 caapGlob.attackButton = null;
 caapGlob.currentColor = null;
@@ -719,28 +712,35 @@ var nHtml = {
 /////////////////////////////////////////////////////////////////////
 
 var Move = {
+    dragOK: false,
+
+    dragXoffset: null,
+
+    dragYoffset: null,
+
+    savedTarget: null,
+
     moveHandler: function (e) {
-        caapGlob.savedTarget.style.position = 'absolute';
+        Move.savedTarget.style.position = 'absolute';
         if (e === null) {
             return;
         }
 
-        if (e.button <= 1 && caapGlob.dragOK) {
-            caapGlob.savedTarget.style.left = e.clientX - caapGlob.dragXoffset + 'px';
-            caapGlob.savedTarget.style.top = e.clientY - caapGlob.dragYoffset + 'px';
-            return false;
+        if (e.button <= 1 && Move.dragOK) {
+            Move.savedTarget.style.left = e.clientX - Move.dragXoffset + 'px';
+            Move.savedTarget.style.top = e.clientY - Move.dragYoffset + 'px';
         }
     },
 
     cleanup: function (e) {
         document.removeEventListener('mousemove', Move.moveHandler, false);
         document.removeEventListener('mouseup', Move.cleanup, false);
-        if (caapGlob.savedTarget.style.left && caapGlob.savedTarget.style.top) {
-            gm.setValue('menuLeft', caapGlob.savedTarget.style.left);
-            gm.setValue('menuTop',  caapGlob.savedTarget.style.top);
+        if (Move.savedTarget.style.left && Move.savedTarget.style.top) {
+            gm.setValue('menuLeft', Move.savedTarget.style.left);
+            gm.setValue('menuTop',  Move.savedTarget.style.top);
         }
 
-        caapGlob.dragOK = false; //its been dragged now
+        Move.dragOK = false; //its been dragged now
     },
 
     dragHandler: function (e) {
@@ -748,22 +748,21 @@ var Move = {
             return;// {{ e = window.event;}  // htype='move';}
         }
 
-        var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
-        if (target.nodeName != 'DIV') {
+        //var target = document.getElementById("caap_div");// != null ? e.target : e.srcElement;
+        if (this.nodeName != 'DIV') {
             return;
         }
 
-        caapGlob.savedTarget = target;
-        caapGlob.dragOK = true;
-        caapGlob.dragXoffset = e.clientX - target.offsetLeft;
-        caapGlob.dragYoffset = e.clientY - target.offsetTop;
+        Move.savedTarget = this;
+        Move.dragOK = true;
+        Move.dragXoffset = e.clientX - this.offsetLeft;
+        Move.dragYoffset = e.clientY - this.offsetTop;
 
         //set the left before removing the right
-        target.style.left = e.clientX - caapGlob.dragXoffset + 'px';
-        target.style.right = null;
+        this.style.left = e.clientX - Move.dragXoffset + 'px';
+        this.style.right = null;
         document.addEventListener('mousemove', Move.moveHandler, false);
         document.addEventListener('mouseup', Move.cleanup, false);
-        return false;
     }
 };
 
@@ -798,20 +797,20 @@ var caap = {
     // Small functions called a lot to reduce duplicate code
     /////////////////////////////////////////////////////////////////////
 
-	
 	//this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
 
-	
     Click: function (obj, loadWaitTime) {
         if (!obj) {
             gm.log('ERROR: Null object passed to Click');
             return;
         }
-		if (caap.waitingForDomLoad == false) {
+
+        if (caap.waitingForDomLoad === false) {
 			caap.JustDidIt('clickedOnSomething');
 			caap.waitingForDomLoad = true;
 		}
-       this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+
+        this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
         var evt = document.createEvent("MouseEvents");
         evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
         return !obj.dispatchEvent(evt);
@@ -822,13 +821,15 @@ var caap = {
             gm.log('ERROR: No link passed to Click Ajax');
             return;
         }
-		if (caap.waitingForDomLoad == false) {
+
+		if (caap.waitingForDomLoad === false) {
 			caap.JustDidIt('clickedOnSomething');
 			caap.waitingForDomLoad = true;
 		}
-       this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-       location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
-       gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+
+        this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+        location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+        gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
     },
 
     ClickWait: function (obj, loadWaitTime) {
@@ -839,8 +840,8 @@ var caap = {
 
     VisitUrl: function (url, loadWaitTime) {
         this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-        this.RemoveListeners();
-        this.RemoveLabelListeners();
+        //this.RemoveListeners();
+        //this.RemoveLabelListeners();
         //this.setTimeout(function () {
         document.location.href = url;
         //},1000+Math.floor(Math.random()*1000));
@@ -979,7 +980,7 @@ var caap = {
             for (var s = pathList.length - 1; s >= 0; s--) {
                 var a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
                 if (a) {
-                    this.RemoveLabelListeners();
+                    //this.RemoveLabelListeners();
                     gm.log('Go to ' + pathList[s]);
                     caap.Click(a);
                     return true;
@@ -992,7 +993,7 @@ var caap = {
 
                 var input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
                 if (input) {
-                    this.RemoveLabelListeners();
+                    //this.RemoveLabelListeners();
                     gm.log('Click on image ' + input.src.match(/[\w.]+$/));
                     caap.Click(input);
                     return true;
@@ -1000,7 +1001,7 @@ var caap = {
 
                 var img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
                 if (img) {
-                    this.RemoveLabelListeners();
+                    //this.RemoveLabelListeners();
                     gm.log('Click on image ' + img.src.match(/[\w.]+$/));
                     caap.Click(img);
                     return true;
@@ -1045,7 +1046,7 @@ var caap = {
 
     WhileSinceDidIt: function (nameOrNumber, seconds) {
 		if (!/\d+/.test(nameOrNumber)) {
-			nameOrNumber = gm.getValue(nameOrNumber,0);
+			nameOrNumber = gm.getValue(nameOrNumber, 0);
 		}
         var now = (new Date().getTime());
         return (parseInt(nameOrNumber, 10) < (now - 1000 * seconds));
@@ -1424,8 +1425,8 @@ var caap = {
         // If unable to read in gm.values, then reload the page
         if (gm.getValue('caapPause', 'none') !== 'none' && gm.getValue('caapPause', 'none') !== 'block') {
             gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
-            this.RemoveListeners();
-            this.RemoveLabelListeners();
+            //this.RemoveListeners();
+            //this.RemoveLabelListeners();
             window.location = window.location.href;
         }
 
@@ -1441,6 +1442,7 @@ var caap = {
                 div.style.left = '940px';
             }
 
+            div.style.zIndex = '1';
             div.style.width = '180px';
             div.style.padding = '4px';
             div.style.border = '2px solid #444';
@@ -2066,320 +2068,6 @@ var caap = {
         }
 
         this.SetDivContent('control', htmlCode);
-        this.AddListeners('caap_div');
-
-        /*
-        var Use24HourBox = document.getElementById('caap_use24hr');
-        var Use24Hour = gm.getValue('use24hr', true);
-        Use24HourBox.checked = Use24Hour ? true : false;
-        Use24HourBox.addEventListener('change', function (e) {
-        }, false);
-        */
-
-        var SetTitleBox = document.getElementById('caap_SetTitle');
-        var SetTitle = gm.getValue('SetTitle', false);
-        SetTitleBox.checked = SetTitle ? true : false;
-        SetTitleBox.addEventListener('change', function (e) {
-            if (gm.getValue('SetTitle')) {
-                var DocumentTitle = '';
-                if (gm.getValue('SetTitleAction', false)) {
-                    var d = document.getElementById('caap_activity_mess');
-                    if (d) {
-                        DocumentTitle += d.innerHTML.replace("Current activity: ", '') + " - ";
-                    }
-                }
-
-                if (gm.getValue('SetTitleName', false)) {
-                    DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
-                }
-
-                document.title = DocumentTitle + caapGlob.documentTitle;
-            } else {
-                document.title = caapGlob.documentTitle;
-            }
-        }, false);
-
-        var SetTitleActionBox = document.getElementById('caap_SetTitleAction');
-        var SetTitleAction = gm.getValue('SetTitleAction', false);
-        SetTitleActionBox.checked = SetTitleAction ? true : false;
-        SetTitleActionBox.addEventListener('change', function (e) {
-            var DocumentTitle = '';
-            if (gm.getValue('SetTitleAction', false)) {
-                var d = document.getElementById('caap_activity_mess');
-                if (d) {
-                    DocumentTitle += d.innerHTML.replace("Current activity: ", '') + " - ";
-                }
-            }
-
-            if (gm.getValue('SetTitleName', false)) {
-                DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
-            }
-
-            document.title = DocumentTitle + caapGlob.documentTitle;
-        }, false);
-
-        var SetTitleNameBox = document.getElementById('caap_SetTitleName');
-        var SetTitleName = gm.getValue('SetTitleName', false);
-        SetTitleNameBox.checked = SetTitleName ? true : false;
-        SetTitleNameBox.addEventListener('change', function (e) {
-            var DocumentTitle = '';
-            if (gm.getValue('SetTitleAction', false)) {
-                var d = document.getElementById('caap_activity_mess');
-                if (d) {
-                    DocumentTitle += d.innerHTML.replace("Current activity: ", '') + " - ";
-                }
-            }
-
-            if (gm.getValue('SetTitleName', false)) {
-                DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
-            }
-
-            document.title = DocumentTitle + caapGlob.documentTitle;
-        }, false);
-
-        var HideAdsBox = document.getElementById('caap_HideAds');
-        var HideAds = gm.getValue('HideAds', false);
-        HideAdsBox.checked = HideAds ? true : false;
-        HideAdsBox.addEventListener('change', function (e) {
-            if (gm.getValue('HideAds')) {
-                nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display = 'none';
-            } else {
-                nHtml.FindByAttr(document.body, 'div', 'className', 'UIStandardFrame_SidebarAds').style.display = 'block';
-            }
-        }, false);
-
-        /*
-        var AutoAlchemyBox = document.getElementById('caap_AutoAlchemy');
-        var AutoAlchemy = gm.getValue('AutoAlchemy', false);
-        AutoAlchemyBox.checked = AutoAlchemy ? true : false;
-        AutoAlchemyBox.addEventListener('change', function (e) {
-            var AutoAlchemyAdv = document.getElementById('caap_AutoAlchemy_Adv');
-            if (AutoAlchemyAdv) {
-                if (gm.getValue('AutoAlchemy')) {
-                    AutoAlchemyAdv.style.display = 'block';
-                } else {
-                    AutoAlchemyAdv.style.display = 'none';
-                }
-            }
-        }, false);
-        */
-
-        /*
-        var AutoAlchemyHeartsBox = document.getElementById('caap_AutoAlchemyHearts');
-        var AutoAlchemyHearts = gm.getValue('AutoAlchemyHearts', false);
-        AutoAlchemyHeartsBox.checked = AutoAlchemyHearts ? true : false;
-        AutoAlchemyHeartsBox.addEventListener('change', function (e) {
-        }, false);
-        */
-
-        /*
-        var DoSiegeBox = document.getElementById('caap_DoSiege');
-        var DoSiege = gm.getValue('DoSiege', true);
-        DoSiegeBox.checked = DoSiege ? true : false;
-        DoSiegeBox.addEventListener('change', function (e) {
-        }, false);
-        */
-
-        /*
-        var SellLandsBox = document.getElementById('caap_SellLands');
-        var SellLands = gm.getValue('SellLands', true);
-        SellLandsBox.checked = SellLands ? true : false;
-        SellLandsBox.addEventListener('change', function (e) {
-        }, false);
-        */
-
-        var IgnoreBattleLossBox = document.getElementById('caap_IgnoreBattleLoss');
-        var IgnoreBattleLoss = gm.getValue('IgnoreBattleLoss', false);
-        IgnoreBattleLossBox.checked = IgnoreBattleLoss ? true : false;
-        IgnoreBattleLossBox.addEventListener('change', function (e) {
-            if (gm.getValue('IgnoreBattleLoss')) {
-                gm.log("Ignore Battle Losses has been enabled.");
-                gm.setValue("BattlesLostList", '');
-                gm.log("Battle Lost List has been cleared.");
-            }
-        }, false);
-
-        var unlockMenuBox = document.getElementById('unlockMenu');
-        unlockMenuBox.addEventListener('change', function (e) {
-            var div = document.getElementById("caap_div");
-            if (unlockMenuBox.checked) {
-                $(":input[id^='caap_']").attr({disabled: true});
-                div.style.cursor = 'move';
-                div.addEventListener('mousedown', Move.dragHandler, false);
-            } else {
-                $(":input[id^='caap_']").attr({disabled: false});
-                div.style.cursor = '';
-                div.removeEventListener('mousedown', Move.dragHandler, false);
-            }
-
-        }, false);
-
-        var FillArmyButton = document.getElementById('caap_FillArmy');
-        FillArmyButton.addEventListener('click', function (e) {
-            gm.setValue("FillArmy", true);
-        }, false);
-
-        var StartedColorSelectButton = document.getElementById('StartedColorSelect');
-        StartedColorSelectButton.addEventListener('click', function (e) {
-            style.LoadMenu('Start');
-        }, false);
-
-        var StopedColorSelectButton = document.getElementById('StopedColorSelect');
-        StopedColorSelectButton.addEventListener('click', function (e) {
-            style.LoadMenu('Stop');
-        }, false);
-
-        var resetMenuLocation = document.getElementById('caap_ResetMenuLocation');
-        resetMenuLocation.addEventListener('click', function (e) {
-            var div = document.getElementById("caap_div");
-            div.style.cursor = '';
-            div.style.position = '';
-            div.removeEventListener('mousedown', Move.dragHandler, false);
-            div.style.top = '100px';
-            div.style.left = '940px';
-            document.getElementById('unlockMenu').checked = false;
-            $(":input[id^='caap_']").attr({disabled: false});
-            gm.deleteValue('menuLeft', caapGlob.savedTarget.style.left);
-            gm.deleteValue('menuTop',  caapGlob.savedTarget.style.top);
-        }, false);
-
-        var resetElite = document.getElementById('caap_resetElite');
-        resetElite.addEventListener('click', function (e) {
-            gm.setValue('AutoEliteGetList', 0);
-        }, false);
-
-        var caapRestart = document.getElementById('caapRestart');
-        var caapPaused = document.getElementById('caapPaused');
-        caapRestart.addEventListener('click', function (e) {
-            var div = document.getElementById("caap_div");
-			caap.waitingForDomLoad = false;
-            caapPaused.style.display = 'none';
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-            document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
-            gm.setValue('caapPause', 'none');
-            if (caapGlob.is_chrome) {
-                CE_message("paused", null, gm.getValue('caapPause', 'none'));
-            }
-
-            caap.SetControls(true);
-            gm.setValue('ReleaseControl', true);
-            gm.setValue('resetselectMonster', true);
-            div.style.cursor = '';
-            div.removeEventListener('mousedown', Move.dragHandler, false);
-            document.getElementById('unlockMenu').checked = false;
-            $(":input[id*='caap_']").attr({disabled: false});
-            //caap.ReloadOccasionally();
-            //caap.WaitMainLoop();
-        }, false);
-
-        controlDiv.addEventListener('mousedown', function (e) {
-            var div = document.getElementById("caap_div");
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-            document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
-            //nHtml.clearTimeouts();
-            gm.setValue('caapPause', 'block');
-            caapPaused.style.display = 'block';
-            if (caapGlob.is_chrome) {
-                CE_message("paused", null, gm.getValue('caapPause', 'block'));
-            }
-        }, false);
-
-        if (caapGlob.is_chrome) {
-            var caapPauseDiv = document.getElementById('caapPauseA');
-            caapPauseDiv.addEventListener('click', function (e) {
-                var div = document.getElementById("caap_div");
-                document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-                document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
-                //nHtml.clearTimeouts();
-                gm.setValue('caapPause', 'block');
-                caapPaused.style.display = 'block';
-                if (caapGlob.is_chrome) {
-                    CE_message("paused", null, gm.getValue('caapPause', 'block'));
-                }
-            }, false);
-        }
-
-        if (gm.getObjVal('AutoQuest', 'name')) {
-            var stopA = document.getElementById('stopAutoQuest');
-            stopA.addEventListener('click', function () {
-                gm.setValue('AutoQuest', '');
-                gm.setValue('WhyQuest', 'Manual');
-                gm.log('Change: setting stopAutoQuest and go to Manual');
-                caap.SetControls(true);
-            }, false);
-        }
-
-        var globalContainer = document.getElementById('app46755028429_globalContainer');
-        if (!globalContainer) {
-            gm.log('Global Container not found');
-            return;
-        }
-
-/*		
-		$('body').bind('DOMNodeInserted', function(event){
-            var $target = $(event.target);
-			if (!caap.node_trigger && (
-				caap.waitingForDomLoad = true;
-				caap.node_trigger = window.setTimeout(function(){caap.node_trigger=null;caap.CheckResults();},100);
-			}
-		});
-*/		
-		
-        globalContainer.addEventListener('DOMNodeInserted', function (event) {
-            // Uncomment this to see the id of domNodes that are inserted
-            /*
-            if (event.target.id) {
-                alert(event.target.id);
-            }
-           */
-            var $target = $(event.target);
-            if (!caap.node_trigger && ($target.is("#app46755028429_app_body") ||
-					$target.is("#app46755028429_index") ||
-					$target.is("#app46755028429_keep") ||
-					$target.is("#app46755028429_generals") ||
-					$target.is("#app46755028429_battle_monster") ||
-					$target.is("#app46755028429_battle") ||
-					$target.is("#app46755028429_battlerank") ||
-					$target.is("#app46755028429_battle_train") ||
-					$target.is("#app46755028429_arena") ||
-					$target.is("#app46755028429_quests") ||
-					$target.is("#app46755028429_raid") ||
-					$target.is("#app46755028429_symbolquests") ||
-					$target.is("#app46755028429_alchemy") ||
-					$target.is("#app46755028429_soldiers") ||
-					$target.is("#app46755028429_item") ||
-					$target.is("#app46755028429_land") ||
-					$target.is("#app46755028429_magic") ||
-					$target.is("#app46755028429_oracle") ||
-					$target.is("#app46755028429_symbols") ||
-					$target.is("#app46755028429_treasure_chest") ||
-					$target.is("#app46755028429_gift") ||
-					$target.is("#app46755028429_apprentice") ||
-					$target.is("#app46755028429_news") ||
-					$target.is("#app46755028429_friend_page") ||
-					$target.is("#app46755028429_comments") ||
-					$target.is("#app46755028429_army") ||
-					$target.is("#app46755028429_army_news_feed") ||
-					$target.is("#app46755028429_army_reqs"))) {
-				caap.waitingForDomLoad = false;
-				caap.node_trigger = window.setTimeout(function(){caap.node_trigger=null;caap.CheckResults();},100);
-//                nHtml.setTimeout(caap.CheckResults, 0);
-            }
-        }, true);
-
-        globalContainer.addEventListener('click', function (event) {
-            var obj = event.target;
-            while (obj && !obj.href) {
-                obj = obj.parentNode;
-            }
-
-            if (obj && obj.href) {
-                gm.setValue('clickUrl', obj.href);
-            }
-
-            //gm.log('global container ' + caap.clickUrl);
-        }, true);
-
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -2426,7 +2114,7 @@ var caap = {
             return;
         }
 
-        var layout = "<div id='caap_top' style='position:absolute;top:" + (containerDiv.offsetTop - 11) + "px;left:0px;'>";
+        var layout = "<div id='caap_top' style='position:absolute;top:" + (containerDiv.offsetTop - 11) + "px;left:0px;z-index:1'>";
     /*-------------------------------------------------------------------------------------\
      Next we put in our Refresh Monster List button which will only show when we have
      selected the Monster display.
@@ -2736,7 +2424,7 @@ var caap = {
 
             return true;
         } catch (e) {
-            gm.log("Error in SetDisplay: " + e);
+            gm.log("ERROR in SetDisplay: " + e);
             return false;
         }
     },
@@ -2811,15 +2499,20 @@ var caap = {
                 break;
             case "unlockMenu" :
                 //gm.log("unlockMenu");
-                var div = document.getElementById("caap_div");
+                var caap_div = document.getElementById("caap_div");
+                var caap_top = document.getElementById("caap_top");
                 if (e.target.checked) {
                     $(":input[id^='caap_']").attr({disabled: true});
-                    div.style.cursor = 'move';
-                    div.addEventListener('mousedown', Move.dragHandler, false);
+                    caap_div.style.cursor = 'move';
+                    caap_div.addEventListener('mousedown', Move.dragHandler, false);
+                    //caap_top.style.cursor = 'move';
+                    //caap_top.addEventListener('mousedown', Move.dragHandler, false);
                 } else {
                     $(":input[id^='caap_']").attr({disabled: false});
-                    div.style.cursor = '';
-                    div.removeEventListener('mousedown', Move.dragHandler, false);
+                    caap_div.style.cursor = '';
+                    caap_div.removeEventListener('mousedown', Move.dragHandler, false);
+                    //caap_top.style.cursor = '';
+                    //caap_top.removeEventListener('mousedown', Move.dragHandler, false);
                 }
 
                 break;
@@ -2828,7 +2521,7 @@ var caap = {
 
             return true;
         } catch (err) {
-            gm.log("Error in CheckBoxListener: " + e);
+            gm.log("ERROR in CheckBoxListener: " + e);
             return false;
         }
     },
@@ -2851,7 +2544,7 @@ var caap = {
             gm.setValue(idName, e.target.value);
             return true;
         } catch (err) {
-            gm.log("Error in TextBoxListener: " + e);
+            gm.log("ERROR in TextBoxListener: " + e);
             return false;
         }
     },
@@ -2976,7 +2669,7 @@ var caap = {
 
             return true;
         } catch (err) {
-            gm.log("Error in DropBoxListener: " + e);
+            gm.log("ERROR in DropBoxListener: " + e);
             return false;
         }
     },
@@ -2995,7 +2688,7 @@ var caap = {
             caap.SaveBoxText(idName);
             return true;
         } catch (err) {
-            gm.log("Error in TextAreaListener: " + e);
+            gm.log("ERROR in TextAreaListener: " + e);
             return false;
         }
     },
@@ -3018,27 +2711,29 @@ var caap = {
 
             return true;
         } catch (err) {
-            gm.log("Error in FoldingBlockListener: " + e);
+            gm.log("ERROR in FoldingBlockListener: " + e);
             return false;
         }
     },
 
-    arrayListeners: [],
+    //arrayListeners: [],
 
     AddListener: function (element, type, listener, usecapture) {
         try {
+            /*
             var x = {
                 element: element,
                 type: type,
                 listener: listener,
                 usecapture: usecapture
             };
+            */
 
             element.addEventListener(type, this[listener], usecapture);
-            this.arrayListeners.push(x);
+            //this.arrayListeners.push(x);
             return true;
         } catch (e) {
-            gm.log("Error in AddListener: " + e);
+            gm.log("ERROR in AddListener: " + e);
             return false;
         }
     },
@@ -3144,6 +2839,7 @@ var caap = {
             var caapPaused = document.getElementById('caapPaused');
             caapRestart.addEventListener('click', function (e) {
                 var div = document.getElementById("caap_div");
+                caap.waitingForDomLoad = false;
                 caapPaused.style.display = 'none';
                 document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
                 document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
@@ -3238,7 +2934,12 @@ var caap = {
                     $target.is("#app46755028429_army") ||
                     $target.is("#app46755028429_army_news_feed") ||
                     $target.is("#app46755028429_army_reqs")) {
-                    nHtml.setTimeout(caap.CheckResults, 0);
+                    caap.waitingForDomLoad = false;
+                    caap.node_trigger = window.setTimeout(function () {
+                        caap.node_trigger = null;
+                        caap.CheckResults();
+                    }, 100);
+                    //nHtml.setTimeout(caap.CheckResults, 0);
                 }
             }, true);
 
@@ -3258,11 +2959,12 @@ var caap = {
             //gm.log("Listeners added for  caap_div");
             return true;
         } catch (e) {
-            gm.log("Error in AddListeners: " + e);
+            gm.log("ERROR in AddListeners: " + e);
             return false;
         }
     },
 
+    /*
     RemoveListeners: function () {
         try {
             gm.log("Removing listeners for  caap_div");
@@ -3272,11 +2974,12 @@ var caap = {
                 EL = null;
             }
         } catch (e) {
-            gm.log("Error in RemoveListeners: " + e);
+            gm.log("ERROR in RemoveListeners: " + e);
         }
 
         this.arrayListeners = null;
     },
+    */
 
     /////////////////////////////////////////////////////////////////////
     //                          GET STATS
@@ -3995,7 +3698,7 @@ var caap = {
             }
         }
 
-        this.RemoveLabelListeners();
+        //this.RemoveLabelListeners();
         var autoQuestDivs = {};
         for (s = 0; s < ss.snapshotLength; s++) {
             div = ss.snapshotItem(s);
@@ -4396,27 +4099,30 @@ var caap = {
         return false;
     },
 
-    arrayLabelListeners: [],
+    //arrayLabelListeners: [],
 
     AddLabelListener: function (element, type, listener, usecapture) {
         try {
             //gm.log("Adding Quest Label Listener");
+            /*
             var x = {
                 element: element,
                 type: type,
                 listener: listener,
                 usecapture: usecapture
             };
+            */
 
             element.addEventListener(type, this[listener], usecapture);
-            this.arrayLabelListeners.push(x);
+            //this.arrayLabelListeners.push(x);
             return true;
         } catch (e) {
-            gm.log("Error in AddLabelListener: " + e);
+            gm.log("ERROR in AddLabelListener: " + e);
             return false;
         }
     },
 
+    /*
     RemoveLabelListeners: function () {
         try {
             if (this.arrayLabelListeners.length) {
@@ -4429,11 +4135,12 @@ var caap = {
                 EL = null;
             }
         } catch (e) {
-            gm.log("Error in RemoveLabelListeners: " + e);
+            gm.log("ERROR in RemoveLabelListeners: " + e);
         }
 
         this.arrayLabelListeners = [];
     },
+    */
 
     LabelListener: function (e) {
         try {
@@ -4497,7 +4204,7 @@ var caap = {
             caap.ShowAutoQuest();
             return true;
         } catch (err) {
-            gm.log("Error in LabelListener: " + err);
+            gm.log("ERROR in LabelListener: " + err);
             return false;
         }
     },
@@ -5616,8 +5323,8 @@ var caap = {
 
         } catch (e) {
             gm.log("ERROR Raid: " + e);
-            this.RemoveListeners();
-            this.RemoveLabelListeners();
+            //this.RemoveListeners();
+            //this.RemoveLabelListeners();
             window.location = 'http://apps.facebook.com/castle_age/raid.php';
         }
     },
@@ -6331,13 +6038,13 @@ var caap = {
 
         // Get name and type of monster
         var monster = nHtml.GetText(webSlice);
-		
+
 		if (caap.CheckForImage('nm_volcanic_title.jpg')) {
 			monster = monster.match(/.+'s /) + 'Bahamut, the Volcanic Dragon';
 			monster = monster.trim();
 		} else {
 			monster = monster.substring(0, monster.indexOf('You have (')).trim();
-		}	
+		}
 
         var fort = null;
         var monstType = '';
@@ -6360,7 +6067,7 @@ var caap = {
         }
 
         var now = (new Date().getTime());
-		gm.setListObjVal('monsterOl', monster, 'review',now.toString());
+		gm.setListObjVal('monsterOl', monster, 'review', now.toString());
 
         var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
         gm.setListObjVal('monsterOl', monster, 'Type', monstType);
@@ -6378,9 +6085,9 @@ var caap = {
         if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].fort) {
 			if (monstType == "Deathrune" || monstType == 'Ice Elemental') {
 				gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
-			} else {	
+			} else {
 				gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
-			}	
+			}
             // Check for mana forcefield
             var img = caap.CheckForImage('bar_dispel');
             if (img) {
@@ -6467,7 +6174,7 @@ var caap = {
                 (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
                  nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
                 gm.log('Collecting Reward');
-				gm.setListObjVal('monsterOl', monster, 'review',"1");
+				gm.setListObjVal('monsterOl', monster, 'review', "1");
                 gm.setValue('monsterReviewCounter', --counter);
                 gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
                 if (monster.indexOf('Siege') >= 0) {
@@ -6707,7 +6414,7 @@ var caap = {
 
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
                                 var maxToFortify = caap.parseCondition('f%', monsterConditions) || caap.GetNumber('MaxToFortify', 0);
-					            var monstType = this.getMonstType(monster);
+					            monstType = this.getMonstType(monster);
 								//gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' caap.monsterInfo[monstType] ' + caap.monsterInfo[monstType]+ ' caap.monsterInfo[monstType].fort ' + caap.monsterInfo[monstType].fort);
 								if (!firstFortUnderMax && monsterFort < maxToFortify &&
 										monstPage == 'battle_monster' &&
@@ -6718,7 +6425,7 @@ var caap = {
 											//gm.log('hitit');
 											firstFortOverAch = monster;
 										}
-									} else if (over != 'max' ) {
+									} else if (over != 'max') {
 										//gm.log('norm hitit');
 										firstFortUnderMax = monster;
 									}
@@ -6833,25 +6540,25 @@ var caap = {
 			return true;
 		}
 		if (counter == -2) {
-			if (this.NavigateTo('battle_monster','tab_monster_on.jpg')) {
-				gm.setValue('reviewDone',0);
+			if (this.NavigateTo('battle_monster', 'tab_monster_on.jpg')) {
+				gm.setValue('reviewDone', 0);
 				return true;
 			}
-			if (gm.getValue('reviewDone',1) > 0) {
+			if (gm.getValue('reviewDone', 1) > 0) {
 				gm.setValue('monsterReviewCounter', ++counter);
 			} else {
-				return true;	
+				return true;
 			}
 		}
 		if (counter == -1) {
 			if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
-				gm.setValue('reviewDone',0);
+				gm.setValue('reviewDone', 0);
 				return true;
 			}
-			if (gm.getValue('reviewDone',1) > 0 ) {
+			if (gm.getValue('reviewDone', 1) > 0) {
 				gm.setValue('monsterReviewCounter', ++counter);
 			} else {
-				return true;	
+				return true;
 			}
 		}
 
@@ -6860,9 +6567,9 @@ var caap = {
 		}
 
 	/*-------------------------------------------------------------------------------------\
-	Now we step through the monsterOl objects. We set monsterReviewCounter to the next 
+	Now we step through the monsterOl objects. We set monsterReviewCounter to the next
 	index for the next reiteration since we will be doing a click and return in here.
-    \-------------------------------------------------------------------------------------*/			
+    \-------------------------------------------------------------------------------------*/
 		var monsterObjList = gm.getList('monsterOl');
 		while (counter < monsterObjList.length) {
 			var monsterObj = monsterObjList[counter];
@@ -6873,26 +6580,26 @@ var caap = {
 	/*-------------------------------------------------------------------------------------\
 	If we looked at this monster more recently than an hour ago, skip it
     \-------------------------------------------------------------------------------------*/
-			if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'),60*60)) {
+			if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60)) {
 				gm.setValue('monsterReviewCounter', ++counter);
 				continue;
-			}			
+			}
 	/*-------------------------------------------------------------------------------------\
 	We get our monster link
-    \-------------------------------------------------------------------------------------*/	
+    \-------------------------------------------------------------------------------------*/
 			var monster = monsterObj.split(caapGlob.vs)[0];
 			this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
 			var link = gm.getObjVal(monsterObj, 'Link');
 	/*-------------------------------------------------------------------------------------\
 	If the link is good then we get the url and any conditions for monster
-    \-------------------------------------------------------------------------------------*/			
+    \-------------------------------------------------------------------------------------*/
 			if (/href/.test(link)) {
 				link = link.split("'")[1];
 				var conditions = gm.getObjVal(monsterObj, 'conditions');
 	/*-------------------------------------------------------------------------------------\
-	If the autocollect tyoken was specified then we set the link to do auto collect. If 
+	If the autocollect tyoken was specified then we set the link to do auto collect. If
 	the conditions indicate we should not do sieges then we fix the link.
-    \-------------------------------------------------------------------------------------*/					
+    \-------------------------------------------------------------------------------------*/
 				if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') == 'Collect Reward') {
 					link += '&action=collectReward';
 					if (monster.indexOf('Siege') >= 0) {
@@ -6904,8 +6611,8 @@ var caap = {
 					link = link.replace('&action=doObjective', '');
 				}
 	/*-------------------------------------------------------------------------------------\
-	Now we use ajaxSendLink to display the monsters page. 
-    \-------------------------------------------------------------------------------------*/	
+	Now we use ajaxSendLink to display the monsters page.
+    \-------------------------------------------------------------------------------------*/
 				gm.log('Reviewing ' + counter + '/' + monsterObjList.length + ' ' + monster);
 				gm.setValue('ReleaseControl', true);
 				link = link.replace('http://apps.facebook.com/castle_age/', '');
@@ -6921,7 +6628,7 @@ var caap = {
 	/*-------------------------------------------------------------------------------------\
 	All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
 	We set the monsterReviewCounter to do a full refresh next time through.
-    \-------------------------------------------------------------------------------------*/	
+    \-------------------------------------------------------------------------------------*/
 		this.JustDidIt('monsterReview');
 		gm.setValue('resetselectMonster', true);
 		gm.setValue('resetdashboard', true);
@@ -7681,7 +7388,9 @@ var caap = {
     monstDamage: function () {    // Get damage done to monster
         var damDone = 0;
         var imageTest = '';
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         // monster hasn't been defined at this point!!
+        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if (caap.getMonstType(monster) == 'Volcanic Dragon') {
             imageTest = 'nm_top.jpg';
         } else {
@@ -8451,8 +8160,8 @@ var caap = {
         } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
             user = eliteList.substring(0, eliteList.indexOf(','));
             gm.log('add elite ' + user);
-            this.RemoveLabelListeners();
-//this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
+            //this.RemoveLabelListeners();
+            //this.VisitUrl("http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=" + user);
 			caap.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('MyEliteTodo', eliteList);
@@ -9789,8 +9498,8 @@ var caap = {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
 
-            this.RemoveListeners();
-            this.RemoveLabelListeners();
+            //this.RemoveListeners();
+            //this.RemoveLabelListeners();
             window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
         }
     },
@@ -9798,9 +9507,9 @@ var caap = {
     ReloadOccasionally: function () {
         var reloadMin = caap.GetNumber('ReloadFrequency', 8);
         nHtml.setTimeout(function () {
-			if (caap.WhileSinceDidIt('clickedOnSomething',5*60)) {
+			if (caap.WhileSinceDidIt('clickedOnSomething', 5 * 60)) {
 				gm.log('Reloading if not paused after inactivity');
-			   if (window.location.href.indexOf('castle_age') >= 0 &&
+			    if (window.location.href.indexOf('castle_age') >= 0 &&
 						!gm.getValue('Disabled') &&
 						(gm.getValue('caapPause') == 'none')) {
 					if (caapGlob.is_chrome) {
@@ -9899,7 +9608,6 @@ $(function () {
     }
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
-	//gm.setListObjVal('monsterOl', "Ai Wen's The Deathrune Siege", 'review','2000000000000');
 });
 
 caap.ReloadOccasionally();
