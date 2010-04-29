@@ -8069,7 +8069,6 @@ var caap = {
 
     Heal: function () {
         this.SetDivContent('heal_mess', '');
-        var whenBattle = gm.getValue('WhenBattle', '');
         var minToHeal = this.GetNumber('MinToHeal');
         if (minToHeal === "") {
             return false;
@@ -8084,7 +8083,7 @@ var caap = {
             return false;
         }
 
-        if (whenBattle != 'Never') {
+        if ((gm.getValue('WhenBattle', '') != 'Never') || (gm.getValue('WhenMonster', '') != 'Never')) {
             if ((this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max) && this.stats.health.num < 10) {
                 gm.log('Heal');
                 return this.NavigateTo('keep,heal_button.gif');
