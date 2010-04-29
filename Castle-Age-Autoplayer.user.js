@@ -4394,42 +4394,6 @@ var caap = {
                     gm.setValue('BestLandCost', this.bestLand.land.cost);
                 }
             }
-
-            if (land.row.className == "land_buy_row_unique") {
-                if (nHtml.GetText(land.row).match(/each consecutive day/i) !== null) {
-                    gm.log("Found unique land, checking timer");
-                    if (nHtml.GetText(land.row.childNodes[1].childNodes[7].childNodes[5])) {
-                        var resultsText = nHtml.GetText(land.row.childNodes[1].childNodes[7].childNodes[5]).trim();
-                        if (resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/)) {
-                            resultsText = resultsText.match(/([0-9]{1,2}:)?([0-9]{2}:)?[0-9]{2}/).toString().split(',')[0];
-                            resultsText = resultsText.split(':');
-                            var time = [];
-                            for (var x = 2; x >= 0 ; x--) {
-                                time[x] = 0;
-                                if (resultsText[x]) {
-                                    time[x] = resultsText[resultsText.length - 1 - x];
-                                }
-                            }
-
-                            var hours = time[2];
-                            var minutes = time[1];
-                            var seconds = time[0];
-                            gm.log("hours:" + hours + " minutes:" + minutes + " seconds:" + seconds);
-                            if (gm.getValue('LandTimer', 9999999999999999999999999) > (new Date().getTime()) * 1000 + hours * 3600 + minutes * 60 + seconds) {
-                                gm.log("Setting Land Timer");
-                                this.SetTimer('LandTimer', hours * 3600 + minutes * 60 + seconds);
-                            }
-                            //land.row.childNodes[1].childNodes[7].childNodes[5].childNodes[5].childNodes[1]
-                        } else {
-                            gm.log("You need to buy a land first");
-                            this.SetTimer('LandTimer', 9999999999999999999999999);
-                        }
-                    } else {
-                        gm.log("Error");
-                    }
-                }
-            }
-
         });
 
         gm.log("BestLandCost:" + gm.getValue('BestLandCost'));
