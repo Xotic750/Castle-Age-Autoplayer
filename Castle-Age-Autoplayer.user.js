@@ -817,16 +817,19 @@ var caap = {
     },
 
     ClickAjax: function (link, loadWaitTime) {
+		if (gm.getValue('clickUrl','').indexOf(link)<0) {
+			gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+		}
         if (!link) {
             gm.log('ERROR: No link passed to Click Ajax');
             return;
         }
 
-		if (caap.waitingForDomLoad === false) {
-			caap.JustDidIt('clickedOnSomething');
-			caap.waitingForDomLoad = true;
+		if (gm.getValue('clickUrl','').indexOf(link)<0) {
+			gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+			caap.waitingForDomLoad = false;
 		}
-
+		
         this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
         location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
         gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
