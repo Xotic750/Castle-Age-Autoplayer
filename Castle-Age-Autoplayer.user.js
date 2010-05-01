@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.4
+// @version        140.22.5
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.4";
+caapGlob.thisVersion = "140.22.5";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -1317,18 +1317,15 @@ var caap = {
         try {
             var value = gm.getValue(name);
             var number = null;
-            if (!value) {
-                if (typeof defaultValue != 'number') {
+            if (value === '' | isNaN(value)) {
+                if (defaultValue === '' || isNaN(defaultValue)) {
                     throw "Value of " + name + " and defaultValue are not numbers: " +
                         "'" + value + "', '" + defaultValue + "'";
                 } else {
                     number = defaultValue;
                 }
             } else {
-                number = Number(value);
-                if (typeof number != 'number') {
-                    throw "Value of " + name + " is not a number: " + value;
-                }
+                number = value;
             }
 
             return number;
@@ -8039,9 +8036,9 @@ var caap = {
     },
 
     Bank: function () {
-        var maxInCash = this.GetNumber('MaxInCash', 0);
+        var maxInCash = this.GetNumber('MaxInCash', -1);
         var minInCash = this.GetNumber('MinInCash', 0);
-        if (!maxInCash || this.stats.cash <= minInCash || this.stats.cash < maxInCash || this.stats.cash < 10) {
+        if (maxInCash < 0 || this.stats.cash <= minInCash || this.stats.cash < maxInCash || this.stats.cash < 10) {
             return false;
         }
 
