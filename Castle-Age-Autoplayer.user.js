@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.5
+// @version        140.22.6
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.5";
+caapGlob.thisVersion = "140.22.6";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -844,6 +844,8 @@ var caap = {
 
     generalList: [],
 
+    generalBuyList: [],
+
     generalIncomeList: [],
 
     generalBankingList: [],
@@ -853,8 +855,7 @@ var caap = {
         'Monster',
         'Fortify',
         'Battle',
-        'SubQuest',
-        'Buy'
+        'SubQuest'
     ],
 
     BuildGeneralLists: function () {
@@ -868,9 +869,17 @@ var caap = {
             return (caap.generalList.indexOf(checkItem) >= 0);
         };
 
+        this.generalBuyList = [
+            'Get General List',
+            'Use Current',
+            'Garlan',
+            'Penelope'
+        ].filter(crossList);
+
         this.generalIncomeList = [
             'Get General List',
             'Use Current',
+            'Scarlett',
             'Mercedes',
             'Cid'
         ].filter(crossList);
@@ -927,6 +936,7 @@ var caap = {
             }
         }
 
+        this.ChangeDropDownList('BuyGeneral', this.generalBuyList, gm.getValue('BuyGeneral', 'Use Current'));
         this.ChangeDropDownList('IncomeGeneral', this.generalIncomeList, gm.getValue('IncomeGeneral', 'Use Current'));
         this.ChangeDropDownList('BankingGeneral', this.generalBankingList, gm.getValue('BankingGeneral', 'Use Current'));
         this.ChangeDropDownList('LevelUpGeneral', this.generalList, gm.getValue('LevelUpGeneral', 'Use Current'));
@@ -1317,8 +1327,8 @@ var caap = {
         try {
             var value = gm.getValue(name);
             var number = null;
-            if (value === '' | isNaN(value)) {
-                if (defaultValue === '' || isNaN(defaultValue)) {
+            if ((!value && value !== 0) || isNaN(value)) {
+                if ((!defaultValue && defaultValue !== 0) || isNaN(defaultValue)) {
                     throw "Value of " + name + " and defaultValue are not numbers: " +
                         "'" + value + "', '" + defaultValue + "'";
                 } else {
@@ -1328,10 +1338,13 @@ var caap = {
                 number = value;
             }
 
-            return number;
+            //alert("Name: " + name + " Number: " + number + " Default: " + defaultValue);
+            return Number(number);
         } catch (err) {
-            gm.log("ERROR in GetNumber: " + err);
-            return 'NaN';
+            var errStr = "ERROR in GetNumber: " + err;
+            gm.log(errStr);
+            alert(errStr);
+            return '';
         }
     },
 
@@ -1925,6 +1938,7 @@ var caap = {
             var LevelUpGenInstructions5 = "Use the Level Up General for doing sub-quests.";
             var LevelUpGenInstructions6 = "Use the Level Up General for doing primary quests " +
                 "(Warning: May cause you not to gain influence if wrong general is equipped.)";
+            htmlCode += "<tr><td>Buy</td><td style='text-align: right'>" + this.MakeDropDown('BuyGeneral', this.generalBuyList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + this.MakeDropDown('IncomeGeneral', this.generalIncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + this.MakeDropDown('BankingGeneral', this.generalBankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', this.generalList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
@@ -5116,10 +5130,11 @@ var caap = {
                     if (yourArenaGoal && yourArenaPoints) {
                         yourArenaGoal = yourArenaGoal.toLowerCase();
                         if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) {
-                            if (this.GetNumber('APLimit', 0) === 0) {
+                            var APLimit = this.GetNumber('APLimit', 0);
+                            if (!APLimit) {
                                 gm.setValue('APLimit', yourArenaPoints + this.GetNumber('ArenaRankBuffer', 500));
-                                gm.log('We need ' + this.GetNumber('APLimit', 0) + ' as a buffer for current rank');
-                            } else if (this.GetNumber('APLimit', 0) <= yourArenaPoints) {
+                                gm.log('We need ' + APLimit + ' as a buffer for current rank');
+                            } else if (APLimit <= yourArenaPoints) {
                                 this.SetTimer('ArenaRankTimer', 1 * 60 * 60);
                                 gm.log('We are safely at rank: ' + yourRankStr + ' Points:' + yourArenaPoints);
                                 this.SetDivContent('battle_mess', 'Arena Rank ' + yourArenaGoal + ' Achieved');
@@ -8038,7 +8053,7 @@ var caap = {
     Bank: function () {
         var maxInCash = this.GetNumber('MaxInCash', -1);
         var minInCash = this.GetNumber('MinInCash', 0);
-        if (maxInCash < 0 || this.stats.cash <= minInCash || this.stats.cash < maxInCash || this.stats.cash < 10) {
+        if (!maxInCash || maxInCash < 0 || this.stats.cash <= minInCash || this.stats.cash < maxInCash || this.stats.cash < 10) {
             return false;
         }
 
@@ -8121,6 +8136,10 @@ var caap = {
         }
 
         var minStamToHeal = this.GetNumber('MinStamToHeal', 0);
+        if (minStamToHeal === "") {
+            minStamToHeal = 0;
+        }
+
         if (!this.stats.health) {
             return false;
         }
@@ -9560,6 +9579,10 @@ var caap = {
 
     ReloadOccasionally: function () {
         var reloadMin = caap.GetNumber('ReloadFrequency', 8);
+        if (!reloadMin || reloadMin < 8) {
+            reloadMin = 8;
+        }
+
         nHtml.setTimeout(function () {
             if (caap.WhileSinceDidIt('clickedOnSomething', 5 * 60)) {
                 gm.log('Reloading if not paused after inactivity');
@@ -9569,9 +9592,11 @@ var caap = {
                     if (caapGlob.is_chrome) {
                         CE_message("paused", null, gm.getValue('caapPause', 'none'));
                     }
+
                     window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
                 }
             }
+
             caap.ReloadOccasionally();
         }, 1000 * 60 * reloadMin + (reloadMin * 60 * 1000 * Math.random()));
     }
