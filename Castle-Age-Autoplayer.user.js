@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.6
+// @version        140.22.7
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,9 +26,8 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.6";
+caapGlob.thisVersion = "140.22.7";
 caapGlob.gameName = 'castle_age';
-caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
 caapGlob.newVersionAvailable = false;
@@ -38,19 +37,9 @@ caapGlob.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') != -1
 caapGlob.os = '\n'; // Object separator - used to separate objects
 caapGlob.vs = '\t'; // Value separator - used to separate name/values within the objects
 caapGlob.ls = '\f'; // Label separator - used to separate the name from the value
-caapGlob.quest_name = null;
-caapGlob.attackButton = null;
-caapGlob.currentColor = null;
-caapGlob.ColorDiv = null;
-caapGlob.arrows = null;
-caapGlob.circle = null;
 caapGlob.hashStr = ['41030325072', '4200014995461306', '2800013751923752',  +
     '55577219620', '65520919503', '2900007233824090', '2900007233824090',   +
     '3100017834928060', '3500032575830770', '32686632448', '2700017666913321'];
-caapGlob.ucfirst = function (str) {
-    var firstLetter = str.substr(0, 1);
-    return firstLetter.toUpperCase() + str.substr(1);
-};
 //Images scr
 //http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
 caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
@@ -379,6 +368,31 @@ var gm = {
             objList.splice(objList.indexOf(objStr), 1);
             this.setList(listName, objList);
         }
+    },
+
+    getNumber: function (name, defaultValue) {
+        try {
+            var value = this.getValue(name);
+            var number = null;
+            if ((!value && value !== 0) || isNaN(value)) {
+                if ((!defaultValue && defaultValue !== 0) || isNaN(defaultValue)) {
+                    throw "Value of " + name + " and defaultValue are not numbers: " +
+                        "'" + value + "', '" + defaultValue + "'";
+                } else {
+                    number = defaultValue;
+                }
+            } else {
+                number = value;
+            }
+
+            //alert("Name: " + name + " Number: " + number + " Default: " + defaultValue);
+            return Number(number);
+        } catch (err) {
+            var errStr = "ERROR in GetNumber: " + err;
+            this.log(errStr);
+            alert(errStr);
+            return '';
+        }
     }
 };
 
@@ -440,6 +454,15 @@ if (!caapGlob.is_chrome) {
 
 String.prototype.trim = function () {
     return this.replace(/^\s+|\s+$/g, '');
+};
+
+String.prototype.ucFirst = function () {
+    var firstLetter = this.substr(0, 1);
+    return firstLetter.toUpperCase() + this.substr(1);
+};
+
+String.prototype.stripHTML = function (html) {
+    return this.replace(new RegExp('<[^>]+>', 'g'), '').replace(/&nbsp;/g, '');
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -510,7 +533,6 @@ var nHtml = {
             }
 
             var q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, this.xpath.first, null);
-
             if (q && q.singleNodeValue) {
                 return q.singleNodeValue;
             }
@@ -561,12 +583,6 @@ var nHtml = {
         }
 
         return txt;
-    },
-
-    htmlRe: new RegExp('<[^>]+>', 'g'),
-
-    StripHtml: function (html) {
-        return html.replace(this.htmlRe, '').replace(/&nbsp;/g, '');
     },
 
     timeouts: {},
@@ -696,12 +712,6 @@ var nHtml = {
 
 var Move = {
     me: null,
-
-    //dragOK: null,
-
-    //dragXoffset: null,
-
-    //dragYoffset: null,
 
     moveHandler: function (e) {
         if (e === null) {
@@ -872,6 +882,8 @@ var caap = {
         this.generalBuyList = [
             'Get General List',
             'Use Current',
+            'Darius',
+            'Lucius',
             'Garlan',
             'Penelope'
         ].filter(crossList);
@@ -1211,13 +1223,7 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
 
     AppendTextToDiv: function (divName, text) {
-        var d = document.getElementById('caap_' + divName);
-        if (d) {
-            d.innerHTML += text;
-            return true;
-        } else {
-            return false;
-        }
+        $('#' + divName).append(text);
     },
 
     defaultDropDownOption: "<option disabled='disabled' value='not selected'>Choose one</option>",
@@ -1321,31 +1327,6 @@ var caap = {
             displayChar + ' ' + staticText + '</a></b><br />' +
             "<div id='caap_" + controlId + "' style='display: " + currentDisplay + "'>";
         return toggleCode;
-    },
-
-    GetNumber: function (name, defaultValue) {
-        try {
-            var value = gm.getValue(name);
-            var number = null;
-            if ((!value && value !== 0) || isNaN(value)) {
-                if ((!defaultValue && defaultValue !== 0) || isNaN(defaultValue)) {
-                    throw "Value of " + name + " and defaultValue are not numbers: " +
-                        "'" + value + "', '" + defaultValue + "'";
-                } else {
-                    number = defaultValue;
-                }
-            } else {
-                number = value;
-            }
-
-            //alert("Name: " + name + " Number: " + number + " Default: " + defaultValue);
-            return Number(number);
-        } catch (err) {
-            var errStr = "ERROR in GetNumber: " + err;
-            gm.log(errStr);
-            alert(errStr);
-            return '';
-        }
     },
 
     MakeTextBox: function (idName, instructions, formatParms) {
@@ -1558,7 +1539,6 @@ var caap = {
                 div.style.background = gm.getValue('StyleBackgroundLight', '#E0C691');
                 div.style.opacity = gm.getValue('StyleOpacityLight', '1');
                 div.style.color = '#000';
-                //div.style.cssFloat = 'right';
                 var styleXY = this.GetControlXY('.UIStandardFrame_Content', false);
                 div.style.top = styleXY.y + 'px';
                 div.style.left = styleXY.x + 'px';
@@ -2558,20 +2538,18 @@ var caap = {
                 break;
             case "unlockMenu" :
                 //gm.log("unlockMenu");
-                var caap_div = document.getElementById("caap_div");
-                var caap_top = document.getElementById("caap_top");
                 if (e.target.checked) {
                     $(":input[id^='caap_']").attr({disabled: true});
-                    caap_div.style.cursor = 'move';
-                    caap_div.addEventListener('mousedown', Move.dragHandler, false);
-                    caap_top.style.cursor = 'move';
-                    caap_top.addEventListener('mousedown', Move.dragHandler, false);
+                    $("#caap_div").css('cursor', 'move');
+                    $("#caap_div").mousedown(Move.dragHandler);
+                    $("#caap_top").css('cursor', 'move');
+                    $("#caap_top").mousedown(Move.dragHandler);
                 } else {
                     $(":input[id^='caap_']").attr({disabled: false});
-                    caap_div.style.cursor = '';
-                    caap_div.removeEventListener('mousedown', Move.dragHandler, false);
-                    caap_top.style.cursor = '';
-                    caap_top.removeEventListener('mousedown', Move.dragHandler, false);
+                    $("#caap_div").css('cursor', '');
+                    $("#caap_div").unbind('mousedown', Move.dragHandler);
+                    $("#caap_top").css('cursor', '');
+                    $("#caap_top").unbind('mousedown', Move.dragHandler);
                 }
 
                 break;
@@ -2757,6 +2735,71 @@ var caap = {
         }
     },
 
+    PauseListener: function (e) {
+        $('#caap_div').css({
+            'background': gm.getValue('StyleBackgroundDark', '#fee'),
+            'opacity': gm.getValue('StyleOpacityDark', '1'),
+            'z-index': '3'
+        });
+
+        $('#caapPaused').css('display', 'block');
+        if (caapGlob.is_chrome) {
+            CE_message("paused", null, 'block');
+        }
+
+        gm.setValue('caapPause', 'block');
+    },
+
+    RestartListener: function (e) {
+        $('#caapPaused').css('display', 'none');
+        $('#caap_div').css({
+            'background': gm.getValue('StyleBackgroundLight', '#efe'),
+            'opacity': gm.getValue('StyleOpacityLight', '1'),
+            'z-index': '1',
+            'cursor': ''
+        });
+
+        $(":input[id*='caap_']").attr({disabled: false});
+        $('#unlockMenu').attr('checked', false);
+
+        gm.setValue('caapPause', 'none');
+        if (caapGlob.is_chrome) {
+            CE_message("paused", null, gm.getValue('caapPause', 'none'));
+        }
+
+        gm.setValue('ReleaseControl', true);
+        gm.setValue('resetselectMonster', true);
+        caap.waitingForDomLoad = false;
+    },
+
+    ResetMenuLocationListener: function (e) {
+        var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', true);
+        $("#caap_div").css({
+            'cursor' : '',
+            'z-index' : '2',
+            'top' : caap_divXY.y + 'px',
+            'left' : caap_divXY.x + 'px'
+        });
+
+        gm.deleteValue('caap_div_menuLeft');
+        gm.deleteValue('caap_div_menuTop');
+        gm.deleteValue('caap_div_zIndex');
+
+        var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', true);
+        $("#caap_top").css({
+            'cursor' : '',
+            'z-index' : '1',
+            'top' : caap_topXY.y + 'px',
+            'left' : caap_topXY.x + 'px'
+        });
+
+        gm.deleteValue('caap_top_menuLeft');
+        gm.deleteValue('caap_top_menuTop');
+        gm.deleteValue('caap_top_zIndex');
+
+        $(":input[id^='caap_']").attr({disabled: false});
+    },
+
     FoldingBlockListener: function (e) {
         try {
             var subId = e.target.id.replace(/_Switch/i, '');
@@ -2780,206 +2823,54 @@ var caap = {
         }
     },
 
-    //arrayListeners: [],
-
-    AddListener: function (element, type, listener, usecapture) {
-        try {
-            /*
-            var x = {
-                element: element,
-                type: type,
-                listener: listener,
-                usecapture: usecapture
-            };
-            */
-
-            element.addEventListener(type, this[listener], usecapture);
-            //this.arrayListeners.push(x);
-            return true;
-        } catch (e) {
-            gm.log("ERROR in AddListener: " + e);
-            return false;
-        }
-    },
-
     AddListeners: function () {
         try {
             gm.log("Adding listeners for caap_div");
-            var div = document.getElementById("caap_div");
-            if (!div) {
+            if (!$('#caap_div')) {
                 throw "Unable to find div for caap_div";
             }
 
-            var ss = document.evaluate("//input[contains(@id,'caap_')]", document,
-                null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
-                gm.log('no inputs');
-            }
-
-            var s = 0;
-            for (s = 0; s < ss.snapshotLength; s++) {
-                if (ss.snapshotItem(s).type == 'checkbox') {
-                    //gm.log("CheckBox: " + ss.snapshotItem(s).id);
-                    this.AddListener(ss.snapshotItem(s), 'change', 'CheckBoxListener', false);
-                } else if (ss.snapshotItem(s).type == 'text') {
-                    //gm.log("TextBox: " + ss.snapshotItem(s).id);
-                    this.AddListener(ss.snapshotItem(s), 'change', 'TextBoxListener', false);
-                }
-            }
-
-            ss = document.getElementById('unlockMenu');
-            if (ss) {
-                //gm.log("TextBox: " + ss.id);
-                this.AddListener(ss, 'change', 'CheckBoxListener', false);
-            }
-
-            ss = document.evaluate("//select[contains(@id,'caap_')]", document,
-                null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
-                gm.log('no selects');
-            }
-
-            for (s = 0; s < ss.snapshotLength; s++) {
-                this.AddListener(ss.snapshotItem(s), 'change', 'DropBoxListener', false);
-            }
-
-            ss = document.evaluate("//textarea[contains(@id,'caap_')]", document,
-                null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
-                gm.log('no textareas');
-            }
-
-            for (s = 0; s < ss.snapshotLength; s++) {
-                //gm.log("TextArea: " + ss.snapshotItem(s).id);
-                this.AddListener(ss.snapshotItem(s), 'change', 'TextAreaListener', false);
-            }
-
-            ss = document.evaluate("//a[contains(@id,'caap_Switch_')]", document,
-                null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
-                gm.log('no anchors (switch)');
-            }
-
-            for (s = 0; s < ss.snapshotLength; s++) {
-                //gm.log("Anchor: " + ss.snapshotItem(s).id);
-                this.AddListener(ss.snapshotItem(s), 'click', 'FoldingBlockListener', false);
-            }
-
-            var FillArmyButton = document.getElementById('caap_FillArmy');
-            FillArmyButton.addEventListener('click', function (e) {
+            $('#caap_div input:checkbox[id^="caap_"]').change(this.CheckBoxListener);
+            $('#caap_div input:text[id^="caap_"]').change(this.TextBoxListener);
+            $('#unlockMenu').change(this.CheckBoxListener);
+            $('#caap_div select[id^="caap_"]').change(this.DropBoxListener);
+            $('#caap_div textarea[id^="caap_"]').change(this.TextAreaListener);
+            $('#caap_div a[id^="caap_Switch"]').click(this.FoldingBlockListener);
+            $('#caap_FillArmy').click(function (e) {
                 gm.setValue("FillArmy", true);
-            }, false);
+            });
 
-            var StartedColorSelectButton = document.getElementById('StartedColorSelect');
-            StartedColorSelectButton.addEventListener('click', function (e) {
+            $('#StartedColorSelect').click(function (e) {
                 style.LoadMenu('Start');
-            }, false);
+            });
 
-            var StopedColorSelectButton = document.getElementById('StopedColorSelect');
-            StopedColorSelectButton.addEventListener('click', function (e) {
-                style.LoadMenu('Stop');
-            }, false);
+            $('#StopedColorSelect').click(function (e) {
+                style.LoadMenu('Start');
+            });
 
-            var resetMenuLocation = document.getElementById('caap_ResetMenuLocation');
-            resetMenuLocation.addEventListener('click', function (e) {
-                var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', true);
-                $("#caap_div").css({
-                    'cursor' : '',
-                    'z-index' : '2',
-                    'top' : caap_divXY.y + 'px',
-                    'left' : caap_divXY.x + 'px'
-                });
-
-                gm.deleteValue('caap_div_menuLeft');
-                gm.deleteValue('caap_div_menuTop');
-                gm.deleteValue('caap_div_zIndex');
-
-                var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', true);
-                $("#caap_top").css({
-                    'cursor' : '',
-                    'z-index' : '1',
-                    'top' : caap_topXY.y + 'px',
-                    'left' : caap_topXY.x + 'px'
-                });
-
-                gm.deleteValue('caap_top_menuLeft');
-                gm.deleteValue('caap_top_menuTop');
-                gm.deleteValue('caap_top_zIndex');
-
-                $(":input[id^='caap_']").attr({disabled: false});
-            }, false);
-
-            var resetElite = document.getElementById('caap_resetElite');
-            resetElite.addEventListener('click', function (e) {
+            $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
+            $('#caap_resetElite').click(function (e) {
                 gm.setValue('AutoEliteGetList', 0);
-            }, false);
+            });
 
-            var caapRestart = document.getElementById('caapRestart');
-            var caapPaused = document.getElementById('caapPaused');
-            caapRestart.addEventListener('click', function (e) {
-                var div = document.getElementById("caap_div");
-                caap.waitingForDomLoad = false;
-                caapPaused.style.display = 'none';
-                document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-                document.getElementById("caap_div").style.background = div.style.opacity = gm.getValue('StyleOpacityLight', '1');
-                gm.setValue('caapPause', 'none');
-                div.style.zIndex = gm.getValue('caap_div_zIndex', '1');
-                if (caapGlob.is_chrome) {
-                    CE_message("paused", null, gm.getValue('caapPause', 'none'));
-                }
-
-                gm.setValue('ReleaseControl', true);
-                gm.setValue('resetselectMonster', true);
-                div.style.cursor = '';
-                div.removeEventListener('mousedown', Move.dragHandler, false);
-                document.getElementById('unlockMenu').checked = false;
-                $(":input[id*='caap_']").attr({disabled: false});
-            }, false);
-
-            var controlDiv = document.getElementById('caap_control');
-            controlDiv.addEventListener('mousedown', function (e) {
-                var div = document.getElementById("caap_div");
-                document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-                document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
-                gm.setValue('caapPause', 'block');
-                caapPaused.style.display = 'block';
-                div.style.zIndex = '3';
-                if (caapGlob.is_chrome) {
-                    CE_message("paused", null, gm.getValue('caapPause', 'block'));
-                }
-            }, false);
-
+            $('#caapRestart').click(this.RestartListener);
+            $('#caap_control').mousedown(this.PauseListener);
             if (caapGlob.is_chrome) {
-                var caapPauseDiv = document.getElementById('caapPauseA');
-                caapPauseDiv.addEventListener('click', function (e) {
-                    var div = document.getElementById("caap_div");
-                    document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-                    document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
-                    gm.setValue('caapPause', 'block');
-                    caapPaused.style.display = 'block';
-                    div.style.zIndex = '3';
-                    if (caapGlob.is_chrome) {
-                        CE_message("paused", null, gm.getValue('caapPause', 'block'));
-                    }
-                }, false);
+                $('#caap_control').mousedown(this.PauseListener);
             }
 
-            if (gm.getObjVal('AutoQuest', 'name')) {
-                var stopA = document.getElementById('stopAutoQuest');
-                stopA.addEventListener('click', function () {
-                    gm.setValue('AutoQuest', '');
-                    gm.setValue('WhyQuest', 'Manual');
-                    gm.log('Change: setting stopAutoQuest and go to Manual');
-                    caap.ManualAutoQuest();
-                }, false);
+            $('#stopAutoQuest').click(function (e) {
+                gm.setValue('AutoQuest', '');
+                gm.setValue('WhyQuest', 'Manual');
+                gm.log('Change: setting stopAutoQuest and go to Manual');
+                caap.ManualAutoQuest();
+            });
+
+            if (!$('#app46755028429_globalContainer')) {
+                throw 'Global Container not found';
             }
 
-            var globalContainer = document.getElementById('app46755028429_globalContainer');
-            if (!globalContainer) {
-                gm.log('Global Container not found');
-            }
-
-            globalContainer.addEventListener('DOMNodeInserted', function (event) {
+            $('#app46755028429_globalContainer').bind('DOMNodeInserted', function (event) {
                 // Uncomment this to see the id of domNodes that are inserted
                 /*
                 if (event.target.id) {
@@ -3023,9 +2914,9 @@ var caap = {
                     }, 100);
                     //nHtml.setTimeout(caap.CheckResults, 0);
                 }
-            }, false);
+            });
 
-            globalContainer.addEventListener('click', function (event) {
+            $('#app46755028429_globalContainer').click(function (event) {
                 var obj = event.target;
                 while (obj && !obj.href) {
                     obj = obj.parentNode;
@@ -3036,16 +2927,16 @@ var caap = {
                 }
 
                 //gm.log('globalContainer: ' + caap.clickUrl);
-            }, false);
+            });
 
-            window.addEventListener('resize', function (event) {
+            $(window).resize(function (event) {
                 if (window.location.href.indexOf('castle_age')) {
                     var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', false);
                     $("#caap_div").css('left', caap_divXY.x + 'px');
                     var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', false);
                     $("#caap_top").css('left', caap_topXY.x + 'px');
                 }
-            }, false);
+            });
 
             //gm.log("Listeners added for caap_div");
             return true;
@@ -3055,41 +2946,40 @@ var caap = {
         }
     },
 
-    /*
-    RemoveListeners: function () {
-        try {
-            gm.log("Removing listeners for  caap_div");
-            for (var s = 0; s < this.arrayListeners.length; s++) {
-                var EL = this.arrayListeners[s];
-                EL.element.removeEventListener(EL.type, this[EL.listener], EL.usecapture);
-                EL = null;
-            }
-        } catch (e) {
-            gm.log("ERROR in RemoveListeners: " + e);
-        }
-
-        this.arrayListeners = null;
-    },
-    */
-
     /////////////////////////////////////////////////////////////////////
     //                          GET STATS
     // Functions that records all of base game stats, energy, stamina, etc.
     /////////////////////////////////////////////////////////////////////
 
     GetStatusNumbers: function (node) {
-        var txt = nHtml.GetText(node);
-        var staminam = this.statusRe.exec(txt);
-        if (staminam) {
+        try {
+            if (!node) {
+                throw 'No "node" supplied';
+            }
+
+            var txt = nHtml.GetText(node);
+            if (!txt) {
+                throw 'No text found';
+            }
+
+            var staminam = this.statusRe.exec(txt);
+            if (!staminam) {
+                throw 'Cannot find status:' + txt;
+            }
+
             return {
                 'num': parseInt(staminam[1], 10),
                 'max': parseInt(staminam[2], 10),
                 'dif': parseInt(staminam[2], 10) - parseInt(staminam[1], 10)
             };
+        } catch (e) {
+            gm.log("ERROR in GetStatusNumbers: " + e);
+            return {
+                'num': 0,
+                'max': 0,
+                'dif': 0
+            };
         }
-
-        gm.log('Cannot find status:' + txt);
-        return null;
     },
 
     GetStats: function () {
@@ -3506,7 +3396,7 @@ var caap = {
         }
 
         if (gm.getValue('WhenQuest', '') == 'Not Fortifying') {
-            var maxHealthtoQuest = this.GetNumber('MaxHealthtoQuest', 0);
+            var maxHealthtoQuest = gm.getNumber('MaxHealthtoQuest', 0);
             if (!maxHealthtoQuest) {
                 this.SetDivContent('quest_mess', '<b>No valid over fortify %</b>');
                 return false;
@@ -3514,7 +3404,7 @@ var caap = {
 
             var fortMon = gm.getValue('targetFromfortify', '');
             if (fortMon) {
-                this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + this.GetNumber('MaxToFortify', 0) + '%');
+                this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + gm.getNumber('MaxToFortify', 0) + '%');
                 return false;
             }
 
@@ -3634,7 +3524,7 @@ var caap = {
             gm.log("costToBuy = " + costToBuy);
             if (this.stats.cash < costToBuy) {
                 //Retrieving from Bank
-                if (this.stats.cash + (this.GetNumber('inStore', 0) - this.GetNumber('minInStore', 0)) >= costToBuy) {
+                if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= costToBuy) {
                     gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
                     gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
                     return this.RetrieveFromBank(costToBuy - this.stats.cash);
@@ -3670,7 +3560,7 @@ var caap = {
             gm.log("costToBuy = " + costToBuy);
             if (this.stats.cash < costToBuy) {
                 //Retrieving from Bank
-                if (this.stats.cash + (this.GetNumber('inStore', 0) - this.GetNumber('minInStore', 0)) >= costToBuy) {
+                if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= costToBuy) {
                     gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
                     gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
                     return this.RetrieveFromBank(costToBuy - this.stats.cash);
@@ -3751,6 +3641,8 @@ var caap = {
         return true;
     },
 
+    questName: null,
+
     CheckResults_quests: function (pickQuestTF) {
         var whyQuest = gm.getValue('WhyQuest', '');
         if (pickQuestTF === true && whyQuest != 'Manual') {
@@ -3796,8 +3688,8 @@ var caap = {
         var autoQuestDivs = {};
         for (s = 0; s < ss.snapshotLength; s++) {
             div = ss.snapshotItem(s);
-            caapGlob.quest_name = this.GetQuestName(div);
-            if (!caapGlob.quest_name) {
+            this.questName = this.GetQuestName(div);
+            if (!this.questName) {
                 continue;
             }
 
@@ -3813,13 +3705,13 @@ var caap = {
                 if (expObj) {
                     experience = (this.NumberOnly(nHtml.GetText(expObj)));
                 } else {
-                    gm.log('cannot find experience:' + caapGlob.quest_name);
+                    gm.log('cannot find experience:' + this.questName);
                 }
             }
 
-            var idx = caapGlob.quest_name.indexOf('<br>');
+            var idx = this.questName.indexOf('<br>');
             if (idx >= 0) {
-                caapGlob.quest_name = caapGlob.quest_name.substring(0, idx);
+                this.questName = this.questName.substring(0, idx);
             }
 
             var energyM = this.energyRe.exec(divTxt);
@@ -3833,7 +3725,7 @@ var caap = {
             }
 
             if (!energy) {
-                gm.log('cannot find energy for quest:' + caapGlob.quest_name);
+                gm.log('cannot find energy for quest:' + this.questName);
                 continue;
             }
 
@@ -3843,16 +3735,16 @@ var caap = {
                 var rewardHigh = this.NumberOnly(moneyM[2]);
                 reward = (rewardLow + rewardHigh) / 2;
             } else {
-                gm.log('no money found:' + caapGlob.quest_name + ' in ' + divTxt);
+                gm.log('no money found:' + this.questName + ' in ' + divTxt);
             }
 
             var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
             if (!click) {
-                gm.log('no button found:' + caapGlob.quest_name);
+                gm.log('no button found:' + this.questName);
                 continue;
             }
             var influence = null;
-            if (bossList.indexOf(caapGlob.quest_name) >= 0) {
+            if (bossList.indexOf(this.questName) >= 0) {
                 if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
                     //if boss and found sub quests
                     influence = "100";
@@ -3869,7 +3761,7 @@ var caap = {
             }
 
             if (!influence) {
-                gm.log('no influence found:' + caapGlob.quest_name + ' in ' + divTxt);
+                gm.log('no influence found:' + this.questName + ' in ' + divTxt);
             }
 
             var general = 'none';
@@ -3900,7 +3792,7 @@ var caap = {
             if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
                 if (gm.getValue('GetOrbs', false) && questType == 'boss' && whyQuest != 'Manual') {
                     if (!haveOrb) {
-                        gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                        gm.setObjVal('AutoQuest', 'name', this.questName);
                         pickQuestTF = true;
                     }
                 }
@@ -3909,29 +3801,29 @@ var caap = {
                 case 'Advancement' :
                     if (influence) {
                         if (!gm.getObjVal('AutoQuest', 'name') && questType == 'primary' && this.NumberOnly(influence) < 100) {
-                            gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                            gm.setObjVal('AutoQuest', 'name', this.questName);
                             pickQuestTF = true;
                         }
                     } else {
-                        gm.log('cannot find influence:' + caapGlob.quest_name + ': ' + influence);
+                        gm.log('cannot find influence:' + this.questName + ': ' + influence);
                     }
 
                     break;
                 case 'Max Influence' :
                     if (influence) {
                         if (!gm.getObjVal('AutoQuest', 'name') && this.NumberOnly(influence) < 100) {
-                            gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                            gm.setObjVal('AutoQuest', 'name', this.questName);
                             pickQuestTF = true;
                         }
                     } else {
-                        gm.log('cannot find influence:' + caapGlob.quest_name + ': ' + influence);
+                        gm.log('cannot find influence:' + this.questName + ': ' + influence);
                     }
 
                     break;
                 case 'Max Experience' :
                     rewardRatio = (Math.floor(experience / energy * 100) / 100);
                     if (bestReward < rewardRatio) {
-                        gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                        gm.setObjVal('AutoQuest', 'name', this.questName);
                         pickQuestTF = true;
                     }
 
@@ -3939,7 +3831,7 @@ var caap = {
                 case 'Max Gold' :
                     rewardRatio = (Math.floor(reward / energy * 10) / 10);
                     if (bestReward < rewardRatio) {
-                        gm.setObjVal('AutoQuest', 'name', caapGlob.quest_name);
+                        gm.setObjVal('AutoQuest', 'name', this.questName);
                         pickQuestTF = true;
                     }
 
@@ -3947,11 +3839,11 @@ var caap = {
                 default :
                 }
 
-                if (gm.getObjVal('AutoQuest', 'name') == caapGlob.quest_name) {
+                if (gm.getObjVal('AutoQuest', 'name') == this.questName) {
                     bestReward = rewardRatio;
                     var expRatio = experience / energy;
                     gm.log("CheckResults_quests: Setting AutoQuest");
-                    gm.setValue('AutoQuest', 'name' + caapGlob.ls + caapGlob.quest_name + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
+                    gm.setValue('AutoQuest', 'name' + caapGlob.ls + this.questName + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
                     //gm.log("CheckResults_quests: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
                     this.ShowAutoQuest();
                     autoQuestDivs = {
@@ -4137,14 +4029,14 @@ var caap = {
             return false;
         }
 
-        caapGlob.quest_name = nHtml.StripHtml(firstb.innerHTML.toString()).trim();
-        if (!caapGlob.quest_name) {
+        this.questName = firstb.innerHTML.toString().trim().stripHTML();
+        if (!this.questName) {
             //gm.log('no quest name for this row: ' + div.innerHTML);
             gm.log('no quest name for this row');
             return false;
         }
 
-        return caapGlob.quest_name;
+        return this.questName;
     },
 
     /*------------------------------------------------------------------------------------\
@@ -4191,48 +4083,15 @@ var caap = {
         return false;
     },
 
-    //arrayLabelListeners: [],
-
     AddLabelListener: function (element, type, listener, usecapture) {
         try {
-            //gm.log("Adding Quest Label Listener");
-            /*
-            var x = {
-                element: element,
-                type: type,
-                listener: listener,
-                usecapture: usecapture
-            };
-            */
-
             element.addEventListener(type, this[listener], usecapture);
-            //this.arrayLabelListeners.push(x);
             return true;
         } catch (e) {
             gm.log("ERROR in AddLabelListener: " + e);
             return false;
         }
     },
-
-    /*
-    RemoveLabelListeners: function () {
-        try {
-            if (this.arrayLabelListeners.length) {
-                gm.log("Removing label listeners for LabelQuests");
-            }
-
-            for (var s = 0; s < this.arrayLabelListeners.length; s++) {
-                var EL = this.arrayLabelListeners[s];
-                EL.element.removeEventListener(EL.type, this[EL.listener], EL.usecapture);
-                EL = null;
-            }
-        } catch (e) {
-            gm.log("ERROR in RemoveLabelListeners: " + e);
-        }
-
-        this.arrayLabelListeners = [];
-    },
-    */
 
     LabelListener: function (e) {
         try {
@@ -4312,17 +4171,17 @@ var caap = {
         div.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
             "<br />Exp per energy: " + (Math.floor(experience / energy * 100) / 100) + "<br />";
 
-        if (gm.getObjVal('AutoQuest', 'name') == caapGlob.quest_name) {
+        if (gm.getObjVal('AutoQuest', 'name') == this.questName) {
             var b = document.createElement('b');
             b.innerHTML = "Current auto quest";
             div.appendChild(b);
         } else {
             var setAutoQuest = document.createElement('a');
             setAutoQuest.innerHTML = 'Auto run this quest.';
-            setAutoQuest.quest_name = caapGlob.quest_name;
+            setAutoQuest.quest_name = this.questName;
 
             var quest_nameObj = document.createElement('span');
-            quest_nameObj.innerHTML = caapGlob.quest_name;
+            quest_nameObj.innerHTML = this.questName;
             quest_nameObj.style.display = 'none';
             setAutoQuest.appendChild(quest_nameObj);
 
@@ -4665,8 +4524,8 @@ var caap = {
             }
 
             // Retrieving from Bank
-            bestLandCost = this.GetNumber('BestPropCost', 0);
-            if (this.stats.cash + (this.GetNumber('inStore', 0) - this.GetNumber('minInStore', 0)) >= 10 * bestLandCost && this.stats.cash < 10 * bestLandCost) {
+            bestLandCost = gm.getNumber('BestPropCost', 0);
+            if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= 10 * bestLandCost && this.stats.cash < 10 * bestLandCost) {
                 if (this.PassiveGeneral()) {
                     return true;
                 }
@@ -4799,7 +4658,7 @@ var caap = {
                 gm.log("We Defeated " + userName + "!!");
                 //Test if we should chain this guy
                 gm.setValue("BattleChainId", '');
-                var chainBP = this.GetNumber('ChainBP', 0);
+                var chainBP = gm.getNumber('ChainBP', 0);
                 if (chainBP) {
                     if (bpnum >= chainBP) {
                         gm.setValue("BattleChainId", userId);
@@ -4813,7 +4672,7 @@ var caap = {
                     }
                 }
 
-                var chainGold = this.GetNumber('ChainGold', 0);
+                var chainGold = gm.getNumber('ChainGold', 0);
                 if (chainGold) {
                     if (goldnum >= chainGold) {
                         gm.setValue("BattleChainId", userId);
@@ -4828,8 +4687,8 @@ var caap = {
                 }
 
                 if (gm.getValue("BattleChainId", '')) {
-                    var chainCount = this.GetNumber('ChainCount', 0) + 1;
-                    if (chainCount >= this.GetNumber('MaxChains', 4)) {
+                    var chainCount = gm.getNumber('ChainCount', 0) + 1;
+                    if (chainCount >= gm.getNumber('MaxChains', 4)) {
                         gm.log("Lets give this guy a break.");
                         if (!this.doNotBattle) {
                             this.doNotBattle = this.lastBattleID;
@@ -5130,9 +4989,9 @@ var caap = {
                     if (yourArenaGoal && yourArenaPoints) {
                         yourArenaGoal = yourArenaGoal.toLowerCase();
                         if (this.arenaTable[yourArenaGoal.toLowerCase()] <= yourRank) {
-                            var APLimit = this.GetNumber('APLimit', 0);
+                            var APLimit = gm.getNumber('APLimit', 0);
                             if (!APLimit) {
-                                gm.setValue('APLimit', yourArenaPoints + this.GetNumber('ArenaRankBuffer', 500));
+                                gm.setValue('APLimit', yourArenaPoints + gm.getNumber('ArenaRankBuffer', 500));
                                 gm.log('We need ' + APLimit + ' as a buffer for current rank');
                             } else if (APLimit <= yourArenaPoints) {
                                 this.SetTimer('ArenaRankTimer', 1 * 60 * 60);
@@ -5155,11 +5014,11 @@ var caap = {
             }
 
             // Lets get our Freshmeat user settings
-            var minRank = this.GetNumber("FreshMeatMinRank", 99);
-            var maxLevel = this.GetNumber("FreshMeatMaxLevel", ((invadeOrDuel == 'Invade') ? 1000 : 15));
-            var ARBase = this.GetNumber("FreshMeatARBase", 0.5);
-            var ARMax = this.GetNumber("FreshMeatARMax", 1000);
-            var ARMin = this.GetNumber("FreshMeatARMin", 0);
+            var minRank = gm.getNumber("FreshMeatMinRank", 99);
+            var maxLevel = gm.getNumber("FreshMeatMaxLevel", ((invadeOrDuel == 'Invade') ? 1000 : 15));
+            var ARBase = gm.getNumber("FreshMeatARBase", 0.5);
+            var ARMax = gm.getNumber("FreshMeatARMax", 1000);
+            var ARMin = gm.getNumber("FreshMeatARMin", 0);
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s++) {
@@ -5641,7 +5500,7 @@ var caap = {
                 if (gm.getValue('ArenaHide', 'None') == 'None') {
                     return false;
                 } else {
-                    if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
+                    if ((this.stats.health.num < gm.getNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > gm.getNumber("ArenaMinStamina", 45))) {
                         return false;
                     } else {
                         return gm.getValue('ArenaHide', '');
@@ -5653,7 +5512,7 @@ var caap = {
                 return 'Arena';
             }
 
-            if ((this.stats.health.num < this.GetNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > this.GetNumber("ArenaMinStamina", 45))) {
+            if ((this.stats.health.num < gm.getNumber("ArenaMaxHealth", 20)) || (this.stats.stamina.num > gm.getNumber("ArenaMinStamina", 45))) {
                 return 'Arena';
             }
 
@@ -6329,7 +6188,7 @@ var caap = {
 
         var maxDamage = caap.parseCondition('max', monsterConditions);
         fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
-        var maxToFortify = this.parseCondition('f%', monsterConditions) || this.GetNumber('MaxToFortify', 0);
+        var maxToFortify = this.parseCondition('f%', monsterConditions) || gm.getNumber('MaxToFortify', 0);
         var isTarget = (monster == gm.getValue('targetFromraid', '') ||
                 monster == gm.getValue('targetFrombattle_monster', '') ||
                 monster == gm.getValue('targetFromfortify', ''));
@@ -6342,7 +6201,7 @@ var caap = {
             if (isTarget) {
                 gm.setValue('resetselectMonster', true);
             }
-        } else if ((fortPct) && fortPct < this.GetNumber('MinFortToAttack', 1)) {
+        } else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
             gm.setListObjVal('monsterOl', monster, 'color', 'purple');
             if (isTarget) {
                 gm.setValue('resetselectMonster', true);
@@ -6473,7 +6332,7 @@ var caap = {
                                 }
 
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
-                                var maxToFortify = caap.parseCondition('f%', monsterConditions) || this.GetNumber('MaxToFortify', 0);
+                                var maxToFortify = caap.parseCondition('f%', monsterConditions) || gm.getNumber('MaxToFortify', 0);
                                 monstType = this.getMonstType(monster);
                                 //gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' caap.monsterInfo[monstType] ' + caap.monsterInfo[monstType]+ ' caap.monsterInfo[monstType].fort ' + caap.monsterInfo[monstType].fort);
                                 if (!firstFortUnderMax && monsterFort < maxToFortify &&
@@ -7055,7 +6914,7 @@ var caap = {
             18  -   -   -   -   -   -   -   -   -
 
     \-------------------------------------------------------------------------------------*/
-        var riskConstant = this.GetNumber('HidingRiskConstant', 1.7);
+        var riskConstant = gm.getNumber('HidingRiskConstant', 1.7);
     /*-------------------------------------------------------------------------------------\
     The formula for determining if we should hide goes something like this:
 
@@ -7075,6 +6934,8 @@ var caap = {
     /////////////////////////////////////////////////////////////////////
     //                          MONSTER FINDER
     /////////////////////////////////////////////////////////////////////
+
+    mf_attackButton: null,
 
     monstArgs: {
         'doaid': {
@@ -7371,21 +7232,21 @@ var caap = {
         }
 
         gm.log("Checking Monster: " + gm.getValue("navLink"));
-        caapGlob.attackButton = this.CheckForImage('attack_monster_button.jpg');
-        if (!caapGlob.attackButton) {
-            caapGlob.attackButton = this.CheckForImage('seamonster_power.gif');
-            if (!caapGlob.attackButton) {
-                caapGlob.attackButton = this.CheckForImage('attack_monster_button2.jpg');
-                if (!caapGlob.attackButton) {
-                    caapGlob.attackButton = this.CheckForImage('seamonster_power.gif');
-                    if (!caapGlob.attackButton) {
-                        caapGlob.attackButton = this.CheckForImage('attack_monster_button.jpg');
-                        if (!caapGlob.attackButton) {
-                            caapGlob.attackButton = this.CheckForImage('event_attack1.gif');
-                            if (!caapGlob.attackButton) {
-                                caapGlob.attackButton = this.CheckForImage('event_attack2.gif');
-                                if (!caapGlob.attackButton) {
-                                    caapGlob.attackButton = this.CheckForImage('raid_attack_button.gif');
+        this.mf_attackButton = this.CheckForImage('attack_monster_button.jpg');
+        if (!this.mf_attackButton) {
+            this.mf_attackButton = this.CheckForImage('seamonster_power.gif');
+            if (!this.mf_attackButton) {
+                this.mf_attackButton = this.CheckForImage('attack_monster_button2.jpg');
+                if (!this.mf_attackButton) {
+                    this.mf_attackButton = this.CheckForImage('seamonster_power.gif');
+                    if (!this.mf_attackButton) {
+                        this.mf_attackButton = this.CheckForImage('attack_monster_button.jpg');
+                        if (!this.mf_attackButton) {
+                            this.mf_attackButton = this.CheckForImage('event_attack1.gif');
+                            if (!this.mf_attackButton) {
+                                this.mf_attackButton = this.CheckForImage('event_attack2.gif');
+                                if (!this.mf_attackButton) {
+                                    this.mf_attackButton = this.CheckForImage('raid_attack_button.gif');
                                 }
                             }
                         }
@@ -7394,12 +7255,12 @@ var caap = {
             }
         }
 
-        if (caapGlob.attackButton) {
+        if (this.mf_attackButton) {
             var dam = this.CheckResults_viewFight();
             gm.log("Found Attack Button.  Dam: " + dam);
             if (!dam) {
                 gm.log("No Damage to monster, Attacking");
-                caap.Click(caapGlob.attackButton);
+                caap.Click(this.mf_attackButton);
                 window.setTimeout(function () {
                     gm.log("Hand off to Monsters section");
                     gm.setValue("urlixc", gm.getValue("urlixc", "~") + "~" + gm.getValue("navLink").replace("http://apps.facebook.com/castle_age", ""));
@@ -7458,7 +7319,7 @@ var caap = {
         }
 
         var webSlice = this.CheckForImage(imageTest);
-        if (webSlice && caapGlob.attackButton) {
+        if (webSlice && this.mf_attackButton) {
             // Get name and type of monster
             var monsterName = nHtml.GetText(webSlice);
             monsterName = monsterName.substring(0, monsterName.indexOf('You have (')).trim();
@@ -7872,7 +7733,7 @@ var caap = {
             }
 
             gm.log("Energy Potions: " + energyPotions);
-            if (energyPotions >= this.GetNumber("energyPotionsSpendOver", 40)) {
+            if (energyPotions >= gm.getNumber("energyPotionsSpendOver", 40)) {
                 gm.setValue("Consume_Energy", true);
                 gm.log("Energy potions ready to consume");
             }
@@ -7884,23 +7745,23 @@ var caap = {
             }
 
             gm.log("Stamina Potions: " + staminaPotions);
-            if (staminaPotions >= this.GetNumber("staminaPotionsSpendOver", 40)) {
+            if (staminaPotions >= gm.getNumber("staminaPotionsSpendOver", 40)) {
                 gm.setValue("Consume_Stamina", true);
                 gm.log("Stamina potions ready to consume");
             }
 
             gm.log("Checking experience to next level");
             //gm.log("Experience to next level: " + this.stats.exp.dif);
-            //gm.log("Potions experience set: " + this.GetNumber("potionsExperience", 20));
+            //gm.log("Potions experience set: " + gm.getNumber("potionsExperience", 20));
             if ((gm.getValue("Consume_Energy", false) || gm.getValue("Consume_Stamina", false)) &&
-                this.stats.exp.dif <= this.GetNumber("potionsExperience", 20)) {
+                this.stats.exp.dif <= gm.getNumber("potionsExperience", 20)) {
                 gm.log("Not spending potions, experience to next level condition. Delaying 10 minutes");
                 this.JustDidIt('AutoPotionTimerDelay');
                 return true;
             }
 
             if (this.stats.energy.num < this.stats.energy.max - 10 &&
-                energyPotions > this.GetNumber("energyPotionsKeepUnder", 35) &&
+                energyPotions > gm.getNumber("energyPotionsKeepUnder", 35) &&
                 gm.getValue("Consume_Energy", false)) {
                 gm.log("Spending energy potions");
                 var energySlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_1");
@@ -7925,7 +7786,7 @@ var caap = {
             }
 
             if (this.stats.stamina.num < this.stats.stamina.max - 10 &&
-                staminaPotions > this.GetNumber("staminaPotionsKeepUnder", 35) &&
+                staminaPotions > gm.getNumber("staminaPotionsKeepUnder", 35) &&
                 gm.getValue("Consume_Stamina", false)) {
                 gm.log("Spending stamina potions");
                 var staminaSlice = nHtml.FindByAttr(document.body, "form", "id", "app46755028429_consume_2");
@@ -8051,8 +7912,8 @@ var caap = {
     },
 
     Bank: function () {
-        var maxInCash = this.GetNumber('MaxInCash', -1);
-        var minInCash = this.GetNumber('MinInCash', 0);
+        var maxInCash = gm.getNumber('MaxInCash', -1);
+        var minInCash = gm.getNumber('MinInCash', 0);
         if (!maxInCash || maxInCash < 0 || this.stats.cash <= minInCash || this.stats.cash < maxInCash || this.stats.cash < 10) {
             return false;
         }
@@ -8104,8 +7965,8 @@ var caap = {
             return this.NavigateTo('keep');
         }
 
-        var minInStore = this.GetNumber('minInStore', 0);
-        if (!(minInStore || minInStore <= this.GetNumber('inStore', 0) - num)) {
+        var minInStore = gm.getNumber('minInStore', 0);
+        if (!(minInStore || minInStore <= gm.getNumber('inStore', 0) - num)) {
             return false;
         }
 
@@ -8130,12 +7991,12 @@ var caap = {
 
     Heal: function () {
         this.SetDivContent('heal_mess', '');
-        var minToHeal = this.GetNumber('MinToHeal', 0);
+        var minToHeal = gm.getNumber('MinToHeal', 0);
         if (!minToHeal) {
             return false;
         }
 
-        var minStamToHeal = this.GetNumber('MinStamToHeal', 0);
+        var minStamToHeal = gm.getNumber('MinStamToHeal', 0);
         if (minStamToHeal === "") {
             minStamToHeal = 0;
         }
@@ -9091,9 +8952,9 @@ var caap = {
     Next we get our Recon Player settings for lowest rank, highest level, and army ratio
     base multiplier.
     \-------------------------------------------------------------------------------------*/
-            var reconRank = this.GetNumber('ReconPlayerRank', 99);
-            var reconLevel = this.GetNumber('ReconPlayerLevel', 999);
-            var reconARBase = this.GetNumber('ReconPlayerARBase', 999);
+            var reconRank = gm.getNumber('ReconPlayerRank', 99);
+            var reconLevel = gm.getNumber('ReconPlayerLevel', 999);
+            var reconARBase = gm.getNumber('ReconPlayerARBase', 999);
             var found = 0;
     /*-------------------------------------------------------------------------------------\
     Now we step through our snapshot data which represents data within each 'tr' for each
@@ -9578,7 +9439,7 @@ var caap = {
     },
 
     ReloadOccasionally: function () {
-        var reloadMin = caap.GetNumber('ReloadFrequency', 8);
+        var reloadMin = gm.getNumber('ReloadFrequency', 8);
         if (!reloadMin || reloadMin < 8) {
             reloadMin = 8;
         }
@@ -9654,8 +9515,8 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
         for (var a = 1; a <= 5; a++) {
             var attribute = gm.getValue("Attribute" + a, '');
             if (attribute !== '') {
-                gm.setValue("Attribute" + a, caapGlob.ucfirst(attribute));
-                gm.log("Converted Attribute" + a + ": " + attribute + "   to: " + caapGlob.ucfirst(attribute));
+                gm.setValue("Attribute" + a, attribute.ucFirst());
+                gm.log("Converted Attribute" + a + ": " + attribute + "   to: " + attribute.ucFirst());
             }
         }
     }
@@ -9706,6 +9567,12 @@ caap.ReloadOccasionally();
 /////////////////////////////////////////////////////////////////////
 
 var style = {
+    colorDiv: null,
+
+    hueBarArrows: null,
+
+    gradientBoxCircle: null,
+
     CreateMenu: function () {
         var newDiv = document.createElement("div");
         newDiv.setAttribute("id", "ColorSelectorDiv");
@@ -9792,14 +9659,14 @@ var style = {
         var state = gm.getValue('state', 'Start');
         var AddChangers = document.getElementById('ColorMenuAccept');
         AddChangers.addEventListener('click', function (e) {
-            caapGlob.ColorDiv.style.display = 'none';
+            style.colorDiv.style.display = 'none';
             style.ChangeBackGround();
             gm.deleteValue('state');
         }, false);
 
         AddChangers = document.getElementById('ColorMenuCancel');
         AddChangers.addEventListener('click', function (e) {
-            caapGlob.ColorDiv.style.display = 'none';
+            style.colorDiv.style.display = 'none';
             style.CancelChangeBackGround();
             gm.deleteValue('state');
         }, false);
@@ -9871,9 +9738,9 @@ var style = {
         //gm.log("oldColor:"+oldColor)
         //gm.log("state: "+state)
         gm.setValue('state', state);
-        caapGlob.ColorDiv = document.getElementById('ColorSelectorDiv');
+        style.colorDiv = document.getElementById('ColorSelectorDiv');
         document.getElementById('SelectColorType').innerHTML = state;
-        caapGlob.ColorDiv.style.display = 'block';
+        style.colorDiv.style.display = 'block';
     },
 
     ChangeBackGround: function () {
@@ -10471,50 +10338,52 @@ var style = {
         style.circleMoved(pos);
     },
 
+    currentColor: null,
+
     arrowsMoved: function (pos, element) {
         pos = style.correctOffset(pos, style.arrowsOffset, false);
-        caapGlob.currentColor.SetHSV((256 - pos.Y) * 359.99 / 255, caapGlob.currentColor.Saturation(), caapGlob.currentColor.Value());
+        style.currentColor.SetHSV((256 - pos.Y) * 359.99 / 255, style.currentColor.Saturation(), style.currentColor.Value());
         style.colorChanged("arrows");
     },
 
     circleMoved: function (pos, element) {
         pos = style.correctOffset(pos, style.circleOffset, false);
-        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), 1 - pos.Y / 255.0, pos.X / 255.0);
+        style.currentColor.SetHSV(style.currentColor.Hue(), 1 - pos.Y / 255.0, pos.X / 255.0);
         style.colorChanged("circle");
     },
 
     colorChanged: function (source) {
-        document.getElementById("hexBox").value = caapGlob.currentColor.HexString();
-        document.getElementById("redBox").value = caapGlob.currentColor.Red();
-        document.getElementById("greenBox").value = caapGlob.currentColor.Green();
-        document.getElementById("blueBox").value = caapGlob.currentColor.Blue();
-        document.getElementById("hueBox").value = Math.round(caapGlob.currentColor.Hue());
-        var str = (caapGlob.currentColor.Saturation() * 100).toString();
+        document.getElementById("hexBox").value = style.currentColor.HexString();
+        document.getElementById("redBox").value = style.currentColor.Red();
+        document.getElementById("greenBox").value = style.currentColor.Green();
+        document.getElementById("blueBox").value = style.currentColor.Blue();
+        document.getElementById("hueBox").value = Math.round(style.currentColor.Hue());
+        var str = (style.currentColor.Saturation() * 100).toString();
         if (str.length > 4) {
             str = str.substr(0, 4);
         }
 
         document.getElementById("saturationBox").value = str;
-        str = (caapGlob.currentColor.Value() * 100).toString();
+        str = (style.currentColor.Value() * 100).toString();
         if (str.length > 4) {
             str = str.substr(0, 4);
         }
 
         document.getElementById("valueBox").value = str;
         if (source == "arrows" || source == "box") {
-            document.getElementById("gradientBox").style.backgroundColor = style.Colors.ColorFromHSV(caapGlob.currentColor.Hue(), 1, 1).HexString();
+            document.getElementById("gradientBox").style.backgroundColor = style.Colors.ColorFromHSV(style.currentColor.Hue(), 1, 1).HexString();
         }
 
         if (source == "box") {
             var el = document.getElementById("arrows");
-            el.style.top = (256 - caapGlob.currentColor.Hue() * 255 / 359.99 - style.arrowsOffset.Y) + 'px';
-            var pos = new style.Position(caapGlob.currentColor.Value() * 255, (1 - caapGlob.currentColor.Saturation()) * 255);
+            el.style.top = (256 - style.currentColor.Hue() * 255 / 359.99 - style.arrowsOffset.Y) + 'px';
+            var pos = new style.Position(style.currentColor.Value() * 255, (1 - style.currentColor.Saturation()) * 255);
             pos = style.correctOffset(pos, style.circleOffset, true);
             pos.Apply("circle");
             style.endMovement();
         }
 
-        document.getElementById("quickColor").style.backgroundColor = caapGlob.currentColor.HexString();
+        document.getElementById("quickColor").style.backgroundColor = style.currentColor.HexString();
     },
 
     endMovement: function () {
@@ -10522,41 +10391,41 @@ var style = {
             style.ChangeBackGround(gm.getValue('state', 'Start'));
         }
 
-        document.getElementById("staticColor").style.backgroundColor = caapGlob.currentColor.HexString();
+        document.getElementById("staticColor").style.backgroundColor = style.currentColor.HexString();
     },
 
     hexBoxChanged: function (e) {
-        caapGlob.currentColor.SetHexString(document.getElementById("hexBox").value);
+        style.currentColor.SetHexString(document.getElementById("hexBox").value);
         style.colorChanged("box");
     },
 
     redBoxChanged: function (e) {
-        caapGlob.currentColor.SetRGB(parseInt(document.getElementById("redBox").value, 10), caapGlob.currentColor.Green(), caapGlob.currentColor.Blue());
+        style.currentColor.SetRGB(parseInt(document.getElementById("redBox").value, 10), style.currentColor.Green(), style.currentColor.Blue());
         style.colorChanged("box");
     },
 
     greenBoxChanged: function (e) {
-        caapGlob.currentColor.SetRGB(caapGlob.currentColor.Red(), parseInt(document.getElementById("greenBox").value, 10), caapGlob.currentColor.Blue());
+        style.currentColor.SetRGB(style.currentColor.Red(), parseInt(document.getElementById("greenBox").value, 10), style.currentColor.Blue());
         style.colorChanged("box");
     },
 
     blueBoxChanged: function (e) {
-        caapGlob.currentColor.SetRGB(caapGlob.currentColor.Red(), caapGlob.currentColor.Green(), parseInt(document.getElementById("blueBox").value, 10));
+        style.currentColor.SetRGB(style.currentColor.Red(), style.currentColor.Green(), parseInt(document.getElementById("blueBox").value, 10));
         style.colorChanged("box");
     },
 
     hueBoxChanged: function (e) {
-        caapGlob.currentColor.SetHSV(parseFloat(document.getElementById("hueBox").value), caapGlob.currentColor.Saturation(), caapGlob.currentColor.Value());
+        style.currentColor.SetHSV(parseFloat(document.getElementById("hueBox").value), style.currentColor.Saturation(), style.currentColor.Value());
         style.colorChanged("box");
     },
 
     saturationBoxChanged: function (e) {
-        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), parseFloat(document.getElementById("saturationBox").value) / 100.0, caapGlob.currentColor.Value());
+        style.currentColor.SetHSV(style.currentColor.Hue(), parseFloat(document.getElementById("saturationBox").value) / 100.0, style.currentColor.Value());
         style.colorChanged("box");
     },
 
     valueBoxChanged: function (e) {
-        caapGlob.currentColor.SetHSV(caapGlob.currentColor.Hue(), caapGlob.currentColor.Saturation(), parseFloat(document.getElementById("valueBox").value) / 100.0);
+        style.currentColor.SetHSV(style.currentColor.Hue(), style.currentColor.Saturation(), parseFloat(document.getElementById("valueBox").value) / 100.0);
         style.colorChanged("box");
     },
 
@@ -10588,11 +10457,11 @@ var style = {
 };
 
 style.CreateMenu();
-caapGlob.currentColor = style.Colors.ColorFromRGB(64, 128, 128);
-caapGlob.arrows = new style.dragObject("arrows", "hueBarDiv",
+style.currentColor = style.Colors.ColorFromRGB(64, 128, 128);
+style.hueBarArrows = new style.dragObject("arrows", "hueBarDiv",
     style.arrowsLowBounds, style.arrowsUpBounds, style.arrowsDown,
     style.arrowsMoved, style.endMovement);
-caapGlob.circle = new style.dragObject("circle", "gradientBox",
+style.gradientBoxCircle = new style.dragObject("circle", "gradientBox",
     style.circleLowBounds, style.circleUpBounds, style.circleDown,
     style.circleMoved, style.endMovement);
 
