@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.3
+// @version        140.22.4
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.3";
+caapGlob.thisVersion = "140.22.4";
 caapGlob.gameName = 'castle_age';
 caapGlob.SUC_script_num = 57917;
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
@@ -823,10 +823,6 @@ var caap = {
     },
 
     ClickAjax: function (link, loadWaitTime) {
-        if (gm.getValue('clickUrl', '').indexOf(link) < 0) {
-            gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-        }
-
         if (!link) {
             gm.log('ERROR: No link passed to Click Ajax');
             return;
@@ -837,7 +833,6 @@ var caap = {
             caap.waitingForDomLoad = false;
         }
 
-        gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
         this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
     },
 
