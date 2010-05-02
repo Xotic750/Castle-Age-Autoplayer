@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.8
+// @version        140.22.9
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.8";
+caapGlob.thisVersion = "140.22.9";
 caapGlob.gameName = 'castle_age';
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -904,13 +904,17 @@ var caap = {
     },
 
     GetCurrentGeneral: function () {
-        var webSlice = nHtml.FindByAttrContains(document.body, "div", "class", 'general_name_div3');
-        if (!webSlice) {
-            gm.log("Couldn't find current general div");
-            return false;
-        }
+        try {
+            var webSlice = nHtml.FindByAttrContains(document.body, "div", "class", 'general_name_div3');
+            if (!webSlice) {
+                throw "Couldn't find current general div";
+            }
 
-        return webSlice.innerHTML.trim();
+            return webSlice.innerHTML.trim();
+        } catch (err) {
+            gm.log("ERROR in GetCurrentGeneral: " + err);
+            return 'Use Current';
+        }
     },
 
     CheckResults_generals: function () {
@@ -2424,13 +2428,9 @@ var caap = {
 
     addExpDisplay: function () {
         try {
-            var exp = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app46755028429_st_2_5');
+            var exp = $("#app46755028429_st_2_5 strong").text();
             if (!exp) {
-                throw 'Unable to find div app46755028429_st_2_5';
-            }
-
-            if (/\(/.test($("#app46755028429_st_2_5 strong").text())) {
-                return false;
+                throw 'Unable to find text';
             }
 
             this.stats.exp = this.GetStatusNumbers(exp);
@@ -2823,6 +2823,28 @@ var caap = {
         }
     },
 
+    whatClickedURLListener: function (event) {
+        var obj = event.target;
+        while (obj && !obj.href) {
+            obj = obj.parentNode;
+        }
+
+        if (obj && obj.href) {
+            gm.setValue('clickUrl', obj.href);
+        }
+
+        //gm.log('globalContainer: ' + obj.href);
+    },
+
+    windowResizeListener: function (e) {
+        if (window.location.href.indexOf('castle_age')) {
+            var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', false);
+            $("#caap_div").css('left', caap_divXY.x + 'px');
+            var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', false);
+            $("#caap_top").css('left', caap_topXY.x + 'px');
+        }
+    },
+
     AddListeners: function () {
         try {
             gm.log("Adding listeners for caap_div");
@@ -2870,15 +2892,26 @@ var caap = {
                 throw 'Global Container not found';
             }
 
+            // Fires when CAAP navigates to new location
+            $('#app46755028429_globalContainer').find('a').bind('click', this.whatClickedURLListener);
+
             $('#app46755028429_globalContainer').bind('DOMNodeInserted', function (event) {
                 // Uncomment this to see the id of domNodes that are inserted
                 /*
                 if (event.target.id) {
-                    alert(event.target.id);
+                    caap.SetDivContent('debug2_mess', event.target.id.replace('app46755028429_', ''));
+                    //alert(event.target.id);
                 }
                 */
 
                 var $target = $(event.target);
+
+                // Reposition the dashboard
+                if ($target.is("#app46755028429_main_bn_container")) {
+                    var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', false);
+                    $("#caap_top").css('left', caap_topXY.x + 'px');
+                }
+
                 if ($target.is("#app46755028429_app_body") ||
                     $target.is("#app46755028429_index") ||
                     $target.is("#app46755028429_keep") ||
@@ -2907,36 +2940,28 @@ var caap = {
                     $target.is("#app46755028429_army") ||
                     $target.is("#app46755028429_army_news_feed") ||
                     $target.is("#app46755028429_army_reqs")) {
+
                     caap.waitingForDomLoad = false;
+
+                    // Update experience and display
+                    caap.addExpDisplay();
+
+                    gm.log("Refreshing DOM Listeners");
+                    $('#app46755028429_globalContainer').find('a').unbind('click', caap.whatClickedURLListener);
+                    $('#app46755028429_globalContainer').find('a').bind('click', caap.whatClickedURLListener);
+
+
                     caap.node_trigger = window.setTimeout(function () {
                         caap.node_trigger = null;
                         caap.CheckResults();
                     }, 100);
+
                     //nHtml.setTimeout(caap.CheckResults, 0);
                 }
             });
 
-            $('#app46755028429_globalContainer').click(function (event) {
-                var obj = event.target;
-                while (obj && !obj.href) {
-                    obj = obj.parentNode;
-                }
-
-                if (obj && obj.href) {
-                    gm.setValue('clickUrl', obj.href);
-                }
-
-                //gm.log('globalContainer: ' + caap.clickUrl);
-            });
-
-            $(window).resize(function (event) {
-                if (window.location.href.indexOf('castle_age')) {
-                    var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', false);
-                    $("#caap_div").css('left', caap_divXY.x + 'px');
-                    var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', false);
-                    $("#caap_top").css('left', caap_topXY.x + 'px');
-                }
-            });
+            $(window).unbind('resize', this.windowResizeListener);
+            $(window).bind('resize', this.windowResizeListener);
 
             //gm.log("Listeners added for caap_div");
             return true;
@@ -2951,26 +2976,47 @@ var caap = {
     // Functions that records all of base game stats, energy, stamina, etc.
     /////////////////////////////////////////////////////////////////////
 
+    // Can now accept a 'node' or text in the formay '123/234'
     GetStatusNumbers: function (node) {
         try {
             if (!node) {
                 throw 'No "node" supplied';
             }
 
-            var txt = nHtml.GetText(node);
-            if (!txt) {
-                throw 'No text found';
-            }
+            var txtArr = null;
+            var num = null;
+            var max = null;
+            var dif = null;
 
-            var staminam = this.statusRe.exec(txt);
-            if (!staminam) {
-                throw 'Cannot find status:' + txt;
+            if (typeof node != 'string') {
+                var txt = nHtml.GetText(node);
+                if (!txt) {
+                    throw 'No text found';
+                }
+
+                txtArr = this.statusRe.exec(txt);
+                if (!txtArr) {
+                    throw 'Cannot find status:' + txt;
+                }
+
+                num = parseInt(txtArr[1], 10);
+                max = parseInt(txtArr[2], 10);
+                dif = parseInt(txtArr[2], 10) - parseInt(txtArr[1], 10);
+            } else {
+                txtArr = node.split('/');
+                if (txtArr.length !== 2) {
+                    throw 'String did not split into 2 parts';
+                }
+
+                num = parseInt(txtArr[0], 10);
+                max = parseInt(txtArr[1], 10);
+                dif = parseInt(txtArr[1], 10) - parseInt(txtArr[0], 10);
             }
 
             return {
-                'num': parseInt(staminam[1], 10),
-                'max': parseInt(staminam[2], 10),
-                'dif': parseInt(staminam[2], 10) - parseInt(staminam[1], 10)
+                'num': num,
+                'max': max,
+                'dif': dif
             };
         } catch (e) {
             gm.log("ERROR in GetStatusNumbers: " + e);
@@ -3236,7 +3282,7 @@ var caap = {
 
         caap.performanceTimer('Start CheckResults');
         caap.JustDidIt('CheckResultsTimer');
-        caap.addExpDisplay();
+        //caap.addExpDisplay();
         gm.setValue('page', '');
         var pageUrl = gm.getValue('clickUrl');
         //gm.log("Page url: " + pageUrl);
@@ -8375,6 +8421,7 @@ var caap = {
             var givenGiftType = '';
             var giftPic = '';
             var giftChoice = gm.getValue('GiftChoice');
+            var giftList = null;
             //if (caapGlob.is_chrome) giftChoice = 'Random Gift';
             switch (giftChoice) {
             case 'Random Gift':
@@ -9547,6 +9594,7 @@ $(function () {
         }
 
         nHtml.setTimeout(function () {
+            caap.addExpDisplay();
             caap.SetControls();
             caap.AddListeners();
             caap.CheckResults();
