@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.7
+// @version        140.22.8
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.7";
+caapGlob.thisVersion = "140.22.8";
 caapGlob.gameName = 'castle_age';
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -8400,18 +8400,15 @@ var caap = {
                 }
                 break;
             case 'Same Gift As Received':
-                if (giverList[0].indexOf('Unknown Gift') >= 0) {
-                    givenGiftType = gm.getList('GiftList').shift();
-                } else {
-                    givenGiftType = giverList[0].split(caapGlob.vs)[2];
-                }
+				givenGiftType = giverList[0].split(caapGlob.vs)[2];
+				giftList = gm.getList('GiftList');
                 gm.log('Looking for same gift as ' + givenGiftType);
-                giftPic = giftNamePic[givenGiftType];
-                if (!giftPic) {
-                    gm.log('No gift type match. GiverList: ' + giverList);
-                    return false;
+                if (giftList.indexOf(givenGiftType) < 0) {
+                    gm.log('No gift type match. Using first gift as default.');
+					givenGiftType = gm.getList('GiftList').shift();
                 }
-                break;
+				giftPic = giftNamePic[givenGiftType];
+				break;
             default:
                 giftPic = giftNamePic[gm.getValue('GiftChoice')];
                 break;
