@@ -2,7 +2,7 @@
         GM Function support for Chrome for the use with
         the Castle Age Autoplayer script.
 
-        Version 1.0.4.1
+        Version 1.0.4.2
 */
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
@@ -116,7 +116,19 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
             return null;
         } catch (error) {
             console.log("ERROR in GM_getValue: " + error);
-            return undefined;
+            GM_deleteValue(name);
+            console.log("Deleted corrupt key: " + name);
+            switch (typeof defaultValue) {
+            case 'boolean':
+                return defaultValue === true;
+            case 'number':
+                return Number(defaultValue);
+            case 'string':
+                return defaultValue;
+            default:
+            }
+
+            return null;
         }
     };
 
