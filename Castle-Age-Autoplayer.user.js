@@ -5829,7 +5829,7 @@ var caap = {
 
     parseCondition: function (type, conditions) {
         if (!conditions || conditions.toLowerCase().indexOf(':' + type) < 0) {
-            return 0;
+            return false;
         }
 
         var value = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(/:.+/, '');
@@ -6225,16 +6225,13 @@ var caap = {
         }
 
         boss = caap.monsterInfo[monstType];
-        var achLevel = null;
-        if (boss) {
-            achLevel = caap.parseCondition('ach', monsterConditions) || boss.ach;
-        } else {
-            achLevel = caap.parseCondition('ach', monsterConditions);
+        var achLevel = caap.parseCondition('ach', monsterConditions);
+        if (boss && achLevel === false) {
+            achLevel = boss.ach;
         }
-
         var maxDamage = caap.parseCondition('max', monsterConditions);
         fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
-        var maxToFortify = this.parseCondition('f%', monsterConditions) || gm.getNumber('MaxToFortify', 0);
+        var maxToFortify = (caap.parseCondition('f%', monsterConditions) !== false) ? caap.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
         var isTarget = (monster == gm.getValue('targetFromraid', '') ||
                 monster == gm.getValue('targetFrombattle_monster', '') ||
                 monster == gm.getValue('targetFromfortify', ''));
@@ -6378,7 +6375,7 @@ var caap = {
                                 }
 
                                 var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
-                                var maxToFortify = caap.parseCondition('f%', monsterConditions) || gm.getNumber('MaxToFortify', 0);
+                                var maxToFortify = (caap.parseCondition('f%', monsterConditions)  !== false) ? caap.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
                                 monstType = this.getMonstType(monster);
                                 //gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' caap.monsterInfo[monstType] ' + caap.monsterInfo[monstType]+ ' caap.monsterInfo[monstType].fort ' + caap.monsterInfo[monstType].fort);
                                 if (!firstFortUnderMax && monsterFort < maxToFortify &&
