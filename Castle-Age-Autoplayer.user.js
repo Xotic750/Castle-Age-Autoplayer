@@ -3,7 +3,8 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.22.12
-// @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
+// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-1.4.2.min.js
+// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
