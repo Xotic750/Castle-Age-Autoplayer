@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.9
+// @version        140.22.10
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.9";
+caapGlob.thisVersion = "140.22.10";
 caapGlob.gameName = 'castle_age';
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -152,14 +152,6 @@ caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
 ///////////////////////////
 
 var style = {};
-
-if (caapGlob.is_chrome) {
-    if (caapGlob.thisVersion <= '140.21.9') {
-        ConvertGMtoJSON();
-    }
-
-    CM_Listener();
-}
 
 /////////////////////////////////////////////////////////////////////
 //                          gm OBJECT
@@ -395,6 +387,36 @@ var gm = {
         }
     }
 };
+
+/////////////////////////////////////////////////////////////////////
+//                         Chrome Startup
+/////////////////////////////////////////////////////////////////////
+
+if (caapGlob.is_chrome) {
+    try {
+        var lastVersion = localStorage.getItem(caapGlob.gameName + '__LastVersion', 0);
+        var shouldTryConvert = false;
+        if (lastVersion) {
+            if(lastVersion.substr(0, 1) == 's') {
+                shouldTryConvert = true;
+            }
+        }
+
+        if (caapGlob.thisVersion <= '140.21.9' || shouldTryConvert) {
+            ConvertGMtoJSON();
+        }
+    } catch (e) {
+        gm.log("Error converting DB: " + e);
+    }
+}
+
+if (caapGlob.is_chrome) {
+    try {
+        CM_Listener();
+    } catch (e) {
+        gm.log("Error loading CM_Listener" + e);
+    }
+}
 
 /////////////////////////////////////////////////////////////////////
 //                          GitHub updater
@@ -1588,7 +1610,7 @@ var caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Bank Immediately", 'BankImmed', false, '', bankImmedInstructions);
             htmlCode += this.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, '', autobuyInstructions);
-            htmlCode += this.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', true, '', autosellInstructions) + '</table>';
+            htmlCode += this.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, '', autosellInstructions) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Keep In Bank</td><td style='text-align: right'>$" + this.MakeNumberForm('minInStore', bankInstructions0, 100000, "type='text' size='12' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -2430,7 +2452,11 @@ var caap = {
         try {
             var exp = $("#app46755028429_st_2_5 strong").text();
             if (!exp) {
-                throw 'Unable to find text';
+                throw 'Unable to get text';
+            }
+
+            if (/\(/.test(exp)) {
+                return false;
             }
 
             this.stats.exp = this.GetStatusNumbers(exp);
@@ -4345,7 +4371,7 @@ var caap = {
 
     bestLand: {
         land: '',
-        roi: ''
+        roi: 0
     },
 
     CheckResults_land: function () {
@@ -4511,8 +4537,8 @@ var caap = {
             //gm.log("Clicking buy button:" + button);
             gm.log("Buying Land: " + land.name);
             this.Click(button, 13000);
-            gm.setValue('BestLandCost', '');
-            this.bestLand.roi = '';
+            gm.deleteValue('BestLandCost');
+            this.bestLand.roi = 0;
             return true;
         }
 
@@ -4541,10 +4567,9 @@ var caap = {
         }
         */
 
-        var autoBuyLand = gm.getValue('autoBuyLand', 0);
-        if (autoBuyLand) {
+        if (gm.getValue('autoBuyLand', false)) {
             // Do we have lands above our max to sell?
-            if (this.sellLand && gm.getValue('SellLands', true)) {
+            if (this.sellLand && gm.getValue('SellLands', false)) {
                 this.SellLand(this.sellLand, this.sellLand.selection);
                 return true;
             }
@@ -4562,7 +4587,8 @@ var caap = {
                 return false;
             }
 
-            if (!gm.getValue('inStore', '')) {
+            var inStore = gm.getNumber('inStore', -1);
+            if (!inStore || inStore < 0) {
                 gm.log("Going to keep to get Stored Value");
                 if (this.NavigateTo('keep')) {
                     return true;
@@ -4570,8 +4596,7 @@ var caap = {
             }
 
             // Retrieving from Bank
-            bestLandCost = gm.getNumber('BestPropCost', 0);
-            if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= 10 * bestLandCost && this.stats.cash < 10 * bestLandCost) {
+            if (this.stats.cash + (inStore - gm.getNumber('minInStore', 0)) >= 10 * bestLandCost && this.stats.cash < 10 * bestLandCost) {
                 if (this.PassiveGeneral()) {
                     return true;
                 }
@@ -4588,8 +4613,8 @@ var caap = {
 
                 this.NavigateTo('soldiers,land');
                 if (this.CheckForImage('tab_land_on.gif')) {
-                    gm.log("Buying land: " + caap.bestLand.name);
-                    if (this.BuyLand(caap.bestLand.land)) {
+                    //gm.log("Buying land: " + this.bestLand.land.name);
+                    if (this.BuyLand(this.bestLand.land)) {
                         return true;
                     }
                 } else {
@@ -5912,7 +5937,6 @@ var caap = {
                 gm.setListObjVal('monsterOl', monster, 'color', 'grey');
                 break;
             default :
-                break;
             }
 
             var mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : '');
@@ -6042,7 +6066,7 @@ var caap = {
         var boss = '';
         var group_name = '';
         var attacker = '';
-        var phase = '';
+        //var phase = '';
         var currentPhase = 0;
         var miss = '';
         var fortPct = null;
