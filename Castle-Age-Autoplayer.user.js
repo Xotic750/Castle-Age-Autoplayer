@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.11
+// @version        140.22.12
 // @require        http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -26,7 +26,7 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.11";
+caapGlob.thisVersion = "140.22.12";
 caapGlob.gameName = 'castle_age';
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -753,13 +753,13 @@ var Move = {
             switch (Move.me.id) {
             case 'caap_div' :
                 gm.setValue('caap_div_menuTop', (Move.me.style.top).replace(/px/, ''));
-                gm.setValue('caap_div_menuLeft', (Move.me.style.left).replace(/px/, '') - $('.UIStandardFrame_Content').offset().left);
+                gm.setValue('caap_div_menuLeft', (Move.me.style.left).replace(/px/, '') - $(caap.controlXY.selector).offset().left);
                 gm.setValue('caap_div_zIndex', '2');
                 gm.setValue('caap_top_zIndex', '1');
                 break;
             case 'caap_top' :
                 gm.setValue('caap_top_menuTop', (Move.me.style.top).replace(/px/, ''));
-                gm.setValue('caap_top_menuLeft', (Move.me.style.left).replace(/px/, '') - $('#app46755028429_main_bn_container').offset().left);
+                gm.setValue('caap_top_menuLeft', (Move.me.style.left).replace(/px/, '') - $(caap.dashboardXY.selector).offset().left);
                 gm.setValue('caap_div_zIndex', '1');
                 gm.setValue('caap_top_zIndex', '2');
                 break;
@@ -1523,22 +1523,26 @@ var caap = {
         'control'
     ],
 
-    GetControlXY: function (selector, reset) {
+    controlXY: {
+        selector: '.UIStandardFrame_Content',
+        x: 0,
+        y: 0
+    },
+
+    GetControlXY: function (reset) {
         try {
-            var top = $(selector).offset().top;
             var newTop = 0;
             if (reset) {
-                newTop = top;
+                newTop = $(this.controlXY.selector).offset().top;
             } else {
-                newTop = gm.getValue('caap_div_menuTop', top);
+                newTop = this.controlXY.y;
             }
 
-            var left = gm.getValue('caap_div_menuLeft', '');
             var newLeft = 0;
-            if (left === '' || reset) {
-                newLeft = $(selector).offset().left + $(selector).width() + 10;
+            if (this.controlXY.x === '' || reset) {
+                newLeft = $(this.controlXY.selector).offset().left + $(this.controlXY.selector).width() + 10;
             } else {
-                newLeft = $(selector).offset().left + left;
+                newLeft = $(this.controlXY.selector).offset().left + this.controlXY.x;
             }
 
             return {x: newLeft, y: newTop};
@@ -1556,6 +1560,18 @@ var caap = {
                 this.VisitUrl(window.location.href);
             }
 
+            // Get rid of those ads now! :P
+            if (gm.getValue('HideAds', false)) {
+                $('.UIStandardFrame_SidebarAds').css('display', 'none');
+            }
+
+            // Can create a blank space above the game to host the dashboard if wanted.
+            // Dashboard currently uses '185px'
+            var shiftDown = gm.getValue('ShiftDown', '');
+            if (shiftDown) {
+                $(this.controlXY.selector).css('padding-top', shiftDown);
+            }
+
             if (!document.getElementById('caap_div')) {
                 var div = document.createElement('div');
                 div.id = 'caap_div';
@@ -1565,7 +1581,9 @@ var caap = {
                 div.style.background = gm.getValue('StyleBackgroundLight', '#E0C691');
                 div.style.opacity = gm.getValue('StyleOpacityLight', '1');
                 div.style.color = '#000';
-                var styleXY = this.GetControlXY('.UIStandardFrame_Content', false);
+                this.controlXY.x = gm.getValue('caap_div_menuLeft', '')
+                this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
+                var styleXY = this.GetControlXY();
                 div.style.top = styleXY.y + 'px';
                 div.style.left = styleXY.x + 'px';
                 div.style.zIndex = gm.getValue('caap_div_zIndex', '2');
@@ -1579,7 +1597,7 @@ var caap = {
                     }
                 }
 
-                $('.UIStandardFrame_Content').after(div);
+                $(this.controlXY.selector).after(div);
             }
 
             if ($('#caap_control').html().length > 0 && !force) {
@@ -2148,22 +2166,26 @@ var caap = {
         return "<td><font size=1 color='" + color + "'>" + text + "</font></td>";
     },
 
-    GetDashboardXY: function (selector, reset) {
+    dashboardXY: {
+        selector: '#app46755028429_app_body_container',
+        x: 0,
+        y: 0
+    },
+
+    GetDashboardXY: function (reset) {
         try {
-            var top = $(selector).offset().top - 10;
             var newTop = 0;
             if (reset) {
-                newTop = top;
+                newTop = $(this.dashboardXY.selector).offset().top - 10;
             } else {
-                newTop = gm.getValue('caap_top_menuTop', top);
+                newTop = this.dashboardXY.y;
             }
 
-            var left = gm.getValue('caap_top_menuLeft', '');
             var newLeft = 0;
-            if (left === '' || reset) {
-                newLeft = $(selector).offset().left;
+            if (this.dashboardXY.x === '' || reset) {
+                newLeft = $(this.dashboardXY.selector).offset().left;
             } else {
-                newLeft = $(selector).offset().left + left;
+                newLeft = $(this.dashboardXY.selector).offset().left + this.dashboardXY.x;
             }
 
             return {x: newLeft, y: newTop};
@@ -2215,7 +2237,9 @@ var caap = {
      No we apply our CSS to our container
     \-------------------------------------------------------------------------------------*/
         if (!$("#caap_top").length) {
-            var styleXY = this.GetDashboardXY('#app46755028429_main_bn_container', false);
+            this.dashboardXY.x = gm.getValue('caap_top_menuLeft', '');
+            this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10)
+            var styleXY = this.GetDashboardXY();
             $(layout).css({
                 background: gm.getValue("StyleBackgroundLight", "white"),
                 padding: "5px",
@@ -2799,7 +2823,12 @@ var caap = {
     },
 
     ResetMenuLocationListener: function (e) {
-        var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', true);
+        gm.deleteValue('caap_div_menuLeft');
+        gm.deleteValue('caap_div_menuTop');
+        gm.deleteValue('caap_div_zIndex');
+        caap.controlXY.x = '';
+        caap.controlXY.y = $(caap.controlXY.selector).offset().top;
+        var caap_divXY = caap.GetControlXY(true);
         $("#caap_div").css({
             'cursor' : '',
             'z-index' : '2',
@@ -2807,21 +2836,18 @@ var caap = {
             'left' : caap_divXY.x + 'px'
         });
 
-        gm.deleteValue('caap_div_menuLeft');
-        gm.deleteValue('caap_div_menuTop');
-        gm.deleteValue('caap_div_zIndex');
-
-        var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', true);
+        gm.deleteValue('caap_top_menuLeft');
+        gm.deleteValue('caap_top_menuTop');
+        gm.deleteValue('caap_top_zIndex');
+        caap.dashboardXY.x = '';
+        caap.dashboardXY.y = $(caap.dashboardXY.selector).offset().top - 10;
+        var caap_topXY = caap.GetDashboardXY(true);
         $("#caap_top").css({
             'cursor' : '',
             'z-index' : '1',
             'top' : caap_topXY.y + 'px',
             'left' : caap_topXY.x + 'px'
         });
-
-        gm.deleteValue('caap_top_menuLeft');
-        gm.deleteValue('caap_top_menuTop');
-        gm.deleteValue('caap_top_zIndex');
 
         $(":input[id^='caap_']").attr({disabled: false});
     },
@@ -2864,9 +2890,9 @@ var caap = {
 
     windowResizeListener: function (e) {
         if (window.location.href.indexOf('castle_age')) {
-            var caap_divXY = caap.GetControlXY('.UIStandardFrame_Content', false);
+            var caap_divXY = caap.GetControlXY();
             $("#caap_div").css('left', caap_divXY.x + 'px');
-            var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', false);
+            var caap_topXY = caap.GetDashboardXY();
             $("#caap_top").css('left', caap_topXY.x + 'px');
         }
     },
@@ -2931,13 +2957,6 @@ var caap = {
                 */
 
                 var $target = $(event.target);
-
-                // Reposition the dashboard
-                if ($target.is("#app46755028429_main_bn_container")) {
-                    var caap_topXY = caap.GetDashboardXY('#app46755028429_main_bn_container', false);
-                    $("#caap_top").css('left', caap_topXY.x + 'px');
-                }
-
                 if ($target.is("#app46755028429_app_body") ||
                     $target.is("#app46755028429_index") ||
                     $target.is("#app46755028429_keep") ||
@@ -2983,6 +3002,12 @@ var caap = {
                     }, 100);
 
                     //nHtml.setTimeout(caap.CheckResults, 0);
+                }
+
+                // Reposition the dashboard
+                if ($target.is(caap.dashboardXY.selector)) {
+                    var caap_topXY = caap.GetDashboardXY();
+                    $("#caap_top").css('left', caap_topXY.x + 'px');
                 }
             });
 
@@ -9593,18 +9618,6 @@ $(function () {
     gm.log('Full page load completed');
     gm.setValue('clickUrl', window.location.href);
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
-        // Get rid of those ads now! :P
-        if (gm.getValue('HideAds', false)) {
-            $('.UIStandardFrame_SidebarAds').css('display', 'none');
-        }
-
-        // Can create a blank space above the game to host the dashboard if wanted.
-        // Dashboard currently uses '185px'
-        var shiftDown = gm.getValue('ShiftDown', '');
-        if (shiftDown) {
-            $('.UIStandardFrame_Content').css('padding-top', shiftDown);
-        }
-
         gm.deleteValue("ArmyCount");
         gm.deleteValue('waiting');
         gm.setValue('caapPause', 'none');
