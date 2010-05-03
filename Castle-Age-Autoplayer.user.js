@@ -2,8 +2,8 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.12
-// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-1.4.2.min.js
+// @version        140.22.13
+// @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
@@ -16,7 +16,7 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 if (typeof GM_log != 'function') {
     alert("Your browser does not appear to support Greasemonkey scripts!");
@@ -27,7 +27,12 @@ if (typeof GM_log != 'function') {
 ///////////////////////////
 
 var caapGlob = {};
-caapGlob.thisVersion = "140.22.12";
+var gm = {};
+var Move = {};
+var nHtml = {};
+var caap = {};
+var style = {};
+caapGlob.thisVersion = "140.22.13";
 caapGlob.gameName = 'castle_age';
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -152,14 +157,12 @@ caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
     "PV1fzwToWcv//Z";
 ///////////////////////////
 
-var style = {};
-
 /////////////////////////////////////////////////////////////////////
 //                          gm OBJECT
 // this object is used for setting/getting GM specific functions.
 /////////////////////////////////////////////////////////////////////
 
-var gm = {
+gm = {
     // use to log stuff
     log: function (mess) {
         GM_log('v' + caapGlob.thisVersion + ': ' + mess);
@@ -398,7 +401,7 @@ if (caapGlob.is_chrome) {
         var lastVersion = localStorage.getItem(caapGlob.gameName + '__LastVersion', 0);
         var shouldTryConvert = false;
         if (lastVersion) {
-            if(lastVersion.substr(0, 1) == 's') {
+            if (lastVersion.substr(0, 1) == 's') {
                 shouldTryConvert = true;
             }
         }
@@ -493,7 +496,7 @@ String.prototype.stripHTML = function (html) {
 // this object contains general methods for wading through the DOM and dealing with HTML
 /////////////////////////////////////////////////////////////////////
 
-var nHtml = {
+nHtml = {
     xpath: {
         string : XPathResult.STRING_TYPE,
         unordered: XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
@@ -564,7 +567,7 @@ var nHtml = {
         }
 
         var divs = obj.getElementsByTagName(tag);
-        for (var d = 0; d < divs.length; d++) {
+        for (var d = 0; d < divs.length; d += 1) {
             var div = divs[d];
             if (className.exec !== undefined) {
                 if (className.exec(div[attr])) {
@@ -600,7 +603,7 @@ var nHtml = {
             return txt + obj.textContent;
         }
 
-        for (var o = 0; o < obj.childNodes.length; o++) {
+        for (var o = 0; o < obj.childNodes.length; o += 1) {
             var child = obj.childNodes[o];
             txt += this.GetText(child);
         }
@@ -733,7 +736,7 @@ var nHtml = {
 //                          move OBJECT
 /////////////////////////////////////////////////////////////////////
 
-var Move = {
+Move = {
     me: null,
 
     moveHandler: function (e) {
@@ -807,7 +810,7 @@ var Move = {
 // this is the main object for the game, containing all methods, globals, etc.
 /////////////////////////////////////////////////////////////////////
 
-var caap = {
+caap = {
     stats: {},
     lastReload: new Date(),
     waitingForDomLoad : false,
@@ -945,7 +948,7 @@ var caap = {
         gm.setValue('AllGenerals', '');
         gm.setValue('GeneralImages', '');
         gm.setValue('LevelUpGenerals', '');
-        for (var x = 0; x < gens.snapshotLength; x++) {
+        for (var x = 0; x < gens.snapshotLength; x += 1) {
             var gen = nHtml.getX('./div[@class=\'general_name_div3\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
             var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
             img = nHtml.getHTMLPredicate(img);
@@ -1268,7 +1271,7 @@ var caap = {
                     break;
                 }
 
-                count++;
+                count += 1;
             }
         }
 
@@ -1582,7 +1585,7 @@ var caap = {
                 div.style.background = gm.getValue('StyleBackgroundLight', '#E0C691');
                 div.style.opacity = gm.getValue('StyleOpacityLight', '1');
                 div.style.color = '#000';
-                this.controlXY.x = gm.getValue('caap_div_menuLeft', '')
+                this.controlXY.x = gm.getValue('caap_div_menuLeft', '');
                 this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
                 var styleXY = this.GetControlXY();
                 div.style.top = styleXY.y + 'px';
@@ -2239,7 +2242,7 @@ var caap = {
     \-------------------------------------------------------------------------------------*/
         if (!$("#caap_top").length) {
             this.dashboardXY.x = gm.getValue('caap_top_menuLeft', '');
-            this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10)
+            this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10);
             var styleXY = this.GetDashboardXY();
             $(layout).css({
                 background: gm.getValue("StyleBackgroundLight", "white"),
@@ -2528,7 +2531,7 @@ var caap = {
                 if (e.target.value) {
                     caap.SetDisplay('Status_Normal', false);
                     caap.SetDisplay('Status_Adv', true);
-                    for (var n = 1; n <= 5; n++) {
+                    for (var n = 1; n <= 5; n += 1) {
                         gm.setValue('AttrValue' + n, '');
                         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                         // need to update the menus here!!!
@@ -3423,7 +3426,8 @@ var caap = {
             if (moneyElem) {
                 var goldStored = Number(moneyElem.firstChild.data.replace(/[^0-9]/g, ''));
                 if (goldStored >= 0) {
-                    gm.setValue('inStore', goldStored);
+                    gm.log("Keep: Checked the gold in store: " + gm.setValue('inStore', goldStored + ''));
+                    //gm.setValue('inStore', goldStored);
                 }
             }
         }
@@ -3759,7 +3763,7 @@ var caap = {
                 gm.log("Failed to find symbol_displaysymbolquest");
             }
 
-            for (s = 0; s < ss.snapshotLength; s++) {
+            for (s = 0; s < ss.snapshotLength; s += 1) {
                 div = ss.snapshotItem(s);
                 if (div.style.display != 'none') {
                     break;
@@ -3784,7 +3788,7 @@ var caap = {
         }
 
         var autoQuestDivs = {};
-        for (s = 0; s < ss.snapshotLength; s++) {
+        for (s = 0; s < ss.snapshotLength; s += 1) {
             div = ss.snapshotItem(s);
             this.questName = this.GetQuestName(div);
             if (!this.questName) {
@@ -4471,7 +4475,7 @@ var caap = {
         var landNames = [];
 
         //gm.log('forms found:'+ss.snapshotLength);
-        for (var s = 0; s < ss.snapshotLength; s++) {
+        for (var s = 0; s < ss.snapshotLength; s += 1) {
             var row = ss.snapshotItem(s);
             if (!row) {
                 continue;
@@ -4492,7 +4496,7 @@ var caap = {
             var income = 0;
             var nums = [];
             var numberRe = new RegExp("([0-9,]+)");
-            for (var sm = 0; sm < moneyss.snapshotLength; sm++) {
+            for (var sm = 0; sm < moneyss.snapshotLength; sm += 1) {
                 income = moneyss.snapshotItem(sm);
                 if (income.className.indexOf('label') >= 0) {
                     income = income.parentNode;
@@ -4537,7 +4541,7 @@ var caap = {
             landNames.push(name);
         }
 
-        for (var p = 0; p < landNames.length; p++) {
+        for (var p = 0; p < landNames.length; p += 1) {
             func.call(this, landByName[landNames[p]]);
         }
 
@@ -4613,8 +4617,9 @@ var caap = {
                 return false;
             }
 
-            var inStore = gm.getNumber('inStore', -1);
-            if (!inStore || inStore < 0) {
+            var inStore = gm.getValue('inStore', '');
+            //gm.log("Lands: How much gold in store?: " + inStore)
+            if (!inStore && inStore !== 0) {
                 gm.log("Going to keep to get Stored Value");
                 if (this.NavigateTo('keep')) {
                     return true;
@@ -4622,7 +4627,9 @@ var caap = {
             }
 
             // Retrieving from Bank
-            if (this.stats.cash + (inStore - gm.getNumber('minInStore', 0)) >= 10 * bestLandCost && this.stats.cash < 10 * bestLandCost) {
+            var cashTotAvail = this.stats.cash + (inStore - gm.getNumber('minInStore', 0));
+            var cashNeed = 10 * bestLandCost;
+            if ((cashTotAvail >= cashNeed) && (this.stats.cash < cashNeed)) {
                 if (this.PassiveGeneral()) {
                     return true;
                 }
@@ -4666,7 +4673,7 @@ var caap = {
             "or (contains(@href,'/"+this.gameName+"/profile.php?userId='))"+
             "or (contains(@href,'/stats.php?user='))"+
             "]",content,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-        for(var s=0; s<ss.snapshotLength; s++) {
+        for(var s=0; s<ss.snapshotLength; s += 1) {
             var userLink=ss.snapshotItem(s);
             if(userLink.innerHTML.indexOf('<img')>=0) { continue; }
             var m=this.userRe.exec(userLink.getAttribute('href'));
@@ -4857,7 +4864,7 @@ var caap = {
     FindBattleForm: function (obj, withOpponent) {
         var ss = document.evaluate(".//form[contains(@onsubmit,'battle.php')]", obj, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         var battleForm = null;
-        for (var s = 0; s < ss.snapshotLength; s++) {
+        for (var s = 0; s < ss.snapshotLength; s += 1) {
             battleForm = ss.snapshotItem(s);
 
             // ignore forms in overlays
@@ -4925,7 +4932,7 @@ var caap = {
         }
 
         var sum = 0;
-        for (var i = 0; i < userid.length; i++) {
+        for (var i = 0; i < userid.length; i += 1) {
             sum += +userid.charAt(i);
         }
 
@@ -5118,7 +5125,7 @@ var caap = {
             var ARMin = gm.getNumber("FreshMeatARMin", 0);
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
-            for (var s = 0; s < ss.snapshotLength; s++) {
+            for (var s = 0; s < ss.snapshotLength; s += 1) {
                 var button = ss.snapshotItem(s);
                 var tr = button;
                 if (!tr) {
@@ -5237,13 +5244,13 @@ var caap = {
                 temp.button = button;
                 temp.targetNumber = s + 1;
                 safeTargets[count] = temp;
-                count++;
+                count += 1;
                 if (s === 0 && type == 'Raid') {
                     plusOneSafe = true;
                 }
 
-                for (var x = 0; x < count; x++) {
-                    for (var y = 0 ; y < x ; y++) {
+                for (var x = 0; x < count; x += 1) {
+                    for (var y = 0 ; y < x ; y += 1) {
                         if (safeTargets[y].score < safeTargets[y + 1].score) {
                             temp = safeTargets[y];
                             safeTargets[y] = safeTargets[y + 1];
@@ -5292,7 +5299,7 @@ var caap = {
                         gm.log("Not safe for +1 kill.");
                     }
                 } else {
-                    for (var z = 0; z < count; z++) {
+                    for (var z = 0; z < count; z += 1) {
                         //gm.log("safeTargets["+z+"].id = "+safeTargets[z].id+" safeTargets["+z+"].score = "+safeTargets[z].score);
                         if (!this.lastBattleID && this.lastBattleID == safeTargets[z].id && z < count - 1) {
                             continue;
@@ -5313,7 +5320,7 @@ var caap = {
                 }
             }
 
-            this.notSafeCount++;
+            this.notSafeCount += 1;
             if (this.notSafeCount > 100) {
                 this.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
                 gm.log('No safe targets limit reached. Releasing control for other processes.');
@@ -5928,7 +5935,7 @@ var caap = {
 
         // Review monsters and find attack and fortify button
         var monsterList = [];
-        for (var s = 0; s < ss.snapshotLength; s++) {
+        for (var s = 0; s < ss.snapshotLength; s += 1) {
             var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
             var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
             var monsterFull = nHtml.GetText(monsterRow).trim();
@@ -6190,7 +6197,7 @@ var caap = {
                  nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
                 gm.log('Collecting Reward');
                 gm.setListObjVal('monsterOl', monster, 'review', "1");
-                gm.setValue('monsterReviewCounter', --counter);
+                gm.setValue('monsterReviewCounter', counter -= 1);
                 gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
                 if (monster.indexOf('Siege') >= 0) {
                     if (nHtml.FindByAttrContains(document.body, 'a', 'href', '&rix=1')) {
@@ -6548,7 +6555,7 @@ var caap = {
         var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
         if (counter == -3) {
             gm.setValue('monsterOl', '');
-            gm.setValue('monsterReviewCounter', ++counter);
+            gm.setValue('monsterReviewCounter', counter += 1);
             return true;
         }
         if (counter == -2) {
@@ -6557,7 +6564,7 @@ var caap = {
                 return true;
             }
             if (gm.getValue('reviewDone', 1) > 0) {
-                gm.setValue('monsterReviewCounter', ++counter);
+                gm.setValue('monsterReviewCounter', counter += 1);
             } else {
                 return true;
             }
@@ -6568,7 +6575,7 @@ var caap = {
                 return true;
             }
             if (gm.getValue('reviewDone', 1) > 0) {
-                gm.setValue('monsterReviewCounter', ++counter);
+                gm.setValue('monsterReviewCounter', counter += 1);
             } else {
                 return true;
             }
@@ -6586,14 +6593,14 @@ var caap = {
         while (counter < monsterObjList.length) {
             var monsterObj = monsterObjList[counter];
             if (!monsterObj) {
-                gm.setValue('monsterReviewCounter', ++counter);
+                gm.setValue('monsterReviewCounter', counter += 1);
                 continue;
             }
     /*-------------------------------------------------------------------------------------\
     If we looked at this monster more recently than an hour ago, skip it
     \-------------------------------------------------------------------------------------*/
             if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60)) {
-                gm.setValue('monsterReviewCounter', ++counter);
+                gm.setValue('monsterReviewCounter', counter += 1);
                 continue;
             }
     /*-------------------------------------------------------------------------------------\
@@ -7461,7 +7468,7 @@ var caap = {
     },
 
     redirectLinks: function () {
-        for (var x = 0; x < document.getElementsByTagName("a").length; x++) {
+        for (var x = 0; x < document.getElementsByTagName("a").length; x += 1) {
             document.getElementsByTagName('a')[x].target = "child_frame";
         }
     },
@@ -7489,7 +7496,7 @@ var caap = {
         }
 
         //this.NavigateTo("Older Posts");
-        gm.setValue("iterationsRun", ++itRun);
+        gm.setValue("iterationsRun", itRun += 1);
         gm.log("Get More Iterations " + gm.getValue("iterationsRun") + " of " + gm.getValue("iterations") + " " + new Date());
         if (gm.getValue("iterationsRun") < gm.getValue("iterations")) {
             nHtml.setTimeout(function () {
@@ -7515,7 +7522,7 @@ var caap = {
 
         var monstArray = monstPriority.split("~");
         gm.log("MonstArray: " + monstArray[0]);
-        for (var x = 0; x < monstArray.length; x++) {
+        for (var x = 0; x < monstArray.length; x += 1) {
             if (gm.getValue(monstArray[x], "~") == "~") {
                 gm.setValue(monstArray[x], "~");
             }
@@ -7526,7 +7533,7 @@ var caap = {
             var monstLinks = monstList.replace(/~~/g, "~").split("~");
             var numlinks = 0;
             gm.log("Inside MonstArray For Loop " + monstArray[x] + " - Array[" + (monstLinks.length - 1) + "] " + gm.getValue(monstArray[x]).replace("~", "~\n"));
-            for (var z = 0; z < monstLinks.length; z++) {
+            for (var z = 0; z < monstLinks.length; z += 1) {
                 if (monstLinks[z]) {
                     var link = monstLinks[z].replace("http://apps.facebook.com/castle_age", "");
                     var urlixc = gm.getValue("urlixc", "~");
@@ -7616,7 +7623,7 @@ var caap = {
     handleCTA: function () {
         var ctas = nHtml.getX('//div[@class=\'GenericStory_Body\']', document, nHtml.xpath.unordered);
         gm.log("Number of entries- " + ctas.snapshotLength);
-        for (var x = 0; x < ctas.snapshotLength; x++) {
+        for (var x = 0; x < ctas.snapshotLength; x += 1) {
             var url = nHtml.getX('./div[2]/div/div/a/@href', ctas.snapshotItem(x), nHtml.xpath.string).replace("http://apps.facebook.com/castle_age", "");
             var fid = nHtml.Gup("user", url);
             var mpool = nHtml.Gup("mpool", url);
@@ -7952,7 +7959,7 @@ var caap = {
     Now we get all of the recipes and step through them one by one
     \-------------------------------------------------------------------------------------*/
                 var ss = document.evaluate(".//div[@class='alchemyRecipeBack']", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s++) {
+                for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var recipeDiv = ss.snapshotItem(s);
     /*-------------------------------------------------------------------------------------\
     If we are missing an ingredient then skip it
@@ -8156,7 +8163,7 @@ var caap = {
                 }
 
                 var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s++) {
+                for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var a = ss.snapshotItem(s);
                     user = a.href.match(/user=\d+/i);
                     if (user) {
@@ -8230,7 +8237,7 @@ var caap = {
                 }
 
                 var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s++) {
+                for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var a = ss.snapshotItem(s);
                     user = a.href.match(/user=\d+/i);
                     if (user) {
@@ -8324,7 +8331,7 @@ var caap = {
             if (giftEntry) {
                 gm.setList('GiftList', []);
                 var ss = document.evaluate(".//div[contains(@id,'_gift')]", giftEntry.parentNode, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s++) {
+                for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var giftDiv = ss.snapshotItem(s);
                     var giftName = nHtml.GetText(giftDiv).trim().replace(/!/i, '');
                     if (gm.getValue("GiftList").indexOf(giftName) >= 0) {
@@ -8481,7 +8488,8 @@ var caap = {
                 var n = 0;
                 for (var picN in giftNamePic) {
                     if (giftNamePic.hasOwnProperty(picN)) {
-                        if (n++ == picNum) {
+                        n += 1;
+                        if (n == picNum) {
                             giftPic = giftNamePic[picN];
                             gm.setValue('RandomGiftPic', giftPic);
                             break;
@@ -8596,7 +8604,7 @@ var caap = {
             gm.log('On FB page with gift ready to go');
             if (window.location.href.indexOf('facebook.com/reqs.php') >= 0) {
                 var ss = document.evaluate(".//input[contains(@name,'/castle/tracker.php')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s++) {
+                for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var giftDiv = ss.snapshotItem(s);
                     var user = giftDiv.name.match(/uid%3D\d+/i);
                     if (!user) {
@@ -8771,7 +8779,7 @@ var caap = {
                 return true;
             }
 
-            for (var n = 1; n <= 5; n++) {
+            for (var n = 1; n <= 5; n += 1) {
                 if (gm.getValue('Attribute' + n, '') === '') {
                     //gm.log("Attribute" + n + " is blank: continue");
                     continue;
@@ -8867,7 +8875,7 @@ var caap = {
                     while (results.snapshotItem(i) !== null) {
                         var res = results.snapshotItem(i);
                         IdsListNotArmyAll[IdsListNotArmyAll.length] = res.firstChild.value;
-                        i++;
+                        i += 1;
                     }
 
                     var Ids = [];
@@ -8893,7 +8901,7 @@ var caap = {
                                             for (var y in IdsList) {
                                                 if (IdsList.hasOwnProperty(y)) {
                                                     if (IdsList[y] == IdsListNotArmyAll[x]) {
-                                                        Ids[counter++] = IdsListNotArmyAll[x];
+                                                        Ids[counter += 1] = IdsListNotArmyAll[x];
                                                         break;
                                                     }
                                                 }
@@ -8909,13 +8917,13 @@ var caap = {
                                     }
 
                                     caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
-                                    for (ID; ID < Ids.length ; ID++) {
+                                    for (ID; ID < Ids.length ; ID += 1) {
                                         caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
                                         if (count >= 5) { //don't spam requests
                                             this.waitMilliSecs = 1000;
                                             break;
                                         } else {
-                                            count++;
+                                            count += 1;
                                             GM_xmlhttpRequest({
                                                 url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[ID] + '&buf=1',
                                                 method: "GET",
@@ -9052,7 +9060,7 @@ var caap = {
     target on the battle page.  We step back through the parent objects until we have the
     entire 'tr'
     \-------------------------------------------------------------------------------------*/
-            for (var s = 0; s < ss.snapshotLength; s++) {
+            for (var s = 0; s < ss.snapshotLength; s += 1) {
                 var obj = ss.snapshotItem(s);
                 while (obj.tagName.toLowerCase() != "tr") {
                     obj = obj.parentNode;
@@ -9116,7 +9124,7 @@ var caap = {
     Ok, recon has found a viable target. We get any existing values from the targetsOL
     database.
     \-------------------------------------------------------------------------------------*/
-                found++;
+                found += 1;
                 var invadewinsNum = gm.getListObjVal('targetsOl', userID, 'invadewinsNum', -1);
                 var invadelossesNum = gm.getListObjVal('targetsOl', userID, 'invadelossesNum', -1);
                 var duelwinsNum = gm.getListObjVal('targetsOl', userID, 'duelwinsNum', -1);
@@ -9275,7 +9283,7 @@ var caap = {
                     // Master Action list
                     for (action in this.masterActionList) {
                         if (this.masterActionList.hasOwnProperty(action)) {
-                            masterActionListCount++;
+                            masterActionListCount += 1;
                             //gm.log("Counting Action List: " + masterActionListCount);
                         } else {
                             gm.log("Error Getting Master Action List length!");
@@ -9316,7 +9324,7 @@ var caap = {
 
                 // We build the Action List
                 //gm.log("Building Action List ...");
-                for (var itemCount = 0; itemCount !== actionOrderArrayCount; itemCount++) {
+                for (var itemCount = 0; itemCount !== actionOrderArrayCount; itemCount += 1) {
                     var actionItem = '';
                     if (actionOrderUser !== '') {
                         // We are using the user defined comma separated list
@@ -9576,7 +9584,7 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
     // This needs looking at, although not really used, need to check we are using caap keys
     if (parseInt(gm.getValue('LastVersion', 0), 10) < 126) {
         var storageKeys = GM_listValues();
-        for (var key = 0; key < storageKeys.length; key++) {
+        for (var key = 0; key < storageKeys.length; key += 1) {
             if (GM_getValue(storageKeys[key])) {
                 GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', caapGlob.os).replace('`', caapGlob.vs));
             }
@@ -9603,7 +9611,7 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
     }
 
     if (gm.getValue('LastVersion', 0) < '140.16.2') {
-        for (var a = 1; a <= 5; a++) {
+        for (var a = 1; a <= 5; a += 1) {
             var attribute = gm.getValue("Attribute" + a, '');
             if (attribute !== '') {
                 gm.setValue("Attribute" + a, attribute.ucFirst());
