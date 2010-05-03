@@ -2946,7 +2946,7 @@ var caap = {
                     // Update experience and display
                     caap.addExpDisplay();
 
-                    gm.log("Refreshing DOM Listeners");
+                    //gm.log("Refreshing DOM Listeners");
                     $('#app46755028429_globalContainer').find('a').unbind('click', caap.whatClickedURLListener);
                     $('#app46755028429_globalContainer').find('a').bind('click', caap.whatClickedURLListener);
 
