@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.13
+// @version        140.22.14
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
@@ -32,7 +32,7 @@ var Move = {};
 var nHtml = {};
 var caap = {};
 var style = {};
-caapGlob.thisVersion = "140.22.13";
+caapGlob.thisVersion = "140.22.14";
 caapGlob.gameName = 'castle_age';
 caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
 caapGlob.debug = false;
@@ -1778,7 +1778,7 @@ caap = {
             htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
-            htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=696.0' target='_blank'><font color='red'>?</font></a><br />";
+            htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
             htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3' cols='25'");
             htmlCode += "</div>";
             var goalList = [
@@ -1895,7 +1895,7 @@ caap = {
             htmlCode += "<tr><td>Fortify If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MaxToFortify', fortifyInstructions, 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Quest If Percentage Over</td><td style='text-align: right'>" + this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=696.0' target='_blank'><font color='red'>?</font></a><br />";
+            htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
             htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, " rows='3' cols='25'");
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
