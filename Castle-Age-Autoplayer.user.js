@@ -6090,6 +6090,7 @@ caap = {
 
         var now = (new Date().getTime());
         gm.setListObjVal('monsterOl', monster, 'review', now.toString());
+		gm.setValue('monsterRepeatCount',0);
 
         var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
         gm.setListObjVal('monsterOl', monster, 'Type', monstType);
@@ -6599,8 +6600,10 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     If we looked at this monster more recently than an hour ago, skip it
     \-------------------------------------------------------------------------------------*/
-            if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60)) {
+            if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60) ||
+						gm.getValue('monsterRepeatCount',0)>2) {
                 gm.setValue('monsterReviewCounter', counter += 1);
+				gm.setValue('monsterRepeatCount',0);
                 continue;
             }
     /*-------------------------------------------------------------------------------------\
@@ -6639,6 +6642,7 @@ caap = {
                 //gm.log("Link: " + link);
                 //gm.setListObjVal('monsterOl', monster, 'review','pending');
                 this.ClickAjax(link);
+				gm.setValue('monsterRepeatCount',gm.getValue('monsterRepeatCount',0)+1);
                 gm.setValue('resetselectMonster', true);
                 gm.setValue('resetdashboard', true);
                 return true;
@@ -9643,6 +9647,7 @@ $(function () {
             caap.CheckResults();
         }, 200);
     }
+	gm.setListObjVal('monsterOl', "Ai Wen's The Deathrune Siege", 'review',0);
 
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
