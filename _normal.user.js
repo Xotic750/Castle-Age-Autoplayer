@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.19
+// @version        140.22.20
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.22.19";
+var caapVersion = "140.22.20";
 
 ///////////////////////////
 //       Prototypes
@@ -6312,7 +6312,7 @@ caap = {
                     if (monstType.indexOf('Raid') >= 0) {
                         miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(new RegExp(".*:\\s*Need (\\d+) more to launch"), "$1").trim();
                     } else {
-                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch!"), "$1"));
+                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch"), "$1"));
                     }
 
                     var divSeigeLogs = document.getElementById("app46755028429_siege_log");

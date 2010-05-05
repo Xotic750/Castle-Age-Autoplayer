@@ -5541,7 +5541,7 @@ caap = {
                     if (monstType.indexOf('Raid') >= 0) {
                         miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(new RegExp(".*:\\s*Need (\\d+) more to launch"), "$1").trim();
                     } else {
-                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch!"), "$1"));
+                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch"), "$1"));
                     }
 
                     var divSeigeLogs = document.getElementById("app46755028429_siege_log");
