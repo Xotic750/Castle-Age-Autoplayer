@@ -1,0 +1,152 @@
+<html>
+    <head>
+        <script src="gm_functions.js"></script>
+        <script src="chrome_support.js"></script>
+        <script type="text/javascript">
+            /*
+                    background.html for the use with
+                    the Castle Age Autoplayer script.
+
+                    Version 1.0.0.1
+            */
+
+            /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
+            /*global chrome,localStorage,S_log,S_Click,CM_Listener,CE_message,GM_setValue,GM_getValue */
+
+            var timerId;
+            var pollInterval = 1000 * 5; // 1 minute, in milliseconds
+            var pollFailCount = 0;
+
+            function setItem(key, value) {
+                try {
+                    S_log("background.html: Inside setItem: " + key + ":" + value);
+                    GM_setValue(key, value);
+                } catch (e) {
+                    S_log("background.html: Error inside setItem");
+                    S_log(e);
+                }
+                S_log("background.html: Return from setItem");
+            }
+
+            function getItem(key) {
+                var value;
+                S_log('background.html: Get Item: ' + key);
+                try {
+                    value = GM_getValue(key);
+                } catch (e) {
+                    S_log("background.html: Error inside getItem() for key: " + key);
+                    S_log(e);
+                    value = "null";
+                }
+                S_log("background.html: Returning value: " + value);
+                return value;
+            }
+
+            function clearStrg() {
+                S_log('background.html: about to clear local storage');
+                localStorage.clear();
+                S_log('background.html: cleared');
+            }
+
+            function B_Listener() {
+                chrome.extension.onRequest.addListener(
+                    function (request, sender, sendResponse) {
+                        S_log(sender.tab ? "background.html: from a content script(tab:" + sender.tab.id + "): " + sender.tab.url : "background.html: from the extension");
+                        S_log("background.html: request: " + request.action + "(" + request.name + ", " + request.value + ")");
+                        if (sender.tab) {
+                            setItem("sender.tab.id", sender.tab.id);
+                        } else {
+                            setItem("sender.tab.id", 0);
+                        }
+
+                        switch (request.action) {
+                        case "paused" :
+                            switch (request.value) {
+                            case "block" :
+                                setItem("paused", true);
+                                chrome.browserAction.setIcon({path: "paused.png"});
+                                S_log("background.html: script paused.");
+                                sendResponse({ack: "ok"});
+                                break;
+                            case "none" :
+                                setItem("paused", false);
+                                chrome.browserAction.setIcon({path: "icon.png"});
+                                S_log("background.html: script unpaused.");
+                                sendResponse({ack: "ok"});
+                                break;
+                            default :
+                                chrome.browserAction.setIcon({path: "unknown.png"});
+                                S_log("background.html: unkown pause state");
+                                sendResponse({});
+                                break;
+                            }
+                            break;
+                        case "disabled" :
+                            switch (request.value) {
+                            case true :
+                                setItem("disabled", true);
+                                chrome.browserAction.setIcon({path: "disabled.png"});
+                                S_log("background.html: script disabled");
+                                sendResponse({ack: "ok"});
+                                break;
+                            case false :
+                                setItem("disabled", false);
+                                chrome.browserAction.setIcon({path: "icon.png"});
+                                S_log("background.html: script enabled");
+                                sendResponse({ack: "ok"});
+                                break;
+                            default :
+                                chrome.browserAction.setIcon({path: "unknown.png"});
+                                S_log("background.html: unkown disable state");
+                                sendResponse({});
+                                break;
+                            }
+                            break;
+                        default :
+                            S_log("background.html: unknown request action");
+                            sendResponse({});
+                            break;
+                        }
+                    }
+                );
+            }
+
+
+            function CS_message(action, name, value) {
+                if (getItem("sender.tab.id", 0)) {
+                    chrome.tabs.get(getItem("sender.tab.id"), function (tab) {
+                        chrome.tabs.sendRequest(tab.id, {action: action, name: name, value: value}, function (response) {
+                            S_log("background.html: CS_message:" + action + "(" + name + ", " + value + ")");
+                        });
+                    });
+                }
+            }
+
+            function message(action, name, value) {
+                CS_message(action, name, value);
+                S_log('background.html: message: ' + action + ' ' + name + ' ' + value);
+            }
+
+            function startPoll() {
+                CS_message("DoPoll", null, null);
+                S_log('background.html: startPoll: ' + GM_getValue("PollFailCount", 0));
+                timerId = setTimeout(startPoll, pollInterval);
+            }
+
+            function stopPoll() {
+                clearTimeout(timerId);
+                S_log('background.html: stopPoll');
+            }
+
+            function main() {
+                S_log('background.html: main');
+                B_Listener();
+                //startPoll();
+            }
+
+            main();
+        </script>
+    </head>
+    <body>
+    </body>
+</html>
