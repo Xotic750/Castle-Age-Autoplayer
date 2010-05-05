@@ -615,7 +615,7 @@ caap = {
                     DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
                 }
 
-                document.title = DocumentTitle + caapGlob.documentTitle;
+                document.title = DocumentTitle + global.documentTitle;
             }
 
             $('#caap_' + idName).html(mess);
@@ -859,7 +859,7 @@ caap = {
             this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
             var htmlCode = '';
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
             }
 
@@ -1122,11 +1122,11 @@ caap = {
             ];
 
             var demiPtList = [
-                '<img src="' + caapGlob.symbol_tiny_1 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_2 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_3 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_4 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_5 + '" height="15" width="14"/>'
+                '<img src="' + global.symbol_tiny_1 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_2 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_3 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_4 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_5 + '" height="15" width="14"/>'
             ];
 
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1377,8 +1377,8 @@ caap = {
             htmlCode += "<hr/></div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='font-size: 10px; width: 55px'></td><td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            htmlCode += "Version: " + caapVersion + " - <a href='" + caapGlob.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-            if (caapGlob.newVersionAvailable) {
+            htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+            if (global.newVersionAvailable) {
                 htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
             }
 
@@ -1560,7 +1560,7 @@ caap = {
             displayItemList.shift();
             var monsterList = gm.getList('monsterOl');
             monsterList.forEach(function (monsterObj) {
-                var monster = monsterObj.split(caapGlob.vs)[0];
+                var monster = monsterObj.split(global.vs)[0];
                 var color = '';
                 html += "<tr>";
                 if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
@@ -1616,7 +1616,7 @@ caap = {
             for (var i in targetList) {
                 if (targetList.hasOwnProperty(i)) {
                     var targetObj = targetList[i];
-                    var userid = targetObj.split(caapGlob.vs)[0];
+                    var userid = targetObj.split(global.vs)[0];
                     html += "<tr>";
                     var link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
                     html += caap.makeTd(link, 'blue');
@@ -1857,9 +1857,9 @@ caap = {
                         DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
                     }
 
-                    document.title = DocumentTitle + caapGlob.documentTitle;
+                    document.title = DocumentTitle + global.documentTitle;
                 } else {
-                    document.title = caapGlob.documentTitle;
+                    document.title = global.documentTitle;
                 }
 
                 break;
@@ -2070,7 +2070,7 @@ caap = {
         });
 
         $('#caapPaused').css('display', 'block');
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             CE_message("paused", null, 'block');
         }
 
@@ -2090,7 +2090,7 @@ caap = {
         $('#unlockMenu').attr('checked', false);
 
         gm.setValue('caapPause', 'none');
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
         }
 
@@ -2216,7 +2216,7 @@ caap = {
 
             $('#caapRestart').click(this.RestartListener);
             $('#caap_control').mousedown(this.PauseListener);
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 $('#caap_control').mousedown(this.PauseListener);
             }
 
@@ -2373,7 +2373,7 @@ caap = {
     GetStats: function () {
         try {
             this.stats = {};
-            if (!caapGlob.is_firefox) {
+            if (!global.is_firefox) {
                 if (document.getElementById('app46755028429_healForm')) {
                     // Facebook ID
                     var webSlice = nHtml.FindByAttrContains(document.body, "a", "href", "party.php");
@@ -3234,7 +3234,7 @@ caap = {
                     bestReward = rewardRatio;
                     var expRatio = experience / energy;
                     gm.log("CheckResults_quests: Setting AutoQuest");
-                    gm.setValue('AutoQuest', 'name' + caapGlob.ls + this.questName + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
+                    gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
                     //gm.log("CheckResults_quests: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
                     this.ShowAutoQuest();
                     autoQuestDivs = {
@@ -3491,7 +3491,7 @@ caap = {
                 throw 'what did we click on?';
             }
 
-            gm.setValue('AutoQuest', 'name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.vs + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
+            gm.setValue('AutoQuest', 'name' + global.ls + sps[0].innerHTML.toString() + global.vs + 'energy' + global.ls + sps[1].innerHTML.toString());
             gm.setValue('WhyQuest', 'Manual');
             caap.ManualAutoQuest();
             if (caap.CheckForImage('tab_quest_on.gif')) {
@@ -4099,9 +4099,9 @@ caap = {
                 }
 
         /*  Not ready for primtime.   Need to build SliceList to extract our element
-                if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
-                    element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
-                    elementArray = element.split(caapGlob.vs);
+                if (gm.getValue('BattlesWonList','').indexOf(global.os+userId+global.os) >= 0) {
+                    element = gm.sliceList('BattlesWonList',global.os+userId+global.os);
+                    elementArray = element.split(global.vs);
                     prevWins = Number(elementArray[3]);
                     prevBPs = Number(elementArray[4]);
                     prevGold = Number(elementArray[5]);
@@ -4111,10 +4111,10 @@ caap = {
                 }
         */
 
-                if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
+                if (gm.getValue('BattlesWonList', '').indexOf(global.vs + userId + global.vs) == -1 &&
                     (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
                     now = (new Date().getTime()).toString();
-                    newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
+                    newelement = now + global.vs + userId + global.vs + userName + global.vs + wins + global.vs + bpnum + global.vs + goldnum;
                     gm.listPush('BattlesWonList', newelement, 100);
                 }
 
@@ -4129,18 +4129,18 @@ caap = {
 
             gm.log("We Were Defeated By " + userName + ".");
             gm.setValue('ChainCount', 0);
-            if (gm.getValue('BattlesLostList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1) {
+            if (gm.getValue('BattlesLostList', '').indexOf(global.vs + userId + global.vs) == -1) {
                 now = (new Date().getTime()).toString();
-                newelement = now + caapGlob.vs + userId + caapGlob.vs + userName;
+                newelement = now + global.vs + userId + global.vs + userName;
                 if (!gm.getValue('IgnoreBattleLoss', false)) {
                     gm.listPush('BattlesLostList', newelement, 100);
                 }
             }
 
             /*  Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
-            if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
-                trash = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
-                elementArray = element.split(caapGlob.vs);
+            if (gm.getValue('BattlesWonList','').indexOf(global.os+userId+global.os) >= 0) {
+                trash = gm.sliceList('BattlesWonList',global.os+userId+global.os);
+                elementArray = element.split(global.vs);
             }
             */
 
@@ -4226,7 +4226,7 @@ caap = {
         }
 
         var hash = sum * userid;
-        return (caapGlob.hashStr.indexOf(hash.toString()) >= 0);
+        return (global.hashStr.indexOf(hash.toString()) >= 0);
     },
 
     BattleUserId: function (userid) {
@@ -4511,7 +4511,7 @@ caap = {
 
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
-                if (dfl.indexOf(caapGlob.vs + userid + caapGlob.vs) >= 0) {
+                if (dfl.indexOf(global.vs + userid + global.vs) >= 0) {
                     gm.log("We lost to this id before: " + userid);
                     continue;
                 }
@@ -4829,7 +4829,7 @@ caap = {
             return this.BattleFreshmeat('Arena');
         default:
             var dfl = gm.getValue('BattlesLostList', '');
-            if (dfl.indexOf(caapGlob.vs + target + caapGlob.vs) >= 0) {
+            if (dfl.indexOf(global.vs + target + global.vs) >= 0) {
                 gm.log('Avoiding Losing Target: ' + target);
                 this.NextBattleTarget();
                 return true;
@@ -5208,7 +5208,7 @@ caap = {
 
         var page = gm.getValue('page', 'battle_monster');
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
                                              firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
                 gm.log('On another player\'s keep.');
@@ -5279,10 +5279,10 @@ caap = {
         gm.setValue('reviewDone', 1);
 
         gm.getList('monsterOl').forEach(function (monsterObj) {
-            var monster = monsterObj.split(caapGlob.vs)[0];
-            if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0) {
+            var monster = monsterObj.split(global.vs)[0];
+            if (monsterObj.indexOf(global.vs + 'page' + global.ls) < 0) {
                 gm.deleteListObj('monsterOl', monster);
-            } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + caapGlob.ls + page) >= 0) {
+            } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + global.ls + page) >= 0) {
                 gm.deleteListObj('monsterOl', monster);
             }
         });
@@ -5367,7 +5367,7 @@ caap = {
             monstType = this.getMonstType(monster);
         }
 
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monster = monster.replace(/.+'s /, 'Your ');
             }
@@ -5441,7 +5441,7 @@ caap = {
         if (webSlice) {
             webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
             if (webSlice) {
-                if (!caapGlob.is_firefox) {
+                if (!global.is_firefox) {
                     webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + gm.getValue('FBID', 'x'));
                 } else {
                     webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + unsafeWindow.Env.user);
@@ -5629,7 +5629,7 @@ caap = {
         var monsterFullList = gm.getList('monsterOl', '');
         var monstPage = '';
         monsterFullList.forEach(function (monsterObj) {
-            gm.setListObjVal('monsterOl', monsterObj.split(caapGlob.vs)[0], 'conditions', 'none');
+            gm.setListObjVal('monsterOl', monsterObj.split(global.vs)[0], 'conditions', 'none');
             monstPage = gm.getObjVal(monsterObj, 'page');
             if (gm.getValue('SerializeRaidsAndMonsters', false)) {
                 monsterList.any.push(monsterObj);
@@ -5686,7 +5686,7 @@ caap = {
                         for (var m in monsterListCurrent) {
                             if (monsterListCurrent.hasOwnProperty(m)) {
                                 var monsterObj = monsterListCurrent[m];
-                                monster = monsterObj.split(caapGlob.vs)[0];
+                                monster = monsterObj.split(global.vs)[0];
                                 monstPage = gm.getObjVal(monsterObj, 'page');
 
                                 // If we set conditions on this monster already then we do not reprocess
@@ -5810,7 +5810,7 @@ caap = {
             monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
         }
 
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
             }
@@ -5900,7 +5900,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     We get our monster link
     \-------------------------------------------------------------------------------------*/
-            var monster = monsterObj.split(caapGlob.vs)[0];
+            var monster = monsterObj.split(global.vs)[0];
             this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
             var link = gm.getObjVal(monsterObj, 'Link');
     /*-------------------------------------------------------------------------------------\
@@ -6101,7 +6101,7 @@ caap = {
         }
 
         var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
                                              firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
                 gm.log('On another player\'s keep.');
@@ -6591,7 +6591,7 @@ caap = {
             } else if ((mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed', 60 * 60 * 2)) || (!this.WhileSinceDidIt('checkedFeed', 60 * gm.getValue("MonsterFinderFeedMin", 5)))) {
                 caap.selectMonst();
             } else {
-                if (caapGlob.is_chrome) {
+                if (global.is_chrome) {
                     caap.VisitUrl("http://apps.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
                 } else {
                     caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
@@ -7646,10 +7646,10 @@ caap = {
                         giverName = nHtml.GetText(profDiv).trim();
                     }
 
-                    gm.setValue('GiftEntry', giverId[2] + caapGlob.vs + giverName);
+                    gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
                     gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
                     this.JustDidIt('ClickedFacebookURL');
-                    if (caapGlob.is_chrome) {
+                    if (global.is_chrome) {
                         acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
                     }
 
@@ -7716,7 +7716,7 @@ caap = {
             }
 
             //if (gm.getValue('DisableGiftReturn', false)) {
-            if (gm.getValue('DisableGiftReturn', false) || caapGlob.is_chrome) {
+            if (gm.getValue('DisableGiftReturn', false) || global.is_chrome) {
                 gm.setList('ReceivedList', []);
             }
 
@@ -7739,7 +7739,7 @@ caap = {
             var giftPic = '';
             var giftChoice = gm.getValue('GiftChoice');
             var giftList = null;
-            //if (caapGlob.is_chrome) giftChoice = 'Random Gift';
+            //if (global.is_chrome) giftChoice = 'Random Gift';
             switch (giftChoice) {
             case 'Random Gift':
                 giftPic = gm.getValue('RandomGiftPic');
@@ -7765,7 +7765,7 @@ caap = {
                 }
                 break;
             case 'Same Gift As Received':
-				givenGiftType = giverList[0].split(caapGlob.vs)[2];
+				givenGiftType = giverList[0].split(global.vs)[2];
 				giftList = gm.getList('GiftList');
                 gm.log('Looking for same gift as ' + givenGiftType);
                 if (giftList.indexOf(givenGiftType) < 0) {
@@ -7808,7 +7808,7 @@ caap = {
                         continue;
                     }
 
-                    var giverData = giverList[p].split(caapGlob.vs);
+                    var giverData = giverList[p].split(global.vs);
                     var giverID = giverData[0];
                     var giftType = giverData[2];
                     if (giftChoice == 'Same Gift As Received' && giftType != givenGiftType && giftType != 'Unknown Gift') {
@@ -7849,7 +7849,7 @@ caap = {
 
     AcceptGiftOnFB: function () {
         try {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 if (window.location.href.indexOf('apps.facebook.com/reqs.php') < 0 && window.location.href.indexOf('apps.facebook.com/home.php') < 0) {
                     return false;
                 }
@@ -7886,7 +7886,7 @@ caap = {
                     }
 
                     if (gm.getValue('ReceivedList', ' ').indexOf(giftEntry) < 0) {
-                        gm.listPush('ReceivedList', giftEntry + caapGlob.vs + giftType);
+                        gm.listPush('ReceivedList', giftEntry + global.vs + giftType);
                     }
 
                     gm.log('This giver: ' + user + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
@@ -8684,7 +8684,7 @@ caap = {
         }
 
         var locationFBMF = false;
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             if (window.location.href.indexOf('apps.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('apps.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
                 locationFBMF = true;
             }
@@ -8718,7 +8718,7 @@ caap = {
 
         var caapDisabled = gm.getValue('Disabled', false);
         if (caapDisabled) {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 CE_message("disabled", null, caapDisabled);
             }
 
@@ -8799,7 +8799,7 @@ caap = {
         // better than reload... no prompt on forms!
         if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') &&
                 (gm.getValue('caapPause') == 'none')) {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
 
@@ -8819,7 +8819,7 @@ caap = {
                 if (window.location.href.indexOf('castle_age') >= 0 &&
                         !gm.getValue('Disabled') &&
                         (gm.getValue('caapPause') == 'none')) {
-                    if (caapGlob.is_chrome) {
+                    if (global.is_chrome) {
                         CE_message("paused", null, gm.getValue('caapPause', 'none'));
                     }
 

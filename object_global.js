@@ -3,7 +3,7 @@
 // Define our global object
 ///////////////////////////
 
-caapGlob = {
+global = {
     gameName: 'castle_age',
 
     discussionURL: 'http://senses.ws/caap/index.php',

@@ -14,9 +14,9 @@ gm.log("Starting");
 //                         Chrome Startup
 /////////////////////////////////////////////////////////////////////
 
-if (caapGlob.is_chrome) {
+if (global.is_chrome) {
     try {
-        var lastVersion = localStorage.getItem(caapGlob.gameName + '__LastVersion', 0);
+        var lastVersion = localStorage.getItem(global.gameName + '__LastVersion', 0);
         var shouldTryConvert = false;
         if (lastVersion) {
             if (lastVersion.substr(0, 1) == 's') {
@@ -52,7 +52,7 @@ if (gm.getValue('SetTitle')) {
         DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
     }
 
-    document.title = DocumentTitle + caapGlob.documentTitle;
+    document.title = DocumentTitle + global.documentTitle;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -61,10 +61,10 @@ if (gm.getValue('SetTitle')) {
 // to get updates from github.com
 /////////////////////////////////////////////////////////////////////
 
-if (!caapGlob.is_chrome) {
+if (!global.is_chrome) {
     try {
         if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
-            caapGlob.newVersionAvailable = true;
+            global.newVersionAvailable = true;
         }
 
         // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
@@ -85,7 +85,7 @@ if (!caapGlob.is_chrome) {
                             gm.setValue('SUC_remote_version', remote_version);
                             gm.log('remote version ' + remote_version);
                             if (remote_version > caapVersion) {
-                                caapGlob.newVersionAvailable = true;
+                                global.newVersionAvailable = true;
                                 if (forced) {
                                     if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
                                         GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
@@ -130,7 +130,7 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
             var storageKeys = GM_listValues();
             for (var key = 0; key < storageKeys.length; key += 1) {
                 if (GM_getValue(storageKeys[key])) {
-                    GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', caapGlob.os).replace('`', caapGlob.vs));
+                    GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', global.os).replace('`', global.vs));
                 }
             }
         }
@@ -183,7 +183,7 @@ $(function () {
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);
         gm.deleteValue("statsMatch");
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
         }
 

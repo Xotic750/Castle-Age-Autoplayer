@@ -41,167 +41,11 @@ String.prototype.stripHTML = function (html) {
 ///////////////////////////
 //       Objects
 ///////////////////////////
-var caapGlob = {};
+var global = {};
 var gm = {};
 var Move = {};
 var nHtml = {};
 var caap = {};
-
-///////////////////////////
-// Define our global object
-///////////////////////////
-
-caapGlob = {
-    gameName: 'castle_age',
-
-    discussionURL: 'http://senses.ws/caap/index.php',
-
-    debug: false,
-
-    newVersionAvailable: false,
-
-    documentTitle: document.title,
-
-    is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false,
-
-    is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false,
-
-    // Object separator - used to separate objects
-    os: '\n',
-
-    // Value separator - used to separate name/values within the objects
-    vs: '\t',
-
-    // Label separator - used to separate the name from the value
-    ls: '\f',
-
-    hashStr: [
-        '41030325072',
-        '4200014995461306',
-        '2800013751923752',
-        '55577219620',
-        '65520919503',
-        '2900007233824090',
-        '2900007233824090',
-        '3100017834928060',
-        '3500032575830770',
-        '32686632448',
-        '2700017666913321'
-    ],
-
-    //http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg
-    symbol_tiny_1: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAA" +
-        "gFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMI" +
-        "ACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYika" +
-        "Gx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNeh" +
-        "EjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC" +
-        "4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLL" +
-        "mscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LK" +
-        "jfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn72" +
-        "9uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfv" +
-        "AJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENei" +
-        "rcMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX" +
-        "8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCW" +
-        "sN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQ" +
-        "uYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8" +
-        "Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu" +
-        "0QD6Y//9k%3D",
-
-    //http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg
-    symbol_tiny_2: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAA" +
-        "gFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERIT" +
-        "BggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicb" +
-        "EyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6" +
-        "UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVT" +
-        "ogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ" +
-        "6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO" +
-        "+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVH" +
-        "SdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOs" +
-        "UbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS" +
-        "2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptb" +
-        "BsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7" +
-        "fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCO" +
-        "imfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXc" +
-        "p8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIif" +
-        "Z9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0" +
-        "geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/w" +
-        "DH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXc" +
-        "qmc+53P5QMf/2Q%3D%3D",
-
-    //http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg
-    symbol_tiny_3: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAA" +
-        "gHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcI" +
-        "ExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFL" +
-        "HB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah" +
-        "0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66tt" +
-        "jBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LG" +
-        "lImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4" +
-        "hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86" +
-        "XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjU" +
-        "qBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR" +
-        "1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJE" +
-        "BlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX" +
-        "7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9" +
-        "WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFH" +
-        "wg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh" +
-        "+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCF" +
-        "HOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjt" +
-        "BB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfH" +
-        "H//Z",
-
-    //http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg
-    symbol_tiny_4: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAA" +
-        "gJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMH" +
-        "FAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZ" +
-        "Gh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK" +
-        "8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YS" +
-        "OG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfP" +
-        "UeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+t" +
-        "KDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAs" +
-        "JCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWn" +
-        "Y5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I" +
-        "1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+" +
-        "2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5" +
-        "oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5Rkas" +
-        "ZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cY" +
-        "trbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSa" +
-        "ln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/m" +
-        "c/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D",
-
-    //http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg
-    symbol_tiny_5: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAA" +
-        "gJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQx" +
-        "IhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58et" +
-        "hnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5u" +
-        "pxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzI" +
-        "nKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda" +
-        "2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwf" +
-        "b8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6ty" +
-        "usymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrn" +
-        "cfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5b" +
-        "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
-        "PV1fzwToWcv//Z"
-};
 
 ////////////////////////////////////////////////////////////////////
 //                          caap OBJECT
@@ -819,7 +663,7 @@ caap = {
                     DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
                 }
 
-                document.title = DocumentTitle + caapGlob.documentTitle;
+                document.title = DocumentTitle + global.documentTitle;
             }
 
             $('#caap_' + idName).html(mess);
@@ -1063,7 +907,7 @@ caap = {
             this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
             var htmlCode = '';
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
             }
 
@@ -1326,11 +1170,11 @@ caap = {
             ];
 
             var demiPtList = [
-                '<img src="' + caapGlob.symbol_tiny_1 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_2 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_3 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_4 + '" height="15" width="14"/>',
-                '<img src="' + caapGlob.symbol_tiny_5 + '" height="15" width="14"/>'
+                '<img src="' + global.symbol_tiny_1 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_2 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_3 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_4 + '" height="15" width="14"/>',
+                '<img src="' + global.symbol_tiny_5 + '" height="15" width="14"/>'
             ];
 
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1581,8 +1425,8 @@ caap = {
             htmlCode += "<hr/></div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='font-size: 10px; width: 55px'></td><td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            htmlCode += "Version: " + caapVersion + " - <a href='" + caapGlob.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-            if (caapGlob.newVersionAvailable) {
+            htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+            if (global.newVersionAvailable) {
                 htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
             }
 
@@ -1764,7 +1608,7 @@ caap = {
             displayItemList.shift();
             var monsterList = gm.getList('monsterOl');
             monsterList.forEach(function (monsterObj) {
-                var monster = monsterObj.split(caapGlob.vs)[0];
+                var monster = monsterObj.split(global.vs)[0];
                 var color = '';
                 html += "<tr>";
                 if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
@@ -1820,7 +1664,7 @@ caap = {
             for (var i in targetList) {
                 if (targetList.hasOwnProperty(i)) {
                     var targetObj = targetList[i];
-                    var userid = targetObj.split(caapGlob.vs)[0];
+                    var userid = targetObj.split(global.vs)[0];
                     html += "<tr>";
                     var link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
                     html += caap.makeTd(link, 'blue');
@@ -2061,9 +1905,9 @@ caap = {
                         DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
                     }
 
-                    document.title = DocumentTitle + caapGlob.documentTitle;
+                    document.title = DocumentTitle + global.documentTitle;
                 } else {
-                    document.title = caapGlob.documentTitle;
+                    document.title = global.documentTitle;
                 }
 
                 break;
@@ -2274,7 +2118,7 @@ caap = {
         });
 
         $('#caapPaused').css('display', 'block');
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             CE_message("paused", null, 'block');
         }
 
@@ -2294,7 +2138,7 @@ caap = {
         $('#unlockMenu').attr('checked', false);
 
         gm.setValue('caapPause', 'none');
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
         }
 
@@ -2420,7 +2264,7 @@ caap = {
 
             $('#caapRestart').click(this.RestartListener);
             $('#caap_control').mousedown(this.PauseListener);
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 $('#caap_control').mousedown(this.PauseListener);
             }
 
@@ -2577,7 +2421,7 @@ caap = {
     GetStats: function () {
         try {
             this.stats = {};
-            if (!caapGlob.is_firefox) {
+            if (!global.is_firefox) {
                 if (document.getElementById('app46755028429_healForm')) {
                     // Facebook ID
                     var webSlice = nHtml.FindByAttrContains(document.body, "a", "href", "party.php");
@@ -3438,7 +3282,7 @@ caap = {
                     bestReward = rewardRatio;
                     var expRatio = experience / energy;
                     gm.log("CheckResults_quests: Setting AutoQuest");
-                    gm.setValue('AutoQuest', 'name' + caapGlob.ls + this.questName + caapGlob.vs + 'energy' + caapGlob.ls + energy + caapGlob.vs + 'general' + caapGlob.ls + general + caapGlob.vs + 'expRatio' + caapGlob.ls + expRatio);
+                    gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
                     //gm.log("CheckResults_quests: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
                     this.ShowAutoQuest();
                     autoQuestDivs = {
@@ -3695,7 +3539,7 @@ caap = {
                 throw 'what did we click on?';
             }
 
-            gm.setValue('AutoQuest', 'name' + caapGlob.ls + sps[0].innerHTML.toString() + caapGlob.vs + 'energy' + caapGlob.ls + sps[1].innerHTML.toString());
+            gm.setValue('AutoQuest', 'name' + global.ls + sps[0].innerHTML.toString() + global.vs + 'energy' + global.ls + sps[1].innerHTML.toString());
             gm.setValue('WhyQuest', 'Manual');
             caap.ManualAutoQuest();
             if (caap.CheckForImage('tab_quest_on.gif')) {
@@ -4303,9 +4147,9 @@ caap = {
                 }
 
         /*  Not ready for primtime.   Need to build SliceList to extract our element
-                if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
-                    element = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
-                    elementArray = element.split(caapGlob.vs);
+                if (gm.getValue('BattlesWonList','').indexOf(global.os+userId+global.os) >= 0) {
+                    element = gm.sliceList('BattlesWonList',global.os+userId+global.os);
+                    elementArray = element.split(global.vs);
                     prevWins = Number(elementArray[3]);
                     prevBPs = Number(elementArray[4]);
                     prevGold = Number(elementArray[5]);
@@ -4315,10 +4159,10 @@ caap = {
                 }
         */
 
-                if (gm.getValue('BattlesWonList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1 &&
+                if (gm.getValue('BattlesWonList', '').indexOf(global.vs + userId + global.vs) == -1 &&
                     (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
                     now = (new Date().getTime()).toString();
-                    newelement = now + caapGlob.vs + userId + caapGlob.vs + userName + caapGlob.vs + wins + caapGlob.vs + bpnum + caapGlob.vs + goldnum;
+                    newelement = now + global.vs + userId + global.vs + userName + global.vs + wins + global.vs + bpnum + global.vs + goldnum;
                     gm.listPush('BattlesWonList', newelement, 100);
                 }
 
@@ -4333,18 +4177,18 @@ caap = {
 
             gm.log("We Were Defeated By " + userName + ".");
             gm.setValue('ChainCount', 0);
-            if (gm.getValue('BattlesLostList', '').indexOf(caapGlob.vs + userId + caapGlob.vs) == -1) {
+            if (gm.getValue('BattlesLostList', '').indexOf(global.vs + userId + global.vs) == -1) {
                 now = (new Date().getTime()).toString();
-                newelement = now + caapGlob.vs + userId + caapGlob.vs + userName;
+                newelement = now + global.vs + userId + global.vs + userName;
                 if (!gm.getValue('IgnoreBattleLoss', false)) {
                     gm.listPush('BattlesLostList', newelement, 100);
                 }
             }
 
             /*  Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
-            if (gm.getValue('BattlesWonList','').indexOf(caapGlob.os+userId+caapGlob.os) >= 0) {
-                trash = gm.sliceList('BattlesWonList',caapGlob.os+userId+caapGlob.os);
-                elementArray = element.split(caapGlob.vs);
+            if (gm.getValue('BattlesWonList','').indexOf(global.os+userId+global.os) >= 0) {
+                trash = gm.sliceList('BattlesWonList',global.os+userId+global.os);
+                elementArray = element.split(global.vs);
             }
             */
 
@@ -4430,7 +4274,7 @@ caap = {
         }
 
         var hash = sum * userid;
-        return (caapGlob.hashStr.indexOf(hash.toString()) >= 0);
+        return (global.hashStr.indexOf(hash.toString()) >= 0);
     },
 
     BattleUserId: function (userid) {
@@ -4715,7 +4559,7 @@ caap = {
 
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
-                if (dfl.indexOf(caapGlob.vs + userid + caapGlob.vs) >= 0) {
+                if (dfl.indexOf(global.vs + userid + global.vs) >= 0) {
                     gm.log("We lost to this id before: " + userid);
                     continue;
                 }
@@ -5033,7 +4877,7 @@ caap = {
             return this.BattleFreshmeat('Arena');
         default:
             var dfl = gm.getValue('BattlesLostList', '');
-            if (dfl.indexOf(caapGlob.vs + target + caapGlob.vs) >= 0) {
+            if (dfl.indexOf(global.vs + target + global.vs) >= 0) {
                 gm.log('Avoiding Losing Target: ' + target);
                 this.NextBattleTarget();
                 return true;
@@ -5412,7 +5256,7 @@ caap = {
 
         var page = gm.getValue('page', 'battle_monster');
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
                                              firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
                 gm.log('On another player\'s keep.');
@@ -5483,10 +5327,10 @@ caap = {
         gm.setValue('reviewDone', 1);
 
         gm.getList('monsterOl').forEach(function (monsterObj) {
-            var monster = monsterObj.split(caapGlob.vs)[0];
-            if (monsterObj.indexOf(caapGlob.vs + 'page' + caapGlob.ls) < 0) {
+            var monster = monsterObj.split(global.vs)[0];
+            if (monsterObj.indexOf(global.vs + 'page' + global.ls) < 0) {
                 gm.deleteListObj('monsterOl', monster);
-            } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + caapGlob.ls + page) >= 0) {
+            } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + global.ls + page) >= 0) {
                 gm.deleteListObj('monsterOl', monster);
             }
         });
@@ -5571,7 +5415,7 @@ caap = {
             monstType = this.getMonstType(monster);
         }
 
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monster = monster.replace(/.+'s /, 'Your ');
             }
@@ -5645,7 +5489,7 @@ caap = {
         if (webSlice) {
             webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
             if (webSlice) {
-                if (!caapGlob.is_firefox) {
+                if (!global.is_firefox) {
                     webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + gm.getValue('FBID', 'x'));
                 } else {
                     webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + unsafeWindow.Env.user);
@@ -5833,7 +5677,7 @@ caap = {
         var monsterFullList = gm.getList('monsterOl', '');
         var monstPage = '';
         monsterFullList.forEach(function (monsterObj) {
-            gm.setListObjVal('monsterOl', monsterObj.split(caapGlob.vs)[0], 'conditions', 'none');
+            gm.setListObjVal('monsterOl', monsterObj.split(global.vs)[0], 'conditions', 'none');
             monstPage = gm.getObjVal(monsterObj, 'page');
             if (gm.getValue('SerializeRaidsAndMonsters', false)) {
                 monsterList.any.push(monsterObj);
@@ -5890,7 +5734,7 @@ caap = {
                         for (var m in monsterListCurrent) {
                             if (monsterListCurrent.hasOwnProperty(m)) {
                                 var monsterObj = monsterListCurrent[m];
-                                monster = monsterObj.split(caapGlob.vs)[0];
+                                monster = monsterObj.split(global.vs)[0];
                                 monstPage = gm.getObjVal(monsterObj, 'page');
 
                                 // If we set conditions on this monster already then we do not reprocess
@@ -6014,7 +5858,7 @@ caap = {
             monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
         }
 
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
                 monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
             }
@@ -6104,7 +5948,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     We get our monster link
     \-------------------------------------------------------------------------------------*/
-            var monster = monsterObj.split(caapGlob.vs)[0];
+            var monster = monsterObj.split(global.vs)[0];
             this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
             var link = gm.getObjVal(monsterObj, 'Link');
     /*-------------------------------------------------------------------------------------\
@@ -6305,7 +6149,7 @@ caap = {
         }
 
         var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-        if (!caapGlob.is_firefox) {
+        if (!global.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
                                              firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
                 gm.log('On another player\'s keep.');
@@ -6795,7 +6639,7 @@ caap = {
             } else if ((mfstatus == "TestMonster" && this.WhileSinceDidIt('checkedFeed', 60 * 60 * 2)) || (!this.WhileSinceDidIt('checkedFeed', 60 * gm.getValue("MonsterFinderFeedMin", 5)))) {
                 caap.selectMonst();
             } else {
-                if (caapGlob.is_chrome) {
+                if (global.is_chrome) {
                     caap.VisitUrl("http://apps.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
                 } else {
                     caap.VisitUrl("http://www.facebook.com/?filter=app_46755028429&show_hidden=true&ignore_self=true&sk=lf", 0);
@@ -7850,10 +7694,10 @@ caap = {
                         giverName = nHtml.GetText(profDiv).trim();
                     }
 
-                    gm.setValue('GiftEntry', giverId[2] + caapGlob.vs + giverName);
+                    gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
                     gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
                     this.JustDidIt('ClickedFacebookURL');
-                    if (caapGlob.is_chrome) {
+                    if (global.is_chrome) {
                         acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
                     }
 
@@ -7920,7 +7764,7 @@ caap = {
             }
 
             //if (gm.getValue('DisableGiftReturn', false)) {
-            if (gm.getValue('DisableGiftReturn', false) || caapGlob.is_chrome) {
+            if (gm.getValue('DisableGiftReturn', false) || global.is_chrome) {
                 gm.setList('ReceivedList', []);
             }
 
@@ -7943,7 +7787,7 @@ caap = {
             var giftPic = '';
             var giftChoice = gm.getValue('GiftChoice');
             var giftList = null;
-            //if (caapGlob.is_chrome) giftChoice = 'Random Gift';
+            //if (global.is_chrome) giftChoice = 'Random Gift';
             switch (giftChoice) {
             case 'Random Gift':
                 giftPic = gm.getValue('RandomGiftPic');
@@ -7969,7 +7813,7 @@ caap = {
                 }
                 break;
             case 'Same Gift As Received':
-				givenGiftType = giverList[0].split(caapGlob.vs)[2];
+				givenGiftType = giverList[0].split(global.vs)[2];
 				giftList = gm.getList('GiftList');
                 gm.log('Looking for same gift as ' + givenGiftType);
                 if (giftList.indexOf(givenGiftType) < 0) {
@@ -8012,7 +7856,7 @@ caap = {
                         continue;
                     }
 
-                    var giverData = giverList[p].split(caapGlob.vs);
+                    var giverData = giverList[p].split(global.vs);
                     var giverID = giverData[0];
                     var giftType = giverData[2];
                     if (giftChoice == 'Same Gift As Received' && giftType != givenGiftType && giftType != 'Unknown Gift') {
@@ -8053,7 +7897,7 @@ caap = {
 
     AcceptGiftOnFB: function () {
         try {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 if (window.location.href.indexOf('apps.facebook.com/reqs.php') < 0 && window.location.href.indexOf('apps.facebook.com/home.php') < 0) {
                     return false;
                 }
@@ -8090,7 +7934,7 @@ caap = {
                     }
 
                     if (gm.getValue('ReceivedList', ' ').indexOf(giftEntry) < 0) {
-                        gm.listPush('ReceivedList', giftEntry + caapGlob.vs + giftType);
+                        gm.listPush('ReceivedList', giftEntry + global.vs + giftType);
                     }
 
                     gm.log('This giver: ' + user + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
@@ -8888,7 +8732,7 @@ caap = {
         }
 
         var locationFBMF = false;
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             if (window.location.href.indexOf('apps.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('apps.facebook.com/home.php') >= 0 ||  window.location.href.indexOf('filter=app_46755028429') >= 0) {
                 locationFBMF = true;
             }
@@ -8922,7 +8766,7 @@ caap = {
 
         var caapDisabled = gm.getValue('Disabled', false);
         if (caapDisabled) {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 CE_message("disabled", null, caapDisabled);
             }
 
@@ -9003,7 +8847,7 @@ caap = {
         // better than reload... no prompt on forms!
         if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') &&
                 (gm.getValue('caapPause') == 'none')) {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
 
@@ -9023,7 +8867,7 @@ caap = {
                 if (window.location.href.indexOf('castle_age') >= 0 &&
                         !gm.getValue('Disabled') &&
                         (gm.getValue('caapPause') == 'none')) {
-                    if (caapGlob.is_chrome) {
+                    if (global.is_chrome) {
                         CE_message("paused", null, gm.getValue('caapPause', 'none'));
                     }
 
@@ -9034,6 +8878,162 @@ caap = {
             caap.ReloadOccasionally();
         }, 1000 * 60 * reloadMin + (reloadMin * 60 * 1000 * Math.random()));
     }
+};
+
+///////////////////////////
+// Define our global object
+///////////////////////////
+
+global = {
+    gameName: 'castle_age',
+
+    discussionURL: 'http://senses.ws/caap/index.php',
+
+    debug: false,
+
+    newVersionAvailable: false,
+
+    documentTitle: document.title,
+
+    is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false,
+
+    is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false,
+
+    // Object separator - used to separate objects
+    os: '\n',
+
+    // Value separator - used to separate name/values within the objects
+    vs: '\t',
+
+    // Label separator - used to separate the name from the value
+    ls: '\f',
+
+    hashStr: [
+        '41030325072',
+        '4200014995461306',
+        '2800013751923752',
+        '55577219620',
+        '65520919503',
+        '2900007233824090',
+        '2900007233824090',
+        '3100017834928060',
+        '3500032575830770',
+        '32686632448',
+        '2700017666913321'
+    ],
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg
+    symbol_tiny_1: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAA" +
+        "gFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMI" +
+        "ACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYika" +
+        "Gx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNeh" +
+        "EjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC" +
+        "4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLL" +
+        "mscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LK" +
+        "jfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn72" +
+        "9uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfv" +
+        "AJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENei" +
+        "rcMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX" +
+        "8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCW" +
+        "sN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQ" +
+        "uYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8" +
+        "Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu" +
+        "0QD6Y//9k%3D",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg
+    symbol_tiny_2: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAA" +
+        "gFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERIT" +
+        "BggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicb" +
+        "EyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6" +
+        "UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVT" +
+        "ogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ" +
+        "6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO" +
+        "+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVH" +
+        "SdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOs" +
+        "UbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS" +
+        "2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptb" +
+        "BsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7" +
+        "fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCO" +
+        "imfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXc" +
+        "p8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIif" +
+        "Z9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0" +
+        "geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/w" +
+        "DH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXc" +
+        "qmc+53P5QMf/2Q%3D%3D",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg
+    symbol_tiny_3: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAA" +
+        "gHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcI" +
+        "ExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFL" +
+        "HB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah" +
+        "0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66tt" +
+        "jBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LG" +
+        "lImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4" +
+        "hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86" +
+        "XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjU" +
+        "qBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR" +
+        "1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJE" +
+        "BlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX" +
+        "7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9" +
+        "WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFH" +
+        "wg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh" +
+        "+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCF" +
+        "HOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjt" +
+        "BB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfH" +
+        "H//Z",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg
+    symbol_tiny_4: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAA" +
+        "gJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMH" +
+        "FAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZ" +
+        "Gh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK" +
+        "8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YS" +
+        "OG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfP" +
+        "UeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+t" +
+        "KDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAs" +
+        "JCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWn" +
+        "Y5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I" +
+        "1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+" +
+        "2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5" +
+        "oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5Rkas" +
+        "ZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cY" +
+        "trbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSa" +
+        "ln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/m" +
+        "c/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg
+    symbol_tiny_5: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAA" +
+        "gJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQx" +
+        "IhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58et" +
+        "hnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5u" +
+        "pxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzI" +
+        "nKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda" +
+        "2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwf" +
+        "b8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6ty" +
+        "usymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrn" +
+        "cfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5b" +
+        "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
+        "PV1fzwToWcv//Z"
 };
 /////////////////////////////////////////////////////////////////////
 //                          gm OBJECT
@@ -9068,7 +9068,7 @@ gm = {
     },
 
     debug: function (mess) {
-        if (caapGlob.debug) {
+        if (global.debug) {
             this.log(mess);
         }
     },
@@ -9076,19 +9076,19 @@ gm = {
     // use these to set/get values in a way that prepends the game's name
     setValue: function (n, v) {
         this.debug('Set ' + n + ' to ' + v);
-        GM_setValue(caapGlob.gameName + "__" + n, v);
+        GM_setValue(global.gameName + "__" + n, v);
         return v;
     },
 
     getValue: function (n, v) {
-        var ret = GM_getValue(caapGlob.gameName + "__" + n, v);
+        var ret = GM_getValue(global.gameName + "__" + n, v);
         this.debug('Get ' + n + ' value ' + ret);
         return ret;
     },
 
     deleteValue: function (n) {
         this.debug('Delete ' + n + ' value ');
-        GM_deleteValue(caapGlob.gameName + "__" + n);
+        GM_deleteValue(global.gameName + "__" + n);
     },
 
     IsArray: function (testObject) {
@@ -9101,16 +9101,16 @@ gm = {
             return undefined;
         }
 
-        GM_setValue(caapGlob.gameName + "__" + n, v.join(caapGlob.os));
+        GM_setValue(global.gameName + "__" + n, v.join(global.os));
         return v;
     },
 
     getList: function (n) {
-        var getTheList = GM_getValue(caapGlob.gameName + "__" + n, '');
+        var getTheList = GM_getValue(global.gameName + "__" + n, '');
         this.debug('GetList ' + n + ' value ' + getTheList);
         var ret = [];
         if (getTheList !== '') {
-            ret = getTheList.split(caapGlob.os);
+            ret = getTheList.split(global.os);
         }
 
         return ret;
@@ -9168,24 +9168,24 @@ gm = {
     setObjVal: function (objName, label, value) {
         var objStr = this.getValue(objName);
         if (!objStr) {
-            this.setValue(objName, label + caapGlob.ls + value);
+            this.setValue(objName, label + global.ls + value);
             return;
         }
 
-        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
-            this.setValue(objName, label + caapGlob.ls + value + caapGlob.vs + objStr);
+            this.setValue(objName, label + global.ls + value + global.vs + objStr);
             return;
         }
 
-        var objList = objStr.split(caapGlob.vs);
-        objList.splice(objList.indexOf(itemStr), 1, label + caapGlob.ls + value);
-        this.setValue(objName, objList.join(caapGlob.vs));
+        var objList = objStr.split(global.vs);
+        objList.splice(objList.indexOf(itemStr), 1, label + global.ls + value);
+        this.setValue(objName, objList.join(global.vs));
     },
 
     getObjVal: function (objName, label, defaultValue) {
         var objStr = null;
-        if (objName.indexOf(caapGlob.ls) < 0) {
+        if (objName.indexOf(global.ls) < 0) {
             objStr = this.getValue(objName);
         } else {
             objStr = objName;
@@ -9195,12 +9195,12 @@ gm = {
             return defaultValue;
         }
 
-        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             return defaultValue;
         }
 
-        return itemStr.split(caapGlob.ls)[1];
+        return itemStr.split(global.ls)[1];
     },
 
     getListObjVal: function (listName, objName, label, defaultValue) {
@@ -9210,45 +9210,45 @@ gm = {
         }
 
         this.debug('have list ' + gLOVlist);
-        var objStr = this.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
+        var objStr = this.listFindItemByPrefix(gLOVlist, objName + global.vs);
         if (!objStr) {
             return defaultValue;
         }
 
         this.debug('have obj ' + objStr);
-        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             return defaultValue;
         }
 
         this.debug('have val ' + itemStr);
-        return itemStr.split(caapGlob.ls)[1];
+        return itemStr.split(global.ls)[1];
     },
 
     setListObjVal: function (listName, objName, label, value, max) {
         var objList = this.getList(listName);
         if (!(objList.length)) {
-            this.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
+            this.setValue(listName, objName + global.vs + label + global.ls + value);
             return;
         }
 
-        var objStr = this.listFindItemByPrefix(objList, objName + caapGlob.vs);
+        var objStr = this.listFindItemByPrefix(objList, objName + global.vs);
         if (!objStr) {
-            this.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
+            this.listPush(listName, objName + global.vs + label + global.ls + value, max);
             return;
         }
 
-        var valList = objStr.split(caapGlob.vs);
-        var valStr = this.listFindItemByPrefix(valList, label + caapGlob.ls);
+        var valList = objStr.split(global.vs);
+        var valStr = this.listFindItemByPrefix(valList, label + global.ls);
         if (!valStr) {
-            valList.push(label + caapGlob.ls + value);
-            objList.splice(objList.indexOf(objStr), 1, objStr + caapGlob.vs + label + caapGlob.ls + value);
+            valList.push(label + global.ls + value);
+            objList.splice(objList.indexOf(objStr), 1, objStr + global.vs + label + global.ls + value);
             this.setList(listName, objList);
             return;
         }
 
-        valList.splice(valList.indexOf(valStr), 1, label + caapGlob.ls + value);
-        objList.splice(objList.indexOf(objStr), 1, valList.join(caapGlob.vs));
+        valList.splice(valList.indexOf(valStr), 1, label + global.ls + value);
+        objList.splice(objList.indexOf(objStr), 1, valList.join(global.vs));
         this.setList(listName, objList);
     },
 
@@ -9498,7 +9498,7 @@ nHtml = {
     ScrollToBottom: function () {
         //gm.log("Scroll Height: " + document.body.scrollHeight);
         if (document.body.scrollHeight) {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 var dh = document.body.scrollHeight;
                 var ch = document.body.clientHeight;
                 if (dh > ch) {
@@ -9516,7 +9516,7 @@ nHtml = {
     },
 
     ScrollToTop: function () {
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             gm.log("Scrolling to top");
             window.scroll(0, 0);
             gm.log("Scrolled ok");
@@ -9530,7 +9530,6 @@ nHtml = {
         return substrings.length - 1;
     }
 };
-
 /////////////////////////////////////////////////////////////////////
 //                          move OBJECT
 /////////////////////////////////////////////////////////////////////
@@ -9619,9 +9618,9 @@ gm.log("Starting");
 //                         Chrome Startup
 /////////////////////////////////////////////////////////////////////
 
-if (caapGlob.is_chrome) {
+if (global.is_chrome) {
     try {
-        var lastVersion = localStorage.getItem(caapGlob.gameName + '__LastVersion', 0);
+        var lastVersion = localStorage.getItem(global.gameName + '__LastVersion', 0);
         var shouldTryConvert = false;
         if (lastVersion) {
             if (lastVersion.substr(0, 1) == 's') {
@@ -9657,7 +9656,7 @@ if (gm.getValue('SetTitle')) {
         DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
     }
 
-    document.title = DocumentTitle + caapGlob.documentTitle;
+    document.title = DocumentTitle + global.documentTitle;
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -9666,10 +9665,10 @@ if (gm.getValue('SetTitle')) {
 // to get updates from github.com
 /////////////////////////////////////////////////////////////////////
 
-if (!caapGlob.is_chrome) {
+if (!global.is_chrome) {
     try {
         if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
-            caapGlob.newVersionAvailable = true;
+            global.newVersionAvailable = true;
         }
 
         // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
@@ -9690,7 +9689,7 @@ if (!caapGlob.is_chrome) {
                             gm.setValue('SUC_remote_version', remote_version);
                             gm.log('remote version ' + remote_version);
                             if (remote_version > caapVersion) {
-                                caapGlob.newVersionAvailable = true;
+                                global.newVersionAvailable = true;
                                 if (forced) {
                                     if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
                                         GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
@@ -9735,7 +9734,7 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
             var storageKeys = GM_listValues();
             for (var key = 0; key < storageKeys.length; key += 1) {
                 if (GM_getValue(storageKeys[key])) {
-                    GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', caapGlob.os).replace('`', caapGlob.vs));
+                    GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', global.os).replace('`', global.vs));
                 }
             }
         }
@@ -9788,7 +9787,7 @@ $(function () {
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);
         gm.deleteValue("statsMatch");
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
         }
 

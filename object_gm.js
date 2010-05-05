@@ -31,7 +31,7 @@ gm = {
     },
 
     debug: function (mess) {
-        if (caapGlob.debug) {
+        if (global.debug) {
             this.log(mess);
         }
     },
@@ -39,19 +39,19 @@ gm = {
     // use these to set/get values in a way that prepends the game's name
     setValue: function (n, v) {
         this.debug('Set ' + n + ' to ' + v);
-        GM_setValue(caapGlob.gameName + "__" + n, v);
+        GM_setValue(global.gameName + "__" + n, v);
         return v;
     },
 
     getValue: function (n, v) {
-        var ret = GM_getValue(caapGlob.gameName + "__" + n, v);
+        var ret = GM_getValue(global.gameName + "__" + n, v);
         this.debug('Get ' + n + ' value ' + ret);
         return ret;
     },
 
     deleteValue: function (n) {
         this.debug('Delete ' + n + ' value ');
-        GM_deleteValue(caapGlob.gameName + "__" + n);
+        GM_deleteValue(global.gameName + "__" + n);
     },
 
     IsArray: function (testObject) {
@@ -64,16 +64,16 @@ gm = {
             return undefined;
         }
 
-        GM_setValue(caapGlob.gameName + "__" + n, v.join(caapGlob.os));
+        GM_setValue(global.gameName + "__" + n, v.join(global.os));
         return v;
     },
 
     getList: function (n) {
-        var getTheList = GM_getValue(caapGlob.gameName + "__" + n, '');
+        var getTheList = GM_getValue(global.gameName + "__" + n, '');
         this.debug('GetList ' + n + ' value ' + getTheList);
         var ret = [];
         if (getTheList !== '') {
-            ret = getTheList.split(caapGlob.os);
+            ret = getTheList.split(global.os);
         }
 
         return ret;
@@ -131,24 +131,24 @@ gm = {
     setObjVal: function (objName, label, value) {
         var objStr = this.getValue(objName);
         if (!objStr) {
-            this.setValue(objName, label + caapGlob.ls + value);
+            this.setValue(objName, label + global.ls + value);
             return;
         }
 
-        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
-            this.setValue(objName, label + caapGlob.ls + value + caapGlob.vs + objStr);
+            this.setValue(objName, label + global.ls + value + global.vs + objStr);
             return;
         }
 
-        var objList = objStr.split(caapGlob.vs);
-        objList.splice(objList.indexOf(itemStr), 1, label + caapGlob.ls + value);
-        this.setValue(objName, objList.join(caapGlob.vs));
+        var objList = objStr.split(global.vs);
+        objList.splice(objList.indexOf(itemStr), 1, label + global.ls + value);
+        this.setValue(objName, objList.join(global.vs));
     },
 
     getObjVal: function (objName, label, defaultValue) {
         var objStr = null;
-        if (objName.indexOf(caapGlob.ls) < 0) {
+        if (objName.indexOf(global.ls) < 0) {
             objStr = this.getValue(objName);
         } else {
             objStr = objName;
@@ -158,12 +158,12 @@ gm = {
             return defaultValue;
         }
 
-        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             return defaultValue;
         }
 
-        return itemStr.split(caapGlob.ls)[1];
+        return itemStr.split(global.ls)[1];
     },
 
     getListObjVal: function (listName, objName, label, defaultValue) {
@@ -173,45 +173,45 @@ gm = {
         }
 
         this.debug('have list ' + gLOVlist);
-        var objStr = this.listFindItemByPrefix(gLOVlist, objName + caapGlob.vs);
+        var objStr = this.listFindItemByPrefix(gLOVlist, objName + global.vs);
         if (!objStr) {
             return defaultValue;
         }
 
         this.debug('have obj ' + objStr);
-        var itemStr = this.listFindItemByPrefix(objStr.split(caapGlob.vs), label + caapGlob.ls);
+        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             return defaultValue;
         }
 
         this.debug('have val ' + itemStr);
-        return itemStr.split(caapGlob.ls)[1];
+        return itemStr.split(global.ls)[1];
     },
 
     setListObjVal: function (listName, objName, label, value, max) {
         var objList = this.getList(listName);
         if (!(objList.length)) {
-            this.setValue(listName, objName + caapGlob.vs + label + caapGlob.ls + value);
+            this.setValue(listName, objName + global.vs + label + global.ls + value);
             return;
         }
 
-        var objStr = this.listFindItemByPrefix(objList, objName + caapGlob.vs);
+        var objStr = this.listFindItemByPrefix(objList, objName + global.vs);
         if (!objStr) {
-            this.listPush(listName, objName + caapGlob.vs + label + caapGlob.ls + value, max);
+            this.listPush(listName, objName + global.vs + label + global.ls + value, max);
             return;
         }
 
-        var valList = objStr.split(caapGlob.vs);
-        var valStr = this.listFindItemByPrefix(valList, label + caapGlob.ls);
+        var valList = objStr.split(global.vs);
+        var valStr = this.listFindItemByPrefix(valList, label + global.ls);
         if (!valStr) {
-            valList.push(label + caapGlob.ls + value);
-            objList.splice(objList.indexOf(objStr), 1, objStr + caapGlob.vs + label + caapGlob.ls + value);
+            valList.push(label + global.ls + value);
+            objList.splice(objList.indexOf(objStr), 1, objStr + global.vs + label + global.ls + value);
             this.setList(listName, objList);
             return;
         }
 
-        valList.splice(valList.indexOf(valStr), 1, label + caapGlob.ls + value);
-        objList.splice(objList.indexOf(objStr), 1, valList.join(caapGlob.vs));
+        valList.splice(valList.indexOf(valStr), 1, label + global.ls + value);
+        objList.splice(objList.indexOf(objStr), 1, valList.join(global.vs));
         this.setList(listName, objList);
     },
 

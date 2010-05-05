@@ -41,7 +41,7 @@ String.prototype.stripHTML = function (html) {
 ///////////////////////////
 //       Objects
 ///////////////////////////
-var caapGlob = {};
+var global = {};
 var gm = {};
 var Move = {};
 var nHtml = {};

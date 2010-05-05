@@ -206,7 +206,7 @@ nHtml = {
     ScrollToBottom: function () {
         //gm.log("Scroll Height: " + document.body.scrollHeight);
         if (document.body.scrollHeight) {
-            if (caapGlob.is_chrome) {
+            if (global.is_chrome) {
                 var dh = document.body.scrollHeight;
                 var ch = document.body.clientHeight;
                 if (dh > ch) {
@@ -224,7 +224,7 @@ nHtml = {
     },
 
     ScrollToTop: function () {
-        if (caapGlob.is_chrome) {
+        if (global.is_chrome) {
             gm.log("Scrolling to top");
             window.scroll(0, 0);
             gm.log("Scrolled ok");
@@ -238,4 +238,3 @@ nHtml = {
         return substrings.length - 1;
     }
 };
-
