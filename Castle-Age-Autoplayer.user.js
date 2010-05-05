@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.20
+// @version        140.22.21
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.22.20";
+var caapVersion = "140.22.21";
 
 ///////////////////////////
 //       Prototypes
@@ -793,10 +793,16 @@ caap = {
     moneyRe: new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
 
     init: function () {
-        this.addExpDisplay();
-        this.SetControls();
-        this.AddListeners();
-        this.CheckResults();
+        try {
+            this.addExpDisplay();
+            this.SetControls();
+            this.AddListeners();
+            this.CheckResults();
+            return true;
+        } catch (err) {
+            gm.log("ERROR in init: " + err);
+            return false;
+        }
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -805,45 +811,72 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     VisitUrl: function (url, loadWaitTime) {
-        this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-        window.location.href = url;
+        try {
+            this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+            window.location.href = url;
+            return true;
+        } catch (err) {
+            gm.log("ERROR in VisitUrl: " + err);
+            return false;
+        }
     },
 
     Click: function (obj, loadWaitTime) {
-        if (!obj) {
-            gm.log('ERROR: Null object passed to Click');
-            return null;
-        }
+        try {
+            if (!obj) {
+                throw 'Null object passed to Click';
+            }
 
-        if (caap.waitingForDomLoad === false) {
-            caap.JustDidIt('clickedOnSomething');
-            caap.waitingForDomLoad = true;
-        }
+            if (this.waitingForDomLoad === false) {
+                this.JustDidIt('clickedOnSomething');
+                this.waitingForDomLoad = true;
+            }
 
-        this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-        var evt = document.createEvent("MouseEvents");
-        evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        return !obj.dispatchEvent(evt);
+            this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+            var evt = document.createEvent("MouseEvents");
+            evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            /*
+            Return Value: boolean
+            The return value of dispatchEvent indicates whether any of the listeners
+            which handled the event called preventDefault. If preventDefault was called
+            the value is false, else the value is true.
+            */
+            return !obj.dispatchEvent(evt);
+        } catch (err) {
+            gm.log("ERROR in Click: " + err);
+            return undefined;
+        }
     },
 
     ClickAjax: function (link, loadWaitTime) {
-        if (!link) {
-            gm.log('ERROR: No link passed to Click Ajax');
-            return;
-        }
+        try {
+            if (!link) {
+                throw 'No link passed to Click Ajax';
+            }
 
-        if (gm.getValue('clickUrl', '').indexOf(link) < 0) {
-            gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-            caap.waitingForDomLoad = false;
-        }
+            if (gm.getValue('clickUrl', '').indexOf(link) < 0) {
+                gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+                this.waitingForDomLoad = false;
+            }
 
-        this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
+            return this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
+        } catch (err) {
+            gm.log("ERROR in ClickAjax: " + err);
+            return false;
+        }
     },
 
     ClickWait: function (obj, loadWaitTime) {
-        this.setTimeout(function () {
-            this.Click(obj, loadWaitTime);
-        }, 1000 + Math.floor(Math.random() * 1000));
+        try {
+            this.setTimeout(function () {
+                this.Click(obj, loadWaitTime);
+            }, 1000 + Math.floor(Math.random() * 1000));
+
+            return true;
+        } catch (err) {
+            gm.log("ERROR in ClickWait: " + err);
+            return false;
+        }
     },
 
     generalList: [],
@@ -863,38 +896,45 @@ caap = {
     ],
 
     BuildGeneralLists: function () {
-        this.generalList = [
-            'Get General List',
-            'Use Current',
-            'Under Level 4'
-        ].concat(gm.getList('AllGenerals'));
+        try {
+            this.generalList = [
+                'Get General List',
+                'Use Current',
+                'Under Level 4'
+            ].concat(gm.getList('AllGenerals'));
 
-        var crossList = function (checkItem) {
-            return (caap.generalList.indexOf(checkItem) >= 0);
-        };
+            var crossList = function (checkItem) {
+                return (caap.generalList.indexOf(checkItem) >= 0);
+            };
 
-        this.generalBuyList = [
-            'Get General List',
-            'Use Current',
-            'Darius',
-            'Lucius',
-            'Garlan',
-            'Penelope'
-        ].filter(crossList);
+            this.generalBuyList = [
+                'Get General List',
+                'Use Current',
+                'Darius',
+                'Lucius',
+                'Garlan',
+                'Penelope'
+            ].filter(crossList);
 
-        this.generalIncomeList = [
-            'Get General List',
-            'Use Current',
-            'Scarlett',
-            'Mercedes',
-            'Cid'
-        ].filter(crossList);
+            this.generalIncomeList = [
+                'Get General List',
+                'Use Current',
+                'Scarlett',
+                'Mercedes',
+                'Cid'
+            ].filter(crossList);
 
-        this.generalBankingList = [
-            'Get General List',
-            'Use Current',
-            'Aeris'
-        ].filter(crossList);
+            this.generalBankingList = [
+                'Get General List',
+                'Use Current',
+                'Aeris'
+            ].filter(crossList);
+
+            return true;
+        } catch (err) {
+            gm.log("ERROR in BuildGeneralLists: " + err);
+            return false;
+        }
     },
 
     GetCurrentGeneral: function () {
@@ -912,119 +952,141 @@ caap = {
     },
 
     CheckResults_generals: function () {
-        var gens = nHtml.getX('//div[@class=\'generalSmallContainer2\']', document, nHtml.xpath.unordered);
-        gm.setValue('AllGenerals', '');
-        gm.setValue('GeneralImages', '');
-        gm.setValue('LevelUpGenerals', '');
-        for (var x = 0; x < gens.snapshotLength; x += 1) {
-            var gen = nHtml.getX('./div[@class=\'general_name_div3\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
-            var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
-            img = nHtml.getHTMLPredicate(img);
-            //var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
-            //var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string);
-            //var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/gm,'');
-            var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/Level /gi, '').replace(/[\t\r\n]/g, '');
-            //var genatts = gen + ":" + atk + "/" + def + ":L" + level + ":" + img + ","
-            gm.listPush('AllGenerals', gen);
-            gm.listPush('GeneralImages', gen + ':' + img);
-            if (level < 4) {
-                gm.listPush('LevelUpGenerals', gen);
+        try {
+            var gens = nHtml.getX('//div[@class=\'generalSmallContainer2\']', document, nHtml.xpath.unordered);
+            gm.setValue('AllGenerals', '');
+            gm.setValue('GeneralImages', '');
+            gm.setValue('LevelUpGenerals', '');
+            for (var x = 0; x < gens.snapshotLength; x += 1) {
+                var gen = nHtml.getX('./div[@class=\'general_name_div3\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/g, '');
+                var img = nHtml.getX('.//input[@class=\'imgButton\']/@src', gens.snapshotItem(x), nHtml.xpath.string);
+                img = nHtml.getHTMLPredicate(img);
+                //var atk = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[1]/text()', gens.snapshotItem(x), nHtml.xpath.string);
+                //var def = nHtml.getX('./div[@class=\'generals_indv_stats\']/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string);
+                //var skills = nHtml.getX('.//table//td[1]/div/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/[\t\r\n]/gm,'');
+                var level = nHtml.getX('./div[4]/div[2]/text()', gens.snapshotItem(x), nHtml.xpath.string).replace(/Level /gi, '').replace(/[\t\r\n]/g, '');
+                //var genatts = gen + ":" + atk + "/" + def + ":L" + level + ":" + img + ","
+                gm.listPush('AllGenerals', gen);
+                gm.listPush('GeneralImages', gen + ':' + img);
+                if (level < 4) {
+                    gm.listPush('LevelUpGenerals', gen);
+                }
             }
-        }
 
-        gm.setList('AllGenerals', gm.getList('AllGenerals').sort());
-        //gm.log("All Generals: " + gm.getList('AllGenerals'));
+            gm.setList('AllGenerals', gm.getList('AllGenerals').sort());
+            //gm.log("All Generals: " + gm.getList('AllGenerals'));
+            return true;
+        } catch (err) {
+            gm.log("ERROR in CheckResults_generals: " + err);
+            return false;
+        }
     },
 
     ClearGeneral: function (whichGeneral) {
-        gm.log('Setting ' + whichGeneral + ' to "Use Current"');
-        gm.setValue(whichGeneral, 'Use Current');
-        this.BuildGeneralLists();
-        for (var generalType in this.standardGeneralList) {
-            if (this.standardGeneralList.hasOwnProperty(generalType)) {
-                this.ChangeDropDownList(this.standardGeneralList[generalType] + 'General', this.generalList, gm.getValue(this.standardGeneralList[generalType] + 'General', 'Use Current'));
+        try {
+            gm.log('Setting ' + whichGeneral + ' to "Use Current"');
+            gm.setValue(whichGeneral, 'Use Current');
+            this.BuildGeneralLists();
+            for (var generalType in this.standardGeneralList) {
+                if (this.standardGeneralList.hasOwnProperty(generalType)) {
+                    this.ChangeDropDownList(this.standardGeneralList[generalType] + 'General', this.generalList, gm.getValue(this.standardGeneralList[generalType] + 'General', 'Use Current'));
+                }
             }
-        }
 
-        this.ChangeDropDownList('BuyGeneral', this.generalBuyList, gm.getValue('BuyGeneral', 'Use Current'));
-        this.ChangeDropDownList('IncomeGeneral', this.generalIncomeList, gm.getValue('IncomeGeneral', 'Use Current'));
-        this.ChangeDropDownList('BankingGeneral', this.generalBankingList, gm.getValue('BankingGeneral', 'Use Current'));
-        this.ChangeDropDownList('LevelUpGeneral', this.generalList, gm.getValue('LevelUpGeneral', 'Use Current'));
+            this.ChangeDropDownList('BuyGeneral', this.generalBuyList, gm.getValue('BuyGeneral', 'Use Current'));
+            this.ChangeDropDownList('IncomeGeneral', this.generalIncomeList, gm.getValue('IncomeGeneral', 'Use Current'));
+            this.ChangeDropDownList('BankingGeneral', this.generalBankingList, gm.getValue('BankingGeneral', 'Use Current'));
+            this.ChangeDropDownList('LevelUpGeneral', this.generalList, gm.getValue('LevelUpGeneral', 'Use Current'));
+            return true;
+        } catch (err) {
+            gm.log("ERROR in ClearGeneral: " + err);
+            return false;
+        }
     },
 
     SelectGeneral: function (whichGeneral) {
-        if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current') {
-            var generalType = whichGeneral.replace(/General/i, '').trim();
-            if (gm.getValue(generalType + 'LevelUpGeneral', false) &&
-                this.stats.exp.dif &&
-                this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
-                whichGeneral = 'LevelUpGeneral';
-                gm.log('Using level up general');
+        try {
+            if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current') {
+                var generalType = whichGeneral.replace(/General/i, '').trim();
+                if (gm.getValue(generalType + 'LevelUpGeneral', false) &&
+                    this.stats.exp.dif &&
+                    this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
+                    whichGeneral = 'LevelUpGeneral';
+                    gm.log('Using level up general');
+                }
             }
-        }
 
-        var general = gm.getValue(whichGeneral, '');
-        if (!general) {
-            return false;
-        }
+            var general = gm.getValue(whichGeneral, '');
+            if (!general) {
+                return false;
+            }
 
-        if (!general || /use current/i.test(general)) {
-            return false;
-        }
+            if (!general || /use current/i.test(general)) {
+                return false;
+            }
 
-        if (/under level 4/i.test(general)) {
-            if (!gm.getList('LevelUpGenerals').length) {
+            if (/under level 4/i.test(general)) {
+                if (!gm.getList('LevelUpGenerals').length) {
+                    return this.ClearGeneral(whichGeneral);
+                }
+
+                if (gm.getValue('ReverseLevelUpGenerals')) {
+                    general = gm.getList('LevelUpGenerals').reverse().pop();
+                } else {
+                    general = gm.getList('LevelUpGenerals').pop();
+                }
+            }
+
+            var getCurrentGeneral = this.GetCurrentGeneral();
+            if (!getCurrentGeneral) {
+                this.ReloadCastleAge();
+            }
+
+            var currentGeneral = getCurrentGeneral.replace('**', '');
+            if (general.indexOf(currentGeneral) >= 0) {
+                return false;
+            }
+
+            gm.log('Changing from ' + currentGeneral + ' to ' + general);
+            if (this.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+                return true;
+            }
+
+            if (/get general list/i.test(general)) {
                 return this.ClearGeneral(whichGeneral);
             }
 
-            if (gm.getValue('ReverseLevelUpGenerals')) {
-                general = gm.getList('LevelUpGenerals').reverse().pop();
-            } else {
-                general = gm.getList('LevelUpGenerals').pop();
+            var hasGeneral = function (genImg) {
+                return (genImg.indexOf(general.replace(new RegExp(":.+"), '')) >= 0);
+            };
+
+            var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(new RegExp(".+:"), '');
+            if (this.CheckForImage(generalImage)) {
+                return this.NavigateTo(generalImage);
             }
-        }
 
-        var getCurrentGeneral = this.GetCurrentGeneral();
-        if (!getCurrentGeneral) {
-            this.ReloadCastleAge();
-        }
-
-        var currentGeneral = getCurrentGeneral.replace('**', '');
-        if (general.indexOf(currentGeneral) >= 0) {
+            this.SetDivContent('Could not find ' + general);
+            gm.log('Could not find ' + generalImage);
+            return this.ClearGeneral(whichGeneral);
+        } catch (err) {
+            gm.log("ERROR in SelectGeneral: " + err);
             return false;
         }
-
-        gm.log('Changing from ' + currentGeneral + ' to ' + general);
-        if (this.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
-            return true;
-        }
-
-        if (/get general list/i.test(general)) {
-            return this.ClearGeneral(whichGeneral);
-        }
-
-        var hasGeneral = function (genImg) {
-            return (genImg.indexOf(general.replace(new RegExp(":.+"), '')) >= 0);
-        };
-
-        var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(new RegExp(".+:"), '');
-        if (this.CheckForImage(generalImage)) {
-            return this.NavigateTo(generalImage);
-        }
-
-        this.SetDivContent('Could not find ' + general);
-        gm.log('Could not find ' + generalImage);
-        return this.ClearGeneral(whichGeneral);
     },
 
     oneMinuteUpdate: function (funcName) {
-        if (!gm.getValue('reset' + funcName) && !this.WhileSinceDidIt(funcName + 'Timer', 60)) {
+        try {
+            if (!gm.getValue('reset' + funcName) && !this.WhileSinceDidIt(funcName + 'Timer', 60)) {
+                return false;
+            }
+
+            this.JustDidIt(funcName + 'Timer');
+            gm.setValue('reset' + funcName, false);
+            return true;
+        } catch (err) {
+            gm.log("ERROR in oneMinuteUpdate: " + err);
             return false;
         }
-
-        this.JustDidIt(funcName + 'Timer');
-        gm.setValue('reset' + funcName, false);
-        return true;
     },
 
     NavigateTo: function (pathToPage, imageOnPage) {
@@ -1078,61 +1140,88 @@ caap = {
     },
 
     CheckForImage: function (image, webSlice, subDocument) {
-        if (!webSlice) {
-            if (!subDocument) {
-                webSlice = document.body;
-            } else {
-                webSlice = subDocument.body;
+        try {
+            if (!webSlice) {
+                if (!subDocument) {
+                    webSlice = document.body;
+                } else {
+                    webSlice = subDocument.body;
+                }
             }
-        }
 
-        var imageSlice = nHtml.FindByAttrContains(webSlice, 'input', 'src', image, subDocument);
-        if (imageSlice) {
-            return imageSlice;
-        }
+            var imageSlice = nHtml.FindByAttrContains(webSlice, 'input', 'src', image, subDocument);
+            if (imageSlice) {
+                return imageSlice;
+            }
 
-        imageSlice = nHtml.FindByAttrContains(webSlice, 'img', 'src', image, subDocument);
-        if (imageSlice) {
-            return imageSlice;
-        }
+            imageSlice = nHtml.FindByAttrContains(webSlice, 'img', 'src', image, subDocument);
+            if (imageSlice) {
+                return imageSlice;
+            }
 
-        imageSlice = nHtml.FindByAttrContains(webSlice, 'div', 'style', image, subDocument);
-        if (imageSlice) {
-            return imageSlice;
-        }
+            imageSlice = nHtml.FindByAttrContains(webSlice, 'div', 'style', image, subDocument);
+            if (imageSlice) {
+                return imageSlice;
+            }
 
-        return false;
+            return null;
+        } catch (err) {
+            gm.log("ERROR in CheckForImage: " + err);
+            return null;
+        }
     },
 
     WhileSinceDidIt: function (nameOrNumber, seconds) {
-        if (!/\d+/.test(nameOrNumber)) {
-            nameOrNumber = gm.getValue(nameOrNumber, 0);
-        }
+        try {
+            if (!/\d+/.test(nameOrNumber)) {
+                nameOrNumber = gm.getValue(nameOrNumber, 0);
+            }
 
-        var now = (new Date().getTime());
-        return (parseInt(nameOrNumber, 10) < (now - 1000 * seconds));
+            var now = (new Date().getTime());
+            return (parseInt(nameOrNumber, 10) < (now - 1000 * seconds));
+        } catch (err) {
+            gm.log("ERROR in WhileSinceDidIt: " + err);
+            return false;
+        }
     },
 
     JustDidIt: function (name) {
-        var now = (new Date().getTime());
-        gm.setValue(name, now.toString());
+        try {
+            var now = (new Date().getTime());
+            gm.setValue(name, now.toString());
+            return true;
+        } catch (err) {
+            gm.log("ERROR in JustDidIt: " + err);
+            return false;
+        }
     },
 
     DeceiveDidIt: function (name) {
-        gm.log("Deceive Did It");
-        var now = (new Date().getTime()) - 6500000;
-        gm.setValue(name, now.toString());
+        try {
+            gm.log("Deceive Did It");
+            var now = (new Date().getTime()) - 6500000;
+            gm.setValue(name, now.toString());
+            return true;
+        } catch (err) {
+            gm.log("ERROR in DeceiveDidIt: " + err);
+            return false;
+        }
     },
 
     // Returns true if timer is passed, or undefined
     CheckTimer: function (name) {
-        var nameTimer = gm.getValue(name);
-        if (!nameTimer) {
-            return true;
-        }
+        try {
+            var nameTimer = gm.getValue(name);
+            if (!nameTimer) {
+                return true;
+            }
 
-        var now = new Date().getTime();
-        return (nameTimer < now);
+            var now = new Date().getTime();
+            return (nameTimer < now);
+        } catch (err) {
+            gm.log("ERROR in CheckTimer: " + err);
+            return false;
+        }
     },
 
     FormatTime: function (time) {
@@ -1190,30 +1279,51 @@ caap = {
     },
 
     DisplayTimer: function (name) {
-        var nameTimer = gm.getValue(name);
-        if (!nameTimer) {
+        try {
+            var nameTimer = gm.getValue(name);
+            if (!nameTimer) {
+                return false;
+            }
+
+            var newTime = new Date();
+            newTime.setTime(parseInt(nameTimer, 10));
+            return this.FormatTime(newTime);
+        } catch (err) {
+            gm.log("ERROR in DisplayTimer: " + err);
             return false;
         }
-
-        var newTime = new Date();
-        newTime.setTime(parseInt(nameTimer, 10));
-        return this.FormatTime(newTime);
     },
 
     SetTimer: function (name, time) {
-        var now = (new Date().getTime());
-        now += time * 1000;
-        gm.setValue(name, now.toString());
+        try {
+            var now = (new Date().getTime());
+            now += time * 1000;
+            gm.setValue(name, now.toString());
+            return true;
+        } catch (err) {
+            gm.log("ERROR in SetTimer: " + err);
+            return false;
+        }
     },
 
     NumberOnly: function (num) {
-        var numOnly = parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
-        //gm.log("NumberOnly: " + numOnly);
-        return numOnly;
+        try {
+            var numOnly = parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
+            //gm.log("NumberOnly: " + numOnly);
+            return numOnly;
+        } catch (err) {
+            gm.log("ERROR in NumberOnly: " + err);
+            return null;
+        }
     },
 
     RemoveHtmlJunk: function (html) {
-        return html.replace(new RegExp("\\&[^;]+;", "g"), '');
+        try {
+            return html.replace(new RegExp("\\&[^;]+;", "g"), '');
+        } catch (err) {
+            gm.log("ERROR in RemoveHtmlJunk: " + err);
+            return null;
+        }
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -6820,21 +6930,36 @@ caap = {
                 }
             } else {
                 // power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
-                attackButton = this.CheckForImage('attack_monster_button2.jpg');
+                attackButton = this.CheckForImage('button_bash_');
                 if (!attackButton) {
-                    attackButton = this.CheckForImage('nm_primary_');
+                    attackButton = this.CheckForImage('power_stab_');
                     if (!attackButton) {
-                        attackButton = this.CheckForImage('event_attack2.gif');
+                        attackButton = this.CheckForImage('power_smite');
                         if (!attackButton) {
-                            attackButton = this.CheckForImage('seamonster_power.gif');
+                            attackButton = this.CheckForImage('button_bolt_');
                             if (!attackButton) {
-                                attackButton = this.CheckForImage('event_attack1.gif');
+                                attackButton = this.CheckForImage('power_button_');
                                 if (!attackButton) {
-                                    attackButton = this.CheckForImage('attack_monster_button.jpg');
-                                }
+                                    attackButton = this.CheckForImage('attack_monster_button2.jpg');
+                                    if (!attackButton) {
+                                        attackButton = this.CheckForImage('nm_primary_');
+                                        if (!attackButton) {
+                                            attackButton = this.CheckForImage('event_attack2.gif');
+                                            if (!attackButton) {
+                                                attackButton = this.CheckForImage('seamonster_power.gif');
+                                                if (!attackButton) {
+                                                    attackButton = this.CheckForImage('event_attack1.gif');
+                                                    if (!attackButton) {
+                                                        attackButton = this.CheckForImage('attack_monster_button.jpg');
+                                                    }
 
-                                if (attackButton) {
-                                    gm.setValue('MonsterStaminaReq', 1);
+                                                    if (attackButton) {
+                                                        gm.setValue('MonsterStaminaReq', 1);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -8904,7 +9029,7 @@ caap = {
             //if we need to add some army member
             if (gm.getValue('FillArmy', false)) {
                 if (!this.CheckForImage('invite_on.gif')) {
-                    caap.SetDivContent('idle_mess', 'Filling Army');
+                    this.SetDivContent('idle_mess', 'Filling Army');
                     this.NavigateTo('army');
                 } else { //get not army members
                     gm.log("Getting FB friends");
@@ -8951,21 +9076,21 @@ caap = {
 
                                     // Add army members //
                                     var count = 0;
-                                    var ID = gm.getValue("ArmyCount", 0);
-                                    if (ID === 0) {
+                                    var armyCount = gm.getValue("ArmyCount", 0);
+                                    if (armyCount === 0) {
                                         gm.log("Adding " + Ids.length + " member");
                                     }
 
-                                    caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
-                                    for (ID; ID < Ids.length ; ID += 1) {
-                                        caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + ID + "/" + Ids.length);
+                                    caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + Ids.length);
+                                    for (armyCount; armyCount < Ids.length ; armyCount += 1) {
+                                        caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + Ids.length);
                                         if (count >= 5) { //don't spam requests
-                                            this.waitMilliSecs = 1000;
+                                            caap.waitMilliSecs = 1000;
                                             break;
                                         } else {
                                             count += 1;
                                             GM_xmlhttpRequest({
-                                                url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[ID] + '&buf=1',
+                                                url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[armyCount] + '&buf=1',
                                                 method: "GET",
                                                 onload: function (response) {
                                                     count -= 1;
@@ -8975,11 +9100,11 @@ caap = {
                                                 }
                                             });
 
-                                            gm.setValue("ArmyCount", ID);
+                                            gm.setValue("ArmyCount", armyCount);
                                         }
                                     }
 
-                                    if (ID >= Ids.length) {
+                                    if (armyCount >= Ids.length) {
                                         caap.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
                                         window.setTimeout(function () {
                                             caap.SetDivContent('idle_mess', '');
@@ -9011,7 +9136,7 @@ caap = {
             }
         } catch (e) {
             gm.log("ERROR in FillArmy: " + e);
-            caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
+            this.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
             }, 5000);
