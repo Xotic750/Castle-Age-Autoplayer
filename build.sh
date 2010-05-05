@@ -3,10 +3,10 @@
 # Please copy this file as "build.bat"
 # Edit to put in the correct paths for your system
 
-echo Deleting old user.js files
+echo "Deleting old user.js files"
 rm -f _normal.user.js _min.user.js
 
-echo Joining files into _normal.user.js
+echo "Joining files into _normal.user.js"
 cat _head.js >_normal.user.js
 cat object_*.js >>_normal.user.js
 cat _main.js >>_normal.user.js
@@ -19,7 +19,7 @@ cat worker_*.js >>_normal.user.js
 # INSTALLED VERSION - Means you only need to hit F5 / refresh in Firefox
 # Just change the path to your firefox installed version, only the '???' should need changing on Windows7
 
-echo Installing new version to Firefox
+echo "Installing new version to Firefox"
 cp _normal.user.js Castle-Age-Autoplayer.user.js
 cp Castle-Age-Autoplayer.user.js Chrome/Castle-Age-Autoplayer.user.js
 cp README Chrome/README
@@ -29,7 +29,7 @@ cp README Chrome/README
 # Change path to compiler and source - obtain it from here:
 # http://code.google.com/closure/compiler/
 
-echo Creating minimised version (will also show errors)
+echo "Creating minimised version (will also show errors)"
 cp _head.js _min.user.js
 java -jar compiler.jar --js _normal.user.js >> _min.user.js
 
