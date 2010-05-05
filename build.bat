@@ -21,6 +21,8 @@ rem Just change the path to your firefox installed version, only the '???' shoul
 
 echo Installing new version to Firefox
 copy _normal.user.js Castle-Age-Autoplayer.user.js >nul
+copy Castle-Age-Autoplayer.user.js Chrome/Castle-Age-Autoplayer.user.js >nul
+copy README Chrome/README >nul
 
 rem --------------------------------------------------------------------------------------
 rem MINIMISED VERSION - This will fail on errors so use is advised - required for release!
