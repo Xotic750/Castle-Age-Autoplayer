@@ -5450,7 +5450,8 @@ caap = {
                 if (webSlice) {
                     var damList = null;
                     if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
-                        damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
+                        //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
+                        damList = nHtml.GetText(webSlice.parentNode.nextSibling).trim().split("/");
                         fort = this.NumberOnly(damList[1]);
                         damDone = this.NumberOnly(damList[0]) + fort;
                         gm.setListObjVal('monsterOl', monster, 'Fort', fort);
