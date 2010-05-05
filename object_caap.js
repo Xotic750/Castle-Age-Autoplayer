@@ -6161,9 +6161,9 @@ caap = {
                 // power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
                 attackButton = this.CheckForImage('button_bash_');
                 if (!attackButton) {
-                    attackButton = this.CheckForImage('power_stab_');
+                    attackButton = this.CheckForImage('button_stab_');
                     if (!attackButton) {
-                        attackButton = this.CheckForImage('power_smite');
+                        attackButton = this.CheckForImage('button_smite');
                         if (!attackButton) {
                             attackButton = this.CheckForImage('button_bolt_');
                             if (!attackButton) {
