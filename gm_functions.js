@@ -2,13 +2,13 @@
         GM Function support for Chrome for the use with
         the Castle Age Autoplayer script.
 
-        Version 1.0.4.2
+        Version 1.0.4.3
 */
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,localStorage,GM_setValue,GM_getValue,GM_addStyle,GM_deleteValue,GM_log,GM_registerMenuCommand,GM_listValues,ConvertGMtoJSON */
 
-if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
+if ((typeof GM_getValue === 'undefined') || !GM_getValue('a', true)) {
     /*
     Syntax
         function GM_log( message )
@@ -145,7 +145,7 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
     GM_listValues = function () {
         try {
             var names = [];
-            for (var i = 0; i < localStorage.length; i++) {
+            for (var i = 0; i < localStorage.length; i += 1) {
                 names.push(localStorage.key(i));
             }
 
@@ -190,7 +190,7 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
             key.name = '';
             key.type = '';
             key.value = '';
-            for (var i = 0; i < localStorage.length; i++) {
+            for (var i = 0; i < localStorage.length; i += 1) {
                 key = {};
                 key.name = localStorage.key(i);
                 var value = localStorage.getItem(key.name);
@@ -205,12 +205,12 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
                 savedData.push(key);
             }
 
-            for (var j = 0; j < savedData.length; j++) {
+            for (var j = 0; j < savedData.length; j += 1) {
                 GM_deleteValue(savedData[j].name);
                 GM_log("Write: Name: " + savedData[j].name + " Value: " + savedData[j].value + " Type: " + savedData[j].type);
                 switch (savedData[j].type) {
                 case 'b':
-                    GM_setValue(savedData[j].name, (savedData[j].value == 'true'));
+                    GM_setValue(savedData[j].name, (savedData[j].value === 'true'));
                     GM_log("Converted");
                     break;
                 case 'n':
@@ -231,7 +231,7 @@ if ((typeof GM_getValue == 'undefined') || !GM_getValue('a', true)) {
         }
     };
 
-    if (typeof unsafeWindow == 'undefined') {
+    if (typeof unsafeWindow === 'undefined') {
         unsafeWindow = window;
     }
 }

@@ -7,6 +7,7 @@
                         "http*://*.facebook.com/common/error.html" ],
       "js": [ "jquery-1.4.2.min.js",
              "jquery-ui-1.8.1.custom.min.js",
+             "farbtastic.min.js",
              "json2.js",
              "gm_functions.js",
              "chrome_support.js",
@@ -29,5 +30,5 @@
    "name": "Castle Age Autoplayer - Alpha Patched",
    "background_page": "background.html",
    "permissions": [ "tabs", "http://apps.facebook.com/castle_age/*", "https://apps.facebook.com/castle_age/*" ],
-   "version": "140.22.13"
+   "version": "140.22.15"
 }

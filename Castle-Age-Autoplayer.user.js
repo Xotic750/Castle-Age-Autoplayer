@@ -2,9 +2,10 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.13
+// @version        140.22.15
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
+// @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -15,147 +16,192 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-if (typeof GM_log != 'function') {
-    alert("Your browser does not appear to support Greasemonkey scripts!");
-}
-
 ///////////////////////////
-// Define our global object
+//       Prototypes
 ///////////////////////////
 
+String.prototype.trim = function () {
+    return this.replace(/^\s+|\s+$/g, '');
+};
+
+String.prototype.ucFirst = function () {
+    var firstLetter = this.substr(0, 1);
+    return firstLetter.toUpperCase() + this.substr(1);
+};
+
+String.prototype.stripHTML = function (html) {
+    return this.replace(new RegExp('<[^>]+>', 'g'), '').replace(/&nbsp;/g, '');
+};
+
+///////////////////////////
+//       Objects
+///////////////////////////
 var caapGlob = {};
 var gm = {};
 var Move = {};
 var nHtml = {};
 var caap = {};
-var style = {};
-caapGlob.thisVersion = "140.22.13";
-caapGlob.gameName = 'castle_age';
-caapGlob.discussionURL = 'http://senses.ws/caap/index.php';
-caapGlob.debug = false;
-caapGlob.newVersionAvailable = false;
-caapGlob.documentTitle = document.title;
-caapGlob.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false;
-caapGlob.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false;
-caapGlob.os = '\n'; // Object separator - used to separate objects
-caapGlob.vs = '\t'; // Value separator - used to separate name/values within the objects
-caapGlob.ls = '\f'; // Label separator - used to separate the name from the value
-caapGlob.hashStr = ['41030325072', '4200014995461306', '2800013751923752',  +
-    '55577219620', '65520919503', '2900007233824090', '2900007233824090',   +
-    '3100017834928060', '3500032575830770', '32686632448', '2700017666913321'];
-//Images scr
-//http://image2.castleagegame.com/1393/graphics/symbol_tiny_1.jpg
-caapGlob.symbol_tiny_1 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAA" +
-    "gFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMI" +
-    "ACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYika" +
-    "Gx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNeh" +
-    "EjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC" +
-    "4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLL" +
-    "mscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LK" +
-    "jfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn72" +
-    "9uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfv" +
-    "AJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENei" +
-    "rcMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX" +
-    "8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCW" +
-    "sN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQ" +
-    "uYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8" +
-    "Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu" +
-    "0QD6Y//9k%3D";
-//http://image2.castleagegame.com/1393/graphics/symbol_tiny_2.jpg
-caapGlob.symbol_tiny_2 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAA" +
-    "gFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERIT" +
-    "BggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicb" +
-    "EyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6" +
-    "UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVT" +
-    "ogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ" +
-    "6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO" +
-    "+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVH" +
-    "SdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOs" +
-    "UbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS" +
-    "2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptb" +
-    "BsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7" +
-    "fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCO" +
-    "imfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXc" +
-    "p8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIif" +
-    "Z9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0" +
-    "geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/w" +
-    "DH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXc" +
-    "qmc+53P5QMf/2Q%3D%3D";
-//http://image2.castleagegame.com/1393/graphics/symbol_tiny_3.jpg
-caapGlob.symbol_tiny_3 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAA" +
-    "gHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcI" +
-    "ExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFL" +
-    "HB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah" +
-    "0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66tt" +
-    "jBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LG" +
-    "lImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4" +
-    "hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86" +
-    "XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjU" +
-    "qBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR" +
-    "1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJE" +
-    "BlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX" +
-    "7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9" +
-    "WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFH" +
-    "wg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh" +
-    "+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCF" +
-    "HOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjt" +
-    "BB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfH" +
-    "H//Z";
-//http://image2.castleagegame.com/1393/graphics/symbol_tiny_4.jpg
-caapGlob.symbol_tiny_4 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAA" +
-    "gJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMH" +
-    "FAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZ" +
-    "Gh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK" +
-    "8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YS" +
-    "OG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfP" +
-    "UeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+t" +
-    "KDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAs" +
-    "JCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWn" +
-    "Y5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I" +
-    "1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+" +
-    "2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5" +
-    "oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5Rkas" +
-    "ZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cY" +
-    "trbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSa" +
-    "ln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/m" +
-    "c/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D";
-//http://image2.castleagegame.com/1393/graphics/symbol_tiny_5.jpg
-caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
-    "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
-    "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
-    "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
-    "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAA" +
-    "gJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQx" +
-    "IhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58et" +
-    "hnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5u" +
-    "pxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzI" +
-    "nKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda" +
-    "2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwf" +
-    "b8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6ty" +
-    "usymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrn" +
-    "cfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5b" +
-    "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
-    "PV1fzwToWcv//Z";
+
 ///////////////////////////
+// Define our global object
+///////////////////////////
+
+caapGlob = {
+    thisVersion: "140.22.15",
+
+    gameName: 'castle_age',
+
+    discussionURL: 'http://senses.ws/caap/index.php',
+
+    debug: false,
+
+    newVersionAvailable: false,
+
+    documentTitle: document.title,
+
+    is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false,
+
+    is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false,
+
+    // Object separator - used to separate objects
+    os: '\n',
+
+    // Value separator - used to separate name/values within the objects
+    vs: '\t',
+
+    // Label separator - used to separate the name from the value
+    ls: '\f',
+
+    hashStr: [
+        '41030325072',
+        '4200014995461306',
+        '2800013751923752',
+        '55577219620',
+        '65520919503',
+        '2900007233824090',
+        '2900007233824090',
+        '3100017834928060',
+        '3500032575830770',
+        '32686632448',
+        '2700017666913321'
+    ],
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg
+    symbol_tiny_1: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAAAAAAAA" +
+        "gFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxMI" +
+        "ACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYika" +
+        "Gx0eEyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNeh" +
+        "EjtuIQKSj8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC" +
+        "4G+EbcUPt45C9I4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLL" +
+        "mscHISACEsOOPKDekeYf0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LK" +
+        "jfkDXLSxa1+7KaJISuq0saKZI2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn72" +
+        "9uHDX8KLqMYdcynsgYY8ya+uiR47EoxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfv" +
+        "AJXnt74jcx5Hhcg4+w/OKJCyaPMluN18JohOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENei" +
+        "rcMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe22e8GdvcRVPmerxe+CVDRfnip0l1YpAX" +
+        "8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0gn+3pcd5mO5bYTO22n+4cYUpCW" +
+        "sN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2UfvKQj7LmHlSwmRoXFnEmOQ" +
+        "uYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5eNnP6wcp5VD3PQ9q8" +
+        "Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4PudM7gJG+EzWyu" +
+        "0QD6Y//9k%3D",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg
+    symbol_tiny_2: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAAAAAAAA" +
+        "gFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERIT" +
+        "BggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicb" +
+        "EyFAbwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6" +
+        "UHkEigREZIsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVT" +
+        "ogOT3SJZUYgFBPuJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ" +
+        "6LuxttraN92pUdQT6RrM9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO" +
+        "+rZyIoez00tQR3NTqmKSXMGAWigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVH" +
+        "SdY+GD3PxvajlF263rRtG6bTNW3aW4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOs" +
+        "UbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLasXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS" +
+        "2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJtMFVEQxjYnT/eGZGBMZjwzeXr7sMcptb" +
+        "BsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvLb37JaG63KIAd8GQsEswwILQCR7" +
+        "fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep5K9SMPPPiHnGHW1ZgdwCO" +
+        "imfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3KvNIy6iu3076impZXc" +
+        "p8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNYNU0mGAyrIif" +
+        "Z9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0ZjfIg0" +
+        "geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/w" +
+        "DH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXc" +
+        "qmc+53P5QMf/2Q%3D%3D",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg
+    symbol_tiny_3: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAAAAAAAA" +
+        "gHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQcI" +
+        "ExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFL" +
+        "HB0WJyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah" +
+        "0038pImbKKoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66tt" +
+        "jBYEyRIUAEzGUkxkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LG" +
+        "lImJjgBhjXRFUw+pDDjPwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4" +
+        "hnIwIbB0WbxPaev16Cr/u1aWfPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86" +
+        "XmNpyNdJbp2YBxBDRqvGNKhmDtMGIMYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjU" +
+        "qBc1SMkvIopBs61C1V0oQgCAmTZyVeetFMftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR" +
+        "1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIud6vyDCYLxc2iW5d7n3E4r5kkpEchpJE" +
+        "BlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9bpLMKUk55RB+LgF08ecYIk7aXZX" +
+        "7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZyAbTd83VoB8KNPzFY9dJ9" +
+        "WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K1SNLrx6r9JwmaPFH" +
+        "wg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++UenFxczYtJh" +
+        "+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznLEDjQCF" +
+        "HOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsjt" +
+        "BB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfH" +
+        "H//Z",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg
+    symbol_tiny_4: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAAAAAAAA" +
+        "gJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhMH" +
+        "FAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZ" +
+        "Gh4fEyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK" +
+        "8Y5M6VxuINhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YS" +
+        "OG+tNH2/HPhzbW8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfP" +
+        "UeOmcmqeAznsxLJbQVTHOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+t" +
+        "KDSSxdqHUbSC15Gciir1pDtjca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAs" +
+        "JCZDdBHjUmMMzn1VhOSWJxmkqT4/X0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWn" +
+        "Y5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCwh+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I" +
+        "1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg658Dmc6ZnKYywun1giF/2GY9u7E0Mwz+" +
+        "2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs13akRn1Jp86du9LtMibMA0LYZT5" +
+        "oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso34/KSHaxZCMGs0kV5Rkas" +
+        "ZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSBlnOkc/hxwprjK/cY" +
+        "trbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21tC8thbMrQSa" +
+        "ln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGGMrTc/m" +
+        "c/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q%3D%3D",
+
+    //http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg
+    symbol_tiny_5: "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
+        "D/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/bAIQAAgEBAQEBAgEBAgMC" +
+        "AQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCgoKDAwMDAwMDAwMDA" +
+        "ECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM" +
+        "DAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAAAAAAAA" +
+        "gJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQx" +
+        "IhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58et" +
+        "hnb+kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5u" +
+        "pxKp3J7ba7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzI" +
+        "nKuPxvbZYW5Jb5xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda" +
+        "2ot47bNSDC8qBLjsSXDoNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwf" +
+        "b8u+3K9wfuejzQl0ZuSFWkTptRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6ty" +
+        "usymwHsLzp1DKmzFzojpyW6XXagUfH5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrn" +
+        "cfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYYZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5b" +
+        "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
+        "PV1fzwToWcv//Z"
+};
 
 /////////////////////////////////////////////////////////////////////
 //                          gm OBJECT
@@ -165,7 +211,28 @@ caapGlob.symbol_tiny_5 = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAgAAZABkAA" +
 gm = {
     // use to log stuff
     log: function (mess) {
-        GM_log('v' + caapGlob.thisVersion + ': ' + mess);
+        var now = new Date();
+        var t_hour = now.getHours();
+        var t_min = now.getMinutes();
+        var t_sec = now.getSeconds();
+
+        t_hour = t_hour + "";
+        if (t_hour.length === 1) {
+            t_hour = "0" + t_hour;
+        }
+
+        t_min = t_min + "";
+        if (t_min.length === 1) {
+            t_min = "0" + t_min;
+        }
+
+        t_sec = t_sec + "";
+        if (t_sec.length === 1) {
+            t_sec = "0" + t_sec;
+        }
+
+        var time = t_hour + ':' + t_min + ':' + t_sec;
+        GM_log('v' + caapGlob.thisVersion + ' (' + time + ') : ' + mess);
     },
 
     debug: function (mess) {
@@ -393,105 +460,6 @@ gm = {
 };
 
 /////////////////////////////////////////////////////////////////////
-//                         Chrome Startup
-/////////////////////////////////////////////////////////////////////
-
-if (caapGlob.is_chrome) {
-    try {
-        var lastVersion = localStorage.getItem(caapGlob.gameName + '__LastVersion', 0);
-        var shouldTryConvert = false;
-        if (lastVersion) {
-            if (lastVersion.substr(0, 1) == 's') {
-                shouldTryConvert = true;
-            }
-        }
-
-        if (caapGlob.thisVersion <= '140.21.9' || shouldTryConvert) {
-            ConvertGMtoJSON();
-        }
-    } catch (e) {
-        gm.log("Error converting DB: " + e);
-    }
-}
-
-if (caapGlob.is_chrome) {
-    try {
-        CM_Listener();
-    } catch (e) {
-        gm.log("Error loading CM_Listener" + e);
-    }
-}
-
-/////////////////////////////////////////////////////////////////////
-//                          GitHub updater
-// Used by browsers other than Chrome (namely Firefox and Flock)
-// to get updates from github.com
-/////////////////////////////////////////////////////////////////////
-
-if (!caapGlob.is_chrome) {
-    if (gm.getValue('SUC_remote_version', 0) > caapGlob.thisVersion) {
-        caapGlob.newVersionAvailable = true;
-    }
-
-    // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
-    try {
-        function updateCheck(forced) {
-            if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
-                try {
-                    GM_xmlhttpRequest({
-                        method: 'GET',
-                        url: 'http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js',
-                        headers: {'Cache-Control': 'no-cache'},
-                        onload: function (resp) {
-                            var rt = resp.responseText;
-                            var remote_version = /@version\s*(.*?)\s*$/m.exec(rt)[1];
-                            var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
-                            gm.setValue('SUC_last_update', new Date().getTime() + '');
-                            gm.setValue('SUC_target_script_name', script_name);
-                            gm.setValue('SUC_remote_version', remote_version);
-                            gm.log('remote version ' + remote_version);
-                            if (remote_version > caapGlob.thisVersion) {
-                                caapGlob.newVersionAvailable = true;
-                                if (forced) {
-                                    if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                        GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
-                                    }
-                                }
-                            } else if (forced) {
-                                alert('No update is available for "' + script_name + '."');
-                            }
-                        }
-                    });
-                } catch (err) {
-                    if (forced) {
-                        alert('An error occurred while checking for updates:\n' + err);
-                    }
-                }
-            }
-        }
-
-        GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
-            updateCheck(true);
-        });
-
-        updateCheck(false);
-    } catch (err) {}
-}
-
-String.prototype.trim = function () {
-    return this.replace(/^\s+|\s+$/g, '');
-};
-
-String.prototype.ucFirst = function () {
-    var firstLetter = this.substr(0, 1);
-    return firstLetter.toUpperCase() + this.substr(1);
-};
-
-String.prototype.stripHTML = function (html) {
-    return this.replace(new RegExp('<[^>]+>', 'g'), '').replace(/&nbsp;/g, '');
-};
-
-/////////////////////////////////////////////////////////////////////
 //                          HTML TOOLS
 // this object contains general methods for wading through the DOM and dealing with HTML
 /////////////////////////////////////////////////////////////////////
@@ -651,7 +619,7 @@ nHtml = {
     },
 
     getHTMLPredicate: function (HTML) {
-        for (var x = HTML.length; x > 1; x--) {
+        for (var x = HTML.length; x > 1; x -= 1) {
             if (HTML.substr(x, 1) == '/') {
                 return HTML.substr(x + 1);
             }
@@ -830,6 +798,14 @@ caap = {
     gainLevelRe: new RegExp("gain\\s+level\\s+([0-9]+)\\s+in", "i"),
     moneyRe: new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
     firstNumberRe: new RegExp("([0-9]+)"),
+    userNameRe: new RegExp("\"(.+)\""),
+
+    init: function () {
+        this.addExpDisplay();
+        this.SetControls();
+        this.AddListeners();
+        this.CheckResults();
+    },
 
     /////////////////////////////////////////////////////////////////////
     //                          UTILITY FUNCTIONS
@@ -1036,10 +1012,10 @@ caap = {
         }
 
         var hasGeneral = function (genImg) {
-            return (genImg.indexOf(general.replace(/:.+/, '')) >= 0);
+            return (genImg.indexOf(general.replace(/:\S*/, '')) >= 0);
         };
 
-        var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/.+:/, '');
+        var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/\S+:/, '');
         if (this.CheckForImage(generalImage)) {
             return this.NavigateTo(generalImage);
         }
@@ -1072,7 +1048,7 @@ caap = {
             }
 
             var pathList = pathToPage.split(",");
-            for (var s = pathList.length - 1; s >= 0; s--) {
+            for (var s = pathList.length - 1; s >= 0; s -= 1) {
                 var a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
                 if (a) {
                     gm.log('Go to ' + pathList[s]);
@@ -1239,7 +1215,8 @@ caap = {
     },
 
     NumberOnly: function (num) {
-        var numOnly = parseFloat(num.toString().replace(/[^0-9\.]/g, ""));
+        var numOnly = parseFloat(num.toString().replace(/,/g, '').match(/[\-\+]?[0-9]*\.?[0-9]+/g));
+        //gm.log("NumberOnly: " + numOnly);
         return numOnly;
     },
 
@@ -1283,6 +1260,33 @@ caap = {
                     htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" + dropDownList[item] + "</option>";
                 } else {
                     htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ">" + dropDownList[item] + "</option>";
+                }
+            }
+        }
+
+        htmlCode += '</select>';
+        return htmlCode;
+    },
+
+    /*-------------------------------------------------------------------------------------\
+    DBDropDown is used to make our drop down boxes for dash board controls.  These require
+    slightly different HTML from the side controls.
+    \-------------------------------------------------------------------------------------*/
+    DBDropDown: function (idName, dropDownList, instructions, formatParms) {
+        var selectedItem = gm.getValue(idName, 'defaultValue');
+        if (selectedItem == 'defaultValue') {
+            selectedItem = gm.setValue(idName, dropDownList[0]);
+        }
+
+        var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
+        for (var item in dropDownList) {
+            if (dropDownList.hasOwnProperty(item)) {
+                if (selectedItem != dropDownList[item]) {
+                    if (instructions) {
+                        htmlCode += "<option value='" + dropDownList[item] + "' " + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">"  + dropDownList[item];
+                    } else {
+                        htmlCode += "<option value='" + dropDownList[item] + "'>" + dropDownList[item];
+                    }
                 }
             }
         }
@@ -1556,7 +1560,36 @@ caap = {
         }
     },
 
-    SetControls: function (force) {
+    dashboardXY: {
+        selector: '#app46755028429_app_body_container',
+        x: 0,
+        y: 0
+    },
+
+    GetDashboardXY: function (reset) {
+        try {
+            var newTop = 0;
+            if (reset) {
+                newTop = $(this.dashboardXY.selector).offset().top - 10;
+            } else {
+                newTop = this.dashboardXY.y;
+            }
+
+            var newLeft = 0;
+            if (this.dashboardXY.x === '' || reset) {
+                newLeft = $(this.dashboardXY.selector).offset().left;
+            } else {
+                newLeft = $(this.dashboardXY.selector).offset().left + this.dashboardXY.x;
+            }
+
+            return {x: newLeft, y: newTop};
+        } catch (err) {
+            gm.log("ERROR in GetDashboardXY: " + err);
+            return {x: 0, y: 0};
+        }
+    },
+
+    SetControls: function () {
         try {
             // If unable to read in gm.values, then reload the page
             if (gm.getValue('caapPause', 'none') !== 'none' && gm.getValue('caapPause', 'none') !== 'block') {
@@ -1576,38 +1609,29 @@ caap = {
                 $(this.controlXY.selector).css('padding-top', shiftDown);
             }
 
-            if (!document.getElementById('caap_div')) {
-                var div = document.createElement('div');
-                div.id = 'caap_div';
-                div.style.width = '180px';
-                div.style.padding = '4px';
-                div.style.border = '2px solid #444';
-                div.style.background = gm.getValue('StyleBackgroundLight', '#E0C691');
-                div.style.opacity = gm.getValue('StyleOpacityLight', '1');
-                div.style.color = '#000';
-                this.controlXY.x = gm.getValue('caap_div_menuLeft', '');
-                this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
-                var styleXY = this.GetControlXY();
-                div.style.top = styleXY.y + 'px';
-                div.style.left = styleXY.x + 'px';
-                div.style.zIndex = gm.getValue('caap_div_zIndex', '2');
-                div.style.position = 'absolute';
-
-                for (var divID in this.divList) {
-                    if (this.divList.hasOwnProperty(divID)) {
-                        var addDiv = document.createElement('div');
-                        addDiv.id = 'caap_' + this.divList[divID];
-                        div.appendChild(addDiv);
-                    }
+            var caapDiv = "<div id='caap_div'>";
+            for (var divID in this.divList) {
+                if (this.divList.hasOwnProperty(divID)) {
+                    caapDiv += "<div id='caap_" + this.divList[divID] + "'></div>";
                 }
-
-                $(this.controlXY.selector).after(div);
             }
+            caapDiv += "</div>";
 
-            if ($('#caap_control').html().length > 0 && !force) {
-                // we already have the controls
-                return;
-            }
+            this.controlXY.x = gm.getValue('caap_div_menuLeft', '');
+            this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
+            var styleXY = this.GetControlXY();
+            $(caapDiv).css({
+                width: '180px',
+                background: gm.getValue('StyleBackgroundLight', '#E0C691'),
+                opacity: gm.getValue('StyleOpacityLight', '1'),
+                color: '#000',
+                padding: "4px",
+                border: "2px solid #444",
+                top: styleXY.y + 'px',
+                left: styleXY.x + 'px',
+                zIndex: gm.getValue('caap_div_zIndex', '2'),
+                position: 'absolute'
+            }).appendTo(document.body);
 
             this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
@@ -2118,10 +2142,10 @@ caap = {
             htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (gm.getValue('DisplayStyle', false) == 'Custom' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='StartedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleColorStarted', 'FFF or FFFFFF', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleColorStarted', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleTransparencyStarted', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='StopedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleColorStoped', 'FFF or FFFFFF', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleColorStoped', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleTransparencyStoped', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
@@ -2136,6 +2160,117 @@ caap = {
             }
 
             this.SetDivContent('control', htmlCode);
+
+            $('head').append('<style type="text/css">' +
+                '.farbtastic {' +
+                  'position: relative;' +
+                '}' +
+                '.farbtastic * {' +
+                  'position: absolute;' +
+                  'cursor: crosshair;' +
+                '}' +
+                '.farbtastic, .farbtastic .wheel {' +
+                  'width: 195px;' +
+                  'height: 195px;' +
+                '}' +
+                '.farbtastic .color, .farbtastic .overlay {' +
+                  'top: 47px;' +
+                  'left: 47px;' +
+                  'width: 101px;' +
+                  'height: 101px;' +
+                '}' +
+                '.farbtastic .wheel {' +
+                  'background: url(http://farbtastic.googlecode.com/svn/branches/farbtastic-1/wheel.png) no-repeat;' +
+                  'width: 195px;' +
+                  'height: 195px;' +
+                '}' +
+                '.farbtastic .overlay {' +
+                  'background: url(http://farbtastic.googlecode.com/svn/branches/farbtastic-1/mask.png) no-repeat;' +
+                '}' +
+                '.farbtastic .marker {' +
+                  'width: 17px;' +
+                  'height: 17px;' +
+                  'margin: -8px 0 0 -8px;' +
+                  'overflow: hidden; ' +
+                  'background: url(http://farbtastic.googlecode.com/svn/branches/farbtastic-1/marker.png) no-repeat;' +
+                '}' +
+                '</style>');
+
+            $("<div id='caap_ColorSelectorDiv1'></div>").css({
+                background: gm.getValue("StyleBackgroundLight", "white"),
+                padding: "5px",
+                border: "2px solid #000",
+                top: (window.innerHeight / 2) - 100 + 'px',
+                left: (window.innerWidth / 2) - 290 + 'px',
+                zIndex: '1337',
+                position: 'fixed',
+                display: 'none'
+            }).farbtastic('#caap_StyleColorStarted').appendTo(document.body);
+
+            $("<div id='caap_ColorSelectorDiv2'></div>").css({
+                background: gm.getValue("StyleBackgroundLight", "white"),
+                padding: "5px",
+                border: "2px solid #000",
+                top: (window.innerHeight / 2) - 100 + 'px',
+                left: (window.innerWidth / 2) + 'px',
+                zIndex: '1337',
+                position: 'fixed',
+                display: 'none'
+            }).farbtastic('#caap_StyleColorStoped').appendTo(document.body);
+
+            /*-------------------------------------------------------------------------------------\
+             Here is where we construct the HTML for our dashboard. We start by building the outer
+             container and position it within the main container.
+            \-------------------------------------------------------------------------------------*/
+            var layout = "<div id='caap_top'>";
+            /*-------------------------------------------------------------------------------------\
+             Next we put in our Refresh Monster List button which will only show when we have
+             selected the Monster display.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 9px; width:50; height:50'></div>";
+            /*-------------------------------------------------------------------------------------\
+             Next we put in the Clear Target List button which will only show when we have
+             selected the Target List display
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 9px; width:50; height:50'></div>";
+            /*-------------------------------------------------------------------------------------\
+             Then we put in the Live Feed link since we overlay the Castle Age link.
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:0px;'><input id='caap_liveFeed' type='button' value='LIVE FEED! Your friends are calling.' style='font-size: 9px; width:50; height:50'></div>";
+            /*-------------------------------------------------------------------------------------\
+             We install the display selection box that allows the user to toggle through the
+             available displays.
+            \-------------------------------------------------------------------------------------*/
+            var displayList = ['Monster', 'Target List'];
+            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
+            /*-------------------------------------------------------------------------------------\
+            And here we build our empty content divs.  We display the appropriate div
+            depending on which display was selected using the control above
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') + "'></div>";
+            layout += "</div>";
+            /*-------------------------------------------------------------------------------------\
+             No we apply our CSS to our container
+            \-------------------------------------------------------------------------------------*/
+            if (!$("#caap_top").length) {
+                this.dashboardXY.x = gm.getValue('caap_top_menuLeft', '');
+                this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10);
+                styleXY = this.GetDashboardXY();
+                $(layout).css({
+                    background: gm.getValue("StyleBackgroundLight", "white"),
+                    padding: "5px",
+                    height: "185px",
+                    width: "610px",
+                    margin: "0 auto",
+                    opacity: "1",
+                    top: styleXY.y + 'px',
+                    left: styleXY.x + 'px',
+                    zIndex: gm.getValue('caap_top_zIndex', '1'),
+                    position: 'absolute'
+                }).appendTo(document.body);
+            }
         } catch (e) {
             gm.log("ERROR in SetControls: " + e);
         }
@@ -2170,295 +2305,210 @@ caap = {
         return "<td><font size=1 color='" + color + "'>" + text + "</font></td>";
     },
 
-    dashboardXY: {
-        selector: '#app46755028429_app_body_container',
-        x: 0,
-        y: 0
-    },
+    UpdateDashboardWaitLog: true,
 
-    GetDashboardXY: function (reset) {
+    UpdateDashboard: function () {
         try {
-            var newTop = 0;
-            if (reset) {
-                newTop = $(this.dashboardXY.selector).offset().top - 10;
-            } else {
-                newTop = this.dashboardXY.y;
+            if ($('#caap_top').length === 0) {
+                throw "We are missing the Dashboard div!";
+
             }
 
-            var newLeft = 0;
-            if (this.dashboardXY.x === '' || reset) {
-                newLeft = $(this.dashboardXY.selector).offset().left;
-            } else {
-                newLeft = $(this.dashboardXY.selector).offset().left + this.dashboardXY.x;
-            }
-
-            return {x: newLeft, y: newTop};
-        } catch (err) {
-            gm.log("ERROR in GetDashboardXY: " + err);
-            return {x: 0, y: 0};
-        }
-    },
-
-    monsterDashboard: function () {
-        if (!this.oneMinuteUpdate('dashboard') && $('#caap_top')) {
-            return;
-        }
-
-    /*-------------------------------------------------------------------------------------\
-     Here is where we construct the HTML for our dashboard. We start by building the outer
-     container and position it within the main container.
-    \-------------------------------------------------------------------------------------*/
-        var layout = "<div id='caap_top'>";
-    /*-------------------------------------------------------------------------------------\
-     Next we put in our Refresh Monster List button which will only show when we have
-     selected the Monster display.
-    \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'> <input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='font-size: 9px; width:50; height:50'></div>";
-    /*-------------------------------------------------------------------------------------\
-     Next we put in the Clear Target List button which will only show when we have
-     selected the Target List display
-    \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'> <input type='button' id='caap_clearTargets' value='Clear Targets List' style='font-size: 9px; width:50; height:50'></div>";
-    /*-------------------------------------------------------------------------------------\
-     Then we put in the Live Feed link since we overlay the Castle Age link.
-    \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:0px;'><input id='caap_liveFeed' type='button' value='LIVE FEED! Your friends are calling.' style='font-size: 9px; width:50; height:50'></div>";
-    /*-------------------------------------------------------------------------------------\
-     We install the display selection box that allows the user to toggle through the
-     available displays.
-    \-------------------------------------------------------------------------------------*/
-        var displayList = ['Monster', 'Target List'];
-        layout += "<div style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
-    /*-------------------------------------------------------------------------------------\
-    And here we build our empty content divs.  We display the appropriate div
-    depending on which display was selected using the control above
-    \-------------------------------------------------------------------------------------*/
-        layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'></div>";
-        layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'></div>";
-        layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') + "'></div>";
-        layout += "</div>";
-    /*-------------------------------------------------------------------------------------\
-     No we apply our CSS to our container
-    \-------------------------------------------------------------------------------------*/
-        if (!$("#caap_top").length) {
-            this.dashboardXY.x = gm.getValue('caap_top_menuLeft', '');
-            this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10);
-            var styleXY = this.GetDashboardXY();
-            $(layout).css({
-                background: gm.getValue("StyleBackgroundLight", "white"),
-                padding: "5px",
-                //height: "185px",
-                width: "610px",
-                margin: "0 auto",
-                opacity: "1",
-                top: styleXY.y + 'px',
-                left: styleXY.x + 'px',
-                zIndex: gm.getValue('caap_top_zIndex', '1'),
-                position: 'absolute'
-            }).insertBefore("#caap_div");
-        }
-
-        var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-        var displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
-        for (var p in displayItemList) {
-            if (displayItemList.hasOwnProperty(p)) {
-                html += "<td><b><font size=1>" + displayItemList[p] + '</font></b></td>';
-            }
-        }
-
-        html += '</tr>';
-        displayItemList.shift();
-        var monsterList = gm.getList('monsterOl');
-        monsterList.forEach(function (monsterObj) {
-            var monster = monsterObj.split(caapGlob.vs)[0];
-            var color = '';
-            html += "<tr>";
-            if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
-                color = 'blue';
-            } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
-                color = 'green';
-            } else {
-                color = gm.getObjVal(monsterObj, 'color', 'black');
-            }
-
-            html += caap.makeTd(monster, color);
-            displayItemList.forEach(function (displayItem) {
-                //gm.log(' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
-                if (displayItem == 'Phase' && color == 'grey') {
-                    html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
-                } else {
-                    var value = gm.getObjVal(monsterObj, displayItem);
-                    if (value && !(displayItem == 'Fort%' && value == 101)) {
-                        if (parseInt(value, 10).toString() == value) {
-                            value = caap.makeCommaValue(value);
-                        }
-
-                        html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
-                    } else {
-                        html += '<td></td>';
-                    }
+            if (!this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
+                if (this.UpdateDashboardWaitLog) {
+                    gm.log("Dashboard update is waiting on oneMinuteUpdate");
+                    this.UpdateDashboardWaitLog = false;
                 }
-            });
+
+                return false;
+            }
+
+            gm.log("Updating Dashboard");
+            this.UpdateDashboardWaitLog = true;
+            var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
+            var displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
+            for (var p in displayItemList) {
+                if (displayItemList.hasOwnProperty(p)) {
+                    html += "<td><b><font size=1>" + displayItemList[p] + '</font></b></td>';
+                }
+            }
 
             html += '</tr>';
-        });
-
-        html += '</table>';
-        $("#caap_infoMonster").html(html);
-
-    /*-------------------------------------------------------------------------------------\
-    Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
-    table and then build the header row.
-    \-------------------------------------------------------------------------------------*/
-        html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-        var headers = ['UserId', 'Name', 'Deity#', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
-        var values = ['nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
-        for (var pp in headers) {
-            if (headers.hasOwnProperty(pp)) {
-                html += "<td><b><font size=1>" + headers[pp] + '</font></b></td>';
-            }
-        }
-    /*-------------------------------------------------------------------------------------\
-    This div will hold data drom the targetsOl repository.  We step through the entries
-    in targetOl and build each table row.  Our userid is 'key' so it's the first parameter
-    \-------------------------------------------------------------------------------------*/
-        var targetList = gm.getList('targetsOl');
-        for (var i in targetList) {
-            if (targetList.hasOwnProperty(i)) {
-                var targetObj = targetList[i];
-                var userid = targetObj.split(caapGlob.vs)[0];
+            displayItemList.shift();
+            var monsterList = gm.getList('monsterOl');
+            monsterList.forEach(function (monsterObj) {
+                var monster = monsterObj.split(caapGlob.vs)[0];
+                var color = '';
                 html += "<tr>";
-                var link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
-                html += caap.makeTd(link, 'blue');
-    /*-------------------------------------------------------------------------------------\
-    We step through each of the additional values we include in the table. If a value is
-    null then we build an empty td
-    \-------------------------------------------------------------------------------------*/
-                for (var j in values) {
-                    if (values.hasOwnProperty(j)) {
-                        var value = gm.getObjVal(targetObj, values[j]);
-                        if (!value) {
-                            html += '<td></td>';
-                            continue;
-                        }
-    /*-------------------------------------------------------------------------------------\
-    We format the values based on the names. Names ending with Num are numbers, ending in
-    Time are date/time counts, and Str are strings. We then end the row, and finally when
-    all done end the table.  We then add the HTML to the div.
-    \-------------------------------------------------------------------------------------*/
-                        if (/.+Num/.test(values[j])) {
-                            value = caap.makeCommaValue(value);
-                        }
-
-                        if (/.+Time/.test(values[j])) {
-                            var newTime = new Date(parseInt(value, 10));
-                            value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
-                        }
-
-                        html += caap.makeTd(value, 'black');
-                    }
+                if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
+                    color = 'blue';
+                } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
+                    color = 'green';
+                } else {
+                    color = gm.getObjVal(monsterObj, 'color', 'black');
                 }
 
-                html += '</tr>';
-            }
-        }
+                html += caap.makeTd(monster, color);
+                displayItemList.forEach(function (displayItem) {
+                    //gm.log(' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
+                    if (displayItem == 'Phase' && color == 'grey') {
+                        html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
+                    } else {
+                        var value = gm.getObjVal(monsterObj, displayItem);
+                        if (value && !(displayItem == 'Fort%' && value == 101)) {
+                            if (parseInt(value, 10).toString() == value) {
+                                value = caap.makeCommaValue(value);
+                            }
 
-        html += '</table>';
-        $("#caap_infoTargets1").html(html);
-    /*-------------------------------------------------------------------------------------\
-    We add our listener for the Display Select control.
-    \-------------------------------------------------------------------------------------*/
-        caap.AddDBListener();
+                            html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
+                        } else {
+                            html += '<td></td>';
+                        }
+                    }
+                });
+
+                html += '</tr>';
+            });
+
+            html += '</table>';
+            $("#caap_infoMonster").html(html);
+
+            /*-------------------------------------------------------------------------------------\
+            Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
+            table and then build the header row.
+            \-------------------------------------------------------------------------------------*/
+            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
+            var headers = ['UserId', 'Name', 'Deity#', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
+            var values = ['nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
+            for (var pp in headers) {
+                if (headers.hasOwnProperty(pp)) {
+                    html += "<td><b><font size=1>" + headers[pp] + '</font></b></td>';
+                }
+            }
+            /*-------------------------------------------------------------------------------------\
+            This div will hold data drom the targetsOl repository.  We step through the entries
+            in targetOl and build each table row.  Our userid is 'key' so it's the first parameter
+            \-------------------------------------------------------------------------------------*/
+            var targetList = gm.getList('targetsOl');
+            for (var i in targetList) {
+                if (targetList.hasOwnProperty(i)) {
+                    var targetObj = targetList[i];
+                    var userid = targetObj.split(caapGlob.vs)[0];
+                    html += "<tr>";
+                    var link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
+                    html += caap.makeTd(link, 'blue');
+                    /*-------------------------------------------------------------------------------------\
+                    We step through each of the additional values we include in the table. If a value is
+                    null then we build an empty td
+                    \-------------------------------------------------------------------------------------*/
+                    for (var j in values) {
+                        if (values.hasOwnProperty(j)) {
+                            var value = gm.getObjVal(targetObj, values[j]);
+                            if (!value) {
+                                html += '<td></td>';
+                                continue;
+                            }
+                            /*-------------------------------------------------------------------------------------\
+                            We format the values based on the names. Names ending with Num are numbers, ending in
+                            Time are date/time counts, and Str are strings. We then end the row, and finally when
+                            all done end the table.  We then add the HTML to the div.
+                            \-------------------------------------------------------------------------------------*/
+                            if (/\S+Num/.test(values[j])) {
+                                value = caap.makeCommaValue(value);
+                            }
+
+                            if (/\S+Time/.test(values[j])) {
+                                var newTime = new Date(parseInt(value, 10));
+                                value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
+                            }
+
+                            html += caap.makeTd(value, 'black');
+                        }
+                    }
+
+                    html += '</tr>';
+                }
+            }
+
+            html += '</table>';
+            $("#caap_infoTargets1").html(html);
+            return true;
+        } catch (e) {
+            gm.log("ERROR in UpdateDashboard: " + e);
+            return false;
+        }
     },
 
     /*-------------------------------------------------------------------------------------\
     AddDBListener creates the listener for our dashboard controls.
     \-------------------------------------------------------------------------------------*/
     AddDBListener: function () {
-        var selectDiv = document.getElementById('caap_DBDisplay');
-        if (!selectDiv) {
-            this.ReloadCastleAge();
-        }
-
-        selectDiv.addEventListener('change', function (e) {
-            var value = e.target.options[e.target.selectedIndex].value;
-            gm.setValue('DBDisplay', value);
-            switch (value) {
-            case "Target List" :
-                caap.SetDisplay('infoMonster', false);
-                caap.SetDisplay('infoTargets1', true);
-                caap.SetDisplay('infoTargets2', false);
-                caap.SetDisplay('buttonMonster', false);
-                caap.SetDisplay('buttonTargets', true);
-                break;
-            case "Target Stats" :
-                caap.SetDisplay('infoMonster', false);
-                caap.SetDisplay('infoTargets1', false);
-                caap.SetDisplay('infoTargets2', true);
-                caap.SetDisplay('buttonMonster', false);
-                caap.SetDisplay('buttonTargets', true);
-                break;
-            default :
-                caap.SetDisplay('infoMonster', true);
-                caap.SetDisplay('infoTargets1', false);
-                caap.SetDisplay('infoTargets2', false);
-                caap.SetDisplay('buttonMonster', true);
-                caap.SetDisplay('buttonTargets', false);
+        try {
+            var selectDiv = document.getElementById('caap_DBDisplay');
+            if (!selectDiv) {
+                this.ReloadCastleAge();
             }
 
-            gm.setValue('resetdashboard', true);
-        }, false);
-
-        var refreshMonsters = document.getElementById('caap_refreshMonsters');
-        refreshMonsters.addEventListener('click', function (e) {
-            gm.setValue('monsterReview', 0);
-            gm.setValue('monsterReviewCounter', -3);
-            gm.setValue('NotargetFrombattle_monster', 0);
-            gm.setValue('ReleaseControl', true);
-        }, false);
-
-        var liveFeed = document.getElementById('caap_liveFeed');
-        liveFeed.addEventListener('click', function (e) {
-            var feedButton = nHtml.FindByAttrContains(document.body, "img", "src", "button_feed2.gif");
-            if (feedButton) {
-                caap.Click(feedButton);
-            } else {
-                gm.log("Could not find Live Feed button");
-            }
-        }, false);
-
-        var clearTargets = document.getElementById('caap_clearTargets');
-        clearTargets.addEventListener('click', function (e) {
-            gm.setValue('targetsOl', '');
-            gm.setValue('resetdashboard', true);
-        }, false);
-    },
-
-    /*-------------------------------------------------------------------------------------\
-    DBDropDown is used to make our drop down boxes for dash board controls.  These require
-    slightly different HTML from the side controls.
-    \-------------------------------------------------------------------------------------*/
-    DBDropDown: function (idName, dropDownList, instructions, formatParms) {
-        var selectedItem = gm.getValue(idName, 'defaultValue');
-        if (selectedItem == 'defaultValue') {
-            selectedItem = gm.setValue(idName, dropDownList[0]);
-        }
-
-        var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
-        for (var item in dropDownList) {
-            if (dropDownList.hasOwnProperty(item)) {
-                if (selectedItem != dropDownList[item]) {
-                    if (instructions) {
-                        htmlCode += "<option value='" + dropDownList[item] + "' " + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">"  + dropDownList[item];
-                    } else {
-                        htmlCode += "<option value='" + dropDownList[item] + "'>" + dropDownList[item];
-                    }
+            selectDiv.addEventListener('change', function (e) {
+                var value = e.target.options[e.target.selectedIndex].value;
+                gm.setValue('DBDisplay', value);
+                switch (value) {
+                case "Target List" :
+                    caap.SetDisplay('infoMonster', false);
+                    caap.SetDisplay('infoTargets1', true);
+                    caap.SetDisplay('infoTargets2', false);
+                    caap.SetDisplay('buttonMonster', false);
+                    caap.SetDisplay('buttonTargets', true);
+                    break;
+                case "Target Stats" :
+                    caap.SetDisplay('infoMonster', false);
+                    caap.SetDisplay('infoTargets1', false);
+                    caap.SetDisplay('infoTargets2', true);
+                    caap.SetDisplay('buttonMonster', false);
+                    caap.SetDisplay('buttonTargets', true);
+                    break;
+                case "Monster" :
+                    caap.SetDisplay('infoMonster', true);
+                    caap.SetDisplay('infoTargets1', false);
+                    caap.SetDisplay('infoTargets2', false);
+                    caap.SetDisplay('buttonMonster', true);
+                    caap.SetDisplay('buttonTargets', false);
+                    break;
+                default :
                 }
-            }
-        }
 
-        htmlCode += '</select>';
-        return htmlCode;
+                gm.setValue('resetdashboard', true);
+            }, false);
+
+            var refreshMonsters = document.getElementById('caap_refreshMonsters');
+            refreshMonsters.addEventListener('click', function (e) {
+                gm.setValue('monsterReview', 0);
+                gm.setValue('monsterReviewCounter', -3);
+                gm.setValue('NotargetFrombattle_monster', 0);
+                gm.setValue('ReleaseControl', true);
+            }, false);
+
+            var liveFeed = document.getElementById('caap_liveFeed');
+            liveFeed.addEventListener('click', function (e) {
+                var feedButton = nHtml.FindByAttrContains(document.body, "img", "src", "button_feed2.gif");
+                if (feedButton) {
+                    caap.Click(feedButton);
+                } else {
+                    gm.log("Could not find Live Feed button");
+                }
+            }, false);
+
+            var clearTargets = document.getElementById('caap_clearTargets');
+            clearTargets.addEventListener('click', function (e) {
+                gm.setValue('targetsOl', '');
+                gm.setValue('resetdashboard', true);
+            }, false);
+
+            return true;
+        } catch (e) {
+            gm.log("ERROR in AddDBListener: " + e);
+            return false;
+        }
     },
 
     /*
@@ -2621,12 +2671,12 @@ caap = {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
             gm.log('Change: setting "' + idName + '" to "' + e.target.value + '"');
-            if (/Style.*/.test(idName)) {
+            if (/Style*/.test(idName)) {
                 gm.setValue("StyleBackgroundLight", "#" + gm.getValue("StyleColorStarted", "FFF"));
                 gm.setValue("StyleOpacityLight", gm.getValue("StyleTransparencyStarted", "1"));
                 gm.setValue("StyleBackgroundDark", "#" + gm.getValue("StyleColorStoped", "FFF"));
                 gm.setValue("StyleOpacityDark", gm.getValue("StyleTransparencyStoped", "1"));
-            } else if (/AttrValue./.test(idName)) {
+            } else if (/AttrValue?/.test(idName)) {
                 gm.deleteValue("statsMatch");
             } else {
                 if (e.target.value === '') {
@@ -2725,7 +2775,7 @@ caap = {
                         caap.SetDisplay('RaidSub', false);
                         caap.SetDisplay('ArenaSub', false);
                     }
-                } else if (/Attribute./.test(idName)) {
+                } else if (/Attribute?/.test(idName)) {
                     gm.setValue("SkillPointsNeed", 1);
                     gm.deleteValue("statsMatch");
                 } else if (idName == 'DisplayStyle') {
@@ -2919,11 +2969,21 @@ caap = {
             });
 
             $('#StartedColorSelect').click(function (e) {
-                style.LoadMenu('Start');
+                var display = 'none';
+                if ($('#caap_ColorSelectorDiv1').css('display') == 'none') {
+                    display = 'block';
+                }
+
+                $('#caap_ColorSelectorDiv1').css('display', display);
             });
 
             $('#StopedColorSelect').click(function (e) {
-                style.LoadMenu('Start');
+                var display = 'none';
+                if ($('#caap_ColorSelectorDiv2').css('display') == 'none') {
+                    display = 'block';
+                }
+
+                $('#caap_ColorSelectorDiv2').css('display', display);
             });
 
             $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
@@ -3018,7 +3078,11 @@ caap = {
             $(window).unbind('resize', this.windowResizeListener);
             $(window).bind('resize', this.windowResizeListener);
 
-            //gm.log("Listeners added for caap_div");
+            /*-------------------------------------------------------------------------------------\
+            We add our listener for the Display Select control.
+            \-------------------------------------------------------------------------------------*/
+            this.AddDBListener();
+            //gm.log("Listeners added for CAAP");
             return true;
         } catch (e) {
             gm.log("ERROR in AddListeners: " + e);
@@ -3115,7 +3179,8 @@ caap = {
                         gm.log("Unknown rank " + rank + ':' + rankm[1].toString());
                     }
                 }
-                var userName = txtRank.match(/"(.+)"/);
+
+                var userName = this.userNameRe.exec(txtRank);
                 gm.setValue('PlayerName', userName[1]);
             }
 
@@ -3331,12 +3396,12 @@ caap = {
     CheckResults: function () {
         // Check page to see if we should go to a page specific check function
         // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-        if (!caap.WhileSinceDidIt('CheckResultsTimer', 1)) {
+        if (!this.WhileSinceDidIt('CheckResultsTimer', 1)) {
             return;
         }
 
-        caap.performanceTimer('Start CheckResults');
-        caap.JustDidIt('CheckResultsTimer');
+        this.performanceTimer('Start CheckResults');
+        this.JustDidIt('CheckResultsTimer');
         //caap.addExpDisplay();
         gm.setValue('page', '');
         var pageUrl = gm.getValue('clickUrl');
@@ -3347,14 +3412,14 @@ caap = {
             //gm.log("Page match: " + page);
         }
 
-        if (caap.pageList[page]) {
-            if (caap.CheckForImage(caap.pageList[page].signaturePic)) {
+        if (this.pageList[page]) {
+            if (this.CheckForImage(caap.pageList[page].signaturePic)) {
                 page = gm.setValue('page', page);
                 //gm.log("Page set value: " + page);
             }
 
-            if (caap.pageList[page].subpages) {
-                caap.pageList[page].subpages.forEach(function (subpage) {
+            if (this.pageList[page].subpages) {
+                this.pageList[page].subpages.forEach(function (subpage) {
                     if (caap.CheckForImage(caap.pageList[subpage].signaturePic)) {
                         page = gm.setValue('page', subpage);
                         //gm.log("Page pubpage: " + page);
@@ -3372,19 +3437,19 @@ caap = {
         if (gm.getValue('page')) {
             gm.log('Checking results for ' + page);
             if (typeof caap[caap.pageList[page].CheckResultsFunction] == 'function') {
-                caap[caap.pageList[page].CheckResultsFunction](resultsText);
+                this[this.pageList[page].CheckResultsFunction](resultsText);
             } else {
-                gm.log('Check Results function not found: ' + caap[caap.pageList[page].CheckResultsFunction]);
+                gm.log('Check Results function not found: ' + this[this.pageList[page].CheckResultsFunction]);
             }
         } else {
             gm.log('No results check defined for ' + page);
         }
 
-        caap.performanceTimer('Before selectMonster');
-        caap.selectMonster();
-        caap.performanceTimer('Done selectMonster');
-        caap.monsterDashboard();
-        caap.performanceTimer('Done Dashboard');
+        this.performanceTimer('Before selectMonster');
+        this.selectMonster();
+        this.performanceTimer('Done selectMonster');
+        this.UpdateDashboard();
+        this.performanceTimer('Done Dashboard');
 
         // Check for new gifts
         if (!gm.getValue('HaveGift')) {
@@ -3403,17 +3468,17 @@ caap = {
             }
         }
 
-        if (!caap.stats.level) {
-            caap.GetStats();
+        if (!this.stats.level) {
+            this.GetStats();
         }
-        if (caap.stats.level < 10) {
-            caap.battlePage = 'battle_train,battle_off';
+        if (this.stats.level < 10) {
+            this.battlePage = 'battle_train,battle_off';
         } else {
-            caap.battlePage = 'battle';
+            this.battlePage = 'battle';
         }
 
         // Check for Elite Guard Add image
-        if (caap.CheckForImage('elite_guard_add')) {
+        if (this.CheckForImage('elite_guard_add')) {
             if (gm.getValue('AutoEliteEnd', 'NoArmy') != 'NoArmy') {
                 gm.setValue('AutoEliteGetList', 0);
             }
@@ -3424,8 +3489,9 @@ caap = {
         if (keepDiv) {
             var moneyElem = nHtml.FindByAttrContains(keepDiv, "b", "class", 'money');
             if (moneyElem) {
-                var goldStored = Number(moneyElem.firstChild.data.replace(/[^0-9]/g, ''));
+                var goldStored = this.NumberOnly(moneyElem.firstChild.data);
                 if (goldStored >= 0) {
+                    // Stored as a string because Firefox about:config integer can't handle large numbers
                     gm.log("Keep: Checked the gold in store: " + gm.setValue('inStore', goldStored + ''));
                     //gm.setValue('inStore', goldStored);
                 }
@@ -3434,11 +3500,11 @@ caap = {
 
         // If set and still recent, go to the function specified in 'ResultsFunction'
         var resultsFunction = gm.getValue('ResultsFunction', '');
-        if ((resultsFunction) && !caap.WhileSinceDidIt('SetResultsFunctionTimer', 20)) {
-            caap[resultsFunction](resultsText);
+        if ((resultsFunction) && !this.WhileSinceDidIt('SetResultsFunctionTimer', 20)) {
+            this[resultsFunction](resultsText);
         }
 
-        caap.performanceTimer('Done CheckResults');
+        this.performanceTimer('Done CheckResults');
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -4429,7 +4495,7 @@ caap = {
                 var owned = Number(ownedText.replace(/:\s+/, ''));
                 // If we own more than allowed we will set land and selection
                 var selection = [1, 5, 10];
-                for (var s = 2; s >= 0; s--) {
+                for (var s = 2; s >= 0; s -= 1) {
                     if (owned - maxAllowed >= selection[s]) {
                         this.sellLand = land;
                         this.sellLand.selection = s;
@@ -5084,7 +5150,7 @@ caap = {
                     var yourArenaPoints = 0;
                     var pointstxt = txt.match(/Points:\s+.+\s+/i);
                     if (pointstxt) {
-                        yourArenaPoints = Number(this.NumberOnly(pointstxt));
+                        yourArenaPoints = this.NumberOnly(pointstxt);
                     }
                     // var yourArenaPoints = this.NumberOnly(txt.match(/Points: \d+\ /i));
                     gm.log('Your rank: ' + yourRankStr + ' ' + yourRank + ' Arena Points: ' + yourArenaPoints);
@@ -6049,9 +6115,9 @@ caap = {
 
     CheckResults_viewFight: function () {
         // Check if on monster page (nm_top.jpg for Volcanic Dragon)
-        var webSlice = caap.CheckForImage('dragon_title_owner.jpg');
+        var webSlice = this.CheckForImage('dragon_title_owner.jpg');
         if (!webSlice) {
-            webSlice = caap.CheckForImage('nm_top.jpg');
+            webSlice = this.CheckForImage('nm_top.jpg');
             if (!webSlice) {
                 gm.log('Can not find identifier for monster fight page.');
                 return;
@@ -6061,7 +6127,7 @@ caap = {
         // Get name and type of monster
         var monster = nHtml.GetText(webSlice);
 
-        if (caap.CheckForImage('nm_volcanic_title.jpg')) {
+        if (this.CheckForImage('nm_volcanic_title.jpg')) {
             monster = monster.match(/.+'s /) + 'Bahamut, the Volcanic Dragon';
             monster = monster.trim();
         } else {
@@ -6070,12 +6136,12 @@ caap = {
 
         var fort = null;
         var monstType = '';
-        if (caap.CheckForImage('raid_1_large.jpg')) {
+        if (this.CheckForImage('raid_1_large.jpg')) {
             monstType = 'Raid I';
-        } else if (caap.CheckForImage('raid_b1_large.jpg')) {
+        } else if (this.CheckForImage('raid_b1_large.jpg')) {
             monstType = 'Raid II';
         } else {
-            monstType = caap.getMonstType(monster);
+            monstType = this.getMonstType(monster);
         }
 
         if (!caapGlob.is_firefox) {
@@ -6090,7 +6156,7 @@ caap = {
 
         var now = (new Date().getTime());
         gm.setListObjVal('monsterOl', monster, 'review', now.toString());
-		gm.setValue('monsterRepeatCount',0);
+		gm.setValue('monsterRepeatCount', 0);
 
         var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
         gm.setListObjVal('monsterOl', monster, 'Type', monstType);
@@ -6105,26 +6171,26 @@ caap = {
         var miss = '';
         var fortPct = null;
 
-        if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].fort) {
+        if (this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
             if (monstType == "Deathrune" || monstType == 'Ice Elemental') {
                 gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
             } else {
                 gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
             }
             // Check for mana forcefield
-            var img = caap.CheckForImage('bar_dispel');
+            var img = this.CheckForImage('bar_dispel');
             if (img) {
                 var manaHealth = img.parentNode.style.width;
                 manaHealth = manaHealth.substring(0, manaHealth.length - 1);
                 fortPct = 100 - Number(manaHealth);
             } else {
                 // Check fortify stuff
-                img = caap.CheckForImage('seamonster_ship_health');
+                img = this.CheckForImage('seamonster_ship_health');
                 if (img) {
                     var shipHealth = img.parentNode.style.width;
                     fortPct = shipHealth.substring(0, shipHealth.length - 1);
                     if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
-                        img = caap.CheckForImage('repair_bar_grey');
+                        img = this.CheckForImage('repair_bar_grey');
                         if (img) {
                             var extraHealth = img.parentNode.style.width;
                             extraHealth = extraHealth.substring(0, extraHealth.length - 1);
@@ -6133,7 +6199,7 @@ caap = {
                     }
                 } else {
                     // Check party health - Volcanic dragon
-                    img = caap.CheckForImage('nm_green');
+                    img = this.CheckForImage('nm_green');
                     if (img) {
                         var partyHealth = img.parentNode.style.width;
                         fortPct = partyHealth.substring(0, partyHealth.length - 1);
@@ -6159,16 +6225,18 @@ caap = {
                 }
 
                 if (webSlice) {
+                    var damList = null;
                     if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
-                        var damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
-                        gm.setListObjVal('monsterOl', monster, 'Damage', caap.NumberOnly(damList[0]) + caap.NumberOnly(damList[1]));
-                        fort = caap.NumberOnly(damList[1]);
+                        damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
+                        fort = this.NumberOnly(damList[1]);
+                        damDone = this.NumberOnly(damList[0]) + fort;
                         gm.setListObjVal('monsterOl', monster, 'Fort', fort);
                     } else {
-                        gm.setListObjVal('monsterOl', monster, 'Damage', caap.NumberOnly(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim()));
+                        damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                        damDone = this.NumberOnly(damList);
                     }
 
-                    damDone = gm.getListObjVal('monsterOl', monster, 'Damage');
+                    gm.setListObjVal('monsterOl', monster, 'Damage', damDone);
                     //if (damDone) gm.log("Damage done = " + gm.getListObjVal('monsterOl',monster,'Damage'));
                 } else {
                     gm.log("Player hasn't done damage yet");
@@ -6218,7 +6286,7 @@ caap = {
             monstHealthImg = 'monster_health_background.jpg';
         }
 
-        if (time.length == 3  && caap.CheckForImage(monstHealthImg)) {
+        if (time.length == 3  && this.CheckForImage(monstHealthImg)) {
             gm.setListObjVal('monsterOl', monster, 'TimeLeft', time[0] + ":" + time[1]);
             var hpBar = null;
             var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
@@ -6234,7 +6302,7 @@ caap = {
             if (hpBar) {
                 hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
                 gm.setListObjVal('monsterOl', monster, 'Damage%', hp);
-                boss = caap.monsterInfo[monstType];
+                boss = this.monsterInfo[monstType];
                 if (!boss) {
                     gm.log('Unknown monster');
                     return;
@@ -6272,7 +6340,7 @@ caap = {
             }
 
             if (boss) {
-                var T2K = caap.t2kCalc(boss, time, hp, currentPhase, miss);
+                var T2K = this.t2kCalc(boss, time, hp, currentPhase, miss);
                 gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
             }
         } else {
@@ -6282,14 +6350,14 @@ caap = {
             return;
         }
 
-        boss = caap.monsterInfo[monstType];
-        var achLevel = caap.parseCondition('ach', monsterConditions);
+        boss = this.monsterInfo[monstType];
+        var achLevel = this.parseCondition('ach', monsterConditions);
         if (boss && achLevel === false) {
             achLevel = boss.ach;
         }
-        var maxDamage = caap.parseCondition('max', monsterConditions);
+        var maxDamage = this.parseCondition('max', monsterConditions);
         fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
-        var maxToFortify = (caap.parseCondition('f%', monsterConditions) !== false) ? caap.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
+        var maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
         var isTarget = (monster == gm.getValue('targetFromraid', '') ||
                 monster == gm.getValue('targetFrombattle_monster', '') ||
                 monster == gm.getValue('targetFromfortify', ''));
@@ -6601,9 +6669,9 @@ caap = {
     If we looked at this monster more recently than an hour ago, skip it
     \-------------------------------------------------------------------------------------*/
             if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60) ||
-						gm.getValue('monsterRepeatCount',0)>2) {
+						gm.getValue('monsterRepeatCount', 0) > 2) {
                 gm.setValue('monsterReviewCounter', counter += 1);
-				gm.setValue('monsterRepeatCount',0);
+				gm.setValue('monsterRepeatCount', 0);
                 continue;
             }
     /*-------------------------------------------------------------------------------------\
@@ -6642,7 +6710,7 @@ caap = {
                 //gm.log("Link: " + link);
                 //gm.setListObjVal('monsterOl', monster, 'review','pending');
                 this.ClickAjax(link);
-				gm.setValue('monsterRepeatCount',gm.getValue('monsterRepeatCount',0)+1);
+				gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
                 gm.setValue('resetselectMonster', true);
                 gm.setValue('resetdashboard', true);
                 return true;
@@ -7408,52 +7476,6 @@ caap = {
                 return true;
             }
         }
-    },
-
-    monstDamage: function () {    // Get damage done to monster
-        var damDone = 0;
-        var imageTest = '';
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // monster hasn't been defined at this point!!
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if (caap.getMonstType(monster) == 'Volcanic Dragon') {
-            imageTest = 'nm_top.jpg';
-        } else {
-            imageTest = 'dragon_title_owner.jpg';
-        }
-
-        var webSlice = this.CheckForImage(imageTest);
-        if (webSlice && this.mf_attackButton) {
-            // Get name and type of monster
-            var monsterName = nHtml.GetText(webSlice);
-            monsterName = monsterName.substring(0, monsterName.indexOf('You have (')).trim();
-            var monstType = this.getMonstType(monsterName);
-            webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
-            if (webSlice) {
-                webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
-                if (webSlice) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + unsafeWindow.Env.user);
-                    if (webSlice) {
-                        if (monstType == "Serpent") {
-                            var damList = nHtml.GetText(webSlice.parentNode.parentNode).trim().split("/");
-                            damDone = this.NumberOnly(damList[0]) + this.NumberOnly(damList[1]);
-                        } else {
-                            damDone = this.NumberOnly(nHtml.GetText(webSlice.parentNode.parentNode).trim());
-                        }
-
-                        gm.log("Damage done = " + damDone);
-                    } else {
-                        gm.log("couldn't get Damage done slice");
-                    }
-                } else {
-                    gm.log("couldn't get top table");
-                }
-            } else {
-                gm.log("couldn't get dragoncontainer");
-            }
-        }
-
-        return damDone;
     },
 
     mfMain: function () {
@@ -8314,6 +8336,20 @@ caap = {
             gm.setValue('RandomGiftPic', '');
             gm.setValue('FBSendList', '');
         }
+
+        var listHref = $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
+            .find('a[text="Ignore"]');
+        for (var i = 0; i < listHref.length; i += 1) {
+            var link = "<br /><a title='This link can be used to collect the " +
+                "gift when it has been lost on Facebook. !!If you accept a gift " +
+                "in this manner then it will leave an orphan request on Facebook!!' " +
+                "href='" + listHref[i].href.replace('ignore', 'acpt') + "'>Lost Accept</a>";
+            $(link).insertAfter(
+                $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
+                .find('a[href=' + listHref[i].href + ']')
+            );
+        }
+
     },
 
     AutoGift: function () {
@@ -8748,6 +8784,8 @@ caap = {
         }
     },
 
+    AutoStatRuleLog: true,
+
     AutoStat: function () {
         try {
             if (!gm.getValue('AutoStat')) {
@@ -8755,7 +8793,11 @@ caap = {
             }
 
             if (!gm.getValue("statsMatch", true)) {
-                gm.log("User should change their stats rules");
+                if (this.AutoStatRuleLog) {
+                    gm.log("User should change their stats rules");
+                    this.AutoStatRuleLog = false;
+                }
+
                 return false;
             }
 
@@ -8932,7 +8974,7 @@ caap = {
                                                 url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[ID] + '&buf=1',
                                                 method: "GET",
                                                 onload: function (response) {
-                                                    count--;
+                                                    count -= 1;
                                                     if (response.status != 200) {
                                                         GM_log([response.status, response.finalUrl].join("\n"));
                                                     }
@@ -8987,6 +9029,7 @@ caap = {
 
         this.AutoCollectMA();
         this.ReconPlayers();
+        this.UpdateDashboard()
         gm.setValue('ReleaseControl', true);
         return true;
     },
@@ -9566,6 +9609,49 @@ caap = {
     }
 };
 
+/////////////////////////////////////////////////////////////////////
+//                         BEGIN
+/////////////////////////////////////////////////////////////////////
+
+if (typeof GM_log != 'function') {
+    alert("Your browser does not appear to support Greasemonkey scripts!");
+    throw "Error: Your browser does not appear to support Greasemonkey scripts!";
+}
+
+gm.log("Starting");
+
+/////////////////////////////////////////////////////////////////////
+//                         Chrome Startup
+/////////////////////////////////////////////////////////////////////
+
+if (caapGlob.is_chrome) {
+    try {
+        var lastVersion = localStorage.getItem(caapGlob.gameName + '__LastVersion', 0);
+        var shouldTryConvert = false;
+        if (lastVersion) {
+            if (lastVersion.substr(0, 1) == 's') {
+                shouldTryConvert = true;
+            }
+        }
+
+        if (caapGlob.thisVersion <= '140.21.9' || shouldTryConvert) {
+            ConvertGMtoJSON();
+        }
+    } catch (e) {
+        gm.log("Error converting DB: " + e);
+    }
+
+    try {
+        CM_Listener();
+    } catch (e) {
+        gm.log("Error loading CM_Listener" + e);
+    }
+}
+
+/////////////////////////////////////////////////////////////////////
+//                         Set Title
+/////////////////////////////////////////////////////////////////////
+
 if (gm.getValue('SetTitle')) {
     var DocumentTitle = '';
     if (gm.getValue('SetTitleAction', false)) {
@@ -9579,53 +9665,124 @@ if (gm.getValue('SetTitle')) {
     document.title = DocumentTitle + caapGlob.documentTitle;
 }
 
-if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
-    // Put code to be run once to upgrade an old version's variables to new format or such here.
-    if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
-        gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
-    }
+/////////////////////////////////////////////////////////////////////
+//                          GitHub updater
+// Used by browsers other than Chrome (namely Firefox and Flock)
+// to get updates from github.com
+/////////////////////////////////////////////////////////////////////
 
-    // This needs looking at, although not really used, need to check we are using caap keys
-    if (parseInt(gm.getValue('LastVersion', 0), 10) < 126) {
-        var storageKeys = GM_listValues();
-        for (var key = 0; key < storageKeys.length; key += 1) {
-            if (GM_getValue(storageKeys[key])) {
-                GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', caapGlob.os).replace('`', caapGlob.vs));
+if (!caapGlob.is_chrome) {
+    try {
+        if (gm.getValue('SUC_remote_version', 0) > caapGlob.thisVersion) {
+            caapGlob.newVersionAvailable = true;
+        }
+
+        // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
+
+        function updateCheck(forced) {
+            if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
+                try {
+                    GM_xmlhttpRequest({
+                        method: 'GET',
+                        url: 'http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js',
+                        headers: {'Cache-Control': 'no-cache'},
+                        onload: function (resp) {
+                            var rt = resp.responseText;
+                            var remote_version = /@version\s*(.*?)\s*$/m.exec(rt)[1];
+                            var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
+                            gm.setValue('SUC_last_update', new Date().getTime() + '');
+                            gm.setValue('SUC_target_script_name', script_name);
+                            gm.setValue('SUC_remote_version', remote_version);
+                            gm.log('remote version ' + remote_version);
+                            if (remote_version > caapGlob.thisVersion) {
+                                caapGlob.newVersionAvailable = true;
+                                if (forced) {
+                                    if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                        GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                    }
+                                }
+                            } else if (forced) {
+                                alert('No update is available for "' + script_name + '."');
+                            }
+                        }
+                    });
+                } catch (err) {
+                    if (forced) {
+                        alert('An error occurred while checking for updates:\n' + err);
+                    }
+                }
             }
         }
-    }
 
-    if (parseInt(gm.getValue('LastVersion', 0), 10) < 130 && gm.getValue('MonsterGeneral')) {
-        gm.setValue('AttackGeneral', gm.getValue('MonsterGeneral'));
-        gm.deleteValue('MonsterGeneral');
-    }
-
-    if (parseInt(gm.getValue('LastVersion', 0), 10) < 133) {
-        var clearList = ['FreshMeatMaxLevel', 'FreshMeatARMax', 'FreshMeatARMin'];
-        clearList.forEach(function (gmVal) {
-            gm.setValue(gmVal, '');
+        GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+            updateCheck(true);
         });
-    }
 
-    if ((gm.getValue('LastVersion', 0) < '140.15.3' || gm.getValue('LastVersion', 0) < '140.21.0') &&
-            gm.getValue("actionOrder", '') !== '') {
-        alert("You are using a user defined Action List!\n" +
-              "The Master Action List has changed!\n" +
-              "You must update your Action List!");
+        updateCheck(false);
+    } catch (err) {
+        gm.log("ERROR in GitHub updater: " + err);
     }
+}
 
-    if (gm.getValue('LastVersion', 0) < '140.16.2') {
-        for (var a = 1; a <= 5; a += 1) {
-            var attribute = gm.getValue("Attribute" + a, '');
-            if (attribute !== '') {
-                gm.setValue("Attribute" + a, attribute.ucFirst());
-                gm.log("Converted Attribute" + a + ": " + attribute + "   to: " + attribute.ucFirst());
+/////////////////////////////////////////////////////////////////////
+// Put code to be run once to upgrade an old version's variables to
+// new format or such here.
+/////////////////////////////////////////////////////////////////////
+
+if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
+    try {
+        if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
+            gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
+        }
+
+        // This needs looking at, although not really used, need to check we are using caap keys
+        if (parseInt(gm.getValue('LastVersion', 0), 10) < 126) {
+            var storageKeys = GM_listValues();
+            for (var key = 0; key < storageKeys.length; key += 1) {
+                if (GM_getValue(storageKeys[key])) {
+                    GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', caapGlob.os).replace('`', caapGlob.vs));
+                }
             }
         }
-    }
 
-    gm.setValue('LastVersion', caapGlob.thisVersion);
+        if (parseInt(gm.getValue('LastVersion', 0), 10) < 130 && gm.getValue('MonsterGeneral')) {
+            gm.setValue('AttackGeneral', gm.getValue('MonsterGeneral'));
+            gm.deleteValue('MonsterGeneral');
+        }
+
+        if (parseInt(gm.getValue('LastVersion', 0), 10) < 133) {
+            var clearList = ['FreshMeatMaxLevel', 'FreshMeatARMax', 'FreshMeatARMin'];
+            clearList.forEach(function (gmVal) {
+                gm.setValue(gmVal, '');
+            });
+        }
+
+        if ((gm.getValue('LastVersion', 0) < '140.15.3' || gm.getValue('LastVersion', 0) < '140.21.0') &&
+                gm.getValue("actionOrder", '') !== '') {
+            alert("You are using a user defined Action List!\n" +
+                  "The Master Action List has changed!\n" +
+                  "You must update your Action List!");
+        }
+
+        if (gm.getValue('LastVersion', 0) < '140.16.2') {
+            for (var a = 1; a <= 5; a += 1) {
+                var attribute = gm.getValue("Attribute" + a, '');
+                if (attribute !== '') {
+                    gm.setValue("Attribute" + a, attribute.ucFirst());
+                    gm.log("Converted Attribute" + a + ": " + attribute + "   to: " + attribute.ucFirst());
+                }
+            }
+        }
+
+        gm.setValue('LastVersion', caapGlob.thisVersion);
+    } catch (err) {
+        gm.log("ERROR in Environment updater: " + err);
+    }
 }
+
+/////////////////////////////////////////////////////////////////////
+//                    On Page Load
+/////////////////////////////////////////////////////////////////////
 
 $(function () {
     gm.log('Full page load completed');
@@ -9641,921 +9798,14 @@ $(function () {
         }
 
         nHtml.setTimeout(function () {
-            caap.addExpDisplay();
-            caap.SetControls();
-            caap.AddListeners();
-            caap.CheckResults();
+            caap.init();
         }, 200);
     }
-	gm.setListObjVal('monsterOl', "Ai Wen's The Deathrune Siege", 'review',0);
 
     this.waitMilliSecs = 8000;
     caap.WaitMainLoop();
 });
 
 caap.ReloadOccasionally();
-
-/////////////////////////////////////////////////////////////////////
-//                          style OBJECT
-/////////////////////////////////////////////////////////////////////
-
-var style = {
-    colorDiv: null,
-
-    hueBarArrows: null,
-
-    gradientBoxCircle: null,
-
-    CreateMenu: function () {
-        var newDiv = document.createElement("div");
-        newDiv.setAttribute("id", "ColorSelectorDiv");
-        newDiv.setAttribute("style", "display: none; position: fixed; left: " +
-                            ((window.innerWidth / 2) - 290) + "px; top: " +
-                            ((window.innerHeight / 2) - 200) +
-                            "px; z-index: 1337; background: #fff; border: 2px solid #000; padding: 3px; width: 577px");
-        newDiv.innerHTML += "<center><b><h1>Select Color<h1></b><div id='SelectColorType'></div></center><br/>";
-        newDiv.innerHTML += '<div style="position:relative;height:286px;width:531px;border:1px solid black;">\n' +
-        '  <div id="gradientBox" style="cursor:crosshair;top:15px;position:absolute;\n' +
-        '                              left:15px;width:256px;height:256px;">\n' +
-        '    <img id="gradientImg" style="display:block;width:256px;height:256px;"\n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_gradient.png" />\n' +
-        '   <img id="circle" style="position:absolute;height:11px;width:11px;"\n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_circle.gif" />\n' +
-        '  </div>\n' +
-        '  <div id="hueBarDiv" style="position:absolute;left:310px;width:35px;\n' +
-        '                            height:256px;top:15px;">\n' +
-        '    <img style="position:absolute;height:256px; width:19px;left:8px;" \n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_bar.png" />\n' +
-        '    <img id="arrows" style="position:absolute;height:9px;width:35px;left:0px;" \n' +
-        '        src="http://www.switchonthecode.com/sites/default/files/64/source/color_picker_arrows.gif" />\n' +
-        '  </div>\n' +
-        '  <div style="position:absolute;left:370px;width:145px;height:256px;top:15px;">\n' +
-        '  <div style="position:absolute;border: 1px solid black;\n' +
-        '             height:50px;width:145px;top:0px;left:0px;">\n' +
-        '    <div id="quickColor" style="position:absolute;height:50px;width:73px;\n' +
-        '                               top:0px;left:0px;">\n' +
-        '    </div>\n' +
-        '    <div id="staticColor" style="position:absolute;height:50px;width:72px;\n' +
-        '                                top:0px;left:73px;">\n' +
-        '    </div>\n' +
-        '  </div>\n' +
-        '  <br />\n' +
-        '  <table width="100%" style="position:absolute;top:55px;">\n' +
-        '    <tr>\n' +
-        '      <td>Hex: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="hexBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Red: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="redBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Green: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="greenBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Blue: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="blueBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Hue: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="hueBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Saturation: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="saturationBox"  />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '    <tr>\n' +
-        '      <td>Value: </td>\n' +
-        '      <td>\n' +
-        '        <input size="8" type="text" id="valueBox" />\n' +
-        '      </td>\n' +
-        '    </tr>\n' +
-        '  </table>\n' +
-        '  </div>\n' +
-        '</div>';
-        newDiv.innerHTML += '<div style="float:right"><input type="button" value="Accept" id="ColorMenuAccept"><input type="button" value="Cancel" id="ColorMenuCancel"></div>';
-        document.body.appendChild(newDiv);
-        /////////////////Event Listeners\\\\\\\\\\\\\\\\\\\\\
-        var state = gm.getValue('state', 'Start');
-        var AddChangers = document.getElementById('ColorMenuAccept');
-        AddChangers.addEventListener('click', function (e) {
-            style.colorDiv.style.display = 'none';
-            style.ChangeBackGround();
-            gm.deleteValue('state');
-        }, false);
-
-        AddChangers = document.getElementById('ColorMenuCancel');
-        AddChangers.addEventListener('click', function (e) {
-            style.colorDiv.style.display = 'none';
-            style.CancelChangeBackGround();
-            gm.deleteValue('state');
-        }, false);
-
-        AddChangers = document.getElementById('hexBox');
-        AddChangers.addEventListener('change', function (e) {
-            //gm.log("StyleColorStoped: "+gm.getValue('StyleColorStoped'));
-            //gm.log("document.getElementById(hexBox).value: "+document.getElementById("hexBox").value);
-            style.ChangeBackGround();
-            style.hexBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('redBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.redBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('greenBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.greenBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('blueBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.blueBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('hueBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.hueBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('saturationBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.saturationBoxChanged();
-        }, false);
-
-        AddChangers = document.getElementById('valueBox');
-        AddChangers.addEventListener('change', function (e) {
-            style.ChangeBackGround();
-            style.valueBoxChanged();
-        }, false);
-
-        this.pointerOffset = new style.Position(0, navigator.userAgent.indexOf("Firefox") >= 0 ? 1 : 0);
-        this.circleOffset = new style.Position(5, 5);
-        this.arrowsOffset = new style.Position(0, 4);
-        this.arrowsLowBounds = new style.Position(0, -4);
-        this.arrowsUpBounds = new style.Position(0, 251);
-        this.circleLowBounds = new style.Position(-5, -5);
-        this.circleUpBounds = new style.Position(250, 250);
-        style.fixGradientImg();
-    },
-
-    LoadMenu: function (state) {
-        style.colorChanged('box');
-        var oldColor = 0;
-        if (state == 'Start') {
-            oldColor = document.getElementById("caap_StyleColorStarted").value;
-        } else {
-            oldColor = document.getElementById("caap_StyleColorStoped").value;
-        }
-
-        gm.setValue('oldColor', oldColor);
-        //gm.log("oldColor:"+oldColor)
-        //gm.log("state: "+state)
-        gm.setValue('state', state);
-        style.colorDiv = document.getElementById('ColorSelectorDiv');
-        document.getElementById('SelectColorType').innerHTML = state;
-        style.colorDiv.style.display = 'block';
-    },
-
-    ChangeBackGround: function () {
-        var state = gm.getValue('state', 'Start');
-        if (state == 'Start') {
-            gm.setValue('StyleColorStarted', document.getElementById("hexBox").value.replace(/#/, ''));
-            gm.setValue('StyleBackgroundLight', document.getElementById("hexBox").value);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-        } else {
-            gm.setValue('StyleColorStoped', document.getElementById("hexBox").value.replace(/#/, ''));
-            gm.setValue('StyleBackgroundDark', document.getElementById("hexBox").value);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-        }
-
-        $("#caap_StyleColorStarted").val(gm.getValue('StyleColorStarted'));
-        $("#caap_StyleColorStoped").val(gm.getValue('StyleColorStoped'));
-    },
-
-    CancelChangeBackGround: function () {
-        var state = gm.getValue('state', 'Start');
-        var oldColor = gm.getValue('oldColor', 'FFFFFF');
-        if (state == 'Start') {
-            gm.setValue('StyleColorStarted', oldColor);
-            gm.setValue('StyleBackgroundLight', '#' + oldColor);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundLight', '#efe');
-        } else {
-            gm.setValue('StyleColorStoped', oldColor);
-            gm.setValue('StyleBackgroundDark', '#' + oldColor);
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-        }
-
-        $("#caap_StyleColorStarted").val(gm.getValue('StyleColorStarted'));
-        $("#caap_StyleColorStoped").val(gm.getValue('StyleColorStoped'));
-    },
-
-    Colors: new function () {
-        function Color() {
-            //Stored as values between 0 and 1
-            var red = 0;
-            var green = 0;
-            var blue = 0;
-            //Stored as values between 0 and 360
-            var hue = 0;
-            //Strored as values between 0 and 1
-            var saturation = 0;
-            var value = 0;
-            function calculateHSV() {
-                var max = Math.max(Math.max(red, green), blue);
-                var min = Math.min(Math.min(red, green), blue);
-                value = max;
-
-                saturation = 0;
-                if (max !== 0) {
-                    saturation = 1 - min / max;
-                }
-
-                hue = 0;
-                if (min == max) {
-                    return;
-                }
-
-                var delta = (max - min);
-                if (red == max) {
-                    hue = (green - blue) / delta;
-                } else if (green == max) {
-                    hue = 2 + ((blue - red) / delta);
-                } else {
-                    hue = 4 + ((red - green) / delta);
-                }
-
-                hue = hue * 60;
-                if (hue < 0) {
-                    hue += 360;
-                }
-            }
-
-            this.SetRGB = function (r, g, b) {
-                if (isNaN(r) || isNaN(g) || isNaN(b)) {
-                    return false;
-                }
-
-                r = r / 255.0;
-                red = r > 1 ? 1 : r < 0 ? 0 : r;
-                g = g / 255.0;
-                green = g > 1 ? 1 : g < 0 ? 0 : g;
-                b = b / 255.0;
-                blue = b > 1 ? 1 : b < 0 ? 0 : b;
-                calculateHSV();
-                return true;
-            };
-
-            this.Red = function () {
-                return Math.round(red * 255);
-            };
-
-            this.Green = function () {
-                return Math.round(green * 255);
-            };
-
-            this.Blue = function () {
-                return Math.round(blue * 255);
-            };
-
-            function calculateRGB()
-            {
-                red = value;
-                green = value;
-                blue = value;
-
-                if (value === 0 || saturation === 0) {
-                    return;
-                }
-
-                var tHue = (hue / 60);
-                var i = Math.floor(tHue);
-                var f = tHue - i;
-                var p = value * (1 - saturation);
-                var q = value * (1 - saturation * f);
-                var t = value * (1 - saturation * (1 - f));
-                switch (i) {
-                case 0:
-                    red = value;
-                    green = t;
-                    blue = p;
-                    break;
-                case 1:
-                    red = q;
-                    green = value;
-                    blue = p;
-                    break;
-                case 2:
-                    red = p;
-                    green = value;
-                    blue = t;
-                    break;
-                case 3:
-                    red = p;
-                    green = q;
-                    blue = value;
-                    break;
-                case 4:
-                    red = t;
-                    green = p;
-                    blue = value;
-                    break;
-                default:
-                    red = value;
-                    green = p;
-                    blue = q;
-                    break;
-                }
-            }
-
-            this.SetHSV = function (h, s, v) {
-                if (isNaN(h) || isNaN(s) || isNaN(v)) {
-                    return false;
-                }
-
-                hue = (h >= 360) ? 359.99 : (h < 0) ? 0 : h;
-                saturation = (s > 1) ? 1 : (s < 0) ? 0 : s;
-                value = (v > 1) ? 1 : (v < 0) ? 0 : v;
-                calculateRGB();
-                return true;
-            };
-
-            this.Hue = function () {
-                return hue;
-            };
-
-            this.Saturation = function () {
-                return saturation;
-            };
-
-            this.Value = function () {
-                return value;
-            };
-
-            this.SetHexString = function (hexString) {
-                if (hexString === null || typeof(hexString) != "string") {
-                    return false;
-                }
-
-                if (hexString.substr(0, 1) == '#') {
-                    hexString = hexString.substr(1);
-                }
-
-                if (hexString.length != 6) {
-                    return false;
-                }
-
-                var r = parseInt(hexString.substr(0, 2), 16);
-                var g = parseInt(hexString.substr(2, 2), 16);
-                var b = parseInt(hexString.substr(4, 2), 16);
-
-                return this.SetRGB(r, g, b);
-            };
-
-            this.HexString = function () {
-                var rStr = this.Red().toString(16);
-                if (rStr.length == 1) {
-                    rStr = '0' + rStr;
-                }
-
-                var gStr = this.Green().toString(16);
-                if (gStr.length == 1) {
-                    gStr = '0' + gStr;
-                }
-
-                var bStr = this.Blue().toString(16);
-                if (bStr.length == 1) {
-                    bStr = '0' + bStr;
-                }
-
-                return ('#' + rStr + gStr + bStr).toUpperCase();
-            };
-
-            this.Complement = function () {
-                var newHue = (hue >= 180) ? hue - 180 : hue + 180;
-                var newVal = (value * (saturation - 1) + 1);
-                var newSat = (value * saturation) / newVal;
-                var newColor = new Color();
-                newColor.SetHSV(newHue, newSat, newVal);
-                return newColor;
-            };
-        }
-
-        this.ColorFromHSV = function (hue, sat, val) {
-            var color = new Color();
-            color.SetHSV(hue, sat, val);
-            return color;
-        };
-
-        this.ColorFromRGB = function (r, g, b) {
-            var color = new Color();
-            color.SetRGB(r, g, b);
-            return color;
-        };
-
-        this.ColorFromHex = function (hexStr) {
-            var color = new Color();
-            color.SetHexString(hexStr);
-            return color;
-        };
-    }(),
-
-    Position: function (x, y) {
-        this.X = x;
-        this.Y = y;
-
-        this.Add = function (val) {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val !== null) {
-                if (!isNaN(val.X)) {
-                    newPos.X += val.X;
-                }
-
-                if (!isNaN(val.Y)) {
-                    newPos.Y += val.Y;
-                }
-            }
-
-            return newPos;
-        };
-
-        this.Subtract = function (val) {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val !== null) {
-                if (!isNaN(val.X)) {
-                    newPos.X -= val.X;
-                }
-
-                if (!isNaN(val.Y)) {
-                    newPos.Y -= val.Y;
-                }
-            }
-
-            return newPos;
-        };
-
-        this.Min = function (val) {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val === null) {
-                return newPos;
-            }
-
-            if (!isNaN(val.X) && this.X > val.X) {
-                newPos.X = val.X;
-            }
-
-            if (!isNaN(val.Y) && this.Y > val.Y) {
-                newPos.Y = val.Y;
-            }
-
-            return newPos;
-        };
-
-        this.Max = function (val)
-        {
-            var newPos = new style.Position(this.X, this.Y);
-            if (val === null) {
-                return newPos;
-            }
-
-            if (!isNaN(val.X) && this.X < val.X) {
-                newPos.X = val.X;
-            }
-
-            if (!isNaN(val.Y) && this.Y < val.Y) {
-                newPos.Y = val.Y;
-            }
-
-            return newPos;
-        };
-
-        this.Bound = function (lower, upper) {
-            var newPos = this.Max(lower);
-            return newPos.Min(upper);
-        };
-
-        this.Check = function () {
-            var newPos = new style.Position(this.X, this.Y);
-            if (isNaN(newPos.X)) {
-                newPos.X = 0;
-            }
-
-            if (isNaN(newPos.Y)) {
-                newPos.Y = 0;
-            }
-
-            return newPos;
-        };
-
-        this.Apply = function (element) {
-            if (typeof(element) == "string") {
-                element = document.getElementById(element);
-            }
-
-            if (element === null) {
-                return;
-            }
-
-            if (!isNaN(this.X)) {
-                element.style.left = this.X + 'px';
-            }
-
-            if (!isNaN(this.Y)) {
-                element.style.top = this.Y + 'px';
-            }
-        };
-    },
-
-    correctOffset: function (pos, offset, neg) {
-        if (neg) {
-            return pos.Subtract(offset);
-        }
-
-        return pos.Add(offset);
-    },
-
-    hookEvent: function (element, eventName, callback) {
-        if (typeof(element) == "string") {
-            element = document.getElementById(element);
-        }
-
-        if (element === null) {
-            return;
-        }
-
-        if (element.addEventListener) {
-            element.addEventListener(eventName, callback, false);
-        } else if (element.attachEvent) {
-            element.attachEvent("on" + eventName, callback);
-        }
-    },
-
-    unhookEvent: function (element, eventName, callback) {
-        if (typeof(element) == "string") {
-            element = document.getElementById(element);
-        }
-
-        if (element === null) {
-            return;
-        }
-
-        if (element.removeEventListener) {
-            element.removeEventListener(eventName, callback, false);
-        } else if (element.detachEvent) {
-            element.detachEvent("on" + eventName, callback);
-        }
-    },
-
-    cancelEvent: function (e) {
-        e = e ? e : window.event;
-        if (e.stopPropagation) {
-            e.stopPropagation();
-        }
-
-        if (e.preventDefault) {
-            e.preventDefault();
-        }
-
-        e.cancelBubble = true;
-        e.cancel = true;
-        e.returnValue = false;
-        return false;
-    },
-
-    getMousePos: function (eventObj) {
-        eventObj = eventObj ? eventObj : window.event;
-        var pos;
-        if (isNaN(eventObj.layerX)) {
-            pos = new style.Position(eventObj.offsetX, eventObj.offsetY);
-        } else {
-            pos = new style.Position(eventObj.layerX, eventObj.layerY);
-        }
-
-        return style.correctOffset(pos, style.pointerOffset, true);
-    },
-
-    getEventTarget: function (e) {
-        e = e ? e : window.event;
-        return e.target ? e.target : e.srcElement;
-    },
-
-    absoluteCursorPostion: function (eventObj) {
-        eventObj = eventObj ? eventObj : window.event;
-        if (isNaN(window.scrollX)) {
-            return new style.Position(eventObj.clientX + document.documentElement.scrollLeft + document.body.scrollLeft,
-                                      eventObj.clientY + document.documentElement.scrollTop + document.body.scrollTop);
-        } else {
-            return new style.Position(eventObj.clientX + window.scrollX, eventObj.clientY + window.scrollY);
-        }
-    },
-
-    dragObject: function (element, attachElement, lowerBound, upperBound, startCallback, moveCallback, endCallback, attachLater) {
-        if (typeof(element) == "string") {
-            element = document.getElementById(element);
-        }
-
-        if (element === null) {
-            return;
-        }
-
-        if (lowerBound !== null && upperBound !== null) {
-            var temp = lowerBound.Min(upperBound);
-            upperBound = lowerBound.Max(upperBound);
-            lowerBound = temp;
-        }
-
-        var cursorStartPos = null;
-        var elementStartPos = null;
-        var dragging = false;
-        var listening = false;
-        var disposed = false;
-
-        function dragGo(eventObj) {
-            if (!dragging || disposed) {
-                return;
-            }
-
-            var newPos = style.absoluteCursorPostion(eventObj);
-            newPos = newPos.Add(elementStartPos).Subtract(cursorStartPos);
-            newPos = newPos.Bound(lowerBound, upperBound);
-            newPos.Apply(element);
-            if (moveCallback !== null) {
-                moveCallback(newPos, element);
-            }
-
-            return style.cancelEvent(eventObj);
-        }
-
-        function dragStop() {
-            if (!dragging || disposed) {
-                return;
-            }
-
-            style.unhookEvent(document, "mousemove", dragGo);
-            style.unhookEvent(document, "mouseup", dragStopHook);
-            cursorStartPos = null;
-            elementStartPos = null;
-            if (endCallback !== null) {
-                endCallback(element);
-            }
-
-            dragging = false;
-        }
-
-        function dragStopHook(eventObj) {
-            dragStop();
-            return style.cancelEvent(eventObj);
-        }
-
-        function dragStart(eventObj) {
-            if (dragging || !listening || disposed) {
-                return;
-            }
-
-            dragging = true;
-            if (startCallback !== null) {
-                startCallback(eventObj, element);
-            }
-
-            cursorStartPos = style.absoluteCursorPostion(eventObj);
-            elementStartPos = new style.Position(parseInt(element.style.left, 10), parseInt(element.style.top, 10));
-            elementStartPos = elementStartPos.Check();
-            style.hookEvent(document, "mousemove", dragGo);
-            style.hookEvent(document, "mouseup", dragStopHook);
-            return style.cancelEvent(eventObj);
-        }
-
-        this.Dispose = function () {
-            if (disposed) {
-                return;
-            }
-
-            this.StopListening(true);
-            element = null;
-            attachElement = null;
-            lowerBound = null;
-            upperBound = null;
-            startCallback = null;
-            moveCallback = null;
-            endCallback = null;
-            disposed = true;
-        };
-
-        this.StartListening = function () {
-            if (listening || disposed) {
-                return;
-            }
-
-            listening = true;
-            style.hookEvent(attachElement, "mousedown", dragStart);
-        };
-
-        this.StopListening = function (stopCurrentDragging) {
-            if (!listening || disposed) {
-                return;
-            }
-
-            style.unhookEvent(attachElement, "mousedown", dragStart);
-            listening = false;
-            if (stopCurrentDragging && dragging) {
-                dragStop();
-            }
-        };
-
-        this.IsDragging = function () {
-            return dragging;
-        };
-
-        this.IsListening = function () {
-            return listening;
-        };
-
-        this.IsDisposed = function () {
-            return disposed;
-        };
-
-        if (typeof(attachElement) == "string") {
-            attachElement = document.getElementById(attachElement);
-        }
-
-        if (attachElement === null) {
-            attachElement = element;
-        }
-
-        if (!attachLater) {
-            this.StartListening();
-        }
-    },
-
-    arrowsDown: function (e, arrows) {
-        var pos = style.getMousePos(e);
-        if (style.getEventTarget(e) == arrows) {
-            pos.Y += parseInt(arrows.style.top, 10);
-        }
-
-        pos = style.correctOffset(pos, style.arrowsOffset, true);
-        pos = pos.Bound(style.arrowsLowBounds, style.arrowsUpBounds);
-        pos.Apply(arrows);
-        style.arrowsMoved(pos);
-    },
-
-    circleDown: function (e, circle) {
-        var pos = style.getMousePos(e);
-        if (style.getEventTarget(e) == circle) {
-            pos.X += parseInt(circle.style.left, 10);
-            pos.Y += parseInt(circle.style.top, 10);
-        }
-
-        pos = style.correctOffset(pos, style.circleOffset, true);
-        pos = pos.Bound(style.circleLowBounds, style.circleUpBounds);
-        pos.Apply(circle);
-        style.circleMoved(pos);
-    },
-
-    currentColor: null,
-
-    arrowsMoved: function (pos, element) {
-        pos = style.correctOffset(pos, style.arrowsOffset, false);
-        style.currentColor.SetHSV((256 - pos.Y) * 359.99 / 255, style.currentColor.Saturation(), style.currentColor.Value());
-        style.colorChanged("arrows");
-    },
-
-    circleMoved: function (pos, element) {
-        pos = style.correctOffset(pos, style.circleOffset, false);
-        style.currentColor.SetHSV(style.currentColor.Hue(), 1 - pos.Y / 255.0, pos.X / 255.0);
-        style.colorChanged("circle");
-    },
-
-    colorChanged: function (source) {
-        document.getElementById("hexBox").value = style.currentColor.HexString();
-        document.getElementById("redBox").value = style.currentColor.Red();
-        document.getElementById("greenBox").value = style.currentColor.Green();
-        document.getElementById("blueBox").value = style.currentColor.Blue();
-        document.getElementById("hueBox").value = Math.round(style.currentColor.Hue());
-        var str = (style.currentColor.Saturation() * 100).toString();
-        if (str.length > 4) {
-            str = str.substr(0, 4);
-        }
-
-        document.getElementById("saturationBox").value = str;
-        str = (style.currentColor.Value() * 100).toString();
-        if (str.length > 4) {
-            str = str.substr(0, 4);
-        }
-
-        document.getElementById("valueBox").value = str;
-        if (source == "arrows" || source == "box") {
-            document.getElementById("gradientBox").style.backgroundColor = style.Colors.ColorFromHSV(style.currentColor.Hue(), 1, 1).HexString();
-        }
-
-        if (source == "box") {
-            var el = document.getElementById("arrows");
-            el.style.top = (256 - style.currentColor.Hue() * 255 / 359.99 - style.arrowsOffset.Y) + 'px';
-            var pos = new style.Position(style.currentColor.Value() * 255, (1 - style.currentColor.Saturation()) * 255);
-            pos = style.correctOffset(pos, style.circleOffset, true);
-            pos.Apply("circle");
-            style.endMovement();
-        }
-
-        document.getElementById("quickColor").style.backgroundColor = style.currentColor.HexString();
-    },
-
-    endMovement: function () {
-        if (document.getElementById("caap_div") && gm.getValue('state')) {
-            style.ChangeBackGround(gm.getValue('state', 'Start'));
-        }
-
-        document.getElementById("staticColor").style.backgroundColor = style.currentColor.HexString();
-    },
-
-    hexBoxChanged: function (e) {
-        style.currentColor.SetHexString(document.getElementById("hexBox").value);
-        style.colorChanged("box");
-    },
-
-    redBoxChanged: function (e) {
-        style.currentColor.SetRGB(parseInt(document.getElementById("redBox").value, 10), style.currentColor.Green(), style.currentColor.Blue());
-        style.colorChanged("box");
-    },
-
-    greenBoxChanged: function (e) {
-        style.currentColor.SetRGB(style.currentColor.Red(), parseInt(document.getElementById("greenBox").value, 10), style.currentColor.Blue());
-        style.colorChanged("box");
-    },
-
-    blueBoxChanged: function (e) {
-        style.currentColor.SetRGB(style.currentColor.Red(), style.currentColor.Green(), parseInt(document.getElementById("blueBox").value, 10));
-        style.colorChanged("box");
-    },
-
-    hueBoxChanged: function (e) {
-        style.currentColor.SetHSV(parseFloat(document.getElementById("hueBox").value), style.currentColor.Saturation(), style.currentColor.Value());
-        style.colorChanged("box");
-    },
-
-    saturationBoxChanged: function (e) {
-        style.currentColor.SetHSV(style.currentColor.Hue(), parseFloat(document.getElementById("saturationBox").value) / 100.0, style.currentColor.Value());
-        style.colorChanged("box");
-    },
-
-    valueBoxChanged: function (e) {
-        style.currentColor.SetHSV(style.currentColor.Hue(), style.currentColor.Saturation(), parseFloat(document.getElementById("valueBox").value) / 100.0);
-        style.colorChanged("box");
-    },
-
-    fixPNG: function (myImage) {
-        if (!document.body.filters) {
-            return;
-        }
-
-        var arVersion = navigator.appVersion.split("MSIE");
-        var version = parseFloat(arVersion[1]);
-        if (version < 5.5 || version >= 7) {
-            return;
-        }
-
-        var imgID = (myImage.id) ? "id='" + myImage.id + "' " : "";
-        var imgStyle = "display:inline-block;" + myImage.style.cssText;
-        var strNewHTML = "<span " + imgID +
-            " style=\"" + "width:" + myImage.width +
-            "px; height:" + myImage.height +
-            "px;" + imgStyle + ";" +
-            "filter:progid:DXImageTransform.Microsoft.AlphaImageLoader" +
-            "(src=\'" + myImage.src + "\', sizingMethod='scale');\"></span>";
-        myImage.outerHTML = strNewHTML;
-    },
-
-    fixGradientImg: function () {
-        style.fixPNG(document.getElementById("gradientImg"));
-    }
-};
-
-style.CreateMenu();
-style.currentColor = style.Colors.ColorFromRGB(64, 128, 128);
-style.hueBarArrows = new style.dragObject("arrows", "hueBarDiv",
-    style.arrowsLowBounds, style.arrowsUpBounds, style.arrowsDown,
-    style.arrowsMoved, style.endMovement);
-style.gradientBoxCircle = new style.dragObject("circle", "gradientBox",
-    style.circleLowBounds, style.circleUpBounds, style.circleDown,
-    style.circleMoved, style.endMovement);
 
 // ENDOFSCRIPT
