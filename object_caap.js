@@ -8252,7 +8252,7 @@ caap = {
 
         this.AutoCollectMA();
         this.ReconPlayers();
-        this.UpdateDashboard()
+        this.UpdateDashboard();
         gm.setValue('ReleaseControl', true);
         return true;
     },
