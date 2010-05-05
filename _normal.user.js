@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.17
+// @version        140.22.18
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.22.17";
+var caapVersion = "140.22.18";
 
 ///////////////////////////
 //       Prototypes
@@ -6222,13 +6222,13 @@ caap = {
                     var damList = null;
                     if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
                         //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
-                        damList = nHtml.GetText(webSlice.parentNode.nextSibling).trim().split("/");
+                        damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim().split("/");
                         fort = this.NumberOnly(damList[1]);
                         damDone = this.NumberOnly(damList[0]) + fort;
                         gm.setListObjVal('monsterOl', monster, 'Fort', fort);
                     } else {
                         //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
-                        damList = nHtml.GetText(webSlice.parentNode.nextSibling).trim();
+                        damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim();
                         damDone = this.NumberOnly(damList);
                     }
 
