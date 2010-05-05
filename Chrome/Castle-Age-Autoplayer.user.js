@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.15
+// @version        140.22.16
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.22.15";
+var caapVersion = "140.22.16";
 
 ///////////////////////////
 //       Prototypes
@@ -6226,7 +6226,8 @@ caap = {
                         damDone = this.NumberOnly(damList[0]) + fort;
                         gm.setListObjVal('monsterOl', monster, 'Fort', fort);
                     } else {
-                        damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                        //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                        damList = nHtml.GetText(webSlice.parentNode.nextSibling).trim();
                         damDone = this.NumberOnly(damList);
                     }
 

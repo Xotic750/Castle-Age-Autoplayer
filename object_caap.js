@@ -5455,7 +5455,8 @@ caap = {
                         damDone = this.NumberOnly(damList[0]) + fort;
                         gm.setListObjVal('monsterOl', monster, 'Fort', fort);
                     } else {
-                        damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                        //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                        damList = nHtml.GetText(webSlice.parentNode.nextSibling).trim();
                         damDone = this.NumberOnly(damList);
                     }
 
