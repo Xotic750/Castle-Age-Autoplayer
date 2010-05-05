@@ -78,8 +78,8 @@ if (!global.is_chrome) {
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
                             var rt = resp.responseText;
-                            var remote_version = /@version\s*(.*?)\s*$/m.exec(rt)[1];
-                            var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
+                            var remote_version = new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt)[1];
+                            var script_name = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
                             gm.setValue('SUC_last_update', new Date().getTime() + '');
                             gm.setValue('SUC_target_script_name', script_name);
                             gm.setValue('SUC_remote_version', remote_version);

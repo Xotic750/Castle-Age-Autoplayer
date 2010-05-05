@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.18
+// @version        140.22.19
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -16,10 +16,10 @@
 // @compatability  Firefox 3.0+, Chrome 4+, Flock 2.0+
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.22.18";
+var caapVersion = "140.22.19";
 
 ///////////////////////////
 //       Prototypes
@@ -787,12 +787,10 @@ caap = {
     rankRe: new RegExp(',\\s*level\\s*:?\\s*[0-9]+\\s+([a-z ]+)', 'i'),
     armyRe: new RegExp('My Army\\s*\\(?([0-9]+)', 'i'),
     statusRe: new RegExp('([0-9\\.]+)\\s*/\\s*([0-9]+)', 'i'),
-    htmlJunkRe: new RegExp("\\&[^;]+;", "g"),
     energyRe: new RegExp("([0-9]+)\\s+(energy)", "i"),
     experienceRe: new RegExp("\\+([0-9]+)"),
     influenceRe: new RegExp("([0-9]+)%"),
     moneyRe: new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
-    userNameRe: new RegExp("\"(.+)\""),
 
     init: function () {
         this.addExpDisplay();
@@ -1006,10 +1004,10 @@ caap = {
         }
 
         var hasGeneral = function (genImg) {
-            return (genImg.indexOf(general.replace(/:\S*/, '')) >= 0);
+            return (genImg.indexOf(general.replace(new RegExp(":.+"), '')) >= 0);
         };
 
-        var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(/\S+:/, '');
+        var generalImage = gm.getList('GeneralImages').filter(hasGeneral).toString().replace(new RegExp(".+:"), '');
         if (this.CheckForImage(generalImage)) {
             return this.NavigateTo(generalImage);
         }
@@ -1209,13 +1207,13 @@ caap = {
     },
 
     NumberOnly: function (num) {
-        var numOnly = parseFloat(num.toString().replace(/,/g, '').match(/[\-\+]?[0-9]*\.?[0-9]+/g));
+        var numOnly = parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
         //gm.log("NumberOnly: " + numOnly);
         return numOnly;
     },
 
     RemoveHtmlJunk: function (html) {
-        return html.replace(this.htmlJunkRe, '');
+        return html.replace(new RegExp("\\&[^;]+;", "g"), '');
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -3174,7 +3172,7 @@ caap = {
                     }
                 }
 
-                var userName = this.userNameRe.exec(txtRank);
+                var userName = txtRank.match(new RegExp("\"(.+)\""));
                 gm.setValue('PlayerName', userName[1]);
             }
 
@@ -3401,8 +3399,8 @@ caap = {
         var pageUrl = gm.getValue('clickUrl');
         //gm.log("Page url: " + pageUrl);
         var page = 'None';
-        if (pageUrl.match(/\/[^\/]+.php/i)) {
-            page = pageUrl.match(/\/[^\/]+.php/i)[0].replace('/', '').replace('.php', '');
+        if (pageUrl.match(new RegExp("\/[^\/]+.php", "i"))) {
+            page = pageUrl.match(new RegExp("\/[^\/]+.php", "i"))[0].replace('/', '').replace('.php', '');
             //gm.log("Page match: " + page);
         }
 
@@ -3682,7 +3680,7 @@ caap = {
             }
 
             gm.setValue('storeRetrieve', '');
-            costToBuy = itemBuyPopUp.textContent.replace(/.*\$/, '').replace(/[^0-9]{3,}.*/, '');
+            costToBuy = itemBuyPopUp.textContent.replace(new RegExp(".*\\$"), '').replace(new RegExp("[^0-9]{3,}.*"), '');
             gm.log("costToBuy = " + costToBuy);
             if (this.stats.cash < costToBuy) {
                 //Retrieving from Bank
@@ -3718,7 +3716,7 @@ caap = {
             }
 
             gm.setValue('storeRetrieve', '');
-            costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(/[^0-9]/g, '');
+            costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
             gm.log("costToBuy = " + costToBuy);
             if (this.stats.cash < costToBuy) {
                 //Retrieving from Bank
@@ -5142,7 +5140,7 @@ caap = {
                     var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
                     yourRank = this.arenaTable[yourRankStr];
                     var yourArenaPoints = 0;
-                    var pointstxt = txt.match(/Points:\s+.+\s+/i);
+                    var pointstxt = txt.match(new RegExp("Points:\\s+.+\\s+", "i"));
                     if (pointstxt) {
                         yourArenaPoints = this.NumberOnly(pointstxt);
                     }
@@ -5950,7 +5948,7 @@ caap = {
             return false;
         }
 
-        var value = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(/:.+/, '');
+        var value = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
         if (/k$/i.test(value) || /m$/i.test(value)) {
             var first = /\d+k/i.test(value);
             var second = /\d+m/i.test(value);
@@ -5981,13 +5979,13 @@ caap = {
         var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
         if (!global.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
+                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 gm.log('On another player\'s keep.');
                 return false;
             }
         } else {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + unsafeWindow.Env.user) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
+                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 gm.log('On another player\'s keep.');
                 return false;
             }
@@ -6122,7 +6120,7 @@ caap = {
         var monster = nHtml.GetText(webSlice);
 
         if (this.CheckForImage('nm_volcanic_title.jpg')) {
-            monster = monster.match(/.+'s /) + 'Bahamut, the Volcanic Dragon';
+            monster = monster.match(new RegExp(".+'s ")) + 'Bahamut, the Volcanic Dragon';
             monster = monster.trim();
         } else {
             monster = monster.substring(0, monster.indexOf('You have (')).trim();
@@ -6140,11 +6138,11 @@ caap = {
 
         if (!global.is_firefox) {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
-                monster = monster.replace(/.+'s /, 'Your ');
+                monster = monster.replace(new RegExp(".+'s "), 'Your ');
             }
         } else {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
-                monster = monster.replace(/.+'s /, 'Your ');
+                monster = monster.replace(new RegExp(".+'s "), 'Your ');
             }
         }
 
@@ -6307,14 +6305,14 @@ caap = {
 
             if (boss && boss.siege) {
                 if (monstType.indexOf('Volcanic') >= 0) {
-                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch"), "$1"));
                     //miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
                     currentPhase = Math.min($("img[src*=" + boss.siege_img + "]").size(), boss.siege);
                 } else {
                     if (monstType.indexOf('Raid') >= 0) {
-                        miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(/.*:\s*Need (\d+) more to launch/, "$1").trim();
+                        miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(new RegExp(".*:\\s*Need (\\d+) more to launch"), "$1").trim();
                     } else {
-                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
+                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch!"), "$1"));
                     }
 
                     var divSeigeLogs = document.getElementById("app46755028429_siege_log");
@@ -6452,8 +6450,8 @@ caap = {
                             continue;
                         }
 
-                        var attackOrderName = attackOrderList[p].match(/^[^:]+/).toString().trim().toLowerCase();
-                        monsterConditions = attackOrderList[p].replace(/^[^:]+/, '').toString().trim();
+                        var attackOrderName = attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase();
+                        monsterConditions = attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString().trim();
                         var monsterListCurrent = monsterList[selectType];
                         // Now we try to match the users name agains our list of monsters
                         for (var m in monsterListCurrent) {
@@ -6577,7 +6575,7 @@ caap = {
         // Confirm name and type of monster
         var monsterOnPage = nHtml.GetText(webSlice);
         if (caap.CheckForImage('nm_volcanic_title.jpg')) {
-            monsterOnPage = monsterOnPage.match(/.+'s /) + 'Bahamut, the Volcanic Dragon';
+            monsterOnPage = monsterOnPage.match(new RegExp(".+'s ")) + 'Bahamut, the Volcanic Dragon';
             monsterOnPage = monsterOnPage.trim();
         } else {
             monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
@@ -6585,11 +6583,11 @@ caap = {
 
         if (!global.is_firefox) {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
-                monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
+                monsterOnPage = monsterOnPage.replace(new RegExp(".+'s "), 'Your ');
             }
         } else {
             if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
-                monsterOnPage = monsterOnPage.replace(/.+'s /, 'Your ');
+                monsterOnPage = monsterOnPage.replace(new RegExp(".+'s "), 'Your ');
             }
         }
 
@@ -6876,13 +6874,13 @@ caap = {
         var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
         if (!global.is_firefox) {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
+                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 gm.log('On another player\'s keep.');
                 return this.NavigateTo('keep,battle_monster');
             }
         } else {
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + unsafeWindow.Env.user) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy.php/))) {
+                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 gm.log('On another player\'s keep.');
                 return this.NavigateTo('keep,battle_monster');
             }
@@ -7849,7 +7847,7 @@ caap = {
             }
 
             gm.log("Checking energy potions");
-            var energyPotions = $("img[title='Energy Potion']").parent().next().text().replace(/[^0-9\.]/g, "");
+            var energyPotions = $("img[title='Energy Potion']").parent().next().text().replace(new RegExp("[^0-9\\.]", "g"), "");
             if (!energyPotions) {
                 energyPotions = 0;
             }
@@ -7861,7 +7859,7 @@ caap = {
             }
 
             gm.log("Checking stamina potions");
-            var staminaPotions = $("img[title='Stamina Potion']").parent().next().text().replace(/[^0-9\.]/g, "");
+            var staminaPotions = $("img[title='Stamina Potion']").parent().next().text().replace(new RegExp("[^0-9\\.]", "g"), "");
             if (!staminaPotions) {
                 staminaPotions = 0;
             }
@@ -8176,7 +8174,7 @@ caap = {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('load auto elite list');
                 var armyList = gm.getValue('EliteArmyList', '');
-                if (/[^0-9,]/.test(armyList) && /\n/.test(armyList)) {
+                if (new RegExp("[^0-9,]").test(armyList) && /\n/.test(armyList)) {
                     armyList = armyList.replace(/\n/gi, ',');
                 }
 
@@ -8234,7 +8232,7 @@ caap = {
             var res = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
             if (res) {
                 res = nHtml.GetText(res);
-                if (res.match(/You.+Arena Guard is FULL/i) || res.match(/Arena is over/i)) {
+                if (res.match(new RegExp("You.+Arena Guard is FULL", "i")) || res.match(/Arena is over/i)) {
                     gm.setValue('ArenaEliteTodo', '');
                     gm.log('Arena guard is full or Arena is over');
                     gm.setValue('ArenaEliteNeeded', false);
@@ -8250,7 +8248,7 @@ caap = {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
                 var armyList = gm.getValue('EliteArmyList', '');
-                if (/[^0-9,]/.test(armyList) && /\n/.test(armyList)) {
+                if (new RegExp("^0-9,]").test(armyList) && /\n/.test(armyList)) {
                     armyList = armyList.replace(/\n/gi, ',');
                 }
 
@@ -8734,16 +8732,16 @@ caap = {
             }
 
             var level = this.stats.level;
-            var attrCurrent = parseInt(button.parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-            var energy = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-            var stamina = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+            var attrCurrent = parseInt(button.parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
+            var energy = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
+            var stamina = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
             var attack = 0;
             var defense = 0;
             var health = 0;
             if (level >= 10) {
-                attack = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-                defense = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
-                health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(/[^0-9]/g, ''), 10);
+                attack = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
+                defense = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
+                health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
             }
 
             //gm.log("Energy ="+energy+" Stamina ="+stamina+" Attack ="+attack+" Defense ="+defense+" Heath ="+health);
@@ -8809,7 +8807,7 @@ caap = {
                 return false;
             }
 
-            this.statsPoints = a.firstChild.firstChild.data.replace(/[^0-9]/g, '');
+            this.statsPoints = a.firstChild.firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
             if (!this.statsPoints || this.statsPoints < gm.getValue("SkillPointsNeed", 1)) {
                 //gm.log("Dont have enough stats points");
                 return false;
@@ -8937,7 +8935,7 @@ caap = {
                                 if (response.status == 200 && excludeMatch) { //if response == ok
                                     gm.deleteValue('waiting');
                                     gm.log(response.statusText);
-                                    var IdsList = excludeMatch.toString().replace(/[^0-9,]/g, '').split(',');
+                                    var IdsList = excludeMatch.toString().replace(new RegExp("[^0-9,]", "g"), '').split(',');
                                     for (var x in IdsListNotArmyAll) { //search for CA friends not in army
                                         if (IdsListNotArmyAll.hasOwnProperty(x)) {
                                             for (var y in IdsList) {
@@ -9684,8 +9682,8 @@ if (!global.is_chrome) {
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
                             var rt = resp.responseText;
-                            var remote_version = /@version\s*(.*?)\s*$/m.exec(rt)[1];
-                            var script_name = (/@name\s*(.*?)\s*$/m.exec(rt))[1];
+                            var remote_version = new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt)[1];
+                            var script_name = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
                             gm.setValue('SUC_last_update', new Date().getTime() + '');
                             gm.setValue('SUC_target_script_name', script_name);
                             gm.setValue('SUC_remote_version', remote_version);
