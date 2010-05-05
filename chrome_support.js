@@ -2,10 +2,10 @@
         Chrome support for the use with
         the Castle Age Autoplayer script.
 
-        Version 1.0.0.1
+        Version 1.0.0.2
 */
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true eqeqeq: true */
 /*global window,chrome,S_log,S_Click,CM_Listener,CE_message */
 
 var logging = false;
@@ -19,7 +19,7 @@ S_log = function (txt) {
 S_Click = function (obj, loadWaitTime) {
     if (!obj) {
         S_log('chrome_support.js: Null object passed to S_Click');
-        return;
+        return null;
     }
 
     var evt = document.createEvent("MouseEvents");
