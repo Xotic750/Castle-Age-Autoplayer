@@ -27,7 +27,7 @@ gm = {
         }
 
         var time = t_hour + ':' + t_min + ':' + t_sec;
-        GM_log('v' + caapGlob.thisVersion + ' (' + time + ') : ' + mess);
+        GM_log('v' + caapVersion + ' (' + time + ') : ' + mess);
     },
 
     debug: function (mess) {
@@ -253,4 +253,3 @@ gm = {
         }
     }
 };
-

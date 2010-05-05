@@ -24,7 +24,7 @@ if (caapGlob.is_chrome) {
             }
         }
 
-        if (caapGlob.thisVersion <= '140.21.9' || shouldTryConvert) {
+        if (caapVersion <= '140.21.9' || shouldTryConvert) {
             ConvertGMtoJSON();
         }
     } catch (e) {
@@ -63,7 +63,7 @@ if (gm.getValue('SetTitle')) {
 
 if (!caapGlob.is_chrome) {
     try {
-        if (gm.getValue('SUC_remote_version', 0) > caapGlob.thisVersion) {
+        if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
             caapGlob.newVersionAvailable = true;
         }
 
@@ -84,7 +84,7 @@ if (!caapGlob.is_chrome) {
                             gm.setValue('SUC_target_script_name', script_name);
                             gm.setValue('SUC_remote_version', remote_version);
                             gm.log('remote version ' + remote_version);
-                            if (remote_version > caapGlob.thisVersion) {
+                            if (remote_version > caapVersion) {
                                 caapGlob.newVersionAvailable = true;
                                 if (forced) {
                                     if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
@@ -119,7 +119,7 @@ if (!caapGlob.is_chrome) {
 // new format or such here.
 /////////////////////////////////////////////////////////////////////
 
-if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
+if (gm.getValue('LastVersion', 0) != caapVersion) {
     try {
         if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
             gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
@@ -164,7 +164,7 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
             }
         }
 
-        gm.setValue('LastVersion', caapGlob.thisVersion);
+        gm.setValue('LastVersion', caapVersion);
     } catch (err) {
         gm.log("ERROR in Environment updater: " + err);
     }

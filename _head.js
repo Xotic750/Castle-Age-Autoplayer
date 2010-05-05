@@ -19,6 +19,8 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
+caapVersion = "140.22.15";
+
 ///////////////////////////
 //       Prototypes
 ///////////////////////////
@@ -44,4 +46,3 @@ var gm = {};
 var Move = {};
 var nHtml = {};
 var caap = {};
-// caapGlob.thisVersion = "140.22.15"; doesn't work?

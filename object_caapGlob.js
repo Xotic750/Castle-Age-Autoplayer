@@ -4,9 +4,6 @@
 ///////////////////////////
 
 caapGlob = {
-	
-	thisVersion: "140.22.15",
-
     gameName: 'castle_age',
 
     discussionURL: 'http://senses.ws/caap/index.php',
@@ -157,4 +154,3 @@ caapGlob = {
         "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
         "PV1fzwToWcv//Z"
 };
-

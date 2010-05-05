@@ -19,6 +19,8 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
+caapVersion = "140.22.15";
+
 ///////////////////////////
 //       Prototypes
 ///////////////////////////
@@ -44,16 +46,12 @@ var gm = {};
 var Move = {};
 var nHtml = {};
 var caap = {};
-// caapGlob.thisVersion = "140.22.15"; doesn't work?
 
 ///////////////////////////
 // Define our global object
 ///////////////////////////
 
 caapGlob = {
-	
-	thisVersion: "140.22.15",
-
     gameName: 'castle_age',
 
     discussionURL: 'http://senses.ws/caap/index.php',
@@ -204,7 +202,6 @@ caapGlob = {
         "LEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGqVRjJ+4ec6fTiORn1O4LOAGha3caubFV" +
         "PV1fzwToWcv//Z"
 };
-
 
 ////////////////////////////////////////////////////////////////////
 //                          caap OBJECT
@@ -1584,7 +1581,7 @@ caap = {
             htmlCode += "<hr/></div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='font-size: 10px; width: 55px'></td><td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            htmlCode += "Version: " + caapGlob.thisVersion + " - <a href='" + caapGlob.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+            htmlCode += "Version: " + caapVersion + " - <a href='" + caapGlob.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
             if (caapGlob.newVersionAvailable) {
                 htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
             }
@@ -9067,7 +9064,7 @@ gm = {
         }
 
         var time = t_hour + ':' + t_min + ':' + t_sec;
-        GM_log('v' + caapGlob.thisVersion + ' (' + time + ') : ' + mess);
+        GM_log('v' + caapVersion + ' (' + time + ') : ' + mess);
     },
 
     debug: function (mess) {
@@ -9293,7 +9290,6 @@ gm = {
         }
     }
 };
-
 /////////////////////////////////////////////////////////////////////
 //                          HTML TOOLS
 // this object contains general methods for wading through the DOM and dealing with HTML
@@ -9633,7 +9629,7 @@ if (caapGlob.is_chrome) {
             }
         }
 
-        if (caapGlob.thisVersion <= '140.21.9' || shouldTryConvert) {
+        if (caapVersion <= '140.21.9' || shouldTryConvert) {
             ConvertGMtoJSON();
         }
     } catch (e) {
@@ -9672,7 +9668,7 @@ if (gm.getValue('SetTitle')) {
 
 if (!caapGlob.is_chrome) {
     try {
-        if (gm.getValue('SUC_remote_version', 0) > caapGlob.thisVersion) {
+        if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
             caapGlob.newVersionAvailable = true;
         }
 
@@ -9693,7 +9689,7 @@ if (!caapGlob.is_chrome) {
                             gm.setValue('SUC_target_script_name', script_name);
                             gm.setValue('SUC_remote_version', remote_version);
                             gm.log('remote version ' + remote_version);
-                            if (remote_version > caapGlob.thisVersion) {
+                            if (remote_version > caapVersion) {
                                 caapGlob.newVersionAvailable = true;
                                 if (forced) {
                                     if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
@@ -9728,7 +9724,7 @@ if (!caapGlob.is_chrome) {
 // new format or such here.
 /////////////////////////////////////////////////////////////////////
 
-if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
+if (gm.getValue('LastVersion', 0) != caapVersion) {
     try {
         if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
             gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
@@ -9773,7 +9769,7 @@ if (gm.getValue('LastVersion', 0) != caapGlob.thisVersion) {
             }
         }
 
-        gm.setValue('LastVersion', caapGlob.thisVersion);
+        gm.setValue('LastVersion', caapVersion);
     } catch (err) {
         gm.log("ERROR in Environment updater: " + err);
     }
