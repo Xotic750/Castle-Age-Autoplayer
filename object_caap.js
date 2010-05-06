@@ -1363,24 +1363,24 @@ caap = {
             htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
             htmlCode += "<div id='caap_Status_Normal' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
             htmlCode += "</div>";
             htmlCode += "<div id='caap_Status_Adv' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue6', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue7', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue8', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr></table>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue9', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr></table>";
             htmlCode += "</div>";
             htmlCode += "</table></div>";
             htmlCode += "<hr/></div>";
@@ -1912,18 +1912,12 @@ caap = {
                 if (e.target.value) {
                     caap.SetDisplay('Status_Normal', false);
                     caap.SetDisplay('Status_Adv', true);
-                    for (var n = 1; n <= 5; n += 1) {
+                    for (var n = 0; n <= 9; n += 1) {
                         gm.setValue('AttrValue' + n, '');
-                        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                        // need to update the menus here!!!
-                        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     }
                 } else {
                     caap.SetDisplay('Status_Normal', true);
                     caap.SetDisplay('Status_Adv', false);
-                    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    // need to update the menus here!!!
-                    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 }
 
                 gm.deleteValue("statsMatch");
@@ -2003,13 +1997,28 @@ caap = {
             var idName = e.target.id.replace(/caap_/i, '');
             gm.log('Change: setting "' + idName + '" to "' + e.target.value + '"');
             if (/Style*/.test(idName)) {
-                gm.setValue("StyleBackgroundLight", "#" + gm.getValue("StyleColorStarted", "FFF"));
+                var colorChoice = gm.getValue("StyleColorStarted", "FFF");
+                var firstChar = colorChoice.substr(0, 1);
+                if (firstChar !== '#') {
+                    colorChoice = '#' + colorChoice;
+                }
+
+                gm.setValue("StyleBackgroundLight", colorChoice);
                 gm.setValue("StyleOpacityLight", gm.getValue("StyleTransparencyStarted", "1"));
-                gm.setValue("StyleBackgroundDark", "#" + gm.getValue("StyleColorStoped", "FFF"));
+
+                colorChoice = gm.getValue("StyleColorStoped", "FFF");
+                firstChar = colorChoice.substr(0, 1);
+                if (firstChar !== '#') {
+                    colorChoice = '#' + colorChoice;
+                }
+
+                gm.setValue("StyleBackgroundDark", colorChoice);
                 gm.setValue("StyleOpacityDark", gm.getValue("StyleTransparencyStoped", "1"));
-            } else if (/AttrValue?/.test(idName)) {
-                gm.deleteValue("statsMatch");
             } else {
+                if (/AttrValue?/.test(idName)) {
+                    gm.deleteValue("statsMatch");
+                }
+
                 if (e.target.value === '') {
                     gm.setValue(idName, '');
                 } else if (!isNaN(e.target.value)) {
@@ -6163,7 +6172,7 @@ caap = {
                 if (!attackButton) {
                     attackButton = this.CheckForImage('button_stab_');
                     if (!attackButton) {
-                        attackButton = this.CheckForImage('button_smite');
+                        attackButton = this.CheckForImage('button_smite_');
                         if (!attackButton) {
                             attackButton = this.CheckForImage('button_bolt_');
                             if (!attackButton) {
@@ -8173,11 +8182,19 @@ caap = {
                 return true;
             }
 
-            for (var n = 1; n <= 5; n += 1) {
+            var startAtt = 0;
+            var stopAtt = 4;
+            if (gm.getValue("AutoStatAdv", false)) {
+                startAtt = 5;
+                stopAtt = 9;
+            }
+
+            for (var n = startAtt; n <= stopAtt; n += 1) {
                 if (gm.getValue('Attribute' + n, '') === '') {
                     //gm.log("Attribute" + n + " is blank: continue");
                     continue;
                 }
+
                 if (this.stats.level < 10) {
                     if (gm.getValue('Attribute' + n, '') === 'Attack' || gm.getValue('Attribute' + n, '') === 'Defense') {
                         continue;
@@ -8304,36 +8321,38 @@ caap = {
                                     }
 
                                     // Add army members //
-                                    var count = 0;
+                                    caap.addArmySpamCheck = 0;
                                     var armyCount = gm.getValue("ArmyCount", 0);
                                     if (armyCount === 0) {
                                         gm.log("Adding " + Ids.length + " member");
                                     }
 
+                                    var onLoad = function (response) {
+                                        caap.addArmySpamCheck -= 1;
+                                        if (response.status != 200) {
+                                            GM_log([response.status, response.finalUrl].join("\n"));
+                                        }
+                                    };
+
                                     caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + Ids.length);
-                                    for (armyCount; armyCount < Ids.length ; armyCount += 1) {
-                                        caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + Ids.length);
-                                        if (count >= 5) { //don't spam requests
+                                    for (var armyLoop = armyCount; armyLoop < Ids.length ; armyLoop += 1) {
+                                        caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyLoop + "/" + Ids.length);
+                                        if (caap.addArmySpamCheck >= 5) { //don't spam requests
                                             caap.waitMilliSecs = 1000;
                                             break;
                                         } else {
-                                            count += 1;
+                                            caap.addArmySpamCheck += 1;
                                             GM_xmlhttpRequest({
-                                                url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[armyCount] + '&buf=1',
+                                                url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[armyLoop] + '&buf=1',
                                                 method: "GET",
-                                                onload: function (response) {
-                                                    count -= 1;
-                                                    if (response.status != 200) {
-                                                        GM_log([response.status, response.finalUrl].join("\n"));
-                                                    }
-                                                }
+                                                onload: onLoad
                                             });
 
-                                            gm.setValue("ArmyCount", armyCount);
+                                            gm.setValue("ArmyCount", armyLoop);
                                         }
                                     }
 
-                                    if (armyCount >= Ids.length) {
+                                    if (armyLoop >= Ids.length) {
                                         caap.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
                                         window.setTimeout(function () {
                                             caap.SetDivContent('idle_mess', '');
@@ -8343,6 +8362,7 @@ caap = {
                                         gm.setValue('FillArmy', false);
                                         gm.deleteValue("ArmyCount");
                                         gm.deleteValue('waiting');
+                                        caap.NavigateTo('index');
                                     }
                                 } else {//if response != ok
                                     caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
@@ -8355,6 +8375,7 @@ caap = {
                                     gm.setValue('FillArmy', false);
                                     gm.deleteValue("ArmyCount");
                                     gm.deleteValue('waiting');
+                                    caap.NavigateTo('index');
                                 }
                             }
                         });
@@ -8373,6 +8394,9 @@ caap = {
             gm.setValue('FillArmy', false);
             gm.deleteValue("ArmyCount");
             gm.deleteValue('waiting');
+            this.addArmySpamCheck = 0;
+            this.NavigateTo('index');
+            return true;
         }
 
         this.AutoCollectMA();
