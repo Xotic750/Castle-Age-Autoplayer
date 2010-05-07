@@ -1,4 +1,3 @@
-
 ////////////////////////////////////////////////////////////////////
 //                          caap OBJECT
 // this is the main object for the game, containing all methods, globals, etc.
@@ -851,6 +850,7 @@ caap = {
         'idle_mess',
         'quest_mess',
         'battle_mess',
+        'monster_mess',
         'fortify_mess',
         'heal_mess',
         'demipoint_mess',
@@ -963,8 +963,6 @@ caap = {
                 zIndex: gm.getValue('caap_div_zIndex', '2'),
                 position: 'absolute'
             }).appendTo(document.body);
-
-            this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
             var htmlCode = '';
             if (global.is_chrome) {
@@ -1363,23 +1361,23 @@ caap = {
             htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
             htmlCode += "<div id='caap_Status_Normal' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue0', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
             htmlCode += "</div>";
             htmlCode += "<div id='caap_Status_Adv' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
             htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute6', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
             htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue6', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute7', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
             htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue7', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute8', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
             htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue8', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute9', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
             htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue9', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr></table>";
             htmlCode += "</div>";
             htmlCode += "</table></div>";
@@ -1472,12 +1470,12 @@ caap = {
             htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" + this.MakeDropDown('DisplayStyle', styleList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (gm.getValue('DisplayStyle', false) == 'Custom' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='StartedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleColorStarted', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleTransparencyStarted', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='StopedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleColorStoped', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleTransparencyStoped', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='caap_StartedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
+            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundLight', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='caap_StopedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
+            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundDark', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='font-size: 10px; width: 55px'></td></tr></table>";
@@ -1491,44 +1489,29 @@ caap = {
             }
 
             this.SetDivContent('control', htmlCode);
+            this.CheckLastAction(gm.getValue('LastAction', 'none'));
 
-            $('head').append('<style type="text/css">' +
-                '.farbtastic {' +
-                  'position: relative;' +
-                '}' +
-                '.farbtastic * {' +
-                  'position: absolute;' +
-                  'cursor: crosshair;' +
-                '}' +
-                '.farbtastic, .farbtastic .wheel {' +
-                  'width: 195px;' +
-                  'height: 195px;' +
-                '}' +
-                '.farbtastic .color, .farbtastic .overlay {' +
-                  'top: 47px;' +
-                  'left: 47px;' +
-                  'width: 101px;' +
-                  'height: 101px;' +
-                '}' +
-                '.farbtastic .wheel {' +
-                  'background: url(http://farbtastic.googlecode.com/svn/branches/farbtastic-1/wheel.png) no-repeat;' +
-                  'width: 195px;' +
-                  'height: 195px;' +
-                '}' +
-                '.farbtastic .overlay {' +
-                  'background: url(http://farbtastic.googlecode.com/svn/branches/farbtastic-1/mask.png) no-repeat;' +
-                '}' +
-                '.farbtastic .marker {' +
-                  'width: 17px;' +
-                  'height: 17px;' +
-                  'margin: -8px 0 0 -8px;' +
-                  'overflow: hidden; ' +
-                  'background: url(http://farbtastic.googlecode.com/svn/branches/farbtastic-1/marker.png) no-repeat;' +
-                '}' +
-                '</style>');
+            var cssCode = '<style type="text/css">';
+            cssCode += '.farbtastic {position: relative;}';
+            cssCode += '.farbtastic * {position: absolute;cursor: crosshair;}';
+            cssCode += '.farbtastic, .farbtastic .wheel {width: 195px;height: 195px;}';
+            cssCode += '.farbtastic .color, .farbtastic .overlay {top: 47px;left: 47px;width: 101px;height: 101px;}';
+            cssCode += '.farbtastic .wheel {background: url(' + global.farb_wheel + ') no-repeat;width: 195px;height: 195px;}';
+            cssCode += '.farbtastic .overlay {background: url(' + global.farb_mask + ') no-repeat;}';
+            cssCode += '.farbtastic .marker {width: 17px;height: 17px;margin: -8px 0 0 -8px;overflow: hidden;background: url(' + global.farb_marker + ') no-repeat;}';
+            cssCode += '</style>';
 
-            $("<div id='caap_ColorSelectorDiv1'></div>").css({
-                background: gm.getValue("StyleBackgroundLight", "white"),
+            $('head').append(cssCode);
+
+            var fb1call = function (color) {
+                $('#caap_ColorSelectorDiv1').css({'background-color':color});
+                $('#caap_StyleBackgroundLight').val(color);
+                gm.setValue("StyleBackgroundLight", color);
+                gm.setValue("CustStyleBackgroundLight", color);
+            };
+
+            $.farbtastic($("<div id='caap_ColorSelectorDiv1'></div>").css({
+                background: gm.getValue("StyleBackgroundLight", "#E0C691"),
                 padding: "5px",
                 border: "2px solid #000",
                 top: (window.innerHeight / 2) - 100 + 'px',
@@ -1536,10 +1519,17 @@ caap = {
                 zIndex: '1337',
                 position: 'fixed',
                 display: 'none'
-            }).farbtastic('#caap_StyleColorStarted').appendTo(document.body);
+            }).appendTo(document.body), fb1call).setColor(gm.getValue("StyleBackgroundLight", "#E0C691"));
 
-            $("<div id='caap_ColorSelectorDiv2'></div>").css({
-                background: gm.getValue("StyleBackgroundLight", "white"),
+            var fb2call = function (color) {
+                $('#caap_ColorSelectorDiv2').css({'background-color':color});
+                $('#caap_StyleBackgroundDark').val(color);
+                gm.setValue("StyleBackgroundDark", color);
+                gm.setValue("CustStyleBackgroundDark", color);
+            };
+
+            $.farbtastic($("<div id='caap_ColorSelectorDiv2'></div>").css({
+                background: gm.getValue("StyleBackgroundDark", "#B09060"),
                 padding: "5px",
                 border: "2px solid #000",
                 top: (window.innerHeight / 2) - 100 + 'px',
@@ -1547,7 +1537,7 @@ caap = {
                 zIndex: '1337',
                 position: 'fixed',
                 display: 'none'
-            }).farbtastic('#caap_StyleColorStoped').appendTo(document.body);
+            }).appendTo(document.body), fb2call).setColor(gm.getValue("StyleBackgroundDark", "#B09060"));
 
             /*-------------------------------------------------------------------------------------\
              Here is where we construct the HTML for our dashboard. We start by building the outer
@@ -1595,7 +1585,7 @@ caap = {
                     height: "185px",
                     width: "610px",
                     margin: "0 auto",
-                    opacity: "1",
+                    opacity: gm.getValue('StyleOpacityLight', '1'),
                     top: styleXY.y + 'px',
                     left: styleXY.x + 'px',
                     zIndex: gm.getValue('caap_top_zIndex', '1'),
@@ -1642,7 +1632,6 @@ caap = {
         try {
             if ($('#caap_top').length === 0) {
                 throw "We are missing the Dashboard div!";
-
             }
 
             if (!this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
@@ -1727,7 +1716,7 @@ caap = {
                     var userid = targetObj.split(global.vs)[0];
                     html += "<tr>";
                     var link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
-                    html += caap.makeTd(link, 'blue');
+                    html += this.makeTd(link, 'blue');
                     /*-------------------------------------------------------------------------------------\
                     We step through each of the additional values we include in the table. If a value is
                     null then we build an empty td
@@ -1745,7 +1734,7 @@ caap = {
                             all done end the table.  We then add the HTML to the div.
                             \-------------------------------------------------------------------------------------*/
                             if (/\S+Num/.test(values[j])) {
-                                value = caap.makeCommaValue(value);
+                                value = this.makeCommaValue(value);
                             }
 
                             if (/\S+Time/.test(values[j])) {
@@ -1753,7 +1742,7 @@ caap = {
                                 value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
                             }
 
-                            html += caap.makeTd(value, 'black');
+                            html += this.makeTd(value, 'black');
                         }
                     }
 
@@ -1773,6 +1762,53 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     AddDBListener creates the listener for our dashboard controls.
     \-------------------------------------------------------------------------------------*/
+    dbDisplayListener: function (e) {
+        var value = e.target.options[e.target.selectedIndex].value;
+        gm.setValue('DBDisplay', value);
+        switch (value) {
+        case "Target List" :
+            caap.SetDisplay('infoMonster', false);
+            caap.SetDisplay('infoTargets1', true);
+            caap.SetDisplay('infoTargets2', false);
+            caap.SetDisplay('buttonMonster', false);
+            caap.SetDisplay('buttonTargets', true);
+            break;
+        case "Target Stats" :
+            caap.SetDisplay('infoMonster', false);
+            caap.SetDisplay('infoTargets1', false);
+            caap.SetDisplay('infoTargets2', true);
+            caap.SetDisplay('buttonMonster', false);
+            caap.SetDisplay('buttonTargets', true);
+            break;
+        case "Monster" :
+            caap.SetDisplay('infoMonster', true);
+            caap.SetDisplay('infoTargets1', false);
+            caap.SetDisplay('infoTargets2', false);
+            caap.SetDisplay('buttonMonster', true);
+            caap.SetDisplay('buttonTargets', false);
+            break;
+        default :
+        }
+
+        gm.setValue('resetdashboard', true);
+    },
+
+    refreshMonstersListener: function (e) {
+        gm.setValue('monsterReview', 0);
+        gm.setValue('monsterReviewCounter', -3);
+        gm.setValue('NotargetFrombattle_monster', 0);
+        gm.setValue('ReleaseControl', true);
+    },
+
+    liveFeedButtonListener: function (e) {
+        $('img[src*="button_feed2.gif"]').trigger('click');
+    },
+
+    clearTargetsButtonListener: function (e) {
+        gm.setValue('targetsOl', '');
+        gm.setValue('resetdashboard', true);
+    },
+
     AddDBListener: function () {
         try {
             var selectDiv = document.getElementById('caap_DBDisplay');
@@ -1780,61 +1816,10 @@ caap = {
                 this.ReloadCastleAge();
             }
 
-            selectDiv.addEventListener('change', function (e) {
-                var value = e.target.options[e.target.selectedIndex].value;
-                gm.setValue('DBDisplay', value);
-                switch (value) {
-                case "Target List" :
-                    caap.SetDisplay('infoMonster', false);
-                    caap.SetDisplay('infoTargets1', true);
-                    caap.SetDisplay('infoTargets2', false);
-                    caap.SetDisplay('buttonMonster', false);
-                    caap.SetDisplay('buttonTargets', true);
-                    break;
-                case "Target Stats" :
-                    caap.SetDisplay('infoMonster', false);
-                    caap.SetDisplay('infoTargets1', false);
-                    caap.SetDisplay('infoTargets2', true);
-                    caap.SetDisplay('buttonMonster', false);
-                    caap.SetDisplay('buttonTargets', true);
-                    break;
-                case "Monster" :
-                    caap.SetDisplay('infoMonster', true);
-                    caap.SetDisplay('infoTargets1', false);
-                    caap.SetDisplay('infoTargets2', false);
-                    caap.SetDisplay('buttonMonster', true);
-                    caap.SetDisplay('buttonTargets', false);
-                    break;
-                default :
-                }
-
-                gm.setValue('resetdashboard', true);
-            }, false);
-
-            var refreshMonsters = document.getElementById('caap_refreshMonsters');
-            refreshMonsters.addEventListener('click', function (e) {
-                gm.setValue('monsterReview', 0);
-                gm.setValue('monsterReviewCounter', -3);
-                gm.setValue('NotargetFrombattle_monster', 0);
-                gm.setValue('ReleaseControl', true);
-            }, false);
-
-            var liveFeed = document.getElementById('caap_liveFeed');
-            liveFeed.addEventListener('click', function (e) {
-                var feedButton = nHtml.FindByAttrContains(document.body, "img", "src", "button_feed2.gif");
-                if (feedButton) {
-                    caap.Click(feedButton);
-                } else {
-                    gm.log("Could not find Live Feed button");
-                }
-            }, false);
-
-            var clearTargets = document.getElementById('caap_clearTargets');
-            clearTargets.addEventListener('click', function (e) {
-                gm.setValue('targetsOl', '');
-                gm.setValue('resetdashboard', true);
-            }, false);
-
+            $('#caap_DBDisplay').change(this.dbDisplayListener);
+            $('#caap_refreshMonsters').click(this.refreshMonstersListener);
+            $('#caap_liveFeed').click(this.liveFeedButtonListener);
+            $('#caap_clearTargets').click(this.clearTargetsButtonListener);
             return true;
         } catch (e) {
             gm.log("ERROR in AddDBListener: " + e);
@@ -1909,22 +1894,19 @@ caap = {
             switch (idName) {
             case "AutoStatAdv" :
                 //gm.log("AutoStatAdv");
-                if (e.target.value) {
+                if (e.target.checked) {
                     caap.SetDisplay('Status_Normal', false);
                     caap.SetDisplay('Status_Adv', true);
-                    for (var n = 0; n <= 9; n += 1) {
-                        gm.setValue('AttrValue' + n, '');
-                    }
                 } else {
                     caap.SetDisplay('Status_Normal', true);
                     caap.SetDisplay('Status_Adv', false);
                 }
 
-                gm.deleteValue("statsMatch");
+                caap.statsMatch = true;
                 break;
             case "HideAds" :
                 //gm.log("HideAds");
-                if (gm.getValue('HideAds')) {
+                if (e.target.checked) {
                     $('.UIStandardFrame_SidebarAds').css('display', 'none');
                 } else {
                     $('.UIStandardFrame_SidebarAds').css('display', 'block');
@@ -1933,7 +1915,7 @@ caap = {
                 break;
             case "IgnoreBattleLoss" :
                 //gm.log("IgnoreBattleLoss");
-                if (gm.getValue('IgnoreBattleLoss')) {
+                if (e.target.checked) {
                     gm.log("Ignore Battle Losses has been enabled.");
                     gm.setValue("BattlesLostList", '');
                     gm.log("Battle Lost List has been cleared.");
@@ -1946,7 +1928,7 @@ caap = {
                 //gm.log("SetTitleAction");
             case "SetTitleName" :
                 //gm.log("SetTitleName");
-                if (gm.getValue('SetTitle', false)) {
+                if (e.target.checked) {
                     var DocumentTitle = '';
                     if (gm.getValue('SetTitleAction', false)) {
                         var d = $('#caap_activity_mess').html();
@@ -1995,37 +1977,43 @@ caap = {
     TextBoxListener: function (e) {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
+            var value = e.target.value;
             gm.log('Change: setting "' + idName + '" to "' + e.target.value + '"');
-            if (/Style*/.test(idName)) {
-                var colorChoice = gm.getValue("StyleColorStarted", "FFF");
-                var firstChar = colorChoice.substr(0, 1);
-                if (firstChar !== '#') {
-                    colorChoice = '#' + colorChoice;
-                }
 
-                gm.setValue("StyleBackgroundLight", colorChoice);
-                gm.setValue("StyleOpacityLight", gm.getValue("StyleTransparencyStarted", "1"));
+            if (/Style+/.test(idName)) {
+                    switch (idName) {
+                    case "StyleBackgroundLight" :
+                        if (e.target.value.substr(0, 1) !== '#') {
+                            e.target.value = '#' + e.target.value;
+                        }
 
-                colorChoice = gm.getValue("StyleColorStoped", "FFF");
-                firstChar = colorChoice.substr(0, 1);
-                if (firstChar !== '#') {
-                    colorChoice = '#' + colorChoice;
-                }
+                        gm.setValue("CustStyleBackgroundLight", e.target.value);
+                        break;
+                    case "StyleBackgroundDark" :
+                        if (e.target.value.substr(0, 1) !== '#') {
+                            e.target.value = '#' + e.target.value;
+                        }
 
-                gm.setValue("StyleBackgroundDark", colorChoice);
-                gm.setValue("StyleOpacityDark", gm.getValue("StyleTransparencyStoped", "1"));
+                        gm.setValue("CustStyleBackgroundDark", e.target.value);
+                        break;
+                    case "StyleOpacityLight" :
+                        gm.setValue("CustStyleOpacityLight", e.target.value);
+                        break;
+                    case "StyleOpacityDark" :
+                        gm.setValue("CustStyleOpacityDark", e.target.value);
+                        break;
+                    default :
+                    }
+            } else if (/AttrValue+/.test(idName)) {
+                    caap.statsMatch = true;
+            }
+
+            if (value === '') {
+                gm.setValue(idName, '');
+            } else if (!isNaN(e.target.value)) {
+                gm.setValue(idName, Number(e.target.value));
             } else {
-                if (/AttrValue?/.test(idName)) {
-                    gm.deleteValue("statsMatch");
-                }
-
-                if (e.target.value === '') {
-                    gm.setValue(idName, '');
-                } else if (!isNaN(e.target.value)) {
-                    gm.setValue(idName, Number(e.target.value));
-                } else {
-                    gm.setValue(idName, e.target.value);
-                }
+                gm.setValue(idName, e.target.value);
             }
 
             return true;
@@ -2117,7 +2105,7 @@ caap = {
                     }
                 } else if (/Attribute?/.test(idName)) {
                     gm.setValue("SkillPointsNeed", 1);
-                    gm.deleteValue("statsMatch");
+                    caap.statsMatch = true;
                 } else if (idName == 'DisplayStyle') {
                     caap.SetDisplay(idName + 'Hide', (value == 'Custom'));
                     switch (value) {
@@ -2129,15 +2117,15 @@ caap = {
                         break;
                     case "None" :
                         gm.setValue("StyleBackgroundLight", "white");
-                        gm.setValue("StyleBackgroundDark", "");
+                        gm.setValue("StyleBackgroundDark", "white");
                         gm.setValue("StyleOpacityLight", "1");
                         gm.setValue("StyleOpacityDark", "1");
                         break;
                     case "Custom" :
-                        gm.setValue("StyleBackgroundLight", "#" + gm.getValue("StyleColorStarted", "FFF"));
-                        gm.setValue("StyleOpacityLight", gm.getValue("StyleTransparencyStarted", "1"));
-                        gm.setValue("StyleBackgroundDark", "#" + gm.getValue("StyleColorStoped", "FFF"));
-                        gm.setValue("StyleOpacityDark", gm.getValue("StyleTransparencyStoped", "1"));
+                        gm.setValue("StyleBackgroundLight", gm.getValue("CustStyleBackgroundLight", "#E0C691"));
+                        gm.setValue("StyleBackgroundDark", gm.getValue("CustStyleBackgroundDark", "#B09060"));
+                        gm.setValue("StyleOpacityLight", gm.getValue("CustStyleOpacityLight", "1"));
+                        gm.setValue("StyleOpacityDark", gm.getValue("CustStyleOpacityDark", "1"));
                         break;
                     default :
                         gm.setValue("StyleBackgroundLight", "#efe");
@@ -2146,10 +2134,15 @@ caap = {
                         gm.setValue("StyleOpacityDark", "1");
                     }
 
-                    var div = nHtml.FindByAttr(document.body, 'div', 'id', 'caap_top');
-                    if (div) {
-                        div.style.backgroundColor = gm.getValue("StyleBackgroundLight", "white");
-                    }
+                    $("#caap_div").css({
+                        background: gm.getValue('StyleBackgroundDark', '#fee'),
+                        opacity: gm.getValue('StyleOpacityDark', '1')
+                    });
+
+                    $("#caap_top").css({
+                        background: gm.getValue('StyleBackgroundDark', '#fee'),
+                        opacity: gm.getValue('StyleOpacityDark', '1')
+                    });
                 }
             }
 
@@ -2182,8 +2175,13 @@ caap = {
     PauseListener: function (e) {
         $('#caap_div').css({
             'background': gm.getValue('StyleBackgroundDark', '#fee'),
-            'opacity': gm.getValue('StyleOpacityDark', '1'),
+            'opacity': '1',
             'z-index': '3'
+        });
+
+        $('#caap_top').css({
+            'background': gm.getValue('StyleBackgroundDark', '#fee'),
+            'opacity': '1'
         });
 
         $('#caapPaused').css('display', 'block');
@@ -2199,7 +2197,14 @@ caap = {
         $('#caap_div').css({
             'background': gm.getValue('StyleBackgroundLight', '#efe'),
             'opacity': gm.getValue('StyleOpacityLight', '1'),
-            'z-index': '1',
+            'z-index': gm.getValue('caap_div_zIndex', '2'),
+            'cursor': ''
+        });
+
+        $('#caap_top').css({
+            'background': gm.getValue('StyleBackgroundLight', '#efe'),
+            'opacity': gm.getValue('StyleOpacityLight', '1'),
+            'z-index': gm.getValue('caap_top_zIndex', '1'),
             'cursor': ''
         });
 
@@ -2294,7 +2299,7 @@ caap = {
     AddListeners: function () {
         try {
             gm.log("Adding listeners for caap_div");
-            if (!$('#caap_div')) {
+            if ($('#caap_div').length === 0) {
                 throw "Unable to find div for caap_div";
             }
 
@@ -2308,7 +2313,7 @@ caap = {
                 gm.setValue("FillArmy", true);
             });
 
-            $('#StartedColorSelect').click(function (e) {
+            $('#caap_StartedColorSelect').click(function (e) {
                 var display = 'none';
                 if ($('#caap_ColorSelectorDiv1').css('display') == 'none') {
                     display = 'block';
@@ -2317,7 +2322,7 @@ caap = {
                 $('#caap_ColorSelectorDiv1').css('display', display);
             });
 
-            $('#StopedColorSelect').click(function (e) {
+            $('#caap_StopedColorSelect').click(function (e) {
                 var display = 'none';
                 if ($('#caap_ColorSelectorDiv2').css('display') == 'none') {
                     display = 'block';
@@ -2344,7 +2349,7 @@ caap = {
                 caap.ManualAutoQuest();
             });
 
-            if (!$('#app46755028429_globalContainer')) {
+            if ($('#app46755028429_globalContainer').length === 0) {
                 throw 'Global Container not found';
             }
 
@@ -5292,907 +5297,968 @@ caap = {
     completeButton: {},
 
     parseCondition: function (type, conditions) {
-        if (!conditions || conditions.toLowerCase().indexOf(':' + type) < 0) {
+        try {
+            if (!conditions || conditions.toLowerCase().indexOf(':' + type) < 0) {
+                return false;
+            }
+
+            var value = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
+            if (/k$/i.test(value) || /m$/i.test(value)) {
+                var first = /\d+k/i.test(value);
+                var second = /\d+m/i.test(value);
+                value = parseInt(value, 10) * 1000 * (first + second * 1000);
+            }
+
+            return parseInt(value, 10);
+        } catch (err) {
+            gm.log("ERROR in parseCondition: " + err);
             return false;
         }
-
-        var value = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
-        if (/k$/i.test(value) || /m$/i.test(value)) {
-            var first = /\d+k/i.test(value);
-            var second = /\d+m/i.test(value);
-            value = parseInt(value, 10) * 1000 * (first + second * 1000);
-        }
-
-        return parseInt(value, 10);
     },
 
     getMonstType: function (name) {
-        var words = name.split(" ");
-        var count = words.length - 1;
-        if (words[count] == 'Elemental' || words[count] == 'Dragon') {
-            return words[count - 1] + ' ' + words[count];
-        }
+        try {
+            var words = name.split(" ");
+            var count = words.length - 1;
+            if (words[count] == 'Elemental' || words[count] == 'Dragon') {
+                return words[count - 1] + ' ' + words[count];
+            }
 
-        return words[count];
+            return words[count];
+        } catch (err) {
+            gm.log("ERROR in getMonstType: " + err);
+            return '';
+        }
     },
 
     CheckResults_fightList: function () {
-        // get all buttons to check monsterObjectList
-        var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        if (ss.snapshotLength === 0) {
+        try {
+            // get all buttons to check monsterObjectList
+            var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            if (ss.snapshotLength === 0) {
+                return false;
+            }
+
+            var page = gm.getValue('page', 'battle_monster');
+            var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+            if (!global.is_firefox) {
+                if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
+                                                 firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
+                    gm.log('On another player\'s keep.');
+                    return false;
+                }
+            } else {
+                if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + unsafeWindow.Env.user) ||
+                                                 firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
+                    gm.log('On another player\'s keep.');
+                    return false;
+                }
+            }
+
+            // Review monsters and find attack and fortify button
+            var monsterList = [];
+            for (var s = 0; s < ss.snapshotLength; s += 1) {
+                var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
+                var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
+                var monsterFull = nHtml.GetText(monsterRow).trim();
+                var monster = monsterFull.replace('Completed!', '').replace(/Fled!/i, '').trim();
+                monsterList.push(monster);
+                // Make links for easy clickin'
+                var url = ss.snapshotItem(s).parentNode.href;
+                if (!(url && url.match(/user=/) && (url.match(/mpool=/) || url.match(/raid\.php/)))) {
+                    continue;
+                }
+
+                gm.setListObjVal('monsterOl', monster, 'page', page);
+                switch (engageButtonName) {
+                case 'dragon_list_btn_2' :
+                    gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
+                    gm.setListObjVal('monsterOl', monster, 'color', 'grey');
+                    break;
+                case 'dragon_list_btn_3' :
+                    this.monsterEngageButtons[monster] = ss.snapshotItem(s);
+                    break;
+                case 'dragon_list_btn_4' :
+                    if (page == 'raid' && !(/!/.test(monsterFull))) {
+                        this.monsterEngageButtons[monster] = ss.snapshotItem(s);
+                        break;
+                    }
+
+                    if (!this.completeButton[page]) {
+                        this.completeButton[page] = this.CheckForImage('cancelButton.gif', monsterRow);
+                    }
+
+                    gm.setListObjVal('monsterOl', monster, 'status', 'Complete');
+                    gm.setListObjVal('monsterOl', monster, 'color', 'grey');
+                    break;
+                default :
+                }
+
+                var mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : '');
+                var monstType = this.getMonstType(monster);
+                var siege = '';
+                if (monstType == 'Siege') {
+                    siege = "&action=doObjective";
+                } else {
+                    var boss = this.monsterInfo[monstType];
+                    siege = (boss && boss.siege) ? "&action=doObjective" : '';
+                }
+
+                var link = "<a href='http://apps.facebook.com/castle_age/" + page +
+                        ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
+                        mpool + siege + "'>Link</a>";
+                gm.setListObjVal('monsterOl', monster, 'Link', link);
+            }
+            gm.setValue('reviewDone', 1);
+
+            gm.getList('monsterOl').forEach(function (monsterObj) {
+                var monster = monsterObj.split(global.vs)[0];
+                if (monsterObj.indexOf(global.vs + 'page' + global.ls) < 0) {
+                    gm.deleteListObj('monsterOl', monster);
+                } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + global.ls + page) >= 0) {
+                    gm.deleteListObj('monsterOl', monster);
+                }
+            });
+
+            //gm.setValue('resetdashboard',true);
+            return true;
+        } catch (err) {
+            gm.log("ERROR in CheckResults_fightList: " + err);
             return false;
         }
-
-        var page = gm.getValue('page', 'battle_monster');
-        var firstMonsterButtonDiv = caap.CheckForImage('dragon_list_btn_');
-        if (!global.is_firefox) {
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                gm.log('On another player\'s keep.');
-                return false;
-            }
-        } else {
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + unsafeWindow.Env.user) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                gm.log('On another player\'s keep.');
-                return false;
-            }
-        }
-
-        // Review monsters and find attack and fortify button
-        var monsterList = [];
-        for (var s = 0; s < ss.snapshotLength; s += 1) {
-            var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
-            var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
-            var monsterFull = nHtml.GetText(monsterRow).trim();
-            var monster = monsterFull.replace('Completed!', '').replace(/Fled!/i, '').trim();
-            monsterList.push(monster);
-            // Make links for easy clickin'
-            var url = ss.snapshotItem(s).parentNode.href;
-            if (!(url && url.match(/user=/) && (url.match(/mpool=/) || url.match(/raid\.php/)))) {
-                continue;
-            }
-
-            gm.setListObjVal('monsterOl', monster, 'page', page);
-            switch (engageButtonName) {
-            case 'dragon_list_btn_2' :
-                gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
-                gm.setListObjVal('monsterOl', monster, 'color', 'grey');
-                break;
-            case 'dragon_list_btn_3' :
-                caap.monsterEngageButtons[monster] = ss.snapshotItem(s);
-                break;
-            case 'dragon_list_btn_4' :
-                if (page == 'raid' && !(/!/.test(monsterFull))) {
-                    caap.monsterEngageButtons[monster] = ss.snapshotItem(s);
-                    break;
-                }
-
-                if (!caap.completeButton[page]) {
-                    caap.completeButton[page] = this.CheckForImage('cancelButton.gif', monsterRow);
-                }
-
-                gm.setListObjVal('monsterOl', monster, 'status', 'Complete');
-                gm.setListObjVal('monsterOl', monster, 'color', 'grey');
-                break;
-            default :
-            }
-
-            var mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : '');
-            var monstType = this.getMonstType(monster);
-            var siege = '';
-            if (monstType == 'Siege') {
-                siege = "&action=doObjective";
-            } else {
-                var boss = caap.monsterInfo[monstType];
-                siege = (boss && boss.siege) ? "&action=doObjective" : '';
-            }
-
-            var link = "<a href='http://apps.facebook.com/castle_age/" + page +
-                    ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
-                    mpool + siege + "'>Link</a>";
-            gm.setListObjVal('monsterOl', monster, 'Link', link);
-        }
-        gm.setValue('reviewDone', 1);
-
-        gm.getList('monsterOl').forEach(function (monsterObj) {
-            var monster = monsterObj.split(global.vs)[0];
-            if (monsterObj.indexOf(global.vs + 'page' + global.ls) < 0) {
-                gm.deleteListObj('monsterOl', monster);
-            } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + global.ls + page) >= 0) {
-                gm.deleteListObj('monsterOl', monster);
-            }
-        });
-
-        //gm.setValue('resetdashboard',true);
     },
 
     t2kCalc: function (boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
-        var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
-        var timeUsed = (boss.duration - timeLeft);
-        if (!boss.siege || !boss.hp) {
-            return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
-        }
+        try {
+            var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+            var timeUsed = (boss.duration - timeLeft);
+            if (!boss.siege || !boss.hp) {
+                return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
+            }
 
-        var T2K = 0;
-        var damageDone = (100 - percentHealthLeft) / 100 * boss.hp;
-        var hpLeft = boss.hp - damageDone;
-        var totalSiegeDamage = 0;
-        var totalSiegeClicks = 0;
-        var attackDamPerHour = 0;
-        var clicksPerHour = 0;
-        var clicksToNextSiege = 0;
-        var nextSiegeAttackPlusSiegeDamage = 0;
-        for (var s in boss.siegeClicks) {
-            if (boss.siegeClicks.hasOwnProperty(s)) {
-                //gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft);
-                if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
-                    totalSiegeDamage += boss.siegeDam[s];
-                    totalSiegeClicks += boss.siegeClicks[s];
-                }
-                if (s == siegeStage - 1) {
-                    attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
-                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
-                    //gm.log('Attack Damage Per Hour: ' + attackDamPerHour + ' Damage Done: ' + damageDone + ' Total Siege Damage: ' + totalSiegeDamage + ' Time Used: ' + timeUsed + ' Clicks Per Hour: ' + clicksPerHour);
-                }
-                if (s >= siegeStage - 1) {
-                    clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
-                    nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
-                        T2K +=  hpLeft / attackDamPerHour;
-                        break;
+            var T2K = 0;
+            var damageDone = (100 - percentHealthLeft) / 100 * boss.hp;
+            var hpLeft = boss.hp - damageDone;
+            var totalSiegeDamage = 0;
+            var totalSiegeClicks = 0;
+            var attackDamPerHour = 0;
+            var clicksPerHour = 0;
+            var clicksToNextSiege = 0;
+            var nextSiegeAttackPlusSiegeDamage = 0;
+            for (var s in boss.siegeClicks) {
+                if (boss.siegeClicks.hasOwnProperty(s)) {
+                    //gm.log('s ' + s + ' T2K ' + T2K+ ' hpLeft ' + hpLeft);
+                    if (s < siegeStage - 1  || clicksNeededInCurrentStage === 0) {
+                        totalSiegeDamage += boss.siegeDam[s];
+                        totalSiegeClicks += boss.siegeClicks[s];
                     }
-                    T2K += clicksToNextSiege / clicksPerHour;
-                    hpLeft -= nextSiegeAttackPlusSiegeDamage;
+
+                    if (s == siegeStage - 1) {
+                        attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
+                        clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
+                        //gm.log('Attack Damage Per Hour: ' + attackDamPerHour + ' Damage Done: ' + damageDone + ' Total Siege Damage: ' + totalSiegeDamage + ' Time Used: ' + timeUsed + ' Clicks Per Hour: ' + clicksPerHour);
+                    }
+
+                    if (s >= siegeStage - 1) {
+                        clicksToNextSiege = (s == siegeStage - 1) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
+                        nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
+                        if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
+                            T2K +=  hpLeft / attackDamPerHour;
+                            break;
+                        }
+
+                        T2K += clicksToNextSiege / clicksPerHour;
+                        hpLeft -= nextSiegeAttackPlusSiegeDamage;
+                    }
                 }
             }
+
+            var t2kValue = Math.round(T2K * 10) / 10;
+            gm.log('T2K based on siege: ' + t2kValue + ' T2K estimate without calculating siege impacts: ' + Math.round(percentHealthLeft / (100 - percentHealthLeft) * timeLeft * 10) / 10);
+            return t2kValue;
+        } catch (err) {
+            gm.log("ERROR in t2kCalc: " + err);
+            return 0;
         }
-        gm.log('T2K based on siege: ' + Math.round(T2K * 10) / 10 + ' T2K estimate without calculating siege impacts: ' + Math.round(percentHealthLeft / (100 - percentHealthLeft) * timeLeft * 10) / 10);
-        return Math.round(T2K * 10) / 10;
     },
 
-
-
     CheckResults_viewFight: function () {
-        // Check if on monster page (nm_top.jpg for Volcanic Dragon)
-        var webSlice = this.CheckForImage('dragon_title_owner.jpg');
-        if (!webSlice) {
-            webSlice = this.CheckForImage('nm_top.jpg');
+        try {
+            // Check if on monster page (nm_top.jpg for Volcanic Dragon)
+            var webSlice = this.CheckForImage('dragon_title_owner.jpg');
             if (!webSlice) {
-                gm.log('Can not find identifier for monster fight page.');
-                return;
-            }
-        }
-
-        // Get name and type of monster
-        var monster = nHtml.GetText(webSlice);
-
-        if (this.CheckForImage('nm_volcanic_title.jpg')) {
-            monster = monster.match(new RegExp(".+'s ")) + 'Bahamut, the Volcanic Dragon';
-            monster = monster.trim();
-        } else {
-            monster = monster.substring(0, monster.indexOf('You have (')).trim();
-        }
-
-        var fort = null;
-        var monstType = '';
-        if (this.CheckForImage('raid_1_large.jpg')) {
-            monstType = 'Raid I';
-        } else if (this.CheckForImage('raid_b1_large.jpg')) {
-            monstType = 'Raid II';
-        } else {
-            monstType = this.getMonstType(monster);
-        }
-
-        if (!global.is_firefox) {
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
-                monster = monster.replace(new RegExp(".+'s "), 'Your ');
-            }
-        } else {
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
-                monster = monster.replace(new RegExp(".+'s "), 'Your ');
-            }
-        }
-
-        var now = (new Date().getTime());
-        gm.setListObjVal('monsterOl', monster, 'review', now.toString());
-		gm.setValue('monsterRepeatCount', 0);
-
-        var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
-        gm.setListObjVal('monsterOl', monster, 'Type', monstType);
-        // Extract info
-        var time = [];
-        var boss_name = '';
-        var boss = '';
-        var group_name = '';
-        var attacker = '';
-        //var phase = '';
-        var currentPhase = 0;
-        var miss = '';
-        var fortPct = null;
-
-        if (this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
-            if (monstType == "Deathrune" || monstType == 'Ice Elemental') {
-                gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
-            } else {
-                gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
-            }
-            // Check for mana forcefield
-            var img = this.CheckForImage('bar_dispel');
-            if (img) {
-                var manaHealth = img.parentNode.style.width;
-                manaHealth = manaHealth.substring(0, manaHealth.length - 1);
-                fortPct = 100 - Number(manaHealth);
-            } else {
-                // Check fortify stuff
-                img = this.CheckForImage('seamonster_ship_health');
-                if (img) {
-                    var shipHealth = img.parentNode.style.width;
-                    fortPct = shipHealth.substring(0, shipHealth.length - 1);
-                    if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
-                        img = this.CheckForImage('repair_bar_grey');
-                        if (img) {
-                            var extraHealth = img.parentNode.style.width;
-                            extraHealth = extraHealth.substring(0, extraHealth.length - 1);
-                            fortPct = Math.round(Number(fortPct) * (100 / (100 - Number(extraHealth))));
-                        }
-                    }
-                } else {
-                    // Check party health - Volcanic dragon
-                    img = this.CheckForImage('nm_green');
-                    if (img) {
-                        var partyHealth = img.parentNode.style.width;
-                        fortPct = partyHealth.substring(0, partyHealth.length - 1);
-                    }
-                }
-            }
-
-            if (fortPct !== null) {
-                gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
-            }
-        }
-
-        var damDone = 0;
-        // Get damage done to monster
-        webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
-        if (webSlice) {
-            webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
-            if (webSlice) {
-                if (!global.is_firefox) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + gm.getValue('FBID', 'x'));
-                } else {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + unsafeWindow.Env.user);
-                }
-
-                if (webSlice) {
-                    var damList = null;
-                    if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
-                        //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
-                        damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim().split("/");
-                        fort = this.NumberOnly(damList[1]);
-                        damDone = this.NumberOnly(damList[0]) + fort;
-                        gm.setListObjVal('monsterOl', monster, 'Fort', fort);
-                    } else {
-                        //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
-                        damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim();
-                        damDone = this.NumberOnly(damList);
-                    }
-
-                    gm.setListObjVal('monsterOl', monster, 'Damage', damDone);
-                    //if (damDone) gm.log("Damage done = " + gm.getListObjVal('monsterOl',monster,'Damage'));
-                } else {
-                    gm.log("Player hasn't done damage yet");
-                }
-            } else {
-                gm.log("couldn't get top table");
-            }
-        } else {
-            gm.log("couldn't get dragoncontainer");
-        }
-
-        var monsterTicker1 = nHtml.FindByAttrContains(document.body, "div", "id", "app46755028429_monsterTicker");
-        var monsterTicker2 = nHtml.FindByAttrContains(document.body, "span", "id", "app46755028429_monsterTicker");
-        if (monsterTicker1 || monsterTicker2) {
-            //gm.log("Monster ticker found.");
-            time = $("#app46755028429_monsterTicker").text().split(":");
-        } else {
-            gm.log("Could not locate Monster ticker.");
-        }
-
-        var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
-        if (/:ac\b/.test(monsterConditions)) {
-            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-            var monsterList = gm.getList('monsterOl');
-            if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
-                (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
-                 nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
-                gm.log('Collecting Reward');
-                gm.setListObjVal('monsterOl', monster, 'review', "1");
-                gm.setValue('monsterReviewCounter', counter -= 1);
-                gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
-                if (monster.indexOf('Siege') >= 0) {
-                    if (nHtml.FindByAttrContains(document.body, 'a', 'href', '&rix=1')) {
-                        gm.setListObjVal('monsterOl', monster, 'rix', 1);
-                    } else {
-                        gm.setListObjVal('monsterOl', monster, 'rix', 2);
-                    }
-                }
-            }
-        }
-
-        var hp = 0;
-        var monstHealthImg = '';
-        if (monstType == 'Volcanic Dragon') {
-            monstHealthImg = 'nm_red.jpg';
-        } else {
-            monstHealthImg = 'monster_health_background.jpg';
-        }
-
-        if (time.length == 3  && this.CheckForImage(monstHealthImg)) {
-            gm.setListObjVal('monsterOl', monster, 'TimeLeft', time[0] + ":" + time[1]);
-            var hpBar = null;
-            var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
-            if (imgHealthBar) {
-                //gm.log("Found monster health div.");
-                var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
-                var attrWidth = divAttr[1].split(":");
-                hpBar = attrWidth[1].trim();
-            } else {
-                gm.log("Could not find monster health div.");
-            }
-
-            if (hpBar) {
-                hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
-                gm.setListObjVal('monsterOl', monster, 'Damage%', hp);
-                boss = this.monsterInfo[monstType];
-                if (!boss) {
-                    gm.log('Unknown monster');
+                webSlice = this.CheckForImage('nm_top.jpg');
+                if (!webSlice) {
+                    gm.log('Can not find identifier for monster fight page.');
                     return;
                 }
             }
 
-            if (boss && boss.siege) {
-                if (monstType.indexOf('Volcanic') >= 0) {
-                    miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch"), "$1"));
-                    //miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).children().eq(2).text().replace(/.*:\s*Need (\d+) more answered calls to launch/, "$1"));
-                    currentPhase = Math.min($("img[src*=" + boss.siege_img + "]").size(), boss.siege);
-                } else {
-                    if (monstType.indexOf('Raid') >= 0) {
-                        miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(new RegExp(".*:\\s*Need (\\d+) more to launch"), "$1").trim();
-                    } else {
-                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(new RegExp(".*:\\s*Need (\\d+) more answered calls to launch"), "$1"));
-                    }
+            var yourRegEx = new RegExp(".+'s ");
+            // Get name and type of monster
+            var monster = nHtml.GetText(webSlice);
+            if (this.CheckForImage('nm_volcanic_title.jpg')) {
+                monster = monster.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
+                monster = monster.trim();
+            } else {
+                monster = monster.substring(0, monster.indexOf('You have (')).trim();
+            }
 
-                    var divSeigeLogs = document.getElementById("app46755028429_siege_log");
-                    if (divSeigeLogs && !currentPhase) {
-                        //gm.log("Found siege logs.");
-                        var divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
-                        if (divSeigeCount) {
-                            currentPhase = Math.round(divSeigeCount / 4) + 1;
-                        } else {
-                            gm.log("Could not count siege logs.");
+            var fort = null;
+            var monstType = '';
+            if (this.CheckForImage('raid_1_large.jpg')) {
+                monstType = 'Raid I';
+            } else if (this.CheckForImage('raid_b1_large.jpg')) {
+                monstType = 'Raid II';
+            } else {
+                monstType = this.getMonstType(monster);
+            }
+
+            if (!global.is_firefox) {
+                if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
+                    monster = monster.replace(yourRegEx, 'Your ');
+                }
+            } else {
+                if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
+                    monster = monster.replace(yourRegEx, 'Your ');
+                }
+            }
+
+            var now = (new Date().getTime());
+            gm.setListObjVal('monsterOl', monster, 'review', now.toString());
+            gm.setValue('monsterRepeatCount', 0);
+            var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
+            gm.setListObjVal('monsterOl', monster, 'Type', monstType);
+            // Extract info
+            var time = [];
+            var boss_name = '';
+            var boss = '';
+            var group_name = '';
+            var attacker = '';
+            var currentPhase = 0;
+            var miss = '';
+            var fortPct = null;
+            if (this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
+                if (monstType == "Deathrune" || monstType == 'Ice Elemental') {
+                    gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
+                } else {
+                    gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
+                }
+
+                // Check for mana forcefield
+                var img = this.CheckForImage('bar_dispel');
+                if (img) {
+                    var manaHealth = img.parentNode.style.width;
+                    manaHealth = manaHealth.substring(0, manaHealth.length - 1);
+                    fortPct = 100 - Number(manaHealth);
+                } else {
+                    // Check fortify stuff
+                    img = this.CheckForImage('seamonster_ship_health');
+                    if (img) {
+                        var shipHealth = img.parentNode.style.width;
+                        fortPct = shipHealth.substring(0, shipHealth.length - 1);
+                        if (monstType == "Legion" || monstType.indexOf('Elemental') >= 0) {
+                            img = this.CheckForImage('repair_bar_grey');
+                            if (img) {
+                                var extraHealth = img.parentNode.style.width;
+                                extraHealth = extraHealth.substring(0, extraHealth.length - 1);
+                                fortPct = Math.round(Number(fortPct) * (100 / (100 - Number(extraHealth))));
+                            }
                         }
                     } else {
-                        gm.log("Could not find siege logs.");
+                        // Check party health - Volcanic dragon
+                        img = this.CheckForImage('nm_green');
+                        if (img) {
+                            var partyHealth = img.parentNode.style.width;
+                            fortPct = partyHealth.substring(0, partyHealth.length - 1);
+                        }
                     }
                 }
 
-                var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(+miss) ? 0 : miss);
-                gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
+                if (fortPct !== null) {
+                    gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
+                }
             }
 
-            if (boss) {
-                var T2K = this.t2kCalc(boss, time, hp, currentPhase, miss);
-                gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
-            }
-        } else {
-            gm.log('Monster is dead or fled');
-            gm.setListObjVal('monsterOl', monster, 'color', 'grey');
-            gm.setValue('resetselectMonster', true);
-            return;
-        }
+            var damDone = 0;
+            // Get damage done to monster
+            webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
+            if (webSlice) {
+                webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
+                if (webSlice) {
+                    if (!global.is_firefox) {
+                        webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + gm.getValue('FBID', 'x'));
+                    } else {
+                        webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + unsafeWindow.Env.user);
+                    }
 
-        boss = this.monsterInfo[monstType];
-        var achLevel = this.parseCondition('ach', monsterConditions);
-        if (boss && achLevel === false) {
-            achLevel = boss.ach;
-        }
-        var maxDamage = this.parseCondition('max', monsterConditions);
-        fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
-        var maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
-        var isTarget = (monster == gm.getValue('targetFromraid', '') ||
-                monster == gm.getValue('targetFrombattle_monster', '') ||
-                monster == gm.getValue('targetFromfortify', ''));
-        if (monster == gm.getValue('targetFromfortify', '') && fortPct > maxToFortify) {
-            gm.setValue('resetselectMonster', true);
-        }
-        if (maxDamage && damDone >= maxDamage) {
-            gm.setListObjVal('monsterOl', monster, 'color', 'red');
-            gm.setListObjVal('monsterOl', monster, 'over', 'max');
-            if (isTarget) {
+                    if (webSlice) {
+                        var damList = null;
+                        if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
+                            //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
+                            damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim().split("/");
+                            fort = this.NumberOnly(damList[1]);
+                            damDone = this.NumberOnly(damList[0]) + fort;
+                            gm.setListObjVal('monsterOl', monster, 'Fort', fort);
+                        } else {
+                            //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                            damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim();
+                            damDone = this.NumberOnly(damList);
+                        }
+
+                        gm.setListObjVal('monsterOl', monster, 'Damage', damDone);
+                        //if (damDone) gm.log("Damage done = " + gm.getListObjVal('monsterOl',monster,'Damage'));
+                    } else {
+                        gm.log("Player hasn't done damage yet");
+                    }
+                } else {
+                    gm.log("couldn't get top table");
+                }
+            } else {
+                gm.log("couldn't get dragoncontainer");
+            }
+
+            var monsterTicker1 = nHtml.FindByAttrContains(document.body, "div", "id", "app46755028429_monsterTicker");
+            var monsterTicker2 = nHtml.FindByAttrContains(document.body, "span", "id", "app46755028429_monsterTicker");
+            if (monsterTicker1 || monsterTicker2) {
+                //gm.log("Monster ticker found.");
+                time = $("#app46755028429_monsterTicker").text().split(":");
+            } else {
+                gm.log("Could not locate Monster ticker.");
+            }
+
+            var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
+            if (/:ac\b/.test(monsterConditions)) {
+                var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+                var monsterList = gm.getList('monsterOl');
+                if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
+                    (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
+                     nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
+                    gm.log('Collecting Reward');
+                    gm.setListObjVal('monsterOl', monster, 'review', "1");
+                    gm.setValue('monsterReviewCounter', counter -= 1);
+                    gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
+                    if (monster.indexOf('Siege') >= 0) {
+                        if (nHtml.FindByAttrContains(document.body, 'a', 'href', '&rix=1')) {
+                            gm.setListObjVal('monsterOl', monster, 'rix', 1);
+                        } else {
+                            gm.setListObjVal('monsterOl', monster, 'rix', 2);
+                        }
+                    }
+                }
+            }
+
+            var hp = 0;
+            var monstHealthImg = '';
+            if (monstType == 'Volcanic Dragon') {
+                monstHealthImg = 'nm_red.jpg';
+            } else {
+                monstHealthImg = 'monster_health_background.jpg';
+            }
+
+            if (time.length == 3  && this.CheckForImage(monstHealthImg)) {
+                gm.setListObjVal('monsterOl', monster, 'TimeLeft', time[0] + ":" + time[1]);
+                var hpBar = null;
+                var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
+                if (imgHealthBar) {
+                    //gm.log("Found monster health div.");
+                    var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
+                    var attrWidth = divAttr[1].split(":");
+                    hpBar = attrWidth[1].trim();
+                } else {
+                    gm.log("Could not find monster health div.");
+                }
+
+                if (hpBar) {
+                    hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
+                    gm.setListObjVal('monsterOl', monster, 'Damage%', hp);
+                    boss = this.monsterInfo[monstType];
+                    if (!boss) {
+                        gm.log('Unknown monster');
+                        return;
+                    }
+                }
+
+                if (boss && boss.siege) {
+                    var missRegEx = new RegExp(".*Need (\\d+) more.*");
+                    if (monstType.indexOf('Volcanic') >= 0) {
+                        miss = $("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(missRegEx, "$1").trim();
+                        currentPhase = Math.min($("img[src*=" + boss.siege_img + "]").size(), boss.siege);
+                    } else {
+                        if (monstType.indexOf('Raid') >= 0) {
+                            miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(missRegEx, "$1").trim();
+                        } else {
+                            miss = $("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(missRegEx, "$1").trim();
+                        }
+
+                        var divSeigeLogs = document.getElementById("app46755028429_siege_log");
+                        if (divSeigeLogs && !currentPhase) {
+                            //gm.log("Found siege logs.");
+                            var divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
+                            if (divSeigeCount) {
+                                currentPhase = Math.round(divSeigeCount / 4) + 1;
+                            } else {
+                                gm.log("Could not count siege logs.");
+                            }
+                        } else {
+                            gm.log("Could not find siege logs.");
+                        }
+                    }
+
+                    var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(miss) ? 0 : miss);
+                    gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
+                }
+
+                if (boss) {
+                    var T2K = this.t2kCalc(boss, time, hp, currentPhase, miss);
+                    gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
+                }
+            } else {
+                gm.log('Monster is dead or fled');
+                gm.setListObjVal('monsterOl', monster, 'color', 'grey');
+                gm.setValue('resetselectMonster', true);
+                return;
+            }
+
+            boss = this.monsterInfo[monstType];
+            var achLevel = this.parseCondition('ach', monsterConditions);
+            if (boss && achLevel === false) {
+                achLevel = boss.ach;
+            }
+
+            var maxDamage = this.parseCondition('max', monsterConditions);
+            fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
+            var maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
+            var isTarget = (monster == gm.getValue('targetFromraid', '') ||
+                    monster == gm.getValue('targetFrombattle_monster', '') ||
+                    monster == gm.getValue('targetFromfortify', ''));
+            if (monster == gm.getValue('targetFromfortify', '') && fortPct > maxToFortify) {
                 gm.setValue('resetselectMonster', true);
             }
-        } else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
-            gm.setListObjVal('monsterOl', monster, 'color', 'purple');
-            if (isTarget) {
-                gm.setValue('resetselectMonster', true);
+
+            if (maxDamage && damDone >= maxDamage) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'red');
+                gm.setListObjVal('monsterOl', monster, 'over', 'max');
+                if (isTarget) {
+                    gm.setValue('resetselectMonster', true);
+                }
+            } else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'purple');
+                if (isTarget) {
+                    gm.setValue('resetselectMonster', true);
+                }
+            } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'orange');
+                gm.setListObjVal('monsterOl', monster, 'over', 'ach');
+                if (isTarget && lastDamDone < achLevel) {
+                    gm.setValue('resetselectMonster', true);
+                }
+            } else {
+                gm.setListObjVal('monsterOl', monster, 'color', 'black');
             }
-        } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
-            gm.setListObjVal('monsterOl', monster, 'color', 'orange');
-            gm.setListObjVal('monsterOl', monster, 'over', 'ach');
-            if (isTarget && lastDamDone < achLevel) {
-                gm.setValue('resetselectMonster', true);
+
+            if (this.CheckTimer('battleTimer')) {
+                window.setTimeout(function () {
+                    caap.SetDivContent('monster_mess', '');
+                }, 2000);
             }
-        } else {
-            gm.setListObjVal('monsterOl', monster, 'color', 'black');
+        } catch (err) {
+            gm.log("ERROR in CheckResults_viewFight: " + err);
         }
     },
 
     selectMonster: function () {
-        if (!this.oneMinuteUpdate('selectMonster')) {
-            return;
-        }
-
-        //gm.log('Selecting monster');
-        // First we forget everything about who we already picked.
-        gm.setValue('targetFrombattle_monster', '');
-        gm.setValue('targetFromfortify', '');
-        gm.setValue('targetFromraid', '');
-
-        // Next we get our monster objects from the reposoitory and break them into separarte lists
-        // for monster or raid.  If we are serializing then we make one list only.
-        var monsterList = {};
-        monsterList.battle_monster = [];
-        monsterList.raid = [];
-        monsterList.any = [];
-        var monsterFullList = gm.getList('monsterOl', '');
-        var monstPage = '';
-        monsterFullList.forEach(function (monsterObj) {
-            gm.setListObjVal('monsterOl', monsterObj.split(global.vs)[0], 'conditions', 'none');
-            monstPage = gm.getObjVal(monsterObj, 'page');
-            if (gm.getValue('SerializeRaidsAndMonsters', false)) {
-                monsterList.any.push(monsterObj);
-            } else if ((monstPage == 'raid') || (monstPage == 'battle_monster')) {
-                monsterList[monstPage].push(monsterObj);
+        try {
+            if (!this.oneMinuteUpdate('selectMonster')) {
+                return;
             }
-        });
 
-        //PLEASE NOTE BEFORE CHANGING
-        //The Serialize Raids and Monsters dictates a 'single-pass' because we only need select
-        //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
-        //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
-        //a round hole. Please reconsider before doing so.
-        var selectTypes = [];
-        if (gm.getValue('SerializeRaidsAndMonsters', false)) {
-            selectTypes = ['any'];
-        } else {
-            selectTypes = ['battle_monster', 'raid'];
-        }
+            //gm.log('Selecting monster');
+            // First we forget everything about who we already picked.
+            gm.setValue('targetFrombattle_monster', '');
+            gm.setValue('targetFromfortify', '');
+            gm.setValue('targetFromraid', '');
 
-        // We loop through for each selection type (only once if serialized between the two)
-        // We then read in the users attack order list
-        for (var s in selectTypes) {
-            if (selectTypes.hasOwnProperty(s)) {
-                var selectType = selectTypes[s];
-                var firstOverAch = '';
-                var firstUnderMax = '';
-                var firstFortOverAch = '';
-                var firstFortUnderMax = '';
-                var attackOrderList = [];
-                // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-                if (selectType == 'any') {
-                    var attackOrderList1 = gm.getValue('orderbattle_monster', '').split(/[\n,]/);
-                    var attackOrderList2 = gm.getValue('orderraid', '').split(/[\n,]/).concat('your', "'");
-                    attackOrderList = attackOrderList1.concat(attackOrderList2);
-                } else {
-                    attackOrderList = gm.getValue('order' + selectType, '').split(/[\n,]/).concat('your', "'");
+            // Next we get our monster objects from the reposoitory and break them into separarte lists
+            // for monster or raid.  If we are serializing then we make one list only.
+            var monsterList = {};
+            monsterList.battle_monster = [];
+            monsterList.raid = [];
+            monsterList.any = [];
+            var monsterFullList = gm.getList('monsterOl', '');
+            var monstPage = '';
+            monsterFullList.forEach(function (monsterObj) {
+                gm.setListObjVal('monsterOl', monsterObj.split(global.vs)[0], 'conditions', 'none');
+                monstPage = gm.getObjVal(monsterObj, 'page');
+                if (gm.getValue('SerializeRaidsAndMonsters', false)) {
+                    monsterList.any.push(monsterObj);
+                } else if ((monstPage == 'raid') || (monstPage == 'battle_monster')) {
+                    monsterList[monstPage].push(monsterObj);
                 }
+            });
 
-                var monster = '';
-                var monsterConditions = '';
-                var monstType = '';
-                // Next we step through the users list getting the name and conditions
-                for (var p in attackOrderList) {
-                    if (attackOrderList.hasOwnProperty(p)) {
-                        if (!(attackOrderList[p].trim())) {
-                            continue;
-                        }
+            //PLEASE NOTE BEFORE CHANGING
+            //The Serialize Raids and Monsters dictates a 'single-pass' because we only need select
+            //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
+            //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
+            //a round hole. Please reconsider before doing so.
+            var selectTypes = [];
+            if (gm.getValue('SerializeRaidsAndMonsters', false)) {
+                selectTypes = ['any'];
+            } else {
+                selectTypes = ['battle_monster', 'raid'];
+            }
 
-                        var attackOrderName = attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase();
-                        monsterConditions = attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString().trim();
-                        var monsterListCurrent = monsterList[selectType];
-                        // Now we try to match the users name agains our list of monsters
-                        for (var m in monsterListCurrent) {
-                            if (monsterListCurrent.hasOwnProperty(m)) {
-                                var monsterObj = monsterListCurrent[m];
-                                monster = monsterObj.split(global.vs)[0];
-                                monstPage = gm.getObjVal(monsterObj, 'page');
+            // We loop through for each selection type (only once if serialized between the two)
+            // We then read in the users attack order list
+            for (var s in selectTypes) {
+                if (selectTypes.hasOwnProperty(s)) {
+                    var selectType = selectTypes[s];
+                    var firstOverAch = '';
+                    var firstUnderMax = '';
+                    var firstFortOverAch = '';
+                    var firstFortUnderMax = '';
+                    var attackOrderList = [];
+                    // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
+                    if (selectType == 'any') {
+                        var attackOrderList1 = gm.getValue('orderbattle_monster', '').split(/[\n,]/);
+                        var attackOrderList2 = gm.getValue('orderraid', '').split(/[\n,]/).concat('your', "'");
+                        attackOrderList = attackOrderList1.concat(attackOrderList2);
+                    } else {
+                        attackOrderList = gm.getValue('order' + selectType, '').split(/[\n,]/).concat('your', "'");
+                    }
 
-                                // If we set conditions on this monster already then we do not reprocess
-                                if (gm.getListObjVal('monsterOl', monster, 'conditions') != 'none') {
-                                    continue;
-                                }
+                    var monster = '';
+                    var monsterConditions = '';
+                    var monstType = '';
+                    // Next we step through the users list getting the name and conditions
+                    for (var p in attackOrderList) {
+                        if (attackOrderList.hasOwnProperty(p)) {
+                            if (!(attackOrderList[p].trim())) {
+                                continue;
+                            }
 
-                                //If this monster does not match, skip to next one
-                                // Or if this monster is dead, skip to next one
-                                // Or if this monster is not the correct type, skip to next one
-                                if ((monster.toLowerCase().indexOf(attackOrderName) < 0) || (selectType != 'any' && monstPage != selectType)) {
-                                    continue;
-                                }
+                            var attackOrderName = attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase();
+                            monsterConditions = attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString().trim();
+                            var monsterListCurrent = monsterList[selectType];
+                            // Now we try to match the users name agains our list of monsters
+                            for (var m in monsterListCurrent) {
+                                if (monsterListCurrent.hasOwnProperty(m)) {
+                                    var monsterObj = monsterListCurrent[m];
+                                    monster = monsterObj.split(global.vs)[0];
+                                    monstPage = gm.getObjVal(monsterObj, 'page');
 
-                                //Monster is a match so we set the conditions
-                                gm.setListObjVal('monsterOl', monster, 'conditions', monsterConditions);
-
-                                // If it's complete or collect rewards, no need to process further
-                                var color = gm.getObjVal(monsterObj, 'color', '');
-                                if (color == 'grey') {
-                                    continue;
-                                }
-
-                                // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                                // these to see if this is the monster we should select/
-                                var over = gm.getObjVal(monsterObj, 'over', '');
-                                if (!firstUnderMax && color != 'purple') {
-                                    if (over == 'ach') {
-                                        if (!firstOverAch) {
-                                            firstOverAch = monster;
-                                        }
-                                    } else if (over != 'max') {
-                                        firstUnderMax = monster;
+                                    // If we set conditions on this monster already then we do not reprocess
+                                    if (gm.getListObjVal('monsterOl', monster, 'conditions') != 'none') {
+                                        continue;
                                     }
-                                }
 
-                                var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
-                                var maxToFortify = (caap.parseCondition('f%', monsterConditions)  !== false) ? caap.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
-                                monstType = this.getMonstType(monster);
-                                //gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' caap.monsterInfo[monstType] ' + caap.monsterInfo[monstType]+ ' caap.monsterInfo[monstType].fort ' + caap.monsterInfo[monstType].fort);
-                                if (!firstFortUnderMax && monsterFort < maxToFortify &&
-                                        monstPage == 'battle_monster' &&
-                                        caap.monsterInfo[monstType] &&
-                                        caap.monsterInfo[monstType].fort) {
-                                    if (over == 'ach') {
-                                        if (!firstFortOverAch) {
-                                            //gm.log('hitit');
-                                            firstFortOverAch = monster;
+                                    //If this monster does not match, skip to next one
+                                    // Or if this monster is dead, skip to next one
+                                    // Or if this monster is not the correct type, skip to next one
+                                    if ((monster.toLowerCase().indexOf(attackOrderName) < 0) || (selectType != 'any' && monstPage != selectType)) {
+                                        continue;
+                                    }
+
+                                    //Monster is a match so we set the conditions
+                                    gm.setListObjVal('monsterOl', monster, 'conditions', monsterConditions);
+
+                                    // If it's complete or collect rewards, no need to process further
+                                    var color = gm.getObjVal(monsterObj, 'color', '');
+                                    if (color == 'grey') {
+                                        continue;
+                                    }
+
+                                    // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
+                                    // these to see if this is the monster we should select/
+                                    var over = gm.getObjVal(monsterObj, 'over', '');
+                                    if (!firstUnderMax && color != 'purple') {
+                                        if (over == 'ach') {
+                                            if (!firstOverAch) {
+                                                firstOverAch = monster;
+                                            }
+                                        } else if (over != 'max') {
+                                            firstUnderMax = monster;
                                         }
-                                    } else if (over != 'max') {
-                                        //gm.log('norm hitit');
-                                        firstFortUnderMax = monster;
+                                    }
+
+                                    var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
+                                    var maxToFortify = (this.parseCondition('f%', monsterConditions)  !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
+                                    monstType = this.getMonstType(monster);
+                                    //gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' this.monsterInfo[monstType] ' + this.monsterInfo[monstType]+ ' this.monsterInfo[monstType].fort ' + this.monsterInfo[monstType].fort);
+                                    if (!firstFortUnderMax && monsterFort < maxToFortify &&
+                                            monstPage == 'battle_monster' &&
+                                            this.monsterInfo[monstType] &&
+                                            this.monsterInfo[monstType].fort) {
+                                        if (over == 'ach') {
+                                            if (!firstFortOverAch) {
+                                                //gm.log('hitit');
+                                                firstFortOverAch = monster;
+                                            }
+                                        } else if (over != 'max') {
+                                            //gm.log('norm hitit');
+                                            firstFortUnderMax = monster;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // Now we use the first under max/under achievement that we found. If we didn't find any under
-                // achievement then we use the first over achievement
-                monster = firstUnderMax;
-                if (!monster) {
-                    monster = firstOverAch;
-                }
-                if (selectType != 'raid') {
-                    gm.setValue('targetFromfortify', firstFortUnderMax);
-                    if (!gm.getValue('targetFromfortify', '')) {
-                        gm.setValue('targetFromfortify', firstFortOverAch);
+                    // Now we use the first under max/under achievement that we found. If we didn't find any under
+                    // achievement then we use the first over achievement
+                    monster = firstUnderMax;
+                    if (!monster) {
+                        monster = firstOverAch;
                     }
-                    //gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
-                }
-
-                // If we've got a monster for this selection type then we set the GM variables for the name
-                // and stamina requirements
-                if (monster) {
-                    monstPage = gm.getListObjVal('monsterOl', monster, 'page');
-                    gm.setValue('targetFrom' + monstPage, monster);
-                    monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions');
-                    monstType = gm.getListObjVal('monsterOl', monster, 'Type', '');
-                    if (monstPage == 'battle_monster') {
-                        if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].staUse) {
-                            gm.setValue('MonsterStaminaReq', caap.monsterInfo[monstType].staUse);
-                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterConditions.match(/:pa/i)) {
-                            gm.setValue('MonsterStaminaReq', 5);
-                        } else if (monsterConditions.match(/:sa/i)) {
-                            gm.setValue('MonsterStaminaReq', 1);
-                        } else if (gm.getValue('PowerAttack')) {
-                            gm.setValue('MonsterStaminaReq', 5);
-                        } else {
-                            gm.setValue('MonsterStaminaReq', 1);
+                    if (selectType != 'raid') {
+                        gm.setValue('targetFromfortify', firstFortUnderMax);
+                        if (!gm.getValue('targetFromfortify', '')) {
+                            gm.setValue('targetFromfortify', firstFortOverAch);
                         }
+                        //gm.log('fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
+                    }
 
-                        if (gm.getValue('MonsterGeneral') == 'Orc King') {
-                            gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
-                        }
-                    } else {
-                        // Switch RaidPowerAttack
-                        if (gm.getValue('RaidPowerAttack', false) || monsterConditions.match(/:pa/i)) {
-                            gm.setValue('RaidStaminaReq', 5);
-                        } else if (caap.monsterInfo[monstType] && caap.monsterInfo[monstType].staUse) {
-                            gm.setValue('RaidStaminaReq', caap.monsterInfo[monstType].staUse);
+                    // If we've got a monster for this selection type then we set the GM variables for the name
+                    // and stamina requirements
+                    if (monster) {
+                        monstPage = gm.getListObjVal('monsterOl', monster, 'page');
+                        gm.setValue('targetFrom' + monstPage, monster);
+                        monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions');
+                        monstType = gm.getListObjVal('monsterOl', monster, 'Type', '');
+                        if (monstPage == 'battle_monster') {
+                            if (this.monsterInfo[monstType] && this.monsterInfo[monstType].staUse) {
+                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monstType].staUse);
+                            } else if ((this.InLevelUpMode() && this.stats.stamina.num >= 10) || monsterConditions.match(/:pa/i)) {
+                                gm.setValue('MonsterStaminaReq', 5);
+                            } else if (monsterConditions.match(/:sa/i)) {
+                                gm.setValue('MonsterStaminaReq', 1);
+                            } else if (gm.getValue('PowerAttack')) {
+                                gm.setValue('MonsterStaminaReq', 5);
+                            } else {
+                                gm.setValue('MonsterStaminaReq', 1);
+                            }
+
+                            if (gm.getValue('MonsterGeneral') == 'Orc King') {
+                                gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
+                            }
                         } else {
-                            gm.setValue('RaidStaminaReq', 1);
+                            // Switch RaidPowerAttack
+                            if (gm.getValue('RaidPowerAttack', false) || monsterConditions.match(/:pa/i)) {
+                                gm.setValue('RaidStaminaReq', 5);
+                            } else if (this.monsterInfo[monstType] && this.monsterInfo[monstType].staUse) {
+                                gm.setValue('RaidStaminaReq', this.monsterInfo[monstType].staUse);
+                            } else {
+                                gm.setValue('RaidStaminaReq', 1);
+                            }
                         }
                     }
                 }
             }
-        }
 
-        gm.setValue('resetdashboard', true);
+            gm.setValue('resetdashboard', true);
+        } catch (err) {
+            gm.log("ERROR in selectMonster: " + err);
+        }
     },
 
     monsterConfirmRightPage: function (webSlice, monster) {
-        // Confirm name and type of monster
-        var monsterOnPage = nHtml.GetText(webSlice);
-        if (caap.CheckForImage('nm_volcanic_title.jpg')) {
-            monsterOnPage = monsterOnPage.match(new RegExp(".+'s ")) + 'Bahamut, the Volcanic Dragon';
-            monsterOnPage = monsterOnPage.trim();
-        } else {
-            monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
-        }
-
-        if (!global.is_firefox) {
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
-                monsterOnPage = monsterOnPage.replace(new RegExp(".+'s "), 'Your ');
+        try {
+            // Confirm name and type of monster
+            var yourRegEx = new RegExp(".+'s ");
+            var monsterOnPage = nHtml.GetText(webSlice);
+            if (this.CheckForImage('nm_volcanic_title.jpg')) {
+                monsterOnPage = monsterOnPage.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
+                monsterOnPage = monsterOnPage.trim();
+            } else {
+                monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
             }
-        } else {
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
-                monsterOnPage = monsterOnPage.replace(new RegExp(".+'s "), 'Your ');
-            }
-        }
 
-        if (monster != monsterOnPage) {
-            gm.log('Looking for ' + monster + ' but on ' + monsterOnPage + '. Going back to select screen');
-            var monstPage = gm.getListObjVal('monsterOl', monster, 'page');
-            return this.NavigateTo('keep,' + monstPage);
+            if (!global.is_firefox) {
+                if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 'x'))) {
+                    monsterOnPage = monsterOnPage.replace(yourRegEx, 'Your ');
+                }
+            } else {
+                if (nHtml.FindByAttr(webSlice, 'img', 'uid', unsafeWindow.Env.user)) {
+                    monsterOnPage = monsterOnPage.replace(yourRegEx, 'Your ');
+                }
+            }
+
+            if (monster != monsterOnPage) {
+                gm.log('Looking for ' + monster + ' but on ' + monsterOnPage + '. Going back to select screen');
+                var monstPage = gm.getListObjVal('monsterOl', monster, 'page');
+                return this.NavigateTo('keep,' + monstPage);
+            }
+
+            return false;
+        } catch (err) {
+            gm.log("ERROR in monsterConfirmRightPage: " + err);
+            return false;
         }
     },
+
     /*-------------------------------------------------------------------------------------\
     MonsterReview is a primary action subroutine to mange the monster and raid list
     on the dashboard
     \-------------------------------------------------------------------------------------*/
     MonsterReview: function () {
-    /*-------------------------------------------------------------------------------------\
-    We do monster review once an hour.  Some routines may reset this timer to drive
-    MonsterReview immediately.
-    \-------------------------------------------------------------------------------------*/
-        if (!this.WhileSinceDidIt('monsterReview', 60 * 60)) {
-            return false;
-        }
+        try {
+            /*-------------------------------------------------------------------------------------\
+            We do monster review once an hour.  Some routines may reset this timer to drive
+            MonsterReview immediately.
+            \-------------------------------------------------------------------------------------*/
+            if (!this.WhileSinceDidIt('monsterReview', 60 * 60)) {
+                return false;
+            }
 
-    /*-------------------------------------------------------------------------------------\
-    We get the monsterReviewCounter.  This will be set to -3 if we are supposed to refresh
-    the monsterOl completely. Otherwise it will be our index into how far we are into
-    reviewing monsterOl.
-    \-------------------------------------------------------------------------------------*/
-        var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-        if (counter == -3) {
-            gm.setValue('monsterOl', '');
-            gm.setValue('monsterReviewCounter', counter += 1);
-            return true;
-        }
-        if (counter == -2) {
-            if (this.NavigateTo('battle_monster', 'tab_monster_on.jpg')) {
-                gm.setValue('reviewDone', 0);
+            /*-------------------------------------------------------------------------------------\
+            We get the monsterReviewCounter.  This will be set to -3 if we are supposed to refresh
+            the monsterOl completely. Otherwise it will be our index into how far we are into
+            reviewing monsterOl.
+            \-------------------------------------------------------------------------------------*/
+            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+            if (counter == -3) {
+                gm.setValue('monsterOl', '');
+                gm.setValue('monsterReviewCounter', counter += 1);
                 return true;
             }
-            if (gm.getValue('reviewDone', 1) > 0) {
-                gm.setValue('monsterReviewCounter', counter += 1);
-            } else {
-                return true;
-            }
-        }
-        if (counter == -1) {
-            if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
-                gm.setValue('reviewDone', 0);
-                return true;
-            }
-            if (gm.getValue('reviewDone', 1) > 0) {
-                gm.setValue('monsterReviewCounter', counter += 1);
-            } else {
-                return true;
-            }
-        }
 
-        if (!(gm.getValue('monsterOl', ''))) {
-            return false;
-        }
-
-    /*-------------------------------------------------------------------------------------\
-    Now we step through the monsterOl objects. We set monsterReviewCounter to the next
-    index for the next reiteration since we will be doing a click and return in here.
-    \-------------------------------------------------------------------------------------*/
-        var monsterObjList = gm.getList('monsterOl');
-        while (counter < monsterObjList.length) {
-            var monsterObj = monsterObjList[counter];
-            if (!monsterObj) {
-                gm.setValue('monsterReviewCounter', counter += 1);
-                continue;
-            }
-    /*-------------------------------------------------------------------------------------\
-    If we looked at this monster more recently than an hour ago, skip it
-    \-------------------------------------------------------------------------------------*/
-            if (!caap.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60) ||
-						gm.getValue('monsterRepeatCount', 0) > 2) {
-                gm.setValue('monsterReviewCounter', counter += 1);
-				gm.setValue('monsterRepeatCount', 0);
-                continue;
-            }
-    /*-------------------------------------------------------------------------------------\
-    We get our monster link
-    \-------------------------------------------------------------------------------------*/
-            var monster = monsterObj.split(global.vs)[0];
-            this.SetDivContent('battle_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
-            var link = gm.getObjVal(monsterObj, 'Link');
-    /*-------------------------------------------------------------------------------------\
-    If the link is good then we get the url and any conditions for monster
-    \-------------------------------------------------------------------------------------*/
-            if (/href/.test(link)) {
-                link = link.split("'")[1];
-                var conditions = gm.getObjVal(monsterObj, 'conditions');
-    /*-------------------------------------------------------------------------------------\
-    If the autocollect tyoken was specified then we set the link to do auto collect. If
-    the conditions indicate we should not do sieges then we fix the link.
-    \-------------------------------------------------------------------------------------*/
-                if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') == 'Collect Reward') {
-                    link += '&action=collectReward';
-                    if (monster.indexOf('Siege') >= 0) {
-                        link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
-                    }
-
-                    link = link.replace('&action=doObjective', '');
-                } else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
-                    link = link.replace('&action=doObjective', '');
+            if (counter == -2) {
+                if (this.NavigateTo('battle_monster', 'tab_monster_on.jpg')) {
+                    gm.setValue('reviewDone', 0);
+                    return true;
                 }
-    /*-------------------------------------------------------------------------------------\
-    Now we use ajaxSendLink to display the monsters page.
-    \-------------------------------------------------------------------------------------*/
-                gm.log('Reviewing ' + counter + '/' + monsterObjList.length + ' ' + monster);
-                gm.setValue('ReleaseControl', true);
-                link = link.replace('http://apps.facebook.com/castle_age/', '');
-                link = link.replace('?', '?twt2&');
-                //gm.log("Link: " + link);
-                //gm.setListObjVal('monsterOl', monster, 'review','pending');
-                this.ClickAjax(link);
-				gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
-                gm.setValue('resetselectMonster', true);
-                gm.setValue('resetdashboard', true);
-                return true;
-            }
-        }
-    /*-------------------------------------------------------------------------------------\
-    All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
-    We set the monsterReviewCounter to do a full refresh next time through.
-    \-------------------------------------------------------------------------------------*/
-        this.JustDidIt('monsterReview');
-        gm.setValue('resetselectMonster', true);
-        gm.setValue('resetdashboard', true);
-        gm.setValue('monsterReviewCounter', -3);
-        gm.log('Done with monster/raid review.');
-        this.SetDivContent('battle_mess', '');
 
+                if (gm.getValue('reviewDone', 1) > 0) {
+                    gm.setValue('monsterReviewCounter', counter += 1);
+                } else {
+                    return true;
+                }
+            }
+
+            if (counter == -1) {
+                if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
+                    gm.setValue('reviewDone', 0);
+                    return true;
+                }
+
+                if (gm.getValue('reviewDone', 1) > 0) {
+                    gm.setValue('monsterReviewCounter', counter += 1);
+                } else {
+                    return true;
+                }
+            }
+
+            if (!(gm.getValue('monsterOl', ''))) {
+                return false;
+            }
+
+            /*-------------------------------------------------------------------------------------\
+            Now we step through the monsterOl objects. We set monsterReviewCounter to the next
+            index for the next reiteration since we will be doing a click and return in here.
+            \-------------------------------------------------------------------------------------*/
+            var monsterObjList = gm.getList('monsterOl');
+            while (counter < monsterObjList.length) {
+                var monsterObj = monsterObjList[counter];
+                if (!monsterObj) {
+                    gm.setValue('monsterReviewCounter', counter += 1);
+                    continue;
+                }
+                /*-------------------------------------------------------------------------------------\
+                If we looked at this monster more recently than an hour ago, skip it
+                \-------------------------------------------------------------------------------------*/
+                if (!this.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60) ||
+                            gm.getValue('monsterRepeatCount', 0) > 2) {
+                    gm.setValue('monsterReviewCounter', counter += 1);
+                    gm.setValue('monsterRepeatCount', 0);
+                    continue;
+                }
+                /*-------------------------------------------------------------------------------------\
+                We get our monster link
+                \-------------------------------------------------------------------------------------*/
+                var monster = monsterObj.split(global.vs)[0];
+                this.SetDivContent('monster_mess', 'Reviewing/sieging ' + counter + '/' + monsterObjList.length + ' ' + monster);
+                var link = gm.getObjVal(monsterObj, 'Link');
+                /*-------------------------------------------------------------------------------------\
+                If the link is good then we get the url and any conditions for monster
+                \-------------------------------------------------------------------------------------*/
+                if (/href/.test(link)) {
+                    link = link.split("'")[1];
+                    var conditions = gm.getObjVal(monsterObj, 'conditions');
+                    /*-------------------------------------------------------------------------------------\
+                    If the autocollect tyoken was specified then we set the link to do auto collect. If
+                    the conditions indicate we should not do sieges then we fix the link.
+                    \-------------------------------------------------------------------------------------*/
+                    if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') == 'Collect Reward') {
+                        link += '&action=collectReward';
+                        if (monster.indexOf('Siege') >= 0) {
+                            link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
+                        }
+
+                        link = link.replace('&action=doObjective', '');
+                    } else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
+                        link = link.replace('&action=doObjective', '');
+                    }
+                    /*-------------------------------------------------------------------------------------\
+                    Now we use ajaxSendLink to display the monsters page.
+                    \-------------------------------------------------------------------------------------*/
+                    gm.log('Reviewing ' + counter + '/' + monsterObjList.length + ' ' + monster);
+                    gm.setValue('ReleaseControl', true);
+                    link = link.replace('http://apps.facebook.com/castle_age/', '');
+                    link = link.replace('?', '?twt2&');
+                    //gm.log("Link: " + link);
+                    //gm.setListObjVal('monsterOl', monster, 'review','pending');
+                    this.ClickAjax(link);
+                    gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
+                    gm.setValue('resetselectMonster', true);
+                    gm.setValue('resetdashboard', true);
+                    return true;
+                }
+            }
+            /*-------------------------------------------------------------------------------------\
+            All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
+            We set the monsterReviewCounter to do a full refresh next time through.
+            \-------------------------------------------------------------------------------------*/
+            this.JustDidIt('monsterReview');
+            gm.setValue('resetselectMonster', true);
+            gm.setValue('resetdashboard', true);
+            gm.setValue('monsterReviewCounter', -3);
+            gm.log('Done with monster/raid review.');
+            this.SetDivContent('monster_mess', '');
+            return true;
+        } catch (err) {
+            gm.log("ERROR in MonsterReview: " + err);
+            return false;
+        }
     },
 
     Monsters: function () {
-    ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
+        try {
+            ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
-        if (gm.getValue('WhenMonster') == 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
-            gm.log("Stay Hidden Mode: We're not safe. Go battle.");
-            this.SetDivContent('battle_mess', 'Not Safe For Monster. Battle!');
-            return false;
-        }
-
-        if (!this.CheckTimer('NotargetFrombattle_monster')) {
-            return false;
-        }
-
-    ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
-
-    // Establish a delay timer when we are 1 stamina below attack level. Timer includes 5 min for stamina tick plus user defined random interval
-        if (!this.InLevelUpMode() && this.stats.stamina.num == (gm.getValue('MonsterStaminaReq', 1) - 1) && this.CheckTimer('battleTimer') && gm.getValue('seedTime', 0) > 0) {
-            this.SetTimer('battleTimer', 5 * 60 + Math.floor(Math.random() * gm.getValue('seedTime', 0)));
-            this.SetDivContent('battle_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
-            return false;
-        }
-
-        if (!this.CheckTimer('battleTimer')) {
-            if (this.stats.stamina.num < gm.getValue('MaxIdleStamina', this.stats.stamina.max)) {
-                this.SetDivContent('fight_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
+            if (gm.getValue('WhenMonster') == 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
+                gm.log("Stay Hidden Mode: We're not safe. Go battle.");
+                this.SetDivContent('monster_mess', 'Not Safe For Monster. Battle!');
                 return false;
             }
-        }
 
-        var fightMode = '';
-        // Check to see if we should fortify, attack monster, or battle raid
-        var monster = gm.getValue('targetFromfortify');
-        if (monster && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
-            fightMode = gm.setValue('fightMode', 'Fortify');
-        } else {
-            monster = gm.getValue('targetFrombattle_monster');
-            if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && gm.getListObjVal('monsterOl', monster, 'page') == 'battle_monster') {
-                fightMode = gm.setValue('fightMode', 'Monster');
+            if (!this.CheckTimer('NotargetFrombattle_monster')) {
+                return false;
+            }
+
+            ///////////////// Individual Monster Page \\\\\\\\\\\\\\\\\\\\\\
+
+            // Establish a delay timer when we are 1 stamina below attack level.
+            // Timer includes 5 min for stamina tick plus user defined random interval
+            //gm.log(!this.InLevelUpMode() + " && " + this.stats.stamina.num + " >= " + (gm.getNumber('MonsterStaminaReq', 1) - 1) + " && " + this.CheckTimer('battleTimer') + " && " + gm.getNumber('seedTime', 0) > 0);
+            if (!this.InLevelUpMode() && this.stats.stamina.num == (gm.getNumber('MonsterStaminaReq', 1) - 1) && this.CheckTimer('battleTimer') && gm.getNumber('seedTime', 0) > 0) {
+                this.SetTimer('battleTimer', 5 * 60 + Math.floor(Math.random() * gm.getValue('seedTime', 0)));
+                this.SetDivContent('monster_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
+                return false;
+            }
+
+            if (!this.CheckTimer('battleTimer')) {
+                if (this.stats.stamina.num < gm.getNumber('MaxIdleStamina', this.stats.stamina.max)) {
+                    this.SetDivContent('monster_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
+                    return false;
+                }
+            }
+
+            var fightMode = '';
+            // Check to see if we should fortify, attack monster, or battle raid
+            var monster = gm.getValue('targetFromfortify');
+            if (monster && this.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
+                fightMode = gm.setValue('fightMode', 'Fortify');
             } else {
-                this.SetTimer('NotargetFrombattle_monster', 60);
-                return false;
+                monster = gm.getValue('targetFrombattle_monster');
+                if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && gm.getListObjVal('monsterOl', monster, 'page') == 'battle_monster') {
+                    fightMode = gm.setValue('fightMode', 'Monster');
+                } else {
+                    this.SetTimer('NotargetFrombattle_monster', 60);
+                    return false;
+                }
             }
-        }
 
-        // Set right general
-        //var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
-        if (this.SelectGeneral(fightMode + 'General')) {
-            return true;
-        }
-
-        // Check if on engage monster page
-        var imageTest = '';
-        if (caap.getMonstType(monster) == 'Volcanic Dragon') {
-            imageTest = 'nm_top.jpg';
-        } else {
-            imageTest = 'dragon_title_owner.jpg';
-        }
-        var webSlice = this.CheckForImage(imageTest);
-        if (webSlice) {
-            if (this.monsterConfirmRightPage(webSlice, monster)) {
+            // Set right general
+            //var monstType = gm.getListObjVal('monsterOl', monster, 'Type', 'Dragon');
+            if (this.SelectGeneral(fightMode + 'General')) {
                 return true;
             }
 
-            var attackButton = null;
-            // Find the attack or fortify button
-            if (fightMode == 'Fortify') {
-                attackButton = this.CheckForImage('seamonster_fortify.gif');
-                if (!attackButton) {
-                    attackButton = nHtml.FindByAttrContains(document.body, "input", "src", 'nm_secondary_');
-                    if (!attackButton) {
-                        attackButton = this.CheckForImage('button_dispel.gif');
-                        if (!attackButton) {
-                            attackButton = this.CheckForImage('attack_monster_button3.jpg');
-                        }
-                    }
-                }
-            } else if (gm.getValue('MonsterStaminaReq', 1) == 1) {
-                // not power attack only normal attacks
-                attackButton = this.CheckForImage('attack_monster_button.jpg');
-                if (!attackButton) {
-                    attackButton = this.CheckForImage('event_attack1.gif');
-                    if (!attackButton) {
-                        attackButton = this.CheckForImage('seamonster_attack.gif');
-                        if (!attackButton) {
-                            attackButton = this.CheckForImage('event_attack2.gif');
-                            if (!attackButton) {
-                                attackButton = this.CheckForImage('attack_monster_button2.jpg');
-                            }
-
-                            if (attackButton) {
-                                gm.setValue('MonsterStaminaReq', 5);
-                            }
-                        }
-                    }
-                }
+            // Check if on engage monster page
+            var imageTest = '';
+            if (this.getMonstType(monster) == 'Volcanic Dragon') {
+                imageTest = 'nm_top.jpg';
             } else {
-                // power attack or if not seamonster power attack or if not regular attack - need case for seamonster regular attack?
-                attackButton = this.CheckForImage('button_bash_');
-                if (!attackButton) {
-                    attackButton = this.CheckForImage('button_stab_');
+                imageTest = 'dragon_title_owner.jpg';
+            }
+            var webSlice = this.CheckForImage(imageTest);
+            if (webSlice) {
+                if (this.monsterConfirmRightPage(webSlice, monster)) {
+                    return true;
+                }
+
+                var attackButton = null;
+                // Find the attack or fortify button
+                if (fightMode == 'Fortify') {
+                    attackButton = this.CheckForImage('seamonster_fortify.gif');
                     if (!attackButton) {
-                        attackButton = this.CheckForImage('button_smite_');
+                        attackButton = nHtml.FindByAttrContains(document.body, "input", "src", 'nm_secondary_');
                         if (!attackButton) {
-                            attackButton = this.CheckForImage('button_bolt_');
+                            attackButton = this.CheckForImage('button_dispel.gif');
                             if (!attackButton) {
-                                attackButton = this.CheckForImage('power_button_');
+                                attackButton = this.CheckForImage('attack_monster_button3.jpg');
+                            }
+                        }
+                    }
+                } else if (gm.getValue('MonsterStaminaReq', 1) == 1) {
+                    // not power attack only normal attacks
+                    attackButton = this.CheckForImage('attack_monster_button.jpg');
+                    if (!attackButton) {
+                        attackButton = this.CheckForImage('event_attack1.gif');
+                        if (!attackButton) {
+                            attackButton = this.CheckForImage('seamonster_attack.gif');
+                            if (!attackButton) {
+                                attackButton = this.CheckForImage('event_attack2.gif');
                                 if (!attackButton) {
                                     attackButton = this.CheckForImage('attack_monster_button2.jpg');
-                                    if (!attackButton) {
-                                        attackButton = this.CheckForImage('nm_primary_');
-                                        if (!attackButton) {
-                                            attackButton = this.CheckForImage('event_attack2.gif');
-                                            if (!attackButton) {
-                                                attackButton = this.CheckForImage('seamonster_power.gif');
-                                                if (!attackButton) {
-                                                    attackButton = this.CheckForImage('event_attack1.gif');
-                                                    if (!attackButton) {
-                                                        attackButton = this.CheckForImage('attack_monster_button.jpg');
-                                                    }
+                                }
 
-                                                    if (attackButton) {
-                                                        gm.setValue('MonsterStaminaReq', 1);
+                                if (attackButton) {
+                                    gm.setValue('MonsterStaminaReq', 5);
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // power attack or if not seamonster power attack or if not regular attack -
+                    // need case for seamonster regular attack?
+                    attackButton = this.CheckForImage('button_bash_');
+                    if (!attackButton) {
+                        attackButton = this.CheckForImage('button_stab_');
+                        if (!attackButton) {
+                            attackButton = this.CheckForImage('button_smite_');
+                            if (!attackButton) {
+                                attackButton = this.CheckForImage('button_bolt_');
+                                if (!attackButton) {
+                                    attackButton = this.CheckForImage('power_button_');
+                                    if (!attackButton) {
+                                        attackButton = this.CheckForImage('attack_monster_button2.jpg');
+                                        if (!attackButton) {
+                                            attackButton = this.CheckForImage('nm_primary_');
+                                            if (!attackButton) {
+                                                attackButton = this.CheckForImage('event_attack2.gif');
+                                                if (!attackButton) {
+                                                    attackButton = this.CheckForImage('seamonster_power.gif');
+                                                    if (!attackButton) {
+                                                        attackButton = this.CheckForImage('event_attack1.gif');
+                                                        if (!attackButton) {
+                                                            attackButton = this.CheckForImage('attack_monster_button.jpg');
+                                                        }
+
+                                                        if (attackButton) {
+                                                            gm.setValue('MonsterStaminaReq', 1);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -6203,60 +6269,63 @@ caap = {
                         }
                     }
                 }
+
+                if (attackButton) {
+                    var attackMess = '';
+                    if (fightMode == 'Fortify') {
+                        attackMess = 'Fortifying ' + monster;
+                    } else {
+                        attackMess = (gm.getValue('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monster;
+                    }
+
+                    gm.log(attackMess);
+                    this.SetDivContent('monster_mess', attackMess);
+                    gm.setValue('ReleaseControl', true);
+                    this.Click(attackButton, 8000);
+                    return true;
+                }
             }
 
-            if (attackButton) {
-                var attackMess = '';
-                if (fightMode == 'Fortify') {
-                    attackMess = 'Fortifying ' + monster;
-                } else {
-                    attackMess = (gm.getValue('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monster;
-                }
+            ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
-                gm.log(attackMess);
-                this.SetDivContent('battle_mess', attackMess);
-                gm.setValue('ReleaseControl', true);
-                caap.Click(attackButton, 8000);
+            if (this.NavigateTo('keep,battle_monster', 'tab_monster_on.jpg')) {
                 return true;
             }
-        }
 
-    ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
-
-        if (this.NavigateTo('keep,battle_monster', 'tab_monster_on.jpg')) {
-            return true;
-        }
-
-        if (gm.getValue('clearCompleteMonsters', false) && this.completeButton.battle_monster) {
-            caap.Click(this.completeButton.battle_monster, 1000);
-            gm.log('Cleared a completed monster');
-            this.completeButton.battle_monster = '';
-            return true;
-        }
-
-        var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-        if (!global.is_firefox) {
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                gm.log('On another player\'s keep.');
-                return this.NavigateTo('keep,battle_monster');
+            if (gm.getValue('clearCompleteMonsters', false) && this.completeButton.battle_monster) {
+                this.Click(this.completeButton.battle_monster, 1000);
+                gm.log('Cleared a completed monster');
+                this.completeButton.battle_monster = '';
+                return true;
             }
-        } else {
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + unsafeWindow.Env.user) ||
-                                             firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                gm.log('On another player\'s keep.');
-                return this.NavigateTo('keep,battle_monster');
-            }
-        }
 
-        var engageButton = this.monsterEngageButtons[monster];
-        if (engageButton) {
-            this.SetDivContent('battle_mess', 'Opening ' + monster);
-            caap.Click(engageButton);
-            return true;
-        } else {
-            this.SetTimer('NotargetFrombattle_monster', 60);
-            gm.log('No "Engage" button for ' + monster);
+            var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+            if (!global.is_firefox) {
+                if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
+                                                 firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
+                    gm.log('On another player\'s keep.');
+                    return this.NavigateTo('keep,battle_monster');
+                }
+            } else {
+                if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + unsafeWindow.Env.user) ||
+                                                 firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
+                    gm.log('On another player\'s keep.');
+                    return this.NavigateTo('keep,battle_monster');
+                }
+            }
+
+            var engageButton = this.monsterEngageButtons[monster];
+            if (engageButton) {
+                this.SetDivContent('monster_mess', 'Opening ' + monster);
+                this.Click(engageButton);
+                return true;
+            } else {
+                this.SetTimer('NotargetFrombattle_monster', 60);
+                gm.log('No "Engage" button for ' + monster);
+                return false;
+            }
+        } catch (err) {
+            gm.log("ERROR in Monsters: " + err);
             return false;
         }
     },
@@ -7802,7 +7871,7 @@ caap = {
                 button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'sendit');
                 if (button) {
                     gm.log('Sending gifts to Facebook');
-                    this.Click(button);
+                    caap.Click(button);
                     return true;
                 }
 
@@ -7812,7 +7881,7 @@ caap = {
                 if (button) {
                     gm.log('Over max gifts per day');
                     this.JustDidIt('WaitForNextGiftSend');
-                    this.Click(button);
+                    caap.Click(button);
                     return true;
                 }
 
@@ -7829,7 +7898,6 @@ caap = {
                         gm.log('Clicked CA send gift button');
                         gm.listAddBefore('FBSendList', gm.getList('CASendList'));
                         gm.setList('CASendList', []);
-                        caap.Click(button);
                         return true;
                     }
                 }
@@ -8066,6 +8134,7 @@ caap = {
 
     IncreaseStat: function (attribute, attrAdjust, atributeSlice) {
         try {
+            //gm.log("Attribute: " + attribute + "   Adjust: " + attrAdjust);
             var lc_attribute = attribute.toLowerCase();
             var button = '';
             switch (lc_attribute) {
@@ -8141,7 +8210,9 @@ caap = {
         }
     },
 
-    AutoStatRuleLog: true,
+    statsMatch: true,
+
+    autoStatRuleLog: true,
 
     AutoStat: function () {
         try {
@@ -8149,10 +8220,10 @@ caap = {
                 return false;
             }
 
-            if (!gm.getValue("statsMatch", true)) {
-                if (this.AutoStatRuleLog) {
+            if (!this.statsMatch) {
+                if (this.autoStatRuleLog) {
                     gm.log("User should change their stats rules");
-                    this.AutoStatRuleLog = false;
+                    this.autoStatRuleLog = false;
                 }
 
                 return false;
@@ -8215,7 +8286,7 @@ caap = {
             }
 
             gm.log("No rules match to increase stats");
-            gm.setValue("statsMatch", false);
+            this.statsMatch = false;
             return false;
         } catch (e) {
             gm.log("ERROR in AutoStat: " + e);
@@ -8894,9 +8965,16 @@ caap = {
         }
 
         if (gm.getValue('caapPause', 'none') != 'none') {
-            var div = document.getElementById("caap_div");
-            document.getElementById("caap_div").style.background = gm.getValue('StyleBackgroundDark', '#fee');
-            document.getElementById("caap_div").style.opacity = div.style.transparency = gm.getValue('StyleOpacityDark', '1');
+            $("#caap_div").css({
+                background: gm.getValue('StyleBackgroundDark', '#fee'),
+                opacity: gm.getValue('StyleOpacityDark', '1')
+            });
+
+            $("#caap_top").css({
+                background: gm.getValue('StyleBackgroundDark', '#fee'),
+                opacity: gm.getValue('StyleOpacityDark', '1')
+            });
+
             this.WaitMainLoop();
             return;
         }

@@ -39,6 +39,17 @@ gm = {
     // use these to set/get values in a way that prepends the game's name
     setValue: function (n, v) {
         this.debug('Set ' + n + ' to ' + v);
+//        if (typeof v !== 'boolean' && v !== '' && v !== null && v !== undefined && v..substr(0, 2) !== "0x") {
+        if (typeof v !== 'boolean' && v !== '' && v !== null && v !== undefined && v.toString().substr(0, 2) !== "0x") {
+            if (!isNaN(v)) {
+                if (v > 999999999 && !global.is_chrome) {
+                    v = v + '';
+                } else {
+                    v = Number(v);
+                }
+            }
+        }
+
         GM_setValue(global.gameName + "__" + n, v);
         return v;
     },
