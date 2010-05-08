@@ -14,10 +14,10 @@ type object_html.js >>_normal.user.js 2>nul
 type object_move.js >>_normal.user.js 2>nul
 type object_caap.js >>_normal.user.js 2>nul
 type _main.js >>_normal.user.js 2>nul
-type css.js >>_normal.user.js 2>nul
-type utility.js >>_normal.user.js 2>nul
-type worker.js >>_normal.user.js 2>nul
-type worker_*.js >>_normal.user.js 2>nul
+rem type css.js >>_normal.user.js 2>nul
+rem type utility.js >>_normal.user.js 2>nul
+rem type worker.js >>_normal.user.js 2>nul
+rem type worker_*.js >>_normal.user.js 2>nul
 
 rem ----------------------------------------------------------------------
 rem INSTALLED VERSION - Means you only need to hit F5 / refresh in Firefox
