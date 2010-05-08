@@ -1636,14 +1636,14 @@ caap = {
 
             if (!this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
                 if (this.UpdateDashboardWaitLog) {
-                    gm.log("Dashboard update is waiting on oneMinuteUpdate");
+                    //gm.log("Dashboard update is waiting on oneMinuteUpdate");
                     this.UpdateDashboardWaitLog = false;
                 }
 
                 return false;
             }
 
-            gm.log("Updating Dashboard");
+            //gm.log("Updating Dashboard");
             this.UpdateDashboardWaitLog = true;
             var html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
             var displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
@@ -4768,6 +4768,19 @@ caap = {
             return false;
         }
 
+        if (gm.getValue('WhenBattle') == 'Stay Hidden' && !this.NeedToHide()) {
+            //gm.log("Not Hiding Mode: Safe To Wait For Other Activity.")
+            this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
+            gm.log('We Dont Need To Hide Yet');
+            return false;
+        }
+
+        if (gm.getValue('WhenBattle') == 'No Monster' && mode != 'DemiPoints') {
+            if ((gm.getValue('WhenMonster', '') != 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
+                return false;
+            }
+        }
+
         var target = this.GetCurrentBattleTarget(mode);
         //gm.log('Mode: ' + mode);
         //gm.log('Target: ' + target);
@@ -4782,19 +4795,6 @@ caap = {
         }
 
         target = target.toLowerCase();
-
-        if (gm.getValue('WhenBattle') == 'Stay Hidden' && !this.NeedToHide()) {
-            //gm.log("Not Hiding Mode: Safe To Wait For Other Activity.")
-            this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
-            gm.log('We Dont Need To Hide Yet');
-            return false;
-        }
-
-        if (gm.getValue('WhenBattle') == 'No Monster' && mode != 'DemiPoints') {
-            if ((gm.getValue('WhenMonster', '') != 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
-                return false;
-            }
-        }
 
         if (!this.CheckStamina('Battle', ((target == 'arena') ? 5 : 1))) {
             return false;
@@ -5067,7 +5067,7 @@ caap = {
             return false;
         }
 
-        gm.log('nth battle target: ' + battleUpto + ':' + targets[battleUpto]);
+        //gm.log(battleUpto +'th battle target: ' + targets[battleUpto]);
         return targets[battleUpto];
     },
 
@@ -6199,76 +6199,25 @@ caap = {
                 }
 
                 var attackButton = null;
+                var singleButtonList = ['attack_monster_button.jpg','event_attack1.gif','seamonster_attack.gif','event_attack2.gif','attack_monster_button2.jpg'];
                 // Find the attack or fortify button
                 if (fightMode == 'Fortify') {
-                    attackButton = this.CheckForImage('seamonster_fortify.gif');
-                    if (!attackButton) {
-                        attackButton = nHtml.FindByAttrContains(document.body, "input", "src", 'nm_secondary_');
-                        if (!attackButton) {
-                            attackButton = this.CheckForImage('button_dispel.gif');
-                            if (!attackButton) {
-                                attackButton = this.CheckForImage('attack_monster_button3.jpg');
-                            }
-                        }
-                    }
+					buttonList = ['seamonster_fortify.gif',"button_nm_s_",'button_dispel.gif','attack_monster_button3.jpg'];
                 } else if (gm.getValue('MonsterStaminaReq', 1) == 1) {
                     // not power attack only normal attacks
-                    attackButton = this.CheckForImage('attack_monster_button.jpg');
-                    if (!attackButton) {
-                        attackButton = this.CheckForImage('event_attack1.gif');
-                        if (!attackButton) {
-                            attackButton = this.CheckForImage('seamonster_attack.gif');
-                            if (!attackButton) {
-                                attackButton = this.CheckForImage('event_attack2.gif');
-                                if (!attackButton) {
-                                    attackButton = this.CheckForImage('attack_monster_button2.jpg');
-                                }
-
-                                if (attackButton) {
-                                    gm.setValue('MonsterStaminaReq', 5);
-                                }
-                            }
-                        }
-                    }
+                    buttonList = singleButtonList;
                 } else {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
-                    attackButton = this.CheckForImage('button_bash_');
-                    if (!attackButton) {
-                        attackButton = this.CheckForImage('button_stab_');
-                        if (!attackButton) {
-                            attackButton = this.CheckForImage('button_smite_');
-                            if (!attackButton) {
-                                attackButton = this.CheckForImage('button_bolt_');
-                                if (!attackButton) {
-                                    attackButton = this.CheckForImage('power_button_');
-                                    if (!attackButton) {
-                                        attackButton = this.CheckForImage('attack_monster_button2.jpg');
-                                        if (!attackButton) {
-                                            attackButton = this.CheckForImage('nm_primary_');
-                                            if (!attackButton) {
-                                                attackButton = this.CheckForImage('event_attack2.gif');
-                                                if (!attackButton) {
-                                                    attackButton = this.CheckForImage('seamonster_power.gif');
-                                                    if (!attackButton) {
-                                                        attackButton = this.CheckForImage('event_attack1.gif');
-                                                        if (!attackButton) {
-                                                            attackButton = this.CheckForImage('attack_monster_button.jpg');
-                                                        }
-
-                                                        if (attackButton) {
-                                                            gm.setValue('MonsterStaminaReq', 1);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                    buttonList = ['power_button_','attack_monster_button2.jpg','button_nm_p_','event_attack2.gif','seamonster_power.gif','event_attack1.gif','attack_monster_button.jpg'].concat(singleButtonList);
+				}
+				
+				for (i in buttonList) {
+					attackButton = this.CheckForImage(buttonList[i]);
+					if (attackButton) {
+						break;
+					}
+				}
 
                 if (attackButton) {
                     var attackMess = '';
@@ -6283,7 +6232,11 @@ caap = {
                     gm.setValue('ReleaseControl', true);
                     this.Click(attackButton, 8000);
                     return true;
-                }
+                } else {
+					gm.log('ERROR - No button to attack/fortify with.');
+					this.SetTimer('NotargetFrombattle_monster', 60);
+					return false;
+				}
             }
 
             ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
@@ -6302,7 +6255,7 @@ caap = {
             var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
             if (!global.is_firefox) {
                 if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
-                                                 firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
+						firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                     gm.log('On another player\'s keep.');
                     return this.NavigateTo('keep,battle_monster');
                 }
