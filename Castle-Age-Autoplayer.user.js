@@ -5232,9 +5232,9 @@ caap = {
                 gm.log("We Defeated " + userName + "!!");
                 //Test if we should chain this guy
                 gm.setValue("BattleChainId", '');
-                var chainBP = gm.getNumber('ChainBP', 0);
-                if (chainBP) {
-                    if (bpnum >= chainBP) {
+                var chainBP = gm.getValue('ChainBP', 'empty');
+                if (chainBP!=='empty') {
+                    if (bpnum >= Number(chainBP)) {
                         gm.setValue("BattleChainId", userId);
                         gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
                     } else {
@@ -6028,9 +6028,9 @@ caap = {
             if (this.NavigateTo(navigate, image)) {
                 return true;
             }
+        //gm.log(battleUpto +'th battle target: ' + );
 
             gm.setValue(chainid, '');
-            this.SetDivContent('battle_mess', 'Battling User ' + target);
             if (this.BattleUserId(target)) {
                 this.NextBattleTarget();
                 return true;
@@ -6115,6 +6115,7 @@ caap = {
             this.NextBattleTarget();
             return false;
         }
+        this.SetDivContent('battle_mess', 'Battling User ' + gm.getValue('BattleTargetUpto', 0) + '/' + targets.length + ' ' + targets[battleUpto]);
 
         if (targets[battleUpto].toLowerCase() == 'raid') {
             if (gm.getValue('targetFromraid', '')) {
@@ -6126,7 +6127,6 @@ caap = {
             return false;
         }
 
-        //gm.log(battleUpto +'th battle target: ' + targets[battleUpto]);
         return targets[battleUpto];
     },
 
