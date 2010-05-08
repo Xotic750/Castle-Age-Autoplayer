@@ -7421,7 +7421,7 @@ caap = {
         }
 
         if (this.stats.health.num < 10) {
-            this.SetDivContent('battle_mess', "Need health to " + battleOrBattle.toLowerCase() + ": " + this.stats.health.num + "/10");
+            this.SetDivContent('battle_mess', "Need health to fight: " + this.stats.health.num + "/10");
             return false;
         }
 
@@ -7437,7 +7437,7 @@ caap = {
                     return false;
                 }
 
-                this.SetDivContent('battle_mess', 'Burning stamina');
+                //this.SetDivContent('battle_mess', 'Burning stamina');
                 gm.setValue('BurnMode_' + staminaMF, true);
                 return true;
             } else {
