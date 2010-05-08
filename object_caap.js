@@ -4173,9 +4173,9 @@ caap = {
                 gm.log("We Defeated " + userName + "!!");
                 //Test if we should chain this guy
                 gm.setValue("BattleChainId", '');
-                var chainBP = gm.getNumber('ChainBP', 0);
-                if (chainBP) {
-                    if (bpnum >= chainBP) {
+                var chainBP = gm.getValue('ChainBP', 'empty');
+                if (chainBP!=='empty') {
+                    if (bpnum >= Number(chainBP)) {
                         gm.setValue("BattleChainId", userId);
                         gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
                     } else {
