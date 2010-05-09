@@ -1504,7 +1504,7 @@ caap = {
             $('head').append(cssCode);
 
             var fb1call = function (color) {
-                $('#caap_ColorSelectorDiv1').css({'background-color':color});
+                $('#caap_ColorSelectorDiv1').css({'background-color': color});
                 $('#caap_StyleBackgroundLight').val(color);
                 gm.setValue("StyleBackgroundLight", color);
                 gm.setValue("CustStyleBackgroundLight", color);
@@ -1522,7 +1522,7 @@ caap = {
             }).appendTo(document.body), fb1call).setColor(gm.getValue("StyleBackgroundLight", "#E0C691"));
 
             var fb2call = function (color) {
-                $('#caap_ColorSelectorDiv2').css({'background-color':color});
+                $('#caap_ColorSelectorDiv2').css({'background-color': color});
                 $('#caap_StyleBackgroundDark').val(color);
                 gm.setValue("StyleBackgroundDark", color);
                 gm.setValue("CustStyleBackgroundDark", color);
@@ -1981,31 +1981,31 @@ caap = {
             gm.log('Change: setting "' + idName + '" to "' + e.target.value + '"');
 
             if (/Style+/.test(idName)) {
-                    switch (idName) {
-                    case "StyleBackgroundLight" :
-                        if (e.target.value.substr(0, 1) !== '#') {
-                            e.target.value = '#' + e.target.value;
-                        }
-
-                        gm.setValue("CustStyleBackgroundLight", e.target.value);
-                        break;
-                    case "StyleBackgroundDark" :
-                        if (e.target.value.substr(0, 1) !== '#') {
-                            e.target.value = '#' + e.target.value;
-                        }
-
-                        gm.setValue("CustStyleBackgroundDark", e.target.value);
-                        break;
-                    case "StyleOpacityLight" :
-                        gm.setValue("CustStyleOpacityLight", e.target.value);
-                        break;
-                    case "StyleOpacityDark" :
-                        gm.setValue("CustStyleOpacityDark", e.target.value);
-                        break;
-                    default :
+                switch (idName) {
+                case "StyleBackgroundLight" :
+                    if (e.target.value.substr(0, 1) !== '#') {
+                        e.target.value = '#' + e.target.value;
                     }
+
+                    gm.setValue("CustStyleBackgroundLight", e.target.value);
+                    break;
+                case "StyleBackgroundDark" :
+                    if (e.target.value.substr(0, 1) !== '#') {
+                        e.target.value = '#' + e.target.value;
+                    }
+
+                    gm.setValue("CustStyleBackgroundDark", e.target.value);
+                    break;
+                case "StyleOpacityLight" :
+                    gm.setValue("CustStyleOpacityLight", e.target.value);
+                    break;
+                case "StyleOpacityDark" :
+                    gm.setValue("CustStyleOpacityDark", e.target.value);
+                    break;
+                default :
+                }
             } else if (/AttrValue+/.test(idName)) {
-                    caap.statsMatch = true;
+                caap.statsMatch = true;
             }
 
             if (value === '') {
@@ -4174,7 +4174,7 @@ caap = {
                 //Test if we should chain this guy
                 gm.setValue("BattleChainId", '');
                 var chainBP = gm.getValue('ChainBP', 'empty');
-                if (chainBP!=='empty') {
+                if (chainBP !== 'empty') {
                     if (bpnum >= Number(chainBP)) {
                         gm.setValue("BattleChainId", userId);
                         gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
@@ -6199,24 +6199,51 @@ caap = {
                 }
 
                 var attackButton = null;
-                var singleButtonList = ['button_nm_p_attack.gif','attack_monster_button.jpg','event_attack1.gif','seamonster_attack.gif','event_attack2.gif','attack_monster_button2.jpg'];
+                var singleButtonList = [
+                    'button_nm_p_attack.gif',
+                    'attack_monster_button.jpg',
+                    'event_attack1.gif',
+                    'seamonster_attack.gif',
+                    'event_attack2.gif',
+                    'attack_monster_button2.jpg'
+                ];
+                var buttonList = [];
                 // Find the attack or fortify button
                 if (fightMode == 'Fortify') {
-					buttonList = ['seamonster_fortify.gif',"button_nm_s_",'button_dispel.gif','attack_monster_button3.jpg'];
+					buttonList = [
+                        'seamonster_fortify.gif',
+                        "button_nm_s_",
+                        'button_dispel.gif',
+                        'attack_monster_button3.jpg'
+                    ];
                 } else if (gm.getValue('MonsterStaminaReq', 1) == 1) {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
-                    buttonList = ['button_nm_p_power','power_button_','attack_monster_button2.jpg','event_attack2.gif','seamonster_power.gif','event_attack1.gif','attack_monster_button.jpg'].concat(singleButtonList);
+                    buttonList = [
+                        'button_nm_p_power',
+                        'button_nm_p_bash',
+                        'button_nm_p_smite',
+                        'button_nm_p_stab',
+                        'button_nm_p_magic',
+                        'power_button_',
+                        'attack_monster_button2.jpg',
+                        'event_attack2.gif',
+                        'seamonster_power.gif',
+                        'event_attack1.gif',
+                        'attack_monster_button.jpg'
+                    ].concat(singleButtonList);
 				}
-				
-				for (i in buttonList) {
-					attackButton = this.CheckForImage(buttonList[i]);
-					if (attackButton) {
-						break;
-					}
+
+				for (var i in buttonList) {
+                    if (buttonList.hasOwnProperty(i)) {
+                        attackButton = this.CheckForImage(buttonList[i]);
+                        if (attackButton) {
+                            break;
+                        }
+                    }
 				}
 
                 if (attackButton) {
@@ -6427,6 +6454,7 @@ caap = {
             gm.log('Stay Hidden Mode: Monster battle not enabled');
             return true;
         }
+
         if (!gm.getValue('targetFrombattle_monster', '')) {
             gm.log('Stay Hidden Mode: No monster to battle');
             return true;
@@ -7943,8 +7971,10 @@ caap = {
                 gm.log('GiftPic is ' + giftPic);
             }
 
-            if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
-                if (this.NavigateTo('giftpage_ca_friends_off.gif', 'giftpage_ca_friends_on.gif')) {
+            //if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
+            if ($('div[style*="giftpage_select"]').length !== 0) {
+                //if (this.NavigateTo('giftpage_ca_friends_off.gif', 'giftpage_ca_friends_on.gif')) {
+                if (this.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     return true;
                 }
             } else {

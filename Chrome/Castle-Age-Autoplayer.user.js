@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.22.25
+// @version        140.22.27
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.22.25";
+var caapVersion = "140.22.27";
 
 ///////////////////////////
 //       Prototypes
@@ -2563,7 +2563,7 @@ caap = {
             $('head').append(cssCode);
 
             var fb1call = function (color) {
-                $('#caap_ColorSelectorDiv1').css({'background-color':color});
+                $('#caap_ColorSelectorDiv1').css({'background-color': color});
                 $('#caap_StyleBackgroundLight').val(color);
                 gm.setValue("StyleBackgroundLight", color);
                 gm.setValue("CustStyleBackgroundLight", color);
@@ -2581,7 +2581,7 @@ caap = {
             }).appendTo(document.body), fb1call).setColor(gm.getValue("StyleBackgroundLight", "#E0C691"));
 
             var fb2call = function (color) {
-                $('#caap_ColorSelectorDiv2').css({'background-color':color});
+                $('#caap_ColorSelectorDiv2').css({'background-color': color});
                 $('#caap_StyleBackgroundDark').val(color);
                 gm.setValue("StyleBackgroundDark", color);
                 gm.setValue("CustStyleBackgroundDark", color);
@@ -3040,31 +3040,31 @@ caap = {
             gm.log('Change: setting "' + idName + '" to "' + e.target.value + '"');
 
             if (/Style+/.test(idName)) {
-                    switch (idName) {
-                    case "StyleBackgroundLight" :
-                        if (e.target.value.substr(0, 1) !== '#') {
-                            e.target.value = '#' + e.target.value;
-                        }
-
-                        gm.setValue("CustStyleBackgroundLight", e.target.value);
-                        break;
-                    case "StyleBackgroundDark" :
-                        if (e.target.value.substr(0, 1) !== '#') {
-                            e.target.value = '#' + e.target.value;
-                        }
-
-                        gm.setValue("CustStyleBackgroundDark", e.target.value);
-                        break;
-                    case "StyleOpacityLight" :
-                        gm.setValue("CustStyleOpacityLight", e.target.value);
-                        break;
-                    case "StyleOpacityDark" :
-                        gm.setValue("CustStyleOpacityDark", e.target.value);
-                        break;
-                    default :
+                switch (idName) {
+                case "StyleBackgroundLight" :
+                    if (e.target.value.substr(0, 1) !== '#') {
+                        e.target.value = '#' + e.target.value;
                     }
+
+                    gm.setValue("CustStyleBackgroundLight", e.target.value);
+                    break;
+                case "StyleBackgroundDark" :
+                    if (e.target.value.substr(0, 1) !== '#') {
+                        e.target.value = '#' + e.target.value;
+                    }
+
+                    gm.setValue("CustStyleBackgroundDark", e.target.value);
+                    break;
+                case "StyleOpacityLight" :
+                    gm.setValue("CustStyleOpacityLight", e.target.value);
+                    break;
+                case "StyleOpacityDark" :
+                    gm.setValue("CustStyleOpacityDark", e.target.value);
+                    break;
+                default :
+                }
             } else if (/AttrValue+/.test(idName)) {
-                    caap.statsMatch = true;
+                caap.statsMatch = true;
             }
 
             if (value === '') {
@@ -5232,9 +5232,9 @@ caap = {
                 gm.log("We Defeated " + userName + "!!");
                 //Test if we should chain this guy
                 gm.setValue("BattleChainId", '');
-                var chainBP = gm.getNumber('ChainBP', 0);
-                if (chainBP) {
-                    if (bpnum >= chainBP) {
+                var chainBP = gm.getValue('ChainBP', 'empty');
+                if (chainBP !== 'empty') {
+                    if (bpnum >= Number(chainBP)) {
                         gm.setValue("BattleChainId", userId);
                         gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
                     } else {
@@ -6028,9 +6028,9 @@ caap = {
             if (this.NavigateTo(navigate, image)) {
                 return true;
             }
+        //gm.log(battleUpto +'th battle target: ' + );
 
             gm.setValue(chainid, '');
-            this.SetDivContent('battle_mess', 'Battling User ' + target);
             if (this.BattleUserId(target)) {
                 this.NextBattleTarget();
                 return true;
@@ -6115,6 +6115,7 @@ caap = {
             this.NextBattleTarget();
             return false;
         }
+        this.SetDivContent('battle_mess', 'Battling User ' + gm.getValue('BattleTargetUpto', 0) + '/' + targets.length + ' ' + targets[battleUpto]);
 
         if (targets[battleUpto].toLowerCase() == 'raid') {
             if (gm.getValue('targetFromraid', '')) {
@@ -6126,7 +6127,6 @@ caap = {
             return false;
         }
 
-        //gm.log(battleUpto +'th battle target: ' + targets[battleUpto]);
         return targets[battleUpto];
     },
 
@@ -7258,24 +7258,51 @@ caap = {
                 }
 
                 var attackButton = null;
-                var singleButtonList = ['attack_monster_button.jpg','event_attack1.gif','seamonster_attack.gif','event_attack2.gif','attack_monster_button2.jpg'];
+                var singleButtonList = [
+                    'button_nm_p_attack.gif',
+                    'attack_monster_button.jpg',
+                    'event_attack1.gif',
+                    'seamonster_attack.gif',
+                    'event_attack2.gif',
+                    'attack_monster_button2.jpg'
+                ];
+                var buttonList = [];
                 // Find the attack or fortify button
                 if (fightMode == 'Fortify') {
-					buttonList = ['seamonster_fortify.gif',"button_nm_s_",'button_dispel.gif','attack_monster_button3.jpg'];
+					buttonList = [
+                        'seamonster_fortify.gif',
+                        "button_nm_s_",
+                        'button_dispel.gif',
+                        'attack_monster_button3.jpg'
+                    ];
                 } else if (gm.getValue('MonsterStaminaReq', 1) == 1) {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
-                    buttonList = ['power_button_','attack_monster_button2.jpg','button_nm_p_','event_attack2.gif','seamonster_power.gif','event_attack1.gif','attack_monster_button.jpg'].concat(singleButtonList);
+                    buttonList = [
+                        'button_nm_p_power',
+                        'button_nm_p_bash',
+                        'button_nm_p_smite',
+                        'button_nm_p_stab',
+                        'button_nm_p_magic',
+                        'power_button_',
+                        'attack_monster_button2.jpg',
+                        'event_attack2.gif',
+                        'seamonster_power.gif',
+                        'event_attack1.gif',
+                        'attack_monster_button.jpg'
+                    ].concat(singleButtonList);
 				}
-				
-				for (i in buttonList) {
-					attackButton = this.CheckForImage(buttonList[i]);
-					if (attackButton) {
-						break;
-					}
+
+				for (var i in buttonList) {
+                    if (buttonList.hasOwnProperty(i)) {
+                        attackButton = this.CheckForImage(buttonList[i]);
+                        if (attackButton) {
+                            break;
+                        }
+                    }
 				}
 
                 if (attackButton) {
@@ -7421,7 +7448,7 @@ caap = {
         }
 
         if (this.stats.health.num < 10) {
-            this.SetDivContent('battle_mess', "Need health to " + battleOrBattle.toLowerCase() + ": " + this.stats.health.num + "/10");
+            this.SetDivContent('battle_mess', "Need health to fight: " + this.stats.health.num + "/10");
             return false;
         }
 
@@ -7437,7 +7464,7 @@ caap = {
                     return false;
                 }
 
-                this.SetDivContent('battle_mess', 'Burning stamina');
+                //this.SetDivContent('battle_mess', 'Burning stamina');
                 gm.setValue('BurnMode_' + staminaMF, true);
                 return true;
             } else {
@@ -7486,6 +7513,7 @@ caap = {
             gm.log('Stay Hidden Mode: Monster battle not enabled');
             return true;
         }
+
         if (!gm.getValue('targetFrombattle_monster', '')) {
             gm.log('Stay Hidden Mode: No monster to battle');
             return true;
@@ -8576,7 +8604,7 @@ caap = {
             }
         }
 
-        if (this.stats.health.num >= this.stats.health.max || this.stats.health.num > minToHeal) {
+        if (this.stats.health.num >= this.stats.health.max || this.stats.health.num >= minToHeal) {
             return false;
         }
 
@@ -9002,8 +9030,10 @@ caap = {
                 gm.log('GiftPic is ' + giftPic);
             }
 
-            if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
-                if (this.NavigateTo('giftpage_ca_friends_off.gif', 'giftpage_ca_friends_on.gif')) {
+            //if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
+            if ($('div[style*="giftpage_select"]').length !== 0) {
+                //if (this.NavigateTo('giftpage_ca_friends_off.gif', 'giftpage_ca_friends_on.gif')) {
+                if (this.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     return true;
                 }
             } else {
