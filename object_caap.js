@@ -6199,7 +6199,7 @@ caap = {
                 }
 
                 var attackButton = null;
-                var singleButtonList = ['attack_monster_button.jpg','event_attack1.gif','seamonster_attack.gif','event_attack2.gif','attack_monster_button2.jpg'];
+                var singleButtonList = ['button_nm_p_attack.gif','attack_monster_button.jpg','event_attack1.gif','seamonster_attack.gif','event_attack2.gif','attack_monster_button2.jpg'];
                 // Find the attack or fortify button
                 if (fightMode == 'Fortify') {
 					buttonList = ['seamonster_fortify.gif',"button_nm_s_",'button_dispel.gif','attack_monster_button3.jpg'];
@@ -6209,7 +6209,7 @@ caap = {
                 } else {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
-                    buttonList = ['power_button_','attack_monster_button2.jpg','button_nm_p_','event_attack2.gif','seamonster_power.gif','event_attack1.gif','attack_monster_button.jpg'].concat(singleButtonList);
+                    buttonList = ['button_nm_p_power','power_button_','attack_monster_button2.jpg','event_attack2.gif','seamonster_power.gif','event_attack1.gif','attack_monster_button.jpg'].concat(singleButtonList);
 				}
 				
 				for (i in buttonList) {

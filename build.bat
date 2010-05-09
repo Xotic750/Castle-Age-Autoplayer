@@ -27,6 +27,7 @@ echo Installing new version to Firefox
 copy _normal.user.js Castle-Age-Autoplayer.user.js >nul
 copy Castle-Age-Autoplayer.user.js Chrome/Castle-Age-Autoplayer.user.js >nul
 copy README Chrome/README >nul
+del /F /Q _normal.user.js
 
 rem --------------------------------------------------------------------------------------
 rem MINIMISED VERSION - This will fail on errors so use is advised - required for release!
