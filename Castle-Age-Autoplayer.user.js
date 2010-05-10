@@ -8862,7 +8862,6 @@ caap = {
                     return true;
                 }
             }
-gm.log('gift 1');
 
             var giverId = [];
             // Gather the gifts
@@ -8906,7 +8905,6 @@ gm.log('gift 1');
                 return this.NavigateTo('gift');
             }
 
-gm.log('gift 2');
             var button = null;
             // Facebook pop-up on CA
             if (gm.getValue('FBSendList', '')) {
@@ -8930,7 +8928,6 @@ gm.log('gift 2');
                 gm.log('No Facebook pop up to send gifts');
                 return false;
             }
-gm.log('gift 3');
 
             // CA send gift button
             if (gm.getValue('CASendList', '')) {
@@ -8955,7 +8952,6 @@ gm.log('gift 3');
             if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
                 return false;
             }
-gm.log('gift 4');
 
             if (this.WhileSinceDidIt('WaitForNotFoundIDs', 3 * 60 * 60) && gm.getList('NotFoundIDs')) {
                 gm.listAddBefore('ReceivedList', gm.getList('NotFoundIDs'));
@@ -8975,14 +8971,12 @@ gm.log('gift 4');
             if (this.NavigateTo('army,gift', 'giftpage_title.jpg')) {
                 return true;
             }
-gm.log('gift 5');
 
             // Get the gift to send out
             if (giftNamePic.length === 0) {
                 gm.log('No list of pictures for gift choices');
                 return false;
             }
-gm.log('gift 6');
 
             var givenGiftType = '';
             var giftPic = '';
@@ -9027,7 +9021,6 @@ gm.log('gift 6');
                 giftPic = giftNamePic[gm.getValue('GiftChoice')];
                 break;
             }
-gm.log('gift 7');
 
             // Move to gifts page
             var picDiv = this.CheckForImage(giftPic);
@@ -9037,7 +9030,6 @@ gm.log('gift 7');
             } else {
                 gm.log('GiftPic is ' + giftPic);
             }
-gm.log('gift 8');
 
             //if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
             if ($('div[style*="giftpage_select"]').length !== 0) {
@@ -9049,7 +9041,6 @@ gm.log('gift 8');
                 this.NavigateTo('gift_more_gifts.gif');
                 return this.NavigateTo(giftPic);
             }
-gm.log('gift 9');
 
             // Click on names
             var giveDiv = nHtml.FindByAttrContains(document.body, 'div', 'class', 'unselected_list');

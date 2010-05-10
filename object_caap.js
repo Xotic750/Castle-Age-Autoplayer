@@ -7879,6 +7879,7 @@ caap = {
                         gm.log('Clicked CA send gift button');
                         gm.listAddBefore('FBSendList', gm.getList('CASendList'));
                         gm.setList('CASendList', []);
+						caap.Click(button);
                         return true;
                     }
                 }
