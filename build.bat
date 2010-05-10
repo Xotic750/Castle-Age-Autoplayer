@@ -4,7 +4,7 @@ rem Please copy this file as "build.bat"
 rem Edit to put in the correct paths for your system
 
 echo Deleting old user.js files
-del /F /Q _normal.user.js _min.user.js
+del /F /Q _normal.user.js _min.user.js 2>nul
 
 echo Joining files into _normal.user.js
 type _head.js >_normal.user.js 2>nul
