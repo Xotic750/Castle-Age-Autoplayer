@@ -3086,7 +3086,7 @@ caap = {
                     $("#caap_div").unbind('mousedown', Move.dragHandler);
                     $("#caap_top").css('cursor', '');
                     $("#caap_top").unbind('mousedown', Move.dragHandler);
-                }
+               }
 
                 break;
             default :
