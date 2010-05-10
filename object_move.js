@@ -10,26 +10,26 @@ Move = {
             return;
         }
 
-        if (e.button === 0 && Move.me.dragOK) {
-            Move.me.style.left = e.clientX - Move.me.dragXoffset + 'px';
-            Move.me.style.top = e.clientY - Move.me.dragYoffset + 'px';
+        if (e.button === 0 && this.dragOK) {
+            this.style.left = e.clientX - this.dragXoffset + 'px';
+            this.style.top = e.clientY - this.dragYoffset + 'px';
         }
     },
 
     cleanup: function (e) {
-        Move.me.removeEventListener('mousemove', Move.moveHandler, false);
-        Move.me.removeEventListener('mouseup', Move.cleanup, false);
-        if (Move.me.dragOK && Move.me.style.left && Move.me.style.top) {
-            switch (Move.me.id) {
+        $(this).unbind('mousemove', Move.moveHandler);
+        $(this).unbind('mouseup', Move.cleanup);
+        if (this.dragOK && this.style.left && this.style.top) {
+            switch (this.id) {
             case 'caap_div' :
-                gm.setValue('caap_div_menuTop', (Move.me.style.top).replace(/px/, ''));
-                gm.setValue('caap_div_menuLeft', (Move.me.style.left).replace(/px/, '') - $(caap.controlXY.selector).offset().left);
+                gm.setValue('caap_div_menuTop', (this.style.top).replace(/px/, ''));
+                gm.setValue('caap_div_menuLeft', (this.style.left).replace(/px/, '') - $(caap.controlXY.selector).offset().left);
                 gm.setValue('caap_div_zIndex', '2');
                 gm.setValue('caap_top_zIndex', '1');
                 break;
             case 'caap_top' :
-                gm.setValue('caap_top_menuTop', (Move.me.style.top).replace(/px/, ''));
-                gm.setValue('caap_top_menuLeft', (Move.me.style.left).replace(/px/, '') - $(caap.dashboardXY.selector).offset().left);
+                gm.setValue('caap_top_menuTop', (this.style.top).replace(/px/, ''));
+                gm.setValue('caap_top_menuLeft', (this.style.left).replace(/px/, '') - $(caap.dashboardXY.selector).offset().left);
                 gm.setValue('caap_div_zIndex', '1');
                 gm.setValue('caap_top_zIndex', '2');
                 break;
@@ -38,7 +38,7 @@ Move = {
         }
 
         //its been dragged now
-        Move.me.dragOK = false;
+        this.dragOK = false;
     },
 
     dragHandler: function (e) {
@@ -46,8 +46,7 @@ Move = {
             return;
         }
 
-        Move.me = this;
-        switch (Move.me.id) {
+        switch (this.id) {
         case 'caap_div' :
             $("#caap_div").css('z-index', '2');
             $("#caap_top").css('z-index', '1');
@@ -60,13 +59,13 @@ Move = {
             return;
         }
 
-        Move.me.dragOK = true;
-        Move.me.dragXoffset = e.clientX - Move.me.offsetLeft;
-        Move.me.dragYoffset = e.clientY - Move.me.offsetTop;
+        this.dragOK = true;
+        this.dragXoffset = e.clientX - this.offsetLeft;
+        this.dragYoffset = e.clientY - this.offsetTop;
         //set the left before removing the right
-        Move.me.style.left = e.clientX - Move.me.dragXoffset + 'px';
-        Move.me.style.right = null;
-        Move.me.addEventListener('mousemove', Move.moveHandler, false);
-        Move.me.addEventListener('mouseup', Move.cleanup, false);
+        this.style.left = e.clientX - this.dragXoffset + 'px';
+        this.style.right = null;
+        $(this).bind('mousemove', Move.moveHandler);
+        $(this).bind('mouseup', Move.cleanup);
     }
 };

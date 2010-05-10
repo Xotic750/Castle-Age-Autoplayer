@@ -36,17 +36,28 @@ gm = {
         }
     },
 
+    isInt: function (value) {
+        var vstr = value.toString();
+        if (/,/.test(vstr) || (vstr.length > 1 && vstr.substring(0, 1) === '0')) {
+            return false;
+        }
+
+        var pInt = parseInt(value, 10);
+        if ((parseFloat(value) == pInt) && !isNaN(pInt)) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+
     // use these to set/get values in a way that prepends the game's name
     setValue: function (n, v) {
         this.debug('Set ' + n + ' to ' + v);
-//        if (typeof v !== 'boolean' && v !== '' && v !== null && v !== undefined && v..substr(0, 2) !== "0x") {
-        if (typeof v !== 'boolean' && v !== '' && v !== null && v !== undefined && v.toString().substr(0, 2) !== "0x") {
-            if (!isNaN(v)) {
-                if (v > 999999999 && !global.is_chrome) {
-                    v = v + '';
-                } else {
-                    v = Number(v);
-                }
+        if (this.isInt(v)) {
+            if (v > 999999999 && !global.is_chrome) {
+                v = v + '';
+            } else {
+                v = Number(v);
             }
         }
 

@@ -560,42 +560,53 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     AppendTextToDiv: function (divName, text) {
-        $('#' + divName).append(text);
+        try {
+            $('#' + divName).append(text);
+            return true;
+        } catch (err) {
+            gm.log("ERROR in AppendTextToDiv: " + err);
+            return false;
+        }
     },
 
     defaultDropDownOption: "<option disabled='disabled' value='not selected'>Choose one</option>",
 
     MakeDropDown: function (idName, dropDownList, instructions, formatParms) {
-        var selectedItem = gm.getValue(idName, 'defaultValue');
-        if (selectedItem == 'defaultValue') {
-            selectedItem = gm.setValue(idName, dropDownList[0]);
-        }
-
-        var count = 0;
-        for (var itemcount in dropDownList) {
-            if (dropDownList.hasOwnProperty(itemcount)) {
-                if (selectedItem == dropDownList[itemcount]) {
-                    break;
-                }
-
-                count += 1;
+        try {
+            var selectedItem = gm.getValue(idName, 'defaultValue');
+            if (selectedItem == 'defaultValue') {
+                selectedItem = gm.setValue(idName, dropDownList[0]);
             }
-        }
 
-        var htmlCode = "<select id='caap_" + idName + "' " + ((instructions[count]) ? " title='" + instructions[count] + "' " : '') + formatParms + ">";
-        htmlCode += this.defaultDropDownOption;
-        for (var item in dropDownList) {
-            if (dropDownList.hasOwnProperty(item)) {
-                if (instructions) {
-                    htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" + dropDownList[item] + "</option>";
-                } else {
-                    htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ">" + dropDownList[item] + "</option>";
+            var count = 0;
+            for (var itemcount in dropDownList) {
+                if (dropDownList.hasOwnProperty(itemcount)) {
+                    if (selectedItem == dropDownList[itemcount]) {
+                        break;
+                    }
+
+                    count += 1;
                 }
             }
-        }
 
-        htmlCode += '</select>';
-        return htmlCode;
+            var htmlCode = "<select id='caap_" + idName + "' " + ((instructions[count]) ? " title='" + instructions[count] + "' " : '') + formatParms + ">";
+            htmlCode += this.defaultDropDownOption;
+            for (var item in dropDownList) {
+                if (dropDownList.hasOwnProperty(item)) {
+                    if (instructions) {
+                        htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" + dropDownList[item] + "</option>";
+                    } else {
+                        htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ">" + dropDownList[item] + "</option>";
+                    }
+                }
+            }
+
+            htmlCode += '</select>';
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in MakeDropDown: " + err);
+            return '';
+        }
     },
 
     /*-------------------------------------------------------------------------------------\
@@ -603,99 +614,144 @@ caap = {
     slightly different HTML from the side controls.
     \-------------------------------------------------------------------------------------*/
     DBDropDown: function (idName, dropDownList, instructions, formatParms) {
-        var selectedItem = gm.getValue(idName, 'defaultValue');
-        if (selectedItem == 'defaultValue') {
-            selectedItem = gm.setValue(idName, dropDownList[0]);
-        }
+        try {
+            var selectedItem = gm.getValue(idName, 'defaultValue');
+            if (selectedItem == 'defaultValue') {
+                selectedItem = gm.setValue(idName, dropDownList[0]);
+            }
 
-        var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
-        for (var item in dropDownList) {
-            if (dropDownList.hasOwnProperty(item)) {
-                if (selectedItem != dropDownList[item]) {
-                    if (instructions) {
-                        htmlCode += "<option value='" + dropDownList[item] + "' " + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">"  + dropDownList[item];
-                    } else {
-                        htmlCode += "<option value='" + dropDownList[item] + "'>" + dropDownList[item];
+            var htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
+            for (var item in dropDownList) {
+                if (dropDownList.hasOwnProperty(item)) {
+                    if (selectedItem != dropDownList[item]) {
+                        if (instructions) {
+                            htmlCode += "<option value='" + dropDownList[item] + "' " + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">"  + dropDownList[item];
+                        } else {
+                            htmlCode += "<option value='" + dropDownList[item] + "'>" + dropDownList[item];
+                        }
                     }
                 }
             }
-        }
 
-        htmlCode += '</select>';
-        return htmlCode;
+            htmlCode += '</select>';
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in DBDropDown: " + err);
+            return '';
+        }
     },
 
     MakeCheckBox: function (idName, defaultValue, varClass, instructions, tableTF) {
-        var checkItem = gm.getValue(idName, 'defaultValue');
-        if (checkItem == 'defaultValue') {
-            gm.setValue(idName, defaultValue);
-        }
-
-        var htmlCode = "<input type='checkbox' id='caap_" + idName + "' title=" + '"' + instructions + '"' + ((varClass) ? " class='" + varClass + "'" : '') + (gm.getValue(idName) ? 'checked' : '') + ' />';
-        if (varClass) {
-            if (tableTF) {
-                htmlCode += "</td></tr></table>";
-            } else {
-                htmlCode += '<br />';
+        try {
+            var checkItem = gm.getValue(idName, 'defaultValue');
+            if (checkItem == 'defaultValue') {
+                gm.setValue(idName, defaultValue);
             }
 
-            htmlCode += this.AddCollapsingDiv(idName, varClass);
-        }
+            var htmlCode = "<input type='checkbox' id='caap_" + idName + "' title=" + '"' + instructions + '"' + ((varClass) ? " class='" + varClass + "'" : '') + (gm.getValue(idName) ? 'checked' : '') + ' />';
+            if (varClass) {
+                if (tableTF) {
+                    htmlCode += "</td></tr></table>";
+                } else {
+                    htmlCode += '<br />';
+                }
 
-        return htmlCode;
+                htmlCode += this.AddCollapsingDiv(idName, varClass);
+            }
+
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in MakeCheckBox: " + err);
+            return '';
+        }
     },
 
     MakeNumberForm: function (idName, instructions, initDefault, formatParms) {
-        if (gm.getValue(idName, 'defaultValue') == 'defaultValue') {
-            gm.setValue(idName, initDefault);
-        }
+        try {
+            if (gm.getValue(idName, 'defaultValue') == 'defaultValue') {
+                gm.setValue(idName, initDefault);
+            }
 
-        if (!initDefault) {
-            initDefault = '';
-        }
+            if (!initDefault) {
+                initDefault = '';
+            }
 
-        if (!formatParms) {
-            formatParms = "size='4'";
-        }
+            if (!formatParms) {
+                formatParms = "size='4'";
+            }
 
-        var htmlCode = " <input type='text' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + gm.getValue(idName, '') + "' />";
-        return htmlCode;
+            var htmlCode = " <input type='text' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + gm.getValue(idName, '') + "' />";
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in MakeNumberForm: " + err);
+            return '';
+        }
     },
 
     MakeCheckTR: function (text, idName, defaultValue, varClass, instructions, tableTF) {
-        var htmlCode = "<tr><td style='width: 90%'>" + text +
-            "</td><td style='width: 10%; text-align: right'>" +
-            this.MakeCheckBox(idName, defaultValue, varClass, instructions, tableTF);
-        if (!tableTF) {
-            htmlCode += "</td></tr>";
-        }
+        try {
+            var htmlCode = "<tr><td style='width: 90%'>" + text +
+                "</td><td style='width: 10%; text-align: right'>" +
+                this.MakeCheckBox(idName, defaultValue, varClass, instructions, tableTF);
+            if (!tableTF) {
+                htmlCode += "</td></tr>";
+            }
 
-        return htmlCode;
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in MakeCheckTR: " + err);
+            return '';
+        }
     },
 
     AddCollapsingDiv: function (parentId, subId) {
-        var htmlCode = "<div id='caap_" + subId + "' style='display: " +
-            (gm.getValue(parentId, false) ? 'block' : 'none') + "'>";
-        return htmlCode;
+        try {
+            var htmlCode = "<div id='caap_" + subId + "' style='display: " +
+                (gm.getValue(parentId, false) ? 'block' : 'none') + "'>";
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in AddCollapsingDiv: " + err);
+            return '';
+        }
     },
 
     ToggleControl: function (controlId, staticText) {
-        var currentDisplay = gm.getValue('Control_' + controlId, "none");
-        var displayChar = "-";
-        if (currentDisplay == "none") {
-            displayChar = "+";
-        }
+        try {
+            var currentDisplay = gm.getValue('Control_' + controlId, "none");
+            var displayChar = "-";
+            if (currentDisplay == "none") {
+                displayChar = "+";
+            }
 
-        var toggleCode = '<b><a id="caap_Switch_' + controlId +
-            '" href="javascript:;" style="text-decoration: none;"> ' +
-            displayChar + ' ' + staticText + '</a></b><br />' +
-            "<div id='caap_" + controlId + "' style='display: " + currentDisplay + "'>";
-        return toggleCode;
+            var toggleCode = '<b><a id="caap_Switch_' + controlId +
+                '" href="javascript:;" style="text-decoration: none;"> ' +
+                displayChar + ' ' + staticText + '</a></b><br />' +
+                "<div id='caap_" + controlId + "' style='display: " + currentDisplay + "'>";
+            return toggleCode;
+        } catch (err) {
+            gm.log("ERROR in ToggleControl: " + err);
+            return '';
+        }
     },
 
     MakeTextBox: function (idName, instructions, formatParms) {
-        var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getValue(idName, '') + "</textarea>";
-        return htmlCode;
+        try {
+            var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getValue(idName, '') + "</textarea>";
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in MakeTextBox: " + err);
+            return '';
+        }
+    },
+
+    MakeListBox: function (idName, instructions, formatParms) {
+        try {
+            var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getList(idName, []) + "</textarea>";
+            return htmlCode;
+        } catch (err) {
+            gm.log("ERROR in MakeTextBox: " + err);
+            return '';
+        }
     },
 
     SaveBoxText: function (idName) {
@@ -1125,8 +1181,8 @@ caap = {
             htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (gm.getValue('TargetType', false) != 'Userid List' ? 'block' : 'none') + "'>";
             htmlCode += "Attack targets that are:";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus </td><td style='text-align: right'>" + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army </td><td style='text-align: right'>" + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1443,7 +1499,7 @@ caap = {
             htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', true, 'AutoEliteControl', autoEliteInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='font-size: 10px; width: 55px'></tr></td>";
-            htmlCode += '<tr><td>' + this.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", " rows='3' cols='25'") + '</td></tr></table>';
+            htmlCode += '<tr><td>' + this.MakeListBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", " rows='3' cols='25'") + '</td></tr></table>';
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
@@ -1471,11 +1527,11 @@ caap = {
             htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (gm.getValue('DisplayStyle', false) == 'Custom' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='caap_StartedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundLight', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundLight', 'FFF or FFFFFF', '#E0C691', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', '1', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='caap_StopedColorSelect' value='Select' style='font-size: 10px; width: 55px'></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundDark', 'FFF or FFFFFF', '#123456', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', '', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundDark', 'FFF or FFFFFF', '#B09060', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', '1', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='font-size: 10px; width: 55px'></td></tr></table>";
@@ -1801,7 +1857,7 @@ caap = {
     },
 
     liveFeedButtonListener: function (e) {
-        $('img[src*="button_feed2.gif"]').trigger('click');
+        caap.ClickAjax('army_news_feed.php');
     },
 
     clearTargetsButtonListener: function (e) {
@@ -1952,9 +2008,9 @@ caap = {
                 if (e.target.checked) {
                     $(":input[id^='caap_']").attr({disabled: true});
                     $("#caap_div").css('cursor', 'move');
-                    $("#caap_div").mousedown(Move.dragHandler);
+                    $("#caap_div").bind('mousedown', Move.dragHandler);
                     $("#caap_top").css('cursor', 'move');
-                    $("#caap_top").mousedown(Move.dragHandler);
+                    $("#caap_top").bind('mousedown', Move.dragHandler);
                 } else {
                     $(":input[id^='caap_']").attr({disabled: false});
                     $("#caap_div").css('cursor', '');
@@ -2156,7 +2212,8 @@ caap = {
     TextAreaListener: function (e) {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
-            gm.log('Change: setting "' + idName + '" to "' + e.target.value + "'");
+            var value = e.target.value;
+            gm.log('Change: setting "' + idName + '" to "' + value + '"');
             if (idName == 'orderbattle_monster' || idName == 'orderraid') {
                 gm.setValue('monsterReview', 0);
                 gm.setValue('monsterReviewCounter', -3);
@@ -2164,7 +2221,29 @@ caap = {
                 gm.setValue('monsterReviewCounter', -3);
             }
 
-            caap.SaveBoxText(idName);
+            if (idName == 'EliteArmyList') {
+                var eList = [];
+
+                if (value.length) {
+                    value = value.replace(/\n/gi, ',');
+                    eList = value.split(',');
+
+                    var fEmpty = function (e) {
+                        return e !== '';
+                    };
+
+                    eList = eList.filter(fEmpty);
+                    if (!eList.length) {
+                        eList = [];
+                    }
+                }
+
+                gm.setList('EliteArmyList', eList);
+                e.target.value = eList;
+            } else {
+                caap.SaveBoxText(idName);
+            }
+
             return true;
         } catch (err) {
             gm.log("ERROR in TextAreaListener: " + e);
@@ -4795,8 +4874,8 @@ caap = {
         }
 
         if (typeof target == 'string') {
-			target = target.toLowerCase();
-		}
+            target = target.toLowerCase();
+        }
 
         if (!this.CheckStamina('Battle', ((target == 'arena') ? 5 : 1))) {
             return false;
@@ -4971,7 +5050,7 @@ caap = {
             if (this.NavigateTo(navigate, image)) {
                 return true;
             }
-        //gm.log(battleUpto +'th battle target: ' + );
+            //gm.log(battleUpto +'th battle target: ' + );
 
             gm.setValue(chainid, '');
             if (this.BattleUserId(target)) {
@@ -5098,7 +5177,7 @@ caap = {
             fort : true,
             staUse : 5,
             reqAtkButton : 'attack_monster_button.jpg',
-            pwrAtkButton : 'attack_monster_button2.jpg',
+            v : 'attack_monster_button2.jpg',
             defButton : 'button_dispel.gif',
             general : ''
         },
@@ -5264,7 +5343,7 @@ caap = {
             ach : 250000,
             siege : 0,
             fort : true,
- //         staUse : 5,
+            //staUse : 5,
             general : ''
         },
         'Raid I' : {
@@ -5602,6 +5681,9 @@ caap = {
                             fort = this.NumberOnly(damList[1]);
                             damDone = this.NumberOnly(damList[0]) + fort;
                             gm.setListObjVal('monsterOl', monster, 'Fort', fort);
+                        } else if (monstType == "Siege") {
+                            damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                            damDone = this.NumberOnly(damList);
                         } else {
                             //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
                             damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim();
@@ -7570,57 +7652,42 @@ caap = {
         }
 
         if (String(window.location).indexOf('party.php')) {
-            var res = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
-            if (res) {
-                res = nHtml.GetText(res);
-                if (res.match(/Your Elite Guard is FULL/i)) {
-                    gm.setValue('MyEliteTodo', '');
-                    gm.log('elite guard is full');
-                    this.JustDidIt('AutoEliteGetList');
-                    gm.setValue('AutoEliteEnd', 'Full');
-                    return false;
-                }
+            if ($('.result_body').text().match(/YOUR Elite Guard is FULL/i)) {
+                gm.setList('MyEliteTodo', []);
+                gm.log('elite guard is full');
+                this.JustDidIt('AutoEliteGetList');
+                gm.setValue('AutoEliteEnd', 'Full');
+                return false;
             }
         }
 
         var user = '';
-        var eliteList = gm.getValue('MyEliteTodo', '').trim();
-        if (eliteList === '') {
-            if (this.CheckForImage('view_army_on.gif')) {
-                gm.log('load auto elite list');
-                var armyList = gm.getValue('EliteArmyList', '');
-                if (new RegExp("[^0-9,]").test(armyList) && /\n/.test(armyList)) {
-                    armyList = armyList.replace(/\n/gi, ',');
-                }
+        var eliteList = gm.getList('MyEliteTodo', []);
+        if (!eliteList.length) {
+            if (this.CheckForImage('giftpage_title.jpg')) {
+                if (this.CheckForImage('gift_invite_castle_on.gif')) {
+                    gm.log('Load auto elite list');
+                    var armyList = gm.getList('EliteArmyList', []);
+                    $('.unselected_list').find('input').each(function (index) {
+                        armyList.push($(this).val());
+                    });
 
-                if (armyList !== '') {
-                    armyList += ',';
-                }
-
-                var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s += 1) {
-                    var a = ss.snapshotItem(s);
-                    user = a.href.match(/user=\d+/i);
-                    if (user) {
-                        armyList += String(user).substr(5) + ',';
+                    if (armyList.length || (this.stats.army <= 1)) {
+                        gm.setList('MyEliteTodo', armyList);
                     }
+                } else {
+                    return this.NavigateTo('gift_invite_castle_off.gif');
                 }
-
-                if (armyList !== '' || (this.stats.army <= 1)) {
-                    gm.setValue('MyEliteTodo', armyList);
-                }
-
             } else {
-                return this.NavigateTo('army,army_member');
+                return this.NavigateTo('army,gift');
             }
         } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
-            user = eliteList.substring(0, eliteList.indexOf(','));
+            user = eliteList.shift();
             gm.log('add elite ' + user);
             this.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
-            eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
-            gm.setValue('MyEliteTodo', eliteList);
+            gm.setList('MyEliteTodo', eliteList);
             this.JustDidIt('AutoEliteReqNext');
-            if (eliteList === '') {
+            if (!eliteList.length) {
                 this.JustDidIt('AutoEliteGetList');
                 gm.setValue('AutoEliteEnd', 'NoArmy');
                 gm.log('Army list exhausted');
@@ -7834,6 +7901,7 @@ caap = {
 
                     gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
                     gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
+                    alert('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
                     this.JustDidIt('ClickedFacebookURL');
                     if (global.is_chrome) {
                         acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
@@ -9029,9 +9097,8 @@ caap = {
         nHtml.setTimeout(function () {
             if (caap.WhileSinceDidIt('clickedOnSomething', 5 * 60)) {
                 gm.log('Reloading if not paused after inactivity');
-                if (window.location.href.indexOf('castle_age') >= 0 &&
-                        !gm.getValue('Disabled') &&
-                        (gm.getValue('caapPause') == 'none')) {
+                if ((window.location.href.indexOf('castle_age') >= 0 || window.location.href.indexOf('reqs.php#confirm_46755028429_0') >= 0) &&
+                        !gm.getValue('Disabled') && (gm.getValue('caapPause') == 'none')) {
                     if (global.is_chrome) {
                         CE_message("paused", null, gm.getValue('caapPause', 'none'));
                     }
