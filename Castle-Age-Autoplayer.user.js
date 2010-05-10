@@ -5853,7 +5853,9 @@ caap = {
             return false;
         }
 
-        target = target.toLowerCase();
+        if (typeof target == 'string') {
+			target = target.toLowerCase();
+		}
 
         if (!this.CheckStamina('Battle', ((target == 'arena') ? 5 : 1))) {
             return false;
