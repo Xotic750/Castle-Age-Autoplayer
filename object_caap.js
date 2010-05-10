@@ -7974,8 +7974,8 @@ caap = {
                 gm.log('GiftPic is ' + giftPic);
             }
 
-            //if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
-            if ($('div[style*="giftpage_select"]').length !== 0) {
+            if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
+            //if ($('div[style*="giftpage_select"]').length !== 0) {
                 //if (this.NavigateTo('giftpage_ca_friends_off.gif', 'giftpage_ca_friends_on.gif')) {
                 if (this.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     return true;
