@@ -38,7 +38,7 @@ gm = {
 
     isInt: function (value) {
         var vstr = value.toString();
-        if (/,/.test(vstr) || (vstr.length > 1 && vstr.substring(0, 1) === '0')) {
+        if (/[\n\t\f,]/.test(vstr) || (vstr.length > 1 && vstr.substring(0, 1) === '0')) {
             return false;
         }
 
@@ -268,9 +268,7 @@ gm = {
             //alert("Name: " + name + " Number: " + number + " Default: " + defaultValue);
             return Number(number);
         } catch (err) {
-            var errStr = "ERROR in GetNumber: " + err;
-            this.log(errStr);
-            alert(errStr);
+            this.log("ERROR in GetNumber: " + err);
             return '';
         }
     }

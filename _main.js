@@ -164,6 +164,30 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
             }
         }
 
+        if (gm.getValue('LastVersion', 0) < '140.23.0') {
+            var convertToArray = function (name) {
+                var value = gm.getValue(name, '');
+                var eList = [];
+                if (value.length) {
+                    value = value.replace(/\n/gi, ',');
+                    eList = value.split(',');
+                    var fEmpty = function (e) {
+                        return e !== '';
+                    };
+
+                    eList = eList.filter(fEmpty);
+                    if (!eList.length) {
+                        eList = [];
+                    }
+                }
+
+                gm.setList(name, eList);
+            };
+
+            convertToArray('EliteArmyList');
+            convertToArray('BattleTargets');
+        }
+
         gm.setValue('LastVersion', caapVersion);
     } catch (err) {
         gm.log("ERROR in Environment updater: " + err);
@@ -178,8 +202,6 @@ $(function () {
     gm.log('Full page load completed');
     gm.setValue('clickUrl', window.location.href);
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
-        gm.deleteValue("ArmyCount");
-        gm.deleteValue('waiting');
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);
         gm.deleteValue("statsMatch");

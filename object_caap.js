@@ -22,8 +22,8 @@ caap = {
 
     init: function () {
         try {
-            this.addExpDisplay();
             this.SetControls();
+            this.addExpDisplay();
             this.AddListeners();
             this.CheckResults();
             return true;
@@ -295,7 +295,11 @@ caap = {
 
             this.SetDivContent('Could not find ' + general);
             gm.log('Could not find ' + generalImage);
-            return this.ClearGeneral(whichGeneral);
+            if (gm.getValue('ignoreGeneralImage', false)) {
+                return false;
+            } else {
+                return this.ClearGeneral(whichGeneral);
+            }
         } catch (err) {
             gm.log("ERROR in SelectGeneral: " + err);
             return false;
@@ -912,6 +916,7 @@ caap = {
         'demipoint_mess',
         'demibless_mess',
         'level_mess',
+        'exp_mess',
         'arena_mess',
         'debug1_mess',
         'debug2_mess',
@@ -1228,7 +1233,7 @@ caap = {
             htmlCode += "</div>";
             htmlCode += "</div>";
             htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
-            htmlCode += this.MakeTextBox('BattleTargets', userIdInstructions, " rows='3' cols='25'");
+            htmlCode += this.MakeListBox('BattleTargets', userIdInstructions, " rows='3' cols='25'");
             htmlCode += "</div>";
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
@@ -1624,9 +1629,9 @@ caap = {
             And here we build our empty content divs.  We display the appropriate div
             depending on which display was selected using the control above
             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:185px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target Stats' ? 'block' : 'none') + "'></div>";
             layout += "</div>";
             /*-------------------------------------------------------------------------------------\
              No we apply our CSS to our container
@@ -1911,6 +1916,7 @@ caap = {
 
             this.stats.exp = this.GetStatusNumbers(exp);
             $("#app46755028429_st_2_5 strong").append(" (<span style='color:red'>" + (this.stats.exp.dif) + "</span>)");
+            this.SetDivContent('exp_mess', "Experience to next level: " + this.stats.exp.dif);
             return true;
         } catch (e) {
             gm.log("ERROR in addExpDisplay: " + e);
@@ -2017,7 +2023,7 @@ caap = {
                     $("#caap_div").unbind('mousedown', Move.dragHandler);
                     $("#caap_top").css('cursor', '');
                     $("#caap_top").unbind('mousedown', Move.dragHandler);
-               }
+                }
 
                 break;
             default :
@@ -2221,13 +2227,11 @@ caap = {
                 gm.setValue('monsterReviewCounter', -3);
             }
 
-            if (idName == 'EliteArmyList') {
+            if (idName == 'EliteArmyList' || idName == 'BattleTargets') {
                 var eList = [];
-
                 if (value.length) {
                     value = value.replace(/\n/gi, ',');
                     eList = value.split(',');
-
                     var fEmpty = function (e) {
                         return e !== '';
                     };
@@ -2238,7 +2242,7 @@ caap = {
                     }
                 }
 
-                gm.setList('EliteArmyList', eList);
+                gm.setList(idName, eList);
                 e.target.value = eList;
             } else {
                 caap.SaveBoxText(idName);
@@ -2390,6 +2394,12 @@ caap = {
             $('#caap_div a[id^="caap_Switch"]').click(this.FoldingBlockListener);
             $('#caap_FillArmy').click(function (e) {
                 gm.setValue("FillArmy", true);
+                gm.deleteValue("ArmyCount");
+                gm.deleteValue('FillArmyList');
+                gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
+                gm.deleteValue(caap.friendListType.facebook.name + 'Responded');
+                gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
+                gm.deleteValue(caap.friendListType.facebook.name + 'Requested');
             });
 
             $('#caap_StartedColorSelect').click(function (e) {
@@ -2915,9 +2925,8 @@ caap = {
             if (moneyElem) {
                 var goldStored = this.NumberOnly(moneyElem.firstChild.data);
                 if (goldStored >= 0) {
-                    // Stored as a string because Firefox about:config integer can't handle large numbers
-                    gm.log("Keep: Checked the gold in store: " + gm.setValue('inStore', goldStored + ''));
-                    //gm.setValue('inStore', goldStored);
+                    gm.setValue('inStore', goldStored);
+                    //gm.log("Keep: Checked the gold in store: " + gm.getValue('inStore'));
                 }
             }
         }
@@ -4153,49 +4162,6 @@ caap = {
     //                          BATTLING PLAYERS
     /////////////////////////////////////////////////////////////////////
 
-    // Doesn't appear to be implemented in CA
-    /*
-    IterateBattleLinks: function (func) {
-        var content = document.getElementById('content');
-        if(!content) { return; }
-        var ss=document.evaluate(".//a[(contains(@href,'xw_controller=stats') and contains(@href,'xw_action=view')) "+
-            "or (contains(@href,'/profile/'))"+
-            "or (contains(@href,'/"+this.gameName+"/profile.php?userId='))"+
-            "or (contains(@href,'/stats.php?user='))"+
-            "]",content,null,XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,null);
-        for(var s=0; s<ss.snapshotLength; s += 1) {
-            var userLink=ss.snapshotItem(s);
-            if(userLink.innerHTML.indexOf('<img')>=0) { continue; }
-            var m=this.userRe.exec(userLink.getAttribute('href'));
-            if(!m) { continue; }
-            var user=m[2];
-            func.call(this,userLink,user);
-        }
-    },
-
-    AddBattleLinks: function () {
-        if(document.getElementById('addBattleLink')) {
-            return;
-        }
-        this.IterateBattleLinks(function (userLink,user) {
-        if(nHtml.FindByAttr(userLink.parentNode,'a','class','addBattle')) { return; }
-            var addBattle=document.createElement('a');
-            addBattle.className='addBattle';
-            addBattle.id='addBattleLink';
-            addBattle.innerHTML='(Auto Battle)';
-            addBattle.addEventListener('click',function () {
-                var battleTarget=document.getElementById('caap_BattleTargets');
-                if(battleTarget.value=="freshmeat") { battleTarget.value=''; }
-                if(battleTarget.value!="") { battleTarget.value+="\n"; }
-                battleTarget.value+=user;
-                caap.SaveBoxText('BattleTargets');
-            },false);
-            userLink.parentNode.insertBefore(addBattle,userLink.nextSibling);
-            userLink.parentNode.insertBefore(document.createTextNode(' '),userLink.nextSibling);
-        });
-    },
-    */
-
     CheckBattleResults: function () {
         var nameLink = null;
         var userId = null;
@@ -4843,6 +4809,11 @@ caap = {
     },
 
     Battle: function (mode) {
+        if (gm.getValue('WhenBattle', '') == 'Never') {
+            this.SetDivContent('battle_mess', 'Battle off');
+            return false;
+        }
+
         if (this.stats.health.num < 10) {
             return false;
         }
@@ -5121,12 +5092,19 @@ caap = {
             return target;
         }
 
+        /*
         target = gm.getValue('BattleTargets', '');
         if (!target) {
             return false;
         }
+        */
 
-        var targets = target.split(/[\n,]/);
+        var targets = gm.getList('BattleTargets', []);
+        if (!targets.length) {
+            return false;
+        }
+
+        //var targets = target.split(/[\n,]/);
         var battleUpto = gm.getValue('BattleTargetUpto', 0);
         if (battleUpto > targets.length - 1) {
             battleUpto = 0;
@@ -5766,7 +5744,7 @@ caap = {
                 if (boss && boss.siege) {
                     var missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monstType.indexOf('Volcanic') >= 0) {
-                        miss = $("#app46755028429_action_logs").prev().children().eq(1).children().eq(2).text().replace(missRegEx, "$1").trim();
+                        miss = $("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1").trim();
                         currentPhase = Math.min($("img[src*=" + boss.siege_img + "]").size(), boss.siege);
                     } else {
                         if (monstType.indexOf('Raid') >= 0) {
@@ -5820,6 +5798,53 @@ caap = {
                 gm.setValue('resetselectMonster', true);
             }
 
+            // Start of Keep On Budget (KOB) code Part 1 -- required variables
+            gm.log('Start of Keep On Budget (KOB) Code');
+            // Default is disabled for everything
+            var KOBenable = false;
+            // Default is zero bias hours for everything
+            var KOBbiasHours = 0;
+            // KOB needs to follow if we are still in achievment mode for this monster so that KOB can be skipped.
+            var KOBach = false;
+            // Create a temp variable so we don't need to call parseCondition more than once for each if statement
+            var KOBtmp = this.parseCondition('kob', monsterConditions);
+            if (isNaN(KOBtmp)) {
+                gm.log('NaN branch');
+                KOBenable = true;
+                KOBbiasHours = 0;
+            } else if (!KOBtmp) {
+                gm.log('false branch');
+                KOBenable = false;
+                KOBbiasHours = 0;
+            } else {
+                gm.log('passed value branch');
+                KOBenable = true;
+                KOBbiasHours = KOBtmp;
+            }
+
+            //disable kob if in level up mode or if we are within 5 stamina of max potential stamina
+            if (this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max - 5) {
+                KOBenable = false;
+            }
+
+            gm.log('Level Up Mode: ' + this.InLevelUpMode() + ' Stamina Avail: ' + this.stats.stamina.num + ' Stamina Max: ' + this.stats.stamina.max);
+            // Log results of previous two tests
+            gm.log('KOBenable: ' + KOBenable + ' KOB Bias Hours: ' + KOBbiasHours);
+            // Total Time alotted for monster
+            var KOBtotalMonsterTime = caap.monsterInfo[monstType].duration;
+            gm.log('Total Time for Monster: ' + KOBtotalMonsterTime);
+            // Total Damage remaining
+            gm.log('HP left: ' + hp);
+            // Time Left Remaining
+            var KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+            gm.log('TimeLeft: ' + KOBtimeLeft);
+            // Calculate the bias offset for time remaining
+            // Permit negative numbers. may break the percent remaining calculation
+            var KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
+            // Percentage of time remaining for the currently selected monster
+            var KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
+            gm.log('Percent Time Remaining: ' + KOBPercentTimeRemaining);
+            // End of Keep On Budget (KOB) code Part 1 -- required variables
             if (maxDamage && damDone >= maxDamage) {
                 gm.setListObjVal('monsterOl', monster, 'color', 'red');
                 gm.setListObjVal('monsterOl', monster, 'over', 'max');
@@ -5834,9 +5859,25 @@ caap = {
             } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
                 gm.setListObjVal('monsterOl', monster, 'color', 'orange');
                 gm.setListObjVal('monsterOl', monster, 'over', 'ach');
+                // Used with KOB code
+                KOBach = true;
+                // Used with kob debugging
+                gm.log('achievement reached');
                 if (isTarget && lastDamDone < achLevel) {
                     gm.setValue('resetselectMonster', true);
                 }
+            }
+
+            // Start of KOB code Part 2 begins here
+            if (KOBenable && KOBach && hp < KOBPercentTimeRemaining) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'red');
+                gm.setListObjVal('monsterOl', monster, 'over', 'max');
+                gm.log('budget reached');
+                if (isTarget) {
+                    gm.setValue('resetselectMonster', true);
+                    gm.log('This monster no longer a target due to kob');
+                }
+            // End of KOB code Part 2 stops at "}" on next program line.
             } else {
                 gm.setListObjVal('monsterOl', monster, 'color', 'black');
             }
@@ -6218,6 +6259,11 @@ caap = {
 
     Monsters: function () {
         try {
+            if (gm.getValue('WhenMonster', '') == 'Never') {
+                this.SetDivContent('monster_mess', 'Monster off');
+                return false;
+            }
+
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
             if (gm.getValue('WhenMonster') == 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
@@ -6294,7 +6340,7 @@ caap = {
                 var buttonList = [];
                 // Find the attack or fortify button
                 if (fightMode == 'Fortify') {
-					buttonList = [
+                    buttonList = [
                         'seamonster_fortify.gif',
                         "button_nm_s_",
                         'button_dispel.gif',
@@ -6319,16 +6365,16 @@ caap = {
                         'event_attack1.gif',
                         'attack_monster_button.jpg'
                     ].concat(singleButtonList);
-				}
+                }
 
-				for (var i in buttonList) {
+                for (var i in buttonList) {
                     if (buttonList.hasOwnProperty(i)) {
                         attackButton = this.CheckForImage(buttonList[i]);
                         if (attackButton) {
                             break;
                         }
                     }
-				}
+                }
 
                 if (attackButton) {
                     var attackMess = '';
@@ -6344,10 +6390,10 @@ caap = {
                     this.Click(attackButton, 8000);
                     return true;
                 } else {
-					gm.log('ERROR - No button to attack/fortify with.');
-					this.SetTimer('NotargetFrombattle_monster', 60);
-					return false;
-				}
+                    gm.log('ERROR - No button to attack/fortify with.');
+                    this.SetTimer('NotargetFrombattle_monster', 60);
+                    return false;
+                }
             }
 
             ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
@@ -6366,7 +6412,7 @@ caap = {
             var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
             if (!global.is_firefox) {
                 if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 'x')) ||
-						firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
+                        firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                     gm.log('On another player\'s keep.');
                     return this.NavigateTo('keep,battle_monster');
                 }
@@ -7651,9 +7697,22 @@ caap = {
             return false;
         }
 
+        var eliteList = gm.getList('MyEliteTodo', []);
         if (String(window.location).indexOf('party.php')) {
             if ($('.result_body').text().match(/YOUR Elite Guard is FULL/i)) {
-                gm.setList('MyEliteTodo', []);
+                if (eliteList.length) {
+                    var eliteArmyList = gm.getList('EliteArmyList', []);
+                    if (eliteArmyList.length) {
+                        var diffList = eliteList.filter(function (todoID) {
+                            return (eliteArmyList.indexOf(todoID) < 0);
+                        });
+
+                        $.merge(eliteArmyList, diffList);
+                    }
+
+                    gm.setList('MyEliteTodo', eliteArmyList);
+                }
+
                 gm.log('elite guard is full');
                 this.JustDidIt('AutoEliteGetList');
                 gm.setValue('AutoEliteEnd', 'Full');
@@ -7662,24 +7721,15 @@ caap = {
         }
 
         var user = '';
-        var eliteList = gm.getList('MyEliteTodo', []);
         if (!eliteList.length) {
-            if (this.CheckForImage('giftpage_title.jpg')) {
-                if (this.CheckForImage('gift_invite_castle_on.gif')) {
-                    gm.log('Load auto elite list');
-                    var armyList = gm.getList('EliteArmyList', []);
-                    $('.unselected_list').find('input').each(function (index) {
-                        armyList.push($(this).val());
-                    });
-
-                    if (armyList.length || (this.stats.army <= 1)) {
-                        gm.setList('MyEliteTodo', armyList);
-                    }
-                } else {
-                    return this.NavigateTo('gift_invite_castle_off.gif');
-                }
-            } else {
-                return this.NavigateTo('army,gift');
+            this.GetFriendList(this.friendListType.giftc);
+            var castleageList = gm.getList(this.friendListType.giftc.name + 'Responded', []);
+            if (castleageList.length || (this.stats.army <= 1)) {
+                eliteList = gm.getList('EliteArmyList', []);
+                $.merge(eliteList, castleageList);
+                gm.setList('MyEliteTodo', eliteList);
+                gm.deleteValue(this.friendListType.giftc.name + 'Responded');
+                gm.deleteValue(this.friendListType.giftc.name + 'Requested');
             }
         } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
             user = eliteList.shift();
@@ -7729,13 +7779,13 @@ caap = {
         if (eliteList === '') {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
-                var armyList = gm.getValue('EliteArmyList', '');
-                if (new RegExp("^0-9,]").test(armyList) && /\n/.test(armyList)) {
-                    armyList = armyList.replace(/\n/gi, ',');
+                var facebookList = gm.getValue('EliteArmyList', '');
+                if (new RegExp("^0-9,]").test(facebookList) && /\n/.test(facebookList)) {
+                    facebookList = facebookList.replace(/\n/gi, ',');
                 }
 
-                if (armyList !== '') {
-                    armyList += ',';
+                if (facebookList !== '') {
+                    facebookList += ',';
                 }
 
                 var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -7743,12 +7793,12 @@ caap = {
                     var a = ss.snapshotItem(s);
                     user = a.href.match(/user=\d+/i);
                     if (user) {
-                        armyList += String(user).substr(5) + ',';
+                        facebookList += String(user).substr(5) + ',';
                     }
                 }
 
-                if (armyList !== '' || (this.stats.army <= 1)) {
-                    gm.setValue('ArenaEliteTodo', armyList);
+                if (facebookList !== '' || (this.stats.army <= 1)) {
+                    gm.setValue('ArenaEliteTodo', facebookList);
                 }
 
             } else {
@@ -7901,7 +7951,6 @@ caap = {
 
                     gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
                     gm.log('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
-                    alert('Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
                     this.JustDidIt('ClickedFacebookURL');
                     if (global.is_chrome) {
                         acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
@@ -7949,7 +7998,7 @@ caap = {
                         gm.log('Clicked CA send gift button');
                         gm.listAddBefore('FBSendList', gm.getList('CASendList'));
                         gm.setList('CASendList', []);
-						caap.Click(button);
+                        caap.Click(button);
                         return true;
                     }
                 }
@@ -8019,15 +8068,15 @@ caap = {
                 }
                 break;
             case 'Same Gift As Received':
-				givenGiftType = giverList[0].split(global.vs)[2];
-				giftList = gm.getList('GiftList');
+                givenGiftType = giverList[0].split(global.vs)[2];
+                giftList = gm.getList('GiftList');
                 gm.log('Looking for same gift as ' + givenGiftType);
                 if (giftList.indexOf(givenGiftType) < 0) {
                     gm.log('No gift type match. Using first gift as default.');
-					givenGiftType = gm.getList('GiftList').shift();
+                    givenGiftType = gm.getList('GiftList').shift();
                 }
-				giftPic = giftNamePic[givenGiftType];
-				break;
+                giftPic = giftNamePic[givenGiftType];
+                break;
             default:
                 giftPic = giftNamePic[gm.getValue('GiftChoice')];
                 break;
@@ -8390,127 +8439,162 @@ caap = {
         }
     },
 
-    Idle: function () {
-        //Update Monster Finder
-        if (caap.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
-            this.clearLinks(true);
+    friendListType: {
+        facebook: {
+            name: "facebook",
+            url: 'http://apps.facebook.com/castle_age/army.php?app_friends=false&giftSelection=1'
+        },
+        gifta: {
+            name: "gifta",
+            url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=a&giftSelection=1'
+        },
+        giftb: {
+            name: "giftb",
+            url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=b&giftSelection=1'
+        },
+        giftc: {
+            name: "giftc",
+            url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=c&giftSelection=1'
         }
+    },
 
+    GetFriendList: function (listType, force) {
         try {
-            //if we need to add some army member
-            if (gm.getValue('FillArmy', false)) {
-                if (!this.CheckForImage('invite_on.gif')) {
-                    this.SetDivContent('idle_mess', 'Filling Army');
-                    this.NavigateTo('army');
-                } else { //get not army members
-                    gm.log("Getting FB friends");
-                    var IdsListNotArmyAll = "//div[@class='unselected_list']//label[@class='clearfix']";
-                    var results = document.evaluate(IdsListNotArmyAll, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                    var i = 0;
-                    IdsListNotArmyAll = [];
-                    while (results.snapshotItem(i) !== null) {
-                        var res = results.snapshotItem(i);
-                        IdsListNotArmyAll[IdsListNotArmyAll.length] = res.firstChild.value;
-                        i += 1;
-                    }
+            if (force) {
+                gm.deleteValue(listType.name + 'Requested');
+                gm.deleteValue(listType.name + 'Responded');
+            }
 
-                    var Ids = [];
-                    var counter = 0;
-                    if (!gm.getValue('waiting', false)) { //get CA friends
-                        gm.log("Getting CA friend's list");
-                        gm.setValue('waiting', true);
-                        window.setTimeout(function () {
-                            gm.deleteValue('waiting');
-                        }, 10000);
+            if (!gm.getValue(listType.name + 'Requested', false)) {
+                gm.log("Getting Friend List: " + listType.name);
+                gm.setValue(listType.name + 'Requested', true);
+                var theUrl = '';
 
-                        GM_xmlhttpRequest({
-                            url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=false&giftSelection=1',
-                            method: 'GET',
-                            onload: function (response) {
-                                var excludeMatch = response.responseText.match(/(exclude_ids=")[\-0-9,]*"/);
-                                if (response.status == 200 && excludeMatch) { //if response == ok
-                                    gm.deleteValue('waiting');
-                                    gm.log(response.statusText);
-                                    var IdsList = excludeMatch.toString().replace(new RegExp("[^0-9,]", "g"), '').split(',');
-                                    for (var x in IdsListNotArmyAll) { //search for CA friends not in army
-                                        if (IdsListNotArmyAll.hasOwnProperty(x)) {
-                                            for (var y in IdsList) {
-                                                if (IdsList.hasOwnProperty(y)) {
-                                                    if (IdsList[y] == IdsListNotArmyAll[x]) {
-                                                        Ids[counter += 1] = IdsListNotArmyAll[x];
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
 
-                                    // Add army members //
-                                    caap.addArmySpamCheck = 0;
-                                    var armyCount = gm.getValue("ArmyCount", 0);
-                                    if (armyCount === 0) {
-                                        gm.log("Adding " + Ids.length + " member");
-                                    }
+                $.ajax({
+                    url: listType.url,
+                    error:
+                        function (XMLHttpRequest, textStatus, errorThrown) {
+                            gm.deleteValue(listType.name + 'Requested');
+                            gm.log("GetFriendList(" + listType.name + "): " + textStatus);
+                        },
+                    success:
+                        function (data, textStatus, XMLHttpRequest) {
+                            var friendList = [];
+                            $(data).find('.unselected_list').find('input').each(function (index) {
+                                friendList.push($(this).val());
+                            });
 
-                                    var onLoad = function (response) {
-                                        caap.addArmySpamCheck -= 1;
-                                        if (response.status != 200) {
-                                            GM_log([response.status, response.finalUrl].join("\n"));
-                                        }
-                                    };
+                            gm.setList(listType.name + 'Responded', friendList);
+                            gm.log("GetFriendList(" + listType.name + "): " + textStatus);
+                            //gm.log("GetFriendList(" + listType.name + "): " + friendList);
+                        }
+                });
+            }
 
-                                    caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + Ids.length);
-                                    for (var armyLoop = armyCount; armyLoop < Ids.length ; armyLoop += 1) {
-                                        caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyLoop + "/" + Ids.length);
-                                        if (caap.addArmySpamCheck >= 5) { //don't spam requests
-                                            caap.waitMilliSecs = 1000;
-                                            break;
-                                        } else {
-                                            caap.addArmySpamCheck += 1;
-                                            GM_xmlhttpRequest({
-                                                url: 'http://apps.facebook.com/castle_age/index.php?tp=cht&lka=' + Ids[armyLoop] + '&buf=1',
-                                                method: "GET",
-                                                onload: onLoad
-                                            });
+            return true;
+        } catch (e) {
+            gm.log("ERROR in GetFriendList(" + listType.name + "): " + e);
+            return false;
+        }
+    },
 
-                                            gm.setValue("ArmyCount", armyLoop);
-                                        }
-                                    }
+    addFriendSpamCheck: 0,
 
-                                    if (armyLoop >= Ids.length) {
-                                        caap.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
-                                        window.setTimeout(function () {
-                                            caap.SetDivContent('idle_mess', '');
-                                        }, 5000);
-
-                                        gm.log("Fill Army Completed");
-                                        gm.setValue('FillArmy', false);
-                                        gm.deleteValue("ArmyCount");
-                                        gm.deleteValue('waiting');
-                                        caap.NavigateTo('index');
-                                    }
-                                } else {//if response != ok
-                                    caap.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
-                                    window.setTimeout(function () {
-                                        caap.SetDivContent('idle_mess', '');
-                                    }, 5000);
-
-                                    gm.log("Fill Army Not Completed, cant get CA friends list");
-                                    gm.log("Response.status: " + response.statusText);
-                                    gm.setValue('FillArmy', false);
-                                    gm.deleteValue("ArmyCount");
-                                    gm.deleteValue('waiting');
-                                    caap.NavigateTo('index');
-                                }
-                            }
-                        });
-                    }
+    AddFriend: function (id) {
+        try {
+            var responseCallback = function (XMLHttpRequest, textStatus, errorThrown) {
+                if (caap.addFriendSpamCheck > 0) {
+                    caap.addFriendSpamCheck -= 1;
                 }
 
-                return true;
-            }
+                gm.log("AddFriend(" + id + "): " + textStatus);
+            };
+
+            $.ajax({
+                url: 'http://apps.facebook.com/castle_age/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf',
+                error: responseCallback,
+                success: responseCallback
+            });
+
+            return true;
         } catch (e) {
-            gm.log("ERROR in FillArmy: " + e);
+            gm.log("ERROR in AddFriend(" + id + "): " + e);
+            return false;
+        }
+    },
+
+    AutoFillArmy: function (caListType, fbListType) {
+        try {
+            if (!gm.getValue('FillArmy', false)) {
+                return false;
+            }
+
+            var armyCount = gm.getValue("ArmyCount", 0);
+            if (armyCount === 0) {
+                this.SetDivContent('idle_mess', 'Filling Army');
+                gm.log("Filling army");
+            }
+
+            var fillArmyList = gm.getList('FillArmyList', []);
+            if (!fillArmyList.length) {
+                this.GetFriendList(caListType);
+                this.GetFriendList(fbListType);
+            }
+
+            var castleageList = gm.getList(caListType.name + 'Responded', []);
+            //gm.log("gifList: " + castleageList);
+            var facebookList = gm.getList(fbListType.name + 'Responded', []);
+            //gm.log("facebookList: " + facebookList);
+            if ((castleageList.length && facebookList.length) || fillArmyList.length) {
+                if (!fillArmyList.length) {
+                    var diffList = facebookList.filter(function (facebookID) {
+                        return (castleageList.indexOf(facebookID) >= 0);
+                    });
+
+                    //gm.log("diffList: " + diffList);
+                    gm.setList('FillArmyList', diffList);
+                    fillArmyList = gm.getList('FillArmyList', []);
+                    gm.deleteValue(caListType.name + 'Responded');
+                    gm.deleteValue(fbListType.name + 'Responded');
+                    gm.deleteValue(caListType.name + 'Requested');
+                    gm.deleteValue(fbListType.name + 'Requested');
+                }
+
+                // Add army members //
+                var batchCount = 5;
+                if (fillArmyList.length < 5) {
+                    batchCount = fillArmyList.length;
+                } else if (fillArmyList.length - armyCount < 5) {
+                    batchCount = fillArmyList.length - armyCount;
+                }
+
+                batchCount = batchCount - this.addFriendSpamCheck;
+                for (var i = 0; i < batchCount; i += 1) {
+                    this.AddFriend(fillArmyList[armyCount]);
+                    armyCount += 1;
+                    this.addFriendSpamCheck += 1;
+                }
+
+                this.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
+                gm.log('Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
+                gm.setValue("ArmyCount", armyCount);
+                if (armyCount >= fillArmyList.length) {
+                    this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
+                    window.setTimeout(function () {
+                        caap.SetDivContent('idle_mess', '');
+                    }, 5000);
+
+                    gm.log("Fill Army Completed");
+                    gm.setValue('FillArmy', false);
+                    gm.deleteValue("ArmyCount");
+                    gm.deleteValue('FillArmyList');
+                }
+            }
+
+            return true;
+        } catch (e) {
+            gm.log("ERROR in AutoFillArmy: " + e);
             this.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
@@ -8518,12 +8602,22 @@ caap = {
 
             gm.setValue('FillArmy', false);
             gm.deleteValue("ArmyCount");
-            gm.deleteValue('waiting');
-            this.addArmySpamCheck = 0;
-            this.NavigateTo('index');
-            return true;
+            gm.deleteValue('FillArmyList');
+            gm.deleteValue(caListType.name + 'Responded');
+            gm.deleteValue(fbListType.name + 'Responded');
+            gm.deleteValue(caListType.name + 'Requested');
+            gm.deleteValue(fbListType.name + 'Requested');
+            return false;
+        }
+    },
+
+    Idle: function () {
+        //Update Monster Finder
+        if (this.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
+            this.clearLinks(true);
         }
 
+        this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
         this.AutoCollectMA();
         this.ReconPlayers();
         this.UpdateDashboard();
