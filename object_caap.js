@@ -5659,7 +5659,7 @@ caap = {
                             fort = this.NumberOnly(damList[1]);
                             damDone = this.NumberOnly(damList[0]) + fort;
                             gm.setListObjVal('monsterOl', monster, 'Fort', fort);
-                        } else if (monstType == "Siege") {
+                        } else if (monstType == "Siege" || monstType == "Raid I" || monstType == "Raid II") {
                             damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
                             damDone = this.NumberOnly(damList);
                         } else {
