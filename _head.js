@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.2
+// @version        140.23.3
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,15 +19,11 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.2";
+var caapVersion = "140.23.3";
 
 ///////////////////////////
 //       Prototypes
 ///////////////////////////
-
-String.prototype.trim = function () {
-    return this.replace(/^\s+|\s+$/g, '');
-};
 
 String.prototype.ucFirst = function () {
     var firstLetter = this.substr(0, 1);

@@ -81,12 +81,8 @@ gm = {
         GM_deleteValue(global.gameName + "__" + n);
     },
 
-    IsArray: function (testObject) {
-        return testObject && !(testObject.propertyIsEnumerable('length')) && typeof testObject === 'object' && typeof testObject.length === 'number';
-    },
-
     setList: function (n, v) {
-        if (!this.IsArray(v)) {
+        if (!$.isArray(v)) {
             this.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
             return undefined;
         }

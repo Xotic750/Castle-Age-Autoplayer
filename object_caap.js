@@ -177,7 +177,7 @@ caap = {
                 throw "Couldn't find current general div";
             }
 
-            return webSlice.innerHTML.trim();
+            return $.trim(webSlice.innerHTML);
         } catch (err) {
             gm.log("ERROR in GetCurrentGeneral: " + err);
             return 'Use Current';
@@ -240,7 +240,7 @@ caap = {
     SelectGeneral: function (whichGeneral) {
         try {
             if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current') {
-                var generalType = whichGeneral.replace(/General/i, '').trim();
+                var generalType = $.trim(whichGeneral.replace(/General/i, ''));
                 if (gm.getValue(generalType + 'LevelUpGeneral', false) &&
                     this.stats.exp.dif &&
                     this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
@@ -1499,9 +1499,9 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 40, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" + this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += '</div>';
@@ -2032,6 +2032,15 @@ caap = {
                 }
 
                 break;
+            case "AutoElite" :
+                gm.setValue('AutoEliteGetList', 0);
+                gm.setValue('AutoEliteReqNext', 0);
+                gm.setValue('AutoEliteEnd', '');
+                gm.deleteValue('MyEliteTodo');
+                break;
+            case "AutoPotions" :
+                gm.setValue('AutoPotionTimer', 0);
+                break;
             default :
             }
 
@@ -2074,6 +2083,8 @@ caap = {
                 }
             } else if (/AttrValue+/.test(idName)) {
                 caap.statsMatch = true;
+            } else if (/energyPotions+/.test(idName) || /staminaPotions+/.test(idName)) {
+                gm.setValue('AutoPotionTimer', 0);
             }
 
             gm.setValue(idName, e.target.value);
@@ -2422,6 +2433,8 @@ caap = {
             $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
             $('#caap_resetElite').click(function (e) {
                 gm.setValue('AutoEliteGetList', 0);
+                gm.setValue('AutoEliteReqNext', 0);
+                gm.setValue('AutoEliteEnd', '');
             });
 
             $('#caapRestart').click(this.RestartListener);
@@ -2605,7 +2618,7 @@ caap = {
                 var txtRank = nHtml.GetText(attrDiv);
                 var rankm = this.rankRe.exec(txtRank);
                 if (rankm) {
-                    var rank = this.rankTable[rankm[1].toString().toLowerCase().trim()];
+                    var rank = this.rankTable[$.trim(rankm[1].toString().toLowerCase())];
                     if (rank !== undefined) {
                         this.stats.rank = rank;
                         gm.setValue('MyRank', this.stats.rank);
@@ -2732,7 +2745,7 @@ caap = {
             // time to next paycheck
             var paytime = nHtml.FindByAttrContains(document.body, "span", "id", '_gold_time_value');
             if (paytime) {
-                this.stats.paytime = nHtml.GetText(paytime).trim();
+                this.stats.paytime = $.trim(nHtml.GetText(paytime));
                 this.stats.payminute = this.stats.paytime.substr(0, this.stats.paytime.indexOf(':'));
             }
 
@@ -2867,7 +2880,7 @@ caap = {
             var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
             var resultsText = '';
             if (resultsDiv) {
-                resultsText = nHtml.GetText(resultsDiv).trim();
+                resultsText = $.trim(nHtml.GetText(resultsDiv));
             }
 
             if (gm.getValue('page', '')) {
@@ -2895,7 +2908,7 @@ caap = {
                 } else {
                     var beepDiv = nHtml.FindByAttrContains(document.body, 'div', 'class', 'UIBeep_Title');
                     if (beepDiv) {
-                        var beepText = nHtml.GetText(beepDiv).trim();
+                        var beepText = $.trim(nHtml.GetText(beepDiv));
                         if (beepText.match(/sent you a gift/) && !beepText.match(/notification/)) {
                             gm.log('We have a gift waiting');
                             gm.setValue('HaveGift', true);
@@ -3635,7 +3648,7 @@ caap = {
             return false;
         }
 
-        this.questName = firstb.innerHTML.toString().trim().stripHTML();
+        this.questName = $.trim(firstb.innerHTML.toString()).stripHTML();
         if (!this.questName) {
             //gm.log('no quest name for this row: ' + div.innerHTML);
             gm.log('no quest name for this row');
@@ -3892,7 +3905,7 @@ caap = {
         }
 
         if (infoDiv.className.indexOf('item_title') >= 0) {
-            return infoDiv.textContent.trim();
+            return $.trim(infoDiv.textContent);
         }
 
         var strongs = infoDiv.getElementsByTagName('strong');
@@ -3900,7 +3913,7 @@ caap = {
             return null;
         }
 
-        return strongs[0].textContent.trim();
+        return $.trim(strongs[0].textContent);
     },
 
     bestLand: {
@@ -3925,11 +3938,11 @@ caap = {
                 roi = 0;
                 // Lets get our max allowed from the land_buy_info div
                 div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
-                var maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
+                var maxText = $.trim(nHtml.GetText(div).match(/:\s+\d+/i).toString());
                 var maxAllowed = Number(maxText.replace(/:\s+/, ''));
                 // Lets get our owned total from the land_buy_costs div
                 div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_costs')");
-                var ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
+                var ownedText = $.trim(nHtml.GetText(div).match(/:\s+\d+/i).toString());
                 var owned = Number(ownedText.replace(/:\s+/, ''));
                 // If we own more than allowed we will set land and selection
                 var selection = [1, 5, 10];
@@ -4177,7 +4190,7 @@ caap = {
         // Check for Battle results
         var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
         if (resultsDiv) {
-            var resultsText = nHtml.GetText(resultsDiv).trim();
+            var resultsText = $.trim(nHtml.GetText(resultsDiv));
             if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
                 gm.log("This opponent is dead or hiding: " + this.lastBattleID);
                 if (!this.doNotBattle) {
@@ -4210,7 +4223,7 @@ caap = {
                 gm.log("Chain Attack: " + userId + "  Arena Battle");
             } else {
                 var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
-                var bptxt = nHtml.GetText(winresults.parentNode).toString().trim();
+                var bptxt = $.trim(nHtml.GetText(winresults.parentNode).toString());
                 var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
                 var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
                 var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
@@ -4218,7 +4231,7 @@ caap = {
                 nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
                 userId = nameLink.href.match(/user=\d+/i);
                 userId = String(userId).substr(5);
-                userName = nHtml.GetText(nameLink).trim();
+                userName = $.trim(nHtml.GetText(nameLink));
                 var wins = 1;
                 gm.log("We Defeated " + userName + "!!");
                 //Test if we should chain this guy
@@ -4297,7 +4310,7 @@ caap = {
             nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
             userId = nameLink.href.match(/user=\d+/i);
             userId = String(userId).substr(5);
-            userName = nHtml.GetText(nameLink).trim();
+            userName = $.trim(nHtml.GetText(nameLink));
 
             gm.log("We Were Defeated By " + userName + ".");
             gm.setValue('ChainCount', 0);
@@ -4540,7 +4553,7 @@ caap = {
                 if (webSlice) {
                     txt = nHtml.GetText(webSlice);
                     var yourRankStrObj = /:([A-Za-z ]+)/.exec(txt);
-                    var yourRankStr = yourRankStrObj[1].toLowerCase().trim();
+                    var yourRankStr = $.trim(yourRankStrObj[1].toLowerCase());
                     yourRank = this.arenaTable[yourRankStr];
                     var yourArenaPoints = 0;
                     var pointstxt = txt.match(new RegExp("Points:\\s+.+\\s+", "i"));
@@ -4626,7 +4639,7 @@ caap = {
                         }
                     }
 
-                    txt = nHtml.GetText(tr).trim();
+                    txt = $.trim(nHtml.GetText(tr));
                     levelm = this.battles.Freshmeat.regex.exec(txt);
                     if (!levelm) {
                         gm.log("Can't match battleLevelRe in " + txt);
@@ -4634,7 +4647,7 @@ caap = {
                     }
 
                     level = parseInt(levelm[1], 10);
-                    var rankStr = levelm[2].toLowerCase().trim();
+                    var rankStr = $.trim(levelm[2].toLowerCase());
                     if (type == 'Arena') {
                         rank = this.arenaTable[rankStr];
                     } else {
@@ -4642,7 +4655,7 @@ caap = {
                     }
 
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                    army = parseInt(nHtml.GetText(subtd.snapshotItem(2)).trim(), 10);
+                    army = parseInt($.trim(nHtml.GetText(subtd.snapshotItem(2))), 10);
                 }
 
                 if (level - this.stats.level > maxLevel) {
@@ -5152,7 +5165,9 @@ caap = {
         };
     },
 
-    //http://castleage.wikidot.com/monster for monster info
+    // http://castleage.wikidot.com/monster for monster info
+
+    // http://castleage.wikidot.com/skaar
     monsterInfo: {
         'Deathrune' : {
             duration : 96,
@@ -5261,9 +5276,10 @@ caap = {
             ach : 100000,
             siege : 0
         },
+        // http://castleage.wikidot.com/monster:bahamut
         'Volcanic Dragon' : {
             duration : 168,
-            hp : 100000000,
+            hp : 120000000,
             ach : 1000000,
             siege : 5,
             siegeClicks : [30, 60, 90, 120, 200],
@@ -5295,14 +5311,17 @@ caap = {
                 }
             }
         },
+        // http://castleage.wikidot.com/alpha-bahamut
+        // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
         'Alpha Volcanic Dragon' : {
             duration : 168,
-            hp : 100000000,
+            hp : 600000000,
             ach : 1000000,
-            siege : 5,
-            siegeClicks : [30, 60, 90, 120, 200],
-            siegeDam : [7896000, 9982500, 11979000, 15972000, 19965000],
+            siege : 6,
+            siegeClicks : [30, 60, 90, 120, 200, 200],
+            siegeDam : [28000000, 32500000, 40000000, 45000000, 47500000, 52500000],
             siege_img : '/graphics/water_siege_',
+            siege_img2 : '/graphics/alpha_bahamut_siege_blizzard_',
             fort : true,
             staUse : 5,
             general: '',
@@ -5469,8 +5488,8 @@ caap = {
             for (var s = 0; s < ss.snapshotLength; s += 1) {
                 var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
                 var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
-                var monsterFull = nHtml.GetText(monsterRow).trim();
-                var monster = monsterFull.replace('Completed!', '').replace(/Fled!/i, '').trim();
+                var monsterFull = $.trim(nHtml.GetText(monsterRow));
+                var monster = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
                 monsterList.push(monster);
                 // Make links for easy clickin'
                 var url = ss.snapshotItem(s).parentNode.href;
@@ -5612,12 +5631,12 @@ caap = {
             var monster = nHtml.GetText(webSlice);
             if (this.CheckForImage('nm_volcanic_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
-                monster = monster.trim();
+                monster = $.trim(monster);
             } else if (this.CheckForImage('nm_volcanic_title_2.jpg')) {
                 monster = monster.match(yourRegEx) + 'Alpha Bahamut, the Volcanic Dragon';
-                monster = monster.trim();
+                monster = $.trim(monster);
             } else {
-                monster = monster.substring(0, monster.indexOf('You have (')).trim();
+                monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
             }
 
             var fort = null;
@@ -5713,17 +5732,17 @@ caap = {
                     if (webSlice) {
                         var damList = null;
                         if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
-                            //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim().split("/");
-                            damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim().split("/");
+                            //damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling)).split("/");
+                            damList = $.trim(nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling)).split("/");
                             fort = this.NumberOnly(damList[1]);
                             damDone = this.NumberOnly(damList[0]) + fort;
                             gm.setListObjVal('monsterOl', monster, 'Fort', fort);
                         } else if (monstType == "Siege" || monstType == "Raid I" || monstType == "Raid II") {
-                            damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
+                            damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling));
                             damDone = this.NumberOnly(damList);
                         } else {
-                            //damList = nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling).trim();
-                            damList = nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling).trim();
+                            //damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling));
+                            damList = $.trim(nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling));
                             damDone = this.NumberOnly(damList);
                         }
 
@@ -5785,7 +5804,7 @@ caap = {
                     //gm.log("Found monster health div.");
                     var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
                     var attrWidth = divAttr[1].split(":");
-                    hpBar = attrWidth[1].trim();
+                    hpBar = $.trim(attrWidth[1]);
                 } else {
                     gm.log("Could not find monster health div.");
                 }
@@ -5803,13 +5822,20 @@ caap = {
                 if (boss && boss.siege) {
                     var missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monstType.indexOf('Volcanic') >= 0) {
-                        miss = $("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1").trim();
-                        currentPhase = Math.min($("img[src*=" + boss.siege_img + "]").size(), boss.siege);
+                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
+                        if (monstType.indexOf('Alpha') >= 0) {
+                            var waterCount = $("img[src*=" + boss.siege_img + "]").size();
+                            var alphaCount = $("img[src*=" + boss.siege_img2 + "]").size();
+                            var totalCount = waterCount + alphaCount;
+                            currentPhase = Math.min(totalCount, boss.siege);
+                        } else {
+                            currentPhase = Math.min($("img[src*=" + boss.siege_img + "]").size(), boss.siege);
+                        }
                     } else {
                         if (monstType.indexOf('Raid') >= 0) {
-                            miss = $("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(missRegEx, "$1").trim();
+                            miss = $.trim($("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(missRegEx, "$1"));
                         } else {
-                            miss = $("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(missRegEx, "$1").trim();
+                            miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(missRegEx, "$1"));
                         }
 
                         var divSeigeLogs = document.getElementById("app46755028429_siege_log");
@@ -5831,6 +5857,10 @@ caap = {
                 }
 
                 if (boss) {
+                    if (isNaN(miss)) {
+                        miss = 0;
+                    }
+
                     var T2K = this.t2kCalc(boss, time, hp, currentPhase, miss);
                     gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
                 }
@@ -6050,12 +6080,12 @@ caap = {
                     // Next we step through the users list getting the name and conditions
                     for (var p in attackOrderList) {
                         if (attackOrderList.hasOwnProperty(p)) {
-                            if (!(attackOrderList[p].trim())) {
+                            if (!($.trim(attackOrderList[p]))) {
                                 continue;
                             }
 
-                            var attackOrderName = attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase();
-                            monsterConditions = attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString().trim();
+                            var attackOrderName = $.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase();
+                            monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
                             var monsterListCurrent = monsterList[selectType];
                             // Now we try to match the users name agains our list of monsters
                             for (var m in monsterListCurrent) {
@@ -6185,12 +6215,12 @@ caap = {
             var monsterOnPage = nHtml.GetText(webSlice);
             if (this.CheckForImage('nm_volcanic_title.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
-                monsterOnPage = monsterOnPage.trim();
+                monsterOnPage = $.trim(monsterOnPage);
             } else if (this.CheckForImage('nm_volcanic_title_2.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'Alpha Bahamut, the Volcanic Dragon';
-                monsterOnPage = monsterOnPage.trim();
+                monsterOnPage = $.trim(monsterOnPage);
             } else {
-                monsterOnPage = monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')).trim();
+                monsterOnPage = $.trim(monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')));
             }
 
             if (!global.is_firefox) {
@@ -7471,7 +7501,7 @@ caap = {
 
     AutoPotions: function () {
         try {
-            if (!gm.getValue('AutoPotion', true) ||
+            if (!gm.getValue('AutoPotions', true) ||
                 !(this.WhileSinceDidIt('AutoPotionTimer', 6 * 60 * 60)) ||
                 !(this.WhileSinceDidIt('AutoPotionTimerDelay', 10 * 60))) {
                 return false;
@@ -7492,7 +7522,7 @@ caap = {
             }
 
             gm.log("Energy Potions: " + energyPotions);
-            if (energyPotions >= gm.getNumber("energyPotionsSpendOver", 40)) {
+            if (energyPotions >= gm.getNumber("energyPotionsSpendOver", 39)) {
                 gm.setValue("Consume_Energy", true);
                 gm.log("Energy potions ready to consume");
             }
@@ -7504,7 +7534,7 @@ caap = {
             }
 
             gm.log("Stamina Potions: " + staminaPotions);
-            if (staminaPotions >= gm.getNumber("staminaPotionsSpendOver", 40)) {
+            if (staminaPotions >= gm.getNumber("staminaPotionsSpendOver", 39)) {
                 gm.setValue("Consume_Stamina", true);
                 gm.log("Stamina potions ready to consume");
             }
@@ -7830,6 +7860,12 @@ caap = {
             };
 
             var eliteList = gm.getList('MyEliteTodo', []);
+            if (!$.isArray(eliteList)) {
+                gm.log('MyEliteTodo list is not expected format, deleting');
+                eliteList = [];
+                gm.deleteValue('MyEliteTodo');
+            }
+
             if (String(window.location).indexOf('party.php')) {
                 gm.log('Checking Elite Guard status');
                 if ($('.result_body').text().match(/YOUR Elite Guard is FULL/i)) {
@@ -7846,7 +7882,6 @@ caap = {
                 }
             }
 
-            var user = '';
             if (!eliteList.length) {
                 gm.log('Elite Guard no MyEliteTodo cycle');
                 this.GetFriendList(this.friendListType.giftc);
@@ -7859,7 +7894,7 @@ caap = {
                 }
             } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
                 gm.log('Elite Guard has a MyEliteTodo list, shifting User ID');
-                user = eliteList.shift();
+                var user = eliteList.shift();
                 gm.log('Add Elite Guard ID: ' + user);
                 this.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
                 gm.log('Elite Guard sent request, saving shifted MyEliteTodo');
@@ -7867,7 +7902,6 @@ caap = {
                 this.JustDidIt('AutoEliteReqNext');
                 if (!eliteList.length) {
                     gm.log('Army list exhausted');
-                    this.JustDidIt('AutoEliteGetList');
                     gm.setValue('AutoEliteEnd', 'NoArmy');
                 }
             }
@@ -7908,7 +7942,7 @@ caap = {
         }
 
         var user = '';
-        var eliteList = gm.getValue('ArenaEliteTodo', '').trim();
+        var eliteList = $.trim(gm.getValue('ArenaEliteTodo', ''));
         if (eliteList === '') {
             if (this.CheckForImage('view_army_on.gif')) {
                 gm.log('Load auto elite list');
@@ -8032,7 +8066,7 @@ caap = {
                 var ss = document.evaluate(".//div[contains(@id,'_gift')]", giftEntry.parentNode, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                 for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var giftDiv = ss.snapshotItem(s);
-                    var giftName = nHtml.GetText(giftDiv).trim().replace(/!/i, '');
+                    var giftName = $.trim(nHtml.GetText(giftDiv)).replace(/!/i, '');
                     if (gm.getValue("GiftList").indexOf(giftName) >= 0) {
                         giftName += ' #2';
                     }
@@ -8079,7 +8113,7 @@ caap = {
 
                     var giverName = "Unknown";
                     if (profDiv) {
-                        giverName = nHtml.GetText(profDiv).trim();
+                        giverName = $.trim(nHtml.GetText(profDiv));
                     }
 
                     gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
@@ -8317,7 +8351,7 @@ caap = {
                         continue;
                     }
 
-                    var giftType = giftDiv.value.replace(/^Accept /i, '').trim();
+                    var giftType = $.trim(giftDiv.value.replace(/^Accept /i, ''));
                     if (gm.getList('GiftList').indexOf(giftType) < 0) {
                         gm.log('Unknown gift type.');
                         giftType = 'Unknown Gift';
@@ -8845,16 +8879,16 @@ caap = {
     We also get the targets actual name, level and rank from the text string
     \-------------------------------------------------------------------------------------*/
                 var regex = new RegExp('(.+), Level ([0-9]+)\\s*([A-Za-z ]+)\\s*([0-9]+)', 'i');
-                var txt = nHtml.GetText(tr).trim();
+                var txt = $.trim(nHtml.GetText(tr));
                 var levelm = regex.exec(txt);
                 if (!levelm) {
                     gm.log('Recon can not parse target text string' + txt);
                     continue;
                 }
 
-                var nameStr = levelm[1].trim();
+                var nameStr = $.trim(levelm[1]);
                 var levelNum = parseInt(levelm[2], 10);
-                var rankStr = levelm[3].trim();
+                var rankStr = $.trim(levelm[3]);
                 var rankNum = this.rankTable[rankStr.toLowerCase()];
     /*-------------------------------------------------------------------------------------\
     Then we get the targets army count and userid.  We'll also save the current time we
