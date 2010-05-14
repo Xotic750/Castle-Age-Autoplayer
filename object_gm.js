@@ -37,15 +37,20 @@ gm = {
     },
 
     isInt: function (value) {
-        var vstr = value.toString();
-        if (/[\n\t\f,]/.test(vstr) || (vstr.length > 1 && vstr.substring(0, 1) === '0')) {
-            return false;
-        }
+        try {
+            var vstr = value.toString();
+            if (/[\n\t\f,]/.test(vstr) || (vstr.length > 1 && /[0\.]/.test(vstr.substring(0, 1)))) {
+                return false;
+            }
 
-        var pInt = parseInt(value, 10);
-        if ((parseFloat(value) == pInt) && !isNaN(pInt)) {
-            return true;
-        } else {
+            var pInt = parseInt(value, 10);
+            if ((parseFloat(value) == pInt) && !isNaN(pInt)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (err) {
+            gm.log("ERROR in gm.isInt: " + err);
             return false;
         }
     },

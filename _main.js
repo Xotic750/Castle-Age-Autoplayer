@@ -204,7 +204,6 @@ $(function () {
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);
-        gm.deleteValue("statsMatch");
         if (global.is_chrome) {
             CE_message("paused", null, gm.getValue('caapPause', 'none'));
         }
@@ -214,7 +213,7 @@ $(function () {
         }, 200);
     }
 
-    this.waitMilliSecs = 8000;
+    caap.waitMilliSecs = 8000;
     caap.WaitMainLoop();
 });
 
