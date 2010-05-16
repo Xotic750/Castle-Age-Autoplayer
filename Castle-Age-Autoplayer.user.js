@@ -3833,6 +3833,10 @@ caap = {
     },
 
     pageList: {
+        'index': {
+            signaturePic: 'gif',
+            CheckResultsFunction: 'CheckResults_index',
+        },
         'battle_monster': {
             signaturePic: 'tab_monster_on.jpg',
             CheckResultsFunction: 'CheckResults_fightList',
@@ -3877,7 +3881,7 @@ caap = {
         },
         'gift_accept': {
             signaturePic: 'gif',
-            CheckResultsFunction: 'CheckResults_army'
+            CheckResultsFunction: 'CheckResults_gift_accept'
         },
         /*
         ,
@@ -9082,7 +9086,7 @@ caap = {
     //                              AUTOGIFT
     /////////////////////////////////////////////////////////////////////
 
-    CheckResults_army: function (resultsText) {
+    CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
 		if ($('#app46755028429_app_body').text().match(/You have sent \d+ gifts?/)) {
             gm.log('Confirmed gifts sent out.');
@@ -9103,6 +9107,9 @@ caap = {
         }
 
     },
+    CheckResults_index: function (resultsText) {
+		this.JustDidIt('checkForGifts');
+	},
 
     AutoGift: function () {
         try {
@@ -9839,6 +9846,10 @@ caap = {
         //Update Monster Finder
         if (this.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
             this.clearLinks(true);
+        }
+
+        if (this.WhileSinceDidIt("checkForGifts", 5 * 60)) {
+            this.NavigateTo('index');
         }
 
         this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
