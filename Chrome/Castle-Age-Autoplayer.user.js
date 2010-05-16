@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.3
+// @version        140.23.6
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1.custom.min.js
 // @require        http://farbtastic.googlecode.com/svn/branches/farbtastic-1/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.3";
+var caapVersion = "140.23.6";
 
 ///////////////////////////
 //       Prototypes
@@ -2433,7 +2433,14 @@ caap = {
             // Add General Comboboxes
             this.BuildGeneralLists();
             var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up";
+            var ignoreGeneralImage = "(EXPERIMENTAL) This will prevent the script " +
+                "from changing your selected General to 'Use Current' if the script " +
+                "is unable to find the General's image when changing activities. " +
+                "Instead it will use the current General for the activity and try " +
+                "to select the correct General again next time.";
             htmlCode += this.ToggleControl('Generals', 'GENERALS');
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', false, '', ignoreGeneralImage) + "</table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             for (var dropDownItem in this.standardGeneralList) {
                 if (this.standardGeneralList.hasOwnProperty(dropDownItem)) {
@@ -3049,7 +3056,7 @@ caap = {
                 //gm.log("IgnoreBattleLoss");
                 if (e.target.checked) {
                     gm.log("Ignore Battle Losses has been enabled.");
-                    gm.setValue("BattlesLostList", '');
+                    gm.deleteValue("BattlesLostList");
                     gm.log("Battle Lost List has been cleared.");
                 }
 
@@ -3097,13 +3104,13 @@ caap = {
 
                 break;
             case "AutoElite" :
-                gm.setValue('AutoEliteGetList', 0);
-                gm.setValue('AutoEliteReqNext', 0);
-                gm.setValue('AutoEliteEnd', '');
+                gm.deleteValue('AutoEliteGetList');
+                gm.deleteValue('AutoEliteReqNext');
+                gm.deleteValue('AutoEliteEnd');
                 gm.deleteValue('MyEliteTodo');
                 break;
             case "AutoPotions" :
-                gm.setValue('AutoPotionTimer', 0);
+                gm.deleteValue('AutoPotionTimer');
                 break;
             default :
             }
@@ -3833,6 +3840,10 @@ caap = {
     },
 
     pageList: {
+        'index': {
+            signaturePic: 'gif',
+            CheckResultsFunction: 'CheckResults_index'
+        },
         'battle_monster': {
             signaturePic: 'tab_monster_on.jpg',
             CheckResultsFunction: 'CheckResults_fightList',
@@ -3875,13 +3886,9 @@ caap = {
             signaturePic: 'tab_atlantis_on.gif',
             CheckResultsFunction: 'CheckResults_quests'
         },
-        'army': {
-            signaturePic: 'invite_on.gif',
-            CheckResultsFunction: 'CheckResults_army'
-        },
-        'gift': {
-            signaturePic: 'invite_on.gif',
-            CheckResultsFunction: 'CheckResults_army'
+        'gift_accept': {
+            signaturePic: 'gif',
+            CheckResultsFunction: 'CheckResults_gift_accept'
         }
         /*
         ,
@@ -8932,10 +8939,17 @@ caap = {
 
             if (String(window.location).indexOf('party.php')) {
                 gm.log('Checking Elite Guard status');
-                if ($('.result_body').text().match(/YOUR Elite Guard is FULL/i)) {
-                    gm.log('Elite Guard is FULL');
-                    if (eliteList.length) {
-                        MergeMyEliteTodo(eliteList);
+                var autoEliteFew = gm.setValue('AutoEliteFew', false);
+                var autoEliteFull = $('.result_body').text().match(/YOUR Elite Guard is FULL/i);
+                if (autoEliteFull || (autoEliteFew && !eliteList.length)) {
+                    if (autoEliteFull) {
+                        gm.log('Elite Guard is FULL');
+                        if (eliteList.length) {
+                            MergeMyEliteTodo(eliteList);
+                        }
+                    } else if (autoEliteFew && !eliteList.length) {
+                        gm.log('Not enough friends to fill Elite Guard');
+                        gm.deleteValue('AutoEliteFew');
                     }
 
                     gm.log('Set Elite Guard AutoEliteGetList timer');
@@ -8955,6 +8969,11 @@ caap = {
                     MergeMyEliteTodo(castleageList);
                     gm.deleteValue(this.friendListType.giftc.name + 'Responded');
                     gm.deleteValue(this.friendListType.giftc.name + 'Requested');
+                    eliteList = gm.getList('MyEliteTodo', [])
+                    if (eliteList.length < 10) {
+                        gm.log('Elite Guard friend list is fewer than 10');
+                        gm.setValue('AutoEliteFew', true);
+                    }
                 }
             } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
                 gm.log('Elite Guard has a MyEliteTodo list, shifting User ID');
@@ -9086,14 +9105,13 @@ caap = {
     //                              AUTOGIFT
     /////////////////////////////////////////////////////////////////////
 
-    CheckResults_army: function (resultsText) {
+    CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
-        if (resultsText.match(/^\d+ requests? sent\.$/)) {
+		if ($('#app46755028429_app_body').text().match(/You have sent \d+ gifts?/)) {
             gm.log('Confirmed gifts sent out.');
             gm.setValue('RandomGiftPic', '');
             gm.setValue('FBSendList', '');
         }
-
         var listHref = $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
             .find('a[text="Ignore"]');
         for (var i = 0; i < listHref.length; i += 1) {
@@ -9108,6 +9126,9 @@ caap = {
         }
 
     },
+    CheckResults_index: function (resultsText) {
+		this.JustDidIt('checkForGifts');
+	},
 
     AutoGift: function () {
         try {
@@ -9272,7 +9293,7 @@ caap = {
             var givenGiftType = '';
             var giftPic = '';
             var giftChoice = gm.getValue('GiftChoice');
-            var giftList = null;
+            var giftList = gm.getList('GiftList');
             //if (global.is_chrome) giftChoice = 'Random Gift';
             switch (giftChoice) {
             case 'Random Gift':
@@ -9281,7 +9302,7 @@ caap = {
                     break;
                 }
 
-                var picNum = Math.floor(Math.random() * (gm.getList('GiftList').length));
+                var picNum = Math.floor(Math.random() * (giftList.length));
                 var n = 0;
                 for (var picN in giftNamePic) {
                     if (giftNamePic.hasOwnProperty(picN)) {
@@ -9300,11 +9321,10 @@ caap = {
                 break;
             case 'Same Gift As Received':
                 givenGiftType = giverList[0].split(global.vs)[2];
-                giftList = gm.getList('GiftList');
                 gm.log('Looking for same gift as ' + givenGiftType);
                 if (giftList.indexOf(givenGiftType) < 0) {
                     gm.log('No gift type match. Using first gift as default.');
-                    givenGiftType = gm.getList('GiftList').shift();
+                    givenGiftType = gm.getList('GiftList')[0];
                 }
                 giftPic = giftNamePic[givenGiftType];
                 break;
@@ -9347,8 +9367,8 @@ caap = {
                     var giverData = giverList[p].split(global.vs);
                     var giverID = giverData[0];
                     var giftType = giverData[2];
-                    if (giftChoice == 'Same Gift As Received' && giftType != givenGiftType && giftType != 'Unknown Gift') {
-                        gm.log('giftType ' + giftType + ' givenGiftType ' + givenGiftType);
+                    if (giftChoice == 'Same Gift As Received' && giftType != givenGiftType && giftList.indexOf(giftType) >= 0) {
+                        //gm.log('giftType ' + giftType + ' givenGiftType ' + givenGiftType);
                         gm.listPush('ReceivedList', giverList[p]);
                         continue;
                     }
@@ -9699,7 +9719,6 @@ caap = {
             if (!gm.getValue(listType.name + 'Requested', false)) {
                 gm.log("Getting Friend List: " + listType.name);
                 gm.setValue(listType.name + 'Requested', true);
-                var theUrl = '';
 
                 $.ajax({
                     url: listType.url,
@@ -9710,14 +9729,32 @@ caap = {
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
-                            var friendList = [];
-                            $(data).find('.unselected_list').find('input').each(function (index) {
-                                friendList.push($(this).val());
-                            });
+                            try {
+                                gm.log("GetFriendList.ajax splitting data");
+                                data = data.split('<div class="unselected_list">');
+                                if (data.length < 2) {
+                                    throw "Could not locate 'unselected_list'";
+                                }
 
-                            gm.setList(listType.name + 'Responded', friendList);
-                            gm.log("GetFriendList(" + listType.name + "): " + textStatus);
-                            //gm.log("GetFriendList(" + listType.name + "): " + friendList);
+                                data = data[1].split('</div><div class="selected_list">');
+                                if (data.length < 2) {
+                                    throw "Could not locate 'selected_list'";
+                                }
+
+                                gm.log("GetFriendList.ajax data split ok");
+                                var friendList = [];
+                                $('<div></div>').html(data[0]).find('input').each(function (index) {
+                                    friendList.push($(this).val());
+                                });
+
+                                gm.log("GetFriendList.ajax saving friend list of " + friendList.length + " ids");
+                                gm.setList(listType.name + 'Responded', friendList);
+                                gm.log("GetFriendList(" + listType.name + "): " + textStatus);
+                                //gm.log("GetFriendList(" + listType.name + "): " + friendList);
+                            } catch (err) {
+                                gm.deleteValue(listType.name + 'Requested');
+                                gm.log("ERROR in GetFriendList.ajax: " + err);
+                            }
                         }
                 });
             }
@@ -9845,6 +9882,10 @@ caap = {
         //Update Monster Finder
         if (this.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
             this.clearLinks(true);
+        }
+
+        if (this.WhileSinceDidIt("checkForGifts", 5 * 60)) {
+            this.NavigateTo('index');
         }
 
         this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
@@ -10408,6 +10449,7 @@ caap = {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
 
+            //gm.setValue('clickUrl', "http://apps.facebook.com/castle_age/index.php?bm=1");
             window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
         }
     },
@@ -10626,10 +10668,10 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
             convertToArray('BattleTargets');
         }
 
-        if (gm.getValue('LastVersion', 0) < '140.23.3') {
-            gm.setValue('AutoEliteGetList', 0);
-            gm.setValue('AutoEliteReqNext', 0);
-            gm.setValue('AutoEliteEnd', '');
+        if (gm.getValue('LastVersion', 0) < '140.23.6') {
+            gm.deleteValue('AutoEliteGetList');
+            gm.deleteValue('AutoEliteReqNext');
+            gm.deleteValue('AutoEliteEnd');
             gm.deleteValue('MyEliteTodo');
         }
 

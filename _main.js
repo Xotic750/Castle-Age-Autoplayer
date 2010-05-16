@@ -188,10 +188,10 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
             convertToArray('BattleTargets');
         }
 
-        if (gm.getValue('LastVersion', 0) < '140.23.3') {
-            gm.setValue('AutoEliteGetList', 0);
-            gm.setValue('AutoEliteReqNext', 0);
-            gm.setValue('AutoEliteEnd', '');
+        if (gm.getValue('LastVersion', 0) < '140.23.6') {
+            gm.deleteValue('AutoEliteGetList');
+            gm.deleteValue('AutoEliteReqNext');
+            gm.deleteValue('AutoEliteEnd');
             gm.deleteValue('MyEliteTodo');
         }
 

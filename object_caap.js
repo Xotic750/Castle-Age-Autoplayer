@@ -1369,7 +1369,14 @@ caap = {
             // Add General Comboboxes
             this.BuildGeneralLists();
             var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up";
+            var ignoreGeneralImage = "(EXPERIMENTAL) This will prevent the script " +
+                "from changing your selected General to 'Use Current' if the script " +
+                "is unable to find the General's image when changing activities. " +
+                "Instead it will use the current General for the activity and try " +
+                "to select the correct General again next time.";
             htmlCode += this.ToggleControl('Generals', 'GENERALS');
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', false, '', ignoreGeneralImage) + "</table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             for (var dropDownItem in this.standardGeneralList) {
                 if (this.standardGeneralList.hasOwnProperty(dropDownItem)) {
@@ -1985,7 +1992,7 @@ caap = {
                 //gm.log("IgnoreBattleLoss");
                 if (e.target.checked) {
                     gm.log("Ignore Battle Losses has been enabled.");
-                    gm.setValue("BattlesLostList", '');
+                    gm.deleteValue("BattlesLostList");
                     gm.log("Battle Lost List has been cleared.");
                 }
 
@@ -2033,13 +2040,13 @@ caap = {
 
                 break;
             case "AutoElite" :
-                gm.setValue('AutoEliteGetList', 0);
-                gm.setValue('AutoEliteReqNext', 0);
-                gm.setValue('AutoEliteEnd', '');
+                gm.deleteValue('AutoEliteGetList');
+                gm.deleteValue('AutoEliteReqNext');
+                gm.deleteValue('AutoEliteEnd');
                 gm.deleteValue('MyEliteTodo');
                 break;
             case "AutoPotions" :
-                gm.setValue('AutoPotionTimer', 0);
+                gm.deleteValue('AutoPotionTimer');
                 break;
             default :
             }
@@ -2771,7 +2778,7 @@ caap = {
     pageList: {
         'index': {
             signaturePic: 'gif',
-            CheckResultsFunction: 'CheckResults_index',
+            CheckResultsFunction: 'CheckResults_index'
         },
         'battle_monster': {
             signaturePic: 'tab_monster_on.jpg',
@@ -2818,7 +2825,7 @@ caap = {
         'gift_accept': {
             signaturePic: 'gif',
             CheckResultsFunction: 'CheckResults_gift_accept'
-        },
+        }
         /*
         ,
         'keep': {
@@ -7868,10 +7875,17 @@ caap = {
 
             if (String(window.location).indexOf('party.php')) {
                 gm.log('Checking Elite Guard status');
-                if ($('.result_body').text().match(/YOUR Elite Guard is FULL/i)) {
-                    gm.log('Elite Guard is FULL');
-                    if (eliteList.length) {
-                        MergeMyEliteTodo(eliteList);
+                var autoEliteFew = gm.setValue('AutoEliteFew', false);
+                var autoEliteFull = $('.result_body').text().match(/YOUR Elite Guard is FULL/i);
+                if (autoEliteFull || (autoEliteFew && !eliteList.length)) {
+                    if (autoEliteFull) {
+                        gm.log('Elite Guard is FULL');
+                        if (eliteList.length) {
+                            MergeMyEliteTodo(eliteList);
+                        }
+                    } else if (autoEliteFew && !eliteList.length) {
+                        gm.log('Not enough friends to fill Elite Guard');
+                        gm.deleteValue('AutoEliteFew');
                     }
 
                     gm.log('Set Elite Guard AutoEliteGetList timer');
@@ -7891,6 +7905,11 @@ caap = {
                     MergeMyEliteTodo(castleageList);
                     gm.deleteValue(this.friendListType.giftc.name + 'Responded');
                     gm.deleteValue(this.friendListType.giftc.name + 'Requested');
+                    eliteList = gm.getList('MyEliteTodo', [])
+                    if (eliteList.length < 10) {
+                        gm.log('Elite Guard friend list is fewer than 10');
+                        gm.setValue('AutoEliteFew', true);
+                    }
                 }
             } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
                 gm.log('Elite Guard has a MyEliteTodo list, shifting User ID');
@@ -8636,7 +8655,6 @@ caap = {
             if (!gm.getValue(listType.name + 'Requested', false)) {
                 gm.log("Getting Friend List: " + listType.name);
                 gm.setValue(listType.name + 'Requested', true);
-                var theUrl = '';
 
                 $.ajax({
                     url: listType.url,
@@ -8647,14 +8665,32 @@ caap = {
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
-                            var friendList = [];
-                            $(data).find('.unselected_list').find('input').each(function (index) {
-                                friendList.push($(this).val());
-                            });
+                            try {
+                                gm.log("GetFriendList.ajax splitting data");
+                                data = data.split('<div class="unselected_list">');
+                                if (data.length < 2) {
+                                    throw "Could not locate 'unselected_list'";
+                                }
 
-                            gm.setList(listType.name + 'Responded', friendList);
-                            gm.log("GetFriendList(" + listType.name + "): " + textStatus);
-                            //gm.log("GetFriendList(" + listType.name + "): " + friendList);
+                                data = data[1].split('</div><div class="selected_list">');
+                                if (data.length < 2) {
+                                    throw "Could not locate 'selected_list'";
+                                }
+
+                                gm.log("GetFriendList.ajax data split ok");
+                                var friendList = [];
+                                $('<div></div>').html(data[0]).find('input').each(function (index) {
+                                    friendList.push($(this).val());
+                                });
+
+                                gm.log("GetFriendList.ajax saving friend list of " + friendList.length + " ids");
+                                gm.setList(listType.name + 'Responded', friendList);
+                                gm.log("GetFriendList(" + listType.name + "): " + textStatus);
+                                //gm.log("GetFriendList(" + listType.name + "): " + friendList);
+                            } catch (err) {
+                                gm.deleteValue(listType.name + 'Requested');
+                                gm.log("ERROR in GetFriendList.ajax: " + err);
+                            }
                         }
                 });
             }
@@ -9349,6 +9385,7 @@ caap = {
                 CE_message("paused", null, gm.getValue('caapPause', 'none'));
             }
 
+            //gm.setValue('clickUrl', "http://apps.facebook.com/castle_age/index.php?bm=1");
             window.location = "http://apps.facebook.com/castle_age/index.php?bm=1";
         }
     },
