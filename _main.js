@@ -207,7 +207,14 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
 
 $(function () {
     gm.log('Full page load completed');
+    // If unable to read in gm.values, then reload the page
+    if (gm.getValue('caapPause', 'none') !== 'none' && gm.getValue('caapPause', 'none') !== 'block') {
+        gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
+        window.location.href = window.location.href;
+    }
+
     gm.setValue('clickUrl', window.location.href);
+    global.AddCSS();
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);

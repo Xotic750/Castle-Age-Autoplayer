@@ -38,17 +38,12 @@ gm = {
 
     isInt: function (value) {
         try {
-            var vstr = value.toString();
-            if (/[\n\t\f,]/.test(vstr) || (vstr.length > 1 && /[0\.]/.test(vstr.substring(0, 1)))) {
+            var y = parseInt(value, 10);
+            if (isNaN(y)) {
                 return false;
             }
 
-            var pInt = parseInt(value, 10);
-            if ((parseFloat(value) == pInt) && !isNaN(pInt)) {
-                return true;
-            } else {
-                return false;
-            }
+            return value == y && value.toString() == y.toString();
         } catch (err) {
             gm.log("ERROR in gm.isInt: " + err);
             return false;
@@ -57,17 +52,22 @@ gm = {
 
     // use these to set/get values in a way that prepends the game's name
     setValue: function (n, v) {
-        this.debug('Set ' + n + ' to ' + v);
-        if (this.isInt(v)) {
-            if (v > 999999999 && !global.is_chrome) {
-                v = v + '';
-            } else {
-                v = Number(v);
+        try {
+            this.debug('Set ' + n + ' to ' + v);
+            if (this.isInt(v)) {
+                if (v > 999999999 && !global.is_chrome) {
+                    v = v + '';
+                } else {
+                    v = Number(v);
+                }
             }
-        }
 
-        GM_setValue(global.gameName + "__" + n, v);
-        return v;
+            GM_setValue(global.gameName + "__" + n, v);
+            return v;
+        } catch (err) {
+            gm.log("ERROR in gm.setValue: " + err);
+            return null;
+        }
     },
 
     getValue: function (n, v) {

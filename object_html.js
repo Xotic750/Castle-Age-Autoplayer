@@ -10,7 +10,7 @@ nHtml = {
         first : XPathResult.FIRST_ORDERED_NODE_TYPE
     },
 
-    FindByAttrContains: function (obj, tag, attr, className, subDocument) {
+    FindByAttrContains: function (obj, tag, attr, className, subDocument, nodeNum) {
         if (attr == "className") {
             attr = "class";
         }
@@ -19,12 +19,26 @@ nHtml = {
             subDocument = document;
         }
 
-        var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
-            attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'" +
-            className.toLowerCase() + "')]", obj, null, this.xpath.first, null);
+        if (nodeNum) {
+            var p = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
+                attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'" +
+                className.toLowerCase() + "')]", obj, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
-        if (q && q.singleNodeValue) {
-            return q.singleNodeValue;
+            if (p) {
+                if (nodeNum < p.snapshotLength) {
+                    return p.snapshotItem(nodeNum);
+                } else if (nodeNum >= p.snapshotLength) {
+                    return p.snapshotItem(p.snapshotLength - 1);
+                }
+            }
+        } else {
+            var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
+                attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'" +
+                className.toLowerCase() + "')]", obj, null, this.xpath.first, null);
+
+            if (q && q.singleNodeValue) {
+                return q.singleNodeValue;
+            }
         }
 
         return null;

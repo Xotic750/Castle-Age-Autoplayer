@@ -11,7 +11,6 @@ cat _head.js >_normal.user.js
 cat object_global.js >>_normal.user.js
 cat object_gm.js >>_normal.user.js
 cat object_html.js >>_normal.user.js
-cat object_move.js >>_normal.user.js
 cat object_caap.js >>_normal.user.js
 cat _main.js >>_normal.user.js
 #cat css.js >>_normal.user.js
