@@ -3148,9 +3148,11 @@ caap = {
             var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
             var landPic = this.baseQuestTable[subQArea];
             var imgExist = false;
-            if (landPic == 'tab_underworld') {
+             if (landPic == 'tab_underworld') {
                 imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
-            } else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
+            } else if (landPic == 'tab_heaven') {
+                imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
+           } else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
                 imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
             } else {
                 imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
