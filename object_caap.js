@@ -3054,7 +3054,7 @@ caap = {
         'Demon Realm': 'land_demon_realm',
         'Undead Realm': 'land_undead_realm',
         'Underworld': 'tab_underworld',
-        'Kindom of Heaven': 'tab_heaven_big2'
+        'Kindom of Heaven': 'tab_heaven'
     },
 
     demiQuestTable : {
