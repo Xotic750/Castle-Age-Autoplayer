@@ -8,6 +8,7 @@ caap = {
     lastReload: new Date(),
     waitingForDomLoad : false,
     node_trigger : null,
+    newLevelUpMode : false,
     autoReloadMilliSecs: 15 * 60 * 1000,
 
     userRe: new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)"),
@@ -774,7 +775,7 @@ caap = {
 
     MakeListBox: function (idName, instructions, formatParms) {
         try {
-            var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getList(idName, []) + "</textarea>";
+            var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getList(idName) + "</textarea>";
             return htmlCode;
         } catch (err) {
             gm.log("ERROR in MakeTextBox: " + err);
@@ -835,7 +836,8 @@ caap = {
         'Land of Water',
         'Demon Realm',
         'Undead Realm',
-        'Underworld'
+        'Underworld',
+        'Kindom of Heaven'
     ],
 
     demiQuestList: [
@@ -1279,7 +1281,7 @@ caap = {
             var monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.";
             var demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling.";
             var powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible";
-            var powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Bahamut types. Only do normal power attacks if maximum power attack not possible";
+            var powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible";
             var dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.";
             htmlCode += this.ToggleControl('Monster', 'MONSTER');
             var mbattleList = [
@@ -2088,6 +2090,11 @@ caap = {
                 gm.deleteValue('AutoEliteReqNext');
                 gm.deleteValue('AutoEliteEnd');
                 gm.deleteValue('MyEliteTodo');
+                if (!gm.getValue('FillArmy', false)) {
+                    gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
+                    gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
+                }
+
                 break;
             case "AutoPotions" :
                 gm.deleteValue('AutoPotionTimer');
@@ -2459,8 +2466,7 @@ caap = {
                 gm.deleteValue('FillArmyList');
                 gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
                 gm.deleteValue(caap.friendListType.facebook.name + 'Responded');
-                gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
-                gm.deleteValue(caap.friendListType.facebook.name + 'Requested');
+
             });
 
             $('#caap_StartedColorSelect').click(function (e) {
@@ -2486,6 +2492,10 @@ caap = {
                 gm.setValue('AutoEliteGetList', 0);
                 gm.setValue('AutoEliteReqNext', 0);
                 gm.setValue('AutoEliteEnd', '');
+                if (!gm.getValue('FillArmy', false)) {
+                    gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
+                    gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
+                }
             });
 
             $('#caapRestart').click(this.RestartListener);
@@ -2949,6 +2959,10 @@ caap = {
                 gm.log('No results check defined for ' + page);
             }
 
+            if (!this.stats.stamina) {
+                this.GetStats();
+            }
+
             this.performanceTimer('Before selectMonster');
             this.selectMonster();
             this.performanceTimer('Done selectMonster');
@@ -2975,6 +2989,7 @@ caap = {
             if (!this.stats.level) {
                 this.GetStats();
             }
+
             if (this.stats.level < 10) {
                 this.battlePage = 'battle_train,battle_off';
             } else {
@@ -3038,7 +3053,8 @@ caap = {
         'Land of Water': 'land_water',
         'Demon Realm': 'land_demon_realm',
         'Undead Realm': 'land_undead_realm',
-        'Underworld': 'tab_underworld'
+        'Underworld': 'tab_underworld',
+        'Kindom of Heaven': 'tab_heaven_big2'
     },
 
     demiQuestTable : {
@@ -3558,6 +3574,9 @@ caap = {
                     gm.setValue('QuestSubArea', 'Underworld');
                     break;
                 case 'Underworld':
+                    gm.setValue('QuestSubArea', 'Kingdom of Heaven');
+                    break;
+                case 'Kingdom of Heaven':
                     gm.setValue('QuestArea', 'Demi Quests');
                     gm.setValue('QuestSubArea', 'Ambrosia');
                     break;
@@ -3638,6 +3657,12 @@ caap = {
             break;
         case 'Underworld':
             if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
+                return true;
+            }
+
+            break;
+        case 'Kindom of Heaven':
+            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
                 return true;
             }
 
@@ -3795,6 +3820,8 @@ caap = {
                     gm.setValue('QuestSubArea', 'Undead Realm');
                 } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
                     gm.setValue('QuestSubArea', 'Underworld');
+                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
+                    gm.setValue('QuestSubArea', 'Kingdom of Heaven');
                 }
 
                 gm.log('Seting SubQuest Area to: ' + gm.getValue('QuestSubArea'));
@@ -5177,7 +5204,7 @@ caap = {
         }
         */
 
-        var targets = gm.getList('BattleTargets', []);
+        var targets = gm.getList('BattleTargets');
         if (!targets.length) {
             return false;
         }
@@ -5234,6 +5261,10 @@ caap = {
             siege_img : '/graphics/death_siege_small',
             fort : true,
             staUse : 5,
+            staLvl : [10, 100, 300, 500],
+            staMax : [5, 10, 20, 50],
+            nrgLvl : [10, 200, 400, 1000],
+            nrgMax : [10, 20, 40, 100],
             reqAtkButton : 'attack_monster_button.jpg',
             v : 'attack_monster_button2.jpg',
             defButton : 'button_dispel.gif',
@@ -5249,6 +5280,10 @@ caap = {
             siege_img : '/graphics/water_siege_small',
             fort : true,
             staUse : 5,
+            staLvl : [10, 100, 300, 500],
+            staMax : [5, 10, 20, 50],
+            nrgLvl : [10, 200, 400, 1000],
+            nrgMax : [10, 20, 40, 100],
             reqAtkButton : 'attack_monster_button.jpg',
             pwrAtkButton : 'attack_monster_button2.jpg',
             defButton : 'button_dispel.gif',
@@ -5271,6 +5306,10 @@ caap = {
             siege_img : '/graphics/earth_siege_small',
             fort : true,
             staUse : 5,
+            staLvl : [10, 100, 300, 500],
+            staMax : [5, 10, 20, 50],
+            nrgLvl : [10, 200, 400, 1000],
+            nrgMax : [10, 20, 40, 100],
             reqAtkButton : 'attack_monster_button.jpg',
             pwrAtkButton : 'attack_monster_button2.jpg',
             defButton : 'attack_monster_button3.jpg',
@@ -6094,7 +6133,7 @@ caap = {
             monsterList.battle_monster = [];
             monsterList.raid = [];
             monsterList.any = [];
-            var monsterFullList = gm.getList('monsterOl', '');
+            var monsterFullList = gm.getList('monsterOl');
             var monstPage = '';
             monsterFullList.forEach(function (monsterObj) {
                 gm.setListObjVal('monsterOl', monsterObj.split(global.vs)[0], 'conditions', 'none');
@@ -6245,7 +6284,7 @@ caap = {
                                 }
                             }
 
-                            if (this.monsterInfo[monstType] && nodeNum > -1 && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax')) {
+                            if (!this.InLevelUpMode() && this.monsterInfo[monstType] && nodeNum > -1 && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax')) {
                                 gm.setValue('MonsterStaminaReq', this.monsterInfo[monstType].staMax[nodeNum]);
                             } else if (this.monsterInfo[monstType] && this.monsterInfo[monstType].staUse) {
                                 gm.setValue('MonsterStaminaReq', this.monsterInfo[monstType].staUse);
@@ -6699,18 +6738,30 @@ caap = {
 
     InLevelUpMode: function () {
         if (!gm.getValue('EnableLevelUpMode', true)) {
+            //if levelup mode is false then new level up mode is also false (kob)
+            caap.newLevelUpMode = false;
             return false;
         }
 
         if (!(this.stats.levelTime)) {
+            //if levelup mode is false then new level up mode is also false (kob)
+            caap.newLevelUpMode = false;
             return false;
         }
 
         var now = new Date();
         if ((this.stats.levelTime.getTime() - now.getTime()) < this.minutesBeforeLevelToUseUpStaEnergy * 60 * 1000) {
+            //detect if we are entering level up mode for the very first time (kob)
+            if (!caap.newLevelUpMode) {
+                //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
+                caap.newLevelUpMode = true;
+                this.refreshMonstersListener();
+            }
             return true;
         }
 
+        //if levelup mode is false then new level up mode is also false (kob)
+        caap.newLevelUpMode = false;
         return false;
     },
 
@@ -7922,14 +7973,22 @@ caap = {
 
     AutoElite: function () {
         try {
-            if (!gm.getValue('AutoElite', false) || !(this.WhileSinceDidIt('AutoEliteGetList', 6 * 60 * 60))) {
+            if (!gm.getValue('AutoElite', false)) {
+                return false;
+            }
+
+            if (!(this.WhileSinceDidIt('AutoEliteGetList', 6 * 60 * 60))) {
+                if (!gm.getValue('FillArmy', false)) {
+                    gm.deleteValue(this.friendListType.giftc.name + 'Requested');
+                }
+
                 return false;
             }
 
             gm.log('Elite Guard cycle');
             var MergeMyEliteTodo = function (list) {
                 gm.log('Elite Guard MergeMyEliteTodo list');
-                var eliteArmyList = gm.getList('EliteArmyList', []);
+                var eliteArmyList = gm.getList('EliteArmyList');
                 if (eliteArmyList.length) {
                     gm.log('Merge and save Elite Guard MyEliteTodo list');
                     var diffList = list.filter(function (todoID) {
@@ -7944,7 +8003,7 @@ caap = {
                 }
             };
 
-            var eliteList = gm.getList('MyEliteTodo', []);
+            var eliteList = gm.getList('MyEliteTodo');
             if (!$.isArray(eliteList)) {
                 gm.log('MyEliteTodo list is not expected format, deleting');
                 eliteList = [];
@@ -7953,15 +8012,15 @@ caap = {
 
             if (String(window.location).indexOf('party.php')) {
                 gm.log('Checking Elite Guard status');
-                var autoEliteFew = gm.setValue('AutoEliteFew', false);
+                var autoEliteFew = gm.getValue('AutoEliteFew', false);
                 var autoEliteFull = $('.result_body').text().match(/YOUR Elite Guard is FULL/i);
-                if (autoEliteFull || (autoEliteFew && !eliteList.length)) {
+                if (autoEliteFull || (autoEliteFew && gm.getValue('AutoEliteEnd', '') == 'NoArmy')) {
                     if (autoEliteFull) {
                         gm.log('Elite Guard is FULL');
                         if (eliteList.length) {
                             MergeMyEliteTodo(eliteList);
                         }
-                    } else if (autoEliteFew && !eliteList.length) {
+                    } else if (autoEliteFew && gm.getValue('AutoEliteEnd', '') == 'NoArmy') {
                         gm.log('Not enough friends to fill Elite Guard');
                         gm.deleteValue('AutoEliteFew');
                     }
@@ -7976,16 +8035,36 @@ caap = {
 
             if (!eliteList.length) {
                 gm.log('Elite Guard no MyEliteTodo cycle');
+                var allowPass = false;
+                if (gm.getValue(this.friendListType.giftc.name + 'Requested', false) &&
+                    gm.getValue(this.friendListType.giftc.name + 'Responded', false) === true) {
+                    gm.log('Elite Guard received 0 friend ids');
+                    if (gm.getList('EliteArmyList').length) {
+                        gm.log('Elite Guard has some defined friend ids');
+                        allowPass = true;
+                    } else {
+                        this.JustDidIt('AutoEliteGetList');
+                        gm.log('Elite Guard has 0 defined friend ids');
+                        gm.setValue('AutoEliteEnd', 'Full');
+                        gm.log('Elite Guard done');
+                        return false;
+                    }
+                }
+
                 this.GetFriendList(this.friendListType.giftc);
-                var castleageList = gm.getList(this.friendListType.giftc.name + 'Responded', []);
-                if (castleageList.length || (this.stats.army <= 1)) {
+                var castleageList = [];
+                if (gm.getValue(this.friendListType.giftc.name + 'Responded', false) !== true) {
+                    castleageList = gm.getList(this.friendListType.giftc.name + 'Responded');
+                }
+
+                if (castleageList.length || (this.stats.army <= 1) || allowPass) {
                     gm.log('Elite Guard received a new friend list');
                     MergeMyEliteTodo(castleageList);
                     gm.deleteValue(this.friendListType.giftc.name + 'Responded');
                     gm.deleteValue(this.friendListType.giftc.name + 'Requested');
-                    eliteList = gm.getList('MyEliteTodo', []);
-                    if (eliteList.length < 10) {
-                        gm.log('Elite Guard friend list is fewer than 10');
+                    eliteList = gm.getList('MyEliteTodo');
+                    if (eliteList.length < 50) {
+                        gm.log('WARNING! Elite Guard friend list is fewer than 50: ' + eliteList.length);
                         gm.setValue('AutoEliteFew', true);
                     }
                 }
@@ -8728,6 +8807,7 @@ caap = {
 
     GetFriendList: function (listType, force) {
         try {
+            gm.log("Entered GetFriendList and request is for: " + listType.name);
             if (force) {
                 gm.deleteValue(listType.name + 'Requested');
                 gm.deleteValue(listType.name + 'Responded');
@@ -8765,7 +8845,12 @@ caap = {
                                 });
 
                                 gm.log("GetFriendList.ajax saving friend list of " + friendList.length + " ids");
-                                gm.setList(listType.name + 'Responded', friendList);
+                                if (friendList.length) {
+                                    gm.setList(listType.name + 'Responded', friendList);
+                                } else {
+                                    gm.setValue(listType.name + 'Responded', true);
+                                }
+
                                 gm.log("GetFriendList(" + listType.name + "): " + textStatus);
                                 //gm.log("GetFriendList(" + listType.name + "): " + friendList);
                             } catch (err) {
@@ -8774,6 +8859,8 @@ caap = {
                             }
                         }
                 });
+            } else {
+                gm.log("Already requested GetFriendList for: " + listType.name);
             }
 
             return true;
@@ -8820,15 +8907,33 @@ caap = {
                 gm.log("Filling army");
             }
 
-            var fillArmyList = gm.getList('FillArmyList', []);
+            if (gm.getValue(caListType.name + 'Responded', false) !== true &&
+                    gm.getValue(fbListType.name + 'Responded', false) !== true) {
+                this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
+                gm.log("Fill Army Completed: no friends found");
+                window.setTimeout(function () {
+                    caap.SetDivContent('idle_mess', '');
+                }, 5000);
+
+                gm.setValue('FillArmy', false);
+                gm.deleteValue("ArmyCount");
+                gm.deleteValue('FillArmyList');
+                gm.deleteValue(caListType.name + 'Responded');
+                gm.deleteValue(fbListType.name + 'Responded');
+                gm.deleteValue(caListType.name + 'Requested');
+                gm.deleteValue(fbListType.name + 'Requested');
+                return true;
+            }
+
+            var fillArmyList = gm.getList('FillArmyList');
             if (!fillArmyList.length) {
                 this.GetFriendList(caListType);
                 this.GetFriendList(fbListType);
             }
 
-            var castleageList = gm.getList(caListType.name + 'Responded', []);
+            var castleageList = gm.getList(caListType.name + 'Responded');
             //gm.log("gifList: " + castleageList);
-            var facebookList = gm.getList(fbListType.name + 'Responded', []);
+            var facebookList = gm.getList(fbListType.name + 'Responded');
             //gm.log("facebookList: " + facebookList);
             if ((castleageList.length && facebookList.length) || fillArmyList.length) {
                 if (!fillArmyList.length) {
@@ -8838,7 +8943,7 @@ caap = {
 
                     //gm.log("diffList: " + diffList);
                     gm.setList('FillArmyList', diffList);
-                    fillArmyList = gm.getList('FillArmyList', []);
+                    fillArmyList = gm.getList('FillArmyList');
                     gm.deleteValue(caListType.name + 'Responded');
                     gm.deleteValue(fbListType.name + 'Responded');
                     gm.deleteValue(caListType.name + 'Requested');
