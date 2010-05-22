@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.11";
+var caapVersion = "140.23.12";
 
 ///////////////////////////
 //       Prototypes
@@ -3158,9 +3158,9 @@ caap = {
 
             $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
             $('#caap_resetElite').click(function (e) {
-                gm.setValue('AutoEliteGetList', 0);
-                gm.setValue('AutoEliteReqNext', 0);
-                gm.setValue('AutoEliteEnd', '');
+                gm.deleteValue('AutoEliteGetList');
+                gm.deleteValue('AutoEliteReqNext');
+                gm.deleteValue('AutoEliteEnd');
                 if (!gm.getValue('FillArmy', false)) {
                     gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
                     gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
@@ -3666,7 +3666,7 @@ caap = {
             }
 
             // Check for Elite Guard Add image
-            if (gm.getValue('AutoEliteIgnore', false)) {
+            if (!gm.getValue('AutoEliteIgnore', false)) {
                 if (this.CheckForImage('elite_guard_add') && gm.getValue('AutoEliteEnd', 'NoArmy') != 'NoArmy') {
                     gm.deleteValue('AutoEliteGetList');
                 }
@@ -6116,6 +6116,45 @@ caap = {
                 }
             }
         },
+        // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
+        'Azriel' : {
+            duration : 168,
+            hp : 600000000,
+            ach : 4000000,
+            siege : 6,
+            siegeClicks : [30, 60, 90, 120, 200, 200],
+            siegeDam : [28000000, 32500000, 40000000, 45000000, 47500000, 52500000],
+            siege_img : '/graphics/water_siege_',
+            siege_img2 : '/graphics/alpha_bahamut_siege_blizzard_',
+            fort : true,
+            staUse : 5,
+            staLvl : [0, 100, 200, 500],
+            staMax : [5, 10, 20, 50],
+            nrgMax : [10, 20, 40, 100],
+            general: '',
+            charClass : {
+                'Warrior' : {
+                    statusWord      : 'jaws',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                },
+                'Rogue' : {
+                    statusWord      : 'heal',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                },
+                'Mage' : {
+                    statusWord      : 'lava',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                },
+                'Cleric' : {
+                    status          : 'mana',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                }
+            }
+        },
         'King' : {
             duration : 72,
             ach : 15000,
@@ -6403,6 +6442,9 @@ caap = {
             } else if (this.CheckForImage('nm_volcanic_title_2.jpg')) {
                 monster = monster.match(yourRegEx) + 'Alpha Bahamut, the Volcanic Dragon';
                 monster = $.trim(monster);
+            } else if (this.CheckForImage('nm_azriel_title.jpg')) {
+                monster = monster.match(yourRegEx) + 'Azriel, the Angel of Wrath';
+                monster = $.trim(monster);
             } else {
                 monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
             }
@@ -6415,6 +6457,8 @@ caap = {
                 monstType = 'Raid II';
             } else if (this.CheckForImage('nm_volcanic_large_2.jpg')) {
                 monstType = 'Alpha Volcanic Dragon';
+            } else if (this.CheckForImage('nm_azriel_large2.jpg')) {
+                monstType = 'Azriel';
             } else {
                 monstType = this.getMonstType(monster);
             }
@@ -6558,7 +6602,7 @@ caap = {
 
             var hp = 0;
             var monstHealthImg = '';
-            if (monstType.indexOf('Volcanic') >= 0) {
+            if (monstType.indexOf('Volcanic') >= 0|| monstType.indexOf('Azriel') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -6589,9 +6633,9 @@ caap = {
 
                 if (boss && boss.siege) {
                     var missRegEx = new RegExp(".*Need (\\d+) more.*");
-                    if (monstType.indexOf('Volcanic') >= 0) {
+                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Azriel') >= 0) {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
-                        if (monstType.indexOf('Alpha') >= 0) {
+                        if (monstType.indexOf('Alpha') >= 0 || monstType.indexOf('Azriel') >= 0) {
                             var waterCount = $("img[src*=" + boss.siege_img + "]").size();
                             var alphaCount = $("img[src*=" + boss.siege_img2 + "]").size();
                             var totalCount = waterCount + alphaCount;
@@ -6998,6 +7042,9 @@ caap = {
             } else if (this.CheckForImage('nm_volcanic_title_2.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'Alpha Bahamut, the Volcanic Dragon';
                 monsterOnPage = $.trim(monsterOnPage);
+            } else if (this.CheckForImage('nm_azriel_title.jpg')) {
+                monsterOnPage = monsterOnPage.match(yourRegEx) + 'Azriel, the Angel of Wrath';
+                monsterOnPage = $.trim(monsterOnPage);
             } else {
                 monsterOnPage = $.trim(monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')));
             }
@@ -7221,13 +7268,14 @@ caap = {
             // Check if on engage monster page
             var monstType = this.getMonstType(monster);
             var imageTest = '';
-            if (monstType == 'Volcanic Dragon') {
+            if (monstType == 'Volcanic Dragon' || monstType == 'Azriel') {
                 imageTest = 'nm_top.jpg';
             } else if (monstType == 'Alpha Volcanic Dragon') {
                 imageTest = 'nm_top_2.jpg';
             } else {
                 imageTest = 'dragon_title_owner.jpg';
             }
+
             var webSlice = this.CheckForImage(imageTest);
             if (webSlice) {
                 if (this.monsterConfirmRightPage(webSlice, monster)) {
@@ -9573,8 +9621,8 @@ caap = {
                 gm.log("Filling army");
             }
 
-            if (gm.getValue(caListType.name + 'Responded', false) !== true &&
-                    gm.getValue(fbListType.name + 'Responded', false) !== true) {
+            if (gm.getValue(caListType.name + 'Responded', false) === true ||
+                    gm.getValue(fbListType.name + 'Responded', false) === true) {
                 this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
                 gm.log("Fill Army Completed: no friends found");
                 window.setTimeout(function () {
