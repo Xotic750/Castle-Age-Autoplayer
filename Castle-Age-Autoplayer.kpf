@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Komodo Project File - DO NOT EDIT -->
 <project id="2370bd22-26d2-4982-8b7c-9d1ad82c1ca0" kpf_version="4" name="Castle-Age-Autoplayer.kpf">
-<file id="c3e4fb53-5174-4fec-a2fc-020e5b8bc02a" idref="2370bd22-26d2-4982-8b7c-9d1ad82c1ca0" name="Castle-Age-Goblin-Emporium.user.js" url="file:///home/shared/Castle-Age-Goblin-Emporium/Castle-Age-Goblin-Emporium.user.js">
-</file>
 <preference-set idref="2370bd22-26d2-4982-8b7c-9d1ad82c1ca0">
   <boolean id="import_live">1</boolean>
-</preference-set>
-<preference-set idref="c3e4fb53-5174-4fec-a2fc-020e5b8bc02a">
-  <string id="spellcheckLangID">en-US</string>
 </preference-set>
 </project>
