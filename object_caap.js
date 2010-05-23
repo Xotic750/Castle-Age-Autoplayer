@@ -6667,17 +6667,6 @@ caap = {
                 return true;
             }
 
-            monstType = this.getMonstType(monster);
-            nodeNum = -1;
-            staLvl = this.monsterInfo[monstType].staLvl;
-            if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
-                for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                    if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
-                        break;
-                    }
-                }
-            }
-
             // Check if on engage monster page
             var imageTest = '';
             if (monstType == 'Volcanic Dragon' || monstType == 'Wrath') {
@@ -6731,6 +6720,17 @@ caap = {
                         'event_attack1.gif',
                         'attack_monster_button.jpg'
                     ].concat(singleButtonList);
+                }
+
+                monstType = this.getMonstType(monster);
+                nodeNum = -1;
+                staLvl = this.monsterInfo[monstType].staLvl;
+                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
+                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                        if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                            break;
+                        }
+                    }
                 }
 
                 for (var i in buttonList) {

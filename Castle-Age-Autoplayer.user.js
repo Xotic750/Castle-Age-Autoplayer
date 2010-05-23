@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.14
+// @version        140.23.15
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.14";
+var caapVersion = "140.23.15";
 
 ///////////////////////////
 //       Prototypes
@@ -7306,17 +7306,6 @@ caap = {
                 return true;
             }
 
-            monstType = this.getMonstType(monster);
-            nodeNum = -1;
-            staLvl = this.monsterInfo[monstType].staLvl;
-            if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
-                for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                    if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
-                        break;
-                    }
-                }
-            }
-
             // Check if on engage monster page
             var imageTest = '';
             if (monstType == 'Volcanic Dragon' || monstType == 'Wrath') {
@@ -7370,6 +7359,17 @@ caap = {
                         'event_attack1.gif',
                         'attack_monster_button.jpg'
                     ].concat(singleButtonList);
+                }
+
+                monstType = this.getMonstType(monster);
+                nodeNum = -1;
+                staLvl = this.monsterInfo[monstType].staLvl;
+                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
+                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                        if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                            break;
+                        }
+                    }
                 }
 
                 for (var i in buttonList) {
