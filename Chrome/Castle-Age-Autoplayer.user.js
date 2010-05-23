@@ -2,10 +2,10 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.15
+// @version        140.23.18
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
-// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
+// @require        http://gihub.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.15";
+var caapVersion = "140.23.18";
 
 ///////////////////////////
 //       Prototypes
@@ -2436,7 +2436,7 @@ caap = {
             monsterList.forEach(function (monsterObj) {
                 var monster = monsterObj.split(global.vs)[0];
                 var monstType = caap.getMonstType(monster);
-                var nodeNum = -1;
+                var nodeNum = 0;
                 var staLvl = caap.monsterInfo[monstType].staLvl;
                 if (gm.getValue('PowerFortifyMax') && staLvl) {
                     for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
@@ -7270,12 +7270,12 @@ caap = {
             // Check to see if we should fortify, attack monster, or battle raid
             var monster = gm.getValue('targetFromfortify');
             var monstType = this.getMonstType(monster);
-            var nodeNum = -1;
+            var nodeNum = 0;
             var staLvl = null;
             var energyRequire = 10;
             if (monstType) {
                 staLvl = this.monsterInfo[monstType].staLvl;
-                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
+                if (gm.getValue('PowerFortifyMax') && staLvl) {
                     for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
                         if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
                             break;
@@ -7362,12 +7362,22 @@ caap = {
                 }
 
                 monstType = this.getMonstType(monster);
-                nodeNum = -1;
+                nodeNum = 0;
                 staLvl = this.monsterInfo[monstType].staLvl;
-                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
-                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                        if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
-                            break;
+                if (fightMode == 'Fortify') {
+                    if (gm.getValue('PowerFortifyMax') && staLvl) {
+                        for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    if (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax') && staLvl) {
+                        for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                                break;
+                            }
                         }
                     }
                 }

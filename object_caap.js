@@ -1797,7 +1797,7 @@ caap = {
             monsterList.forEach(function (monsterObj) {
                 var monster = monsterObj.split(global.vs)[0];
                 var monstType = caap.getMonstType(monster);
-                var nodeNum = -1;
+                var nodeNum = 0;
                 var staLvl = caap.monsterInfo[monstType].staLvl;
                 if (gm.getValue('PowerFortifyMax') && staLvl) {
                     for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
@@ -6631,12 +6631,12 @@ caap = {
             // Check to see if we should fortify, attack monster, or battle raid
             var monster = gm.getValue('targetFromfortify');
             var monstType = this.getMonstType(monster);
-            var nodeNum = -1;
+            var nodeNum = 0;
             var staLvl = null;
             var energyRequire = 10;
             if (monstType) {
                 staLvl = this.monsterInfo[monstType].staLvl;
-                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
+                if (gm.getValue('PowerFortifyMax') && staLvl) {
                     for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
                         if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
                             break;
@@ -6723,12 +6723,22 @@ caap = {
                 }
 
                 monstType = this.getMonstType(monster);
-                nodeNum = -1;
+                nodeNum = 0;
                 staLvl = this.monsterInfo[monstType].staLvl;
-                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
-                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                        if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
-                            break;
+                if (fightMode == 'Fortify') {
+                    if (gm.getValue('PowerFortifyMax') && staLvl) {
+                        for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    if (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax') && staLvl) {
+                        for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                                break;
+                            }
                         }
                     }
                 }
