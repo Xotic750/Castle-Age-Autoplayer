@@ -1797,19 +1797,21 @@ caap = {
             monsterList.forEach(function (monsterObj) {
                 var monster = monsterObj.split(global.vs)[0];
                 var monstType = caap.getMonstType(monster);
+                var energyRequire = 10;
                 var nodeNum = 0;
-                var staLvl = caap.monsterInfo[monstType].staLvl;
-                if (gm.getValue('PowerFortifyMax') && staLvl) {
-                    for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                        if (caap.stats.stamina.max > caap.monsterInfo[monstType].staLvl[nodeNum]) {
-                            break;
+                if (caap.monsterInfo[monstType]) {
+                    var staLvl = caap.monsterInfo[monstType].staLvl;
+                    if (gm.getValue('PowerFortifyMax') && staLvl) {
+                        for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (caap.stats.stamina.max > caap.monsterInfo[monstType].staLvl[nodeNum]) {
+                                break;
+                            }
                         }
                     }
-                }
 
-                var energyRequire = 10;
-                if (nodeNum && gm.getValue('PowerAttackMax')) {
-                    energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
+                    if (nodeNum && gm.getValue('PowerAttackMax')) {
+                        energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
+                    }
                 }
 
                 var color = '';

@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.19
+// @version        140.23.20
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://gihub.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.19";
+var caapVersion = "140.23.20";
 
 ///////////////////////////
 //       Prototypes
@@ -2436,19 +2436,21 @@ caap = {
             monsterList.forEach(function (monsterObj) {
                 var monster = monsterObj.split(global.vs)[0];
                 var monstType = caap.getMonstType(monster);
+                var energyRequire = 10;
                 var nodeNum = 0;
-                var staLvl = caap.monsterInfo[monstType].staLvl;
-                if (gm.getValue('PowerFortifyMax') && staLvl) {
-                    for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                        if (caap.stats.stamina.max > caap.monsterInfo[monstType].staLvl[nodeNum]) {
-                            break;
+                if (caap.monsterInfo[monstType]) {
+                    var staLvl = caap.monsterInfo[monstType].staLvl;
+                    if (gm.getValue('PowerFortifyMax') && staLvl) {
+                        for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (caap.stats.stamina.max > caap.monsterInfo[monstType].staLvl[nodeNum]) {
+                                break;
+                            }
                         }
                     }
-                }
 
-                var energyRequire = 10;
-                if (nodeNum && gm.getValue('PowerAttackMax')) {
-                    energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
+                    if (nodeNum && gm.getValue('PowerAttackMax')) {
+                        energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
+                    }
                 }
 
                 var color = '';
