@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.13
+// @version        140.23.14
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.13";
+var caapVersion = "140.23.14";
 
 ///////////////////////////
 //       Prototypes
@@ -1922,6 +1922,7 @@ caap = {
             var demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling.";
             var powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible";
             var powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible";
+            var powerfortifyMaxInstructions = "(EXPERIMENTAL) Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible";
             var dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.";
             htmlCode += this.ToggleControl('Monster', 'MONSTER');
             var mbattleList = [
@@ -1954,6 +1955,7 @@ caap = {
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Power Attack Max", 'PowerAttackMax', false, '', powerattackMaxInstructions) + "</table>";
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, '', powerfortifyMaxInstructions);
             htmlCode += this.MakeCheckTR("Siege weapon assist", 'DoSiege', true, '', dosiegeInstructions);
             htmlCode += this.MakeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '', '');
             htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
@@ -2433,9 +2435,25 @@ caap = {
             var monsterList = gm.getList('monsterOl');
             monsterList.forEach(function (monsterObj) {
                 var monster = monsterObj.split(global.vs)[0];
+                var monstType = caap.getMonstType(monster);
+                var nodeNum = -1;
+                var staLvl = caap.monsterInfo[monstType].staLvl;
+                if (gm.getValue('PowerFortifyMax') && staLvl) {
+                    for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                        if (caap.stats.stamina.max > caap.monsterInfo[monstType].staLvl[nodeNum]) {
+                            break;
+                        }
+                    }
+                }
+
+                var energyRequire = 10;
+                if (nodeNum && gm.getValue('PowerAttackMax')) {
+                    energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
+                }
+
                 var color = '';
                 html += "<tr>";
-                if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
+                if (monster == gm.getValue('targetFromfortify') && caap.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
                     color = 'blue';
                 } else if (monster == gm.getValue('targetFromraid') || monster == gm.getValue('targetFrombattle_monster')) {
                     color = 'green';
@@ -4426,6 +4444,7 @@ caap = {
             if (msgdiv) {
                 this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
             }
+
             return false;
         } else if (condition == 'At Max Energy') {
             if (!gm.getValue('MaxIdleEnergy', 0)) {
@@ -4441,12 +4460,14 @@ caap = {
                 if (msgdiv) {
                     this.SetDivContent(msgdiv, 'Burning all energy to level up');
                 }
+
                 return true;
             }
 
             if (msgdiv) {
                 this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
             }
+
             return false;
         }
 
@@ -6602,7 +6623,7 @@ caap = {
 
             var hp = 0;
             var monstHealthImg = '';
-            if (monstType.indexOf('Volcanic') >= 0|| monstType.indexOf('Wrath') >= 0) {
+            if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -6969,6 +6990,7 @@ caap = {
                     if (!monster) {
                         monster = firstOverAch;
                     }
+
                     if (selectType != 'raid') {
                         gm.setValue('targetFromfortify', firstFortUnderMax);
                         if (!gm.getValue('targetFromfortify', '')) {
@@ -6987,7 +7009,7 @@ caap = {
                         if (monstPage == 'battle_monster') {
                             var nodeNum = -1;
                             if (this.monsterInfo[monstType] && this.monsterInfo[monstType].staLvl) {
-                                for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum > 0; nodeNum -= 1) {
+                                for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
                                     if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
                                         break;
                                     }
@@ -7247,7 +7269,26 @@ caap = {
             var fightMode = '';
             // Check to see if we should fortify, attack monster, or battle raid
             var monster = gm.getValue('targetFromfortify');
-            if (monster && this.CheckEnergy(10, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
+            var monstType = this.getMonstType(monster);
+            var nodeNum = -1;
+            var staLvl = null;
+            var energyRequire = 10;
+            if (monstType) {
+                staLvl = this.monsterInfo[monstType].staLvl;
+                if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
+                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                        if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                            break;
+                        }
+                    }
+                }
+
+                if (nodeNum && gm.getValue('PowerAttackMax')) {
+                    energyRequire = this.monsterInfo[monstType].nrgMax[nodeNum];
+                }
+            }
+
+            if (monster && this.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
                 fightMode = gm.setValue('fightMode', 'Fortify');
             } else {
                 monster = gm.getValue('targetFrombattle_monster');
@@ -7265,8 +7306,18 @@ caap = {
                 return true;
             }
 
+            monstType = this.getMonstType(monster);
+            nodeNum = -1;
+            staLvl = this.monsterInfo[monstType].staLvl;
+            if ((gm.getValue('PowerFortifyMax') || (gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
+                for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                    if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
+                        break;
+                    }
+                }
+            }
+
             // Check if on engage monster page
-            var monstType = this.getMonstType(monster);
             var imageTest = '';
             if (monstType == 'Volcanic Dragon' || monstType == 'Wrath') {
                 imageTest = 'nm_top.jpg';
@@ -7319,16 +7370,6 @@ caap = {
                         'event_attack1.gif',
                         'attack_monster_button.jpg'
                     ].concat(singleButtonList);
-                }
-
-                var nodeNum = null;
-                var staLvl = this.monsterInfo[monstType].staLvl;
-                if (fightMode != 'Fortify' && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax') && staLvl) {
-                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum > 0; nodeNum -= 1) {
-                        if (this.stats.stamina.max > this.monsterInfo[monstType].staLvl[nodeNum]) {
-                            break;
-                        }
-                    }
                 }
 
                 for (var i in buttonList) {
