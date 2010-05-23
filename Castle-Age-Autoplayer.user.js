@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.10
+// @version        140.23.13
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.12";
+var caapVersion = "140.23.13";
 
 ///////////////////////////
 //       Prototypes
@@ -6117,7 +6117,7 @@ caap = {
             }
         },
         // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
-        'Azriel' : {
+        'Wrath' : {
             duration : 168,
             hp : 600000000,
             ach : 4000000,
@@ -6458,7 +6458,7 @@ caap = {
             } else if (this.CheckForImage('nm_volcanic_large_2.jpg')) {
                 monstType = 'Alpha Volcanic Dragon';
             } else if (this.CheckForImage('nm_azriel_large2.jpg')) {
-                monstType = 'Azriel';
+                monstType = 'Wrath';
             } else {
                 monstType = this.getMonstType(monster);
             }
@@ -6602,7 +6602,7 @@ caap = {
 
             var hp = 0;
             var monstHealthImg = '';
-            if (monstType.indexOf('Volcanic') >= 0|| monstType.indexOf('Azriel') >= 0) {
+            if (monstType.indexOf('Volcanic') >= 0|| monstType.indexOf('Wrath') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -6633,9 +6633,9 @@ caap = {
 
                 if (boss && boss.siege) {
                     var missRegEx = new RegExp(".*Need (\\d+) more.*");
-                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Azriel') >= 0) {
+                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0) {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
-                        if (monstType.indexOf('Alpha') >= 0 || monstType.indexOf('Azriel') >= 0) {
+                        if (monstType.indexOf('Alpha') >= 0 || monstType.indexOf('Wrath') >= 0) {
                             var waterCount = $("img[src*=" + boss.siege_img + "]").size();
                             var alphaCount = $("img[src*=" + boss.siege_img2 + "]").size();
                             var totalCount = waterCount + alphaCount;
@@ -7268,7 +7268,7 @@ caap = {
             // Check if on engage monster page
             var monstType = this.getMonstType(monster);
             var imageTest = '';
-            if (monstType == 'Volcanic Dragon' || monstType == 'Azriel') {
+            if (monstType == 'Volcanic Dragon' || monstType == 'Wrath') {
                 imageTest = 'nm_top.jpg';
             } else if (monstType == 'Alpha Volcanic Dragon') {
                 imageTest = 'nm_top_2.jpg';
