@@ -6667,6 +6667,7 @@ caap = {
                 return true;
             }
 
+            monstType = this.getMonstType(monster);
             // Check if on engage monster page
             var imageTest = '';
             if (monstType == 'Volcanic Dragon' || monstType == 'Wrath') {
@@ -6722,7 +6723,6 @@ caap = {
                     ].concat(singleButtonList);
                 }
 
-                monstType = this.getMonstType(monster);
                 nodeNum = 0;
                 staLvl = this.monsterInfo[monstType].staLvl;
                 if (fightMode == 'Fortify') {

@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.18
+// @version        140.23.19
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://gihub.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.18";
+var caapVersion = "140.23.19";
 
 ///////////////////////////
 //       Prototypes
@@ -7306,6 +7306,7 @@ caap = {
                 return true;
             }
 
+            monstType = this.getMonstType(monster);
             // Check if on engage monster page
             var imageTest = '';
             if (monstType == 'Volcanic Dragon' || monstType == 'Wrath') {
@@ -7361,7 +7362,6 @@ caap = {
                     ].concat(singleButtonList);
                 }
 
-                monstType = this.getMonstType(monster);
                 nodeNum = 0;
                 staLvl = this.monsterInfo[monstType].staLvl;
                 if (fightMode == 'Fortify') {
