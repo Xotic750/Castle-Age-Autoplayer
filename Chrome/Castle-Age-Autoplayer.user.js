@@ -2,10 +2,10 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.21
+// @version        140.23.22
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
-// @require        http://gihub.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
+// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.21";
+var caapVersion = "140.23.22";
 
 ///////////////////////////
 //       Prototypes
@@ -1233,7 +1233,7 @@ caap = {
             if (!time) {
                 throw "time not provided!";
             }
-            
+
             var now = (new Date().getTime());
             now += time * 1000;
             gm.setValue(name, now.toString());
@@ -7394,11 +7394,7 @@ caap = {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
                     buttonList = [
-                        'button_nm_p_power',
-                        'button_nm_p_bash',
-                        'button_nm_p_smite',
-                        'button_nm_p_stab',
-                        'button_nm_p_magic',
+                        'button_nm_p_',
                         'power_button_',
                         'attack_monster_button2.jpg',
                         'event_attack2.gif',
@@ -7507,34 +7503,40 @@ caap = {
                 var smallDeity = this.CheckForImage('symbol_tiny_1.jpg');
                 if (smallDeity) {
                     var demiPointList = nHtml.GetText(smallDeity.parentNode.parentNode.parentNode).match(/\d+ \/ 10/g);
-                    gm.setList('DemiPointList', demiPointList);
-                    gm.log('DemiPointList: ' + demiPointList);
-                    if (this.CheckTimer('DemiPointTimer')) {
-                        gm.log('Set DemiPointTimer to 6 hours, and check if DemiPoints done');
-                        this.SetTimer('DemiPointTimer', 6 * 60 * 60);
-                    }
+                    if (demiPointList) {
+                        gm.setList('DemiPointList', demiPointList);
+                        gm.log('DemiPointList: ' + demiPointList);
+                        if (this.CheckTimer('DemiPointTimer')) {
+                            gm.log('Set DemiPointTimer to 6 hours, and check if DemiPoints done');
+                            this.SetTimer('DemiPointTimer', 6 * 60 * 60);
+                        }
 
-                    gm.setValue('DemiPointsDone', true);
-                    for (var demiPtItem in demiPointList) {
-                        if (demiPointList.hasOwnProperty(demiPtItem)) {
-                            var demiPointStr = demiPointList[demiPtItem];
-                            if (!demiPointStr) {
-                                continue;
-                            }
+                        gm.setValue('DemiPointsDone', true);
+                        for (var demiPtItem in demiPointList) {
+                            if (demiPointList.hasOwnProperty(demiPtItem)) {
+                                var demiPointStr = demiPointList[demiPtItem];
+                                if (!demiPointStr) {
+                                    gm.log("Continue due to demiPointStr: " + demiPointStr);
+                                    continue;
+                                }
 
-                            var demiPoints = demiPointStr.split('/');
-                            if (demiPoints.length != 2) {
-                                continue;
-                            }
+                                var demiPoints = demiPointStr.split('/');
+                                if (demiPoints.length != 2) {
+                                    gm.log("Continue due to demiPoints: " + demiPoints);
+                                    continue;
+                                }
 
-                            if (parseInt(demiPoints[0], 10) < 10 && gm.getValue('DemiPoint' + demiPtItem)) {
-                                gm.setValue('DemiPointsDone', false);
-                                break;
+                                if (parseInt(demiPoints[0], 10) < 10 && gm.getValue('DemiPoint' + demiPtItem)) {
+                                    gm.setValue('DemiPointsDone', false);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    gm.log('Demi Point Timer ' + this.DisplayTimer('DemiPointTimer') + ' demipoints done is  ' + gm.getValue('DemiPointsDone', false));
+                        gm.log('Demi Point Timer ' + this.DisplayTimer('DemiPointTimer') + ' demipoints done is  ' + gm.getValue('DemiPointsDone', false));
+                    } else {
+                        gm.log("Unable to get demiPointList");
+                    }
                 }
             }
 
@@ -7546,7 +7548,7 @@ caap = {
                 return this.Battle('DemiPoints');
             }
 
-            return true;
+            return false;
         } catch (err) {
             gm.log("ERROR in DemiPoints: " + err);
             return false;

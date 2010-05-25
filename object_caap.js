@@ -570,7 +570,7 @@ caap = {
             if (!time) {
                 throw "time not provided!";
             }
-            
+
             var now = (new Date().getTime());
             now += time * 1000;
             gm.setValue(name, now.toString());
@@ -6731,11 +6731,7 @@ caap = {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
                     buttonList = [
-                        'button_nm_p_power',
-                        'button_nm_p_bash',
-                        'button_nm_p_smite',
-                        'button_nm_p_stab',
-                        'button_nm_p_magic',
+                        'button_nm_p_',
                         'power_button_',
                         'attack_monster_button2.jpg',
                         'event_attack2.gif',
@@ -6844,34 +6840,40 @@ caap = {
                 var smallDeity = this.CheckForImage('symbol_tiny_1.jpg');
                 if (smallDeity) {
                     var demiPointList = nHtml.GetText(smallDeity.parentNode.parentNode.parentNode).match(/\d+ \/ 10/g);
-                    gm.setList('DemiPointList', demiPointList);
-                    gm.log('DemiPointList: ' + demiPointList);
-                    if (this.CheckTimer('DemiPointTimer')) {
-                        gm.log('Set DemiPointTimer to 6 hours, and check if DemiPoints done');
-                        this.SetTimer('DemiPointTimer', 6 * 60 * 60);
-                    }
+                    if (demiPointList) {
+                        gm.setList('DemiPointList', demiPointList);
+                        gm.log('DemiPointList: ' + demiPointList);
+                        if (this.CheckTimer('DemiPointTimer')) {
+                            gm.log('Set DemiPointTimer to 6 hours, and check if DemiPoints done');
+                            this.SetTimer('DemiPointTimer', 6 * 60 * 60);
+                        }
 
-                    gm.setValue('DemiPointsDone', true);
-                    for (var demiPtItem in demiPointList) {
-                        if (demiPointList.hasOwnProperty(demiPtItem)) {
-                            var demiPointStr = demiPointList[demiPtItem];
-                            if (!demiPointStr) {
-                                continue;
-                            }
+                        gm.setValue('DemiPointsDone', true);
+                        for (var demiPtItem in demiPointList) {
+                            if (demiPointList.hasOwnProperty(demiPtItem)) {
+                                var demiPointStr = demiPointList[demiPtItem];
+                                if (!demiPointStr) {
+                                    gm.log("Continue due to demiPointStr: " + demiPointStr);
+                                    continue;
+                                }
 
-                            var demiPoints = demiPointStr.split('/');
-                            if (demiPoints.length != 2) {
-                                continue;
-                            }
+                                var demiPoints = demiPointStr.split('/');
+                                if (demiPoints.length != 2) {
+                                    gm.log("Continue due to demiPoints: " + demiPoints);
+                                    continue;
+                                }
 
-                            if (parseInt(demiPoints[0], 10) < 10 && gm.getValue('DemiPoint' + demiPtItem)) {
-                                gm.setValue('DemiPointsDone', false);
-                                break;
+                                if (parseInt(demiPoints[0], 10) < 10 && gm.getValue('DemiPoint' + demiPtItem)) {
+                                    gm.setValue('DemiPointsDone', false);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    gm.log('Demi Point Timer ' + this.DisplayTimer('DemiPointTimer') + ' demipoints done is  ' + gm.getValue('DemiPointsDone', false));
+                        gm.log('Demi Point Timer ' + this.DisplayTimer('DemiPointTimer') + ' demipoints done is  ' + gm.getValue('DemiPointsDone', false));
+                    } else {
+                        gm.log("Unable to get demiPointList");
+                    }
                 }
             }
 
@@ -6883,7 +6885,7 @@ caap = {
                 return this.Battle('DemiPoints');
             }
 
-            return true;
+            return false;
         } catch (err) {
             gm.log("ERROR in DemiPoints: " + err);
             return false;
