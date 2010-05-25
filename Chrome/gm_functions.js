@@ -2,11 +2,13 @@
         GM Function support for Chrome for the use with
         the Castle Age Autoplayer script.
 
-        Version 1.0.4.3
+        Version 1.0.4.4
 */
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
+/*jslint white: true, browser: true, devel: true, onevar: true, undef: true, nomen: true, eqeqeq: true, plusplus: true, bitwise: true, regexp: true, immed: true, strict: true */
 /*global window,unsafeWindow,$,localStorage,GM_setValue,GM_getValue,GM_addStyle,GM_deleteValue,GM_log,GM_registerMenuCommand,GM_listValues,ConvertGMtoJSON */
+
+"use strict";
 
 if ((typeof GM_getValue === 'undefined') || !GM_getValue('a', true)) {
     /*
@@ -144,8 +146,10 @@ if ((typeof GM_getValue === 'undefined') || !GM_getValue('a', true)) {
     */
     GM_listValues = function () {
         try {
-            var names = [];
-            for (var i = 0; i < localStorage.length; i += 1) {
+            var names = [],
+                i     = 0;
+
+            for (i = 0; i < localStorage.length; i += 1) {
                 names.push(localStorage.key(i));
             }
 
@@ -166,9 +170,10 @@ if ((typeof GM_getValue === 'undefined') || !GM_getValue('a', true)) {
     */
     GM_addStyle = function (css) {
         try {
-            var style = document.createElement('style');
+            var style = document.createElement('style'),
+                head  = document.getElementsByTagName('head');
+
             style.textContent = css;
-            var head = document.getElementsByTagName('head');
             if (head) {
                 head[0].appendChild(style);
             }
@@ -185,15 +190,19 @@ if ((typeof GM_getValue === 'undefined') || !GM_getValue('a', true)) {
             localStorage.setItem('castle_age__caapPause', 'sblock');
             localStorage.setItem('castle_age__Disabled', 'btrue');
             GM_log("Attempting to convert settings");
-            var savedData = [];
-            var key = {};
+            var savedData = [],
+                key       = {},
+                i         = 0,
+                j         = 0,
+                value     = null;
+
             key.name = '';
             key.type = '';
             key.value = '';
-            for (var i = 0; i < localStorage.length; i += 1) {
+            for (i = 0; i < localStorage.length; i += 1) {
                 key = {};
                 key.name = localStorage.key(i);
-                var value = localStorage.getItem(key.name);
+                value = localStorage.getItem(key.name);
                 if (/castle_agé__*/.test(key.name) || value === null) {
                     GM_log("Continue");
                     continue;
@@ -205,7 +214,7 @@ if ((typeof GM_getValue === 'undefined') || !GM_getValue('a', true)) {
                 savedData.push(key);
             }
 
-            for (var j = 0; j < savedData.length; j += 1) {
+            for (j = 0; j < savedData.length; j += 1) {
                 GM_deleteValue(savedData[j].name);
                 GM_log("Write: Name: " + savedData[j].name + " Value: " + savedData[j].value + " Type: " + savedData[j].type);
                 switch (savedData[j].type) {

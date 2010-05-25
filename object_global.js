@@ -14,9 +14,9 @@ global = {
 
     documentTitle: document.title,
 
-    is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') != -1 ? true : false,
+    is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
 
-    is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') != -1  ? true : false,
+    is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
 
     // Object separator - used to separate objects
     os: '\n',
@@ -28,26 +28,50 @@ global = {
     ls: '\f',
 
     AddCSS: function () {
-        $("<link>").appendTo("head").attr({
-            rel: "stylesheet",
-            type: "text/css",
-            href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
-        });
+        try {
+            if (!$('link[href*="jquery-ui-1.8.1.custom.css"').length) {
+                $("<link>").appendTo("head").attr({
+                    rel: "stylesheet",
+                    type: "text/css",
+                    href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
+                });
+            }
 
-        $("<link>").appendTo("head").attr({
-            rel: "stylesheet",
-            type: "text/css",
-            href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.css"
-        });
+            if (!$('link[href*="farbtastic.css"').length) {
+                $("<link>").appendTo("head").attr({
+                    rel: "stylesheet",
+                    type: "text/css",
+                    href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.css"
+                });
+            }
+
+            return true;
+        } catch (err) {
+            gm.log("ERROR in AddCSS: " + err);
+            return false;
+        }
     },
 
     alert_id: 0,
 
     alert: function (message) {
-        global.alert_id += 1;
-        var id = global.alert_id;
-        $('<div id="alert_' + id + '" title="Alert!"><p>' + message + '</p></div>').appendTo(document.body);
-        $("#alert_" + id).dialog({ buttons: { "Ok": function() { $(this).dialog("close"); } } });
+        try {
+            global.alert_id += 1;
+            var id = global.alert_id;
+            $('<div id="alert_' + id + '" title="Alert!"><p>' + message + '</p></div>').appendTo(document.body);
+            $("#alert_" + id).dialog({
+                buttons: {
+                    "Ok": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+
+            return true;
+        } catch (err) {
+            gm.log("ERROR in alert: " + err);
+            return false;
+        }
     },
 
     hashStr: [
