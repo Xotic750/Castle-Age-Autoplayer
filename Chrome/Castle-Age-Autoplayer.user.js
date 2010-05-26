@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.22
+// @version        140.23.23
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.22";
+var caapVersion = "140.23.23";
 
 ///////////////////////////
 //       Prototypes
@@ -1053,8 +1053,7 @@ caap = {
             gm.log('Unable to Navigate to ' + imageOnPage + ' using ' + pathToPage);
             return false;
         } catch (err) {
-            gm.log("ERROR in NavigateTo: " + err);
-            gm.log('Unable to Navigate to ' + imageOnPage + ' using ' + pathToPage);
+            gm.log("ERROR in NavigateTo: " + imageOnPage + ' using ' + pathToPage + ' : ' + err);
             return false;
         }
     },
@@ -1500,8 +1499,17 @@ caap = {
     questWhenList: [
         'Energy Available',
         'At Max Energy',
+        'At X Energy',
         'Not Fortifying',
         'Never'
+    ],
+
+    questWhenInst: [
+        'Energy Available - will quest whenever you have enough energy.',
+        'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
+        'At X Energy - (EXPERIMENTAL) allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
+        'Not Fortifying - will quest only when your fortify settings are matched.',
+        'Never - disables questing.'
     ],
 
     questAreaList: [
@@ -1639,14 +1647,15 @@ caap = {
 
     GetControlXY: function (reset) {
         try {
-            var newTop = 0;
+            var newTop  = 0,
+                newLeft = 0;
+
             if (reset) {
                 newTop = $(this.controlXY.selector).offset().top;
             } else {
                 newTop = this.controlXY.y;
             }
 
-            var newLeft = 0;
             if (this.controlXY.x === '' || reset) {
                 newLeft = $(this.controlXY.selector).offset().left + $(this.controlXY.selector).width() + 10;
             } else {
@@ -1680,14 +1689,15 @@ caap = {
 
     GetDashboardXY: function (reset) {
         try {
-            var newTop = 0;
+            var newTop  = 0,
+                newLeft = 0;
+
             if (reset) {
                 newTop = $(this.dashboardXY.selector).offset().top - 10;
             } else {
                 newTop = this.dashboardXY.y;
             }
 
-            var newLeft = 0;
             if (this.dashboardXY.x === '' || reset) {
                 newLeft = $(this.dashboardXY.selector).offset().left;
             } else {
@@ -1775,10 +1785,19 @@ caap = {
 
             var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.";
             htmlCode += this.ToggleControl('Quests', 'QUEST');
-
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest', false) != 'Never' ? 'block' : 'none') + "'>";
+
+
+            var XQuestInstructions = "(EXPERIMENTAL) Start questing when energy is at or above this value.";
+            var XMinQuestInstructions = "(EXPERIMENTAL) Stop quest when energy is at or below this value.";
+            htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (gm.getValue('WhenQuest', false) != 'At X Energy' ? 'none' : 'block') + "'>";
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td>Start At Or Above Energy</td><td style='text-align: right'>" + this.MakeNumberForm('XQuestEnergy', XQuestInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Stop At Or Below Energy</td><td style='text-align: right'>" + this.MakeNumberForm('XMinQuestEnergy', XMinQuestInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "</div>";
+
 
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', this.questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
@@ -2356,7 +2375,8 @@ caap = {
              Here is where we construct the HTML for our dashboard. We start by building the outer
              container and position it within the main container.
             \-------------------------------------------------------------------------------------*/
-            var layout = "<div id='caap_top'>";
+            var layout      = "<div id='caap_top'>",
+                displayList = ['Monster', 'Target List'];
             /*-------------------------------------------------------------------------------------\
              Next we put in our Refresh Monster List button which will only show when we have
              selected the Monster display.
@@ -2375,7 +2395,6 @@ caap = {
              We install the display selection box that allows the user to toggle through the
              available displays.
             \-------------------------------------------------------------------------------------*/
-            var displayList = ['Monster', 'Target List'];
             layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
             /*-------------------------------------------------------------------------------------\
             And here we build our empty content divs.  We display the appropriate div
@@ -2422,10 +2441,11 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     makeCommaValue: function (nStr) {
+        var x   = nStr.split('.'),
+            x1  = x[0],
+            rgx = /(\d+)(\d{3})/;
+
         nStr += '';
-        var x = nStr.split('.');
-        var x1 = x[0];
-        var rgx = /(\d+)(\d{3})/;
         while (rgx.test(x1)) {
             x1 = x1.replace(rgx, '$1' + ',' + '$2');
         }
@@ -2903,6 +2923,11 @@ caap = {
 
                     if (idName == 'WhenBattle') {
                         caap.SetDisplay('WhenBattleStayHidden2', ((gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None')));
+                    }
+
+                    if (idName == 'WhenQuest') {
+                        caap.SetDisplay(idName + 'XEnergy', (value == 'At X Energy'));
+                        gm.deleteValue('XEnergyBurn');
                     }
                 } else if (idName == 'QuestArea' || idName == 'QuestSubArea' || idName == 'WhyQuest') {
                     gm.setValue('AutoQuest', '');
@@ -3850,7 +3875,8 @@ caap = {
             this.SetDivContent('quest_mess', 'Searching for quest.');
             gm.log("Searching for quest");
         } else {
-            if (!this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), gm.getValue('WhenQuest', 'Never'), 'quest_mess')) {
+            var energyCheck = this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), gm.getValue('WhenQuest', 'Never'), 'quest_mess');
+            if (!energyCheck || !gm.getValue('XEnergyBurn', false)) {
                 return false;
             }
         }
@@ -4488,8 +4514,30 @@ caap = {
             if (msgdiv) {
                 this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
             }
+        } else if (condition == 'At X Energy') {
+            if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
+                if (msgdiv) {
+                    gm.setValue('XEnergyBurn', false);
+                    this.SetDivContent(msgdiv, 'Burning all energy to level up');
+                }
 
-            return false;
+                return true;
+            }
+
+            if (this.stats.energy.num >= gm.getValue('XQuestEnergy')) {
+                gm.setValue('XEnergyBurn', true);
+                return true;
+            }
+
+            if (this.stats.energy.num <= gm.getValue('XMinQuestEnergy')) {
+                gm.setValue('XEnergyBurn', false);
+            } else {
+                return true;
+            }
+
+            if (msgdiv) {
+                this.SetDivContent(msgdiv, 'Waiting for more energy:' + this.stats.energy.num + "/" + gm.getValue('XQuestEnergy'));
+            }
         } else if (condition == 'At Max Energy') {
             if (!gm.getValue('MaxIdleEnergy', 0)) {
                 gm.log("Changing to idle general to get Max energy");
@@ -4511,8 +4559,6 @@ caap = {
             if (msgdiv) {
                 this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
             }
-
-            return false;
         }
 
         return false;
@@ -7394,6 +7440,7 @@ caap = {
                     // power attack or if not seamonster power attack or if not regular attack -
                     // need case for seamonster regular attack?
                     buttonList = [
+                        'button_nm_p_power',
                         'button_nm_p_',
                         'power_button_',
                         'attack_monster_button2.jpg',
