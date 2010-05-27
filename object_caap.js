@@ -875,7 +875,7 @@ caap = {
     ],
 
     atlantisQuestList: [
-        'Null'
+        'Atlantis'
     ],
 
     questForList: [
@@ -1146,14 +1146,13 @@ caap = {
                 htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
                 break;
             default :
-                gm.deleteValue('QuestSubArea');
-                htmlCode += "<tr id='trQuestSubArea' style='display: none'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
                 break;
             }
 
             htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', this.questForList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Switch Quest Area", 'swithQuestArea', false, '', 'Allows switching quest area after Advancement or Max Influence');
+            htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', false, '', 'Allows switching quest area after Advancement or Max Influence');
             htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
             htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
             htmlCode += "</div>";
@@ -1847,7 +1846,7 @@ caap = {
                         }
                     }
 
-                    if (nodeNum && gm.getValue('PowerAttackMax')) {
+                    if (nodeNum && gm.getValue('PowerAttackMax') && caap.monsterInfo[monstType].nrgMax) {
                         energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
                     }
                 }
@@ -2279,9 +2278,8 @@ caap = {
                             caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
                             break;
                         case "Atlantis" :
-                            $("#trQuestSubArea").css('display', 'none');
-                            caap.ChangeDropDownList('QuestSubArea', []);
-                            gm.deleteValue('QuestSubArea');
+                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                             break;
                         default :
                         }
@@ -3158,128 +3156,72 @@ caap = {
     },
 
     Quests: function () {
-        if (gm.getValue('storeRetrieve', '') !== '') {
-            if (gm.getValue('storeRetrieve') == 'general') {
-                if (this.SelectGeneral('BuyGeneral')) {
+        try {
+            if (gm.getValue('storeRetrieve', '') !== '') {
+                if (gm.getValue('storeRetrieve') == 'general') {
+                    if (this.SelectGeneral('BuyGeneral')) {
+                        return true;
+                    }
+
+                    gm.setValue('storeRetrieve', '');
                     return true;
+                } else {
+                    return this.RetrieveFromBank(gm.getValue('storeRetrieve', ''));
+                }
+            }
+
+            this.SetDivContent('quest_mess', '');
+            if (gm.getValue('WhenQuest', '') == 'Never') {
+                this.SetDivContent('quest_mess', 'Questing off');
+                return false;
+            }
+
+            if (gm.getValue('WhenQuest', '') == 'Not Fortifying') {
+                var maxHealthtoQuest = gm.getNumber('MaxHealthtoQuest', 0);
+                if (!maxHealthtoQuest) {
+                    this.SetDivContent('quest_mess', '<b>No valid over fortify %</b>');
+                    return false;
                 }
 
-                gm.setValue('storeRetrieve', '');
-                return true;
-            } else {
-                return this.RetrieveFromBank(gm.getValue('storeRetrieve', ''));
-            }
-        }
+                var fortMon = gm.getValue('targetFromfortify', '');
+                if (fortMon) {
+                    this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + gm.getNumber('MaxToFortify', 0) + '%');
+                    return false;
+                }
 
-        this.SetDivContent('quest_mess', '');
-        if (gm.getValue('WhenQuest', '') == 'Never') {
-            this.SetDivContent('quest_mess', 'Questing off');
-            return false;
-        }
-
-        if (gm.getValue('WhenQuest', '') == 'Not Fortifying') {
-            var maxHealthtoQuest = gm.getNumber('MaxHealthtoQuest', 0);
-            if (!maxHealthtoQuest) {
-                this.SetDivContent('quest_mess', '<b>No valid over fortify %</b>');
-                return false;
-            }
-
-            var fortMon = gm.getValue('targetFromfortify', '');
-            if (fortMon) {
-                this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + gm.getNumber('MaxToFortify', 0) + '%');
-                return false;
-            }
-
-            var targetFrombattle_monster = gm.getValue('targetFrombattle_monster', '');
-            if (!targetFrombattle_monster) {
-                var targetFort = gm.getListObjVal('monsterOl', targetFrombattle_monster, 'ShipHealth');
-                if (!targetFort) {
-                    if (targetFort < maxHealthtoQuest) {
-                        this.SetDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
-                        return false;
+                var targetFrombattle_monster = gm.getValue('targetFrombattle_monster', '');
+                if (!targetFrombattle_monster) {
+                    var targetFort = gm.getListObjVal('monsterOl', targetFrombattle_monster, 'ShipHealth');
+                    if (!targetFort) {
+                        if (targetFort < maxHealthtoQuest) {
+                            this.SetDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
+                            return false;
+                        }
                     }
                 }
             }
-        }
 
-        if (!gm.getObjVal('AutoQuest', 'name')) {
-            if (gm.getValue('WhyQuest', '') == 'Manual') {
-                this.SetDivContent('quest_mess', 'Pick quest manually.');
-                return false;
-            }
+            if (!gm.getObjVal('AutoQuest', 'name')) {
+                if (gm.getValue('WhyQuest', '') == 'Manual') {
+                    this.SetDivContent('quest_mess', 'Pick quest manually.');
+                    return false;
+                }
 
-            this.SetDivContent('quest_mess', 'Searching for quest.');
-            gm.log("Searching for quest");
-        } else {
-            var energyCheck = this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), gm.getValue('WhenQuest', 'Never'), 'quest_mess');
-            if (!energyCheck) {
-                return false;
-            }
-        }
-
-        if (gm.getObjVal('AutoQuest', 'general') == 'none' || gm.getValue('ForceSubGeneral')) {
-            if (this.SelectGeneral('SubQuestGeneral')) {
-                return true;
-            }
-        }
-
-        if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
-            gm.getValue('QuestLevelUpGeneral', false) &&
-            this.stats.exp.dif &&
-            this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
-            if (this.SelectGeneral('LevelUpGeneral')) {
-                return true;
-            }
-
-            gm.log('Using level up general');
-        }
-
-        switch (gm.getValue('QuestArea', 'Quest')) {
-        case 'Quest' :
-            //var stageSet0 = $("#app46755028429_stage_set_0").css("display") == 'block' ? true : false;
-            //var stageSet1 = $("#app46755028429_stage_set_1").css("display") == 'block' ? true : false;
-            var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
-            var landPic = this.baseQuestTable[subQArea];
-            var imgExist = false;
-            if (landPic == 'tab_underworld') {
-                imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
-            } else if (landPic == 'tab_heaven') {
-                imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
-            } else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
-                imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
+                this.SetDivContent('quest_mess', 'Searching for quest.');
+                gm.log("Searching for quest");
             } else {
-                imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                var energyCheck = this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), gm.getValue('WhenQuest', 'Never'), 'quest_mess');
+                if (!energyCheck) {
+                    return false;
+                }
             }
 
-            if (imgExist) {
-                return true;
+            if (gm.getObjVal('AutoQuest', 'general') == 'none' || gm.getValue('ForceSubGeneral')) {
+                if (this.SelectGeneral('SubQuestGeneral')) {
+                    return true;
+                }
             }
 
-            break;
-        case 'Demi Quests' :
-            if (this.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
-                return true;
-            }
-
-            var subDQArea = gm.getValue('QuestSubArea', 'Ambrosia');
-            var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + this.demiQuestTable[subDQArea]);
-            if (picSlice.style.height != '160px') {
-                return this.NavigateTo('deity_' + this.demiQuestTable[subDQArea]);
-            }
-
-            break;
-        case 'Atlantis' :
-            if (!this.CheckForImage('tab_atlantis_on.gif')) {
-                return this.NavigateTo('quests,monster_quests');
-            }
-
-            break;
-        default :
-            break;
-        }
-
-        var button = this.CheckForImage('quick_switch_button.gif');
-        if (button && !gm.getValue('ForceSubGeneral', false)) {
             if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
                 gm.getValue('QuestLevelUpGeneral', false) &&
                 this.stats.exp.dif &&
@@ -3287,550 +3229,658 @@ caap = {
                 if (this.SelectGeneral('LevelUpGeneral')) {
                     return true;
                 }
+
                 gm.log('Using level up general');
-            } else {
-                gm.log('Clicking on quick switch general button.');
-                this.Click(button);
-                return true;
-            }
-        }
-
-        var costToBuy = '';
-        //Buy quest requires popup
-        var itemBuyPopUp = nHtml.FindByAttrContains(document.body, "form", "id", 'itemBuy');
-        if (itemBuyPopUp) {
-            gm.setValue('storeRetrieve', 'general');
-            if (this.SelectGeneral('BuyGeneral')) {
-                return true;
             }
 
-            gm.setValue('storeRetrieve', '');
-            costToBuy = itemBuyPopUp.textContent.replace(new RegExp(".*\\$"), '').replace(new RegExp("[^0-9]{3,}.*"), '');
-            gm.log("costToBuy = " + costToBuy);
-            if (this.stats.cash < costToBuy) {
-                //Retrieving from Bank
-                if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= costToBuy) {
-                    gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
-                    gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
-                    return this.RetrieveFromBank(costToBuy - this.stats.cash);
+            switch (gm.getValue('QuestArea', 'Quest')) {
+            case 'Quest' :
+                //var stageSet0 = $("#app46755028429_stage_set_0").css("display") == 'block' ? true : false;
+                //var stageSet1 = $("#app46755028429_stage_set_1").css("display") == 'block' ? true : false;
+                var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
+                var landPic = this.baseQuestTable[subQArea];
+                var imgExist = false;
+                if (landPic == 'tab_underworld') {
+                    imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
+                } else if (landPic == 'tab_heaven') {
+                    imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
+                } else if ((landPic == 'land_demon_realm') || (landPic == 'land_undead_realm')) {
+                    imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
                 } else {
-                    gm.setValue('AutoQuest', '');
-                    gm.setValue('WhyQuest', 'Manual');
-                    gm.log("Cant buy requires, stopping quest");
-                    this.ManualAutoQuest();
-                    return false;
+                    imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                }
+
+                if (imgExist) {
+                    return true;
+                }
+
+                break;
+            case 'Demi Quests' :
+                if (this.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
+                    return true;
+                }
+
+                var subDQArea = gm.getValue('QuestSubArea', 'Ambrosia');
+                var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + this.demiQuestTable[subDQArea]);
+                if (picSlice.style.height != '160px') {
+                    return this.NavigateTo('deity_' + this.demiQuestTable[subDQArea]);
+                }
+
+                break;
+            case 'Atlantis' :
+                if (!this.CheckForImage('tab_atlantis_on.gif')) {
+                    return this.NavigateTo('quests,monster_quests');
+                }
+
+                break;
+            default :
+                break;
+            }
+
+            var button = this.CheckForImage('quick_switch_button.gif');
+            if (button && !gm.getValue('ForceSubGeneral', false)) {
+                if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
+                    gm.getValue('QuestLevelUpGeneral', false) &&
+                    this.stats.exp.dif &&
+                    this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
+                    if (this.SelectGeneral('LevelUpGeneral')) {
+                        return true;
+                    }
+                    gm.log('Using level up general');
+                } else {
+                    gm.log('Clicking on quick switch general button.');
+                    this.Click(button);
+                    return true;
                 }
             }
 
-            button = this.CheckForImage('quick_buy_button.jpg');
-            if (button) {
-                gm.log('Clicking on quick buy button.');
-                this.Click(button);
-                return true;
-            }
-
-            gm.log("Cant find buy button");
-            return false;
-        }
-
-        button = this.CheckForImage('quick_buy_button.jpg');
-        if (button) {
-            gm.setValue('storeRetrieve', 'general');
-            if (this.SelectGeneral('BuyGeneral')) {
-                return true;
-            }
-
-            gm.setValue('storeRetrieve', '');
-            costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
-            gm.log("costToBuy = " + costToBuy);
-            if (this.stats.cash < costToBuy) {
-                //Retrieving from Bank
-                if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= costToBuy) {
-                    gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
-                    gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
-                    return this.RetrieveFromBank(costToBuy - this.stats.cash);
-                } else {
-                    gm.setValue('AutoQuest', '');
-                    gm.setValue('WhyQuest', 'Manual');
-                    gm.log("Cant buy General, stopping quest");
-                    this.ManualAutoQuest();
-                    return false;
-                }
-            }
-
-            gm.log('Clicking on quick buy general button.');
-            this.Click(button);
-            return true;
-        }
-
-        var autoQuestDivs = this.CheckResults_quests(true);
-        if (!gm.getObjVal('AutoQuest', 'name')) {
-            gm.log('Could not find autoquest.');
-            this.SetDivContent('quest_mess', 'Could not find autoquest.');
-            return false;
-        }
-
-        var autoQuestName = gm.getObjVal('AutoQuest', 'name');
-        if (gm.getObjVal('AutoQuest', 'name') != autoQuestName) {
-            gm.log('New AutoQuest found.');
-            this.SetDivContent('quest_mess', 'New AutoQuest found.');
-            return true;
-        }
-
-        // if found missing requires, click to buy
-        var background = nHtml.FindByAttrContains(autoQuestDivs.tr, "div", "style", 'background-color');
-        if (background) {
-            if (background.style.backgroundColor == 'rgb(158, 11, 15)') {
-                gm.log(" background.style.backgroundColor = " + background.style.backgroundColor);
+            var costToBuy = '';
+            //Buy quest requires popup
+            var itemBuyPopUp = nHtml.FindByAttrContains(document.body, "form", "id", 'itemBuy');
+            if (itemBuyPopUp) {
                 gm.setValue('storeRetrieve', 'general');
                 if (this.SelectGeneral('BuyGeneral')) {
                     return true;
                 }
 
                 gm.setValue('storeRetrieve', '');
-                if (background.firstChild.firstChild.title) {
-                    gm.log("Clicking to buy " + background.firstChild.firstChild.title);
-                    this.Click(background.firstChild.firstChild);
+                costToBuy = itemBuyPopUp.textContent.replace(new RegExp(".*\\$"), '').replace(new RegExp("[^0-9]{3,}.*"), '');
+                gm.log("costToBuy = " + costToBuy);
+                if (this.stats.cash < costToBuy) {
+                    //Retrieving from Bank
+                    if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= costToBuy) {
+                        gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
+                        gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
+                        return this.RetrieveFromBank(costToBuy - this.stats.cash);
+                    } else {
+                        gm.setValue('AutoQuest', '');
+                        gm.setValue('WhyQuest', 'Manual');
+                        gm.log("Cant buy requires, stopping quest");
+                        this.ManualAutoQuest();
+                        return false;
+                    }
+                }
+
+                button = this.CheckForImage('quick_buy_button.jpg');
+                if (button) {
+                    gm.log('Clicking on quick buy button.');
+                    this.Click(button);
                     return true;
                 }
-            }
-        }
 
-        var general = gm.getObjVal('AutoQuest', 'general');
-        if (general == 'none' || gm.getValue('ForceSubGeneral', false)) {
-            if (this.SelectGeneral('SubQuestGeneral')) {
+                gm.log("Cant find buy button");
+                return false;
+            }
+
+            button = this.CheckForImage('quick_buy_button.jpg');
+            if (button) {
+                gm.setValue('storeRetrieve', 'general');
+                if (this.SelectGeneral('BuyGeneral')) {
+                    return true;
+                }
+
+                gm.setValue('storeRetrieve', '');
+                costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
+                gm.log("costToBuy = " + costToBuy);
+                if (this.stats.cash < costToBuy) {
+                    //Retrieving from Bank
+                    if (this.stats.cash + (gm.getNumber('inStore', 0) - gm.getNumber('minInStore', 0)) >= costToBuy) {
+                        gm.log("Trying to retrieve: " + (costToBuy - this.stats.cash));
+                        gm.setValue("storeRetrieve", costToBuy - this.stats.cash);
+                        return this.RetrieveFromBank(costToBuy - this.stats.cash);
+                    } else {
+                        gm.setValue('AutoQuest', '');
+                        gm.setValue('WhyQuest', 'Manual');
+                        gm.log("Cant buy General, stopping quest");
+                        this.ManualAutoQuest();
+                        return false;
+                    }
+                }
+
+                gm.log('Clicking on quick buy general button.');
+                this.Click(button);
                 return true;
             }
-        } else if ((general) && general != this.GetCurrentGeneral()) {
-            if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
-                gm.getValue('QuestLevelUpGeneral', false) &&
-                this.stats.exp.dif &&
-                this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
-                if (this.SelectGeneral('LevelUpGeneral')) {
-                    return true;
-                }
 
-                gm.log('Using level up general');
+            var autoQuestDivs = this.CheckResults_quests(true);
+            if (!gm.getObjVal('AutoQuest', 'name')) {
+                gm.log('Could not find AutoQuest.');
+                this.SetDivContent('quest_mess', 'Could not find AutoQuest.');
+                return false;
+            }
+
+            var autoQuestName = gm.getObjVal('AutoQuest', 'name');
+            if (gm.getObjVal('AutoQuest', 'name') != autoQuestName) {
+                gm.log('New AutoQuest found.');
+                this.SetDivContent('quest_mess', 'New AutoQuest found.');
+                return true;
+            }
+
+            // if found missing requires, click to buy
+            if (autoQuestDivs.tr !== undefined) {
+                var background = nHtml.FindByAttrContains(autoQuestDivs.tr, "div", "style", 'background-color');
+                if (background) {
+                    if (background.style.backgroundColor == 'rgb(158, 11, 15)') {
+                        gm.log(" background.style.backgroundColor = " + background.style.backgroundColor);
+                        gm.setValue('storeRetrieve', 'general');
+                        if (this.SelectGeneral('BuyGeneral')) {
+                            return true;
+                        }
+
+                        gm.setValue('storeRetrieve', '');
+                        if (background.firstChild.firstChild.title) {
+                            gm.log("Clicking to buy " + background.firstChild.firstChild.title);
+                            this.Click(background.firstChild.firstChild);
+                            return true;
+                        }
+                    }
+                }
             } else {
-                gm.log('Clicking on general ' + general);
-                this.Click(autoQuestDivs.genDiv);
-                return true;
+                gm.log('Can not buy quest item');
+                return false;
             }
-        }
 
-        gm.log('Clicking auto quest: ' + autoQuestName);
-        gm.setValue('ReleaseControl', true);
-        caap.Click(autoQuestDivs.click, 10000);
-        //gm.log("Quests: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
-        this.ShowAutoQuest();
-        return true;
+            var general = gm.getObjVal('AutoQuest', 'general');
+            if (general == 'none' || gm.getValue('ForceSubGeneral', false)) {
+                if (this.SelectGeneral('SubQuestGeneral')) {
+                    return true;
+                }
+            } else if ((general) && general != this.GetCurrentGeneral()) {
+                if (gm.getValue('LevelUpGeneral', 'Use Current') != 'Use Current' &&
+                    gm.getValue('QuestLevelUpGeneral', false) && this.stats.exp.dif &&
+                    this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
+                    if (this.SelectGeneral('LevelUpGeneral')) {
+                        return true;
+                    }
+
+                    gm.log('Using level up general');
+                } else {
+                    if (autoQuestDivs.genDiv !== undefined) {
+                        gm.log('Clicking on general ' + general);
+                        this.Click(autoQuestDivs.genDiv);
+                        return true;
+                    } else {
+                        gm.log('Can not click on general ' + general);
+                        return false;
+                    }
+                }
+            }
+
+            if (autoQuestDivs.click !== undefined) {
+                gm.log('Clicking auto quest: ' + autoQuestName);
+                gm.setValue('ReleaseControl', true);
+                this.Click(autoQuestDivs.click, 10000);
+                //gm.log("Quests: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+                this.ShowAutoQuest();
+                return true;
+            } else {
+                gm.log('Can not click auto quest: ' + autoQuestName);
+                return false;
+            }
+        } catch (err) {
+            gm.log("ERROR in Quests: " + err);
+            return false;
+        }
     },
 
     questName: null,
 
+    QuestManually: function () {
+        gm.log("QuestManually: Setting manual quest options");
+        gm.setValue('AutoQuest', '');
+        gm.setValue('WhyQuest', 'Manual');
+        this.ManualAutoQuest();
+    },
+
+    UpdateQuestGUI: function () {
+        gm.log("UpdateQuestGUI: Setting drop down menus");
+        this.SelectDropOption('QuestArea', gm.getValue('QuestArea'));
+        this.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
+    },
+
     CheckResults_quests: function (pickQuestTF) {
-        var whyQuest = gm.getValue('WhyQuest', '');
-        if (pickQuestTF === true && whyQuest != 'Manual') {
-            gm.setValue('AutoQuest', '');
-        }
-
-        var bestReward = 0;
-        var rewardRatio = 0;
-        var div = document.body;
-        var ss = null;
-        var s = 0;
-        if (this.CheckForImage('demi_quest_on.gif')) {
-            ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",
-                div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
-                gm.log("Failed to find symbol_displaysymbolquest");
-            }
-
-            for (s = 0; s < ss.snapshotLength; s += 1) {
-                div = ss.snapshotItem(s);
-                if (div.style.display != 'none') {
-                    break;
-                }
-            }
-        }
-
-        ss = document.evaluate(".//div[contains(@class,'quests_background')]",
-            div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        if (ss.snapshotLength <= 0) {
-            gm.log("Failed to find quests_background");
-            return;
-        }
-
-        var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
-        var haveOrb = false;
-        if (nHtml.FindByAttrContains(div, 'input', 'src', 'alchemy_summon')) {
-            haveOrb = true;
-            if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
+        try {
+            var whyQuest = gm.getValue('WhyQuest', '');
+            if (pickQuestTF === true && whyQuest != 'Manual') {
                 gm.setValue('AutoQuest', '');
             }
-        }
 
-        var autoQuestDivs = {};
-        for (s = 0; s < ss.snapshotLength; s += 1) {
-            div = ss.snapshotItem(s);
-            this.questName = this.GetQuestName(div);
-            if (!this.questName) {
-                continue;
-            }
-
-            var reward = null;
-            var energy = null;
-            var experience = null;
-            var divTxt = nHtml.GetText(div);
-            var expM = this.experienceRe.exec(divTxt);
-            if (expM) {
-                experience = this.NumberOnly(expM[1]);
-            } else {
-                var expObj = nHtml.FindByAttr(div, 'div', 'className', 'quest_experience');
-                if (expObj) {
-                    experience = (this.NumberOnly(nHtml.GetText(expObj)));
-                } else {
-                    gm.log('cannot find experience:' + this.questName);
+            var bestReward = 0;
+            var rewardRatio = 0;
+            var div = document.body;
+            var ss = null;
+            var s = 0;
+            if (this.CheckForImage('demi_quest_on.gif')) {
+                ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",
+                    div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                if (ss.snapshotLength <= 0) {
+                    gm.log("Failed to find symbol_displaysymbolquest");
                 }
-            }
 
-            var idx = this.questName.indexOf('<br>');
-            if (idx >= 0) {
-                this.questName = this.questName.substring(0, idx);
-            }
-
-            var energyM = this.energyRe.exec(divTxt);
-            if (energyM) {
-                energy = this.NumberOnly(energyM[1]);
-            } else {
-                var eObj = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_req');
-                if (eObj) {
-                    energy = eObj.getElementsByTagName('b')[0];
-                }
-            }
-
-            if (!energy) {
-                gm.log('cannot find energy for quest:' + this.questName);
-                continue;
-            }
-
-            var moneyM = this.moneyRe.exec(this.RemoveHtmlJunk(divTxt));
-            if (moneyM) {
-                var rewardLow = this.NumberOnly(moneyM[1]);
-                var rewardHigh = this.NumberOnly(moneyM[2]);
-                reward = (rewardLow + rewardHigh) / 2;
-            } else {
-                gm.log('no money found:' + this.questName + ' in ' + divTxt);
-            }
-
-            var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
-            if (!click) {
-                gm.log('no button found:' + this.questName);
-                continue;
-            }
-            var influence = null;
-            if (bossList.indexOf(this.questName) >= 0) {
-                if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
-                    //if boss and found sub quests
-                    influence = "100";
-                } else {
-                    influence = "0";
-                }
-            } else {
-                var influenceList = this.influenceRe.exec(divTxt);
-                if (influenceList) {
-                    influence = influenceList[1];
-                } else {
-                    gm.log("Influence div not found.");
-                }
-            }
-
-            if (!influence) {
-                gm.log('no influence found:' + this.questName + ' in ' + divTxt);
-            }
-
-            var general = 'none';
-            var genDiv = null;
-            if (influence && influence < 100) {
-                genDiv = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_act_gen');
-                if (genDiv) {
-                    genDiv = nHtml.FindByAttrContains(genDiv, 'img', 'src', 'jpg');
-                    if (genDiv) {
-                        general = genDiv.title;
+                for (s = 0; s < ss.snapshotLength; s += 1) {
+                    div = ss.snapshotItem(s);
+                    if (div.style.display != 'none') {
+                        break;
                     }
                 }
             }
 
-            var questType = 'subquest';
-            if (div.className == 'quests_background') {
-                questType = 'primary';
-            } else if (div.className == 'quests_background_special') {
-                questType = 'boss';
-            }
-
-            if (s === 0) {
-                gm.log("Adding Quest Labels and Listeners");
-            }
-
-            this.LabelQuests(div, energy, reward, experience, click);
-            //gm.log(gm.getValue('QuestSubArea', 'Atlantis'));
-            if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
-                if (gm.getValue('GetOrbs', false) && questType == 'boss' && whyQuest != 'Manual') {
-                    if (!haveOrb) {
-                        gm.setObjVal('AutoQuest', 'name', this.questName);
-                        pickQuestTF = true;
-                    }
-                }
-
-                switch (whyQuest) {
-                case 'Advancement' :
-                    if (influence) {
-                        if (!gm.getObjVal('AutoQuest', 'name') && questType == 'primary' && this.NumberOnly(influence) < 100) {
-                            gm.setObjVal('AutoQuest', 'name', this.questName);
-                            pickQuestTF = true;
-                        }
-                    } else {
-                        gm.log('cannot find influence:' + this.questName + ': ' + influence);
-                    }
-
-                    break;
-                case 'Max Influence' :
-                    if (influence) {
-                        if (!gm.getObjVal('AutoQuest', 'name') && this.NumberOnly(influence) < 100) {
-                            gm.setObjVal('AutoQuest', 'name', this.questName);
-                            pickQuestTF = true;
-                        }
-                    } else {
-                        gm.log('cannot find influence:' + this.questName + ': ' + influence);
-                    }
-
-                    break;
-                case 'Max Experience' :
-                    rewardRatio = (Math.floor(experience / energy * 100) / 100);
-                    if (bestReward < rewardRatio) {
-                        gm.setObjVal('AutoQuest', 'name', this.questName);
-                        pickQuestTF = true;
-                    }
-
-                    break;
-                case 'Max Gold' :
-                    rewardRatio = (Math.floor(reward / energy * 10) / 10);
-                    if (bestReward < rewardRatio) {
-                        gm.setObjVal('AutoQuest', 'name', this.questName);
-                        pickQuestTF = true;
-                    }
-
-                    break;
-                default :
-                }
-
-                if (gm.getObjVal('AutoQuest', 'name') == this.questName) {
-                    bestReward = rewardRatio;
-                    var expRatio = experience / energy;
-                    gm.log("CheckResults_quests: Setting AutoQuest");
-                    gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
-                    //gm.log("CheckResults_quests: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
-                    this.ShowAutoQuest();
-                    autoQuestDivs = {
-                        'click': click,
-                        'tr': div,
-                        'genDiv': genDiv
-                    };
-                }
-            }
-        }
-
-        if (pickQuestTF) {
-            if (gm.getObjVal('AutoQuest', 'name')) {
-                //gm.log("CheckResults_quests(pickQuestTF): " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
-                this.ShowAutoQuest();
-                return autoQuestDivs;
-            }
-
-            if ((whyQuest == 'Max Influence' || whyQuest == 'Advancement') && gm.getValue('swithQuestArea', false)) { //if not find quest, probably you already maxed the subarea, try another area
-                //gm.log(gm.getValue('QuestSubArea(pickQuestTF)'));
-                switch (gm.getValue('QuestSubArea')) {
-                case 'Land of Fire':
-                    gm.setValue('QuestSubArea', 'Land of Earth');
-                    break;
-                case 'Land of Earth':
-                    gm.setValue('QuestSubArea', 'Land of Mist');
-                    break;
-                case 'Land of Mist':
-                    gm.setValue('QuestSubArea', 'Land of Water');
-                    break;
-                case 'Land of Water':
-                    gm.setValue('QuestSubArea', 'Demon Realm');
-                    break;
-                case 'Demon Realm':
-                    gm.setValue('QuestSubArea', 'Undead Realm');
-                    break;
-                case 'Undead Realm':
-                    gm.setValue('QuestSubArea', 'Underworld');
-                    break;
-                case 'Underworld':
-                    gm.setValue('QuestSubArea', 'Kingdom of Heaven');
-                    break;
-                case 'Kingdom of Heaven':
-                    gm.setValue('QuestArea', 'Demi Quests');
-                    gm.setValue('QuestSubArea', 'Ambrosia');
-                    break;
-                case 'Ambrosia':
-                    gm.setValue('QuestSubArea', 'Malekus');
-                    break;
-                case 'Malekus':
-                    gm.setValue('QuestSubArea', 'Corvintheus');
-                    break;
-                case 'Corvintheus':
-                    gm.setValue('QuestSubArea', 'Aurora');
-                    break;
-                case 'Aurora':
-                    gm.setValue('QuestSubArea', 'Azeron');
-                    break;
-                case 'Azeron':
-                    gm.setValue('QuestArea', 'Quest');
-                    gm.setValue('QuestSubArea', 'Land of Fire');
-                    break;
-                default :
-                    gm.log("CheckResults_quests(default): Set quest to manual");
-                    gm.setValue('AutoQuest', '');
-                    gm.setValue('WhyQuest', 'Manual');
-                    this.ManualAutoQuest();
-                    return false;
-                }
-
-                gm.log("CheckResults_quests: Update GUI Quest areas");
-                this.SelectDropOption('QuestArea', gm.getValue('QuestArea'));
-                this.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
+            ss = document.evaluate(".//div[contains(@class,'quests_background')]",
+                div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            if (ss.snapshotLength <= 0) {
+                gm.log("Failed to find quests_background");
                 return false;
             }
 
-            gm.log("CheckResults_quests(fall through): Set quest to manual");
-            gm.setValue('AutoQuest', '');
-            gm.setValue('WhyQuest', 'Manual');
-            this.ManualAutoQuest();
+            var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
+            var haveOrb = false;
+            if (nHtml.FindByAttrContains(div, 'input', 'src', 'alchemy_summon')) {
+                haveOrb = true;
+                if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest != 'Manual') {
+                    gm.setValue('AutoQuest', '');
+                }
+            }
+
+            var autoQuestDivs = {
+                'click' : undefined,
+                'tr'    : undefined,
+                'genDiv': undefined
+            };
+
+            for (s = 0; s < ss.snapshotLength; s += 1) {
+                div = ss.snapshotItem(s);
+                this.questName = this.GetQuestName(div);
+                if (!this.questName) {
+                    continue;
+                }
+
+                var reward = null;
+                var energy = null;
+                var experience = null;
+                var divTxt = nHtml.GetText(div);
+                var expM = this.experienceRe.exec(divTxt);
+                if (expM) {
+                    experience = this.NumberOnly(expM[1]);
+                } else {
+                    var expObj = nHtml.FindByAttr(div, 'div', 'className', 'quest_experience');
+                    if (expObj) {
+                        experience = (this.NumberOnly(nHtml.GetText(expObj)));
+                    } else {
+                        gm.log('cannot find experience:' + this.questName);
+                    }
+                }
+
+                var idx = this.questName.indexOf('<br>');
+                if (idx >= 0) {
+                    this.questName = this.questName.substring(0, idx);
+                }
+
+                var energyM = this.energyRe.exec(divTxt);
+                if (energyM) {
+                    energy = this.NumberOnly(energyM[1]);
+                } else {
+                    var eObj = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_req');
+                    if (eObj) {
+                        energy = eObj.getElementsByTagName('b')[0];
+                    }
+                }
+
+                if (!energy) {
+                    gm.log('cannot find energy for quest:' + this.questName);
+                    continue;
+                }
+
+                var moneyM = this.moneyRe.exec(this.RemoveHtmlJunk(divTxt));
+                if (moneyM) {
+                    var rewardLow = this.NumberOnly(moneyM[1]);
+                    var rewardHigh = this.NumberOnly(moneyM[2]);
+                    reward = (rewardLow + rewardHigh) / 2;
+                } else {
+                    gm.log('no money found:' + this.questName + ' in ' + divTxt);
+                }
+
+                var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
+                if (!click) {
+                    gm.log('no button found:' + this.questName);
+                    continue;
+                }
+                var influence = null;
+                if (bossList.indexOf(this.questName) >= 0) {
+                    if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
+                        //if boss and found sub quests
+                        influence = "100";
+                    } else {
+                        influence = "0";
+                    }
+                } else {
+                    var influenceList = this.influenceRe.exec(divTxt);
+                    if (influenceList) {
+                        influence = influenceList[1];
+                    } else {
+                        gm.log("Influence div not found.");
+                    }
+                }
+
+                if (!influence) {
+                    gm.log('no influence found:' + this.questName + ' in ' + divTxt);
+                }
+
+                var general = 'none';
+                var genDiv = null;
+                if (influence && influence < 100) {
+                    genDiv = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_act_gen');
+                    if (genDiv) {
+                        genDiv = nHtml.FindByAttrContains(genDiv, 'img', 'src', 'jpg');
+                        if (genDiv) {
+                            general = genDiv.title;
+                        }
+                    }
+                }
+
+                var questType = 'subquest';
+                if (div.className == 'quests_background') {
+                    questType = 'primary';
+                } else if (div.className == 'quests_background_special') {
+                    questType = 'boss';
+                }
+
+                if (s === 0) {
+                    gm.log("Adding Quest Labels and Listeners");
+                }
+
+                this.LabelQuests(div, energy, reward, experience, click);
+                //gm.log(gm.getValue('QuestSubArea', 'Atlantis'));
+                if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
+                    if (gm.getValue('GetOrbs', false) && questType == 'boss' && whyQuest != 'Manual') {
+                        if (!haveOrb) {
+                            gm.setObjVal('AutoQuest', 'name', this.questName);
+                            pickQuestTF = true;
+                        }
+                    }
+
+                    switch (whyQuest) {
+                    case 'Advancement' :
+                        if (influence) {
+                            if (!gm.getObjVal('AutoQuest', 'name') && questType == 'primary' && this.NumberOnly(influence) < 100) {
+                                gm.setObjVal('AutoQuest', 'name', this.questName);
+                                pickQuestTF = true;
+                            }
+                        } else {
+                            gm.log('cannot find influence:' + this.questName + ': ' + influence);
+                        }
+
+                        break;
+                    case 'Max Influence' :
+                        if (influence) {
+                            if (!gm.getObjVal('AutoQuest', 'name') && this.NumberOnly(influence) < 100) {
+                                gm.setObjVal('AutoQuest', 'name', this.questName);
+                                pickQuestTF = true;
+                            }
+                        } else {
+                            gm.log('cannot find influence:' + this.questName + ': ' + influence);
+                        }
+
+                        break;
+                    case 'Max Experience' :
+                        rewardRatio = (Math.floor(experience / energy * 100) / 100);
+                        if (bestReward < rewardRatio) {
+                            gm.setObjVal('AutoQuest', 'name', this.questName);
+                            pickQuestTF = true;
+                        }
+
+                        break;
+                    case 'Max Gold' :
+                        rewardRatio = (Math.floor(reward / energy * 10) / 10);
+                        if (bestReward < rewardRatio) {
+                            gm.setObjVal('AutoQuest', 'name', this.questName);
+                            pickQuestTF = true;
+                        }
+
+                        break;
+                    default :
+                    }
+
+                    if (gm.getObjVal('AutoQuest', 'name') == this.questName) {
+                        bestReward = rewardRatio;
+                        var expRatio = experience / energy;
+                        gm.log("CheckResults_quests: Setting AutoQuest");
+                        gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
+                        //gm.log("CheckResults_quests: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+                        this.ShowAutoQuest();
+                        autoQuestDivs.click  = click;
+                        autoQuestDivs.tr     = div;
+                        autoQuestDivs.genDiv = genDiv;
+                    }
+                }
+            }
+
+            if (pickQuestTF) {
+                if (gm.getObjVal('AutoQuest', 'name')) {
+                    //gm.log("CheckResults_quests(pickQuestTF): " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+                    this.ShowAutoQuest();
+                    return autoQuestDivs;
+                }
+
+                if ((whyQuest == 'Max Influence' || whyQuest == 'Advancement') && gm.getValue('switchQuestArea', false)) { //if not find quest, probably you already maxed the subarea, try another area
+                    //gm.log(gm.getValue('QuestSubArea(pickQuestTF)'));
+                    switch (gm.getValue('QuestSubArea')) {
+                    case 'Land of Fire':
+                        gm.setValue('QuestSubArea', 'Land of Earth');
+                        break;
+                    case 'Land of Earth':
+                        gm.setValue('QuestSubArea', 'Land of Mist');
+                        break;
+                    case 'Land of Mist':
+                        gm.setValue('QuestSubArea', 'Land of Water');
+                        break;
+                    case 'Land of Water':
+                        gm.setValue('QuestSubArea', 'Demon Realm');
+                        break;
+                    case 'Demon Realm':
+                        gm.setValue('QuestSubArea', 'Undead Realm');
+                        break;
+                    case 'Undead Realm':
+                        gm.setValue('QuestSubArea', 'Underworld');
+                        break;
+                    case 'Underworld':
+                        gm.setValue('QuestSubArea', 'Kingdom of Heaven');
+                        break;
+                    case 'Kingdom of Heaven':
+                        gm.setValue('QuestArea', 'Demi Quests');
+                        gm.setValue('QuestSubArea', 'Ambrosia');
+                        this.ChangeDropDownList('QuestSubArea', this.demiQuestList);
+                        break;
+                    case 'Ambrosia':
+                        gm.setValue('QuestSubArea', 'Malekus');
+                        break;
+                    case 'Malekus':
+                        gm.setValue('QuestSubArea', 'Corvintheus');
+                        break;
+                    case 'Corvintheus':
+                        gm.setValue('QuestSubArea', 'Aurora');
+                        break;
+                    case 'Aurora':
+                        gm.setValue('QuestSubArea', 'Azeron');
+                        break;
+                    case 'Azeron':
+                        gm.setValue('QuestArea', 'Atlantis');
+                        gm.setValue('QuestSubArea', 'Atlantis');
+                        this.ChangeDropDownList('QuestSubArea', this.atlantisQuestList);
+                        break;
+                    case 'Atlantis':
+                        gm.log("CheckResults_quests: Final QuestSubArea: " + gm.getValue('QuestSubArea'));
+                        this.QuestManually();
+                        break;
+                    default :
+                        gm.log("CheckResults_quests: Unknown QuestSubArea: " + gm.getValue('QuestSubArea'));
+                        this.QuestManually();
+                    }
+
+                    this.UpdateQuestGUI();
+                    return false;
+                }
+
+                gm.log("CheckResults_quests: Finished QuestArea.");
+                this.QuestManually();
+                return false;
+            }
+
+            return false;
+        } catch (err) {
+            gm.log("ERROR in CheckResults_quests: " + err);
+            this.QuestManually();
+            return false;
         }
     },
 
     CheckCurrentQuestArea: function (QuestSubArea) {
-        switch (QuestSubArea) {
-        case 'Land of Fire':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_1')) {
-                return true;
+        try {
+            switch (QuestSubArea) {
+            case 'Land of Fire':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_1')) {
+                    return true;
+                }
+
+                break;
+            case 'Land of Earth':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_2')) {
+                    return true;
+                }
+
+                break;
+            case 'Land of Mist':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_3')) {
+                    return true;
+                }
+
+                break;
+            case 'Land of Water':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_4')) {
+                    return true;
+                }
+
+                break;
+            case 'Demon Realm':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_5')) {
+                    return true;
+                }
+
+                break;
+            case 'Undead Realm':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_6')) {
+                    return true;
+                }
+
+                break;
+            case 'Underworld':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
+                    return true;
+                }
+
+                break;
+            case 'Kingdom of Heaven':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
+                    return true;
+                }
+
+                break;
+            case 'Ambrosia':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_1')) {
+                    return true;
+                }
+
+                break;
+            case 'Malekus':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_2')) {
+                    return true;
+                }
+
+                break;
+            case 'Corvintheus':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_3')) {
+                    return true;
+                }
+
+                break;
+            case 'Aurora':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_4')) {
+                    return true;
+                }
+
+                break;
+            case 'Azeron':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_5')) {
+                    return true;
+                }
+
+                break;
+            case 'Atlantis':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'monster_quests_stage_1')) {
+                    return true;
+                }
+
+                break;
+            default :
+                gm.log("Error: cant find QuestSubArea: " + QuestSubArea);
             }
 
-            break;
-        case 'Land of Earth':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_2')) {
-                return true;
-            }
-
-            break;
-        case 'Land of Mist':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_3')) {
-                return true;
-            }
-
-            break;
-        case 'Land of Water':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_4')) {
-                return true;
-            }
-
-            break;
-        case 'Demon Realm':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_5')) {
-                return true;
-            }
-
-            break;
-        case 'Undead Realm':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_6')) {
-                return true;
-            }
-
-            break;
-        case 'Underworld':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
-                return true;
-            }
-
-            break;
-        case 'Kingdom of Heaven':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
-                return true;
-            }
-
-            break;
-        case 'Ambrosia':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_1')) {
-                return true;
-            }
-
-            break;
-        case 'Malekus':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_2')) {
-                return true;
-            }
-
-            break;
-        case 'Corvintheus':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_3')) {
-                return true;
-            }
-
-            break;
-        case 'Aurora':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_4')) {
-                return true;
-            }
-
-            break;
-        case 'Azeron':
-            if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_5')) {
-                return true;
-            }
-
-            break;
-        case 'Atlantis':
-            if (this.CheckForImage('tab_atlantis_on.gif')) {
-                return true;
-            }
-
-            break;
-        default :
-            gm.log("Error: cant find QuestSubArea: " + QuestSubArea);
+            return false;
+        } catch (err) {
+            gm.log("ERROR in CheckCurrentQuestArea: " + err);
             return false;
         }
-
-        return false;
     },
 
     GetQuestName: function (questDiv) {
-        var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
-        if (!item_title) {
-            gm.log("Can't find quest description or sub-title");
+        try {
+            var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
+            if (!item_title) {
+                gm.log("Can't find quest description or sub-title");
+                return false;
+            }
+
+            if (item_title.innerHTML.toString().match(/LOCK/)) {
+                return false;
+            }
+
+            var firstb = item_title.getElementsByTagName('b')[0];
+            if (!firstb) {
+                gm.log("Can't get bolded member out of " + item_title.innerHTML.toString());
+                return false;
+            }
+
+            this.questName = $.trim(firstb.innerHTML.toString()).stripHTML();
+            if (!this.questName) {
+                //gm.log('no quest name for this row: ' + div.innerHTML);
+                gm.log('no quest name for this row');
+                return false;
+            }
+
+            return this.questName;
+        } catch (err) {
+            gm.log("ERROR in GetQuestName: " + err);
             return false;
         }
-
-        if (item_title.innerHTML.toString().match(/LOCK/)) {
-            return false;
-        }
-
-        var firstb = item_title.getElementsByTagName('b')[0];
-        if (!firstb) {
-            gm.log("Can't get bolded member out of " + item_title.innerHTML.toString());
-            return false;
-        }
-
-        this.questName = $.trim(firstb.innerHTML.toString()).stripHTML();
-        if (!this.questName) {
-            //gm.log('no quest name for this row: ' + div.innerHTML);
-            gm.log('no quest name for this row');
-            return false;
-        }
-
-        return this.questName;
     },
 
     /*------------------------------------------------------------------------------------\
@@ -3838,75 +3888,80 @@ caap = {
     the 'Whenxxxxx' setting and the message div name.
     \------------------------------------------------------------------------------------*/
     CheckEnergy: function (energy, condition, msgdiv) {
-        if (!this.stats.energy || !energy) {
+        try {
+            if (!this.stats.energy || !energy) {
+                return false;
+            }
+
+            if (condition == 'Energy Available' || condition == 'Not Fortifying') {
+                if (this.stats.energy.num >= energy) {
+                    return true;
+                }
+
+                if (msgdiv) {
+                    this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
+                }
+            } else if (condition == 'At X Energy') {
+                if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
+                    if (msgdiv) {
+                        this.SetDivContent(msgdiv, 'Burning all energy to level up');
+                    }
+
+                    return true;
+                }
+
+                if ((this.stats.energy.num >= gm.getValue('XQuestEnergy', 1)) && (this.stats.energy.num >= energy)) {
+                    return true;
+                }
+
+                if ((this.stats.energy.num >= gm.getValue('XMinQuestEnergy', 0)) && (this.stats.energy.num >= energy)) {
+                    return true;
+                }
+
+                var whichEnergy = gm.getValue('XQuestEnergy', 1);
+                if (energy > whichEnergy) {
+                    whichEnergy = energy;
+                }
+
+                if (msgdiv) {
+                    this.SetDivContent(msgdiv, 'Waiting for more energy:' + this.stats.energy.num + "/" + whichEnergy);
+                }
+            } else if (condition == 'At Max Energy') {
+                if (!gm.getValue('MaxIdleEnergy', 0)) {
+                    gm.log("Changing to idle general to get Max energy");
+                    this.PassiveGeneral();
+                }
+
+                if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) {
+                    return true;
+                }
+
+                if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
+                    if (msgdiv) {
+                        this.SetDivContent(msgdiv, 'Burning all energy to level up');
+                    }
+
+                    return true;
+                }
+
+                if (msgdiv) {
+                    this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
+                }
+            }
+
+            return false;
+        } catch (err) {
+            gm.log("ERROR in CheckEnergy: " + err);
             return false;
         }
-
-        if (condition == 'Energy Available' || condition == 'Not Fortifying') {
-            if (this.stats.energy.num >= energy) {
-                return true;
-            }
-
-            if (msgdiv) {
-                this.SetDivContent(msgdiv, 'Waiting for more energy: ' + this.stats.energy.num + "/" + (energy ? energy : ""));
-            }
-        } else if (condition == 'At X Energy') {
-            if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
-                if (msgdiv) {
-                    this.SetDivContent(msgdiv, 'Burning all energy to level up');
-                }
-
-                return true;
-            }
-
-            if ((this.stats.energy.num >= gm.getValue('XQuestEnergy', 1)) && (this.stats.energy.num >= energy)) {
-                return true;
-            }
-
-            if ((this.stats.energy.num >= gm.getValue('XMinQuestEnergy', 0)) && (this.stats.energy.num >= energy)) {
-                return true;
-            }
-
-            var whichEnergy = gm.getValue('XMinQuestEnergy', 0);
-            if (energy > whichEnergy) {
-                whichEnergy = energy;
-            }
-
-            if (msgdiv) {
-                this.SetDivContent(msgdiv, 'Waiting for more energy:' + this.stats.energy.num + "/" + whichEnergy);
-            }
-        } else if (condition == 'At Max Energy') {
-            if (!gm.getValue('MaxIdleEnergy', 0)) {
-                gm.log("Changing to idle general to get Max energy");
-                this.PassiveGeneral();
-            }
-
-            if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) {
-                return true;
-            }
-
-            if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
-                if (msgdiv) {
-                    this.SetDivContent(msgdiv, 'Burning all energy to level up');
-                }
-
-                return true;
-            }
-
-            if (msgdiv) {
-                this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
-            }
-        }
-
-        return false;
     },
 
     AddLabelListener: function (element, type, listener, usecapture) {
         try {
             element.addEventListener(type, this[listener], usecapture);
             return true;
-        } catch (e) {
-            gm.log("ERROR in AddLabelListener: " + e);
+        } catch (err) {
+            gm.log("ERROR in AddLabelListener: " + err);
             return false;
         }
     },
@@ -3965,11 +4020,15 @@ caap = {
                 gm.log('Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
                 caap.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
             } else if (caap.CheckForImage('tab_atlantis_on.gif')) {
-                gm.log('Seting Quest Area to Atlantis');
                 gm.setValue('QuestArea', 'Atlantis');
-                gm.deleteValue('QuestSubArea');
-                caap.SelectDropOption('QuestArea', 'Atlantis');
-                caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
+                caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
+                // Set Sub Quest Area
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'monster_quests_stage_1')) {
+                    gm.setValue('QuestSubArea', 'Atlantis');
+                }
+
+                gm.log('Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
+                caap.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
             }
 
             caap.ShowAutoQuest();
@@ -5444,7 +5503,10 @@ caap = {
             siege : 6,
             siegeClicks : [10, 20, 50, 100, 200, 300],
             siegeDam : [1340000, 2680000, 5360000, 14700000, 28200000, 37520000],
-            siege_img : '/graphics/monster_siege_small'
+            siege_img : '/graphics/monster_siege_small',
+            staUse : 5,
+            staLvl : [0, 100, 200, 500],
+            staMax : [5, 10, 20, 50]
     /*
             , levels : {
             'Levels 90+'   : caap.group('90+: '  ,30),
