@@ -2264,7 +2264,6 @@ caap = {
 
                     if (idName == 'WhenQuest') {
                         caap.SetDisplay(idName + 'XEnergy', (value == 'At X Energy'));
-                        gm.deleteValue('XEnergyBurn');
                     }
                 } else if (idName == 'QuestArea' || idName == 'QuestSubArea' || idName == 'WhyQuest') {
                     gm.setValue('AutoQuest', '');
@@ -3213,7 +3212,7 @@ caap = {
             gm.log("Searching for quest");
         } else {
             var energyCheck = this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), gm.getValue('WhenQuest', 'Never'), 'quest_mess');
-            if (!energyCheck || !gm.getValue('XEnergyBurn', false)) {
+            if (!energyCheck) {
                 return false;
             }
         }
@@ -3854,26 +3853,27 @@ caap = {
         } else if (condition == 'At X Energy') {
             if (this.InLevelUpMode() && this.stats.energy.num >= energy) {
                 if (msgdiv) {
-                    gm.setValue('XEnergyBurn', false);
                     this.SetDivContent(msgdiv, 'Burning all energy to level up');
                 }
 
                 return true;
             }
 
-            if (this.stats.energy.num >= gm.getValue('XQuestEnergy')) {
-                gm.setValue('XEnergyBurn', true);
+            if ((this.stats.energy.num >= gm.getValue('XQuestEnergy', 1)) && (this.stats.energy.num >= energy)) {
                 return true;
             }
 
-            if (this.stats.energy.num <= gm.getValue('XMinQuestEnergy')) {
-                gm.setValue('XEnergyBurn', false);
-            } else {
+            if ((this.stats.energy.num >= gm.getValue('XMinQuestEnergy', 0)) && (this.stats.energy.num >= energy)) {
                 return true;
+            }
+
+            var whichEnergy = gm.getValue('XMinQuestEnergy', 0);
+            if (energy > whichEnergy) {
+                whichEnergy = energy;
             }
 
             if (msgdiv) {
-                this.SetDivContent(msgdiv, 'Waiting for more energy:' + this.stats.energy.num + "/" + gm.getValue('XQuestEnergy'));
+                this.SetDivContent(msgdiv, 'Waiting for more energy:' + this.stats.energy.num + "/" + whichEnergy);
             }
         } else if (condition == 'At Max Energy') {
             if (!gm.getValue('MaxIdleEnergy', 0)) {
@@ -6128,7 +6128,11 @@ caap = {
             } else {
                 gm.log('Monster is dead or fled');
                 gm.setListObjVal('monsterOl', monster, 'color', 'grey');
-                gm.setListObjVal('monsterOl', monster, 'status', "Dead or Fled");
+                var dofCheck = gm.getListObjVal('monsterOl', monster, 'status');
+                if (dofCheck != 'Complete' && dofCheck != 'Collect Reward') {
+                    gm.setListObjVal('monsterOl', monster, 'status', "Dead or Fled");
+                }
+
                 gm.setValue('resetselectMonster', true);
                 return;
             }
@@ -6461,6 +6465,10 @@ caap = {
 
                             if (gm.getValue('MonsterGeneral') == 'Orc King') {
                                 gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 5);
+                            }
+
+                            if (gm.getValue('MonsterGeneral') == 'Barbarus') {
+                                gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq') * 3);
                             }
                         } else {
                             // Switch RaidPowerAttack
