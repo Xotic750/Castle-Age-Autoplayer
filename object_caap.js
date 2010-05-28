@@ -640,9 +640,14 @@ caap = {
             for (var item in dropDownList) {
                 if (dropDownList.hasOwnProperty(item)) {
                     if (instructions) {
-                        htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" + dropDownList[item] + "</option>";
+                        htmlCode += "<option value='" + dropDownList[item] +
+                            "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') +
+                            ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" +
+                            dropDownList[item] + "</option>";
                     } else {
-                        htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ">" + dropDownList[item] + "</option>";
+                        htmlCode += "<option value='" + dropDownList[item] +
+                            "'" + ((selectedItem == dropDownList[item]) ? " selected='selected'" : '') + ">" +
+                            dropDownList[item] + "</option>";
                     }
                 }
             }
@@ -1062,17 +1067,25 @@ caap = {
 
     AddControl: function () {
         try {
-            var caapDiv = "<div id='caap_div'>";
-            for (var divID in this.divList) {
+            var caapDiv = "<div id='caap_div'>",
+                divID = 0,
+                styleXY = {
+                    x: 0,
+                    y: 0
+                },
+                htmlCode = '',
+                banner = '';
+
+            for (divID in this.divList) {
                 if (this.divList.hasOwnProperty(divID)) {
                     caapDiv += "<div id='caap_" + this.divList[divID] + "'></div>";
                 }
             }
-            caapDiv += "</div>";
 
+            caapDiv += "</div>";
             this.controlXY.x = gm.getValue('caap_div_menuLeft', '');
             this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
-            var styleXY = this.GetControlXY();
+            styleXY = this.GetControlXY();
             $(caapDiv).css({
                 width: '180px',
                 background: gm.getValue('StyleBackgroundLight', '#E0C691'),
@@ -1088,565 +1101,24 @@ caap = {
 
             this.caapDivObject = $("#caap_div");
 
-            var htmlCode = '';
-            if (global.is_chrome) {
-                htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
-            }
-
-            htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause', 'block') + "'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div>";
-            var autoRunInstructions = "Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.";
-            htmlCode += "<hr /><table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Disable Autoplayer", 'Disabled', false, '', autoRunInstructions) + '</table>';
-            var bankInstructions0 = "Minimum cash to keep in the bank. Press tab to save";
-            var bankInstructions1 = "Minimum cash to have on hand, press tab to save";
-            var bankInstructions2 = "Maximum cash to have on hand, bank anything above this, press tab to save (leave blank to disable).";
-            var healthInstructions = "Minimum health to have before healing, press tab to save (leave blank to disable).";
-            var healthStamInstructions = "Minimum Stamina to have before healing, press tab to save (leave blank to disable).";
-            var bankImmedInstructions = "Bank as soon as possible. May interrupt player and monster battles.";
-            var autobuyInstructions = "Automatically buy lands in groups of 10 based on best Return On Investment value.";
-            var autosellInstructions = "Automatically sell off any excess lands above your level allowance.";
-            htmlCode += '<hr />' + this.ToggleControl('CashandHealth', 'CASH and HEALTH');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Bank Immediately", 'BankImmed', false, '', bankImmedInstructions);
-            htmlCode += this.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, '', autobuyInstructions);
-            htmlCode += this.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, '', autosellInstructions) + '</table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Keep In Bank</td><td style='text-align: right'>$" + this.MakeNumberForm('minInStore', bankInstructions0, 100000, "type='text' size='12' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Bank Above</td><td style='text-align: right'>$" + this.MakeNumberForm('MaxInCash', bankInstructions2, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr>";
-            htmlCode += "<tr><td style='padding-left: 10px'>But Keep On Hand</td><td style='text-align: right'>$" + this.MakeNumberForm('MinInCash', bankInstructions1, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Heal If Health Below</td><td style='text-align: right'>" + this.MakeNumberForm('MinToHeal', healthInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + "</td></tr>";
-            htmlCode += "<tr><td style='padding-left: 10px'>But Not If Stamina Below</td><td style='text-align: right'>" + this.MakeNumberForm('MinStamToHeal', healthStamInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "<hr/></div>";
-
-            var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.";
-            htmlCode += this.ToggleControl('Quests', 'QUEST');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest', false) != 'Never' ? 'block' : 'none') + "'>";
-
-
-            var XQuestInstructions = "(EXPERIMENTAL) Start questing when energy is at or above this value.";
-            var XMinQuestInstructions = "(EXPERIMENTAL) Stop quest when energy is at or below this value.";
-            htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (gm.getValue('WhenQuest', false) != 'At X Energy' ? 'none' : 'block') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Start At Or Above Energy</td><td style='text-align: right'>" + this.MakeNumberForm('XQuestEnergy', XQuestInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Stop At Or Below Energy</td><td style='text-align: right'>" + this.MakeNumberForm('XMinQuestEnergy', XMinQuestInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-
-
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', this.questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-            switch (gm.getValue('QuestArea', this.questAreaList[0])) {
-            case 'Quest' :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-                break;
-            case 'Demi Quests' :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-                break;
-            default :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-                break;
-            }
-
-            htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', this.questForList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', false, '', 'Allows switching quest area after Advancement or Max Influence');
-            htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
-            htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
-            htmlCode += "</div>";
-            var autoQuestName = gm.getObjVal('AutoQuest', 'name');
-            if (autoQuestName) {
-                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")" + "</a>";
-            } else {
-                htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;'></a>";
-            }
-            htmlCode += "<hr/></div>";
-
-            var XBattleInstructions = "Start battling if stamina is above this points";
-            var XMinBattleInstructions = "Don't battle if stamina is below this points";
-            var userIdInstructions = "User IDs(not user name).  Click with the " +
-                "right mouse button on the link to the users profile & copy link." +
-                "  Then paste it here and remove everything but the last numbers." +
-                " (ie. 123456789)";
-            var chainBPInstructions = "Number of battle points won to initiate a " +
-                "chain attack. Specify 0 to always chain attack.";
-            var chainGoldInstructions = "Amount of gold won to initiate a chain " +
-                "attack. Specify 0 to always chain attack.";
-            var FMRankInstructions = "The lowest relative rank below yours that " +
-                "you are willing to spend your stamina on. Leave blank to attack " +
-                "any rank.";
-            var FMARBaseInstructions = "This value sets the base for your army " +
-                "ratio calculation. It is basically a multiplier for the army " +
-                "size of a player at your equal level. A value of 1 means you " +
-                "will battle an opponent the same level as you with an army the " +
-                "same size as you or less. Default .5";
-            var dontbattleInstructions = "Remember an opponents id after a loss " +
-                "and don't battle him again";
-            var plusonekillsInstructions = "Force +1 kill scenario if 80% or more" +
-                " of targets are withn freshmeat settings. Note: Since Castle Age" +
-                " choses the target, selecting this option could result in a " +
-                "greater chance of loss.";
-            var raidOrderInstructions = "List of search words that decide which " +
-                "raids to participate in first.  Use words in player name or in " +
-                "raid name. To specify max damage follow keyword with :max token " +
-                "and specifiy max damage values. Use 'k' and 'm' suffixes for " +
-                "thousand and million.";
-            var ignorebattlelossInstructions = "Ignore battle losses and attack " +
-                "regardless.  This will also delete all battle loss records.";
-            htmlCode += this.ToggleControl('Battling', 'BATTLE');
-            var battleList = [
-                'Stamina Available',
-                'At Max Stamina',
-                'At X Stamina',
-                'No Monster',
-                'Stay Hidden',
-                'Never'
-            ];
-            var battleInst = [
-                'Stamina Available will battle whenever you have enough stamina',
-                'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
-                'At X Stamina you can set maximum and minimum stamina to battle',
-                'No Monster will battle only when there are no active monster battles',
-                'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER OR ARENA TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                'Never - disables player battles'
-            ];
-            var typeList = [
-                'Invade',
-                'Duel'
-            ];
-            var typeInst = [
-                'Battle using Invade button',
-                'Battle using Duel button - no guarentee you will win though'
-            ];
-            var targetList = [
-                'Freshmeat',
-                'Userid List',
-                'Raid',
-                'Arena'
-            ];
-            var targetInst = [
-                'Use settings to select a target from the Battle Page',
-                'Select target from the supplied list of userids',
-                'Raid Battles'
-            ];
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('WhenMonster', false) != 'Stay Hidden' ? 'block' : 'none') + "'>";
-            htmlCode += "<font color='red'><b>Warning: Monster Not Set To 'Stay Hidden'</b></font>";
-            htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenBattleStayHidden2' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None' ? 'block' : 'none') + "'>";
-            htmlCode += "<font color='red'><b>Warning: Arena Must Have 'Hide Using' Active To Support Hiding</b></font>";
-            htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (gm.getValue('WhenBattle', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Start Battles When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (gm.getValue('WhenBattle', false) != 'Never' ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Battle Type</td><td style='text-align: right; width: 40%'>" + this.MakeDropDown('BattleType', typeList, typeInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '', '');
-            htmlCode += this.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, '', ignorebattlelossInstructions);
-            htmlCode += "<tr><td>Chain:Battle Points Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainBP', chainBPInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td>Chain:Gold Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainGold', chainGoldInstructions, '', "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Target Type</td><td style='text-align: right; width: 50%'>" + this.MakeDropDown('TargetType', targetList, targetInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (gm.getValue('TargetType', false) != 'Userid List' ? 'block' : 'none') + "'>";
-            htmlCode += "Attack targets that are:";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" + this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" + this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-            htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
-            htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
-            htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3' cols='25'");
-            htmlCode += "</div>";
-            var goalList = [
-                '',
-                'Swordsman',
-                'Warrior',
-                'Gladiator',
-                'Hero',
-                'Legend'
-            ];
-            typeList = [
-                'None',
-                'Freshmeat',
-                'Raid'
-            ];
-            typeInst = [
-                'Never switch from battling in the Arena',
-                'Switch fom Arena to fresmeat battles to reduce health below specifed level',
-                'Switch fom Arena to raid battles to reduce health below specifed level'
-            ];
-            var ArenaHealthInstructions = "If your health is below this value, " +
-                "you will continue to stay in the Arena. If your health is above " +
-                "this level, your stamina will be checked to see if it is above " +
-                "the stamina threshold to stay in the Arena.";
-            var ArenaStaminaInstructions = "If your stamina is above this value, " +
-                "you will continue to stay in the Arena. If your stamina is " +
-                "below this level, your health will be checked to see if it is " +
-                "below the health thershold for you to stay in the Arena. ";
-            htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Maintain Rank</td><td style='text-align: right; width : 50%'>" + this.MakeDropDown('ArenaGoal', goalList, '', "style='font-size: 10px; width : 100%'") + '</td></tr>';
-            htmlCode += "<tr><td>Hide Using</td><td style='text-align: right; width : 50%'>" + this.MakeDropDown('ArenaHide', typeList, typeInst, "style='font-size: 10px; width : 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Arena If Health Below</td><td style='text-align: right'>" + this.MakeNumberForm('ArenaMaxHealth', ArenaHealthInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'><b>OR</b></td><td></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Arena If Stamina Above</td><td style='text-align: right'>" + this.MakeNumberForm('ArenaMinStamina', ArenaStaminaInstructions, "35", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-            htmlCode += "</div>";
-            htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
-            htmlCode += this.MakeListBox('BattleTargets', userIdInstructions, " rows='3' cols='25'");
-            htmlCode += "</div>";
-            htmlCode += "</div>";
-            htmlCode += "<hr/></div>";
-
-            var XMonsterInstructions = "Start attacking if stamina is above this points";
-            var XMinMonsterInstructions = "Don't attack if stamina is below this points";
-            var attackOrderInstructions = "List of search words that decide which monster to attack first.  Use words in player name or in monster name. To specify max damage follow keyword with :max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. To override achievement use the ach: token and specify damage values.";
-            var fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)";
-            var questFortifyInstructions = "Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)";
-            var stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)";
-            var monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.";
-            var demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling.";
-            var powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible";
-            var powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible";
-            var powerfortifyMaxInstructions = "(EXPERIMENTAL) Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible";
-            var dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.";
-            htmlCode += this.ToggleControl('Monster', 'MONSTER');
-            var mbattleList = [
-                'Stamina Available',
-                'At Max Stamina',
-                'At X Stamina',
-                'Stay Hidden',
-                'Never'
-            ];
-            var mbattleInst = [
-                'Stamina Available will attack whenever you have enough stamina',
-                'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
-                'At X Stamina you can set maximum and minimum stamina to battle',
-                'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                'Never - disables attacking monsters'
-            ];
-            var monsterDelayInstructions = "Max random delay to battle monsters";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (gm.getValue('WhenMonster', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Battle When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMonsterStamina', XMonsterInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMinMonsterStamina', XMinMonsterInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (gm.getValue('WhenMonster', false) != 'Never' ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "type='text' size='4' style='font-size: 10px; text-align: right'") + "</td></tr>";
-            htmlCode += this.MakeCheckTR("Power Attack Only", 'PowerAttack', true, 'PowerAttack_Adv', powerattackInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Power Attack Max", 'PowerAttackMax', false, '', powerattackMaxInstructions) + "</table>";
-            htmlCode += "</div>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, '', powerfortifyMaxInstructions);
-            htmlCode += this.MakeCheckTR("Siege weapon assist", 'DoSiege', true, '', dosiegeInstructions);
-            htmlCode += this.MakeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '', '');
-            htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
-            htmlCode += this.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
-
-            var demiPoint = [
-                'Ambrosia',
-                'Malekus',
-                'Corvintheus',
-                'Aurora',
-                'Azeron'
-            ];
-
-            var demiPtList = [
-                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg" height="15" width="14"/>',
-                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg" height="15" width="14"/>',
-                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg" height="15" width="14"/>',
-                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg" height="15" width="14"/>',
-                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg" height="15" width="14"/>'
-            ];
-
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            for (var demiPtItem in demiPtList) {
-                if (demiPtList.hasOwnProperty(demiPtItem)) {
-                    htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
-                }
-            }
-
-            htmlCode += "</table>";
-            htmlCode += "</div>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Fortify If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MaxToFortify', fortifyInstructions, 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Quest If Percentage Over</td><td style='text-align: right'>" + this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
-            htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, " rows='3' cols='25'");
-            htmlCode += "</div>";
-            htmlCode += "<hr/></div>";
-
-            // Monster finder controls
-            var monsterFinderInstructions = "When monsters are over max damage, use Monster Finder?";
-            var monsterFinderStamInstructions = "Don't find new monster if stamina under this amount";
-            var monsterFinderFeedMinInstructions = "Wait at least this many minutes before checking the Castle Age feed (in Facebook) (Max 120)";
-            var monsterFinderFeedMaxInstructions = "If this much time has passed, always Castle Age feed (in Facebook) (argument is in minutes)";
-            var monsterFinderOrderInstructions = "List of search words that decide which monster to attack first.  Can be names or monster types.";
-            htmlCode += this.ToggleControl('MonsterFinder', 'MONSTER FINDER');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Use Monster Finder", 'MonsterFinderUse', false, 'MonsterFinderUse_Adv', monsterFinderInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Monster Find Min Stam</td><td style='text-align: right'>" + this.MakeNumberForm('MonsterFinderMinStam', monsterFinderStamInstructions, 50, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td>Min-Check Feed (minutes)</td><td style='text-align: right'>" + this.MakeNumberForm('MonsterFinderFeedMin', monsterFinderFeedMinInstructions, 15, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "Find Monster Priority <a href='http://senses.ws/caap/index.php?topic=66.0' target='_blank'><font color='red'>?</font></a>";
-            htmlCode += this.MakeTextBox('MonsterFinderOrder', monsterFinderOrderInstructions, " rows='3' cols='25'");
-            htmlCode += "</div>";
-            htmlCode += "<hr/></div>";
-
-            // Recon Controls
-            var PReconInstructions = "Enable player battle reconnaissance to run " +
-                "as an idle background task. Battle targets will be collected and" +
-                " can be displayed using the 'Target List' selection on the " +
-                "dashboard.";
-            var PRRankInstructions = "Provide the number of ranks below you which" +
-                " recon will use to filter targets. This value will be subtracted" +
-                " from your rank to establish the minimum rank that recon will " +
-                "consider as a viable target. Default 3.";
-            var PRLevelInstructions = "Provide the number of levels above you " +
-                "which recon will use to filter targets. This value will be added" +
-                " to your level to establish the maximum level that recon will " +
-                "consider as a viable target. Default 10.";
-            var PRARBaseInstructions = "This value sets the base for your army " +
-                "ratio calculation. It is basically a multiplier for the army " +
-                "size of a player at your equal level. For example, a value of " +
-                ".5 means you will battle an opponent the same level as you with " +
-                "an army half the size of your army or less. Default 1.";
-            htmlCode += this.ToggleControl('Recon', 'RECON');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, 'PlayerReconControl', PReconInstructions, true);
-            htmlCode += 'Find battle targets that are:';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" + this.MakeNumberForm('ReconPlayerRank', PRRankInstructions, '3', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than Level Plus</td><td style='text-align: right'>" + this.MakeNumberForm('ReconPlayerLevel', PRLevelInstructions, '10', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" + this.MakeNumberForm('ReconPlayerARBase', PRARBaseInstructions, '1', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-            htmlCode += "<hr/></div>";
-
-            // Add General Comboboxes
-            this.BuildGeneralLists();
-            var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up";
-            var ignoreGeneralImage = "(EXPERIMENTAL) This will prevent the script " +
-                "from changing your selected General to 'Use Current' if the script " +
-                "is unable to find the General's image when changing activities. " +
-                "Instead it will use the current General for the activity and try " +
-                "to select the correct General again next time.";
-            htmlCode += this.ToggleControl('Generals', 'GENERALS');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', false, '', ignoreGeneralImage) + "</table>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            for (var dropDownItem in this.standardGeneralList) {
-                if (this.standardGeneralList.hasOwnProperty(dropDownItem)) {
-                    htmlCode += '<tr><td>' + this.standardGeneralList[dropDownItem] + "</td><td style='text-align: right'>" + this.MakeDropDown(this.standardGeneralList[dropDownItem] + 'General', this.generalList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-                }
-            }
-
-            var LevelUpGenExpInstructions = "Specify the number of experience " +
-                "points below the next level up to begin using the level up general.";
-            var LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.";
-            var LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.";
-            var LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.";
-            var LevelUpGenInstructions4 = "Use the Level Up General for Battle mode.";
-            var LevelUpGenInstructions5 = "Use the Level Up General for doing sub-quests.";
-            var LevelUpGenInstructions6 = "Use the Level Up General for doing primary quests " +
-                "(Warning: May cause you not to gain influence if wrong general is equipped.)";
-            htmlCode += "<tr><td>Buy</td><td style='text-align: right'>" + this.MakeDropDown('BuyGeneral', this.generalBuyList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-            htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + this.MakeDropDown('IncomeGeneral', this.generalIncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-            htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + this.MakeDropDown('BankingGeneral', this.generalBankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-            htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', this.generalList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (gm.getValue('LevelUpGeneral', false) != 'Use Current' ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Exp To Use LevelUp Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += this.MakeCheckTR("Level Up Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
-            htmlCode += this.MakeCheckTR("Level Up Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions5);
-            htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', true, '', LevelUpGenInstructions6);
-            htmlCode += "</table></div>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, '', reverseGenInstructions) + "</table>";
-            htmlCode += "<hr/></div>";
-
-            var statusInstructions = "Automatically increase attributes when " +
-                "upgrade skill points are available.";
-            var statusAdvInstructions = "USE WITH CAUTION: You can use numbers or " +
-                "formulas(ie. level * 2 + 10). Variable keywords include energy, " +
-                "health, stamina, attack, defense, and level. JS functions can be " +
-                "used (Math.min, Math.max, etc) !!!Remember your math class: " +
-                "'level + 20' not equals 'level * 2 + 10'!!!";
-            var statImmedInstructions = "Update Stats Immediately";
-            var attrList = [
-                '',
-                'Energy',
-                'Attack',
-                'Defense',
-                'Stamina',
-                'Health'
-            ];
-            htmlCode += this.ToggleControl('Status', 'UPGRADE SKILL POINTS');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, 'AutoStat_Adv', statusInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, '', statImmedInstructions);
-            htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
-            htmlCode += "<div id='caap_Status_Normal' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'none' : 'block') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue0', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" + this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
-            htmlCode += "</div>";
-            htmlCode += "<div id='caap_Status_Adv' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute6', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue6', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute7', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue7', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute8', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue8', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
-            htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" + this.MakeDropDown('Attribute9', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue9', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr></table>";
-            htmlCode += "</div>";
-            htmlCode += "</table></div>";
-            htmlCode += "<hr/></div>";
-
-            // Other controls
-            var giftInstructions = "Automatically receive and send return gifts.";
-            var timeInstructions = "Use 24 hour format for displayed times.";
-            var titleInstructions0 = "Set the title bar.";
-            var titleInstructions1 = "Add the current action.";
-            var titleInstructions2 = "Add the player name.";
-            var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.";
-            var hideAdsInstructions = "Hides the sidebar adverts.";
-            var autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
-                "that do not have missing ingredients. By default, it will not " +
-                "combine Battle Hearts recipes.";
-            var autoAlchemyInstructions2 = "If for some reason you do not want " +
-                "to skip Battle Hearts";
-            var autoPotionsInstructions0 = "Enable or disable the auto consumption " +
-                "of energy and stamina potions.";
-            var autoPotionsInstructions1 = "Number of stamina potions at which to " +
-                "begin consuming.";
-            var autoPotionsInstructions2 = "Number of stamina potions to keep.";
-            var autoPotionsInstructions3 = "Number of energy potions at which to " +
-                "begin consuming.";
-            var autoPotionsInstructions4 = "Number of energy potions to keep.";
-            var autoPotionsInstructions5 = "Do not consume potions if the " +
-                "experience points to the next level are within this value.";
-            var autoEliteInstructions = "Enable or disable Auto Elite function";
-            var autoEliteIgnoreInstructions = "Use this option if you have a small " +
-                "army and are unable to fill all 10 Elite positions. This prevents " +
-                "the script from checking for any empty places and will cause " +
-                "Auto Elite to run on its timer only.";
-            var bannerInstructions = "Uncheck if you wish to hide the CAAP banner.";
-            htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
-            var giftChoiceList = [
-                'Same Gift As Received',
-                'Random Gift'
-            ];
-            giftChoiceList = giftChoiceList.concat(gm.getList('GiftList'));
-            giftChoiceList.push('Get Gift List');
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
-            htmlCode += this.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, '', timeInstructions);
-            htmlCode += this.MakeCheckTR('Set Title', 'SetTitle', false, 'SetTitle_Adv', titleInstructions0, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Display Action', 'SetTitleAction', false, '', titleInstructions1);
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Display Name', 'SetTitleName', false, '', titleInstructions2) + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
-            htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', true, '', autoCollectMAInstructions);
-            htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
-            htmlCode += '</div>';
-
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" + this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" + this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" + this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += '</div>';
-
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', true, 'AutoEliteControl', autoEliteInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
-            htmlCode += '<tr><td>' + this.MakeListBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", " rows='3' cols='25'") + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; padding-left: 10px'>Give</td><td style='text-align: right'>" + this.MakeDropDown('GiftChoice', giftChoiceList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-            var autoBlessList = [
-                'None',
-                'Energy',
-                'Attack',
-                'Defense',
-                'Stamina',
-                'Health'
-            ];
-            htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" + this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-            var styleList = [
-                'CA Skin',
-                'Original',
-                'Custom',
-                'None'
-            ];
-            htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" + this.MakeDropDown('DisplayStyle', styleList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (gm.getValue('DisplayStyle', false) == 'Custom' ? 'block' : 'none') + "'>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundLight', 'FFF or FFFFFF', '#E0C691', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', '1', "type='text' size='5' style='vertical-align: middle; font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
-            htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" + this.MakeNumberForm('StyleBackgroundDark', 'FFF or FFFFFF', '#B09060', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" + this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', '1', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "</div>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-            htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' /></td></tr></table>";
-            htmlCode += '</div>';
-            htmlCode += "<hr/></div>";
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td><td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-            if (global.newVersionAvailable) {
-                htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
-            }
-
-            var banner = "<div id='caap_BannerHide' style='display: " + (gm.getValue('BannerDisplay', true) ? 'block' : 'none') + "'>";
+            banner += "<div id='caap_BannerHide' style='display: " + (gm.getValue('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.png' alt='Castle Age Auto Player' /><br /><hr /></div>";
             this.SetDivContent('banner', banner);
 
+            htmlCode += this.AddPauseMenu();
+            htmlCode += this.AddDisableMenu();
+            htmlCode += this.AddCashHealthMenu();
+            htmlCode += this.AddQuestMenu();
+            htmlCode += this.AddBattleMenu();
+            htmlCode += this.AddMonsterMenu();
+            htmlCode += this.AddMonsterFinderMenu();
+            htmlCode += this.AddReconMenu();
+            htmlCode += this.AddGeneralsMenu();
+            htmlCode += this.AddSkillPointsMenu();
+            htmlCode += this.AddOtherOptionsMenu();
+            htmlCode += this.AddFooterMenu();
             this.SetDivContent('control', htmlCode);
+
             this.CheckLastAction(gm.getValue('LastAction', 'none'));
             $("#caap_resetElite").button();
             $("#caap_StartedColourSelect").button();
@@ -1658,6 +1130,668 @@ caap = {
             gm.log("ERROR in AddControl: " + err);
             return false;
         }
+    },
+
+    AddPauseMenu: function () {
+        var htmlCode = '';
+        if (global.is_chrome) {
+            htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
+        }
+
+        htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause', 'block') + "'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />";
+        return htmlCode;
+    },
+
+    AddDisableMenu: function () {
+        var autoRunInstructions = "Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.",
+            htmlCode = '';
+
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Disable Autoplayer", 'Disabled', false, '', autoRunInstructions) + '</table><hr />';
+        return htmlCode;
+    },
+
+    AddCashHealthMenu: function () {
+        var bankInstructions0 = "Minimum cash to keep in the bank. Press tab to save",
+            bankInstructions1 = "Minimum cash to have on hand, press tab to save",
+            bankInstructions2 = "Maximum cash to have on hand, bank anything above this, press tab to save (leave blank to disable).",
+            healthInstructions = "Minimum health to have before healing, press tab to save (leave blank to disable).",
+            healthStamInstructions = "Minimum Stamina to have before healing, press tab to save (leave blank to disable).",
+            bankImmedInstructions = "Bank as soon as possible. May interrupt player and monster battles.",
+            autobuyInstructions = "Automatically buy lands in groups of 10 based on best Return On Investment value.",
+            autosellInstructions = "Automatically sell off any excess lands above your level allowance.",
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('CashandHealth', 'CASH and HEALTH');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Bank Immediately", 'BankImmed', false, '', bankImmedInstructions);
+        htmlCode += this.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, '', autobuyInstructions);
+        htmlCode += this.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, '', autosellInstructions) + '</table>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Keep In Bank</td><td style='text-align: right'>$" + this.MakeNumberForm('minInStore', bankInstructions0, 100000, "type='text' size='12' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Bank Above</td><td style='text-align: right'>$" + this.MakeNumberForm('MaxInCash', bankInstructions2, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr>";
+        htmlCode += "<tr><td style='padding-left: 10px'>But Keep On Hand</td><td style='text-align: right'>$" +
+            this.MakeNumberForm('MinInCash', bankInstructions1, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Heal If Health Below</td><td style='text-align: right'>" + this.MakeNumberForm('MinToHeal', healthInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + "</td></tr>";
+        htmlCode += "<tr><td style='padding-left: 10px'>But Not If Stamina Below</td><td style='text-align: right'>" +
+            this.MakeNumberForm('MinStamToHeal', healthStamInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddQuestMenu: function () {
+        var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.",
+            XQuestInstructions = "(EXPERIMENTAL) Start questing when energy is at or above this value.",
+            XMinQuestInstructions = "(EXPERIMENTAL) Stop quest when energy is at or below this value.",
+            autoQuestName = gm.getObjVal('AutoQuest', 'name'),
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('Quests', 'QUEST');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest', false) != 'Never' ? 'block' : 'none') + "'>";
+        htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (gm.getValue('WhenQuest', false) != 'At X Energy' ? 'none' : 'block') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Start At Or Above Energy</td><td style='text-align: right'>" + this.MakeNumberForm('XQuestEnergy', XQuestInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Stop At Or Below Energy</td><td style='text-align: right'>" +
+            this.MakeNumberForm('XMinQuestEnergy', XMinQuestInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', this.questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+        switch (gm.getValue('QuestArea', this.questAreaList[0])) {
+        case 'Quest' :
+            htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
+                this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            break;
+        case 'Demi Quests' :
+            htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
+                this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            break;
+        default :
+            htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
+                this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            break;
+        }
+
+        htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', this.questForList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', false, '', 'Allows switching quest area after Advancement or Max Influence');
+        htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
+        htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
+        htmlCode += "</div>";
+        if (autoQuestName) {
+            htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")" + "</a>";
+        } else {
+            htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;'></a>";
+        }
+
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddBattleMenu: function () {
+        var XBattleInstructions = "Start battling if stamina is above this points",
+            XMinBattleInstructions = "Don't battle if stamina is below this points",
+            userIdInstructions = "User IDs(not user name).  Click with the " +
+                "right mouse button on the link to the users profile & copy link." +
+                "  Then paste it here and remove everything but the last numbers." +
+                " (ie. 123456789)",
+            chainBPInstructions = "Number of battle points won to initiate a " +
+                "chain attack. Specify 0 to always chain attack.",
+            chainGoldInstructions = "Amount of gold won to initiate a chain " +
+                "attack. Specify 0 to always chain attack.",
+            FMRankInstructions = "The lowest relative rank below yours that " +
+                "you are willing to spend your stamina on. Leave blank to attack " +
+                "any rank.",
+            FMARBaseInstructions = "This value sets the base for your army " +
+                "ratio calculation. It is basically a multiplier for the army " +
+                "size of a player at your equal level. A value of 1 means you " +
+                "will battle an opponent the same level as you with an army the " +
+                "same size as you or less. Default .5",
+            dontbattleInstructions = "Remember an opponents id after a loss " +
+                "and don't battle him again",
+            plusonekillsInstructions = "Force +1 kill scenario if 80% or more" +
+                " of targets are withn freshmeat settings. Note: Since Castle Age" +
+                " choses the target, selecting this option could result in a " +
+                "greater chance of loss.",
+            raidOrderInstructions = "List of search words that decide which " +
+                "raids to participate in first.  Use words in player name or in " +
+                "raid name. To specify max damage follow keyword with :max token " +
+                "and specifiy max damage values. Use 'k' and 'm' suffixes for " +
+                "thousand and million.",
+            ignorebattlelossInstructions = "Ignore battle losses and attack " +
+                "regardless.  This will also delete all battle loss records.",
+            battleList = [
+                'Stamina Available',
+                'At Max Stamina',
+                'At X Stamina',
+                'No Monster',
+                'Stay Hidden',
+                'Never'
+            ],
+            battleInst = [
+                'Stamina Available will battle whenever you have enough stamina',
+                'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
+                'At X Stamina you can set maximum and minimum stamina to battle',
+                'No Monster will battle only when there are no active monster battles',
+                'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER OR ARENA TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                'Never - disables player battles'
+            ],
+            typeList = [
+                'Invade',
+                'Duel'
+            ],
+            typeInst = [
+                'Battle using Invade button',
+                'Battle using Duel button - no guarentee you will win though'
+            ],
+            targetList = [
+                'Freshmeat',
+                'Userid List',
+                'Raid',
+                'Arena'
+            ],
+            targetInst = [
+                'Use settings to select a target from the Battle Page',
+                'Select target from the supplied list of userids',
+                'Raid Battles'
+            ],
+            goalList = [
+                '',
+                'Swordsman',
+                'Warrior',
+                'Gladiator',
+                'Hero',
+                'Legend'
+            ],
+            typeList2 = [
+                'None',
+                'Freshmeat',
+                'Raid'
+            ],
+            typeInst2 = [
+                'Never switch from battling in the Arena',
+                'Switch fom Arena to fresmeat battles to reduce health below specifed level',
+                'Switch fom Arena to raid battles to reduce health below specifed level'
+            ],
+            ArenaHealthInstructions = "If your health is below this value, " +
+                "you will continue to stay in the Arena. If your health is above " +
+                "this level, your stamina will be checked to see if it is above " +
+                "the stamina threshold to stay in the Arena.",
+            ArenaStaminaInstructions = "If your stamina is above this value, " +
+                "you will continue to stay in the Arena. If your stamina is " +
+                "below this level, your health will be checked to see if it is " +
+                "below the health thershold for you to stay in the Arena. ",
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('Battling', 'BATTLE');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('WhenMonster', false) != 'Stay Hidden' ? 'block' : 'none') + "'>";
+        htmlCode += "<font color='red'><b>Warning: Monster Not Set To 'Stay Hidden'</b></font>";
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_WhenBattleStayHidden2' style='display: " + (gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None' ? 'block' : 'none') + "'>";
+        htmlCode += "<font color='red'><b>Warning: Arena Must Have 'Hide Using' Active To Support Hiding</b></font>";
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (gm.getValue('WhenBattle', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Start Battles When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
+            this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (gm.getValue('WhenBattle', false) != 'Never' ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Battle Type</td><td style='text-align: right; width: 40%'>" + this.MakeDropDown('BattleType', typeList, typeInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '', '');
+        htmlCode += this.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, '', ignorebattlelossInstructions);
+        htmlCode += "<tr><td>Chain:Battle Points Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainBP', chainBPInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td>Chain:Gold Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainGold', chainGoldInstructions, '', "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Target Type</td><td style='text-align: right; width: 50%'>" + this.MakeDropDown('TargetType', targetList, targetInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (gm.getValue('TargetType', false) != 'Userid List' ? 'block' : 'none') + "'>";
+        htmlCode += "Attack targets that are:";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
+            this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" +
+            this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) == 'Raid' ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
+        htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
+        htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3' cols='25'");
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Maintain Rank</td><td style='text-align: right; width : 50%'>" + this.MakeDropDown('ArenaGoal', goalList, '', "style='font-size: 10px; width : 100%'") + '</td></tr>';
+        htmlCode += "<tr><td>Hide Using</td><td style='text-align: right; width : 50%'>" + this.MakeDropDown('ArenaHide', typeList2, typeInst2, "style='font-size: 10px; width : 100%'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_ArenaHSub' style='display: " + (gm.getValue('ArenaHide', false) == 'None' ? 'none' : 'block') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='padding-left: 10px'>Arena If Health Below</td><td style='text-align: right'>" +
+            this.MakeNumberForm('ArenaMaxHealth', ArenaHealthInstructions, "20", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'><b>OR</b></td><td></td></tr>";
+        htmlCode += "<tr><td style='padding-left: 10px'>Arena If Stamina Above</td><td style='text-align: right'>" +
+            this.MakeNumberForm('ArenaMinStamina', ArenaStaminaInstructions, "35", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "</div>";
+        htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
+        htmlCode += this.MakeListBox('BattleTargets', userIdInstructions, " rows='3' cols='25'");
+        htmlCode += "</div>";
+        htmlCode += "</div>";
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddMonsterMenu: function () {
+        var XMonsterInstructions = "Start attacking if stamina is above this points",
+            XMinMonsterInstructions = "Don't attack if stamina is below this points",
+            attackOrderInstructions = "List of search words that decide which monster to attack first. " +
+                "Use words in player name or in monster name. To specify max damage follow keyword with " +
+                ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " +
+                "To override achievement use the ach: token and specify damage values.",
+            fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)",
+            questFortifyInstructions = "Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
+            stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)",
+            monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
+            demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling.",
+            powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
+            powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
+            powerfortifyMaxInstructions = "(EXPERIMENTAL) Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
+            dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.",
+            mbattleList = [
+                'Stamina Available',
+                'At Max Stamina',
+                'At X Stamina',
+                'Stay Hidden',
+                'Never'
+            ],
+            mbattleInst = [
+                'Stamina Available will attack whenever you have enough stamina',
+                'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
+                'At X Stamina you can set maximum and minimum stamina to battle',
+                'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                'Never - disables attacking monsters'
+            ],
+            monsterDelayInstructions = "Max random delay to battle monsters",
+            demiPoint = [
+                'Ambrosia',
+                'Malekus',
+                'Corvintheus',
+                'Aurora',
+                'Azeron'
+            ],
+            demiPtList = [
+                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg" height="15" width="14"/>',
+                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg" height="15" width="14"/>',
+                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg" height="15" width="14"/>',
+                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg" height="15" width="14"/>',
+                '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg" height="15" width="14"/>'
+            ],
+            demiPtItem = 0,
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('Monster', 'MONSTER');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (gm.getValue('WhenMonster', false) != 'At X Stamina' ? 'none' : 'block') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Battle When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMonsterStamina', XMonsterInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
+            this.MakeNumberForm('XMinMonsterStamina', XMinMonsterInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (gm.getValue('WhenMonster', false) != 'Never' ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "type='text' size='4' style='font-size: 10px; text-align: right'") + "</td></tr>";
+        htmlCode += this.MakeCheckTR("Power Attack Only", 'PowerAttack', true, 'PowerAttack_Adv', powerattackInstructions, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Power Attack Max", 'PowerAttackMax', false, '', powerattackMaxInstructions) + "</table>";
+        htmlCode += "</div>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, '', powerfortifyMaxInstructions);
+        htmlCode += this.MakeCheckTR("Siege weapon assist", 'DoSiege', true, '', dosiegeInstructions);
+        htmlCode += this.MakeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '', '');
+        htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
+        htmlCode += this.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        for (demiPtItem in demiPtList) {
+            if (demiPtList.hasOwnProperty(demiPtItem)) {
+                htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
+            }
+        }
+
+        htmlCode += "</table>";
+        htmlCode += "</div>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Fortify If Percentage Under</td><td style='text-align: right'>" +
+            this.MakeNumberForm('MaxToFortify', fortifyInstructions, 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Quest If Percentage Over</td><td style='text-align: right'>" +
+            this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
+        htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, " rows='3' cols='25'");
+        htmlCode += "</div>";
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddMonsterFinderMenu: function () {
+        // Monster finder controls
+        var monsterFinderInstructions = "When monsters are over max damage, use Monster Finder?",
+            monsterFinderStamInstructions = "Don't find new monster if stamina under this amount",
+            monsterFinderFeedMinInstructions = "Wait at least this many minutes before checking the Castle Age feed (in Facebook) (Max 120)",
+            monsterFinderFeedMaxInstructions = "If this much time has passed, always Castle Age feed (in Facebook) (argument is in minutes)",
+            monsterFinderOrderInstructions = "List of search words that decide which monster to attack first.  Can be names or monster types.",
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('MonsterFinder', 'MONSTER FINDER');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Use Monster Finder", 'MonsterFinderUse', false, 'MonsterFinderUse_Adv', monsterFinderInstructions, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Monster Find Min Stam</td><td style='text-align: right'>" +
+            this.MakeNumberForm('MonsterFinderMinStam', monsterFinderStamInstructions, 50, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td>Min-Check Feed (minutes)</td><td style='text-align: right'>" +
+            this.MakeNumberForm('MonsterFinderFeedMin', monsterFinderFeedMinInstructions, 15, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "Find Monster Priority <a href='http://senses.ws/caap/index.php?topic=66.0' target='_blank'><font color='red'>?</font></a>";
+        htmlCode += this.MakeTextBox('MonsterFinderOrder', monsterFinderOrderInstructions, " rows='3' cols='25'");
+        htmlCode += "</div>";
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddReconMenu: function () {
+        // Recon Controls
+        var PReconInstructions = "Enable player battle reconnaissance to run " +
+                "as an idle background task. Battle targets will be collected and" +
+                " can be displayed using the 'Target List' selection on the " +
+                "dashboard.",
+            PRRankInstructions = "Provide the number of ranks below you which" +
+                " recon will use to filter targets. This value will be subtracted" +
+                " from your rank to establish the minimum rank that recon will " +
+                "consider as a viable target. Default 3.",
+            PRLevelInstructions = "Provide the number of levels above you " +
+                "which recon will use to filter targets. This value will be added" +
+                " to your level to establish the maximum level that recon will " +
+                "consider as a viable target. Default 10.",
+            PRARBaseInstructions = "This value sets the base for your army " +
+                "ratio calculation. It is basically a multiplier for the army " +
+                "size of a player at your equal level. For example, a value of " +
+                ".5 means you will battle an opponent the same level as you with " +
+                "an army half the size of your army or less. Default 1.",
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('Recon', 'RECON');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, 'PlayerReconControl', PReconInstructions, true);
+        htmlCode += 'Find battle targets that are:';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
+            this.MakeNumberForm('ReconPlayerRank', PRRankInstructions, '3', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than Level Plus</td><td style='text-align: right'>" +
+            this.MakeNumberForm('ReconPlayerLevel', PRLevelInstructions, '10', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" +
+            this.MakeNumberForm('ReconPlayerARBase', PRARBaseInstructions, '1', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddGeneralsMenu: function () {
+        // Add General Comboboxes
+        var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up",
+            ignoreGeneralImage = "(EXPERIMENTAL) This will prevent the script " +
+                "from changing your selected General to 'Use Current' if the script " +
+                "is unable to find the General's image when changing activities. " +
+                "Instead it will use the current General for the activity and try " +
+                "to select the correct General again next time.",
+            LevelUpGenExpInstructions = "Specify the number of experience " +
+                "points below the next level up to begin using the level up general.",
+            LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.",
+            LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.",
+            LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.",
+            LevelUpGenInstructions4 = "Use the Level Up General for Battle mode.",
+            LevelUpGenInstructions5 = "Use the Level Up General for doing sub-quests.",
+            LevelUpGenInstructions6 = "Use the Level Up General for doing primary quests " +
+                "(Warning: May cause you not to gain influence if wrong general is equipped.)",
+            dropDownItem = 0,
+            htmlCode = '';
+
+        this.BuildGeneralLists();
+
+        htmlCode += this.ToggleControl('Generals', 'GENERALS');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', false, '', ignoreGeneralImage) + "</table>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        for (dropDownItem in this.standardGeneralList) {
+            if (this.standardGeneralList.hasOwnProperty(dropDownItem)) {
+                htmlCode += '<tr><td>' + this.standardGeneralList[dropDownItem] + "</td><td style='text-align: right'>" +
+                    this.MakeDropDown(this.standardGeneralList[dropDownItem] + 'General', this.generalList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
+            }
+        }
+
+        htmlCode += "<tr><td>Buy</td><td style='text-align: right'>" + this.MakeDropDown('BuyGeneral', this.generalBuyList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
+        htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + this.MakeDropDown('IncomeGeneral', this.generalIncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
+        htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + this.MakeDropDown('BankingGeneral', this.generalBankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
+        htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', this.generalList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (gm.getValue('LevelUpGeneral', false) != 'Use Current' ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td>Exp To Use LevelUp Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += this.MakeCheckTR("Level Up Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
+        htmlCode += this.MakeCheckTR("Level Up Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
+        htmlCode += this.MakeCheckTR("Level Up Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
+        htmlCode += this.MakeCheckTR("Level Up Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
+        htmlCode += this.MakeCheckTR("Level Up Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions5);
+        htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', true, '', LevelUpGenInstructions6);
+        htmlCode += "</table></div>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, '', reverseGenInstructions) + "</table>";
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddSkillPointsMenu: function () {
+        var statusInstructions = "Automatically increase attributes when " +
+                "upgrade skill points are available.",
+            statusAdvInstructions = "USE WITH CAUTION: You can use numbers or " +
+                "formulas(ie. level * 2 + 10). Variable keywords include energy, " +
+                "health, stamina, attack, defense, and level. JS functions can be " +
+                "used (Math.min, Math.max, etc) !!!Remember your math class: " +
+                "'level + 20' not equals 'level * 2 + 10'!!!",
+            statImmedInstructions = "Update Stats Immediately",
+            attrList = [
+                '',
+                'Energy',
+                'Attack',
+                'Defense',
+                'Stamina',
+                'Health'
+            ],
+            htmlCode = '';
+
+        htmlCode += this.ToggleControl('Status', 'UPGRADE SKILL POINTS');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, 'AutoStat_Adv', statusInstructions, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, '', statImmedInstructions);
+        htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
+        htmlCode += "<div id='caap_Status_Normal' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'none' : 'block') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
+            this.MakeNumberForm('AttrValue0', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
+            this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
+            this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
+            this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
+            this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
+        htmlCode += "</div>";
+        htmlCode += "<div id='caap_Status_Adv' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
+        htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute6', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+        htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue6', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute7', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+        htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue7', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute8', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+        htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue8', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+        htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
+            this.MakeDropDown('Attribute9', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
+        htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue9', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr></table>";
+        htmlCode += "</div>";
+        htmlCode += "</table></div>";
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddOtherOptionsMenu: function () {
+        // Other controls
+        var giftInstructions = "Automatically receive and send return gifts.",
+            timeInstructions = "Use 24 hour format for displayed times.",
+            titleInstructions0 = "Set the title bar.",
+            titleInstructions1 = "Add the current action.",
+            titleInstructions2 = "Add the player name.",
+            autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.",
+            hideAdsInstructions = "Hides the sidebar adverts.",
+            autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
+                "that do not have missing ingredients. By default, it will not " +
+                "combine Battle Hearts recipes.",
+            autoAlchemyInstructions2 = "If for some reason you do not want " +
+                "to skip Battle Hearts",
+            autoPotionsInstructions0 = "Enable or disable the auto consumption " +
+                "of energy and stamina potions.",
+            autoPotionsInstructions1 = "Number of stamina potions at which to " +
+                "begin consuming.",
+            autoPotionsInstructions2 = "Number of stamina potions to keep.",
+            autoPotionsInstructions3 = "Number of energy potions at which to " +
+                "begin consuming.",
+            autoPotionsInstructions4 = "Number of energy potions to keep.",
+            autoPotionsInstructions5 = "Do not consume potions if the " +
+                "experience points to the next level are within this value.",
+            autoEliteInstructions = "Enable or disable Auto Elite function",
+            autoEliteIgnoreInstructions = "Use this option if you have a small " +
+                "army and are unable to fill all 10 Elite positions. This prevents " +
+                "the script from checking for any empty places and will cause " +
+                "Auto Elite to run on its timer only.",
+            bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
+            giftChoiceList = [
+                'Same Gift As Received',
+                'Random Gift'
+            ],
+            autoBlessList = [
+                'None',
+                'Energy',
+                'Attack',
+                'Defense',
+                'Stamina',
+                'Health'
+            ],
+            styleList = [
+                'CA Skin',
+                'Original',
+                'Custom',
+                'None'
+            ],
+            htmlCode = '';
+
+        giftChoiceList = giftChoiceList.concat(gm.getList('GiftList'));
+        giftChoiceList.push('Get Gift List');
+
+        htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
+        htmlCode += this.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, '', timeInstructions);
+        htmlCode += this.MakeCheckTR('Set Title', 'SetTitle', false, 'SetTitle_Adv', titleInstructions0, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Display Action', 'SetTitleAction', false, '', titleInstructions1);
+        htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Display Name', 'SetTitleName', false, '', titleInstructions2) + '</td></tr></table>';
+        htmlCode += '</div>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
+        htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', true, '', autoCollectMAInstructions);
+        htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
+        htmlCode += '</div>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" +
+            this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" +
+            this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" +
+            this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" +
+            this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" +
+            this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += '</div>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', true, 'AutoEliteControl', autoEliteInstructions, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
+        htmlCode += '<tr><td>' + this.MakeListBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", " rows='3' cols='25'") + '</td></tr></table>';
+        htmlCode += '</div>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='width: 25%; padding-left: 10px'>Give</td><td style='text-align: right'>" +
+            this.MakeDropDown('GiftChoice', giftChoiceList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += '</div>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
+        htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
+            this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
+        htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" +
+            this.MakeDropDown('DisplayStyle', styleList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+        htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (gm.getValue('DisplayStyle', false) == 'Custom' ? 'block' : 'none') + "'>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
+        htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
+            this.MakeNumberForm('StyleBackgroundLight', 'FFF or FFFFFF', '#E0C691', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
+            this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', '1', "type='text' size='5' style='vertical-align: middle; font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
+        htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
+            this.MakeNumberForm('StyleBackgroundDark', 'FFF or FFFFFF', '#B09060', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+        htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
+            this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', '1', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+        htmlCode += "</div>";
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
+        htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' /></td></tr></table>";
+        htmlCode += '</div>';
+        htmlCode += "<hr/></div>";
+        return htmlCode;
+    },
+
+    AddFooterMenu: function () {
+        var htmlCode = '';
+        htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+        htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td>" +
+            "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
+        htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+        if (global.newVersionAvailable) {
+            htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+        }
+
+        return htmlCode;
     },
 
     AddColorWheels: function () {
@@ -1712,17 +1846,23 @@ caap = {
              container and position it within the main container.
             \-------------------------------------------------------------------------------------*/
             var layout      = "<div id='caap_top'>",
-                displayList = ['Monster', 'Target List'];
+                displayList = ['Monster', 'Target List'],
+                styleXY = {
+                    x: 0,
+                    y: 0
+                };
             /*-------------------------------------------------------------------------------------\
              Next we put in our Refresh Monster List button which will only show when we have
              selected the Monster display.
             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'><input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+            layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" +
+                (gm.getValue('DBDisplay', 'Monster') == 'Monster' ? 'block' : 'none') + "'><input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
             /*-------------------------------------------------------------------------------------\
              Next we put in the Clear Target List button which will only show when we have
              selected the Target List display
             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" + (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'><input type='button' id='caap_clearTargets' value='Clear Targets List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+            layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" +
+                (gm.getValue('DBDisplay', 'Monster') == 'Target List' ? 'block' : 'none') + "'><input type='button' id='caap_clearTargets' value='Clear Targets List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
             /*-------------------------------------------------------------------------------------\
              Then we put in the Live Feed link since we overlay the Castle Age link.
             \-------------------------------------------------------------------------------------*/
@@ -1731,7 +1871,8 @@ caap = {
              We install the display selection box that allows the user to toggle through the
              available displays.
             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " + this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
+            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " +
+                this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
             /*-------------------------------------------------------------------------------------\
             And here we build our empty content divs.  We display the appropriate div
             depending on which display was selected using the control above
@@ -1801,7 +1942,7 @@ caap = {
         return "<td><font size=1 color='" + color + "'>" + text + "</font></td>";
     },
 
-    UpdateDashboardWaitLog: true,
+    //UpdateDashboardWaitLog: true,
 
     UpdateDashboard: function () {
         try {
@@ -1810,10 +1951,12 @@ caap = {
             }
 
             if (!this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
+                /*
                 if (this.UpdateDashboardWaitLog) {
-                    //gm.log("Dashboard update is waiting on oneMinuteUpdate");
+                    gm.log("Dashboard update is waiting on oneMinuteUpdate");
                     this.UpdateDashboardWaitLog = false;
                 }
+                */
 
                 return false;
             }
@@ -3340,7 +3483,9 @@ caap = {
                 }
 
                 gm.setValue('storeRetrieve', '');
-                costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling.firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
+                costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling
+                    .previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling
+                    .firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
                 gm.log("costToBuy = " + costToBuy);
                 if (this.stats.cash < costToBuy) {
                     //Retrieving from Bank
@@ -6256,80 +6401,80 @@ caap = {
             }
             gm.log('Level Up Mode: ' + this.InLevelUpMode() + ' Stamina Avail: ' + this.stats.stamina.num + ' Stamina Max: ' + this.stats.stamina.max);
 
-			//log results of previous two tests
-			gm.log('KOBenable: ' + KOBenable + ' KOB Bias Hours: ' + KOBbiasHours);
+            //log results of previous two tests
+            gm.log('KOBenable: ' + KOBenable + ' KOB Bias Hours: ' + KOBbiasHours);
 
-			//Total Time alotted for monster
-			var KOBtotalMonsterTime = this.monsterInfo[monstType].duration;
-			gm.log('Total Time for Monster: ' + KOBtotalMonsterTime);
+            //Total Time alotted for monster
+            var KOBtotalMonsterTime = this.monsterInfo[monstType].duration;
+            gm.log('Total Time for Monster: ' + KOBtotalMonsterTime);
 
-			//Total Damage remaining
-			gm.log('HP left: ' + hp);
+            //Total Damage remaining
+            gm.log('HP left: ' + hp);
 
-			//Time Left Remaining
-			var KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
-			gm.log('TimeLeft: ' + KOBtimeLeft);
+            //Time Left Remaining
+            var KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+            gm.log('TimeLeft: ' + KOBtimeLeft);
 
-			//calculate the bias offset for time remaining
-			var KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
+            //calculate the bias offset for time remaining
+            var KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
 
-			//Percentage of time remaining for the currently selected monster
-			var KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
-			gm.log('Percent Time Remaining: ' + KOBPercentTimeRemaining);
+            //Percentage of time remaining for the currently selected monster
+            var KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
+            gm.log('Percent Time Remaining: ' + KOBPercentTimeRemaining);
 
-			// End of Keep On Budget (KOB) code Part 1 -- required variables
+            // End of Keep On Budget (KOB) code Part 1 -- required variables
 
-			if (maxDamage && damDone >= maxDamage) {
-				gm.setListObjVal('monsterOl', monster, 'color', 'red');
-				gm.setListObjVal('monsterOl', monster, 'over', 'max');
-				//used with KOB code
-				KOBmax = true;
+            if (maxDamage && damDone >= maxDamage) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'red');
+                gm.setListObjVal('monsterOl', monster, 'over', 'max');
+                //used with KOB code
+                KOBmax = true;
                 //used with kob debugging
                 gm.log('KOB - max activated');
-				if (isTarget) {
-					gm.setValue('resetselectMonster', true);
-				}
-			} else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
-				gm.setListObjVal('monsterOl', monster, 'color', 'purple');
+                if (isTarget) {
+                    gm.setValue('resetselectMonster', true);
+                }
+            } else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'purple');
                 //used with KOB code
                 KOBminFort = true;
                 //used with kob debugging
                 gm.log('KOB - MinFort activated');
-				if (isTarget) {
-					gm.setValue('resetselectMonster', true);
-				}
-			} else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
-				gm.setListObjVal('monsterOl', monster, 'color', 'orange');
-				gm.setListObjVal('monsterOl', monster, 'over', 'ach');
-				//used with KOB code
-				KOBach = true;
-				//used with kob debugging
-				gm.log('KOB - achievement reached');
-				if (isTarget && lastDamDone < achLevel) {
-					gm.setValue('resetselectMonster', true);
-				}
-			}
-			//Start of KOB code Part 2 begins here
-			if (KOBenable && !KOBmax && !KOBminFort && KOBach && hp < KOBPercentTimeRemaining) {
-				//need to figure out a color for kob 'someday' - borrowing max's color for now
-				gm.setListObjVal('monsterOl', monster, 'color', 'red');
-				// this line is required or we attack anyway.
-				gm.setListObjVal('monsterOl', monster, 'over', 'max');
-				//used with kob debugging
-				gm.log('KOB - budget reached');
-				if (isTarget) {
-					gm.setValue('resetselectMonster', true);
-					gm.log('This monster no longer a target due to kob');
-				}
+                if (isTarget) {
+                    gm.setValue('resetselectMonster', true);
+                }
+            } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
+                gm.setListObjVal('monsterOl', monster, 'color', 'orange');
+                gm.setListObjVal('monsterOl', monster, 'over', 'ach');
+                //used with KOB code
+                KOBach = true;
+                //used with kob debugging
+                gm.log('KOB - achievement reached');
+                if (isTarget && lastDamDone < achLevel) {
+                    gm.setValue('resetselectMonster', true);
+                }
+            }
+            //Start of KOB code Part 2 begins here
+            if (KOBenable && !KOBmax && !KOBminFort && KOBach && hp < KOBPercentTimeRemaining) {
+                //need to figure out a color for kob 'someday' - borrowing max's color for now
+                gm.setListObjVal('monsterOl', monster, 'color', 'red');
+                // this line is required or we attack anyway.
+                gm.setListObjVal('monsterOl', monster, 'over', 'max');
+                //used with kob debugging
+                gm.log('KOB - budget reached');
+                if (isTarget) {
+                    gm.setValue('resetselectMonster', true);
+                    gm.log('This monster no longer a target due to kob');
+                }
 
-			} else {
-				if (!KOBmax && !KOBminFort && !KOBach) {
-				    //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
-				    //had to jump out the black paint if max, ach or fort needed to paint the entry.
-				    gm.setListObjVal('monsterOl', monster, 'color', 'black');
-				}
-			}
-			//End of KOB code Part 2 stops here.
+            } else {
+                if (!KOBmax && !KOBminFort && !KOBach) {
+                    //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
+                    //had to jump out the black paint if max, ach or fort needed to paint the entry.
+                    gm.setListObjVal('monsterOl', monster, 'color', 'black');
+                }
+            }
+            //End of KOB code Part 2 stops here.
 
             if (this.CheckTimer('battleTimer')) {
                 window.setTimeout(function () {
@@ -6459,7 +6604,10 @@ caap = {
                                     var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
                                     var maxToFortify = (this.parseCondition('f%', monsterConditions)  !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
                                     monstType = this.getMonstType(monster);
-                                    //gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' this.monsterInfo[monstType] ' + this.monsterInfo[monstType]+ ' this.monsterInfo[monstType].fort ' + this.monsterInfo[monstType].fort);
+                                    /*
+                                    gm.log(monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' this.monsterInfo[monstType] ' +
+                                        this.monsterInfo[monstType]+ ' this.monsterInfo[monstType].fort ' + this.monsterInfo[monstType].fort);
+                                    */
                                     if (!firstFortUnderMax && monsterFort < maxToFortify &&
                                             monstPage == 'battle_monster' &&
                                             this.monsterInfo[monstType] &&
@@ -7012,104 +7160,116 @@ caap = {
     minutesBeforeLevelToUseUpStaEnergy : 5,
 
     InLevelUpMode: function () {
-        if (!gm.getValue('EnableLevelUpMode', true)) {
-            //if levelup mode is false then new level up mode is also false (kob)
-            caap.newLevelUpMode = false;
-            return false;
-        }
-
-        if (!(this.stats.levelTime)) {
-            //if levelup mode is false then new level up mode is also false (kob)
-            caap.newLevelUpMode = false;
-            return false;
-        }
-
-        var now = new Date();
-        if ((this.stats.levelTime.getTime() - now.getTime()) < this.minutesBeforeLevelToUseUpStaEnergy * 60 * 1000) {
-            //detect if we are entering level up mode for the very first time (kob)
-            if (!caap.newLevelUpMode) {
-                //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
-                caap.newLevelUpMode = true;
-                this.refreshMonstersListener();
+        try {
+            if (!gm.getValue('EnableLevelUpMode', true)) {
+                //if levelup mode is false then new level up mode is also false (kob)
+                this.newLevelUpMode = false;
+                return false;
             }
-            return true;
-        }
 
-        //if levelup mode is false then new level up mode is also false (kob)
-        caap.newLevelUpMode = false;
-        return false;
+            if (!(this.stats.levelTime)) {
+                //if levelup mode is false then new level up mode is also false (kob)
+                this.newLevelUpMode = false;
+                return false;
+            }
+
+            var now = new Date();
+            if ((this.stats.levelTime.getTime() - now.getTime()) < this.minutesBeforeLevelToUseUpStaEnergy * 60 * 1000) {
+                //detect if we are entering level up mode for the very first time (kob)
+                if (!this.newLevelUpMode) {
+                    //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
+                    this.newLevelUpMode = true;
+                    this.refreshMonstersListener();
+                }
+
+                return true;
+            }
+
+            //if levelup mode is false then new level up mode is also false (kob)
+            this.newLevelUpMode = false;
+            return false;
+        } catch (err) {
+            gm.log("ERROR in InLevelUpMode: " + err);
+            return false;
+        }
     },
 
     CheckStamina: function (battleOrBattle, attackMinStamina) {
-        if (!attackMinStamina) {
-            attackMinStamina = 1;
-        }
-
-        var when = gm.getValue('When' + battleOrBattle, '');
-        if (when == 'Never') {
-            return false;
-        }
-
-        if (!this.stats.stamina || !this.stats.health) {
-            this.SetDivContent('battle_mess', 'Health or stamina not known yet.');
-            return false;
-        }
-
-        if (this.stats.health.num < 10) {
-            this.SetDivContent('battle_mess', "Need health to fight: " + this.stats.health.num + "/10");
-            return false;
-        }
-
-        if (when == 'At X Stamina') {
-            if (this.InLevelUpMode() && this.stats.stamina.num >= attackMinStamina) {
-                this.SetDivContent('battle_mess', 'Burning stamina to level up');
-                return true;
+        try {
+            if (!attackMinStamina) {
+                attackMinStamina = 1;
             }
-            var staminaMF = battleOrBattle + 'Stamina';
-            if (gm.getValue('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= gm.getValue('X' + staminaMF, 1)) {
-                if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= gm.getValue('XMin' + staminaMF, 0)) {
+
+            var when = gm.getValue('When' + battleOrBattle, '');
+            if (when == 'Never') {
+                return false;
+            }
+
+            if (!this.stats.stamina || !this.stats.health) {
+                this.SetDivContent('battle_mess', 'Health or stamina not known yet.');
+                return false;
+            }
+
+            if (this.stats.health.num < 10) {
+                this.SetDivContent('battle_mess', "Need health to fight: " + this.stats.health.num + "/10");
+                return false;
+            }
+
+            if (when == 'At X Stamina') {
+                if (this.InLevelUpMode() && this.stats.stamina.num >= attackMinStamina) {
+                    this.SetDivContent('battle_mess', 'Burning stamina to level up');
+                    return true;
+                }
+                var staminaMF = battleOrBattle + 'Stamina';
+                if (gm.getValue('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= gm.getValue('X' + staminaMF, 1)) {
+                    if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= gm.getValue('XMin' + staminaMF, 0)) {
+                        gm.setValue('BurnMode_' + staminaMF, false);
+                        return false;
+                    }
+
+                    //this.SetDivContent('battle_mess', 'Burning stamina');
+                    gm.setValue('BurnMode_' + staminaMF, true);
+                    return true;
+                } else {
                     gm.setValue('BurnMode_' + staminaMF, false);
-                    return false;
                 }
 
-                //this.SetDivContent('battle_mess', 'Burning stamina');
-                gm.setValue('BurnMode_' + staminaMF, true);
-                return true;
-            } else {
-                gm.setValue('BurnMode_' + staminaMF, false);
+                this.SetDivContent('battle_mess', 'Waiting for stamina: ' + this.stats.stamina.num + "/" + gm.getValue('X' + staminaMF, 1));
+                return false;
             }
 
-            this.SetDivContent('battle_mess', 'Waiting for stamina: ' + this.stats.stamina.num + "/" + gm.getValue('X' + staminaMF, 1));
+            if (when == 'At Max Stamina') {
+                if (!gm.getValue('MaxIdleStamina', 0)) {
+                    gm.log("Changing to idle general to get Max Stamina");
+                    this.PassiveGeneral();
+                }
+
+                if (this.stats.stamina.num >= gm.getValue('MaxIdleStamina')) {
+                    this.SetDivContent('battle_mess', 'Using max stamina');
+                    return true;
+                }
+
+                if (this.InLevelUpMode() && this.stats.stamina.num >= attackMinStamina) {
+                    this.SetDivContent('battle_mess', 'Burning all stamina to level up');
+                    return true;
+                }
+
+                this.SetDivContent('battle_mess', 'Waiting for max stamina: ' + this.stats.stamina.num + "/" + gm.getValue('MaxIdleStamina'));
+                return false;
+            }
+
+            if (this.stats.stamina.num >= attackMinStamina) {
+                return true;
+            }
+
+            this.SetDivContent('battle_mess', 'Waiting for more stamina: ' + this.stats.stamina.num + "/" + attackMinStamina);
+            return false;
+        } catch (err) {
+            gm.log("ERROR in CheckStamina: " + err);
             return false;
         }
-
-        if (when == 'At Max Stamina') {
-            if (!gm.getValue('MaxIdleStamina', 0)) {
-                gm.log("Changing to idle general to get Max Stamina");
-                this.PassiveGeneral();
-            }
-
-            if (this.stats.stamina.num >= gm.getValue('MaxIdleStamina')) {
-                this.SetDivContent('battle_mess', 'Using max stamina');
-                return true;
-            }
-
-            if (this.InLevelUpMode() && this.stats.stamina.num >= attackMinStamina) {
-                this.SetDivContent('battle_mess', 'Burning all stamina to level up');
-                return true;
-            }
-
-            this.SetDivContent('battle_mess', 'Waiting for max stamina: ' + this.stats.stamina.num + "/" + gm.getValue('MaxIdleStamina'));
-            return false;
-        }
-
-        if (this.stats.stamina.num >= attackMinStamina) {
-            return true;
-        }
-
-        this.SetDivContent('battle_mess', 'Waiting for more stamina: ' + this.stats.stamina.num + "/" + attackMinStamina);
-        return false;
     },
+
     /*-------------------------------------------------------------------------------------\
     NeedToHide will return true if the current stamina and health indicate we need to bring
     our health down through battles (hiding).  It also returns true if there is no other outlet
@@ -8490,7 +8650,7 @@ caap = {
 
     CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
-		if ($('#app46755028429_app_body').text().match(/You have sent \d+ gifts?/)) {
+        if ($('#app46755028429_app_body').text().match(/You have sent \d+ gifts?/)) {
             gm.log('Confirmed gifts sent out.');
             gm.setValue('RandomGiftPic', '');
             gm.setValue('FBSendList', '');
@@ -8498,8 +8658,8 @@ caap = {
     },
 
     CheckResults_index: function (resultsText) {
-		this.JustDidIt('checkForGifts');
-	},
+        this.JustDidIt('checkForGifts');
+    },
 
     AutoGift: function () {
         try {
@@ -9257,8 +9417,8 @@ caap = {
             }
 
             return true;
-        } catch (e) {
-            gm.log("ERROR in AutoFillArmy: " + e);
+        } catch (err) {
+            gm.log("ERROR in AutoFillArmy: " + err);
             this.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
@@ -9275,16 +9435,54 @@ caap = {
         }
     },
 
+    AjaxGiftCheck: function () {
+        try {
+            if (!this.WhileSinceDidIt("AjaxGiftCheckTimer", (5 * 60) + Math.floor(Math.random() * 3 * 60))) {
+                return false;
+            }
+
+            gm.log("Performing AjaxGiftCheck");
+
+            $.ajax({
+                url: "http://apps.facebook.com/castle_age/index.php",
+                error:
+                    function (XMLHttpRequest, textStatus, errorThrown) {
+                        gm.log("AjaxGiftCheck.ajax: " + textStatus);
+                    },
+                success:
+                    function (data, textStatus, XMLHttpRequest) {
+                        try {
+                            gm.log("AjaxGiftCheck.ajax: Checking data.");
+                            if ($(data).find("a[href*='reqs.php#confirm_']").length) {
+                                gm.log('AjaxGiftCheck.ajax: We have a gift waiting!');
+                                gm.setValue('HaveGift', true);
+                            } else {
+                                gm.log('AjaxGiftCheck.ajax: No gifts waiting.');
+                            }
+
+                            gm.log("AjaxGiftCheck.ajax: Done.");
+                        } catch (err) {
+                            gm.log("ERROR in AjaxGiftCheck.ajax: " + err);
+                        }
+                    }
+            });
+
+            this.JustDidIt('AjaxGiftCheckTimer');
+            gm.log("Completed AjaxGiftCheck");
+            return true;
+        } catch (err) {
+            gm.log("ERROR in AjaxGiftCheck: " + err);
+            return false;
+        }
+    },
+
     Idle: function () {
         //Update Monster Finder
         if (this.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
             this.clearLinks(true);
         }
 
-        if (this.WhileSinceDidIt("checkForGifts", 5 * 60)) {
-            this.NavigateTo('index');
-        }
-
+        this.AjaxGiftCheck();
         this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
         this.AutoCollectMA();
         this.ReconPlayers();
