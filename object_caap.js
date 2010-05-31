@@ -8667,14 +8667,6 @@ caap = {
                 return false;
             }
 
-            /*
-            var iframeFB = document.getElementById("generic_dialog_iframe");
-            if (iframeFB) {
-                iframeFB.src = "//apps.facebook.com/common/blank.html";
-                gm.log("iframe src set");
-            }
-            */
-
             var giftNamePic = {};
             var giftEntry = nHtml.FindByAttrContains(document.body, 'div', 'id', '_gift1');
             if (giftEntry) {
@@ -8801,8 +8793,8 @@ caap = {
                 gm.setList('NotFoundIDs', []);
             }
 
-            //if (gm.getValue('DisableGiftReturn', false)) {
-            if (gm.getValue('DisableGiftReturn', false) || global.is_chrome) {
+            if (gm.getValue('DisableGiftReturn', false)) {
+            //if (gm.getValue('DisableGiftReturn', false) || global.is_chrome) {
                 gm.setList('ReceivedList', []);
             }
 
