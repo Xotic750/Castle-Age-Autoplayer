@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.27
+// @version        140.23.28
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.27";
+var caapVersion = "140.23.28";
 
 ///////////////////////////
 //       Prototypes
@@ -5351,19 +5351,6 @@ caap = {
                     gm.setValue('ChainCount', 0);
                 }
 
-        /*  Not ready for primtime.   Need to build SliceList to extract our element
-                if (gm.getValue('BattlesWonList','').indexOf(global.os+userId+global.os) >= 0) {
-                    element = gm.sliceList('BattlesWonList',global.os+userId+global.os);
-                    elementArray = element.split(global.vs);
-                    prevWins = Number(elementArray[3]);
-                    prevBPs = Number(elementArray[4]);
-                    prevGold = Number(elementArray[5]);
-                    wins = prevWins + wins;
-                    bpnum = prevBPs + bpnum;
-                    goldnum  = prevGold + goldnum
-                }
-        */
-
                 if (gm.getValue('BattlesWonList', '').indexOf(global.vs + userId + global.vs) == -1 &&
                     (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
                     now = (new Date().getTime()).toString();
@@ -5578,7 +5565,7 @@ caap = {
         'Freshmeat' : {
             Invade: 'battle_01.gif',
             Duel : 'battle_02.gif',
-            regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
+            //regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
             refresh : 'battle_on.gif',
             image : 'battle_on.gif'
         },
@@ -5708,6 +5695,13 @@ caap = {
                     }
 
                     txt = $.trim(nHtml.GetText(tr));
+                    if (!txt.length) {
+                        gm.log("Can't find txt in tr");
+                        continue;
+                    }
+                    //gm.log("txt: " + txt);
+
+                    /*
                     levelm = this.battles.Freshmeat.regex.exec(txt);
                     if (!levelm) {
                         gm.log("Can't match battleLevelRe in " + txt);
@@ -5715,11 +5709,18 @@ caap = {
                     }
 
                     level = parseInt(levelm[1], 10);
-                    var rankStr = $.trim(levelm[2].toLowerCase());
+                    */
+
+                    level = parseInt(txt.match(/\(Level [0-9]+\)/).toString().match(/[0-9]+/), 10);
+                    //gm.log("Level: " + level);
+                    //var rankStr = $.trim(levelm[2].toLowerCase());
                     if (type == 'Arena') {
+                        var rankStr = $.trim(levelm[2].toLowerCase());
                         rank = this.arenaTable[rankStr];
                     } else {
-                        rank = this.rankTable[rankStr];
+                        //rank = this.rankTable[rankStr];
+                        rank = parseInt(txt.match(/Battle:[a-z ]+\(Rank [0-9]+\)/i).toString().match(/[0-9]+/), 10);
+                        //gm.log("Rank: " + rank);
                     }
 
                     var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
@@ -6150,7 +6151,6 @@ caap = {
             return 'Freshmeat';
         }
 
-
         if (gm.getValue('TargetType', '') == 'Arena') {
             if (!this.CheckTimer('ArenaRankTimer')) {
                 this.SetDivContent('battle_mess', 'Arena Rank Achieved');
@@ -6181,13 +6181,6 @@ caap = {
         if (target) {
             return target;
         }
-
-        /*
-        target = gm.getValue('BattleTargets', '');
-        if (!target) {
-            return false;
-        }
-        */
 
         var targets = gm.getList('BattleTargets');
         if (!targets.length) {
@@ -6399,9 +6392,9 @@ caap = {
             duration : 168,
             hp : 600000000,
             ach : 4000000,
-            siege : 6,
-            siegeClicks : [30, 60, 90, 120, 200, 200],
-            siegeDam : [28000000, 32500000, 40000000, 45000000, 47500000, 52500000],
+            siege : 7,
+            siegeClicks : [30, 60, 90, 120, 200, 200, 300],
+            siegeDam : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
             siege_img : '/graphics/water_siege_',
             siege_img2 : '/graphics/alpha_bahamut_siege_blizzard_',
             fort : true,
@@ -6438,9 +6431,9 @@ caap = {
             duration : 168,
             hp : 600000000,
             ach : 4000000,
-            siege : 6,
-            siegeClicks : [30, 60, 90, 120, 200, 200],
-            siegeDam : [28000000, 32500000, 40000000, 45000000, 47500000, 52500000],
+            siege : 7,
+            siegeClicks : [30, 60, 90, 120, 200, 200, 300],
+            siegeDam : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
             siege_img : '/graphics/water_siege_',
             siege_img2 : '/graphics/alpha_bahamut_siege_blizzard_',
             fort : true,
