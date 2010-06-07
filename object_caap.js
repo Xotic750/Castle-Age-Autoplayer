@@ -3255,6 +3255,7 @@ caap = {
                 this[resultsFunction](resultsText);
             }
 
+            this.News();
             this.performanceTimer('Done CheckResults');
         } catch (err) {
             gm.log("ERROR in CheckResults: " + err);
@@ -4903,6 +4904,7 @@ caap = {
             Invade: 'battle_01.gif',
             Duel : 'battle_02.gif',
             //regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
+            regex : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
             refresh : 'battle_on.gif',
             image : 'battle_on.gif'
         },
@@ -5036,40 +5038,24 @@ caap = {
                         gm.log("Can't find txt in tr");
                         continue;
                     }
-                    //gm.log("txt: " + txt);
 
-                    /*
                     levelm = this.battles.Freshmeat.regex.exec(txt);
                     if (!levelm) {
                         gm.log("Can't match battleLevelRe in " + txt);
                         continue;
                     }
 
-                    level = parseInt(levelm[1], 10);
-                    */
-
-                    level = parseInt(txt.match(/\(Level [0-9]+\)/).toString().match(/[0-9]+/), 10);
-                    //gm.log("Level: " + level);
-                    //var rankStr = $.trim(levelm[2].toLowerCase());
                     if (type == 'Arena') {
-                        var rankStr = $.trim(levelm[2].toLowerCase());
+                        level = parseInt(levelm[1], 10);
+                        var rankStr = levelm[2].toLowerCase();
                         rank = this.arenaTable[rankStr];
+                        var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                        army = parseInt($.trim(nHtml.GetText(subtd.snapshotItem(2))), 10);
                     } else {
-                        //rank = this.rankTable[rankStr];
-                        rank = parseInt(txt.match(/Battle:[a-z ]+\(Rank [0-9]+\)/i).toString().match(/[0-9]+/), 10);
-                        //gm.log("Rank: " + rank);
+                        level = parseInt(levelm[2], 10);
+                        rank = parseInt(levelm[4], 10);
+                        army = parseInt(levelm[7], 10);
                     }
-
-                    var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                    army = parseInt($.trim(nHtml.GetText(subtd.snapshotItem(2))), 10);
-                }
-
-                if (level - this.stats.level > maxLevel) {
-                    continue;
-                }
-
-                if (yourRank && (yourRank - rank  > minRank)) {
-                    continue;
                 }
 
                 var levelMultiplier = this.stats.level / level;
@@ -5081,10 +5067,20 @@ caap = {
                     continue;
                 }
 
-                gm.log("Army Ratio: " + armyRatio + " Level: " + level + " Rank: " + rank + " Army: " + army);
+                //gm.log("Army Ratio: " + armyRatio + " Level: " + level + " Rank: " + rank + " Army: " + army);
+                if (level - this.stats.level > maxLevel) {
+                    //gm.log("Greater than maxLevel");
+                    continue;
+                }
+
+                if (yourRank && (yourRank - rank  > minRank)) {
+                    //gm.log("Greater than minRank");
+                    continue;
+                }
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (this.stats.army && (army > (this.stats.army * armyRatio))) {
+                    //gm.log("Greater than armyRatio");
                     continue;
                 }
 
@@ -5095,11 +5091,11 @@ caap = {
                 }
 
                 var userid = inp.value;
-
                 if (this.hashThisId(userid)) {
                     continue;
                 }
 
+                gm.log("ID: " + userid + "    \tLevel: " + level + "\tRank: " + rank + " \tArmy: " + army);
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
                 if (dfl.indexOf(global.vs + userid + global.vs) >= 0) {
@@ -8650,8 +8646,106 @@ caap = {
         }
     },
 
+    News: function () {
+        try {
+            if ($('#app46755028429_battleUpdateBox').length) {
+                var xp = 0,
+                    bp = 0,
+                    win = 0,
+                    lose = 0,
+                    deaths = 0,
+                    cash = 0,
+                    i,
+                    j,
+                    list = [],
+                    user = {},
+                    order;
+
+                $('#app46755028429_battleUpdateBox .alertsContainer .alert_content').each(function (i, el) {
+                    var uid, txt = $(el).text().replace(/,/g, ''),
+                        title = $(el).prev().text(),
+                        days = title.regex(/([0-9]+) days/i),
+                        hours = title.regex(/([0-9]+) hours/i),
+                        minutes = title.regex(/([0-9]+) minutes/i),
+                        seconds = title.regex(/([0-9]+) seconds/i),
+                        time,
+                        my_xp = 0,
+                        my_bp = 0,
+                        my_cash = 0;
+
+                    time = Date.now() - ((((((((days || 0) * 24) + (hours || 0)) * 60) + (minutes || 59)) * 60) + (seconds || 59)) * 1000);
+                    if (txt.regex(/You were killed/i)) {
+                        deaths += 1;
+                    } else {
+                        uid = $('a:eq(0)', el).attr('href').regex(/user=([0-9]+)/i);
+                        user[uid] = user[uid] ||
+                            {
+                                name: $('a:eq(0)', el).text(),
+                                win: 0,
+                                lose: 0
+                            };
+
+                        var result = null;
+                        if (txt.regex(/Victory!/i)) {
+                            win += 1;
+                            user[uid].lose += 1;
+                            my_xp = txt.regex(/([0-9]+) experience/i);
+                            my_bp = txt.regex(/([0-9]+) Battle Points!/i);
+                            my_cash = txt.regex(/\$([0-9]+)/i);
+                            result = 'win';
+                        } else {
+                            lose += 1;
+                            user[uid].win += 1;
+                            my_xp = 0 - txt.regex(/([0-9]+) experience/i);
+                            my_bp = 0 - txt.regex(/([0-9]+) Battle Points!/i);
+                            my_cash = 0 - txt.regex(/\$([0-9]+)/i);
+                            result = 'loss';
+                        }
+
+                        xp += my_xp;
+                        bp += my_bp;
+                        cash += my_cash;
+
+                    }
+                });
+
+                if (win || lose) {
+                    list.push('You were challenged <strong>' + (win + lose) + '</strong> times, winning <strong>' + win + '</strong> and losing <strong>' + lose + '</strong>.');
+                    list.push('You ' + (xp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + addCommas(Math.abs(xp)) + '</span> experience points.');
+                    list.push('You ' + (cash >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + '<b class="gold">$' + addCommas(Math.abs(cash)) + '</b></span>.');
+                    list.push('You ' + (bp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + addCommas(Math.abs(bp)) + '</span> Battle Points.');
+                    list.push('');
+                    user = sortObject(user, function (a, b) {
+                            return (user[b].win + (user[b].lose / 100)) - (user[a].win + (user[a].lose / 100));
+                        });
+
+                    for (i in user) {
+                        if (user.hasOwnProperty(i)) {
+                            list.push('<strong title="' + i + '">' + user[i].name + '</strong> ' +
+                                (user[i].win ? 'beat you <span class="negative">' + user[i].win +
+                                '</span> time' + (user[i].win > 1 ? 's' : '') : '') +
+                                (user[i].lose ? (user[i].win ? ' and ' : '') +
+                                'was beaten <span class="positive">' + user[i].lose +
+                                '</span> time' + (user[i].lose > 1 ? 's' : '') : '') + '.');
+                        }
+                    }
+
+                    if (deaths) {
+                        list.push('You died ' + (deaths > 1 ? deaths + ' times' : 'once') + '!');
+                    }
+
+                    $('#app46755028429_battleUpdateBox .alertsContainer').prepend('<div style="padding: 0pt 0pt 10px;"><div class="alert_title">Summary:</div><div class="alert_content">' + list.join('<br>') + '</div></div>');
+                }
+            }
+
+            return true;
+        } catch (err) {
+            gm.log("ERROR in News: " + err);
+            return false;
+        }
+    },
+
     CheckResults_index: function (resultsText) {
-        this.JustDidIt('checkForGifts');
     },
 
     AutoGift: function () {
@@ -9535,7 +9629,7 @@ caap = {
                 return false;
             }
 
-            //gm.log("Found targets: "+ss.snapshotLength);
+            //gm.log("Found targets: " + ss.snapshotLength);
     /*-------------------------------------------------------------------------------------\
     Next we get our Recon Player settings for lowest rank, highest level, and army ratio
     base multiplier.
@@ -9556,6 +9650,10 @@ caap = {
                 }
 
                 var tr = obj;
+                if (!tr) {
+                    gm.log("No tr parent of button?");
+                    continue;
+                }
     /*-------------------------------------------------------------------------------------\
     We get the deity number for the target
     \-------------------------------------------------------------------------------------*/
@@ -9563,9 +9661,13 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     We also get the targets actual name, level and rank from the text string
     \-------------------------------------------------------------------------------------*/
-                var regex = new RegExp('(.+), Level ([0-9]+)\\s*([A-Za-z ]+)\\s*([0-9]+)', 'i');
                 var txt = $.trim(nHtml.GetText(tr));
-                var levelm = regex.exec(txt);
+                if (!txt.length) {
+                    gm.log("Can't find txt in tr");
+                    continue;
+                }
+
+                var levelm = this.battles.Freshmeat.regex.exec(txt);
                 if (!levelm) {
                     gm.log('Recon can not parse target text string' + txt);
                     continue;
@@ -9573,13 +9675,15 @@ caap = {
 
                 var nameStr = $.trim(levelm[1]);
                 var levelNum = parseInt(levelm[2], 10);
-                var rankStr = $.trim(levelm[3]);
-                var rankNum = this.rankTable[rankStr.toLowerCase()];
+                var rankStr = levelm[3];
+                var rankNum = parseInt(levelm[4], 10);
+                var warRankStr = levelm[5];
+                var warRankNum = parseInt(levelm[6], 10);
     /*-------------------------------------------------------------------------------------\
     Then we get the targets army count and userid.  We'll also save the current time we
     found the target alive.
     \-------------------------------------------------------------------------------------*/
-                var armyNum = parseInt(levelm[4], 10);
+                var armyNum = parseInt(levelm[7], 10);
                 var userID = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'", pageObj).value;
                 var aliveTime = (new Date().getTime());
                 //gm.log('Player stats: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
@@ -9630,9 +9734,11 @@ caap = {
     the max value of the number of entries on the first update
     \-------------------------------------------------------------------------------------*/
                 var entryLimit = gm.getValue('LimitTargets', 100);
-                gm.setListObjVal('targetsOl', userID, 'nameStr', nameStr, entryLimit);          /* Target name */
+                gm.setListObjVal('targetsOl', userID, 'nameStr', nameStr, entryLimit);         /* Target name */
                 gm.setListObjVal('targetsOl', userID, 'rankStr', rankStr);                     /* Target rank */
                 gm.setListObjVal('targetsOl', userID, 'rankNum', rankNum);                     /* Target rank number */
+                gm.setListObjVal('targetsOl', userID, 'warRankStr', warRankStr);               /* Target war rank */
+                gm.setListObjVal('targetsOl', userID, 'warRankNum', warRankNum);               /* Target war rank number */
                 gm.setListObjVal('targetsOl', userID, 'levelNum', levelNum);                   /* Traget level */
                 gm.setListObjVal('targetsOl', userID, 'armyNum', armyNum);                     /* Target army size */
                 gm.setListObjVal('targetsOl', userID, 'deityNum', deityNum);                   /* Target deity affiliation number */

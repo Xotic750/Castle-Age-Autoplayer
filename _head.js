@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.28
+// @version        140.23.29
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.28";
+var caapVersion = "140.23.29";
 
 ///////////////////////////
 //       Prototypes
@@ -32,6 +32,63 @@ String.prototype.ucFirst = function () {
 
 String.prototype.stripHTML = function (html) {
     return this.replace(new RegExp('<[^>]+>', 'g'), '').replace(/&nbsp;/g, '');
+};
+
+String.prototype.regex = function (r) {
+	var a = this.match(r),
+        i;
+
+	if (a) {
+		a.shift();
+		for (i = 0; i < a.length; i += 1) {
+			if (a[i] && a[i].search(/^[\-+]?[0-9]*\.?[0-9]*$/) >= 0) {
+				a[i] = parseFloat(a[i]);
+			}
+		}
+		if (a.length === 1) {
+			return a[0];
+		}
+	}
+
+	return a;
+};
+
+var addCommas = function (s) { // Adds commas into a string, ignore any number formatting
+	var a = s ? s.toString() : '0',
+        r = new RegExp('(-?[0-9]+)([0-9]{3})');
+
+	while (r.test(a)) {
+		a = a.replace(r, '$1,$2');
+	}
+
+	return a;
+};
+
+var sortObject = function (obj, sortfunc, deep) {
+	var list = [],
+        output = {},
+        i;
+
+	if (typeof deep === 'undefined') {
+		deep = false;
+	}
+
+	for (i in obj) {
+        if (obj.hasOwnProperty(i)) {
+            list.push(i);
+        }
+	}
+
+	list.sort(sortfunc);
+	for (i = 0; i < list.length; i += 1) {
+		if (deep && typeof obj[list[i]] === 'object') {
+			output[list[i]] = sortObject(obj[list[i]], sortfunc, deep);
+		} else {
+			output[list[i]] = obj[list[i]];
+		}
+	}
+
+	return output;
 };
 
 ///////////////////////////
