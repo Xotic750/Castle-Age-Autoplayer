@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.30
+// @version        140.23.31
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.30";
+var caapVersion = "140.23.31";
 
 ///////////////////////////
 //       Prototypes
@@ -2117,7 +2117,7 @@ caap = {
             questFortifyInstructions = "Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
             stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)",
             monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
-            demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling.",
+            demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Requires that battle mode is set appropriately",
             powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
             powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
             powerfortifyMaxInstructions = "(EXPERIMENTAL) Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
@@ -2387,6 +2387,7 @@ caap = {
             titleInstructions2 = "Add the player name.",
             autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.",
             hideAdsInstructions = "Hides the sidebar adverts.",
+            newsSummaryInstructions = "Enable or disable the news summary on the index page.",
             autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
                 "that do not have missing ingredients. By default, it will not " +
                 "combine Battle Hearts recipes.",
@@ -2442,6 +2443,7 @@ caap = {
         htmlCode += '</div>';
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
         htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
+        htmlCode += this.MakeCheckTR('Enable News Summary', 'NewsSummary', true, '', newsSummaryInstructions);
         htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', true, '', autoCollectMAInstructions);
         htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
         htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -3112,16 +3114,25 @@ caap = {
                 gm.log('Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 gm.setValue(idName, value);
                 e.target.title = title;
-                //caap.SelectDropOption(idName, value);
                 if (idName == 'WhenQuest' || idName == 'WhenBattle' || idName == 'WhenMonster' || idName == 'LevelUpGeneral') {
                     caap.SetDisplay(idName + 'Hide', (value != 'Never'));
                     if (idName == 'WhenBattle' || idName == 'WhenMonster') {
                         caap.SetDisplay(idName + 'XStamina', (value == 'At X Stamina'));
                         caap.SetDisplay('WhenBattleStayHidden1', ((gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('WhenMonster', false) != 'Stay Hidden')));
-                    }
-
-                    if (idName == 'WhenBattle') {
-                        caap.SetDisplay('WhenBattleStayHidden2', ((gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None')));
+                        if (idName === 'WhenBattle') {
+                            caap.SetDisplay('WhenBattleStayHidden2', ((gm.getValue('WhenBattle', false) == 'Stay Hidden' && gm.getValue('TargetType', false) == 'Arena' && gm.getValue('ArenaHide', false) == 'None')));
+                            if (value === 'Never') {
+                                caap.SetDivContent('battle_mess', 'Battle off');
+                            } else {
+                                caap.SetDivContent('battle_mess', '');
+                            }
+                        } else if (idName === 'WhenMonster') {
+                            if (value === 'Never') {
+                                caap.SetDivContent('monster_mess', 'Monster off');
+                            } else {
+                                caap.SetDivContent('monster_mess', '');
+                            }
+                        }
                     }
 
                     if (idName == 'WhenQuest') {
@@ -3732,12 +3743,16 @@ caap = {
                 this.SetDivContent('level_mess', 'Expected next level: ' + this.FormatTime(this.stats.levelTime));
             }
 
-            if (this.DisplayTimer('DemiPointTimer')) {
-                if (this.CheckTimer('DemiPointTimer')) {
-                    this.SetDivContent('demipoint_mess', 'Battle demipoints cleared');
-                } else {
-                    this.SetDivContent('demipoint_mess', 'Next Battle DemiPts: ' + this.DisplayTimer('DemiPointTimer'));
+            if (gm.getValue('DemiPointsFirst') && gm.getValue('WhenMonster') !== 'Never') {
+                if (this.DisplayTimer('DemiPointTimer')) {
+                    if (this.CheckTimer('DemiPointTimer')) {
+                        this.SetDivContent('demipoint_mess', 'Battle demipoints cleared');
+                    } else {
+                        this.SetDivContent('demipoint_mess', 'Next Battle DemiPts: ' + this.DisplayTimer('DemiPointTimer'));
+                    }
                 }
+            } else {
+                this.SetDivContent('demipoint_mess', '');
             }
 
             if (this.DisplayTimer('BlessingTimer')) {
@@ -3975,7 +3990,10 @@ caap = {
                 this[resultsFunction](resultsText);
             }
 
-            this.News();
+            if (gm.getValue('NewsSummary', true)) {
+                this.News();
+            }
+
             this.performanceTimer('Done CheckResults');
         } catch (err) {
             gm.log("ERROR in CheckResults: " + err);
@@ -5043,8 +5061,8 @@ caap = {
     },
 
     bestLand: {
-        land: '',
-        roi: 0
+        land : '',
+        roi  : 0
     },
 
     CheckResults_land: function () {
@@ -5173,13 +5191,14 @@ caap = {
 
             var totalCost = cost;
             var land = {
-                'row': row,
-                'name': name,
-                'income': income,
-                'cost': cost,
-                'totalCost': totalCost,
-                'usedByOther': false
+                'row'         : row,
+                'name'        : name,
+                'income'      : income,
+                'cost'        : cost,
+                'totalCost'   : totalCost,
+                'usedByOther' : false
             };
+
             landByName[name] = land;
             landNames.push(name);
         }
@@ -5203,7 +5222,6 @@ caap = {
     },
 
     BuyLand: function (land) {
-        //this.DrawLands();
         this.SelectLands(land.row, 2);
         var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
         if (button) {
@@ -5219,7 +5237,6 @@ caap = {
     },
 
     SellLand: function (land, select) {
-        //this.DrawLands();
         this.SelectLands(land.row, select);
         var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
         if (button) {
@@ -5234,12 +5251,6 @@ caap = {
     },
 
     Lands: function () {
-        /*
-        if (gm.getValue('LandTimer') && this.CheckTimer('LandTimer')) {
-            if (this.NavigateTo('soldiers,land','tab_land_on.gif')) return true;
-        }
-        */
-
         if (gm.getValue('autoBuyLand', false)) {
             // Do we have lands above our max to sell?
             if (this.sellLand && gm.getValue('SellLands', false)) {
@@ -5435,13 +5446,6 @@ caap = {
                 }
             }
 
-            /*  Not ready for primtime.   Need to build SliceList to yank our elemment out of the win list as well
-            if (gm.getValue('BattlesWonList','').indexOf(global.os+userId+global.os) >= 0) {
-                trash = gm.sliceList('BattlesWonList',global.os+userId+global.os);
-                elementArray = element.split(global.vs);
-            }
-            */
-
             this.SetCheckResultsFunction('');
         } else {
             gm.setValue('ChainCount', 0);
@@ -5572,37 +5576,37 @@ caap = {
     },
 
     rankTable: {
-        'acolyte': 0,
-        'scout': 1,
-        'soldier': 2,
-        'elite soldier': 3,
-        'squire': 4,
-        'knight': 5,
-        'first knight': 6,
-        'legionnaire': 7,
-        'centurion': 8,
-        'champion': 9,
-        'lieutenant commander': 10,
-        'commander': 11,
-        'high commander': 12,
-        'lieutenant general': 13,
-        'general': 14,
-        'high general': 15,
-        'baron': 16,
-        'earl': 17,
-        'duke': 18,
-        'prince': 19,
-        'king': 20,
-        'high king': 21
+        'acolyte'              : 0,
+        'scout'                : 1,
+        'soldier'              : 2,
+        'elite soldier'        : 3,
+        'squire'               : 4,
+        'knight'               : 5,
+        'first knight'         : 6,
+        'legionnaire'          : 7,
+        'centurion'            : 8,
+        'champion'             : 9,
+        'lieutenant commander' : 10,
+        'commander'            : 11,
+        'high commander'       : 12,
+        'lieutenant general'   : 13,
+        'general'              : 14,
+        'high general'         : 15,
+        'baron'                : 16,
+        'earl'                 : 17,
+        'duke'                 : 18,
+        'prince'               : 19,
+        'king'                 : 20,
+        'high king'            : 21
     },
 
     arenaTable: {
-        'brawler': 1,
-        'swordsman': 2,
-        'warrior': 3,
-        'gladiator': 4,
-        'hero': 5,
-        'legend': 6
+        'brawler'   : 1,
+        'swordsman' : 2,
+        'warrior'   : 3,
+        'gladiator' : 4,
+        'hero'      : 5,
+        'legend'    : 6
     },
 
     ClickBattleButton: function (battleButton) {
@@ -5610,32 +5614,32 @@ caap = {
         this.SetCheckResultsFunction('CheckBattleResults');
         this.Click(battleButton);
     },
-    // raid_attack_middle2.gif
 
     battles: {
-        'Raid': {
-            Invade : 'raid_attack_button.gif',
-            Duel : 'raid_attack_button2.gif',
-            regex : new RegExp('Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
-            refresh : 'raid',
-            image : 'tab_raid_on.gif'
+        'Raid' : {
+            Invade   : 'raid_attack_button.gif',
+            Duel     : 'raid_attack_button2.gif',
+            regex    : new RegExp('Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
+            refresh  : 'raid',
+            image    : 'tab_raid_on.gif'
         },
         'Freshmeat' : {
-            Invade: 'battle_01.gif',
-            Duel : 'battle_02.gif',
-            //regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
-            regex : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            regex2 : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            warLevel : 150,
-            refresh : 'battle_on.gif',
-            image : 'battle_on.gif'
+            Invade   : 'battle_01.gif',
+            Duel     : 'battle_02.gif',
+            WarDuel  : 'war_button_duel.gif',
+            //regex    : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
+            regex    : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+            regex2   : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+            warLevel : true,
+            refresh  : 'battle_on.gif',
+            image    : 'battle_on.gif'
         },
-        'Arena': {
-            Invade : 'arena_invade.gif',
-            Duel : 'arena_duel.gif',
-            regex : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
-            refresh : 'tab_arena_on.gif',
-            image : 'tab_arena_on.gif'
+        'Arena' : {
+            Invade   : 'arena_invade.gif',
+            Duel     : 'arena_duel.gif',
+            regex    : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
+            refresh  : 'tab_arena_on.gif',
+            image    : 'tab_arena_on.gif'
         }
     },
 
@@ -5746,7 +5750,7 @@ caap = {
                     }
 
                     // If looking for demi points, and already full, continue
-                    if (gm.getValue('DemiPointsFirst', '') && !gm.getValue('DemiPointsDone', true)) {
+                    if (gm.getValue('DemiPointsFirst', '') && !gm.getValue('DemiPointsDone', true) && (gm.getValue('WhenMonster') !== 'Never')) {
                         var deityNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1;
                         var demiPointList = gm.getList('DemiPointList');
                         var demiPoints = demiPointList[deityNumber].split('/');
@@ -5761,10 +5765,18 @@ caap = {
                         continue;
                     }
 
-                    if (this.stats.level >= this.battles.Freshmeat.warLevel) {
+                    if (this.battles.Freshmeat.warLevel) {
                         levelm = this.battles.Freshmeat.regex.exec(txt);
+                        if (!levelm) {
+                            levelm = this.battles.Freshmeat.regex2.exec(txt);
+                            this.battles.Freshmeat.warLevel = false;
+                        }
                     } else {
                         levelm = this.battles.Freshmeat.regex2.exec(txt);
+                        if (!levelm) {
+                            levelm = this.battles.Freshmeat.regex.exec(txt);
+                            this.battles.Freshmeat.warLevel = true;
+                        }
                     }
 
                     if (!levelm) {
@@ -5781,7 +5793,7 @@ caap = {
                     } else {
                         level = parseInt(levelm[2], 10);
                         rank = parseInt(levelm[4], 10);
-                        if (this.stats.level >= this.battles.Freshmeat.warLevel) {
+                        if (this.battles.Freshmeat.warLevel) {
                             army = parseInt(levelm[7], 10);
                         } else {
                             army = parseInt(levelm[5], 10);
@@ -7138,6 +7150,12 @@ caap = {
             //calculate the bias offset for time remaining
             var KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
 
+            //for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
+            // -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
+            if (KOBtotalMonsterTime >= 168) {
+                KOBtotalMonsterTime = KOBtotalMonsterTime - gm.getValue('KOBDelayStart', 48);
+            }
+
             //Percentage of time remaining for the currently selected monster
             var KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
             gm.log('Percent Time Remaining: ' + KOBPercentTimeRemaining);
@@ -7471,7 +7489,7 @@ caap = {
             We do monster review once an hour.  Some routines may reset this timer to drive
             MonsterReview immediately.
             \-------------------------------------------------------------------------------------*/
-            if (!this.WhileSinceDidIt('monsterReview', 60 * 60)) {
+            if (!this.WhileSinceDidIt('monsterReview', 60 * 60) || (gm.getValue('WhenMonster') === 'Never' && gm.getValue('WhenBattle') === 'Never')) {
                 return false;
             }
 
@@ -7550,7 +7568,7 @@ caap = {
                     link = link.split("'")[1];
                     var conditions = gm.getObjVal(monsterObj, 'conditions');
                     /*-------------------------------------------------------------------------------------\
-                    If the autocollect tyoken was specified then we set the link to do auto collect. If
+                    If the autocollect token was specified then we set the link to do auto collect. If
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
                     if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') == 'Collect Reward') {
@@ -7817,7 +7835,7 @@ caap = {
 
     DemiPoints: function () {
         try {
-            if (!gm.getValue('DemiPointsFirst')) {
+            if (!gm.getValue('DemiPointsFirst') || gm.getValue('WhenMonster') === 'Never') {
                 return false;
             }
 
@@ -7894,7 +7912,7 @@ caap = {
             }
 
             var now = new Date();
-            if ((this.stats.levelTime.getTime() - now.getTime()) < this.minutesBeforeLevelToUseUpStaEnergy * 60 * 1000) {
+            if (((this.stats.levelTime.getTime() - now.getTime()) < this.minutesBeforeLevelToUseUpStaEnergy * 60 * 1000) || (this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0))) {
                 //detect if we are entering level up mode for the very first time (kob)
                 if (!this.newLevelUpMode) {
                     //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
@@ -10399,10 +10417,18 @@ caap = {
                 }
 
                 var levelm = [];
-                if (this.stats.level >= this.battles.Freshmeat.warLevel) {
+                if (this.battles.Freshmeat.warLevel) {
                     levelm = this.battles.Freshmeat.regex.exec(txt);
+                    if (!levelm) {
+                        levelm = this.battles.Freshmeat.regex2.exec(txt);
+                        this.battles.Freshmeat.warLevel = false;
+                    }
                 } else {
                     levelm = this.battles.Freshmeat.regex2.exec(txt);
+                    if (!levelm) {
+                        levelm = this.battles.Freshmeat.regex.exec(txt);
+                        this.battles.Freshmeat.warLevel = true;
+                    }
                 }
 
                 if (!levelm) {
@@ -10416,7 +10442,7 @@ caap = {
                 var rankNum = parseInt(levelm[4], 10);
                 var warRankStr = '';
                 var warRankNum = 0;
-                if (this.stats.level >= this.battles.Freshmeat.warLevel) {
+                if (this.battles.Freshmeat.warLevel) {
                     warRankStr = levelm[5];
                     warRankNum = parseInt(levelm[6], 10);
                 }
@@ -10425,7 +10451,7 @@ caap = {
     found the target alive.
     \-------------------------------------------------------------------------------------*/
                 var armyNum = 0;
-                if (this.stats.level >= this.battles.Freshmeat.warLevel) {
+                if (this.battles.Freshmeat.warLevel) {
                     armyNum = parseInt(levelm[7], 10);
                 } else {
                     armyNum = parseInt(levelm[5], 10);
