@@ -2091,8 +2091,8 @@ caap = {
             html += '</table>';
             $("#caap_infoTargets1").html(html);
             return true;
-        } catch (e) {
-            gm.log("ERROR in UpdateDashboard: " + e);
+        } catch (err) {
+            gm.log("ERROR in UpdateDashboard: " + err);
             return false;
         }
     },
@@ -2159,8 +2159,8 @@ caap = {
             $('#caap_liveFeed').click(this.liveFeedButtonListener);
             $('#caap_clearTargets').click(this.clearTargetsButtonListener);
             return true;
-        } catch (e) {
-            gm.log("ERROR in AddDBListener: " + e);
+        } catch (err) {
+            gm.log("ERROR in AddDBListener: " + err);
             return false;
         }
     },
@@ -2195,8 +2195,8 @@ caap = {
             $("#app46755028429_st_2_5 strong").prepend("(<span style='color:red'>" + (this.stats.exp.dif) + "</span>) ");
             this.SetDivContent('exp_mess', "Experience to next level: " + this.stats.exp.dif);
             return true;
-        } catch (e) {
-            gm.log("ERROR in AddExpDisplay: " + e);
+        } catch (err) {
+            gm.log("ERROR in AddExpDisplay: " + err);
             return false;
         }
     },
@@ -2215,8 +2215,8 @@ caap = {
             }
 
             return true;
-        } catch (e) {
-            gm.log("ERROR in SetDisplay: " + e);
+        } catch (err) {
+            gm.log("ERROR in SetDisplay: " + err);
             return false;
         }
     },
@@ -2336,7 +2336,7 @@ caap = {
 
             return true;
         } catch (err) {
-            gm.log("ERROR in CheckBoxListener: " + e);
+            gm.log("ERROR in CheckBoxListener: " + err);
             return false;
         }
     },
@@ -2380,7 +2380,7 @@ caap = {
             gm.setValue(idName, e.target.value);
             return true;
         } catch (err) {
-            gm.log("ERROR in TextBoxListener: " + e);
+            gm.log("ERROR in TextBoxListener: " + err);
             return false;
         }
     },
@@ -2522,7 +2522,7 @@ caap = {
 
             return true;
         } catch (err) {
-            gm.log("ERROR in DropBoxListener: " + e);
+            gm.log("ERROR in DropBoxListener: " + err);
             return false;
         }
     },
@@ -2533,8 +2533,6 @@ caap = {
             var value = e.target.value;
             gm.log('Change: setting "' + idName + '" to "' + value + '"');
             if (idName == 'orderbattle_monster' || idName == 'orderraid') {
-                gm.setValue('monsterReview', 0);
-                gm.setValue('monsterReviewCounter', -3);
                 gm.setValue('monsterReview', 0);
                 gm.setValue('monsterReviewCounter', -3);
             }
@@ -2562,7 +2560,7 @@ caap = {
 
             return true;
         } catch (err) {
-            gm.log("ERROR in TextAreaListener: " + e);
+            gm.log("ERROR in TextAreaListener: " + err);
             return false;
         }
     },
@@ -2664,7 +2662,7 @@ caap = {
 
             return true;
         } catch (err) {
-            gm.log("ERROR in FoldingBlockListener: " + e);
+            gm.log("ERROR in FoldingBlockListener: " + err);
             return false;
         }
     },
@@ -2837,8 +2835,8 @@ caap = {
             this.AddDBListener();
             //gm.log("Listeners added for CAAP");
             return true;
-        } catch (e) {
-            gm.log("ERROR in AddListeners: " + e);
+        } catch (err) {
+            gm.log("ERROR in AddListeners: " + err);
             return false;
         }
     },
@@ -2890,8 +2888,8 @@ caap = {
                 'max': max,
                 'dif': dif
             };
-        } catch (e) {
-            gm.log("ERROR in GetStatusNumbers: " + e);
+        } catch (err) {
+            gm.log("ERROR in GetStatusNumbers: " + err);
             return {
                 'num': 0,
                 'max': 0,
@@ -2908,7 +2906,7 @@ caap = {
         rank      : 0,
         warRank   : 0,
         army      : 0,
-        levelTime : new Date(),
+        levelTime : new Date(2009, 1, 1, 0, 0, 0),
         energy    : {
             num: 0,
             max: 0,
@@ -2976,6 +2974,9 @@ caap = {
                 }
             }
 
+            this.stats.rank = parseInt(gm.getValue('MyRank', 0), 10);
+            this.stats.warRank = parseInt(gm.getValue('MyWarRank', 0), 10);
+
             // health
             var health = nHtml.FindByAttrContains(document.body, "span", "id", '_current_health');
             var healthMess = '';
@@ -3024,8 +3025,7 @@ caap = {
                 gm.log('Could not find level re');
             }
 
-            this.stats.rank = parseInt(gm.getValue('MyRank', 0), 10);
-            this.stats.warRank = parseInt(gm.getValue('MyWarRank', 0), 10);
+            this.stats.level = parseInt(gm.getValue('Level', 0), 10);
 
             // army
             var td = nHtml.FindByAttrContains(document.body, "div", "id", "main_bntp");
@@ -3036,10 +3036,13 @@ caap = {
                 var army = parseInt(armym[1], 10);
                 army = Math.min(army, 501);
                 this.stats.army = army;
+                gm.setValue('Army', this.stats.army);
                 var armyMess = "Army: " + this.stats.army;
             } else {
                 gm.log("Can't find armyRe in " + txtArmy);
             }
+
+            this.stats.level = parseInt(gm.getValue('Army', 0), 10);
 
             // gold
             var cashObj = nHtml.FindByAttrXPath(document.body, "strong", "contains(string(),'$')");
@@ -3100,8 +3103,8 @@ caap = {
 
             // return true if probably working
             return cashObj && (health !== null);
-        } catch (e) {
-            gm.log("ERROR GetStats: " + e);
+        } catch (err) {
+            gm.log("ERROR GetStats: " + err);
             return false;
         }
     },
@@ -7284,7 +7287,7 @@ caap = {
                 return false;
             }
 
-            if (!(this.stats.levelTime)) {
+            if (!(this.stats.levelTime) || (this.stats.levelTime).indexOf("Sun Feb 01 2009")) {
                 //if levelup mode is false then new level up mode is also false (kob)
                 this.newLevelUpMode = false;
                 return false;
@@ -8290,8 +8293,8 @@ caap = {
 
             this.JustDidIt('AutoPotionTimer');
             return true;
-        } catch (e) {
-            gm.log("ERROR in AutoPotion: " + e);
+        } catch (err) {
+            gm.log("ERROR in AutoPotion: " + err);
             return false;
         }
     },
@@ -8372,8 +8375,8 @@ caap = {
             }
 
             return true;
-        } catch (e) {
-            gm.log("ERROR in Alchemy: " + e);
+        } catch (err) {
+            gm.log("ERROR in Alchemy: " + err);
             return false;
         }
     },
@@ -9142,8 +9145,8 @@ caap = {
             }
 
             return true;
-        } catch (e) {
-            gm.log("ERROR in AutoGift: " + e);
+        } catch (err) {
+            gm.log("ERROR in AutoGift: " + err);
             return false;
         }
     },
@@ -9209,8 +9212,8 @@ caap = {
             caap.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + this.NumberOnly(giftEntry));
             gm.setValue('GiftEntry', '');
             return true;
-        } catch (e) {
-            gm.log("ERROR in AcceptGiftOnFB: " + e);
+        } catch (err) {
+            gm.log("ERROR in AcceptGiftOnFB: " + err);
             return false;
         }
     },
@@ -9303,8 +9306,8 @@ caap = {
             }
 
             return "Next";
-        } catch (e) {
-            gm.log("ERROR in IncreaseStat: " + e);
+        } catch (err) {
+            gm.log("ERROR in IncreaseStat: " + err);
             return "Fail";
         }
     },
@@ -9387,8 +9390,8 @@ caap = {
             gm.log("No rules match to increase stats");
             this.statsMatch = false;
             return false;
-        } catch (e) {
-            gm.log("ERROR in AutoStat: " + e);
+        } catch (err) {
+            gm.log("ERROR in AutoStat: " + err);
             return false;
         }
     },
@@ -9429,8 +9432,8 @@ caap = {
             this.JustDidIt('AutoCollectMATimer');
             gm.log("Collect Master and Apprentice reward completed");
             return true;
-        } catch (e) {
-            gm.log("ERROR in AutoCollectMA: " + e);
+        } catch (err) {
+            gm.log("ERROR in AutoCollectMA: " + err);
             return false;
         }
     },
@@ -9513,8 +9516,8 @@ caap = {
             }
 
             return true;
-        } catch (e) {
-            gm.log("ERROR in GetFriendList(" + listType.name + "): " + e);
+        } catch (err) {
+            gm.log("ERROR in GetFriendList(" + listType.name + "): " + err);
             return false;
         }
     },
@@ -9538,8 +9541,8 @@ caap = {
             });
 
             return true;
-        } catch (e) {
-            gm.log("ERROR in AddFriend(" + id + "): " + e);
+        } catch (err) {
+            gm.log("ERROR in AddFriend(" + id + "): " + err);
             return false;
         }
     },
@@ -9932,8 +9935,8 @@ caap = {
             }, retrySecs * 1000);
 
             return false;
-        } catch (e) {
-            gm.log("ERROR in Recon :" + e);
+        } catch (err) {
+            gm.log("ERROR in Recon :" + err);
             return false;
         }
     },
@@ -10107,9 +10110,9 @@ caap = {
                 }
             }
             return true;
-        } catch (e) {
+        } catch (err) {
             // Something went wrong, log it and use the emergency Action List.
-            gm.log("ERROR in MakeActionsList: " + e);
+            gm.log("ERROR in MakeActionsList: " + err);
             this.actionsList = [
                 "AutoElite",
                 "ArenaElite",
