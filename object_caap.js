@@ -7287,7 +7287,7 @@ caap = {
                 return false;
             }
 
-            if (!(this.stats.levelTime) || (this.stats.levelTime).indexOf("Sun Feb 01 2009")) {
+            if (!(this.stats.levelTime) || (this.stats.levelTime).toString().match(/Sun Feb 01 2009/i)) {
                 //if levelup mode is false then new level up mode is also false (kob)
                 this.newLevelUpMode = false;
                 return false;
