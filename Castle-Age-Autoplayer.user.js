@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.31
+// @version        140.23.32
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.31";
+var caapVersion = "140.23.32";
 
 ///////////////////////////
 //       Prototypes
@@ -724,12 +724,11 @@ nHtml = {
 /////////////////////////////////////////////////////////////////////
 
 caap = {
-    stats: {},
-    lastReload: new Date(),
-    waitingForDomLoad : false,
-    node_trigger : null,
-    newLevelUpMode : false,
-    autoReloadMilliSecs: 15 * 60 * 1000,
+    lastReload          : new Date(),
+    waitingForDomLoad   : false,
+    node_trigger        : null,
+    newLevelUpMode      : false,
+    autoReloadMilliSecs : 15 * 60 * 1000,
 
     userRe       : new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)"),
     levelRe      : new RegExp('Level\\s*:\\s*([0-9]+)', 'i'),
@@ -741,9 +740,8 @@ caap = {
     influenceRe  : new RegExp("([0-9]+)%"),
     moneyRe      : new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
 
-    caapDivObject: null,
-
-    caapTopObject: null,
+    caapDivObject : null,
+    caapTopObject : null,
 
     init: function () {
         try {
@@ -2001,17 +1999,19 @@ caap = {
             ],
             typeList = [
                 'Invade',
-                'Duel'
+                'Duel',
+                'War'
             ],
             typeInst = [
                 'Battle using Invade button',
-                'Battle using Duel button - no guarentee you will win though'
+                'Battle using Duel button - no guarentee you will win though',
+                'War using Duel button - no guarentee you will win though'
             ],
             targetList = [
                 'Freshmeat',
                 'Userid List',
-                'Raid',
-                'Arena'
+                'Raid'
+                //'Arena'
             ],
             targetInst = [
                 'Use settings to select a target from the Battle Page',
@@ -3620,9 +3620,40 @@ caap = {
         }
     },
 
+    stats: {
+        cash      : 0,
+        paytime   : '',
+        payminute : '',
+        level     : 0,
+        rank      : 0,
+        warRank   : 0,
+        army      : 0,
+        levelTime : new Date(),
+        energy    : {
+            num: 0,
+            max: 0,
+            dif: 0
+        },
+        health    : {
+            num: 0,
+            max: 0,
+            dif: 0
+        },
+        stamina   : {
+            num: 0,
+            max: 0,
+            dif: 0
+        },
+        exp     : {
+            num: 0,
+            max: 0,
+            dif: 0
+        }
+    },
+
     GetStats: function () {
         try {
-            this.stats = {};
+            //this.stats = {};
             if (!global.is_firefox) {
                 if (document.getElementById('app46755028429_healForm')) {
                     // Facebook ID
@@ -3655,6 +3686,14 @@ caap = {
 
                 var userName = txtRank.match(new RegExp("\"(.+)\""));
                 gm.setValue('PlayerName', userName[1]);
+
+                // war rank
+                var warRankImg = $("img[src*='war_rank_']");
+                if (warRankImg.length) {
+                    warRankImg = warRankImg.attr("src").split('/');
+                    this.stats.warRank = Number((warRankImg[warRankImg.length - 1].match(new RegExp("war_rank_([0-9]+).gif")))[1]);
+                    gm.setValue('MyWarRank', this.stats.warRank);
+                }
             }
 
             // health
@@ -3705,7 +3744,8 @@ caap = {
                 gm.log('Could not find level re');
             }
 
-            this.stats.rank = parseInt(gm.getValue('MyRank'), 10);
+            this.stats.rank = parseInt(gm.getValue('MyRank', 0), 10);
+            this.stats.warRank = parseInt(gm.getValue('MyWarRank', 0), 10);
 
             // army
             var td = nHtml.FindByAttrContains(document.body, "div", "id", "main_bntp");
@@ -5318,140 +5358,171 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     CheckBattleResults: function () {
-        var nameLink = null;
-        var userId = null;
-        var userName = null;
-        var now = null;
-        var newelement = null;
+        try {
+            var nameLink = null,
+                userId = null,
+                userName = null,
+                now = null,
+                newelement = null;
 
-        // Check for Battle results
-        var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
-        if (resultsDiv) {
-            var resultsText = $.trim(nHtml.GetText(resultsDiv));
-            if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
-                gm.log("This opponent is dead or hiding: " + this.lastBattleID);
-                if (!this.doNotBattle) {
-                    this.doNotBattle = this.lastBattleID;
-                } else {
-                    this.doNotBattle += " " + this.lastBattleID;
+            // Check for Battle results
+            var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
+            if (resultsDiv) {
+                var resultsText = $.trim(nHtml.GetText(resultsDiv));
+                if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
+                    gm.log("This opponent is dead or hiding: " + this.lastBattleID);
+                    if (!this.doNotBattle) {
+                        this.doNotBattle = this.lastBattleID;
+                    } else {
+                        this.doNotBattle += " " + this.lastBattleID;
+                    }
                 }
             }
-        }
 
-        var webSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'arena_arena_guard');
-        if (webSlice) {
-            gm.log('Checking Arena Guard');
-            webSlice = webSlice.parentNode.parentNode;
-            var ss = document.evaluate(".//img[contains(@src,'ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            gm.log('Arena Guard Slots Filled: ' + ss.snapshotLength);
-            if ((ss.snapshotLength < 10) && gm.getValue('ArenaEliteEnd', '') != 'NoArmy') {
-                gm.setValue('ArenaEliteNeeded', true);
-                gm.log('Arena Guard Needs To Be Filed.' + ss.snapshotLength);
+            var webSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'arena_arena_guard');
+            if (webSlice) {
+                gm.log('Checking Arena Guard');
+                webSlice = webSlice.parentNode.parentNode;
+                var ss = document.evaluate(".//img[contains(@src,'ak.fbcdn.net')]", webSlice, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                gm.log('Arena Guard Slots Filled: ' + ss.snapshotLength);
+                if ((ss.snapshotLength < 10) && gm.getValue('ArenaEliteEnd', '') != 'NoArmy') {
+                    gm.setValue('ArenaEliteNeeded', true);
+                    gm.log('Arena Guard Needs To Be Filed.' + ss.snapshotLength);
+                }
             }
-        }
 
-        if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
-            if (this.CheckForImage('tab_arena_on')) {
-                resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
-                userId = nameLink.href.match(/user=\d+/i);
-                userId = String(userId).substr(5);
-                gm.setValue("ArenaChainId", userId);
-                gm.log("Chain Attack: " + userId + "  Arena Battle");
-            } else {
-                var winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
-                var bptxt = $.trim(nHtml.GetText(winresults.parentNode).toString());
-                var bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
-                var goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
-                var goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
-                resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
-                userId = nameLink.href.match(/user=\d+/i);
-                userId = String(userId).substr(5);
-                userName = $.trim(nHtml.GetText(nameLink));
-                var wins = 1;
-                gm.log("We Defeated " + userName + "!!");
-                //Test if we should chain this guy
-                gm.setValue("BattleChainId", '');
-                var chainBP = gm.getValue('ChainBP', 'empty');
-                if (chainBP !== 'empty') {
-                    if (bpnum >= Number(chainBP)) {
-                        gm.setValue("BattleChainId", userId);
-                        gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
-                    } else {
-                        if (!this.doNotBattle) {
-                            this.doNotBattle = this.lastBattleID;
-                        } else {
-                            this.doNotBattle += " " + this.lastBattleID;
-                        }
-                    }
-                }
-
-                var chainGold = gm.getNumber('ChainGold', 0);
-                if (chainGold) {
-                    if (goldnum >= chainGold) {
-                        gm.setValue("BattleChainId", userId);
-                        gm.log("Chain Attack " + userId + " Gold:" + goldnum);
-                    } else {
-                        if (!this.doNotBattle) {
-                            this.doNotBattle = this.lastBattleID;
-                        } else {
-                            this.doNotBattle += " " + this.lastBattleID;
-                        }
-                    }
-                }
-
-                if (gm.getValue("BattleChainId", '')) {
-                    var chainCount = gm.getNumber('ChainCount', 0) + 1;
-                    if (chainCount >= gm.getNumber('MaxChains', 4)) {
-                        gm.log("Lets give this guy a break.");
-                        if (!this.doNotBattle) {
-                            this.doNotBattle = this.lastBattleID;
-                        } else {
-                            this.doNotBattle += " " + this.lastBattleID;
-                        }
-
-                        gm.setValue("BattleChainId", '');
-                        chainCount = 0;
-                    }
-
-                    gm.setValue('ChainCount', chainCount);
+            if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
+                if (this.CheckForImage('tab_arena_on')) {
+                    resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                    userId = nameLink.href.match(/user=\d+/i);
+                    userId = String(userId).substr(5);
+                    gm.setValue("ArenaChainId", userId);
+                    gm.log("Chain Attack: " + userId + "  Arena Battle");
                 } else {
-                    gm.setValue('ChainCount', 0);
+                    var winresults = null,
+                        bptxt = '',
+                        bpnum = 0,
+                        goldtxt = '',
+                        goldnum = 0,
+                        wins = 1;
+
+                    if (gm.getValue("BattleType", "Invade") == "War") {
+                        winresults = nHtml.FindByAttrContains(document.body, "b", "class", 'gold');
+                        bptxt = $.trim(nHtml.GetText(winresults.parentNode.parentNode).toString());
+                        bpnum = ((/\d+\s+War Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+War Points/i)) : 0);
+                        goldtxt = winresults.innerHTML;
+                        goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
+                        userId = this.lastBattleID;
+                        userName = $("div[style*='war_win_left.jpg']").text().match(new RegExp("(.+)'s Defense"))[1];
+                    } else {
+                        winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
+                        bptxt = $.trim(nHtml.GetText(winresults.parentNode).toString());
+                        bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
+                        goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
+                        goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
+                        resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+                        nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                        userId = nameLink.href.match(/user=\d+/i);
+                        userId = String(userId).substr(5);
+                        userName = $.trim(nHtml.GetText(nameLink));
+                    }
+
+                    gm.log("We Defeated " + userName + "!!");
+                    //Test if we should chain this guy
+                    gm.setValue("BattleChainId", '');
+                    var chainBP = gm.getValue('ChainBP', 'empty');
+                    if (chainBP !== 'empty') {
+                        if (bpnum >= Number(chainBP)) {
+                            gm.setValue("BattleChainId", userId);
+                            if (gm.getValue("BattleType", "Invade") == "War") {
+                                gm.log("Chain Attack: " + userId + "  War Points:" + bpnum);
+                            } else {
+                                gm.log("Chain Attack: " + userId + "  Battle Points:" + bpnum);
+                            }
+                        } else {
+                            if (!this.doNotBattle) {
+                                this.doNotBattle = this.lastBattleID;
+                            } else {
+                                this.doNotBattle += " " + this.lastBattleID;
+                            }
+                        }
+                    }
+
+                    var chainGold = gm.getNumber('ChainGold', 0);
+                    if (chainGold) {
+                        if (goldnum >= chainGold) {
+                            gm.setValue("BattleChainId", userId);
+                            gm.log("Chain Attack " + userId + " Gold:" + goldnum);
+                        } else {
+                            if (!this.doNotBattle) {
+                                this.doNotBattle = this.lastBattleID;
+                            } else {
+                                this.doNotBattle += " " + this.lastBattleID;
+                            }
+                        }
+                    }
+
+                    if (gm.getValue("BattleChainId", '')) {
+                        var chainCount = gm.getNumber('ChainCount', 0) + 1;
+                        if (chainCount >= gm.getNumber('MaxChains', 4)) {
+                            gm.log("Lets give this guy a break.");
+                            if (!this.doNotBattle) {
+                                this.doNotBattle = this.lastBattleID;
+                            } else {
+                                this.doNotBattle += " " + this.lastBattleID;
+                            }
+
+                            gm.setValue("BattleChainId", '');
+                            chainCount = 0;
+                        }
+
+                        gm.setValue('ChainCount', chainCount);
+                    } else {
+                        gm.setValue('ChainCount', 0);
+                    }
+
+                    if (gm.getValue('BattlesWonList', '').indexOf(global.vs + userId + global.vs) == -1 &&
+                        (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
+                        now = (new Date().getTime()).toString();
+                        newelement = now + global.vs + userId + global.vs + userName + global.vs + wins + global.vs + bpnum + global.vs + goldnum;
+                        gm.listPush('BattlesWonList', newelement, 100);
+                    }
+
+                    this.SetCheckResultsFunction('');
+                }
+            } else if (this.CheckForImage('battle_defeat.gif')) {
+                if (gm.getValue("BattleType", "Invade") == "War") {
+                    userId = this.lastBattleID;
+                    userName = $("div[style*='war_lose_left.jpg']").text().match(new RegExp("(.+)'s Defense"))[1];
+                } else {
+                    resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
+                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                    userId = nameLink.href.match(/user=\d+/i);
+                    userId = String(userId).substr(5);
+                    userName = $.trim(nHtml.GetText(nameLink));
                 }
 
-                if (gm.getValue('BattlesWonList', '').indexOf(global.vs + userId + global.vs) == -1 &&
-                    (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
+                gm.log("We Were Defeated By " + userName + ".");
+                gm.setValue('ChainCount', 0);
+                if (gm.getValue('BattlesLostList', '').indexOf(global.vs + userId + global.vs) == -1) {
                     now = (new Date().getTime()).toString();
-                    newelement = now + global.vs + userId + global.vs + userName + global.vs + wins + global.vs + bpnum + global.vs + goldnum;
-                    gm.listPush('BattlesWonList', newelement, 100);
+                    newelement = now + global.vs + userId + global.vs + userName;
+                    if (!gm.getValue('IgnoreBattleLoss', false)) {
+                        gm.listPush('BattlesLostList', newelement, 100);
+                    }
                 }
 
                 this.SetCheckResultsFunction('');
+            } else {
+                gm.setValue('ChainCount', 0);
             }
-        } else if (this.CheckForImage('battle_defeat.gif')) {
-            resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-            nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
-            userId = nameLink.href.match(/user=\d+/i);
-            userId = String(userId).substr(5);
-            userName = $.trim(nHtml.GetText(nameLink));
-
-            gm.log("We Were Defeated By " + userName + ".");
-            gm.setValue('ChainCount', 0);
-            if (gm.getValue('BattlesLostList', '').indexOf(global.vs + userId + global.vs) == -1) {
-                now = (new Date().getTime()).toString();
-                newelement = now + global.vs + userId + global.vs + userName;
-                if (!gm.getValue('IgnoreBattleLoss', false)) {
-                    gm.listPush('BattlesLostList', newelement, 100);
-                }
-            }
-
-            this.SetCheckResultsFunction('');
-        } else {
-            gm.setValue('ChainCount', 0);
+        } catch (err) {
+            gm.log("ERROR in CheckBattleResults: " + err);
         }
     },
 
+/*
     FindBattleForm: function (obj, withOpponent) {
         var ss = document.evaluate(".//form[contains(@onsubmit,'battle.php')]", obj, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         var battleForm = null;
@@ -5516,6 +5587,7 @@ caap = {
     // This doesn't appear to be used for anything!!
     battleLinkXPath: "(contains(@onclick,'xw_controller=battle') and contains(@onclick,'xw_action=attack')) " +
         "or contains(@onclick,'directAttack') or contains(@onclick,'_battle_battle(')",
+*/
 
     hashThisId: function (userid) {
         if (!gm.getValue('AllowProtected', true)) {
@@ -5539,15 +5611,17 @@ caap = {
         var target = '';
         if (gm.getValue('TargetType', '') == 'Arena') {
             if (gm.getValue('BattleType', 'Invade') == "Duel") {
-                target = "arena_duel.gif";
+                target = this.battles.Arena.Duel;
             } else {
-                target = "arena_invade.gif";
+                target = this.battles.Arena.Invade;
             }
         } else {
-            if (gm.getValue('BattleType', 'Invade') == "Duel") {
-                target = "battle_02.gif";
+            if (gm.getValue('BattleType', 'Invade') == "War") {
+                target = this.battles.Freshmeat.War;
+            } else if (gm.getValue('BattleType', 'Invade') == "Duel") {
+                target = this.battles.Freshmeat.Duel;
             } else {
-                target = "battle_01.gif";
+                target = this.battles.Freshmeat.Invade;
             }
         }
 
@@ -5626,7 +5700,7 @@ caap = {
         'Freshmeat' : {
             Invade   : 'battle_01.gif',
             Duel     : 'battle_02.gif',
-            WarDuel  : 'war_button_duel.gif',
+            War      : 'war_button_duel.gif',
             //regex    : new RegExp('Level ([0-9]+)\\s*([A-Za-z ]+)', 'i'),
             regex    : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
             regex2   : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
@@ -5708,7 +5782,11 @@ caap = {
             } else {
                 chainId = gm.getValue('BattleChainId', '');
                 gm.setValue('BattleChainId', '');
-                yourRank = this.stats.rank;
+                if (gm.getValue("BattleType") == "War") {
+                    yourRank = this.stats.warRank;
+                } else {
+                    yourRank = this.stats.rank;
+                }
             }
 
             // Lets get our Freshmeat user settings
@@ -5720,18 +5798,21 @@ caap = {
 
             //gm.log("my army/rank/level:" + this.stats.army + "/" + this.stats.rank + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s += 1) {
-                var button = ss.snapshotItem(s);
-                var tr = button;
+                var button = ss.snapshotItem(s),
+                    tr = button;
+
                 if (!tr) {
                     gm.log('No tr parent of button?');
                     continue;
                 }
 
-                var rank = 0;
-                var level = 0;
-                var army = 0;
+                var userName = '',
+                    rank = 0,
+                    level = 0,
+                    army = 0,
+                    levelm = '';
+
                 txt = '';
-                var levelm = '';
                 if (type == 'Raid') {
                     tr = tr.parentNode.parentNode.parentNode.parentNode.parentNode;
                     txt = tr.childNodes[3].childNodes[3].textContent;
@@ -5791,8 +5872,14 @@ caap = {
                         var subtd = document.evaluate("td", tr, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                         army = parseInt($.trim(nHtml.GetText(subtd.snapshotItem(2))), 10);
                     } else {
+                        userName = levelm[1];
                         level = parseInt(levelm[2], 10);
-                        rank = parseInt(levelm[4], 10);
+                        if (gm.getValue("BattleType") == "War" && this.battles.Freshmeat.warLevel) {
+                            rank = parseInt(levelm[6], 10);
+                        } else {
+                            rank = parseInt(levelm[4], 10);
+                        }
+
                         if (this.battles.Freshmeat.warLevel) {
                             army = parseInt(levelm[7], 10);
                         } else {
@@ -5838,7 +5925,12 @@ caap = {
                     continue;
                 }
 
-                gm.log("ID: " + userid + "    \tLevel: " + level + "\tRank: " + rank + " \tArmy: " + army);
+                if (gm.getValue("BattleType") == "War" && this.battles.Freshmeat.warLevel) {
+                    gm.log("ID: " + userid + "    \tLevel: " + level + "\tWar Rank: " + rank + " \tArmy: " + army);
+                } else {
+                    gm.log("ID: " + userid + "    \tLevel: " + level + "\tBattle Rank: " + rank + "  \tArmy: " + army);
+                }
+
                 var dfl = gm.getValue('BattlesLostList', '');
                 // don't battle people we recently lost to
                 if (dfl.indexOf(global.vs + userid + global.vs) >= 0) {
@@ -5859,6 +5951,7 @@ caap = {
 
                 var temp = {};
                 temp.id = userid;
+                temp.name = userName;
                 temp.score = thisScore;
                 temp.button = button;
                 temp.targetNumber = s + 1;
@@ -5929,6 +6022,7 @@ caap = {
                             gm.log('Found Target score: ' + safeTargets[z].score + ' id: ' + safeTargets[z].id + ' Number: ' + safeTargets[z].targetNumber);
                             this.ClickBattleButton(bestButton);
                             this.lastBattleID = safeTargets[z].id;
+                            this.lastUserName = safeTargets[z].userName;
                             this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
                             this.notSafeCount = 0;
                             return true;
@@ -6011,7 +6105,11 @@ caap = {
                 target = target.toLowerCase();
             }
 
-            if (!this.CheckStamina('Battle', ((target == 'arena') ? 5 : 1))) {
+            if (gm.getValue('BattleType') === 'War') {
+                if (!this.CheckStamina('Battle', 10)) {
+                    return false;
+                }
+            } else if (!this.CheckStamina('Battle', ((target == 'arena') ? 5 : 1))) {
                 return false;
             }
 
@@ -6191,6 +6289,7 @@ caap = {
                     this.NextBattleTarget();
                     return true;
                 }
+
                 gm.log('Doing default UserID list, but no target');
                 return false;
             }
@@ -7958,6 +8057,7 @@ caap = {
                     this.SetDivContent('battle_mess', 'Burning stamina to level up');
                     return true;
                 }
+
                 var staminaMF = battleOrBattle + 'Stamina';
                 if (gm.getValue('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= gm.getValue('X' + staminaMF, 1)) {
                     if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= gm.getValue('XMin' + staminaMF, 0)) {
@@ -9400,6 +9500,7 @@ caap = {
             if ($('#app46755028429_battleUpdateBox').length) {
                 var xp = 0,
                     bp = 0,
+                    wp = 0,
                     win = 0,
                     lose = 0,
                     deaths = 0,
@@ -9420,6 +9521,7 @@ caap = {
                         time,
                         my_xp = 0,
                         my_bp = 0,
+                        my_wp = 0,
                         my_cash = 0;
 
                     time = Date.now() - ((((((((days || 0) * 24) + (hours || 0)) * 60) + (minutes || 59)) * 60) + (seconds || 59)) * 1000);
@@ -9440,6 +9542,7 @@ caap = {
                             user[uid].lose += 1;
                             my_xp = txt.regex(/([0-9]+) experience/i);
                             my_bp = txt.regex(/([0-9]+) Battle Points!/i);
+                            my_wp = txt.regex(/([0-9]+) War Points!/i);
                             my_cash = txt.regex(/\$([0-9]+)/i);
                             result = 'win';
                         } else {
@@ -9447,12 +9550,14 @@ caap = {
                             user[uid].win += 1;
                             my_xp = 0 - txt.regex(/([0-9]+) experience/i);
                             my_bp = 0 - txt.regex(/([0-9]+) Battle Points!/i);
+                            my_wp = 0 - txt.regex(/([0-9]+) War Points!/i);
                             my_cash = 0 - txt.regex(/\$([0-9]+)/i);
                             result = 'loss';
                         }
 
                         xp += my_xp;
                         bp += my_bp;
+                        wp += my_wp;
                         cash += my_cash;
 
                     }
@@ -9463,6 +9568,7 @@ caap = {
                     list.push('You ' + (xp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + addCommas(Math.abs(xp)) + '</span> experience points.');
                     list.push('You ' + (cash >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + '<b class="gold">$' + addCommas(Math.abs(cash)) + '</b></span>.');
                     list.push('You ' + (bp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + addCommas(Math.abs(bp)) + '</span> Battle Points.');
+                    list.push('You ' + (wp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + addCommas(Math.abs(wp)) + '</span> War Points.');
                     list.push('');
                     user = sortObject(user, function (a, b) {
                             return (user[b].win + (user[b].lose / 100)) - (user[a].win + (user[a].lose / 100));
