@@ -95,6 +95,12 @@ global = {
             } else {
                 console.warn(message);
             }
+        } else {
+            if (arguments.length > 1) {
+                this.log(1, text, Array.prototype.slice.call(arguments, 1));
+            } else {
+                this.log(1, text);
+            }
         }
     },
 
@@ -105,6 +111,12 @@ global = {
                 console.error(message, Array.prototype.slice.call(arguments, 1));
             } else {
                 console.error(message);
+            }
+        } else {
+            if (arguments.length > 1) {
+                this.log(1, text, Array.prototype.slice.call(arguments, 1));
+            } else {
+                this.log(1, text);
             }
         }
     },

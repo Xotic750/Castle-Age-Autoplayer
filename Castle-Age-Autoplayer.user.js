@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.35
+// @version        140.23.36
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.35";
+var caapVersion = "140.23.36";
 
 ///////////////////////////
 //       Prototypes
@@ -197,6 +197,12 @@ global = {
             } else {
                 console.warn(message);
             }
+        } else {
+            if (arguments.length > 1) {
+                this.log(1, text, Array.prototype.slice.call(arguments, 1));
+            } else {
+                this.log(1, text);
+            }
         }
     },
 
@@ -207,6 +213,12 @@ global = {
                 console.error(message, Array.prototype.slice.call(arguments, 1));
             } else {
                 console.error(message);
+            }
+        } else {
+            if (arguments.length > 1) {
+                this.log(1, text, Array.prototype.slice.call(arguments, 1));
+            } else {
+                this.log(1, text);
             }
         }
     },
@@ -1523,6 +1535,14 @@ caap = {
 
     MakeTextBox: function (idName, instructions, formatParms) {
         try {
+            if (formatParms === '') {
+                if (global.is_chrome) {
+                    formatParms = " rows='3' cols='25'";
+                } else {
+                    formatParms = " rows='3' cols='21'";
+                }
+            }
+
             var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getValue(idName, '') + "</textarea>";
             return htmlCode;
         } catch (err) {
@@ -1533,6 +1553,14 @@ caap = {
 
     MakeListBox: function (idName, instructions, formatParms) {
         try {
+            if (formatParms === '') {
+                if (global.is_chrome) {
+                    formatParms = " rows='3' cols='25'";
+                } else {
+                    formatParms = " rows='3' cols='21'";
+                }
+            }
+
             var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getList(idName) + "</textarea>";
             return htmlCode;
         } catch (err) {
@@ -2123,7 +2151,7 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
             htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
-            htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, " rows='3' cols='25'");
+            htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, '');
             htmlCode += "</div>";
             htmlCode += "<div id='caap_ArenaSub' style='display: " + (gm.getValue('TargetType', false) == 'Arena' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -2139,7 +2167,7 @@ caap = {
             htmlCode += "</div>";
             htmlCode += "</div>";
             htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) == 'Userid List' ? 'block' : 'none') + "'>";
-            htmlCode += this.MakeListBox('BattleTargets', userIdInstructions, " rows='3' cols='25'");
+            htmlCode += this.MakeListBox('BattleTargets', userIdInstructions, '');
             htmlCode += "</div>";
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
@@ -2237,7 +2265,7 @@ caap = {
                 this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
-            htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, " rows='3' cols='25'");
+            htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '');
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -2266,7 +2294,7 @@ caap = {
             htmlCode += "<tr><td>Min-Check Feed (minutes)</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MonsterFinderFeedMin', monsterFinderFeedMinInstructions, 15, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "Find Monster Priority <a href='http://senses.ws/caap/index.php?topic=66.0' target='_blank'><font color='red'>?</font></a>";
-            htmlCode += this.MakeTextBox('MonsterFinderOrder', monsterFinderOrderInstructions, " rows='3' cols='25'");
+            htmlCode += this.MakeTextBox('MonsterFinderOrder', monsterFinderOrderInstructions, '');
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -2539,7 +2567,7 @@ caap = {
             htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
-            htmlCode += '<tr><td>' + this.MakeListBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", " rows='3' cols='25'") + '</td></tr></table>';
+            htmlCode += '<tr><td>' + this.MakeListBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '') + '</td></tr></table>';
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
@@ -3698,6 +3726,7 @@ caap = {
     },
 
     stats: {
+        FBID      : 0,
         cash      : 0,
         payTime   : {
             ticker  : '',
@@ -6829,7 +6858,7 @@ caap = {
 
             var page = gm.getValue('page', 'battle_monster');
             var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 0)) ||
+            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
                                              firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 global.log(1, 'On another player\'s keep.');
                 return false;
@@ -7007,7 +7036,7 @@ caap = {
                 monstType = this.getMonstType(monster);
             }
 
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 0))) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', this.stats.FBID)) {
                 monster = monster.replace(yourRegEx, 'Your ');
             }
 
@@ -7081,7 +7110,7 @@ caap = {
             if (webSlice) {
                 webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
                 if (webSlice) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + gm.getValue('FBID', 0));
+                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + this.stats.FBID);
                     if (webSlice) {
                         var damList = null;
                         if (monstType == "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType == "Deathrune") {
@@ -7600,7 +7629,7 @@ caap = {
                 monsterOnPage = $.trim(monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')));
             }
 
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', gm.getValue('FBID', 0))) {
+            if (nHtml.FindByAttr(webSlice, 'img', 'uid', this.stats.FBID)) {
                 monsterOnPage = monsterOnPage.replace(yourRegEx, 'Your ');
             }
 
@@ -7937,7 +7966,7 @@ caap = {
             }
 
             var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + gm.getValue('FBID', 0)) ||
+            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
                     firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 global.log(1, 'On another player\'s keep.');
                 return this.NavigateTo('keep,battle_monster');
@@ -11290,14 +11319,15 @@ $(function () {
         window.location.href = window.location.href;
     }
 
-    var userID = gm.setValue('FBID', $('head').html().regex(/user:([0-9]+),/i));
-    if (!userID || typeof userID !== 'number' || userID === 0) {
+    caap.stats.FBID = $('head').html().regex(/user:([0-9]+),/i);
+    if (!caap.stats.FBID || typeof caap.stats.FBID !== 'number' || caap.stats.FBID === 0) {
         // Force reload without retrying
         global.error('ERROR: No Facebook UserID!!!');
         window.location.href = window.location.href;
     }
 
-    global.log(9, "FBID", gm.getValue('FBID'));
+    gm.setValue('FBID', caap.stats.FBID + '');
+    global.log(9, "FBID", caap.stats.FBID);
 
     gm.setValue('clickUrl', window.location.href);
     global.AddCSS();

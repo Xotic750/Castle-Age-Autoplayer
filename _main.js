@@ -214,14 +214,15 @@ $(function () {
         window.location.href = window.location.href;
     }
 
-    var userID = gm.setValue('FBID', $('head').html().regex(/user:([0-9]+),/i));
-    if (!userID || typeof userID !== 'number' || userID === 0) {
+    caap.stats.FBID = $('head').html().regex(/user:([0-9]+),/i);
+    if (!caap.stats.FBID || typeof caap.stats.FBID !== 'number' || caap.stats.FBID === 0) {
         // Force reload without retrying
         global.error('ERROR: No Facebook UserID!!!');
         window.location.href = window.location.href;
     }
 
-    global.log(9, "FBID", gm.getValue('FBID'));
+    gm.setValue('FBID', caap.stats.FBID + '');
+    global.log(9, "FBID", caap.stats.FBID);
 
     gm.setValue('clickUrl', window.location.href);
     global.AddCSS();
