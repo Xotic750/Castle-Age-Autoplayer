@@ -8,7 +8,8 @@ if (typeof GM_log != 'function') {
     throw "Error: Your browser does not appear to support Greasemonkey scripts!";
 }
 
-gm.log("Starting");
+global.logLevel = gm.getValue('DebugLevel', 1);
+global.log(1, "Starting");
 
 /////////////////////////////////////////////////////////////////////
 //                         Chrome Startup
@@ -27,14 +28,14 @@ if (global.is_chrome) {
         if (caapVersion <= '140.21.9' || shouldTryConvert) {
             ConvertGMtoJSON();
         }
-    } catch (e) {
-        gm.log("Error converting DB: " + e);
+    } catch (err) {
+        global.error("Error converting DB: " + err);
     }
 
     try {
         CM_Listener();
-    } catch (e) {
-        gm.log("Error loading CM_Listener" + e);
+    } catch (err) {
+        global.error("Error loading CM_Listener" + err);
     }
 }
 
@@ -83,7 +84,7 @@ if (!global.is_chrome) {
                             gm.setValue('SUC_last_update', new Date().getTime() + '');
                             gm.setValue('SUC_target_script_name', script_name);
                             gm.setValue('SUC_remote_version', remote_version);
-                            gm.log('remote version ' + remote_version);
+                            global.log(1, 'remote version ' + remote_version);
                             if (remote_version > caapVersion) {
                                 global.newVersionAvailable = true;
                                 if (forced) {
@@ -110,7 +111,7 @@ if (!global.is_chrome) {
 
         updateCheck(false);
     } catch (err) {
-        gm.log("ERROR in GitHub updater: " + err);
+        global.error("ERROR in GitHub updater: " + err);
     }
 }
 
@@ -159,7 +160,7 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
                 var attribute = gm.getValue("Attribute" + a, '');
                 if (attribute !== '') {
                     gm.setValue("Attribute" + a, attribute.ucFirst());
-                    gm.log("Converted Attribute" + a + ": " + attribute + "   to: " + attribute.ucFirst());
+                    global.log(1, "Converted Attribute" + a + ": " + attribute + "   to: " + attribute.ucFirst());
                 }
             }
         }
@@ -197,7 +198,7 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
 
         gm.setValue('LastVersion', caapVersion);
     } catch (err) {
-        gm.log("ERROR in Environment updater: " + err);
+        global.error("ERROR in Environment updater: " + err);
     }
 }
 
@@ -206,12 +207,21 @@ if (gm.getValue('LastVersion', 0) != caapVersion) {
 /////////////////////////////////////////////////////////////////////
 
 $(function () {
-    gm.log('Full page load completed');
+    global.log(1, 'Full page load completed');
     // If unable to read in gm.values, then reload the page
     if (gm.getValue('caapPause', 'none') !== 'none' && gm.getValue('caapPause', 'none') !== 'block') {
-        gm.log('Refresh page because unable to load gm.values due to unsafewindow error');
+        global.error('ERROR: Refresh page because unable to load gm.values due to unsafewindow error');
         window.location.href = window.location.href;
     }
+
+    var userID = gm.setValue('FBID', $('head').html().regex(/user:([0-9]+),/i));
+    if (!userID || typeof userID !== 'number' || userID === 0) {
+        // Force reload without retrying
+        global.error('ERROR: No Facebook UserID!!!');
+        window.location.href = window.location.href;
+    }
+
+    global.log(9, "FBID", gm.getValue('FBID'));
 
     gm.setValue('clickUrl', window.location.href);
     global.AddCSS();

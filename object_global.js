@@ -8,8 +8,6 @@ global = {
 
     discussionURL: 'http://senses.ws/caap/index.php',
 
-    debug: false,
-
     newVersionAvailable: false,
 
     documentTitle: document.title,
@@ -47,7 +45,7 @@ global = {
 
             return true;
         } catch (err) {
-            gm.log("ERROR in AddCSS: " + err);
+            this.error("ERROR in AddCSS: " + err);
             return false;
         }
     },
@@ -69,8 +67,45 @@ global = {
 
             return true;
         } catch (err) {
-            gm.log("ERROR in alert: " + err);
+            this.error("ERROR in alert: " + err);
             return false;
+        }
+    },
+
+    logLevel: 1,
+
+    log: function (level, text) {
+        if (console.log !== undefined) {
+            if (this.logLevel && !isNaN(level) && this.logLevel >= level) {
+                var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text;
+                if (arguments.length > 2) {
+                    console.log(message, Array.prototype.slice.call(arguments, 2));
+                } else {
+                    console.log(message);
+                }
+            }
+        }
+    },
+
+    warn: function (text) {
+        if (console.warn !== undefined) {
+            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text;
+            if (arguments.length > 1) {
+                console.warn(message, Array.prototype.slice.call(arguments, 1));
+            } else {
+                console.warn(message);
+            }
+        }
+    },
+
+    error: function (text) {
+        if (console.error !== undefined) {
+            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text;
+            if (arguments.length > 1) {
+                console.error(message, Array.prototype.slice.call(arguments, 1));
+            } else {
+                console.error(message);
+            }
         }
     },
 

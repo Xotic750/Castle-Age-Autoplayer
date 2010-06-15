@@ -6,32 +6,13 @@
 gm = {
     // use to log stuff
     log: function (mess) {
-        var now = new Date();
-        var t_hour = now.getHours();
-        var t_min = now.getMinutes();
-        var t_sec = now.getSeconds();
-
-        t_hour = t_hour + "";
-        if (t_hour.length === 1) {
-            t_hour = "0" + t_hour;
-        }
-
-        t_min = t_min + "";
-        if (t_min.length === 1) {
-            t_min = "0" + t_min;
-        }
-
-        t_sec = t_sec + "";
-        if (t_sec.length === 1) {
-            t_sec = "0" + t_sec;
-        }
-
-        var time = t_hour + ':' + t_min + ':' + t_sec;
-        GM_log('v' + caapVersion + ' (' + time + ') : ' + mess);
+        GM_log('v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + mess);
     },
 
+    debugGM: false,
+
     debug: function (mess) {
-        if (global.debug) {
+        if (this.debugGM) {
             this.log(mess);
         }
     },
@@ -45,7 +26,7 @@ gm = {
 
             return value == y && value.toString() == y.toString();
         } catch (err) {
-            gm.log("ERROR in gm.isInt: " + err);
+            global.error("ERROR in gm.isInt: " + err);
             return false;
         }
     },
@@ -65,7 +46,7 @@ gm = {
             GM_setValue(global.gameName + "__" + n, v);
             return v;
         } catch (err) {
-            gm.log("ERROR in gm.setValue: " + err);
+            global.error("ERROR in gm.setValue: " + err);
             return null;
         }
     },
@@ -83,7 +64,7 @@ gm = {
 
     setList: function (n, v) {
         if (!$.isArray(v)) {
-            this.log('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
+            global.log(1, 'Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
             return undefined;
         }
 
@@ -269,7 +250,7 @@ gm = {
             //alert("Name: " + name + " Number: " + number + " Default: " + defaultValue);
             return Number(number);
         } catch (err) {
-            this.log("ERROR in GetNumber: " + err);
+            global.error("ERROR in GetNumber: " + err);
             return '';
         }
     }
