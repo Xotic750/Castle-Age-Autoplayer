@@ -5,13 +5,16 @@
 
 nHtml = {
     xpath: {
-        string : XPathResult.STRING_TYPE,
-        unordered: XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
-        first : XPathResult.FIRST_ORDERED_NODE_TYPE
+        string    : XPathResult.STRING_TYPE,
+        unordered : XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE,
+        first     : XPathResult.FIRST_ORDERED_NODE_TYPE
     },
 
     FindByAttrContains: function (obj, tag, attr, className, subDocument, nodeNum) {
-        if (attr == "className") {
+        var p = null,
+            q = null;
+
+        if (attr === "className") {
             attr = "class";
         }
 
@@ -20,7 +23,7 @@ nHtml = {
         }
 
         if (nodeNum) {
-            var p = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
+            p = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
                 attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'" +
                 className.toLowerCase() + "')]", obj, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
@@ -32,7 +35,7 @@ nHtml = {
                 }
             }
         } else {
-            var q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
+            q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
                 attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'" +
                 className.toLowerCase() + "')]", obj, null, this.xpath.first, null);
 
@@ -45,8 +48,9 @@ nHtml = {
     },
 
     FindByAttrXPath: function (obj, tag, className, subDocument) {
-        var q = null;
-        var xp = ".//" + tag + "[" + className + "]";
+        var q  = null,
+            xp = ".//" + tag + "[" + className + "]";
+
         try {
             if (obj === null) {
                 global.log(1, 'Trying to find xpath with null obj:' + xp);
@@ -70,8 +74,13 @@ nHtml = {
     },
 
     FindByAttr: function (obj, tag, attr, className, subDocument) {
+        var q    = null,
+            divs = null,
+            d    = 0,
+            div  = null;
+
         if (className.exec === undefined) {
-            if (attr == "className") {
+            if (attr === "className") {
                 attr = "class";
             }
 
@@ -79,7 +88,7 @@ nHtml = {
                 subDocument = document;
             }
 
-            var q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, this.xpath.first, null);
+            q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, this.xpath.first, null);
             if (q && q.singleNodeValue) {
                 return q.singleNodeValue;
             }
@@ -87,14 +96,14 @@ nHtml = {
             return null;
         }
 
-        var divs = obj.getElementsByTagName(tag);
-        for (var d = 0; d < divs.length; d += 1) {
-            var div = divs[d];
+        divs = obj.getElementsByTagName(tag);
+        for (d = 0; d < divs.length; d += 1) {
+            div = divs[d];
             if (className.exec !== undefined) {
                 if (className.exec(div[attr])) {
                     return div;
                 }
-            } else if (div[attr] == className) {
+            } else if (div[attr] === className) {
                 return div;
             }
         }
@@ -107,25 +116,28 @@ nHtml = {
     },
 
     spaceTags: {
-        'td': 1,
-        'br': 1,
-        'hr': 1,
-        'span': 1,
-        'table': 1
+        td    : 1,
+        br    : 1,
+        hr    : 1,
+        span  : 1,
+        table : 1
     },
 
     GetText: function (obj) {
-        var txt = ' ';
+        var txt   = ' ',
+            o     = 0,
+            child = null;
+
         if (obj.tagName !== undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
             txt += " ";
         }
 
-        if (obj.nodeName == "#text") {
+        if (obj.nodeName === "#text") {
             return txt + obj.textContent;
         }
 
-        for (var o = 0; o < obj.childNodes.length; o += 1) {
-            var child = obj.childNodes[o];
+        for (o = 0; o < obj.childNodes.length; o += 1) {
+            child = obj.childNodes[o];
             txt += this.GetText(child);
         }
 
@@ -173,7 +185,7 @@ nHtml = {
 
     getHTMLPredicate: function (HTML) {
         for (var x = HTML.length; x > 1; x -= 1) {
-            if (HTML.substr(x, 1) == '/') {
+            if (HTML.substr(x, 1) === '/') {
                 return HTML.substr(x + 1);
             }
         }
@@ -182,9 +194,7 @@ nHtml = {
     },
 
     OpenInIFrame: function (url, key) {
-        //if (!iframe = document.getElementById(key))
         var iframe = document.createElement("iframe");
-        //gm.log ("Navigating iframe to " + url);
         iframe.setAttribute("src", url);
         iframe.setAttribute("id", key);
         iframe.setAttribute("style", "width:0;height:0;");
@@ -194,10 +204,10 @@ nHtml = {
     ResetIFrame: function (key) {
         var iframe = document.getElementById(key);
         if (iframe) {
-            global.log(1, "Deleting iframe = " + key);
+            global.log(1, "Deleting iframe", key);
             iframe.parentNode.removeChild(iframe);
         } else {
-            global.log(1, "Frame not found = " + key);
+            global.log(1, "Frame not found", key);
         }
 
         if (document.getElementById(key)) {
@@ -207,9 +217,10 @@ nHtml = {
 
     Gup: function (name, href) {
         name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-        var regexS = "[\\?&]" + name + "=([^&#]*)";
-        var regex = new RegExp(regexS);
-        var results = regex.exec(href);
+        var regexS  = "[\\?&]" + name + "=([^&#]*)",
+            regex   = new RegExp(regexS),
+            results = regex.exec(href);
+
         if (results === null) {
             return "";
         } else {
@@ -219,12 +230,16 @@ nHtml = {
 
     ScrollToBottom: function () {
         //global.log(1, "Scroll Height: " + document.body.scrollHeight);
+        var dh     = 0,
+            ch     = 0,
+            moveme = 0;
+
         if (document.body.scrollHeight) {
             if (global.is_chrome) {
-                var dh = document.body.scrollHeight;
-                var ch = document.body.clientHeight;
+                dh = document.body.scrollHeight;
+                ch = document.body.clientHeight;
                 if (dh > ch) {
-                    var moveme = dh - ch;
+                    moveme = dh - ch;
                     global.log(1, "Scrolling down by: " + moveme + "px");
                     window.scroll(0, moveme);
                     global.log(1, "Scrolled ok");
@@ -234,7 +249,7 @@ nHtml = {
             } else {
                 window.scrollBy(0, document.body.scrollHeight);
             }
-        }// else if (screen.height) {}
+        }
     },
 
     ScrollToTop: function () {

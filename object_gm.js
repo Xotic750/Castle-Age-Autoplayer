@@ -24,7 +24,7 @@ gm = {
                 return false;
             }
 
-            return value == y && value.toString() == y.toString();
+            return value === y && value.toString() === y.toString();
         } catch (err) {
             global.error("ERROR in gm.isInt: " + err);
             return false;
@@ -73,9 +73,10 @@ gm = {
     },
 
     getList: function (n) {
-        var getTheList = GM_getValue(global.gameName + "__" + n, '');
+        var getTheList = GM_getValue(global.gameName + "__" + n, ''),
+            ret        = [];
+
         this.debug('GetList ' + n + ' value ' + getTheList);
-        var ret = [];
         if (getTheList !== '') {
             ret = getTheList.split(global.os);
         }
@@ -90,12 +91,14 @@ gm = {
     },
 
     listPop: function (listName) {
-        var popList = this.getList(listName);
+        var popList = this.getList(listName),
+            popItem = null;
+
         if (!popList.length) {
             return null;
         }
 
-        var popItem = popList.pop();
+        popItem = popList.pop();
         this.setList(listName, popList);
         return popItem;
     },
@@ -104,7 +107,7 @@ gm = {
         var list = this.getList(listName);
 
         // Only add if it isn't already there.
-        if (list.indexOf(pushItem) != -1) {
+        if (list.indexOf(pushItem) !== -1) {
             return;
         }
 
@@ -133,25 +136,30 @@ gm = {
     },
 
     setObjVal: function (objName, label, value) {
-        var objStr = this.getValue(objName);
+        var objStr  = this.getValue(objName),
+            itemStr = '',
+            objList = [];
+
         if (!objStr) {
             this.setValue(objName, label + global.ls + value);
             return;
         }
 
-        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
+        itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             this.setValue(objName, label + global.ls + value + global.vs + objStr);
             return;
         }
 
-        var objList = objStr.split(global.vs);
+        objList = objStr.split(global.vs);
         objList.splice(objList.indexOf(itemStr), 1, label + global.ls + value);
         this.setValue(objName, objList.join(global.vs));
     },
 
     getObjVal: function (objName, label, defaultValue) {
-        var objStr = null;
+        var objStr  = '',
+            itemStr = '';
+
         if (objName.indexOf(global.ls) < 0) {
             objStr = this.getValue(objName);
         } else {
@@ -162,7 +170,7 @@ gm = {
             return defaultValue;
         }
 
-        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
+        itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             return defaultValue;
         }
@@ -171,19 +179,22 @@ gm = {
     },
 
     getListObjVal: function (listName, objName, label, defaultValue) {
-        var gLOVlist = this.getList(listName);
+        var gLOVlist = this.getList(listName),
+            objStr   = '',
+            itemStr  = '';
+
         if (!(gLOVlist.length)) {
             return defaultValue;
         }
 
         this.debug('have list ' + gLOVlist);
-        var objStr = this.listFindItemByPrefix(gLOVlist, objName + global.vs);
+        objStr = this.listFindItemByPrefix(gLOVlist, objName + global.vs);
         if (!objStr) {
             return defaultValue;
         }
 
         this.debug('have obj ' + objStr);
-        var itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
+        itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
             return defaultValue;
         }
@@ -193,20 +204,24 @@ gm = {
     },
 
     setListObjVal: function (listName, objName, label, value, max) {
-        var objList = this.getList(listName);
+        var objList = this.getList(listName),
+            objStr  = '',
+            valList = [],
+            valStr  = '';
+
         if (!(objList.length)) {
             this.setValue(listName, objName + global.vs + label + global.ls + value);
             return;
         }
 
-        var objStr = this.listFindItemByPrefix(objList, objName + global.vs);
+        objStr = this.listFindItemByPrefix(objList, objName + global.vs);
         if (!objStr) {
             this.listPush(listName, objName + global.vs + label + global.ls + value, max);
             return;
         }
 
-        var valList = objStr.split(global.vs);
-        var valStr = this.listFindItemByPrefix(valList, label + global.ls);
+        valList = objStr.split(global.vs);
+        valStr = this.listFindItemByPrefix(valList, label + global.ls);
         if (!valStr) {
             valList.push(label + global.ls + value);
             objList.splice(objList.indexOf(objStr), 1, objStr + global.vs + label + global.ls + value);
@@ -220,12 +235,14 @@ gm = {
     },
 
     deleteListObj: function (listName, objName) {
-        var objList = this.getList(listName);
+        var objList = this.getList(listName),
+            objStr  = '';
+
         if (!(objList.length)) {
             return;
         }
 
-        var objStr = this.listFindItemByPrefix(objList, objName);
+        objStr = this.listFindItemByPrefix(objList, objName);
         if (objStr) {
             objList.splice(objList.indexOf(objStr), 1);
             this.setList(listName, objList);
@@ -234,8 +251,9 @@ gm = {
 
     getNumber: function (name, defaultValue) {
         try {
-            var value = this.getValue(name);
-            var number = null;
+            var value  = this.getValue(name),
+                number = null;
+
             if ((!value && value !== 0) || isNaN(value)) {
                 if ((!defaultValue && defaultValue !== 0) || isNaN(defaultValue)) {
                     throw "Value of " + name + " and defaultValue are not numbers: " +

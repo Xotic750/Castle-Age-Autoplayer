@@ -3,7 +3,7 @@
 //                         BEGIN
 /////////////////////////////////////////////////////////////////////
 
-if (typeof GM_log != 'function') {
+if (typeof GM_log !== 'function') {
     alert("Your browser does not appear to support Greasemonkey scripts!");
     throw "Error: Your browser does not appear to support Greasemonkey scripts!";
 }
@@ -17,10 +17,11 @@ global.log(1, "Starting");
 
 if (global.is_chrome) {
     try {
-        var lastVersion = localStorage.getItem(global.gameName + '__LastVersion', 0);
-        var shouldTryConvert = false;
+        var lastVersion      = localStorage.getItem(global.gameName + '__LastVersion', 0),
+            shouldTryConvert = false;
+
         if (lastVersion) {
-            if (lastVersion.substr(0, 1) == 's') {
+            if (lastVersion.substr(0, 1) === 's') {
                 shouldTryConvert = true;
             }
         }
@@ -50,7 +51,8 @@ if (gm.getValue('SetTitle')) {
     }
 
     if (gm.getValue('SetTitleName', false)) {
-        DocumentTitle += gm.getValue('PlayerName', 'CAAP') + " - ";
+        caap.stats.PlayerName = gm.getValue('PlayerName', '');
+        DocumentTitle += caap.stats.PlayerName + " - ";
     }
 
     document.title = DocumentTitle + global.documentTitle;
@@ -78,9 +80,10 @@ if (!global.is_chrome) {
                         url: 'http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js',
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
-                            var rt = resp.responseText;
-                            var remote_version = new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt)[1];
-                            var script_name = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
+                            var rt             = resp.responseText,
+                                remote_version = (new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                script_name    = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
+
                             gm.setValue('SUC_last_update', new Date().getTime() + '');
                             gm.setValue('SUC_target_script_name', script_name);
                             gm.setValue('SUC_remote_version', remote_version);
@@ -120,7 +123,7 @@ if (!global.is_chrome) {
 // new format or such here.
 /////////////////////////////////////////////////////////////////////
 
-if (gm.getValue('LastVersion', 0) != caapVersion) {
+if (gm.getValue('LastVersion', 0) !== caapVersion) {
     try {
         if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
             gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
@@ -214,19 +217,18 @@ $(function () {
         window.location.href = window.location.href;
     }
 
-    caap.stats.FBID = $('head').html().regex(/user:([0-9]+),/i);
-    if (!caap.stats.FBID || typeof caap.stats.FBID !== 'number' || caap.stats.FBID === 0) {
-        // Force reload without retrying
-        global.error('ERROR: No Facebook UserID!!!');
-        window.location.href = window.location.href;
-    }
-
-    gm.setValue('FBID', caap.stats.FBID + '');
-    global.log(9, "FBID", caap.stats.FBID);
-
     gm.setValue('clickUrl', window.location.href);
     global.AddCSS();
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
+        caap.stats.FBID = $('head').html().regex(/user:([0-9]+),/i);
+        if (!caap.stats.FBID || typeof caap.stats.FBID !== 'number' || caap.stats.FBID === 0) {
+            // Force reload without retrying
+            global.error('ERROR: No Facebook UserID!!!');
+            window.location.href = window.location.href;
+        }
+
+        gm.setValue('FBID', caap.stats.FBID + '');
+        global.log(9, "FBID", caap.stats.FBID);
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);
         if (global.is_chrome) {
