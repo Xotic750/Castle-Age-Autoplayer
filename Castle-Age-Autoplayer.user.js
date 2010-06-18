@@ -7272,6 +7272,11 @@ caap = {
                 KOBbiasHours = KOBtmp;
             }
 
+            //test if user wants kob active globally
+            if (!KOBenable && gm.getValue('KOBAllMonters', false)) {
+                KOBenable = true;
+            }
+
             //disable kob if in level up mode or if we are within 5 stamina of max potential stamina
             if (this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max - 5) {
                 KOBenable = false;
