@@ -2057,9 +2057,9 @@ caap = {
 
     //UpdateDashboardWaitLog: true,
 
-    UpdateDashboard: function () {
+    UpdateDashboard: function (force) {
         try {
-            var html            = "<table width=570 cellpadding=0 cellspacing=0 ><tr>",
+            var html            = '',
                 displayItemList = [],
                 p               = 0,
                 monsterList     = [],
@@ -2079,13 +2079,14 @@ caap = {
                 userid          = 0,
                 link            = '',
                 j               = 0,
-                newTime         = new Date();
+                newTime         = new Date(),
+                count           = 0;
 
             if ($('#caap_top').length === 0) {
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
+            if (!force && !this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
                 /*
                 if (this.UpdateDashboardWaitLog) {
                     global.log(1, "Dashboard update is waiting on oneMinuteUpdate");
@@ -2096,19 +2097,22 @@ caap = {
                 return false;
             }
 
-            //global.log(1, "Updating Dashboard");
-            this.UpdateDashboardWaitLog = true;
+            global.log(9, "Updating Dashboard");
+            //this.UpdateDashboardWaitLog = true;
+            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>"
             displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
             for (p in displayItemList) {
                 if (displayItemList.hasOwnProperty(p)) {
-                    html += "<td><b><font size=1>" + displayItemList[p] + '</font></b></td>';
+                    html += this.makeTd("<b>" + displayItemList[p] + "</b>", 'black');
                 }
             }
 
+            html += this.makeTd("", 'black');
             html += '</tr>';
             displayItemList.shift();
             monsterList = gm.getList('monsterOl');
             monsterList.forEach(function (monsterObj) {
+                global.log(9, "monsterObj", monsterObj.split(global.vs));
                 monster = monsterObj.split(global.vs)[0];
                 monstType = caap.getMonstType(monster);
                 energyRequire = 10;
@@ -2140,7 +2144,7 @@ caap = {
 
                 html += caap.makeTd(monster, color);
                 displayItemList.forEach(function (displayItem) {
-                    //global.log(1, ' displayItem '+ displayItem + ' value '+ gm.getObjVal(monster,displayItem));
+                    global.log(9, ' displayItem ', displayItem, ' value ', gm.getObjVal(monsterObj, displayItem));
                     if (displayItem === 'Phase' && color === 'grey') {
                         html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
                     } else {
@@ -2152,16 +2156,48 @@ caap = {
 
                             html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
                         } else {
-                            html += '<td></td>';
+                            html += caap.makeTd('', color)
                         }
                     }
                 });
 
+                var removeLink = gm.getObjVal(monsterObj, 'Link').replace("user", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
+                global.log(9, "removeLink", removeLink);
+                var removeLinkInstructions = "Clicking this link will remove " + monster + " from both CA and CAAP!";
+                html += caap.makeTd('<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monster + '" rlink="' + removeLink[1] +
+                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>', 'blue');
                 html += '</tr>';
+                count += 1;
             });
 
             html += '</table>';
             $("#caap_infoMonster").html(html);
+
+            $("#caap_top span[id*='caap_remove_']").click(function (e) {
+                global.log(9, "Clicked", e.target.id);
+                var monsterRemove = {
+                    mname     : '',
+                    rlink     : ''
+                },
+                i = 0,
+                resp = false;
+
+                for (i = 0; i < e.target.attributes.length; i += 1) {
+                    if (e.target.attributes[i].nodeName === 'mname') {
+                        monsterRemove.mname = e.target.attributes[i].nodeValue;
+                    } else if (e.target.attributes[i].nodeName === 'rlink') {
+                        monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                    }
+                }
+
+                global.log(9, 'monsterRemove', monsterRemove);
+                resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
+                if (resp === true) {
+                    gm.deleteListObj('monsterOl', monsterRemove.mname);
+                    caap.UpdateDashboard(true);
+                    caap.VisitUrl(monsterRemove.rlink);
+                }
+            });
 
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
@@ -3070,7 +3106,6 @@ caap = {
                     warRankImg = warRankImg.attr("src").split('/');
                     this.stats.warRank = parseInt((warRankImg[warRankImg.length - 1].match(/war_rank_([0-9]+)\.gif/))[1], 10);
                     gm.setValue('MyWarRank', this.stats.warRank);
-                    this.JustDidIt('MyWarRankLast');
                 } else {
                     global.log(1, 'Could not get current war rank. Using stored.');
                     this.stats.level = parseInt(gm.getValue('MyWarRank', 0), 10);
@@ -5401,7 +5436,7 @@ caap = {
                 return false;
             }
 
-            if (this.WhileSinceDidIt('MyRankLast', 60 * 60) || this.WhileSinceDidIt('MyWarRankLast', 60 * 60)) {
+            if (this.WhileSinceDidIt('MyRankLast', 60 * 60)) {
                 global.log(1, 'Visiting keep to get new rank');
                 this.NavigateTo('keep');
                 return true;
