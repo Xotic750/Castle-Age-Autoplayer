@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.39
+// @version        140.23.40
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -19,7 +19,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.39";
+var caapVersion = "140.23.40";
 
 ///////////////////////////
 //       Prototypes
@@ -2881,7 +2881,7 @@ caap = {
 
             global.log(9, "Updating Dashboard");
             //this.UpdateDashboardWaitLog = true;
-            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>"
+            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
             displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
             for (p in displayItemList) {
                 if (displayItemList.hasOwnProperty(p)) {
@@ -2938,7 +2938,7 @@ caap = {
 
                             html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
                         } else {
-                            html += caap.makeTd('', color)
+                            html += caap.makeTd('', color);
                         }
                     }
                 });
@@ -2959,7 +2959,8 @@ caap = {
                 global.log(9, "Clicked", e.target.id);
                 var monsterRemove = {
                     mname     : '',
-                    rlink     : ''
+                    rlink     : '',
+                    arlink    : ''
                 },
                 i = 0,
                 resp = false;
@@ -2969,6 +2970,7 @@ caap = {
                         monsterRemove.mname = e.target.attributes[i].nodeValue;
                     } else if (e.target.attributes[i].nodeName === 'rlink') {
                         monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                        monsterRemove.arlink = monsterRemove.rlink.replace("http://apps.facebook.com/castle_age/", "");
                     }
                 }
 
@@ -2977,7 +2979,12 @@ caap = {
                 if (resp === true) {
                     gm.deleteListObj('monsterOl', monsterRemove.mname);
                     caap.UpdateDashboard(true);
-                    caap.VisitUrl(monsterRemove.rlink);
+                    if (gm.getValue('clickUrl', '').indexOf(monsterRemove.arlink) < 0) {
+                        gm.setValue('clickUrl', monsterRemove.rlink);
+                        this.waitingForDomLoad = false;
+                    }
+
+                    caap.VisitUrl("javascript:void(a46755028429_get_cached_ajax('" + monsterRemove.arlink + "', 'get_body'))");
                 }
             });
 
@@ -6858,7 +6865,7 @@ caap = {
     CheckResults_fightList: function () {
         try {
             // get all buttons to check monsterObjectList
-            var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_') or contains(@src,'mp_button_summon_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength === 0) {
                 return false;
             }
@@ -6874,9 +6881,14 @@ caap = {
                 }
             }
 
+            if (ss.snapshotLength === 1) {
+                gm.setValue('reviewDone', 1);
+                return true;
+            }
+
             // Review monsters and find attack and fortify button
             var monsterList = [];
-            for (var s = 0; s < ss.snapshotLength; s += 1) {
+            for (var s = 1; s < ss.snapshotLength; s += 1) {
                 var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
                 var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
                 var monsterFull = $.trim(nHtml.GetText(monsterRow));

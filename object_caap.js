@@ -2099,7 +2099,7 @@ caap = {
 
             global.log(9, "Updating Dashboard");
             //this.UpdateDashboardWaitLog = true;
-            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>"
+            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
             displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
             for (p in displayItemList) {
                 if (displayItemList.hasOwnProperty(p)) {
@@ -2156,7 +2156,7 @@ caap = {
 
                             html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
                         } else {
-                            html += caap.makeTd('', color)
+                            html += caap.makeTd('', color);
                         }
                     }
                 });
@@ -2177,7 +2177,8 @@ caap = {
                 global.log(9, "Clicked", e.target.id);
                 var monsterRemove = {
                     mname     : '',
-                    rlink     : ''
+                    rlink     : '',
+                    arlink    : ''
                 },
                 i = 0,
                 resp = false;
@@ -2187,6 +2188,7 @@ caap = {
                         monsterRemove.mname = e.target.attributes[i].nodeValue;
                     } else if (e.target.attributes[i].nodeName === 'rlink') {
                         monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                        monsterRemove.arlink = monsterRemove.rlink.replace("http://apps.facebook.com/castle_age/", "");
                     }
                 }
 
@@ -2195,7 +2197,12 @@ caap = {
                 if (resp === true) {
                     gm.deleteListObj('monsterOl', monsterRemove.mname);
                     caap.UpdateDashboard(true);
-                    caap.VisitUrl(monsterRemove.rlink);
+                    if (gm.getValue('clickUrl', '').indexOf(monsterRemove.arlink) < 0) {
+                        gm.setValue('clickUrl', monsterRemove.rlink);
+                        this.waitingForDomLoad = false;
+                    }
+
+                    caap.VisitUrl("javascript:void(a46755028429_get_cached_ajax('" + monsterRemove.arlink + "', 'get_body'))");
                 }
             });
 
@@ -6076,7 +6083,7 @@ caap = {
     CheckResults_fightList: function () {
         try {
             // get all buttons to check monsterObjectList
-            var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_') or contains(@src,'mp_button_summon_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength === 0) {
                 return false;
             }
@@ -6092,9 +6099,14 @@ caap = {
                 }
             }
 
+            if (ss.snapshotLength === 1) {
+                gm.setValue('reviewDone', 1);
+                return true;
+            }
+
             // Review monsters and find attack and fortify button
             var monsterList = [];
-            for (var s = 0; s < ss.snapshotLength; s += 1) {
+            for (var s = 1; s < ss.snapshotLength; s += 1) {
                 var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
                 var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
                 var monsterFull = $.trim(nHtml.GetText(monsterRow));
