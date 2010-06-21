@@ -2059,28 +2059,36 @@ caap = {
 
     UpdateDashboard: function (force) {
         try {
-            var html            = '',
-                displayItemList = [],
-                p               = 0,
-                monsterList     = [],
-                monster         = '',
-                monstType       = '',
-                energyRequire   = 0,
-                nodeNum         = 0,
-                staLvl          = [],
-                color           = '',
-                value           = 0,
-                headers         = [],
-                values          = [],
-                pp              = 0,
-                targetList      = [],
-                i               = 0,
-                targetObj       = null,
-                userid          = 0,
-                link            = '',
-                j               = 0,
-                newTime         = new Date(),
-                count           = 0;
+            var html                     = '',
+                displayItemList          = [],
+                p                        = 0,
+                monsterList              = [],
+                monster                  = '',
+                monstType                = '',
+                energyRequire            = 0,
+                nodeNum                  = 0,
+                staLvl                   = [],
+                color                    = '',
+                value                    = 0,
+                headers                  = [],
+                values                   = [],
+                pp                       = 0,
+                targetList               = [],
+                i                        = 0,
+                targetObj                = null,
+                userid                   = 0,
+                link                     = '',
+                j                        = 0,
+                newTime                  = new Date(),
+                count                    = 0,
+                monsterObjLink           = '',
+                visitMonsterLink         = '',
+                visitMonsterInstructions = '',
+                removeLink               = '',
+                removeLinkInstructions   = '',
+                shortMonths              = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                userIdLink               = '',
+                userIdLinkInstructions   = '';
 
             if ($('#caap_top').length === 0) {
                 throw "We are missing the Dashboard div!";
@@ -2111,6 +2119,7 @@ caap = {
             html += '</tr>';
             displayItemList.shift();
             monsterList = gm.getList('monsterOl');
+            global.log(9, "monsterList", monsterList);
             monsterList.forEach(function (monsterObj) {
                 global.log(9, "monsterObj", monsterObj.split(global.vs));
                 monster = monsterObj.split(global.vs)[0];
@@ -2142,7 +2151,18 @@ caap = {
                     color = gm.getObjVal(monsterObj, 'color', 'black');
                 }
 
-                html += caap.makeTd(monster, color);
+                monsterObjLink = gm.getObjVal(monsterObj, 'Link', '');
+                global.log(9, "monsterObjLink", monsterObjLink);
+                if (monsterObjLink) {
+                    visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
+                    global.log(9, "visitMonsterLink", visitMonsterLink);
+                    visitMonsterInstructions = "Clicking this link will take you to " + monster;
+                    html += caap.makeTd('<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monster + '" rlink="' + visitMonsterLink[1] +
+                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monster + '</span>', color);
+                } else {
+                    html += caap.makeTd(monster, color);
+                }
+
                 displayItemList.forEach(function (displayItem) {
                     global.log(9, ' displayItem ', displayItem, ' value ', gm.getObjVal(monsterObj, displayItem));
                     if (displayItem === 'Phase' && color === 'grey') {
@@ -2161,17 +2181,44 @@ caap = {
                     }
                 });
 
-                var removeLink = gm.getObjVal(monsterObj, 'Link').replace("user", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
-                global.log(9, "removeLink", removeLink);
-                var removeLinkInstructions = "Clicking this link will remove " + monster + " from both CA and CAAP!";
-                html += caap.makeTd('<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monster + '" rlink="' + removeLink[1] +
-                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>', 'blue');
+                if (monsterObjLink) {
+                    removeLink = monsterObjLink.replace("user", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
+                    global.log(9, "removeLink", removeLink);
+                    removeLinkInstructions = "Clicking this link will remove " + monster + " from both CA and CAAP!";
+                    html += caap.makeTd('<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monster + '" rlink="' + removeLink[1] +
+                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>', 'blue');
+                } else {
+                    html += caap.makeTd('', color);
+                }
+
                 html += '</tr>';
                 count += 1;
             });
 
             html += '</table>';
             $("#caap_infoMonster").html(html);
+
+            $("#caap_top span[id*='caap_monster_']").click(function (e) {
+                global.log(9, "Clicked", e.target.id);
+                var visitMonsterLink = {
+                    mname     : '',
+                    rlink     : '',
+                    arlink    : ''
+                },
+                i = 0;
+
+                for (i = 0; i < e.target.attributes.length; i += 1) {
+                    if (e.target.attributes[i].nodeName === 'mname') {
+                        visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                    } else if (e.target.attributes[i].nodeName === 'rlink') {
+                        visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
+                        visitMonsterLink.arlink = visitMonsterLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
+                    }
+                }
+
+                global.log(9, 'visitMonsterLink', visitMonsterLink);
+                caap.ClickAjax(visitMonsterLink.arlink);
+            });
 
             $("#caap_top span[id*='caap_remove_']").click(function (e) {
                 global.log(9, "Clicked", e.target.id);
@@ -2228,7 +2275,11 @@ caap = {
                     targetObj = targetList[i];
                     userid = targetObj.split(global.vs)[0];
                     html += "<tr>";
-                    link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
+                    //link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
+                    userIdLinkInstructions = "Clicking this link will take you to the user keep of " + userid;
+                    userIdLink = "http://apps.facebook.com/castle_age/keep.php?user=" + userid;
+                    link = '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + userid + '</span>';
                     html += this.makeTd(link, 'blue');
                     /*-------------------------------------------------------------------------------------\
                     We step through each of the additional values we include in the table. If a value is
@@ -2252,7 +2303,8 @@ caap = {
 
                             if (/\S+Time/.test(values[j])) {
                                 newTime = new Date(parseInt(value, 10));
-                                value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
+                                //value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
+                                value =  newTime.getDate() + '-' + shortMonths[newTime.getMonth()] + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
                             }
 
                             html += this.makeTd(value, 'black');
@@ -2265,6 +2317,26 @@ caap = {
 
             html += '</table>';
             $("#caap_infoTargets1").html(html);
+
+            $("#caap_top span[id*='caap_target_']").click(function (e) {
+                global.log(9, "Clicked", e.target.id);
+                var visitUserIdLink = {
+                    rlink     : '',
+                    arlink    : ''
+                },
+                i = 0;
+
+                for (i = 0; i < e.target.attributes.length; i += 1) {
+                    if (e.target.attributes[i].nodeName === 'rlink') {
+                        visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                        visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
+                    }
+                }
+
+                global.log(9, 'visitUserIdLink', visitUserIdLink);
+                caap.ClickAjax(visitUserIdLink.arlink);
+            });
+
             return true;
         } catch (err) {
             global.error("ERROR in UpdateDashboard: " + err);
@@ -6082,9 +6154,11 @@ caap = {
 
     CheckResults_fightList: function () {
         try {
+            global.log(9, "CheckResults_fightList - get all buttons to check monsterObjectList");
             // get all buttons to check monsterObjectList
             var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_') or contains(@src,'mp_button_summon_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength === 0) {
+                global.log(1, "No monster buttons found");
                 return false;
             }
 
@@ -6099,14 +6173,21 @@ caap = {
                 }
             }
 
-            if (ss.snapshotLength === 1) {
+            if (page === 'battle_monster' && ss.snapshotLength === 1) {
+                global.log(1, "No monsters to review");
                 gm.setValue('reviewDone', 1);
                 return true;
             }
 
+            var startCount = 0;
+            if (page === 'battle_monster') {
+                startCount = 1
+            }
+
+            global.log(9, "startCount", startCount);
             // Review monsters and find attack and fortify button
             var monsterList = [];
-            for (var s = 1; s < ss.snapshotLength; s += 1) {
+            for (var s = startCount; s < ss.snapshotLength; s += 1) {
                 var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
                 var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
                 var monsterFull = $.trim(nHtml.GetText(monsterRow));
