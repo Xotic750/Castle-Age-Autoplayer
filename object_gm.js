@@ -51,6 +51,45 @@ gm = {
         }
     },
 
+    setJValue: function (name, value) {
+        try {
+            var jsonStr = JSON.stringify(value);
+
+            if (global.is_chrome) {
+                localStorage.setItem(global.gameName + "__" + name, jsonStr);
+            } else {
+                GM_setValue(global.gameName + "__" + name, jsonStr);
+            }
+
+            return value;
+        } catch (error) {
+            console.log("ERROR in gm.setJValue: " + error);
+            return null;
+        }
+    },
+
+    getJValue: function (name, value) {
+        try {
+            var jsonObj = null;
+
+            $.parseJSON(localStorage.getItem(name));
+            if (global.is_chrome) {
+                jsonObj = $.parseJSON(localStorage.getItem(global.gameName + "__" + name));
+            } else {
+                jsonObj = $.parseJSON(GM_getValue(global.gameName + "__" + name));
+            }
+
+            if (!jsonObj) {
+                jsonObj = value;
+            }
+
+            return jsonObj;
+        } catch (error) {
+            console.log("ERROR in gm.getJValue: " + error);
+            return null;
+        }
+    },
+
     getValue: function (n, v) {
         var ret = GM_getValue(global.gameName + "__" + n, v);
         this.debug('Get ' + n + ' value ' + ret);

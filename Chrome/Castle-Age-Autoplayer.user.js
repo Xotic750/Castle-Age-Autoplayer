@@ -2,10 +2,11 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.41
+// @version        140.23.42
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
+// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/json2/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -19,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.41";
+var caapVersion = "140.23.42";
 
 ///////////////////////////
 //       Prototypes
@@ -285,6 +286,45 @@ gm = {
             return v;
         } catch (err) {
             global.error("ERROR in gm.setValue: " + err);
+            return null;
+        }
+    },
+
+    setJValue: function (name, value) {
+        try {
+            var jsonStr = JSON.stringify(value);
+
+            if (global.is_chrome) {
+                localStorage.setItem(global.gameName + "__" + name, jsonStr);
+            } else {
+                GM_setValue(global.gameName + "__" + name, jsonStr);
+            }
+
+            return value;
+        } catch (error) {
+            console.log("ERROR in gm.setJValue: " + error);
+            return null;
+        }
+    },
+
+    getJValue: function (name, value) {
+        try {
+            var jsonObj = null;
+
+            $.parseJSON(localStorage.getItem(name));
+            if (global.is_chrome) {
+                jsonObj = $.parseJSON(localStorage.getItem(global.gameName + "__" + name));
+            } else {
+                jsonObj = $.parseJSON(GM_getValue(global.gameName + "__" + name));
+            }
+
+            if (!jsonObj) {
+                jsonObj = value;
+            }
+
+            return jsonObj;
+        } catch (error) {
+            console.log("ERROR in gm.getJValue: " + error);
             return null;
         }
     },
@@ -827,6 +867,7 @@ caap = {
             this.AddListeners();
             this.AddDBListener();
             this.GetStats();
+            this.ReconRecordArray = gm.getJValue('reconJSON', []);
             this.CheckResults();
             return true;
         } catch (err) {
@@ -1677,7 +1718,7 @@ caap = {
     questWhenInst: [
         'Energy Available - will quest whenever you have enough energy.',
         'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
-        'At X Energy - (EXPERIMENTAL) allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
+        'At X Energy - allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
         'Not Fortifying - will quest only when your fortify settings are matched.',
         'Never - disables questing.'
     ],
@@ -1916,16 +1957,18 @@ caap = {
             this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
             styleXY = this.GetControlXY();
             $(caapDiv).css({
-                width: '180px',
-                background: gm.getValue('StyleBackgroundLight', '#E0C691'),
-                opacity: gm.getValue('StyleOpacityLight', '1'),
-                color: '#000',
-                padding: "4px",
-                border: "2px solid #444",
-                top: styleXY.y + 'px',
-                left: styleXY.x + 'px',
-                zIndex: gm.getValue('caap_div_zIndex', '2'),
-                position: 'absolute'
+                width                   : '180px',
+                background              : gm.getValue('StyleBackgroundLight', '#E0C691'),
+                opacity                 : gm.getValue('StyleOpacityLight', '1'),
+                color                   : '#000',
+                padding                 : "4px",
+                border                  : "2px solid #444",
+                top                     : styleXY.y + 'px',
+                left                    : styleXY.x + 'px',
+                zIndex                  : gm.getValue('caap_div_zIndex', '2'),
+                position                : 'absolute',
+                '-moz-border-radius'    : '5px',
+                '-webkit-border-radius' : '5px'
             }).appendTo(document.body);
 
             this.caapDivObject = $("#caap_div");
@@ -2028,8 +2071,8 @@ caap = {
     AddQuestMenu: function () {
         try {
             var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.",
-                XQuestInstructions = "(EXPERIMENTAL) Start questing when energy is at or above this value.",
-                XMinQuestInstructions = "(EXPERIMENTAL) Stop quest when energy is at or below this value.",
+                XQuestInstructions = "Start questing when energy is at or above this value.",
+                XMinQuestInstructions = "Stop quest when energy is at or below this value.",
                 autoQuestName = gm.getObjVal('AutoQuest', 'name'),
                 htmlCode = '';
 
@@ -2174,6 +2217,8 @@ caap = {
                     "you will continue to stay in the Arena. If your stamina is " +
                     "below this level, your health will be checked to see if it is " +
                     "below the health thershold for you to stay in the Arena. ",
+                dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all raids only.",
+                collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.";
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Battling', 'BATTLE');
@@ -2196,6 +2241,8 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle Type</td><td style='text-align: right; width: 40%'>" + this.MakeDropDown('BattleType', typeList, typeInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, '', dosiegeInstructions);
+            htmlCode += this.MakeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, '', collectRewardInstructions);
             htmlCode += this.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '', '');
             htmlCode += this.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, '', ignorebattlelossInstructions);
             htmlCode += "<tr><td>Chain:Battle Points Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainBP', chainBPInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
@@ -2255,9 +2302,11 @@ caap = {
                 monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
                 demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Requires that battle mode is set appropriately",
                 powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
-                powerattackMaxInstructions = "(EXPERIMENTAL) Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
-                powerfortifyMaxInstructions = "(EXPERIMENTAL) Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
-                dosiegeInstructions = "Turns on or off automatic siege assist for all monsters and raids.",
+                powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
+                powerfortifyMaxInstructions = "Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
+                dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all monsters only.",
+                useTacticsInstructions = "(EXPERIMENTAL) Use the Tactics attack method, on monsters that support it, instead of the normal attack.";
+                collectRewardInstructions = "(EXPERIMENTAL) Automatically collect monster rewards.";
                 mbattleList = [
                     'Stamina Available',
                     'At Max Stamina',
@@ -2302,13 +2351,15 @@ caap = {
             htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (gm.getValue('WhenMonster', false) !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "type='text' size='4' style='font-size: 10px; text-align: right'") + "</td></tr>";
+            htmlCode += this.MakeCheckTR("Use Tactics", 'UseTactics', false, '', useTacticsInstructions);
             htmlCode += this.MakeCheckTR("Power Attack Only", 'PowerAttack', true, 'PowerAttack_Adv', powerattackInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Power Attack Max", 'PowerAttackMax', false, '', powerattackMaxInstructions) + "</table>";
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, '', powerfortifyMaxInstructions);
-            htmlCode += this.MakeCheckTR("Siege weapon assist", 'DoSiege', true, '', dosiegeInstructions);
+            htmlCode += this.MakeCheckTR("Siege Weapon Assist Monsters", 'monsterDoSiege', true, '', dosiegeInstructions);
+            htmlCode += this.MakeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, '', collectRewardInstructions);
             htmlCode += this.MakeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '', '');
             htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
             htmlCode += this.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
@@ -2413,7 +2464,7 @@ caap = {
         try {
             // Add General Comboboxes
             var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up",
-                ignoreGeneralImage = "(EXPERIMENTAL) This will prevent the script " +
+                ignoreGeneralImage = "This will prevent the script " +
                     "from changing your selected General to 'Use Current' if the script " +
                     "is unable to find the General's image when changing activities. " +
                     "Instead it will use the current General for the activity and try " +
@@ -2766,7 +2817,7 @@ caap = {
              We install the display selection box that allows the user to toggle through the
              available displays.
             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:0px;'>Display: " +
+            layout += "<div id='caap_DBDisplay' style='font-size: 9px;position:absolute;top:0px;right:5px;'>Display: " +
                 this.DBDropDown('DBDisplay', displayList, '', "style='font-size: 9px; min-width: 120px; max-width: 120px; width : 120px;'") + "</div>";
             /*-------------------------------------------------------------------------------------\
             And here we build our empty content divs.  We display the appropriate div
@@ -2783,16 +2834,18 @@ caap = {
             this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10);
             styleXY = this.GetDashboardXY();
             $(layout).css({
-                background: gm.getValue("StyleBackgroundLight", "white"),
-                padding: "5px",
-                height: "185px",
-                width: "610px",
-                margin: "0 auto",
-                opacity: gm.getValue('StyleOpacityLight', '1'),
-                top: styleXY.y + 'px',
-                left: styleXY.x + 'px',
-                zIndex: gm.getValue('caap_top_zIndex', '1'),
-                position: 'absolute'
+                background              : gm.getValue("StyleBackgroundLight", "white"),
+                padding                 : "5px",
+                height                  : "185px",
+                width                   : "610px",
+                margin                  : "0 auto",
+                opacity                 : gm.getValue('StyleOpacityLight', '1'),
+                top                     : styleXY.y + 'px',
+                left                    : styleXY.x + 'px',
+                zIndex                  : gm.getValue('caap_top_zIndex', '1'),
+                position                : 'absolute',
+                '-moz-border-radius'    : '5px',
+                '-webkit-border-radius' : '5px'
             }).appendTo(document.body);
 
             this.caapTopObject = $('#caap_top');
@@ -2825,7 +2878,9 @@ caap = {
         return x1;
     },
 
-    makeTd: function (text, color) {
+    makeTd: function (text, color, id, title) {
+        var html = '<td';
+
         if (gm.getObjVal(color, 'color')) {
             color = gm.getObjVal(color, 'color');
         }
@@ -2834,7 +2889,17 @@ caap = {
             color = 'black';
         }
 
-        return "<td><font size=1 color='" + color + "'>" + text + "</font></td>";
+        if (id) {
+            html += " id='" + id + "'";
+        }
+
+        if (title) {
+            html += " title='" + title + "'";
+        }
+
+        html += "><font size='1' color='" + color + "'>" + text + "</font></td>";
+
+        return html;
     },
 
     //UpdateDashboardWaitLog: true,
@@ -2870,7 +2935,12 @@ caap = {
                 removeLinkInstructions   = '',
                 shortMonths              = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 userIdLink               = '',
-                userIdLinkInstructions   = '';
+                userIdLinkInstructions   = '',
+                id                       = '',
+                title                    = '',
+                monsterConditions        = '';
+                achLevel                 = 0,
+                maxDamage                = 0;
 
             if ($('#caap_top').length === 0) {
                 throw "We are missing the Dashboard div!";
@@ -2889,15 +2959,16 @@ caap = {
 
             global.log(9, "Updating Dashboard");
             //this.UpdateDashboardWaitLog = true;
-            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
+            html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
             displayItemList = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link'];
             for (p in displayItemList) {
                 if (displayItemList.hasOwnProperty(p)) {
-                    html += this.makeTd("<b>" + displayItemList[p] + "</b>", 'black');
+                    html += "<th><font size='1' color='black'><b>" + displayItemList[p] + "</b></font></th>";
                 }
             }
 
-            html += this.makeTd("", 'black');
+            html += "<th><font size='1' color='black'><b></b></font></th>";
+            html += "<th><font size='1' color='black'><b></b></font></th>";
             html += '</tr>';
             displayItemList.shift();
             monsterList = gm.getList('monsterOl');
@@ -2933,6 +3004,9 @@ caap = {
                     color = gm.getObjVal(monsterObj, 'color', 'black');
                 }
 
+                monsterConditions = gm.getObjVal(monsterObj, 'conditions', '');
+                achLevel = caap.parseCondition('ach', monsterConditions);
+                maxDamage = caap.parseCondition('max', monsterConditions);
                 monsterObjLink = gm.getObjVal(monsterObj, 'Link', '');
                 global.log(9, "monsterObjLink", monsterObjLink);
                 if (monsterObjLink) {
@@ -2947,6 +3021,8 @@ caap = {
 
                 displayItemList.forEach(function (displayItem) {
                     global.log(9, ' displayItem ', displayItem, ' value ', gm.getObjVal(monsterObj, displayItem));
+                    id = '';
+                    title = '';
                     if (displayItem === 'Phase' && color === 'grey') {
                         html += caap.makeTd(gm.getObjVal(monsterObj, 'status'), color);
                     } else {
@@ -2956,12 +3032,36 @@ caap = {
                                 value = caap.makeCommaValue(value);
                             }
 
-                            html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color);
+                            if (displayItem === 'Damage') {
+                                id = "caap_" + displayItem + "_" + count;
+                                if (achLevel) {
+                                    title = "User Set Monster Achievement: " + caap.makeCommaValue((achLevel).toString());
+                                } else if (gm.getValue('AchievementMode', false)) {
+                                    title = "Default Monster Achievement: " + caap.makeCommaValue((caap.monsterInfo[monstType].ach).toString());
+                                } else {
+                                    title = "Achievement Mode Disabled";
+                                }
+
+                                if (maxDamage) {
+                                    title += " - User Set Max Damage: " + caap.makeCommaValue((maxDamage).toString());
+                                }
+                            } else if (displayItem === 'TimeLeft') {
+                                id = "caap_" + displayItem + "_" + count;
+                                title = "Total Monster Duration: " + caap.monsterInfo[monstType].duration + " hours";
+                            }
+
+                            html += caap.makeTd(value + (displayItem.match(/%/) ? '%' : ''), color, id, title);
                         } else {
                             html += caap.makeTd('', color);
                         }
                     }
                 });
+
+                if (monsterConditions) {
+                    html += caap.makeTd('<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>', 'blue');
+                } else {
+                    html += caap.makeTd('', color);
+                }
 
                 if (monsterObjLink) {
                     removeLink = monsterObjLink.replace("user", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
@@ -3039,62 +3139,39 @@ caap = {
             Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
             table and then build the header row.
             \-------------------------------------------------------------------------------------*/
-            html = "<table width=570 cellpadding=0 cellspacing=0 ><tr>";
-            headers = ['UserId', 'Name', 'Deity#', 'Rank', 'Rank#', 'Level', 'Army', 'Last Alive'];
-            values = ['nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
+            html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+            headers = ['UserId', 'Name',    'Deity#',   'Rank',    'Rank#',   'Level',    'Army',    'Last Alive'];
+            values  = ['userID', 'nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
             for (pp in headers) {
                 if (headers.hasOwnProperty(pp)) {
-                    html += "<td><b><font size=1>" + headers[pp] + '</font></b></td>';
+                    html += "<th><font size='1' color='black'><b>" + headers[pp] + "</b></font></th>";
                 }
             }
-            /*-------------------------------------------------------------------------------------\
-            This div will hold data drom the targetsOl repository.  We step through the entries
-            in targetOl and build each table row.  Our userid is 'key' so it's the first parameter
-            \-------------------------------------------------------------------------------------*/
-            targetList = gm.getList('targetsOl');
-            for (i in targetList) {
-                if (targetList.hasOwnProperty(i)) {
-                    targetObj = targetList[i];
-                    userid = targetObj.split(global.vs)[0];
-                    html += "<tr>";
-                    //link = "<a href='http://apps.facebook.com/castle_age/keep.php?user=" + userid + "'>" + userid + "</a>";
-                    userIdLinkInstructions = "Clicking this link will take you to the user keep of " + userid;
-                    userIdLink = "http://apps.facebook.com/castle_age/keep.php?user=" + userid;
-                    link = '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + userid + '</span>';
-                    html += this.makeTd(link, 'blue');
-                    /*-------------------------------------------------------------------------------------\
-                    We step through each of the additional values we include in the table. If a value is
-                    null then we build an empty td
-                    \-------------------------------------------------------------------------------------*/
-                    for (j in values) {
-                        if (values.hasOwnProperty(j)) {
-                            value = gm.getObjVal(targetObj, values[j]);
-                            if (!value) {
-                                html += '<td></td>';
-                                continue;
-                            }
-                            /*-------------------------------------------------------------------------------------\
-                            We format the values based on the names. Names ending with Num are numbers, ending in
-                            Time are date/time counts, and Str are strings. We then end the row, and finally when
-                            all done end the table.  We then add the HTML to the div.
-                            \-------------------------------------------------------------------------------------*/
-                            if (/\S+Num/.test(values[j])) {
-                                value = this.makeCommaValue(value);
-                            }
 
-                            if (/\S+Time/.test(values[j])) {
-                                newTime = new Date(parseInt(value, 10));
-                                //value = (newTime.getMonth() + 1) + '/' + newTime.getDate() + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
-                                value =  newTime.getDate() + '-' + shortMonths[newTime.getMonth()] + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
-                            }
-
+            html += '</tr>';
+            for (i = 0; i < this.ReconRecordArray.length; i += 1) {
+                html += "<tr>";
+                for (pp in values) {
+                    if (values.hasOwnProperty(pp)) {
+                        if (/userID/.test(values[pp])) {
+                            userIdLinkInstructions = "Clicking this link will take you to the user keep of " + this.ReconRecordArray[i].data[values[pp]];
+                            userIdLink = "http://apps.facebook.com/castle_age/keep.php?user=" + this.ReconRecordArray[i].data[values[pp]];
+                            link = '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + this.ReconRecordArray[i].data[values[pp]] + '</span>';
+                            html += this.makeTd(link, 'blue');
+                        } else if (/\S+Num/.test(values[pp])) {
+                            html += this.makeTd(this.ReconRecordArray[i].data[values[pp]], 'black');
+                        } else if (/\S+Time/.test(values[pp])) {
+                            newTime = new Date(this.ReconRecordArray[i].data[values[pp]]);
+                            value = newTime.getDate() + '-' + shortMonths[newTime.getMonth()] + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes();
                             html += this.makeTd(value, 'black');
+                        } else {
+                            html += this.makeTd(this.ReconRecordArray[i].data[values[pp]], 'black');
                         }
                     }
-
-                    html += '</tr>';
                 }
+
+                html += '</tr>';
             }
 
             html += '</table>';
@@ -3353,6 +3430,10 @@ caap = {
                 break;
             case "AutoPotions" :
                 gm.deleteValue('AutoPotionTimer');
+                break;
+            case "AchievementMode" :
+                gm.setValue('monsterReview', 0);
+                gm.setValue('monsterReviewCounter', -3);
                 break;
             default :
             }
@@ -5264,11 +5345,11 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     deityTable: {
-        'energy': 1,
-        'attack': 2,
-        'defense': 3,
-        'health': 4,
-        'stamina': 5
+        energy  : 1,
+        attack  : 2,
+        defense : 3,
+        health  : 4,
+        stamina : 5
     },
 
     BlessingResults: function (resultsText) {
@@ -6706,7 +6787,45 @@ caap = {
             ach : 100000,
             siege : 0
         },
-        // http://castleage.wikidot.com/monster:bahamut
+        // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
+        'Plains' : {
+            duration : 168,
+            hp : 260000000,
+            ach : 4000,
+            siege : 6,
+            siegeClicks : [30, 60, 90, 120, 150, 200],
+            siegeDam : [13750000, 17500000, 20500000, 23375000, 26500000, 30000000],
+            siege_img : '/graphics/water_siege_',
+            fort : true,
+            staUse : 5,
+            staLvl : [0, 100, 200, 500],
+            staMax : [5, 10, 20, 50],
+            nrgMax : [10, 20, 40, 100],
+            general: '',
+            charClass : {
+                'Warrior' : {
+                    statusWord      : 'jaws',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                },
+                'Rogue' : {
+                    statusWord      : 'heal',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                },
+                'Mage' : {
+                    statusWord      : 'lava',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                },
+                'Cleric' : {
+                    status          : 'mana',
+                    pwrAtkButton    : 'nm_primary',
+                    defButton       : 'nm_secondary'
+                }
+            }
+        },
+        // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
         'Volcanic Dragon' : {
             duration : 168,
             hp : 120000000,
@@ -7096,7 +7215,7 @@ caap = {
 
     CheckResults_viewFight: function () {
         try {
-            // Check if on monster page (nm_top.jpg for Volcanic Dragon)
+            // Check if on monster page (nm_top.jpg for Volcanic Dragon & WORTP)
             // (nm_top_2.jpg for Alpha Volcanic Dragon)
             var webSlice = this.CheckForImage('dragon_title_owner.jpg');
             if (!webSlice) {
@@ -7122,6 +7241,9 @@ caap = {
             } else if (this.CheckForImage('nm_azriel_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'Azriel, the Angel of Wrath';
                 monster = $.trim(monster);
+            } else if (this.CheckForImage('nm_war_title.jpg')) {
+                monster = monster.match(yourRegEx) + 'War of the Red Plains';
+                monster = $.trim(monster);
             } else {
                 monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
             }
@@ -7136,6 +7258,8 @@ caap = {
                 monstType = 'Alpha Volcanic Dragon';
             } else if (this.CheckForImage('nm_azriel_large2.jpg')) {
                 monstType = 'Wrath';
+            } else if (this.CheckForImage('nm_war_large.jpg')) {
+                monstType = 'Plains';
             } else {
                 monstType = this.getMonstType(monster);
             }
@@ -7153,7 +7277,7 @@ caap = {
             var time = [];
             var monsterTicker = $("#app46755028429_monsterTicker");
             if (monsterTicker.length) {
-                //global.log(1, "Monster ticker found.");
+                global.log(2, "Monster ticker found.");
                 time = monsterTicker.text().split(":");
             } else {
                 global.log(1, "Could not locate Monster ticker.");
@@ -7242,7 +7366,9 @@ caap = {
             }
 
             var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
-            if (/:ac\b/.test(monsterConditions)) {
+            if (/:ac\b/.test(monsterConditions) ||
+                    (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
+                    (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) {
                 var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
                 var monsterList = gm.getList('monsterOl');
                 if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
@@ -7264,7 +7390,7 @@ caap = {
 
             var hp = 0;
             var monstHealthImg = '';
-            if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0) {
+            if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -7275,7 +7401,7 @@ caap = {
                 var hpBar = null;
                 var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
                 if (imgHealthBar) {
-                    //global.log(1, "Found monster health div.");
+                    global.log(2, "Found monster health div.");
                     var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
                     var attrWidth = divAttr[1].split(":");
                     hpBar = $.trim(attrWidth[1]);
@@ -7295,7 +7421,7 @@ caap = {
 
                 if (boss && boss.siege) {
                     var missRegEx = new RegExp(".*Need (\\d+) more.*");
-                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0) {
+                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0) {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
                         if (monstType.indexOf('Alpha') >= 0 || monstType.indexOf('Wrath') >= 0) {
                             var waterCount = $("img[src*=" + boss.siege_img + "]").size();
@@ -7474,7 +7600,7 @@ caap = {
             //Start of KOB code Part 2 begins here
             if (KOBenable && !KOBmax && !KOBminFort && KOBach && hp < KOBPercentTimeRemaining) {
                 //need to figure out a color for kob 'someday' - borrowing max's color for now
-                gm.setListObjVal('monsterOl', monster, 'color', 'red');
+                gm.setListObjVal('monsterOl', monster, 'color', 'magenta');
                 // this line is required or we attack anyway.
                 gm.setListObjVal('monsterOl', monster, 'over', 'max');
                 //used with kob debugging
@@ -7509,7 +7635,7 @@ caap = {
                 return;
             }
 
-            //global.log(1, 'Selecting monster');
+            global.log(2, 'Selecting monster');
             // First we forget everything about who we already picked.
             gm.setValue('targetFrombattle_monster', '');
             gm.setValue('targetFromfortify', '');
@@ -7748,6 +7874,9 @@ caap = {
             } else if (this.CheckForImage('nm_azriel_title.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'Azriel, the Angel of Wrath';
                 monsterOnPage = $.trim(monsterOnPage);
+            } else if (this.CheckForImage('nm_war_title.jpg')) {
+                monsterOnPage = monsterOnPage.match(yourRegEx) + 'War of the Red Plains';
+                monsterOnPage = $.trim(monsterOnPage);
             } else {
                 monsterOnPage = $.trim(monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')));
             }
@@ -7856,19 +7985,25 @@ caap = {
                 \-------------------------------------------------------------------------------------*/
                 if (/href/.test(link)) {
                     link = link.split("'")[1];
-                    var conditions = gm.getObjVal(monsterObj, 'conditions');
+                    var conditions = gm.getObjVal(monsterObj, 'conditions', '');
+                    var monstType = gm.getObjVal(monsterObj, 'Type', '');
                     /*-------------------------------------------------------------------------------------\
                     If the autocollect token was specified then we set the link to do auto collect. If
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
-                    if ((conditions) && (/:ac\b/.test(conditions)) && gm.getObjVal(monsterObj, 'status') === 'Collect Reward') {
+                    if ((((conditions) && (/:ac\b/.test(conditions))) ||
+                            (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
+                            (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) && gm.getObjVal(monsterObj, 'status') === 'Collect Reward') {
                         link += '&action=collectReward';
                         if (monster.indexOf('Siege') >= 0) {
                             link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
                         }
 
                         link = link.replace('&action=doObjective', '');
-                    } else if (((conditions) && (conditions.match(':!s'))) || !gm.getValue('DoSiege', true) || this.stats.stamina.num === 0) {
+                    } else if (((conditions) && (conditions.match(':!s'))) ||
+                               (!gm.getValue('raidDoSiege', true) && monstType.match(/Raid/)) ||
+                               (!gm.getValue('monsterDoSiege', true) && !monstType.match(/Raid/) && this.monsterInfo[monstType].siege) ||
+                               this.stats.stamina.num === 0) {
                         link = link.replace('&action=doObjective', '');
                     }
                     /*-------------------------------------------------------------------------------------\
@@ -7948,6 +8083,7 @@ caap = {
             var nodeNum = 0;
             var staLvl = null;
             var energyRequire = 10;
+
             if (monstType) {
                 staLvl = this.monsterInfo[monstType].staLvl;
                 if (!this.InLevelUpMode() && gm.getValue('PowerFortifyMax') && staLvl) {
@@ -7961,6 +8097,16 @@ caap = {
                 if (nodeNum && gm.getValue('PowerAttackMax')) {
                     energyRequire = this.monsterInfo[monstType].nrgMax[nodeNum];
                 }
+            }
+
+            if (gm.getValue('FortifyGeneral', 'Strider') === 'Orc King') {
+                energyRequire = energyRequire * 5;
+                global.log(2, 'Monsters Fortify:Orc King', energyRequire);
+            }
+
+            if (gm.getValue('FortifyGeneral', 'Strider') === 'Barbarus') {
+                energyRequire = energyRequire * 3;
+                global.log(2, 'Monsters Fortify:Barbarus', energyRequire);
             }
 
             if (monster && this.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
@@ -7984,7 +8130,7 @@ caap = {
             monstType = this.getMonstType(monster);
             // Check if on engage monster page
             var imageTest = '';
-            if (monstType === 'Volcanic Dragon' || monstType === 'Wrath') {
+            if (monstType === 'Volcanic Dragon' || monstType === 'Wrath' || monstType === 'Plains') {
                 imageTest = 'nm_top.jpg';
             } else if (monstType === 'Alpha Volcanic Dragon') {
                 imageTest = 'nm_top_2.jpg';
@@ -8020,18 +8166,25 @@ caap = {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
-                    // power attack or if not seamonster power attack or if not regular attack -
-                    // need case for seamonster regular attack?
-                    buttonList = [
-                        'button_nm_p_power',
-                        'button_nm_p_',
-                        'power_button_',
-                        'attack_monster_button2.jpg',
-                        'event_attack2.gif',
-                        'seamonster_power.gif',
-                        'event_attack1.gif',
-                        'attack_monster_button.jpg'
-                    ].concat(singleButtonList);
+                    var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
+                    if ((gm.getValue('UseTactics', false) || monsterConditions.match(/:tac/i)) && this.CheckForImage('nm_button_tactics.gif')) {
+                        buttonList = [
+                            'nm_button_tactics.gif'
+                        ].concat(singleButtonList);
+                    } else {
+                        // power attack or if not seamonster power attack or if not regular attack -
+                        // need case for seamonster regular attack?
+                        buttonList = [
+                            'button_nm_p_power',
+                            'button_nm_p_',
+                            'power_button_',
+                            'attack_monster_button2.jpg',
+                            'event_attack2.gif',
+                            'seamonster_power.gif',
+                            'event_attack1.gif',
+                            'attack_monster_button.jpg'
+                        ].concat(singleButtonList);
+                    }
                 }
 
                 nodeNum = 0;
@@ -10618,12 +10771,37 @@ caap = {
     ReconPlayers is an idle background process that scans the battle page for viable
     targets that can later be attacked.
     \-------------------------------------------------------------------------------------*/
+
+    ReconRecordArray : [],
+
+    ReconRecord: function () {
+        this.data = {
+            userID          : 0,
+            nameStr         : '',
+            rankStr         : '',
+            rankNum         : 0,
+            warRankStr      : '',
+            warRankNum      : 0,
+            levelNum        : 0,
+            armyNum         : 0,
+            deityNum        : 0,
+            invadewinsNum   : 0,
+            invadelossesNum : 0,
+            duelwinsNum     : 0,
+            duellossesNum   : 0,
+            defendwinsNum   : 0,
+            defendlossesNum : 0,
+            statswinsNum    : 0,
+            statslossesNum  : 0,
+            goldNum         : 0,
+            aliveTime       : new Date(2009, 0, 1).getTime(),
+            attackTime      : new Date(2009, 0, 1).getTime(),
+            selectTime      : new Date(2009, 0, 1).getTime()
+        };
+    },
+
     ReconPlayers: function () {
         try {
-    /*-------------------------------------------------------------------------------------\
-    If recon is disabled or if we check our timer to make sure we are not running recon too
-    often.
-    \-------------------------------------------------------------------------------------*/
             if (!gm.getValue('DoPlayerRecon', false)) {
                 return false;
             }
@@ -10636,212 +10814,145 @@ caap = {
                 return false;
             }
 
-            this.SetDivContent('idle_mess', 'Player Recon: Starting');
-    /*-------------------------------------------------------------------------------------\
-    If we don't have our iframe then we open it up. We give an additional 30 seconds to get
-    loaded.
-    \-------------------------------------------------------------------------------------*/
-            if (!document.getElementById("iframeRecon")) {
-                nHtml.OpenInIFrame('http://apps.facebook.com/castle_age/battle.php#iframeRecon', 'iframeRecon');
-                global.log(1, 'Opening the recon iframe');
-                this.SetTimer('PlayerReconTimer', 30);
-                return true;
-            }
-    /*-------------------------------------------------------------------------------------\
-    pageObj wil contain our iframe DOM content.  If we don't have any content yet we give
-    it another 30 seconds.
-    \-------------------------------------------------------------------------------------*/
-            var pageObj = document.getElementById("iframeRecon").contentDocument;
-            if (!pageObj) {
-                global.log(1, 'Recon HTML page not ready. waithing For 30 more secionds.');
-                this.SetTimer('PlayerReconTimer', 30);
-                return true;
-            }
-
             this.SetDivContent('idle_mess', 'Player Recon: In Progress');
-    /*-------------------------------------------------------------------------------------\
-    We use the 'invade' button gif for our snapshot.  If we don't find any then we aren't
-    in the right place or have a load problem
-    \-------------------------------------------------------------------------------------*/
-            var target = "//input[contains(@src,'battle_01.gif')]";
-            var ss = pageObj.evaluate(target, pageObj, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
-                pageObj.location.reload(true);
-                global.log(1, 'Recon can not find battle page');
-                caap.SetDivContent('idle_mess', '');
-                return false;
-            }
+            global.log(1, "Player Recon: In Progress");
 
-            //global.log(1, "Found targets: " + ss.snapshotLength);
-    /*-------------------------------------------------------------------------------------\
-    Next we get our Recon Player settings for lowest rank, highest level, and army ratio
-    base multiplier.
-    \-------------------------------------------------------------------------------------*/
-            var reconRank = gm.getNumber('ReconPlayerRank', 99);
-            var reconLevel = gm.getNumber('ReconPlayerLevel', 999);
-            var reconARBase = gm.getNumber('ReconPlayerARBase', 999);
-            var found = 0;
-    /*-------------------------------------------------------------------------------------\
-    Now we step through our snapshot data which represents data within each 'tr' for each
-    target on the battle page.  We step back through the parent objects until we have the
-    entire 'tr'
-    \-------------------------------------------------------------------------------------*/
-            for (var s = 0; s < ss.snapshotLength; s += 1) {
-                var obj = ss.snapshotItem(s);
-                while (obj.tagName.toLowerCase() !== "tr") {
-                    obj = obj.parentNode;
-                }
+            $.ajax({
+                url: "http://apps.facebook.com/castle_age/battle.php",
+                error:
+                    function (XMLHttpRequest, textStatus, errorThrown) {
+                        global.error("ReconPlayers2.ajax", textStatus);
+                    },
+                success:
+                    function (data, textStatus, XMLHttpRequest) {
+                        try {
+                            var found = 0;
+                            global.log(2, "ReconPlayers.ajax: Checking data.");
 
-                var tr = obj;
-                if (!tr) {
-                    global.log(1, "No tr parent of button?");
-                    continue;
-                }
-    /*-------------------------------------------------------------------------------------\
-    We get the deity number for the target
-    \-------------------------------------------------------------------------------------*/
-                var deityNum = this.NumberOnly(this.CheckForImage('symbol_', tr, pageObj).src.match(/\d+\.jpg/i).toString());
-    /*-------------------------------------------------------------------------------------\
-    We also get the targets actual name, level and rank from the text string
-    \-------------------------------------------------------------------------------------*/
-                var txt = $.trim(nHtml.GetText(tr));
-                if (!txt.length) {
-                    global.log(1, "Can't find txt in tr");
-                    continue;
-                }
+                            $(data).find("img[src*='symbol_']").not("[src*='symbol_tiny_']").each(function(index) {
+                                var UserRecord      = new caap.ReconRecord(),
+                                    $tempObj        = $(this).parent().parent().parent().parent().parent(),
+                                    tempArray       = [],
+                                    txt             = '',
+                                    regex           = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+                                    regex2          = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+                                    entryLimit      = gm.getNumber('LimitTargets', 100),
+                                    i               = 0,
+                                    OldRecord       = null,
+                                    reconRank       = gm.getNumber('ReconPlayerRank', 99),
+                                    reconLevel      = gm.getNumber('ReconPlayerLevel', 999),
+                                    reconARBase     = gm.getNumber('ReconPlayerARBase', 999),
+                                    levelMultiplier = 0,
+                                    armyRatio       = 0,
+                                    goodTarget      = true;
 
-                var levelm = [];
-                if (this.battles.Freshmeat.warLevel) {
-                    levelm = this.battles.Freshmeat.regex.exec(txt);
-                    if (!levelm) {
-                        levelm = this.battles.Freshmeat.regex2.exec(txt);
-                        this.battles.Freshmeat.warLevel = false;
+                                if ($tempObj.length) {
+                                    tempArray = $tempObj.find("a:first").attr("href").match(/user=([0-9]+)/);
+                                    if (tempArray.length === 2) {
+                                        UserRecord.data.userID = parseInt(tempArray[1], 10);
+                                    }
+
+                                    for (i = 0; i < caap.ReconRecordArray.length; i += 1) {
+                                        if (caap.ReconRecordArray[i].data.userID === UserRecord.data.userID) {
+                                            UserRecord = caap.ReconRecordArray[i];
+                                            caap.ReconRecordArray.splice (i, 1);
+                                            global.log(2, "UserRecord exists. Loaded and removed.", UserRecord);
+                                            break;
+                                        }
+                                    }
+
+                                    tempArray = $(this).attr("src").match(/symbol_([0-9])\.jpg/);
+                                    if (tempArray.length === 2) {
+                                        UserRecord.data.deityNum = parseInt(tempArray[1], 10);
+                                    }
+
+                                    txt = $.trim($tempObj.text());
+                                    if (txt.length) {
+                                        if (caap.battles.Freshmeat.warLevel) {
+                                            tempArray = regex.exec(txt);
+                                            if (!tempArray) {
+                                                tempArray = regex2.exec(txt);
+                                                caap.battles.Freshmeat.warLevel = false;
+                                            }
+                                        } else {
+                                            tempArray = regex2.exec(txt);
+                                            if (!tempArray) {
+                                                tempArray = regex.exec(txt);
+                                                caap.battles.Freshmeat.warLevel = true;
+                                            }
+                                        }
+
+                                        if (tempArray) {
+                                            UserRecord.data.aliveTime      = new Date().getTime();
+                                            UserRecord.data.nameStr        = $.trim(tempArray[1]);
+                                            UserRecord.data.levelNum       = parseInt(tempArray[2], 10);
+                                            UserRecord.data.rankStr        = tempArray[3];
+                                            UserRecord.data.rankNum        = parseInt(tempArray[4], 10);
+                                            if (caap.battles.Freshmeat.warLevel) {
+                                                UserRecord.data.warRankStr = tempArray[5];
+                                                UserRecord.data.warRankNum = parseInt(tempArray[6], 10);
+                                                UserRecord.data.armyNum    = parseInt(tempArray[7], 10);
+                                            } else {
+                                                UserRecord.data.armyNum    = parseInt(tempArray[5], 10);
+                                            }
+
+                                            if (UserRecord.data.levelNum - caap.stats.level > reconLevel) {
+                                                global.log(2, 'Level above reconLevel max', reconLevel, UserRecord);
+                                                goodTarget = false;
+                                            } else if (caap.stats.rank - UserRecord.data.rankNum > reconRank) {
+                                                global.log(2, 'Rank below reconRank min', reconRank, UserRecord);
+                                                goodTarget = false;
+                                            } else {
+                                                levelMultiplier = caap.stats.level / UserRecord.data.levelNum;
+                                                armyRatio = reconARBase * levelMultiplier;
+                                                if (armyRatio <= 0) {
+                                                    global.log(2, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
+                                                    goodTarget = false;
+                                                } else if (UserRecord.data.armyNum  > (caap.stats.army * armyRatio)) {
+                                                    global.log(2, 'Army above armyRatio adjustment', armyRatio, UserRecord);
+                                                    goodTarget = false;
+                                                }
+                                            }
+
+                                            if (goodTarget) {
+                                                while (caap.ReconRecordArray.length >= entryLimit) {
+                                                    OldRecord = caap.ReconRecordArray.shift();
+                                                    global.log(2, "Entry limit matched. Deleted an old record", OldRecord);
+                                                }
+
+                                                global.log(2, "UserRecord", UserRecord);
+                                                caap.ReconRecordArray.push(UserRecord);
+                                                found += 1;
+                                            }
+                                        } else {
+                                            global.log(1, 'Recon can not parse target text string', txt);
+                                        }
+                                    } else {
+                                        global.log(1, "Can't find txt in $tempObj", $tempObj);
+                                    }
+                                } else {
+                                    global.log(1, "$tempObj is empty");
+                                }
+                            });
+
+                            gm.setJValue('reconJSON', caap.ReconRecordArray);
+                            caap.SetDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
+                            global.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
+                            window.setTimeout(function () {
+                                caap.SetDivContent('idle_mess', '');
+                            }, 5 * 1000);
+
+                            global.log(2, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
+                        } catch (err) {
+                            global.error("ERROR in ReconPlayers.ajax: " + err);
+                        }
                     }
-                } else {
-                    levelm = this.battles.Freshmeat.regex2.exec(txt);
-                    if (!levelm) {
-                        levelm = this.battles.Freshmeat.regex.exec(txt);
-                        this.battles.Freshmeat.warLevel = true;
-                    }
-                }
+            });
 
-                if (!levelm) {
-                    global.log(1, 'Recon can not parse target text string' + txt);
-                    continue;
-                }
-
-                var nameStr = $.trim(levelm[1]);
-                var levelNum = parseInt(levelm[2], 10);
-                var rankStr = levelm[3];
-                var rankNum = parseInt(levelm[4], 10);
-                var warRankStr = '';
-                var warRankNum = 0;
-                if (this.battles.Freshmeat.warLevel) {
-                    warRankStr = levelm[5];
-                    warRankNum = parseInt(levelm[6], 10);
-                }
-    /*-------------------------------------------------------------------------------------\
-    Then we get the targets army count and userid.  We'll also save the current time we
-    found the target alive.
-    \-------------------------------------------------------------------------------------*/
-                var armyNum = 0;
-                if (this.battles.Freshmeat.warLevel) {
-                    armyNum = parseInt(levelm[7], 10);
-                } else {
-                    armyNum = parseInt(levelm[5], 10);
-                }
-
-                var userID = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'", pageObj).value;
-                var aliveTime = (new Date().getTime());
-                //global.log(1, 'Player stats: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
-    /*-------------------------------------------------------------------------------------\
-    We filter out targets that are above the recon max level or below the recon min rank
-    \-------------------------------------------------------------------------------------*/
-                if (levelNum - this.stats.level > reconLevel) {
-                    continue;
-                }
-
-                if (this.stats.rank - rankNum  > reconRank) {
-                    continue;
-                }
-    /*-------------------------------------------------------------------------------------\
-    We adjust the army ratio base by our level multiplier and then apply this to our army
-    size.  If the result is our adjusted army size is below the targets army size then
-    we filter this taregt too.
-    \-------------------------------------------------------------------------------------*/
-                var levelMultiplier = this.stats.level / levelNum;
-                var armyRatio = reconARBase * levelMultiplier;
-                if (armyRatio <= 0) {
-                    global.log(1, 'Recon unable to calculate army ratio: ' + reconARBase + '/' + levelMultiplier);
-                    continue;
-                }
-
-                if (armyNum > (this.stats.army * armyRatio)) {
-                    continue;
-                }
-                //global.log(1, 'Target Found: '+userID+' '+nameStr+' '+deityNum+' '+rankStr+' '+rankNum+' '+levelNum+' '+armyNum+' '+aliveTime);
-    /*-------------------------------------------------------------------------------------\
-    Ok, recon has found a viable target. We get any existing values from the targetsOL
-    database.
-    \-------------------------------------------------------------------------------------*/
-                found += 1;
-                var invadewinsNum = gm.getListObjVal('targetsOl', userID, 'invadewinsNum', -1);
-                var invadelossesNum = gm.getListObjVal('targetsOl', userID, 'invadelossesNum', -1);
-                var duelwinsNum = gm.getListObjVal('targetsOl', userID, 'duelwinsNum', -1);
-                var duellossesNum = gm.getListObjVal('targetsOl', userID, 'duellossesNum', -1);
-                var defendwinsNum = gm.getListObjVal('targetsOl', userID, 'defendwinsNum', -1);
-                var defendlossesNum = gm.getListObjVal('targetsOl', userID, 'defendlossesNum', -1);
-                var goldNum = gm.getListObjVal('targetsOl', userID, 'goldNum', -1);
-                var attackTime = gm.getListObjVal('targetsOl', userID, 'attackTime', 0);
-                var selectTime = gm.getListObjVal('targetsOl', userID, 'selectTime', 0);
-                var statswinsNum = gm.getListObjVal('targetsOl', userID, 'statswinsNum', -1);
-                var statslossesNum = gm.getListObjVal('targetsOl', userID, 'statswinsNum', -1);
-    /*-------------------------------------------------------------------------------------\
-    And then we add/update targetsOL database with information on the target. We include
-    the max value of the number of entries on the first update
-    \-------------------------------------------------------------------------------------*/
-                var entryLimit = gm.getValue('LimitTargets', 100);
-                gm.setListObjVal('targetsOl', userID, 'nameStr', nameStr, entryLimit);         /* Target name */
-                gm.setListObjVal('targetsOl', userID, 'rankStr', rankStr);                     /* Target rank */
-                gm.setListObjVal('targetsOl', userID, 'rankNum', rankNum);                     /* Target rank number */
-                gm.setListObjVal('targetsOl', userID, 'warRankStr', warRankStr);               /* Target war rank */
-                gm.setListObjVal('targetsOl', userID, 'warRankNum', warRankNum);               /* Target war rank number */
-                gm.setListObjVal('targetsOl', userID, 'levelNum', levelNum);                   /* Traget level */
-                gm.setListObjVal('targetsOl', userID, 'armyNum', armyNum);                     /* Target army size */
-                gm.setListObjVal('targetsOl', userID, 'deityNum', deityNum);                   /* Target deity affiliation number */
-                gm.setListObjVal('targetsOl', userID, 'invadewinsNum', invadewinsNum);         /* Tally of invade wins against target */
-                gm.setListObjVal('targetsOl', userID, 'invadelossesNum', invadelossesNum);     /* Tally of invade losses against target */
-                gm.setListObjVal('targetsOl', userID, 'duelwinsNum', duelwinsNum);             /* Tally of duel wins against target */
-                gm.setListObjVal('targetsOl', userID, 'duellossesNum', duellossesNum);         /* Tally of duel losses against target */
-                gm.setListObjVal('targetsOl', userID, 'defendwinsNum', defendwinsNum);         /* Tally of wins when target attacked us */
-                gm.setListObjVal('targetsOl', userID, 'defendlossesNum', defendlossesNum);     /* Tally of losses when target attacked us */
-                gm.setListObjVal('targetsOl', userID, 'statswinsNum', statswinsNum);           /* Targets win count from stats */
-                gm.setListObjVal('targetsOl', userID, 'statslossesNum', statslossesNum);       /* Targets loss count from stats */
-                gm.setListObjVal('targetsOl', userID, 'goldNum', goldNum);                     /* Tally of gold won from target */
-                gm.setListObjVal('targetsOl', userID, 'aliveTime', aliveTime);                 /* Last time found alive */
-                gm.setListObjVal('targetsOl', userID, 'attackTime', attackTime);               /* Last time attacked */
-                gm.setListObjVal('targetsOl', userID, 'selectTime', selectTime);               /* Last time selected to attack */
-            }
-    /*-------------------------------------------------------------------------------------\
-    We're done with recon.  Reload the battle page for next pass and set timer for the next
-    recon to occur in 60 seconds
-    \-------------------------------------------------------------------------------------*/
-            pageObj.location.reload(true);
-            var retrySecs = gm.getValue('PlayerReconRetry', 60);
-            this.SetTimer('PlayerReconTimer', retrySecs);
-            if (found > 0) {
-                this.SetDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + gm.getList('targetsOl').length);
-            } else {
-                this.SetDivContent('idle_mess', 'Player Recon: No Targets Found');
-            }
-
-            window.setTimeout(function () {
-                caap.SetDivContent('idle_mess', '');
-            }, retrySecs * 1000);
-
-            return false;
+            this.SetTimer('PlayerReconTimer', gm.getValue('PlayerReconRetry', 60) + Math.floor(Math.random() * 60));
+            return true;
         } catch (err) {
-            global.error("ERROR in Recon :" + err);
+            global.error("ERROR in ReconPlayers:" + err);
             return false;
         }
     },
@@ -10859,27 +10970,27 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     actionDescTable: {
-        'AutoIncome': 'Awaiting Income',
-        'AutoStat': 'Upgrade Skill Points',
-        'MaxEnergyQuest': 'At Max Energy Quest',
-        'PassiveGeneral': 'Setting Idle General',
-        'Idle': 'Idle Tasks',
-        'ImmediateBanking': 'Immediate Banking',
-        'Battle': 'Battling Players',
-        'MonsterReview': 'Review Monsters/Raids',
-        'ImmediateAutoStat': 'Immediate Auto Stats',
-        'AutoElite': 'Fill Elite Guard',
-        'ArenaElite': 'Fill Arena Elite',
-        'AutoPotions': 'Auto Potions',
-        'AutoAlchemy': 'Auto Alchemy',
-        'AutoBless': 'Auto Bless',
-        'AutoGift': 'Auto Gifting',
-        'MonsterFinder': 'Monster Finder',
-        'DemiPoints': 'Demi Points First',
-        'Monsters': 'Fighting Monsters',
-        'Heal': 'Auto Healing',
-        'Bank': 'Auto Banking',
-        'Lands': 'Land Operations'
+        AutoIncome        : 'Awaiting Income',
+        AutoStat          : 'Upgrade Skill Points',
+        MaxEnergyQuest    : 'At Max Energy Quest',
+        PassiveGeneral    : 'Setting Idle General',
+        Idle              : 'Idle Tasks',
+        ImmediateBanking  : 'Immediate Banking',
+        Battle            : 'Battling Players',
+        MonsterReview     : 'Review Monsters/Raids',
+        ImmediateAutoStat : 'Immediate Auto Stats',
+        AutoElite         : 'Fill Elite Guard',
+        ArenaElite        : 'Fill Arena Elite',
+        AutoPotions       : 'Auto Potions',
+        AutoAlchemy       : 'Auto Alchemy',
+        AutoBless         : 'Auto Bless',
+        AutoGift          : 'Auto Gifting',
+        MonsterFinder     : 'Monster Finder',
+        DemiPoints        : 'Demi Points First',
+        Monsters          : 'Fighting Monsters',
+        Heal              : 'Auto Healing',
+        Bank              : 'Auto Banking',
+        Lands             : 'Land Operations'
     },
 
     CheckLastAction: function (thisAction) {
