@@ -79,8 +79,8 @@ gm = {
                 jsonObj = $.parseJSON(GM_getValue(global.gameName + "__" + name));
             }
 
-            if (!jsonObj) {
-                jsonObj = value;
+            if (!jsonObj && value) {
+                return value;
             }
 
             return jsonObj;

@@ -217,18 +217,18 @@ $(function () {
         window.location.href = window.location.href;
     }
 
-    gm.setValue('clickUrl', window.location.href);
     global.AddCSS();
+    gm.setValue('clickUrl', window.location.href);
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
+        caap.LoadStats();
         caap.stats.FBID = $('head').html().regex(/user:([0-9]+),/i);
+        global.log(9, "FBID", caap.stats.FBID);
         if (!caap.stats.FBID || typeof caap.stats.FBID !== 'number' || caap.stats.FBID === 0) {
             // Force reload without retrying
             global.error('ERROR: No Facebook UserID!!!');
             window.location.href = window.location.href;
         }
 
-        gm.setValue('FBID', caap.stats.FBID + '');
-        global.log(9, "FBID", caap.stats.FBID);
         gm.setValue('caapPause', 'none');
         gm.setValue('ReleaseControl', true);
         if (global.is_chrome) {

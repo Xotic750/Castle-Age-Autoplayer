@@ -26,6 +26,8 @@ global = {
 
     AddCSS: function () {
         try {
+            var href = window.location.href;
+            
             if (!$('link[href*="jquery-ui-1.8.1.custom.css"').length) {
                 $("<link>").appendTo("head").attr({
                     rel: "stylesheet",
@@ -40,6 +42,10 @@ global = {
                     type: "text/css",
                     href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.css"
                 });
+            }
+
+            if (gm.getValue("fbFilter", false) && (href.indexOf('apps.facebook.com/reqs.php') >= 0 || href.indexOf('apps.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0)) {
+                $("<style type='text/css'>#contentArea div[id^='div_story_']:not([class*='46755028429']) {\ndisplay:none !important;\n}</style>").appendTo("head");
             }
 
             return true;
