@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.43
+// @version        140.23.44
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.43";
+var caapVersion = "140.23.44";
 
 ///////////////////////////
 //       Prototypes
@@ -1741,7 +1741,8 @@ caap = {
         'Demon Realm',
         'Undead Realm',
         'Underworld',
-        'Kingdom of Heaven'
+        'Kingdom of Heaven',
+		'Ivory City'
     ],
 
     demiQuestList: [
@@ -4539,7 +4540,8 @@ caap = {
         'Demon Realm'       : 'land_demon_realm',
         'Undead Realm'      : 'land_undead_realm',
         'Underworld'        : 'tab_underworld',
-        'Kingdom of Heaven' : 'tab_heaven'
+        'Kingdom of Heaven' : 'tab_heaven',
+		'Ivory City'    	: 'tab_ivory'
     },
 
     demiQuestTable : {
@@ -4635,7 +4637,7 @@ caap = {
                 var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
                 var landPic = this.baseQuestTable[subQArea];
                 var imgExist = false;
-                if (landPic === 'tab_underworld') {
+                if (landPic === 'tab_underworld' || landPic === 'tab_ivory') {
                     imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                 } else if (landPic === 'tab_heaven') {
                     imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
@@ -5110,6 +5112,9 @@ caap = {
                         gm.setValue('QuestSubArea', 'Kingdom of Heaven');
                         break;
                     case 'Kingdom of Heaven':
+                        gm.setValue('QuestSubArea', 'Ivory City');
+                        break;
+                    case 'Ivory City':
                         gm.setValue('QuestArea', 'Demi Quests');
                         gm.setValue('QuestSubArea', 'Ambrosia');
                         this.ChangeDropDownList('QuestSubArea', this.demiQuestList);
@@ -5204,6 +5209,12 @@ caap = {
                 break;
             case 'Kingdom of Heaven':
                 if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
+                    return true;
+                }
+
+                break;
+            case 'Ivory City':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_9')) {
                     return true;
                 }
 
@@ -5400,6 +5411,8 @@ caap = {
                     gm.setValue('QuestSubArea', 'Underworld');
                 } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
                     gm.setValue('QuestSubArea', 'Kingdom of Heaven');
+                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_9')) {
+                    gm.setValue('QuestSubArea', 'Ivory City');
                 }
 
                 global.log(1, 'Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
@@ -10239,6 +10252,13 @@ caap = {
                 return this.NavigateTo('gift');
             }
 
+			button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
+			if (button) {
+				global.log(1, 'Denying Email Nag For Gift Send');
+				caap.Click(button);
+				return true;
+			}
+			
             var button = null;
             // Facebook pop-up on CA
             if (gm.getValue('FBSendList', '')) {
@@ -10262,7 +10282,7 @@ caap = {
                 global.log(1, 'No Facebook pop up to send gifts');
                 return false;
             }
-
+			
             // CA send gift button
             if (gm.getValue('CASendList', '')) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
@@ -10282,6 +10302,8 @@ caap = {
                 gm.setList('CASendList', []);
                 return false;
             }
+			
+
 
             if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
                 return false;
@@ -10381,7 +10403,7 @@ caap = {
             gm.setList('ReceivedList', []);
             for (var p in giverList) {
                 if (giverList.hasOwnProperty(p)) {
-                    if (p > 10) {
+                    if (p > 9) {
                         gm.listPush('ReceivedList', giverList[p]);
                         continue;
                     }
@@ -10424,7 +10446,7 @@ caap = {
             return false;
         }
     },
-
+	
     AcceptGiftOnFB: function () {
         try {
             if (global.is_chrome) {
@@ -11474,7 +11496,7 @@ caap = {
             return;
         }
 
-        if (this.WhileSinceDidIt('clickedOnSomething', 25) && this.waitingForDomLoad) {
+        if (this.WhileSinceDidIt('clickedOnSomething', 45) && this.waitingForDomLoad) {
             global.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
             this.ReloadCastleAge();
         }
