@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.44
+// @version        140.23.45
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.44";
+var caapVersion = "140.23.45";
 
 ///////////////////////////
 //       Prototypes
@@ -3167,7 +3167,7 @@ caap = {
                     if (values.hasOwnProperty(pp)) {
                         if (/userID/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + this.ReconRecordArray[i].data[values[pp]];
-                            userIdLink = "http://apps.facebook.com/castle_age/keep.php?user=" + this.ReconRecordArray[i].data[values[pp]];
+                            userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + this.ReconRecordArray[i].data[values[pp]];
                             link = '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                 '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + this.ReconRecordArray[i].data[values[pp]] + '</span>';
                             html += this.makeTd(link, 'blue');
@@ -3784,7 +3784,7 @@ caap = {
             global.log(9, 'globalContainer', obj.onclick);
             userID = obj.onclick.toString().match(/friendKeepBrowse\('([0-9]+)'/);
             if (userID.length === 2) {
-                txt = "?user=" + userID[1];
+                txt = "?casuser=" + userID[1];
             }
 
             gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/keep.php' + txt);
@@ -5884,7 +5884,7 @@ caap = {
             if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
                 if (this.CheckForImage('tab_arena_on')) {
                     resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?casuser=");
                     userId = nameLink.href.match(/user=\d+/i);
                     userId = String(userId).substr(5);
                     gm.setValue("ArenaChainId", userId);
@@ -5912,7 +5912,7 @@ caap = {
                         goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
                         goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
                         resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                        nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                        nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?casuser=");
                         userId = nameLink.href.match(/user=\d+/i);
                         userId = String(userId).substr(5);
                         userName = $.trim(nHtml.GetText(nameLink));
@@ -5987,7 +5987,7 @@ caap = {
                     userName = $("div[style*='war_lose_left.jpg']").text().match(new RegExp("(.+)'s Defense"))[1];
                 } else {
                     resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?casuser=");
                     userId = nameLink.href.match(/user=\d+/i);
                     userId = String(userId).substr(5);
                     userName = $.trim(nHtml.GetText(nameLink));
@@ -7275,7 +7275,7 @@ caap = {
                 }
 
                 var link = "<a href='http://apps.facebook.com/castle_age/" + page +
-                        ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
+                        ".php?casuser=" + url.match(/user=\d+/i)[0].split('=')[1] +
                         mpool + siege + "'>Link</a>";
                 gm.setListObjVal('monsterOl', monster, 'Link', link);
             }
@@ -7474,7 +7474,7 @@ caap = {
             if (webSlice) {
                 webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
                 if (webSlice) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + this.stats.FBID);
+                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?casuser=" + this.stats.FBID);
                     if (webSlice) {
                         var damList = null;
                         if (monstType === "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType === "Deathrune") {
@@ -9475,7 +9475,7 @@ caap = {
                 this.SaveStats();
                 this.stats.lastKeep = new Date().getTime();
             } else {
-                global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
+                global.log(1, "On another player's keep", $("a[href*='keep.php?casuser=']").attr("href").match(/user=([0-9]+)/)[1]);
             }
 
             return true;
@@ -9948,7 +9948,7 @@ caap = {
             return false;
         }
 
-        if (window.location.href.indexOf('arena.php?user=')) {
+        if (window.location.href.indexOf('arena.php?casuser=')) {
             var res = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
             if (res) {
                 res = nHtml.GetText(res);
@@ -9976,7 +9976,7 @@ caap = {
                     facebookList += ',';
                 }
 
-                var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?casuser')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                 for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var a = ss.snapshotItem(s);
                     user = a.href.match(/user=\d+/i);
@@ -9995,8 +9995,8 @@ caap = {
         } else if (this.WhileSinceDidIt('ArenaEliteReqNext', 7)) {
             user = eliteList.substring(0, eliteList.indexOf(','));
             global.log(1, 'add elite ' + user);
-            gm.setValue('clickUrl', "http://apps.facebook.com/castle_age/arena.php?user=" + user + "&lka=" + user + "&agtw=1&ref=nf");
-            this.VisitUrl("http://apps.facebook.com/castle_age/arena.php?user=" + user + "&lka=" + user + "&agtw=1&ref=nf");
+            gm.setValue('clickUrl', "http://apps.facebook.com/castle_age/arena.php?casuser=" + user + "&lka=" + user + "&agtw=1&ref=nf");
+            this.VisitUrl("http://apps.facebook.com/castle_age/arena.php?casuser=" + user + "&lka=" + user + "&agtw=1&ref=nf");
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('ArenaEliteTodo', eliteList);
             this.JustDidIt('ArenaEliteReqNext');
