@@ -913,7 +913,8 @@ caap = {
         'Demon Realm',
         'Undead Realm',
         'Underworld',
-        'Kingdom of Heaven'
+        'Kingdom of Heaven',
+		'Ivory City'
     ],
 
     demiQuestList: [
@@ -1150,7 +1151,7 @@ caap = {
             this.caapDivObject = $("#caap_div");
 
             banner += "<div id='caap_BannerHide' style='display: " + (gm.getValue('BannerDisplay', true) ? 'block' : 'none') + "'>";
-            banner += "<img src='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.png' alt='Castle Age Auto Player' /><br /><hr /></div>";
+            banner += "<img src='http://cloutman.com/caap/Castle-Age-Autoplayer.png' alt='Castle Age Auto Player' /><br /><hr /></div>";
             this.SetDivContent('banner', banner);
 
             htmlCode += this.AddPauseMenu();
@@ -1903,7 +1904,7 @@ caap = {
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
             htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
             if (global.newVersionAvailable) {
-                htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+                htmlCode += "<a href='http://cloutman.com/caap/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
             }
 
             return htmlCode;
@@ -2338,7 +2339,7 @@ caap = {
                     if (values.hasOwnProperty(pp)) {
                         if (/userID/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + this.ReconRecordArray[i].data[values[pp]];
-                            userIdLink = "http://apps.facebook.com/castle_age/keep.php?user=" + this.ReconRecordArray[i].data[values[pp]];
+                            userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + this.ReconRecordArray[i].data[values[pp]];
                             link = '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                 '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + this.ReconRecordArray[i].data[values[pp]] + '</span>';
                             html += this.makeTd(link, 'blue');
@@ -2955,7 +2956,7 @@ caap = {
             global.log(9, 'globalContainer', obj.onclick);
             userID = obj.onclick.toString().match(/friendKeepBrowse\('([0-9]+)'/);
             if (userID.length === 2) {
-                txt = "?user=" + userID[1];
+                txt = "?casuser=" + userID[1];
             }
 
             gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/keep.php' + txt);
@@ -3711,7 +3712,8 @@ caap = {
         'Demon Realm'       : 'land_demon_realm',
         'Undead Realm'      : 'land_undead_realm',
         'Underworld'        : 'tab_underworld',
-        'Kingdom of Heaven' : 'tab_heaven'
+        'Kingdom of Heaven' : 'tab_heaven',
+		'Ivory City'    	: 'tab_ivory'
     },
 
     demiQuestTable : {
@@ -3807,7 +3809,7 @@ caap = {
                 var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
                 var landPic = this.baseQuestTable[subQArea];
                 var imgExist = false;
-                if (landPic === 'tab_underworld') {
+                if (landPic === 'tab_underworld' || landPic === 'tab_ivory') {
                     imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                 } else if (landPic === 'tab_heaven') {
                     imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
@@ -4282,6 +4284,9 @@ caap = {
                         gm.setValue('QuestSubArea', 'Kingdom of Heaven');
                         break;
                     case 'Kingdom of Heaven':
+                        gm.setValue('QuestSubArea', 'Ivory City');
+                        break;
+                    case 'Ivory City':
                         gm.setValue('QuestArea', 'Demi Quests');
                         gm.setValue('QuestSubArea', 'Ambrosia');
                         this.ChangeDropDownList('QuestSubArea', this.demiQuestList);
@@ -4376,6 +4381,12 @@ caap = {
                 break;
             case 'Kingdom of Heaven':
                 if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
+                    return true;
+                }
+
+                break;
+            case 'Ivory City':
+                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_9')) {
                     return true;
                 }
 
@@ -4572,6 +4583,8 @@ caap = {
                     gm.setValue('QuestSubArea', 'Underworld');
                 } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
                     gm.setValue('QuestSubArea', 'Kingdom of Heaven');
+                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_9')) {
+                    gm.setValue('QuestSubArea', 'Ivory City');
                 }
 
                 global.log(1, 'Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
@@ -5043,7 +5056,7 @@ caap = {
             if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
                 if (this.CheckForImage('tab_arena_on')) {
                     resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?casuser=");
                     userId = nameLink.href.match(/user=\d+/i);
                     userId = String(userId).substr(5);
                     gm.setValue("ArenaChainId", userId);
@@ -5071,7 +5084,7 @@ caap = {
                         goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
                         goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
                         resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                        nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                        nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?casuser=");
                         userId = nameLink.href.match(/user=\d+/i);
                         userId = String(userId).substr(5);
                         userName = $.trim(nHtml.GetText(nameLink));
@@ -5146,7 +5159,7 @@ caap = {
                     userName = $("div[style*='war_lose_left.jpg']").text().match(new RegExp("(.+)'s Defense"))[1];
                 } else {
                     resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
-                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?user=");
+                    nameLink = nHtml.FindByAttrContains(resultsDiv.parentNode.parentNode, "a", "href", "keep.php?casuser=");
                     userId = nameLink.href.match(/user=\d+/i);
                     userId = String(userId).substr(5);
                     userName = $.trim(nHtml.GetText(nameLink));
@@ -6434,7 +6447,7 @@ caap = {
                 }
 
                 var link = "<a href='http://apps.facebook.com/castle_age/" + page +
-                        ".php?user=" + url.match(/user=\d+/i)[0].split('=')[1] +
+                        ".php?casuser=" + url.match(/user=\d+/i)[0].split('=')[1] +
                         mpool + siege + "'>Link</a>";
                 gm.setListObjVal('monsterOl', monster, 'Link', link);
             }
@@ -6633,7 +6646,7 @@ caap = {
             if (webSlice) {
                 webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
                 if (webSlice) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + this.stats.FBID);
+                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?casuser=" + this.stats.FBID);
                     if (webSlice) {
                         var damList = null;
                         if (monstType === "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType === "Deathrune") {
@@ -8634,7 +8647,7 @@ caap = {
                 this.SaveStats();
                 this.stats.lastKeep = new Date().getTime();
             } else {
-                global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
+                global.log(1, "On another player's keep", $("a[href*='keep.php?casuser=']").attr("href").match(/user=([0-9]+)/)[1]);
             }
 
             return true;
@@ -9107,7 +9120,7 @@ caap = {
             return false;
         }
 
-        if (window.location.href.indexOf('arena.php?user=')) {
+        if (window.location.href.indexOf('arena.php?casuser=')) {
             var res = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
             if (res) {
                 res = nHtml.GetText(res);
@@ -9135,7 +9148,7 @@ caap = {
                     facebookList += ',';
                 }
 
-                var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?user')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+                var ss = document.evaluate(".//img[contains(@src,'view_friends_profile')]/ancestor::a[contains(@href,'keep.php?casuser')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                 for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var a = ss.snapshotItem(s);
                     user = a.href.match(/user=\d+/i);
@@ -9154,8 +9167,8 @@ caap = {
         } else if (this.WhileSinceDidIt('ArenaEliteReqNext', 7)) {
             user = eliteList.substring(0, eliteList.indexOf(','));
             global.log(1, 'add elite ' + user);
-            gm.setValue('clickUrl', "http://apps.facebook.com/castle_age/arena.php?user=" + user + "&lka=" + user + "&agtw=1&ref=nf");
-            this.VisitUrl("http://apps.facebook.com/castle_age/arena.php?user=" + user + "&lka=" + user + "&agtw=1&ref=nf");
+            gm.setValue('clickUrl', "http://apps.facebook.com/castle_age/arena.php?casuser=" + user + "&lka=" + user + "&agtw=1&ref=nf");
+            this.VisitUrl("http://apps.facebook.com/castle_age/arena.php?casuser=" + user + "&lka=" + user + "&agtw=1&ref=nf");
             eliteList = eliteList.substring(eliteList.indexOf(',') + 1);
             gm.setValue('ArenaEliteTodo', eliteList);
             this.JustDidIt('ArenaEliteReqNext');
@@ -9411,6 +9424,13 @@ caap = {
                 return this.NavigateTo('gift');
             }
 
+			button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
+			if (button) {
+				global.log(1, 'Denying Email Nag For Gift Send');
+				caap.Click(button);
+				return true;
+			}
+
             var button = null;
             // Facebook pop-up on CA
             if (gm.getValue('FBSendList', '')) {
@@ -9454,6 +9474,8 @@ caap = {
                 gm.setList('CASendList', []);
                 return false;
             }
+
+
 
             if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
                 return false;
@@ -9553,7 +9575,7 @@ caap = {
             gm.setList('ReceivedList', []);
             for (var p in giverList) {
                 if (giverList.hasOwnProperty(p)) {
-                    if (p > 10) {
+                    if (p > 9) {
                         gm.listPush('ReceivedList', giverList[p]);
                         continue;
                     }
@@ -10646,7 +10668,7 @@ caap = {
             return;
         }
 
-        if (this.WhileSinceDidIt('clickedOnSomething', 25) && this.waitingForDomLoad) {
+        if (this.WhileSinceDidIt('clickedOnSomething', 45) && this.waitingForDomLoad) {
             global.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
             this.ReloadCastleAge();
         }

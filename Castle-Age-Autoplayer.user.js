@@ -2,11 +2,11 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.45
+// @version        140.23.46
 // @require        http://cloutman.com/jquery-latest.min.js
-// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
-// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.min.js
-// @require        http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/json2/json2.js
+// @require        http://cloutman.com/caap/ jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
+// @require        http://cloutman.com/caap/ farbtastic12/farbtastic/farbtastic.min.js
+// @require        http://cloutman.com/caap/ json2/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.45";
+var caapVersion = "140.23.46";
 
 ///////////////////////////
 //       Prototypes
@@ -1979,7 +1979,7 @@ caap = {
             this.caapDivObject = $("#caap_div");
 
             banner += "<div id='caap_BannerHide' style='display: " + (gm.getValue('BannerDisplay', true) ? 'block' : 'none') + "'>";
-            banner += "<img src='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.png' alt='Castle Age Auto Player' /><br /><hr /></div>";
+            banner += "<img src='http://cloutman.com/caap/Castle-Age-Autoplayer.png' alt='Castle Age Auto Player' /><br /><hr /></div>";
             this.SetDivContent('banner', banner);
 
             htmlCode += this.AddPauseMenu();
@@ -2732,7 +2732,7 @@ caap = {
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
             htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
             if (global.newVersionAvailable) {
-                htmlCode += "<a href='http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+                htmlCode += "<a href='http://cloutman.com/caap/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
             }
 
             return htmlCode;
@@ -10258,7 +10258,7 @@ caap = {
 				caap.Click(button);
 				return true;
 			}
-			
+
             var button = null;
             // Facebook pop-up on CA
             if (gm.getValue('FBSendList', '')) {
@@ -10282,7 +10282,7 @@ caap = {
                 global.log(1, 'No Facebook pop up to send gifts');
                 return false;
             }
-			
+
             // CA send gift button
             if (gm.getValue('CASendList', '')) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
@@ -10302,7 +10302,7 @@ caap = {
                 gm.setList('CASendList', []);
                 return false;
             }
-			
+
 
 
             if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
@@ -10446,7 +10446,7 @@ caap = {
             return false;
         }
     },
-	
+
     AcceptGiftOnFB: function () {
         try {
             if (global.is_chrome) {
@@ -11645,14 +11645,14 @@ if (!global.is_chrome) {
             global.newVersionAvailable = true;
         }
 
-        // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
+        // update script from: http://cloutman.com/caap/Castle-Age-Autoplayer.user.js
 
         function updateCheck(forced) {
             if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
                 try {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: 'http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js',
+                        url: 'http://cloutman.com/caap/Castle-Age-Autoplayer.user.js',
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
                             var rt             = resp.responseText,

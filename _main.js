@@ -70,14 +70,14 @@ if (!global.is_chrome) {
             global.newVersionAvailable = true;
         }
 
-        // update script from: http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js
+        // update script from: http://cloutman.com/caap/Castle-Age-Autoplayer.user.js
 
         function updateCheck(forced) {
             if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
                 try {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: 'http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/Castle-Age-Autoplayer.user.js',
+                        url: 'http://cloutman.com/caap/Castle-Age-Autoplayer.user.js',
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
                             var rt             = resp.responseText,
