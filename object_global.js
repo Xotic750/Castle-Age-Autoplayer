@@ -27,12 +27,12 @@ global = {
     AddCSS: function () {
         try {
             var href = window.location.href;
-            
+
             if (!$('link[href*="jquery-ui-1.8.1.custom.css"').length) {
                 $("<link>").appendTo("head").attr({
                     rel: "stylesheet",
                     type: "text/css",
-                    href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
+                    href: "http://cloutman.com/caap/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
                 });
             }
 
@@ -40,7 +40,7 @@ global = {
                 $("<link>").appendTo("head").attr({
                     rel: "stylesheet",
                     type: "text/css",
-                    href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.css"
+                    href: "http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.css"
                 });
             }
 

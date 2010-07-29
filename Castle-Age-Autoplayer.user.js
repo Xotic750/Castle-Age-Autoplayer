@@ -2,11 +2,11 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.46
+// @version        140.23.47
 // @require        http://cloutman.com/jquery-latest.min.js
-// @require        http://cloutman.com/caap/ jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
-// @require        http://cloutman.com/caap/ farbtastic12/farbtastic/farbtastic.min.js
-// @require        http://cloutman.com/caap/ json2/json2.js
+// @require        http://cloutman.com/caap/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
+// @require        http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.min.js
+// @require        http://cloutman.com/caap/json2/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.46";
+var caapVersion = "140.23.47";
 
 ///////////////////////////
 //       Prototypes
@@ -130,12 +130,12 @@ global = {
     AddCSS: function () {
         try {
             var href = window.location.href;
-            
+
             if (!$('link[href*="jquery-ui-1.8.1.custom.css"').length) {
                 $("<link>").appendTo("head").attr({
                     rel: "stylesheet",
                     type: "text/css",
-                    href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
+                    href: "http://cloutman.com/caap/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
                 });
             }
 
@@ -143,7 +143,7 @@ global = {
                 $("<link>").appendTo("head").attr({
                     rel: "stylesheet",
                     type: "text/css",
-                    href: "http://github.com/Xotic750/Castle-Age-Autoplayer/raw/master/farbtastic12/farbtastic/farbtastic.css"
+                    href: "http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.css"
                 });
             }
 
