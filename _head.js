@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.47
+// @version        140.23.49
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://cloutman.com/caap/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.min.js
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.47";
+var caapVersion = "140.23.49";
 
 ///////////////////////////
 //       Prototypes

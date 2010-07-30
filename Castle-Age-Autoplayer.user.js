@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.47
+// @version        140.23.49
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://cloutman.com/caap/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.min.js
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.47";
+var caapVersion = "140.23.49";
 
 ///////////////////////////
 //       Prototypes
@@ -3076,7 +3076,7 @@ caap = {
                 }
 
                 if (monsterObjLink) {
-                    removeLink = monsterObjLink.replace("user", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
+                    removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
                     global.log(9, "removeLink", removeLink);
                     removeLinkInstructions = "Clicking this link will remove " + monster + " from both CA and CAAP!";
                     html += caap.makeTd('<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monster + '" rlink="' + removeLink[1] +
@@ -7141,8 +7141,50 @@ caap = {
                     pwrAtkButton : 'nm_primary',
                     defButton    : 'nm_secondary'
                 }
+			}
+        },
+
+'Alpha Mephistopheles' : {
+            duration     : 168,
+            hp           : 600000000,
+            ach          : 4000000,
+            siege        : 10,
+            siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+            siegeDam     : [19050000, 22860000, 26670000, 30480000, 34290000 , 38100000, 45720000, 49530000,53340000,60960000],
+            siege_img    : [
+				'/graphics/earth_siege_',
+                '/graphics/castle_siege_',
+                '/graphics/skaar_siege_'
+            ],
+            fort         : true,
+            staUse       : 5,
+            staLvl       : [0, 100, 200, 500],
+            staMax       : [5, 10, 20, 50],
+            nrgMax       : [10, 20, 40, 100],
+            general      : '',
+            charClass    : {
+                'Warrior' : {
+                    statusWord   : 'jaws',
+                    pwrAtkButton : 'nm_primary',
+                    defButton    : 'nm_secondary'
+                },
+                'Rogue'   : {
+                    statusWord   : 'heal',
+                    pwrAtkButton : 'nm_primary',
+                    defButton    : 'nm_secondary'
+                },
+                'Mage'    : {
+                    statusWord   : 'lava',
+                    pwrAtkButton : 'nm_primary',
+                    defButton    : 'nm_secondary'
+                },
+                'Cleric'  : {
+                    statusWord   : 'mana',
+                    pwrAtkButton : 'nm_primary',
+                    defButton    : 'nm_secondary'
+                }
             }
-        }
+		}
     },
 
     monster: {},
@@ -7180,7 +7222,10 @@ caap = {
                     return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
                 }
             }
-
+			
+			if (words[count] === 'Mephistopheles' && words[count-1] === 'Alpha') {
+			    return words[count-1] + ' ' + words[count];
+			}
             if (words[count] === 'Elemental' || words[count] === 'Dragon') {
                 return words[count - 1] + ' ' + words[count];
             }
@@ -7383,6 +7428,9 @@ caap = {
             } else if (this.CheckForImage('nm_war_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'War of the Red Plains';
                 monster = $.trim(monster);
+             } else if (this.CheckForImage('nm_mephistopheles2_title.jpg')) {
+                monster = monster.match(yourRegEx) + 'Alpha Mephistopheles';
+                monster = $.trim(monster);
             } else {
                 monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
             }
@@ -7399,6 +7447,8 @@ caap = {
                 monstType = 'Wrath';
             } else if (this.CheckForImage('nm_war_large.jpg')) {
                 monstType = 'Plains';
+			} else if (this.CheckForImage('nm_mephistopheles2_large.jpg')) {
+                monstType = 'Alpha Mephistopheles';
             } else {
                 monstType = this.getMonstType(monster);
             }
@@ -7474,7 +7524,7 @@ caap = {
             if (webSlice) {
                 webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
                 if (webSlice) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?casuser=" + this.stats.FBID);
+                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?casuser=" + this.stats.FBID) || nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + this.stats.FBID);
                     if (webSlice) {
                         var damList = null;
                         if (monstType === "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType === "Deathrune") {
@@ -7529,7 +7579,7 @@ caap = {
 
             var hp = 0;
             var monstHealthImg = '';
-            if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0) {
+            if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -7560,7 +7610,7 @@ caap = {
 
                 if (boss && boss.siege) {
                     var missRegEx = new RegExp(".*Need (\\d+) more.*");
-                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0) {
+                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
                         var totalCount = 0;
                         for (var ind = 0; ind < boss.siege_img.length; ind += 1) {
@@ -8014,6 +8064,9 @@ caap = {
             } else if (this.CheckForImage('nm_war_title.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'War of the Red Plains';
                 monsterOnPage = $.trim(monsterOnPage);
+            } else if (this.CheckForImage('nm_mephistopheles2_title.jpg')) {
+                monsterOnPage = monsterOnPage.match(yourRegEx) + 'Alpha Mephistopheles';
+				monsterOnPage = $.trim(monsterOnPage);
             } else {
                 monsterOnPage = $.trim(monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')));
             }
@@ -8267,7 +8320,7 @@ caap = {
             monstType = this.getMonstType(monster);
             // Check if on engage monster page
             var imageTest = '';
-            if (monstType === 'Volcanic Dragon' || monstType === 'Wrath' || monstType === 'Plains') {
+            if (monstType === 'Volcanic Dragon' || monstType === 'Wrath' || monstType === 'Plains' || monstType === 'Alpha Mephistopheles') {
                 imageTest = 'nm_top.jpg';
             } else if (monstType === 'Alpha Volcanic Dragon') {
                 imageTest = 'nm_top_2.jpg';
@@ -10258,7 +10311,7 @@ caap = {
 				caap.Click(button);
 				return true;
 			}
-
+			
             var button = null;
             // Facebook pop-up on CA
             if (gm.getValue('FBSendList', '')) {
@@ -10282,7 +10335,7 @@ caap = {
                 global.log(1, 'No Facebook pop up to send gifts');
                 return false;
             }
-
+			
             // CA send gift button
             if (gm.getValue('CASendList', '')) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
@@ -10302,7 +10355,7 @@ caap = {
                 gm.setList('CASendList', []);
                 return false;
             }
-
+			
 
 
             if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
@@ -10446,7 +10499,7 @@ caap = {
             return false;
         }
     },
-
+	
     AcceptGiftOnFB: function () {
         try {
             if (global.is_chrome) {
