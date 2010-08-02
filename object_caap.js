@@ -2418,7 +2418,7 @@ caap = {
         default :
         }
 
-        gm.setValue('resetdashboard', true);
+        //gm.setValue('resetdashboard', true);
     },
 
     refreshMonstersListener: function (e) {
@@ -2433,8 +2433,10 @@ caap = {
     },
 
     clearTargetsButtonListener: function (e) {
-        gm.setValue('targetsOl', '');
-        gm.setValue('resetdashboard', true);
+        gm.setJValue('reconJSON', []);
+        caap.ReconRecordArray = [];
+        //gm.setValue('resetdashboard', true);
+        caap.UpdateDashboard(true);
     },
 
     AddDBListener: function () {
@@ -7211,7 +7213,7 @@ caap = {
                 }
             }
 
-            gm.setValue('resetdashboard', true);
+            //gm.setValue('resetdashboard', true);
         } catch (err) {
             global.error("ERROR in selectMonster: " + err);
         }
@@ -7380,7 +7382,7 @@ caap = {
                     this.ClickAjax(link);
                     gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
                     gm.setValue('resetselectMonster', true);
-                    gm.setValue('resetdashboard', true);
+                    //gm.setValue('resetdashboard', true);
                     return true;
                 }
             }
@@ -7390,7 +7392,7 @@ caap = {
             \-------------------------------------------------------------------------------------*/
             this.JustDidIt('monsterReview');
             gm.setValue('resetselectMonster', true);
-            gm.setValue('resetdashboard', true);
+            //gm.setValue('resetdashboard', true);
             gm.setValue('monsterReviewCounter', -3);
             global.log(1, 'Done with monster/raid review.');
             this.SetDivContent('monster_mess', '');

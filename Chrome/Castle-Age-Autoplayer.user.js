@@ -2,7 +2,7 @@
 // @name           Castle Age Autoplayer
 // @namespace      caap
 // @description    Auto player for Castle Age
-// @version        140.23.49
+// @version        140.23.50
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://cloutman.com/caap/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
 // @require        http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.min.js
@@ -20,7 +20,7 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.49";
+var caapVersion = "140.23.50";
 
 ///////////////////////////
 //       Prototypes
@@ -3246,7 +3246,7 @@ caap = {
         default :
         }
 
-        gm.setValue('resetdashboard', true);
+        //gm.setValue('resetdashboard', true);
     },
 
     refreshMonstersListener: function (e) {
@@ -3261,8 +3261,10 @@ caap = {
     },
 
     clearTargetsButtonListener: function (e) {
-        gm.setValue('targetsOl', '');
-        gm.setValue('resetdashboard', true);
+        gm.setJValue('reconJSON', []);
+        caap.ReconRecordArray = [];
+        //gm.setValue('resetdashboard', true);
+        caap.UpdateDashboard(true);
     },
 
     AddDBListener: function () {
@@ -8039,7 +8041,7 @@ caap = {
                 }
             }
 
-            gm.setValue('resetdashboard', true);
+            //gm.setValue('resetdashboard', true);
         } catch (err) {
             global.error("ERROR in selectMonster: " + err);
         }
@@ -8208,7 +8210,7 @@ caap = {
                     this.ClickAjax(link);
                     gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
                     gm.setValue('resetselectMonster', true);
-                    gm.setValue('resetdashboard', true);
+                    //gm.setValue('resetdashboard', true);
                     return true;
                 }
             }
@@ -8218,7 +8220,7 @@ caap = {
             \-------------------------------------------------------------------------------------*/
             this.JustDidIt('monsterReview');
             gm.setValue('resetselectMonster', true);
-            gm.setValue('resetdashboard', true);
+            //gm.setValue('resetdashboard', true);
             gm.setValue('monsterReviewCounter', -3);
             global.log(1, 'Done with monster/raid review.');
             this.SetDivContent('monster_mess', '');
