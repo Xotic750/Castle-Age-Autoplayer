@@ -1742,7 +1742,7 @@ caap = {
         'Undead Realm',
         'Underworld',
         'Kingdom of Heaven',
-		'Ivory City'
+        'Ivory City'
     ],
 
     demiQuestList: [
@@ -4541,7 +4541,7 @@ caap = {
         'Undead Realm'      : 'land_undead_realm',
         'Underworld'        : 'tab_underworld',
         'Kingdom of Heaven' : 'tab_heaven',
-		'Ivory City'    	: 'tab_ivory'
+        'Ivory City'        : 'tab_ivory'
     },
 
     demiQuestTable : {
@@ -7141,18 +7141,18 @@ caap = {
                     pwrAtkButton : 'nm_primary',
                     defButton    : 'nm_secondary'
                 }
-			}
+            }
         },
 
-'Alpha Mephistopheles' : {
+        'Alpha Mephistopheles' : {
             duration     : 168,
             hp           : 600000000,
             ach          : 4000000,
             siege        : 10,
             siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam     : [19050000, 22860000, 26670000, 30480000, 34290000 , 38100000, 45720000, 49530000,53340000,60960000],
+            siegeDam     : [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
             siege_img    : [
-				'/graphics/earth_siege_',
+                '/graphics/earth_siege_',
                 '/graphics/castle_siege_',
                 '/graphics/skaar_siege_'
             ],
@@ -7184,7 +7184,7 @@ caap = {
                     defButton    : 'nm_secondary'
                 }
             }
-		}
+        }
     },
 
     monster: {},
@@ -7222,10 +7222,10 @@ caap = {
                     return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
                 }
             }
-			
-			if (words[count] === 'Mephistopheles' && words[count-1] === 'Alpha') {
-			    return words[count-1] + ' ' + words[count];
-			}
+
+            if (words[count] === 'Mephistopheles' && words[count - 1] === 'Alpha') {
+                return words[count - 1] + ' ' + words[count];
+            }
             if (words[count] === 'Elemental' || words[count] === 'Dragon') {
                 return words[count - 1] + ' ' + words[count];
             }
@@ -7428,7 +7428,7 @@ caap = {
             } else if (this.CheckForImage('nm_war_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'War of the Red Plains';
                 monster = $.trim(monster);
-             } else if (this.CheckForImage('nm_mephistopheles2_title.jpg')) {
+            } else if (this.CheckForImage('nm_mephistopheles2_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'Alpha Mephistopheles';
                 monster = $.trim(monster);
             } else {
@@ -7447,7 +7447,7 @@ caap = {
                 monstType = 'Wrath';
             } else if (this.CheckForImage('nm_war_large.jpg')) {
                 monstType = 'Plains';
-			} else if (this.CheckForImage('nm_mephistopheles2_large.jpg')) {
+            } else if (this.CheckForImage('nm_mephistopheles2_large.jpg')) {
                 monstType = 'Alpha Mephistopheles';
             } else {
                 monstType = this.getMonstType(monster);
@@ -8066,7 +8066,7 @@ caap = {
                 monsterOnPage = $.trim(monsterOnPage);
             } else if (this.CheckForImage('nm_mephistopheles2_title.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'Alpha Mephistopheles';
-				monsterOnPage = $.trim(monsterOnPage);
+                monsterOnPage = $.trim(monsterOnPage);
             } else {
                 monsterOnPage = $.trim(monsterOnPage.substring(0, monsterOnPage.indexOf('You have (')));
             }
@@ -10305,14 +10305,13 @@ caap = {
                 return this.NavigateTo('gift');
             }
 
-			button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
-			if (button) {
-				global.log(1, 'Denying Email Nag For Gift Send');
-				caap.Click(button);
-				return true;
-			}
-			
-            var button = null;
+            var button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
+            if (button) {
+                global.log(1, 'Denying Email Nag For Gift Send');
+                caap.Click(button);
+                return true;
+            }
+
             // Facebook pop-up on CA
             if (gm.getValue('FBSendList', '')) {
                 button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'sendit');
@@ -10335,7 +10334,7 @@ caap = {
                 global.log(1, 'No Facebook pop up to send gifts');
                 return false;
             }
-			
+
             // CA send gift button
             if (gm.getValue('CASendList', '')) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
@@ -10355,7 +10354,7 @@ caap = {
                 gm.setList('CASendList', []);
                 return false;
             }
-			
+
 
 
             if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
@@ -10499,7 +10498,7 @@ caap = {
             return false;
         }
     },
-	
+
     AcceptGiftOnFB: function () {
         try {
             if (global.is_chrome) {
