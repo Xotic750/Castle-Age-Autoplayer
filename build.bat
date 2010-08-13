@@ -11,6 +11,7 @@ type _head.js >_normal.user.js 2>nul
 type object_global.js >>_normal.user.js 2>nul
 type object_gm.js >>_normal.user.js 2>nul
 type object_html.js >>_normal.user.js 2>nul
+type object_general.js >>_normal.user.js 2>nul
 type object_caap.js >>_normal.user.js 2>nul
 type _main.js >>_normal.user.js 2>nul
 rem type css.js >>_normal.user.js 2>nul

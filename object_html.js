@@ -229,7 +229,7 @@ nHtml = {
     },
 
     ScrollToBottom: function () {
-        //global.log(1, "Scroll Height: " + document.body.scrollHeight);
+        global.log(9, "Scroll Height", document.body.scrollHeight);
         var dh     = 0,
             ch     = 0,
             moveme = 0;

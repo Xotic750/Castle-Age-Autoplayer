@@ -59,9 +59,9 @@ if (gm.getValue('SetTitle')) {
 }
 
 /////////////////////////////////////////////////////////////////////
-//                          GitHub updater
+//                          cloutman.com updater
 // Used by browsers other than Chrome (namely Firefox and Flock)
-// to get updates from github.com
+// to get updates from cloutman.com
 /////////////////////////////////////////////////////////////////////
 
 if (!global.is_chrome) {
@@ -114,7 +114,7 @@ if (!global.is_chrome) {
 
         updateCheck(false);
     } catch (err) {
-        global.error("ERROR in GitHub updater: " + err);
+        global.error("ERROR in cloutman.com updater: " + err);
     }
 }
 
@@ -125,33 +125,7 @@ if (!global.is_chrome) {
 
 if (gm.getValue('LastVersion', 0) !== caapVersion) {
     try {
-        if (parseInt(gm.getValue('LastVersion', 0), 10) < 121) {
-            gm.setValue('WhenBattle', gm.getValue('WhenFight', 'Stamina Available'));
-        }
-
-        // This needs looking at, although not really used, need to check we are using caap keys
-        if (parseInt(gm.getValue('LastVersion', 0), 10) < 126) {
-            var storageKeys = GM_listValues();
-            for (var key = 0; key < storageKeys.length; key += 1) {
-                if (GM_getValue(storageKeys[key])) {
-                    GM_setValue(storageKeys[key], GM_getValue(storageKeys[key]).toString().replace('~', global.os).replace('`', global.vs));
-                }
-            }
-        }
-
-        if (parseInt(gm.getValue('LastVersion', 0), 10) < 130 && gm.getValue('MonsterGeneral')) {
-            gm.setValue('AttackGeneral', gm.getValue('MonsterGeneral'));
-            gm.deleteValue('MonsterGeneral');
-        }
-
-        if (parseInt(gm.getValue('LastVersion', 0), 10) < 133) {
-            var clearList = ['FreshMeatMaxLevel', 'FreshMeatARMax', 'FreshMeatARMin'];
-            clearList.forEach(function (gmVal) {
-                gm.setValue(gmVal, '');
-            });
-        }
-
-        if ((gm.getValue('LastVersion', 0) < '140.15.3' || gm.getValue('LastVersion', 0) < '140.21.0') &&
+        if ((gm.getValue('LastVersion', 0) < '140.15.3' || gm.getValue('LastVersion', 0) < '140.21.0' || gm.getValue('LastVersion', 0) < '140.23.51') &&
                 gm.getValue("actionOrder", '') !== '') {
             alert("You are using a user defined Action List!\n" +
                   "The Master Action List has changed!\n" +
@@ -199,6 +173,13 @@ if (gm.getValue('LastVersion', 0) !== caapVersion) {
             gm.deleteValue('MyEliteTodo');
         }
 
+        if (gm.getValue('LastVersion', 0) < '140.23.51') {
+            gm.deleteValue('userStats');
+            gm.deleteValue('AllGenerals');
+            gm.deleteValue('GeneralImages');
+            gm.deleteValue('LevelUpGenerals');
+        }
+
         gm.setValue('LastVersion', caapVersion);
     } catch (err) {
         global.error("ERROR in Environment updater: " + err);
@@ -222,6 +203,7 @@ $(function () {
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
         caap.LoadStats();
         caap.stats.FBID = $('head').html().regex(/user:([0-9]+),/i);
+        caap.stats.account = $('#navAccountName').text();
         global.log(9, "FBID", caap.stats.FBID);
         if (!caap.stats.FBID || typeof caap.stats.FBID !== 'number' || caap.stats.FBID === 0) {
             // Force reload without retrying
@@ -244,6 +226,6 @@ $(function () {
     caap.WaitMainLoop();
 });
 
-caap.ReloadOccasionally();
+global.ReloadOccasionally();
 
 // ENDOFSCRIPT

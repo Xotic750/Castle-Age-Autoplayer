@@ -126,6 +126,40 @@ global = {
         }
     },
 
+    ReloadCastleAge: function () {
+        // better than reload... no prompt on forms!
+        if (window.location.href.indexOf('castle_age') >= 0 && !gm.getValue('Disabled') && (gm.getValue('caapPause') === 'none')) {
+            if (global.is_chrome) {
+                CE_message("paused", null, gm.getValue('caapPause', 'none'));
+            }
+
+            window.location.href = "http://apps.facebook.com/castle_age/index.php?bm=1";
+        }
+    },
+
+    ReloadOccasionally: function () {
+        var reloadMin = gm.getNumber('ReloadFrequency', 8);
+        if (!reloadMin || reloadMin < 8) {
+            reloadMin = 8;
+        }
+
+        nHtml.setTimeout(function () {
+            if (caap.WhileSinceDidIt('clickedOnSomething', 5 * 60)) {
+                global.log(1, 'Reloading if not paused after inactivity');
+                if ((window.location.href.indexOf('castle_age') >= 0 || window.location.href.indexOf('reqs.php#confirm_46755028429_0') >= 0) &&
+                        !gm.getValue('Disabled') && (gm.getValue('caapPause') === 'none')) {
+                    if (global.is_chrome) {
+                        CE_message("paused", null, gm.getValue('caapPause', 'none'));
+                    }
+
+                    window.location.href = "http://apps.facebook.com/castle_age/index.php?bm=1";
+                }
+            }
+
+            global.ReloadOccasionally();
+        }, 1000 * 60 * reloadMin + (reloadMin * 60 * 1000 * Math.random()));
+    },
+
     hashStr: [
         '41030325072',
         '4200014995461306',
