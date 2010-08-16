@@ -2243,14 +2243,14 @@ caap = {
             html += this.makeTd({text: 'Battle Rank', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.battleRankTable[this.stats.rank.battle] + ' (' + this.stats.rank.battle + ')', color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.attack, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.attack), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
             html += this.makeTd({text: 'Battle Rank Points', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.rank.battlePoints), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Defense', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.defense, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.defense), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
@@ -2264,7 +2264,7 @@ caap = {
             html += this.makeTd({text: 'War Rank Points', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.rank.warPoints), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Army', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.army.actual, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.army.actual), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
@@ -2325,7 +2325,7 @@ caap = {
 
             html += "<tr>";
             html += this.makeTd({text: 'Experience To Next Level (ETNL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.exp.dif, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.exp.dif), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Battle Strength Index (BSI)', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.stats.indicators.bsi.toFixed(2), color: valueCol, id: '', title: ''});
             html += '</tr>';
@@ -2373,38 +2373,122 @@ caap = {
             html += '</tr>';
 
             html += "<tr>";
-            html += this.makeTd({text: 'Quests Completed', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.qc), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
             html += this.makeTd({text: 'Battles/Wars Won', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.other.bww), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Times eliminated', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.other.te), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
             html += this.makeTd({text: 'Battles/Wars Lost', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.other.bwl), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.other.wlr.toFixed(2), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Times you eliminated an enemy', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.other.tee), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
-            html += this.makeTd({text: 'Times eliminated', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.te), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.stats.other.wlr.toFixed(2), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.stats.other.eer.toFixed(2), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
             html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
-            html += this.makeTd({text: 'Times you eliminated an enemy', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.tee), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.other.eer.toFixed(2), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Invasions Won', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.won), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Duels Won', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.won), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Invasions Lost', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.lost), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Duels Lost', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.lost), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Invasions Streak', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.streak), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Duels Streak', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.streak), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Invasions Win/loss Ratio (IWLR)', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Duels Win/loss Ratio (DWLR)', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.stats.achievements.battle.duels.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Quests Completed', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.other.qc), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Alchemy Performed', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.other.alchemy), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Sieges Assisted With', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sieges), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Gildamesh, The Orc King Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.gildamesh), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Lotus Ravenmoore Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.lotus), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'The Colossus of Terra Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.colossus), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Dragons Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.dragons), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sylvanas), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Cronus, The World Hydra Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.cronus), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Keira the Dread Knight Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.keira), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'The Battle of the Dark Legion Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.legion), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Genesis, The Earth Elemental Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.genesis), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Skaar Deathrune Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.skaar), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += '</table>';
@@ -4097,14 +4181,14 @@ caap = {
                 if (this.stats.other.bwl !== 0) {
                     this.stats.other.wlr = this.stats.other.bww / this.stats.other.bwl;
                 } else {
-                    this.stats.other.wlr = Infinity
+                    this.stats.other.wlr = Infinity;
                 }
 
                 // Enemy Eliminated Ratio/Eliminated (EER)
                 if (this.stats.other.tee !== 0) {
                     this.stats.other.eer = this.stats.other.tee / this.stats.other.te;
                 } else {
-                    this.stats.other.eer = Infinity
+                    this.stats.other.eer = Infinity;
                 }
 
                 // Indicators
