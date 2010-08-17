@@ -8,7 +8,7 @@ if (typeof GM_log !== 'function') {
     throw "Error: Your browser does not appear to support Greasemonkey scripts!";
 }
 
-global.logLevel = gm.getValue('DebugLevel', 1);
+global.logLevel = gm.getValue('DebugLevel', global.logLevel);
 global.log(1, "Starting");
 
 /////////////////////////////////////////////////////////////////////
@@ -185,7 +185,7 @@ if (gm.getValue('LastVersion', 0) !== caapVersion) {
         global.error("ERROR in Environment updater: " + err);
     }
 }
-
+gm.deleteValue('DebugLevel');
 /////////////////////////////////////////////////////////////////////
 //                    On Page Load
 /////////////////////////////////////////////////////////////////////

@@ -4,20 +4,12 @@
 /////////////////////////////////////////////////////////////////////
 
 caap = {
-    lastReload          : new Date(),
-    waitingForDomLoad   : false,
-    newLevelUpMode      : false,
-    autoReloadMilliSecs : 15 * 60 * 1000,
-    pageLoadOK          : false,
-
-    userRe       : new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)"),
-    energyRe     : new RegExp("([0-9]+)\\s+(energy)", "i"),
-    experienceRe : new RegExp("\\+([0-9]+)"),
-    influenceRe  : new RegExp("([0-9]+)%"),
-    moneyRe      : new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
-
-    caapDivObject : null,
-    caapTopObject : null,
+    lastReload        : new Date(),
+    waitingForDomLoad : false,
+    newLevelUpMode    : false,
+    pageLoadOK        : false,
+    caapDivObject     : null,
+    caapTopObject     : null,
 
     init: function () {
         try {
@@ -164,7 +156,7 @@ caap = {
             for (s = pathList.length - 1; s >= 0; s -= 1) {
                 a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
                 if (a) {
-                    global.log(1, 'Go to ' + pathList[s]);
+                    global.log(1, 'Go to', pathList[s]);
                     gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + pathList[s] + '.php');
                     this.Click(a);
                     return true;
@@ -177,14 +169,14 @@ caap = {
 
                 input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
                 if (input) {
-                    global.log(1, 'Click on image ' + input.src.match(/[\w.]+$/));
+                    global.log(1, 'Click on image', input.src.match(/[\w.]+$/));
                     this.Click(input);
                     return true;
                 }
 
                 img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
                 if (img) {
-                    global.log(1, 'Click on image ' + img.src.match(/[\w.]+$/));
+                    global.log(1, 'Click on image', img.src.match(/[\w.]+$/));
                     this.Click(img);
                     return true;
                 }
@@ -386,7 +378,7 @@ caap = {
     NumberOnly: function (num) {
         try {
             var numOnly = parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
-            global.log(9, "NumberOnly", numOnly);
+            global.log(10, "NumberOnly", numOnly);
             return numOnly;
         } catch (err) {
             global.error("ERROR in NumberOnly: " + err);
@@ -530,12 +522,12 @@ caap = {
 
     MakeNumberForm: function (idName, instructions, initDefault, formatParms) {
         try {
-            if (gm.getValue(idName, 'defaultValue') === 'defaultValue') {
-                gm.setValue(idName, initDefault);
-            }
-
             if (!initDefault) {
                 initDefault = '';
+            }
+
+            if (gm.getValue(idName, 'defaultValue') === 'defaultValue') {
+                gm.setValue(idName, initDefault);
             }
 
             if (!formatParms) {
@@ -2976,6 +2968,7 @@ caap = {
                     default :
                         caap.SetDisplay('FreshmeatSub', true);
                         caap.SetDisplay('UserIdsSub', false);
+                        caap.SetDisplay('RaidSub', false);
                     }
                 } else if (/Attribute?/.test(idName)) {
                     //gm.setValue("SkillPointsNeed", 1);
@@ -3342,7 +3335,7 @@ caap = {
                 // Income timer
                 if (targetStr === "gold_time_value") {
                     var payTimer = $(event.target).text().match(/([0-9]+):([0-9]+)/);
-                    global.log(9, "gold_time_value", payTimer);
+                    global.log(10, "gold_time_value", payTimer);
                     if (payTimer && payTimer.length === 3) {
                         caap.stats.gold.payTime.ticker = payTimer[0];
                         caap.stats.gold.payTime.minutes = parseInt(payTimer[1], 10);
@@ -3676,7 +3669,7 @@ caap = {
     CheckResults_generals: function () {
         try {
             general.GetGenerals();
-            this.stats.last.generals = new Date().getTime();
+            this.last.generals = new Date().getTime();
             this.SaveStats();
             return true;
         } catch (err) {
@@ -3717,18 +3710,19 @@ caap = {
         }
     },
 
+    last: {
+        keep         : new Date(2009, 1, 1).getTime(),
+        oracle       : new Date(2009, 1, 1).getTime(),
+        battlerank   : new Date(2009, 1, 1).getTime(),
+        warrank      : new Date(2009, 1, 1).getTime(),
+        generals     : new Date(2009, 1, 1).getTime(),
+        allGenerals  : new Date(2009, 1, 1).getTime(),
+        achievements : new Date(2009, 1, 1).getTime()
+    },
+
     stats: {
         FBID       : 0,
         account    : '',
-        last       : {
-            keep         : new Date(2009, 1, 1).getTime(),
-            oracle       : new Date(2009, 1, 1).getTime(),
-            battlerank   : new Date(2009, 1, 1).getTime(),
-            warrank      : new Date(2009, 1, 1).getTime(),
-            generals     : new Date(2009, 1, 1).getTime(),
-            allGenerals  : new Date(2009, 1, 1).getTime(),
-            achievements : new Date(2009, 1, 1).getTime()
-        },
         PlayerName : '',
         level      : 0,
         army       : {
@@ -3738,7 +3732,7 @@ caap = {
         attack     : 0,
         defense    : 0,
         points     : {
-            skill  : 0,
+            skill : 0,
             favor : 0
         },
         indicators : {
@@ -3750,7 +3744,7 @@ caap = {
             mpi  : 0,
             htl  : 0,
             hrtl : 0,
-            enl : new Date(2009, 1, 1).getTime()
+            enl  : new Date(2009, 1, 1).getTime()
         },
         gold : {
             cash    : 0,
@@ -3841,10 +3835,12 @@ caap = {
 
     LoadStats: function () {
         $.extend(this.stats, gm.getJValue('userStats'));
+        $.extend(this.last, gm.getJValue('lastStats'));
     },
 
     SaveStats: function () {
         gm.setJValue('userStats', this.stats);
+        gm.setJValue('lastStats', this.last);
     },
 
     GetStats: function () {
@@ -4014,7 +4010,7 @@ caap = {
                 xS = gm.getNumber("expStaminaRatio", 2.4);
                 xE = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || gm.getNumber("expEnergyRatio", 1.4);
                 this.stats.indicators.htl = ((this.stats.level * 12.5) - (this.stats.stamina.max * xS) - (this.stats.energy.max * xE)) / (12 * (xS + xE));
-                this.stats.indicators.hrtl = (this.stats.exp.dif - (this.stats.energy.num * xS) - (this.stats.energy.num * xE)) / (12 * (xS + xE));
+                this.stats.indicators.hrtl = (this.stats.exp.dif - (this.stats.stamina.num * xS) - (this.stats.energy.num * xE)) / (12 * (xS + xE));
                 this.stats.indicators.enl = new Date().getTime() + Math.ceil(this.stats.indicators.hrtl * 60 * 60 * 1000);
             } else {
                 global.log(1, 'Could not calculate time to next level. Missing experience stats!');
@@ -4026,7 +4022,7 @@ caap = {
                 this.SaveStats();
             }
 
-            global.log(9, "Stats", this.stats);
+            global.log(9, "Stats", this.stats, this.last);
             return passed;
         } catch (err) {
             global.error("ERROR GetStats: " + err);
@@ -4198,9 +4194,8 @@ caap = {
                 this.stats.indicators.api = (this.stats.attack + (this.stats.defense * 0.7));
                 this.stats.indicators.dpi = (this.stats.defense + (this.stats.attack * 0.7));
                 this.stats.indicators.mpi = ((this.stats.indicators.api + this.stats.indicators.dpi) / 2);
-
-                global.log(9, "Stats", this.stats);
-                this.stats.last.keep = new Date().getTime();
+                this.last.keep = new Date().getTime();
+                global.log(9, "Stats", this.stats, this.last);
                 this.SaveStats();
             } else {
                 global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
@@ -4247,9 +4242,9 @@ caap = {
                 this.stats.points.favor = 0;
             }
 
-            this.stats.last.oracle = new Date().getTime();
+            this.last.oracle = new Date().getTime();
             this.SaveStats();
-            global.log(9, "Stats", this.stats);
+            global.log(9, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_oracle: " + err);
@@ -4279,9 +4274,9 @@ caap = {
                 this.stats.rank.battlePoints = 0;
             }
 
-            this.stats.last.battlerank = new Date().getTime();
+            this.last.battlerank = new Date().getTime();
             this.SaveStats();
-            global.log(9, "Stats", this.stats);
+            global.log(9, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_battlerank: " + err);
@@ -4311,9 +4306,9 @@ caap = {
                 this.stats.rank.warPoints = 0;
             }
 
-            this.stats.last.warrank = new Date().getTime();
+            this.last.warrank = new Date().getTime();
             this.SaveStats();
-            global.log(9, "Stats", this.stats);
+            global.log(9, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_war_rank: " + err);
@@ -4384,9 +4379,9 @@ caap = {
                 global.log(1, 'Achievements 4 div not found.');
             }
 
-            this.stats.last.achievements = new Date().getTime();
+            this.last.achievements = new Date().getTime();
             this.SaveStats();
-            global.log(1, "Stats", this.stats);
+            global.log(1, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_achievements: " + err);
@@ -4804,7 +4799,7 @@ caap = {
                 var energy = null;
                 var experience = null;
                 var divTxt = nHtml.GetText(div);
-                var expM = this.experienceRe.exec(divTxt);
+                var expM = new RegExp("\\+([0-9]+)").exec(divTxt);
                 if (expM) {
                     experience = this.NumberOnly(expM[1]);
                 } else {
@@ -4821,7 +4816,7 @@ caap = {
                     this.questName = this.questName.substring(0, idx);
                 }
 
-                var energyM = this.energyRe.exec(divTxt);
+                var energyM = new RegExp("([0-9]+)\\s+(energy)", "i").exec(divTxt);
                 if (energyM) {
                     energy = this.NumberOnly(energyM[1]);
                 } else {
@@ -4836,7 +4831,7 @@ caap = {
                     continue;
                 }
 
-                var moneyM = this.moneyRe.exec(this.RemoveHtmlJunk(divTxt));
+                var moneyM = new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i").exec(this.RemoveHtmlJunk(divTxt));
                 if (moneyM) {
                     var rewardLow = this.NumberOnly(moneyM[1]);
                     var rewardHigh = this.NumberOnly(moneyM[2]);
@@ -4859,7 +4854,7 @@ caap = {
                         influence = "0";
                     }
                 } else {
-                    var influenceList = this.influenceRe.exec(divTxt);
+                    var influenceList = new RegExp("([0-9]+)%").exec(divTxt);
                     if (influenceList) {
                         influence = influenceList[1];
                     } else {
@@ -4949,9 +4944,9 @@ caap = {
                     if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / energy;
-                        global.log(1, "CheckResults_quests: Setting AutoQuest");
+                        global.log(1, "CheckResults_quests: Setting AutoQuest", this.questName);
                         gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
-                        //global.log(1, "CheckResults_quests: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+                        global.log(9, "CheckResults_quests", gm.getValue('AutoQuest'));
                         this.ShowAutoQuest();
                         autoQuestDivs.click  = click;
                         autoQuestDivs.tr     = div;
@@ -4962,13 +4957,14 @@ caap = {
 
             if (pickQuestTF) {
                 if (gm.getObjVal('AutoQuest', 'name')) {
-                    //global.log(1, "CheckResults_quests(pickQuestTF): " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+                    global.log(9, "CheckResults_quests(pickQuestTF)", gm.getValue('AutoQuest'));
                     this.ShowAutoQuest();
                     return autoQuestDivs;
                 }
 
-                if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && gm.getValue('switchQuestArea', false)) { //if not find quest, probably you already maxed the subarea, try another area
-                    //global.log(1, gm.getValue('QuestSubArea(pickQuestTF)'));
+                //if not find quest, probably you already maxed the subarea, try another area
+                if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && gm.getValue('switchQuestArea', false)) {
+                    global.log(9, "QuestSubArea", gm.getValue('QuestSubArea'));
                     switch (gm.getValue('QuestSubArea')) {
                     case 'Land of Fire':
                         gm.setValue('QuestSubArea', 'Land of Earth');
@@ -5989,23 +5985,25 @@ caap = {
 
     BattleFreshmeat: function (type) {
         try {
-            var invadeOrDuel = gm.getValue('BattleType');
-            var target = "//input[contains(@src,'" + this.battles[type][invadeOrDuel] + "')]";
+            var invadeOrDuel = gm.getValue('BattleType'),
+                target       = "//input[contains(@src,'" + this.battles[type][invadeOrDuel] + "')]",
+                ss           = document.evaluate(target, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+
             global.log(1, 'target ' + target);
-            var ss = document.evaluate(target, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength <= 0) {
                 global.log(1, 'Not on battlepage');
                 return false;
             }
 
-            var plusOneSafe = false;
-            var safeTargets = [];
-            var count = 0;
-            var chainId = '';
-            var chainAttack = false;
-            var inp = null;
-            var yourRank = 0;
-            var txt = '';
+            var plusOneSafe = false,
+                safeTargets = [],
+                count       = 0,
+                chainId     = '',
+                chainAttack = false,
+                inp         = null,
+                yourRank    = 0,
+                txt         = '';
+
             chainId = gm.getValue('BattleChainId', '');
             gm.setValue('BattleChainId', '');
             if (gm.getValue("BattleType") === "War") {
@@ -6015,11 +6013,11 @@ caap = {
             }
 
             // Lets get our Freshmeat user settings
-            var minRank = gm.getNumber("FreshMeatMinRank", 99);
-            var maxLevel = gm.getNumber("FreshMeatMaxLevel", ((invadeOrDuel === 'Invade') ? 1000 : 15));
-            var ARBase = gm.getNumber("FreshMeatARBase", 0.5);
-            var ARMax = gm.getNumber("FreshMeatARMax", 1000);
-            var ARMin = gm.getNumber("FreshMeatARMin", 0);
+            var minRank  = gm.getNumber("FreshMeatMinRank", 99),
+                maxLevel = gm.getNumber("FreshMeatMaxLevel", ((invadeOrDuel === 'Invade') ? 1000 : 15)),
+                ARBase   = gm.getNumber("FreshMeatARBase", 0.5)
+                ARMax    = gm.getNumber("FreshMeatARMax", 1000),
+                ARMin    = gm.getNumber("FreshMeatARMin", 0);
 
             //global.log(1, "my army/rank/level: " + this.stats.army.capped + "/" + this.stats.rank.battle + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s += 1) {
@@ -6032,10 +6030,10 @@ caap = {
                 }
 
                 var userName = '',
-                    rank = 0,
-                    level = 0,
-                    army = 0,
-                    levelm = '';
+                    rank     = 0,
+                    level    = 0,
+                    army     = 0,
+                    levelm   = '';
 
                 txt = '';
                 if (type === 'Raid') {
@@ -6105,8 +6103,9 @@ caap = {
                     }
                 }
 
-                var levelMultiplier = this.stats.level / level;
-                var armyRatio = ARBase * levelMultiplier;
+                var levelMultiplier = this.stats.level / level,
+                    armyRatio       = ARBase * levelMultiplier;
+
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
                 if (armyRatio <= 0) {
@@ -6166,12 +6165,14 @@ caap = {
                     chainAttack = true;
                 }
 
-                var temp = {};
-                temp.id = userid;
-                temp.name = userName;
-                temp.score = thisScore;
-                temp.button = button;
-                temp.targetNumber = s + 1;
+                var temp = {
+                    id           : userid,
+                    name         : userName,
+                    score        : thisScore,
+                    button       : button,
+                    targetNumber : s + 1
+                };
+
                 safeTargets[count] = temp;
                 count += 1;
                 if (s === 0 && type === 'Raid') {
@@ -6190,8 +6191,9 @@ caap = {
             }
 
             if (count > 0) {
-                var anyButton = null;
-                var form = null;
+                var anyButton = null,
+                    form      = null;
+
                 if (chainAttack) {
                     anyButton = ss.snapshotItem(0);
                     form = anyButton.parentNode.parentNode;
@@ -6253,13 +6255,13 @@ caap = {
             this.notSafeCount += 1;
             if (this.notSafeCount > 100) {
                 this.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
-                global.log(1, 'No safe targets limit reached. Releasing control for other processes.');
+                global.log(1, 'No safe targets limit reached. Releasing control for other processes.', this.notSafeCount);
                 this.notSafeCount = 0;
                 return false;
             }
 
             this.SetDivContent('battle_mess', 'No targets matching criteria');
-            global.log(1, 'No safe targets: ' + this.notSafeCount);
+            global.log(1, 'No safe targets', this.notSafeCount);
 
             if (type === 'Raid') {
                 var engageButton = this.monsterEngageButtons[gm.getValue('targetFromraid', '')];
@@ -6281,7 +6283,7 @@ caap = {
 
     CheckKeep: function () {
         try {
-            if (!this.WhileSinceDidIt(this.stats.last.keep, (60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.keep, (60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6295,7 +6297,7 @@ caap = {
 
     CheckOracle: function () {
         try {
-            if (!this.WhileSinceDidIt(this.stats.last.oracle, (6 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.oracle, (6 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6309,7 +6311,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.stats.last.battlerank, (3 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.battlerank, (3 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6323,7 +6325,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.stats.last.warrank, (3 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.warrank, (3 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6337,7 +6339,7 @@ caap = {
 
     CheckGenerals: function () {
         try {
-            if (!this.WhileSinceDidIt(this.stats.last.generals, (60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.generals, (60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6351,7 +6353,7 @@ caap = {
 
     CheckAchievements: function () {
         try {
-            if (!this.WhileSinceDidIt(this.stats.last.achievements, (24 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.achievements, (24 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6370,13 +6372,14 @@ caap = {
                 return false;
             }
 
-            if (this.stats.health.num < 10) {
-                return false;
-            }
-
             if (gm.getValue('WhenBattle') === 'Stay Hidden' && !this.NeedToHide()) {
                 this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
                 global.log(1, 'We Dont Need To Hide Yet');
+                return false;
+            }
+
+            if (this.stats.health.num < 10) {
+                global.log(9, 'Health is less than 10', this.stats.health.num);
                 return false;
             }
 
@@ -6386,8 +6389,8 @@ caap = {
                 }
             }
 
-            var target = this.GetCurrentBattleTarget(mode);
             global.log(9, 'Mode', mode);
+            var target = this.GetCurrentBattleTarget(mode);
             global.log(9, 'Target', target);
             if (!target) {
                 global.log(1, 'No valid battle target');
@@ -6399,11 +6402,18 @@ caap = {
                 return false;
             }
 
-            if (typeof target === 'string') {
-                target = target.toLowerCase();
+            if (gm.getValue('BattleType') === 'War' && !this.CheckStamina('Battle', 10)) {
+                global.log(9, 'Not enough stamina for War');
+                return false;
             }
 
-            if (gm.getValue('BattleType') === 'War' && !this.CheckStamina('Battle', 10)) {
+            if (gm.getValue('BattleType') === 'Invade' && !this.CheckStamina('Battle', 1)) {
+                global.log(9, 'Not enough stamina for Invade');
+                return false;
+            }
+
+            if (gm.getValue('BattleType') === 'Duel' && !this.CheckStamina('Battle', 1)) {
+                global.log(9, 'Not enough stamina for Duel');
                 return false;
             }
 
@@ -6440,15 +6450,19 @@ caap = {
                 }
             }
 
-            global.log(1, 'Battle Target', target);
-            if (!this.notSafeCount) {
-                this.notSafeCount = 0;
-            }
-
             if (general.Select(useGeneral)) {
                 return true;
             }
 
+            if (!this.notSafeCount) {
+                this.notSafeCount = 0;
+            }
+
+            if (typeof target === 'string') {
+                target = target.toLowerCase();
+            }
+
+            global.log(1, 'Battle Target', target);
             switch (target) {
             case 'raid' :
                 this.SetDivContent('battle_mess', 'Joining the Raid');
@@ -6472,7 +6486,7 @@ caap = {
                         return true;
                     }
 
-                    global.log(1, 'Unable to engage raid ' + raidName);
+                    global.log(1, 'Unable to engage raid', raidName);
                     return false;
                 }
 
@@ -6494,6 +6508,7 @@ caap = {
 
                         return true;
                     }
+
                     global.log(1, 'Doing Raid UserID list, but no target');
                     return false;
                 }
@@ -6519,6 +6534,7 @@ caap = {
 
                         return true;
                     }
+
                     global.log(1, 'Doing Freshmeat UserID list, but no target');
                     return false;
                 }
@@ -7217,9 +7233,10 @@ caap = {
                 }
             }
 
-            var yourRegEx = new RegExp(".+'s ");
             // Get name and type of monster
-            var monster = nHtml.GetText(webSlice);
+            var yourRegEx = new RegExp(".+'s "),
+                monster   = nHtml.GetText(webSlice);
+
             if (this.CheckForImage('nm_volcanic_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
                 monster = $.trim(monster);
@@ -7239,8 +7256,9 @@ caap = {
                 monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
             }
 
-            var fort = null;
-            var monstType = '';
+            var fort      = null,
+                monstType = '';
+
             if (this.CheckForImage('raid_1_large.jpg')) {
                 monstType = 'Raid I';
             } else if (this.CheckForImage('raid_b1_large.jpg')) {
@@ -7267,8 +7285,9 @@ caap = {
             var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
             gm.setListObjVal('monsterOl', monster, 'Type', monstType);
             // Extract info
-            var time = [];
-            var monsterTicker = $("#app46755028429_monsterTicker");
+            var time          = [],
+                monsterTicker = $("#app46755028429_monsterTicker");
+
             if (monsterTicker.length) {
                 global.log(2, "Monster ticker found.");
                 time = monsterTicker.text().split(":");
@@ -7276,10 +7295,11 @@ caap = {
                 global.log(1, "Could not locate Monster ticker.");
             }
 
-            var boss = '';
-            var currentPhase = 0;
-            var miss = '';
-            var fortPct = null;
+            var boss         = '',
+                currentPhase = 0,
+                miss         = '',
+                fortPct      = null;
+
             if (time.length === 3 && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
                 if (monstType === "Deathrune" || monstType === 'Ice Elemental') {
                     gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
@@ -7362,8 +7382,9 @@ caap = {
             if (/:ac\b/.test(monsterConditions) ||
                     (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
                     (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) {
-                var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-                var monsterList = gm.getList('monsterOl');
+                var counter     = parseInt(gm.getValue('monsterReviewCounter', -3), 10),
+                    monsterList = gm.getList('monsterOl');
+
                 if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
                     (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
                      nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
@@ -7381,8 +7402,9 @@ caap = {
                 }
             }
 
-            var hp = 0;
-            var monstHealthImg = '';
+            var hp             = 0,
+                monstHealthImg = '';
+
             if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
@@ -7391,12 +7413,14 @@ caap = {
 
             if (time && time.length === 3 && this.CheckForImage(monstHealthImg)) {
                 gm.setListObjVal('monsterOl', monster, 'TimeLeft', time[0] + ":" + time[1]);
-                var hpBar = null;
-                var imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
+                var hpBar        = null,
+                    imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
+
                 if (imgHealthBar) {
                     global.log(2, "Found monster health div.");
-                    var divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
-                    var attrWidth = divAttr[1].split(":");
+                    var divAttr   = imgHealthBar.parentNode.getAttribute("style").split(";"),
+                        attrWidth = divAttr[1].split(":");
+
                     hpBar = $.trim(attrWidth[1]);
                 } else {
                     global.log(1, "Could not find monster health div.");
@@ -7843,7 +7867,6 @@ caap = {
                 }
             }
 
-            //gm.setValue('resetdashboard', true);
         } catch (err) {
             global.error("ERROR in selectMonster: " + err);
         }
@@ -8007,12 +8030,10 @@ caap = {
                     gm.setValue('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '');
                     link = link.replace('?', '?twt2&');
-                    //global.log(1, "Link: " + link);
-                    //gm.setListObjVal('monsterOl', monster, 'review','pending');
+                    global.log(9, "Link", link);
                     this.ClickAjax(link);
                     gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
                     gm.setValue('resetselectMonster', true);
-                    //gm.setValue('resetdashboard', true);
                     return true;
                 }
             }
@@ -8022,7 +8043,6 @@ caap = {
             \-------------------------------------------------------------------------------------*/
             this.JustDidIt('monsterReview');
             gm.setValue('resetselectMonster', true);
-            //gm.setValue('resetdashboard', true);
             gm.setValue('monsterReviewCounter', -3);
             global.log(1, 'Done with monster/raid review.');
             this.SetDivContent('monster_mess', '');
@@ -8364,6 +8384,7 @@ caap = {
 
     CheckStamina: function (battleOrBattle, attackMinStamina) {
         try {
+            gm.log(9, "CheckStamina", battleOrBattle, attackMinStamina);
             if (!attackMinStamina) {
                 attackMinStamina = 1;
             }
@@ -8789,8 +8810,9 @@ caap = {
         }
 
         gm.setValue("mfStatus", "Running");
-        var delayPer = 10000;
-        var iterations = 2;
+        var delayPer   = 10000,
+            iterations = 2;
+
         gm.setValue("delayPer", delayPer);
         gm.setValue("iterations", iterations);
         gm.setValue("iterationsRun", 0);
@@ -9863,7 +9885,7 @@ caap = {
                 var acceptDiv = nHtml.FindByAttrContains(document.body, 'a', 'href', 'reqs.php#confirm_');
                 var ignoreDiv = nHtml.FindByAttrContains(document.body, 'a', 'href', 'act=ignore');
                 if (ignoreDiv && acceptDiv) {
-                    giverId = this.userRe.exec(ignoreDiv.href);
+                    giverId = new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)").exec(ignoreDiv.href);
                     if (!giverId) {
                         global.log(1, 'Unable to find giver ID');
                         return false;

@@ -3,26 +3,18 @@
 ///////////////////////////
 
 global = {
-    gameName: 'castle_age',
-
-    discussionURL: 'http://senses.ws/caap/index.php',
-
-    newVersionAvailable: false,
-
-    documentTitle: document.title,
-
-    is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
-
-    is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
-
+    gameName            : 'castle_age',
+    discussionURL       : 'http://senses.ws/caap/index.php',
+    newVersionAvailable : false,
+    documentTitle       : document.title,
+    is_chrome           : navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
+    is_firefox          : navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
     // Object separator - used to separate objects
-    os: '\n',
-
+    os                  : '\n',
     // Value separator - used to separate name/values within the objects
-    vs: '\t',
-
+    vs                  : '\t',
     // Label separator - used to separate the name from the value
-    ls: '\f',
+    ls                  : '\f',
 
     AddCSS: function () {
         try {
