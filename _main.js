@@ -185,7 +185,7 @@ if (gm.getValue('LastVersion', 0) !== caapVersion) {
         global.error("ERROR in Environment updater: " + err);
     }
 }
-gm.deleteValue('DebugLevel');
+
 /////////////////////////////////////////////////////////////////////
 //                    On Page Load
 /////////////////////////////////////////////////////////////////////

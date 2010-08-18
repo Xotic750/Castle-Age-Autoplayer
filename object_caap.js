@@ -144,7 +144,7 @@ caap = {
                 img       = null;
 
             if (!content) {
-                global.log(1, 'No content to Navigate to ' + imageOnPage + ' using ' + pathToPage);
+                global.log(1, 'No content to Navigate to', imageOnPage, pathToPage);
                 return false;
             }
 
@@ -169,23 +169,23 @@ caap = {
 
                 input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
                 if (input) {
-                    global.log(1, 'Click on image', input.src.match(/[\w.]+$/));
+                    global.log(2, 'Click on image', input.src.match(/[\w.]+$/));
                     this.Click(input);
                     return true;
                 }
 
                 img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
                 if (img) {
-                    global.log(1, 'Click on image', img.src.match(/[\w.]+$/));
+                    global.log(2, 'Click on image', img.src.match(/[\w.]+$/));
                     this.Click(img);
                     return true;
                 }
             }
 
-            global.log(1, 'Unable to Navigate to ' + imageOnPage + ' using ' + pathToPage);
+            global.log(1, 'Unable to Navigate to', imageOnPage, pathToPage);
             return false;
         } catch (err) {
-            global.error("ERROR in NavigateTo: " + imageOnPage + ' using ' + pathToPage + ' : ' + err);
+            global.error("ERROR in NavigateTo: " + err, imageOnPage, pathToPage);
             return false;
         }
     },
@@ -1941,7 +1941,7 @@ caap = {
                         }
                     }
 
-                    if (nodeNum && gm.getValue('PowerAttackMax') && caap.monsterInfo[monstType].nrgMax) {
+                    if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && gm.getValue('PowerAttackMax') && caap.monsterInfo[monstType].nrgMax) {
                         energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
                     }
                 }
@@ -1978,13 +1978,12 @@ caap = {
 
                     html += caap.makeTd(data);
                 } else {
-
                     html += caap.makeTd({text: monster, color: color, id: '', title: ''});
                 }
 
                 headers.forEach(function (displayItem) {
                     global.log(9, ' displayItem ', displayItem, ' value ', gm.getObjVal(monsterObj, displayItem));
-                    id = '';
+                    id = "caap_" + displayItem + "_" + count;
                     title = '';
                     if (displayItem === 'Phase' && color === 'grey') {
                         html += caap.makeTd({text: gm.getObjVal(monsterObj, 'status'), color: color, id: '', title: ''});
@@ -1995,8 +1994,8 @@ caap = {
                                 value = caap.makeCommaValue(value);
                             }
 
-                            if (displayItem === 'Damage') {
-                                id = "caap_" + displayItem + "_" + count;
+                            switch (displayItem) {
+                            case 'Damage' :
                                 if (achLevel) {
                                     title = "User Set Monster Achievement: " + caap.makeCommaValue(achLevel);
                                 } else if (gm.getValue('AchievementMode', false)) {
@@ -2010,11 +2009,19 @@ caap = {
                                 if (maxDamage) {
                                     title += " - User Set Max Damage: " + caap.makeCommaValue(maxDamage);
                                 }
-                            } else if (displayItem === 'TimeLeft') {
-                                id = "caap_" + displayItem + "_" + count;
+
+                                break;
+                            case 'TimeLeft' :
                                 if (caap.monsterInfo[monstType]) {
                                     title = "Total Monster Duration: " + caap.monsterInfo[monstType].duration + " hours";
                                 }
+
+                                break;
+                            case 'T2K' :
+                                value = caap.decHours2HoursMin(parseFloat(value));
+                                title = "Estimated Time To Kill: " + value + " hours";
+                                break;
+                            default :
                             }
 
                             html += caap.makeTd({text: value + (displayItem.match(/%/) ? '%' : ''), color: color, id: id, title: title});
@@ -2481,6 +2488,69 @@ caap = {
             html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.genesis), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Skaar Deathrune Slain', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.skaar), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Ambrosia Daily Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.ambrosia.daily.num + '/' + this.demi.ambrosia.daily.max, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Malekus Daily Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.malekus.daily.num + '/' + this.demi.ambrosia.daily.max, color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Ambrosia Total Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.ambrosia.power.total, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Malekus Total Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.malekus.power.total, color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Corvintheus Daily Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.corvintheus.daily.num + '/' + this.demi.corvintheus.daily.max, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Aurora Daily Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.aurora.daily.num + '/' + this.demi.aurora.daily.max, color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Corvintheus Total Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.corvintheus.power.total, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Aurora Total Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.aurora.power.total, color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+            
+            html += "<tr>";
+            html += this.makeTd({text: 'Azeron Daily Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.azeron.daily.num + '/' + this.demi.azeron.daily.max, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Azeron Total Points', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.demi.azeron.power.total, color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += '</table>';
@@ -3493,6 +3563,10 @@ caap = {
         'achievements': {
             signaturePic: 'tab_achievements_on.gif',
             CheckResultsFunction: 'CheckResults_achievements'
+        },
+        'battle': {
+            signaturePic: 'battle_on.gif',
+            CheckResultsFunction: 'CheckResults_battle'
         }
     },
 
@@ -3548,13 +3622,11 @@ caap = {
 
             this.AddExpDisplay();
             this.SetDivContent('level_mess', 'Expected next level: ' + this.FormatTime(new Date(this.stats.indicators.enl)));
-            if (gm.getValue('DemiPointsFirst') && gm.getValue('WhenMonster') !== 'Never') {
-                if (this.DisplayTimer('DemiPointTimer')) {
-                    if (this.CheckTimer('DemiPointTimer')) {
-                        this.SetDivContent('demipoint_mess', 'Battle demipoints cleared');
-                    } else {
-                        this.SetDivContent('demipoint_mess', 'Next Battle DemiPts: ' + this.DisplayTimer('DemiPointTimer'));
-                    }
+            if (gm.getValue('DemiPointsFirst', false) && gm.getValue('WhenMonster') !== 'Never') {
+                if (gm.getValue('DemiPointsDone', true)) {
+                    this.SetDivContent('demipoint_mess', 'Daily Demi Points: Done');
+                } else {
+                    this.SetDivContent('demipoint_mess', 'Daily Demi Points: First');
                 }
             } else {
                 this.SetDivContent('demipoint_mess', '');
@@ -3717,7 +3789,9 @@ caap = {
         warrank      : new Date(2009, 1, 1).getTime(),
         generals     : new Date(2009, 1, 1).getTime(),
         allGenerals  : new Date(2009, 1, 1).getTime(),
-        achievements : new Date(2009, 1, 1).getTime()
+        achievements : new Date(2009, 1, 1).getTime(),
+        battle       : new Date(2009, 1, 1).getTime(),
+        symbolquests : new Date(2009, 1, 1).getTime()
     },
 
     stats: {
@@ -3836,11 +3910,13 @@ caap = {
     LoadStats: function () {
         $.extend(this.stats, gm.getJValue('userStats'));
         $.extend(this.last, gm.getJValue('lastStats'));
+        $.extend(this.demi, gm.getJValue('demiStats'));
     },
 
     SaveStats: function () {
         gm.setJValue('userStats', this.stats);
         gm.setJValue('lastStats', this.last);
+        gm.setJValue('demiStats', this.demi);
     },
 
     GetStats: function () {
@@ -4022,7 +4098,13 @@ caap = {
                 this.SaveStats();
             }
 
-            global.log(9, "Stats", this.stats, this.last);
+            if (passed && this.stats.energy.max === 0 && this.stats.health.max === 0 && this.stats.stamina.max === 0) {
+                global.alert("Paused as this account may have been disabled!");
+                global.log(1, "Paused as this account may have been disabled!", this.stats);
+                this.PauseListener();
+            }
+
+            global.log(2, "Stats", this.stats, this.last);
             return passed;
         } catch (err) {
             global.error("ERROR GetStats: " + err);
@@ -4195,7 +4277,7 @@ caap = {
                 this.stats.indicators.dpi = (this.stats.defense + (this.stats.attack * 0.7));
                 this.stats.indicators.mpi = ((this.stats.indicators.api + this.stats.indicators.dpi) / 2);
                 this.last.keep = new Date().getTime();
-                global.log(9, "Stats", this.stats, this.last);
+                global.log(2, "Stats", this.stats, this.last);
                 this.SaveStats();
             } else {
                 global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
@@ -4244,7 +4326,7 @@ caap = {
 
             this.last.oracle = new Date().getTime();
             this.SaveStats();
-            global.log(9, "Stats", this.stats, this.last);
+            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_oracle: " + err);
@@ -4276,7 +4358,7 @@ caap = {
 
             this.last.battlerank = new Date().getTime();
             this.SaveStats();
-            global.log(9, "Stats", this.stats, this.last);
+            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_battlerank: " + err);
@@ -4308,7 +4390,7 @@ caap = {
 
             this.last.warrank = new Date().getTime();
             this.SaveStats();
-            global.log(9, "Stats", this.stats, this.last);
+            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_war_rank: " + err);
@@ -4346,7 +4428,7 @@ caap = {
                     }
                 }
             } else {
-                global.log(1, 'Achievements 2 div not found.');
+                global.log(1, 'Battle Achievements not found.');
             }
 
             achDiv = $("#app46755028429_achievements_3");
@@ -4366,7 +4448,7 @@ caap = {
                     this.stats.achievements.monster.skaar = this.NumberOnly(tdDiv.eq(10).text());
                 }
             } else {
-                global.log(1, 'Achievements 3 div not found.');
+                global.log(1, 'Monster Achievements not found.');
             }
 
             achDiv = $("#app46755028429_achievements_4");
@@ -4376,12 +4458,12 @@ caap = {
                     this.stats.achievements.other.alchemy = this.NumberOnly(tdDiv.eq(0).text());
                 }
             } else {
-                global.log(1, 'Achievements 4 div not found.');
+                global.log(1, 'Other Achievements not found.');
             }
 
             this.last.achievements = new Date().getTime();
             this.SaveStats();
-            global.log(1, "Stats", this.stats, this.last);
+            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_achievements: " + err);
@@ -4576,11 +4658,11 @@ caap = {
 
                 gm.setValue('storeRetrieve', '');
                 costToBuy = itemBuyPopUp.textContent.replace(new RegExp(".*\\$"), '').replace(new RegExp("[^0-9]{3,}.*"), '');
-                global.log(1, "costToBuy = " + costToBuy);
+                global.log(1, "costToBuy", costToBuy);
                 if (this.stats.gold.cash < costToBuy) {
                     //Retrieving from Bank
                     if (this.stats.gold.cash + (this.stats.gold.bank - gm.getNumber('minInStore', 0)) >= costToBuy) {
-                        global.log(1, "Trying to retrieve: " + (costToBuy - this.stats.gold.cash));
+                        global.log(1, "Trying to retrieve", costToBuy - this.stats.gold.cash);
                         gm.setValue("storeRetrieve", costToBuy - this.stats.gold.cash);
                         return this.RetrieveFromBank(costToBuy - this.stats.gold.cash);
                     } else {
@@ -4614,11 +4696,11 @@ caap = {
                 costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling
                     .previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling
                     .firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
-                global.log(1, "costToBuy = " + costToBuy);
+                global.log(1, "costToBuy", costToBuy);
                 if (this.stats.gold.cash < costToBuy) {
                     //Retrieving from Bank
                     if (this.stats.gold.cash + (this.stats.gold.bank - gm.getNumber('minInStore', 0)) >= costToBuy) {
-                        global.log(1, "Trying to retrieve: " + (costToBuy - this.stats.gold.cash));
+                        global.log(1, "Trying to retrieve", costToBuy - this.stats.gold.cash);
                         gm.setValue("storeRetrieve", costToBuy - this.stats.gold.cash);
                         return this.RetrieveFromBank(costToBuy - this.stats.gold.cash);
                     } else {
@@ -4662,7 +4744,7 @@ caap = {
                 var background = nHtml.FindByAttrContains(autoQuestDivs.tr, "div", "style", 'background-color');
                 if (background) {
                     if (background.style.backgroundColor === 'rgb(158, 11, 15)') {
-                        global.log(1, " background.style.backgroundColor = " + background.style.backgroundColor);
+                        global.log(1, " background.style.backgroundColor", background.style.backgroundColor);
                         gm.setValue('storeRetrieve', 'general');
                         if (general.Select('BuyGeneral')) {
                             return true;
@@ -4670,7 +4752,7 @@ caap = {
 
                         gm.setValue('storeRetrieve', '');
                         if (background.firstChild.firstChild.title) {
-                            global.log(1, "Clicking to buy " + background.firstChild.firstChild.title);
+                            global.log(1, "Clicking to buy", background.firstChild.firstChild.title);
                             this.Click(background.firstChild.firstChild);
                             return true;
                         }
@@ -4697,25 +4779,25 @@ caap = {
                     global.log(1, 'Using level up general');
                 } else {
                     if (autoQuestDivs.genDiv !== undefined) {
-                        global.log(1, 'Clicking on general ' + questGeneral);
+                        global.log(1, 'Clicking on general', questGeneral);
                         this.Click(autoQuestDivs.genDiv);
                         return true;
                     } else {
-                        global.log(1, 'Can not click on general ' + questGeneral);
+                        global.log(1, 'Can not click on general', questGeneral);
                         return false;
                     }
                 }
             }
 
             if (autoQuestDivs.click !== undefined) {
-                global.log(1, 'Clicking auto quest: ' + autoQuestName);
+                global.log(1, 'Clicking auto quest', autoQuestName);
                 gm.setValue('ReleaseControl', true);
                 this.Click(autoQuestDivs.click, 10000);
                 //global.log(1, "Quests: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
                 this.ShowAutoQuest();
                 return true;
             } else {
-                global.log(1, 'Can not click auto quest: ' + autoQuestName);
+                global.log(1, 'Can not click auto quest', autoQuestName);
                 return false;
             }
         } catch (err) {
@@ -4739,6 +4821,46 @@ caap = {
         this.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
     },
 
+    CheckResults_symbolquests: function () {
+        try {
+            var demiDiv = null,
+                points  = [],
+                success = true;
+
+            demiDiv = $("div[id*='app46755028429_symbol_desc_symbolquests']");
+            if (demiDiv && demiDiv.length === 5) {
+                demiDiv.each(function (index) {
+                    var temp = caap.NumberOnly($(this).children().next().eq(1).children().children().next().text());
+                    if (temp && typeof temp === 'number') {
+                        points.push(temp);
+                    } else {
+                        success = false;
+                        global.log(1, 'Demi-Power temp text problem', temp);
+                    }
+                });
+
+                global.log(2, 'Points', points);
+                if (success) {
+                    this.demi.ambrosia.power.total = points[0];
+                    this.demi.malekus.power.total = points[1];
+                    this.demi.corvintheus.power.total = points[2];
+                    this.demi.aurora.power.total = points[3];
+                    this.demi.azeron.power.total = points[4];
+                    this.last.symbolquests = new Date().getTime();
+                    this.SaveStats();
+                    global.log(1, 'Demi', this.demi, this.last);
+                }
+            } else {
+                global.log(1, "Demi demiDiv problem", demiDiv);
+            }
+
+            return true;
+        } catch (err) {
+            global.error("ERROR in CheckResults_symbolquests: " + err);
+            return false;
+        }
+    },
+
     CheckResults_quests: function (pickQuestTF) {
         try {
             var whyQuest = gm.getValue('WhyQuest', '');
@@ -4752,6 +4874,7 @@ caap = {
             var ss = null;
             var s = 0;
             if (this.CheckForImage('demi_quest_on.gif')) {
+                this.CheckResults_symbolquests();
                 ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",
                     div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                 if (ss.snapshotLength <= 0) {
@@ -4807,7 +4930,7 @@ caap = {
                     if (expObj) {
                         experience = (this.NumberOnly(nHtml.GetText(expObj)));
                     } else {
-                        global.log(1, 'cannot find experience:' + this.questName);
+                        global.log(1, "Can't find experience for", this.questName);
                     }
                 }
 
@@ -4827,7 +4950,7 @@ caap = {
                 }
 
                 if (!energy) {
-                    global.log(1, 'cannot find energy for quest:' + this.questName);
+                    global.log(1, "Can't find energy for", this.questName);
                     continue;
                 }
 
@@ -4837,12 +4960,12 @@ caap = {
                     var rewardHigh = this.NumberOnly(moneyM[2]);
                     reward = (rewardLow + rewardHigh) / 2;
                 } else {
-                    global.log(1, 'no money found:' + this.questName + ' in ' + divTxt);
+                    global.log(1, 'No money found for', this.questName, divTxt);
                 }
 
                 var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
                 if (!click) {
-                    global.log(1, 'no button found:' + this.questName);
+                    global.log(1, 'No button found for', this.questName);
                     continue;
                 }
                 var influence = null;
@@ -4863,7 +4986,7 @@ caap = {
                 }
 
                 if (!influence) {
-                    global.log(1, 'no influence found:' + this.questName + ' in ' + divTxt);
+                    global.log(1, 'No influence found for', this.questName, divTxt);
                 }
 
                 var general = 'none';
@@ -4907,7 +5030,7 @@ caap = {
                                 pickQuestTF = true;
                             }
                         } else {
-                            global.log(1, 'cannot find influence:' + this.questName + ': ' + influence);
+                            global.log(1, "Can't find influence for", this.questName, influence);
                         }
 
                         break;
@@ -4918,7 +5041,7 @@ caap = {
                                 pickQuestTF = true;
                             }
                         } else {
-                            global.log(1, 'cannot find influence:' + this.questName + ': ' + influence);
+                            global.log(1, "Can't find influence for", this.questName, influence);
                         }
 
                         break;
@@ -4944,7 +5067,7 @@ caap = {
                     if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / energy;
-                        global.log(1, "CheckResults_quests: Setting AutoQuest", this.questName);
+                        global.log(1, "Setting AutoQuest", this.questName);
                         gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
                         global.log(9, "CheckResults_quests", gm.getValue('AutoQuest'));
                         this.ShowAutoQuest();
@@ -5013,11 +5136,11 @@ caap = {
                         this.ChangeDropDownList('QuestSubArea', this.atlantisQuestList);
                         break;
                     case 'Atlantis':
-                        global.log(1, "CheckResults_quests: Final QuestSubArea: " + gm.getValue('QuestSubArea'));
+                        global.log(1, "Final QuestSubArea", gm.getValue('QuestSubArea'));
                         this.QuestManually();
                         break;
                     default :
-                        global.log(1, "CheckResults_quests: Unknown QuestSubArea: " + gm.getValue('QuestSubArea'));
+                        global.log(1, "Unknown QuestSubArea", gm.getValue('QuestSubArea'));
                         this.QuestManually();
                     }
 
@@ -5025,7 +5148,7 @@ caap = {
                     return false;
                 }
 
-                global.log(1, "CheckResults_quests: Finished QuestArea.");
+                global.log(1, "Finished QuestArea.");
                 this.QuestManually();
                 return false;
             }
@@ -5132,7 +5255,7 @@ caap = {
 
                 break;
             default :
-                global.log(1, "Error: cant find QuestSubArea: " + QuestSubArea);
+                global.log(1, "Can't find QuestSubArea", QuestSubArea);
             }
 
             return false;
@@ -5156,14 +5279,13 @@ caap = {
 
             var firstb = item_title.getElementsByTagName('b')[0];
             if (!firstb) {
-                global.log(1, "Can't get bolded member out of " + item_title.innerHTML.toString());
+                global.log(1, "Can't get bolded member out of", item_title.innerHTML.toString());
                 return false;
             }
 
             this.questName = $.trim(firstb.innerHTML.toString()).stripHTML();
             if (!this.questName) {
-                //global.log(1, 'no quest name for this row: ' + div.innerHTML);
-                global.log(1, 'no quest name for this row');
+                global.log(1, 'No quest name for this row');
                 return false;
             }
 
@@ -5291,7 +5413,7 @@ caap = {
                     gm.setValue('QuestSubArea', 'Ivory City');
                 }
 
-                global.log(1, 'Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
+                global.log(1, 'Setting QuestSubArea to', gm.getValue('QuestSubArea'));
                 caap.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
             } else if (caap.CheckForImage('demi_quest_on.gif')) {
                 gm.setValue('QuestArea', 'Demi Quests');
@@ -5310,7 +5432,7 @@ caap = {
                     gm.setValue('QuestSubArea', 'Azeron');
                 }
 
-                global.log(1, 'Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
+                global.log(1, 'Setting QuestSubArea to', gm.getValue('QuestSubArea'));
                 caap.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
             } else if (caap.CheckForImage('tab_atlantis_on.gif')) {
                 gm.setValue('QuestArea', 'Atlantis');
@@ -5320,7 +5442,7 @@ caap = {
                     gm.setValue('QuestSubArea', 'Atlantis');
                 }
 
-                global.log(1, 'Setting QuestSubArea to: ' + gm.getValue('QuestSubArea'));
+                global.log(1, 'Setting QuestSubArea to', gm.getValue('QuestSubArea'));
                 caap.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
             }
 
@@ -5390,13 +5512,13 @@ caap = {
             var hours = parseInt(resultsText.match(/ \d+ hour/), 10);
             var minutes = parseInt(resultsText.match(/ \d+ minute/), 10);
             this.SetTimer('BlessingTimer', (hours * 60 + minutes + 1) * 60);
-            global.log(1, 'Recorded Blessing Time.  Scheduling next click!');
+            global.log(1, 'Recorded Blessing Time. Scheduling next click!');
         }
 
         // Recieved Demi Blessing.  Wait 24 hours to try again.
         if (resultsText.match(/You have paid tribute to/)) {
             this.SetTimer('BlessingTimer', 24 * 60 * 60 + 60);
-            global.log(1, 'Received blessing.  Scheduling next click!');
+            global.log(1, 'Received blessing. Scheduling next click!');
         }
 
         this.SetCheckResultsFunction('');
@@ -5418,7 +5540,7 @@ caap = {
 
         var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + autoBless);
         if (!picSlice) {
-            global.log(1, 'No diety pics for deity_' + autoBless);
+            global.log(1, 'No diety pics for deity', autoBless);
             return false;
         }
 
@@ -5519,7 +5641,7 @@ caap = {
         });
 
         var bestLandCost = gm.getValue('BestLandCost', '');
-        global.log(1, "BestLandCost: " + bestLandCost);
+        global.log(1, "Best Land Cost", bestLandCost);
         if (!bestLandCost) {
             gm.setValue('BestLandCost', 'none');
         }
@@ -6054,11 +6176,13 @@ caap = {
                     }
 
                     // If looking for demi points, and already full, continue
-                    if (gm.getValue('DemiPointsFirst', '') && !gm.getValue('DemiPointsDone', true) && (gm.getValue('WhenMonster') !== 'Never')) {
-                        var deityNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1;
-                        var demiPointList = gm.getList('DemiPointList');
-                        var demiPoints = demiPointList[deityNumber].split('/');
-                        if (parseInt(demiPoints[0], 10) >= 10 || !gm.getValue('DemiPoint' + deityNumber)) {
+                    if (gm.getValue('DemiPointsFirst', false) && !gm.getValue('DemiPointsDone', true) && (gm.getValue('WhenMonster') !== 'Never')) {
+                        var demiNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1,
+                            demiName   = this.demiTable[demiNumber];
+
+                        global.log(9, "Demi Points First", demiNumber, demiName, this.demi[demiName], gm.getValue('DemiPoint' + demiNumber));
+                        if (this.demi[demiName].daily.dif <= 0 || !gm.getValue('DemiPoint' + demiNumber)) {
+                            global.log(1, "Daily Demi Points done for", demiName);
                             continue;
                         }
                     }
@@ -6361,6 +6485,20 @@ caap = {
             return this.NavigateTo('keep,achievements', 'tab_achievements_on.gif');
         } catch (err) {
             global.error("ERROR in CheckAchievements: " + err);
+            return false;
+        }
+    },
+
+    CheckSymbolQuests: function () {
+        try {
+            if (!this.WhileSinceDidIt(this.last.symbolquests, (6 * 60 * 60) + (5 * 60))) {
+                return false;
+            }
+
+            global.log(1, "Visiting symbolquests to get 'Demi-Power' points");
+            return this.NavigateTo('quests,symbolquests', 'demi_quest_on.gif');
+        } catch (err) {
+            global.error("ERROR in CheckSymbolQuests: " + err);
             return false;
         }
     },
@@ -7477,7 +7615,7 @@ caap = {
                     }
 
                     var T2K = this.t2kCalc(boss, time, hp, currentPhase, miss);
-                    gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString() + ' hr');
+                    gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString());
                 }
             } else {
                 global.log(1, 'Monster is dead or fled');
@@ -8108,7 +8246,7 @@ caap = {
                     }
                 }
 
-                if (nodeNum && gm.getValue('PowerAttackMax')) {
+                if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && gm.getValue('PowerAttackMax')) {
                     energyRequire = this.monsterInfo[monstType].nrgMax[nodeNum];
                 }
             }
@@ -8179,7 +8317,8 @@ caap = {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
-                    var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
+                    var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', ''),
+                        tactics           = this.parseCondition("tac%", monsterConditions);
                     if ((gm.getValue('UseTactics', false) || monsterConditions.match(/:tac/i)) && this.CheckForImage('nm_button_tactics.gif')) {
                         buttonList = [
                             'nm_button_tactics.gif'
@@ -8284,61 +8423,146 @@ caap = {
     //                          COMMON FIGHTING FUNCTIONS
     /////////////////////////////////////////////////////////////////////
 
+    demi: {
+        ambrosia : {
+            power : {
+                total : 0,
+                max   : 0,
+                next  : 0
+            },
+            daily : {
+                num : 0,
+                max : 0,
+                dif : 0
+            }
+        },
+        malekus : {
+            power : {
+                total : 0,
+                max   : 0,
+                next  : 0
+            },
+            daily : {
+                num : 0,
+                max : 0,
+                dif : 0
+            }
+        },
+        corvintheus : {
+            power : {
+                total : 0,
+                max   : 0,
+                next  : 0
+            },
+            daily : {
+                num : 0,
+                max : 0,
+                dif : 0
+            }
+        },
+        aurora : {
+            power : {
+                total : 0,
+                max   : 0,
+                next  : 0
+            },
+            daily : {
+                num : 0,
+                max : 0,
+                dif : 0
+            }
+        },
+        azeron : {
+            power : {
+                total : 0,
+                max   : 0,
+                next  : 0
+            },
+            daily : {
+                num : 0,
+                max : 0,
+                dif : 0
+            }
+        }
+    },
+
+    demiTable: {
+        0 : 'ambrosia',
+        1 : 'malekus',
+        2 : 'corvintheus',
+        3 : 'aurora',
+        4 : 'azeron'
+    },
+
+    CheckResults_battle: function () {
+        try {
+            var symDiv  = null,
+                points  = [],
+                success = true;
+
+            symDiv = $("#app46755028429_app_body img[src*='symbol_tiny_']").not("img[src*='rewards.jpg']");
+            if (symDiv && symDiv.length === 5) {
+                symDiv.each(function (index) {
+                    var temp = $(this).parent().parent().next().text().replace(/\s/g, '');
+                    if (temp) {
+                        points.push(temp);
+                    } else {
+                        success = false;
+                        global.log(1, 'Demi temp text problem', temp);
+                    }
+                });
+
+                global.log(2, 'Points', points);
+                if (success) {
+                    this.demi.ambrosia.daily = this.GetStatusNumbers(points[0]);
+                    this.demi.malekus.daily = this.GetStatusNumbers(points[1]);
+                    this.demi.corvintheus.daily = this.GetStatusNumbers(points[2]);
+                    this.demi.aurora.daily = this.GetStatusNumbers(points[3]);
+                    this.demi.azeron.daily = this.GetStatusNumbers(points[4]);
+                    this.last.battle = new Date().getTime();
+                    this.SaveStats();
+                    global.log(1, 'Demi', this.demi, this.last);
+                }
+            } else {
+                global.log(1, 'Demi symDiv problem', symDiv);
+            }
+
+            return true;
+        } catch (err) {
+            global.error("ERROR in CheckResults_battle: " + err);
+            return false;
+        }
+    },
+
     DemiPoints: function () {
         try {
-            if (!gm.getValue('DemiPointsFirst') || gm.getValue('WhenMonster') === 'Never') {
+            if (!gm.getValue('DemiPointsFirst', false) || gm.getValue('WhenMonster') === 'Never') {
                 return false;
             }
 
-            if (this.CheckForImage('battle_on.gif')) {
-                var smallDeity = this.CheckForImage('symbol_tiny_1.jpg');
-                if (smallDeity) {
-                    var demiPointList = nHtml.GetText(smallDeity.parentNode.parentNode.parentNode).match(/\d+ \/ 10/g);
-                    if (demiPointList) {
-                        gm.setList('DemiPointList', demiPointList);
-                        global.log(1, 'DemiPointList: ' + demiPointList);
-                        if (this.CheckTimer('DemiPointTimer')) {
-                            global.log(1, 'Set DemiPointTimer to 6 hours, and check if DemiPoints done');
-                            this.SetTimer('DemiPointTimer', 6 * 60 * 60);
-                        }
+            if (!this.WhileSinceDidIt(this.last.battle, (6 * 60 * 60))) {
+                return this.NavigateTo(this.battlePage, 'battle_on.gif');
+            }
 
-                        gm.setValue('DemiPointsDone', true);
-                        for (var demiPtItem in demiPointList) {
-                            if (demiPointList.hasOwnProperty(demiPtItem)) {
-                                var demiPointStr = demiPointList[demiPtItem];
-                                if (!demiPointStr) {
-                                    global.log(1, "Continue due to demiPointStr: " + demiPointStr);
-                                    continue;
-                                }
+            var demiPower      = 0,
+                demiPointsDone = true;
 
-                                var demiPoints = demiPointStr.split('/');
-                                if (demiPoints.length !== 2) {
-                                    global.log(1, "Continue due to demiPoints: " + demiPoints);
-                                    continue;
-                                }
-
-                                if (parseInt(demiPoints[0], 10) < 10 && gm.getValue('DemiPoint' + demiPtItem)) {
-                                    gm.setValue('DemiPointsDone', false);
-                                    break;
-                                }
-                            }
-                        }
-
-                        global.log(1, 'Demi Point Timer ' + this.DisplayTimer('DemiPointTimer') + ' demipoints done is  ' + gm.getValue('DemiPointsDone', false));
-                    } else {
-                        global.log(1, "Unable to get demiPointList");
+            for (demiPower in this.demi) {
+                if (this.demi.hasOwnProperty(demiPower)) {
+                    if (this.demi[demiPower].daily.dif > 0) {
+                        demiPointsDone = false;
+                        break;
                     }
                 }
             }
 
-            if (this.CheckTimer('DemiPointTimer')) {
-                return this.NavigateTo(this.battlePage, 'battle_on.gif');
-            }
-
-            if (!gm.getValue('DemiPointsDone', true)) {
+            global.log(1, 'DemiPointsDone', demiPointsDone);
+            gm.setValue('DemiPointsDone', demiPointsDone);
+            if (!demiPointsDone) {
                 return this.Battle('DemiPoints');
             }
 
+            global.log(1, 'DemiPoints here');
             return false;
         } catch (err) {
             global.error("ERROR in DemiPoints: " + err);
@@ -8384,7 +8608,7 @@ caap = {
 
     CheckStamina: function (battleOrBattle, attackMinStamina) {
         try {
-            gm.log(9, "CheckStamina", battleOrBattle, attackMinStamina);
+            global.log(9, "CheckStamina", battleOrBattle, attackMinStamina);
             if (!attackMinStamina) {
                 attackMinStamina = 1;
             }
@@ -9280,11 +9504,11 @@ caap = {
                 if (button) {
                     caap.Click(button);
                 } else {
-                    global.log(1, "Could not find consume " + potion + " button");
+                    global.log(1, "Could not find consume button for", potion);
                     return false;
                 }
             } else {
-                global.log(1, "Could not find " + potion + " consume form");
+                global.log(1, "Could not find consume form for", potion);
                 return false;
             }
 
@@ -9302,7 +9526,7 @@ caap = {
             }
 
             if (this.stats.exp.dif <= gm.getNumber("potionsExperience", 20)) {
-                global.log(1, "Not spending potions, experience to next level condition. Delaying 10 minutes");
+                global.log(1, "AutoPotions, ENL condition. Delaying 10 minutes");
                 this.JustDidIt('AutoPotionTimerDelay');
                 return false;
             }
@@ -9313,7 +9537,7 @@ caap = {
                 return this.ConsumePotion('energy');
             }
 
-            if (this.stats.energy.num < this.stats.stamina.max - 10 &&
+            if (this.stats.stamina.num < this.stats.stamina.max - 10 &&
                 this.stats.potions.stamina >= gm.getNumber("staminaPotionsSpendOver", 39) &&
                 this.stats.potions.stamina > gm.getNumber("staminaPotionsKeepUnder", 35)) {
                 return this.ConsumePotion('stamina');
@@ -10700,6 +10924,10 @@ caap = {
         }
 
         if (this.CheckAchievements()) {
+            return true;
+        }
+
+        if (this.CheckSymbolQuests()) {
             return true;
         }
 
