@@ -1,3 +1,4 @@
+
 /////////////////////////////////////////////////////////////////////
 //                          gm OBJECT
 // this object is used for setting/getting GM specific functions.

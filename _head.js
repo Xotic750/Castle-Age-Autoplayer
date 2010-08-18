@@ -97,7 +97,9 @@ var sortObject = function (obj, sortfunc, deep) {
 //       Objects
 ///////////////////////////
 
-var global  = {},
+var image64 = {},
+    css     = {},
+    global  = {},
     gm      = {},
     nHtml   = {},
     general = {},

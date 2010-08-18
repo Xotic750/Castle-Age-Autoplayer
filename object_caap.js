@@ -929,7 +929,7 @@ caap = {
             this.caapDivObject = $("#caap_div");
 
             banner += "<div id='caap_BannerHide' style='display: " + (gm.getValue('BannerDisplay', true) ? 'block' : 'none') + "'>";
-            banner += "<img src='http://cloutman.com/caap/Castle-Age-Autoplayer.png' alt='Castle Age Auto Player' /><br /><hr /></div>";
+            banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             this.SetDivContent('banner', banner);
 
             htmlCode += this.AddPauseMenu();
@@ -1215,9 +1215,10 @@ caap = {
                 powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 powerfortifyMaxInstructions = "Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
-                dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all monsters only.",
-                useTacticsInstructions = "(EXPERIMENTAL) Use the Tactics attack method, on monsters that support it, instead of the normal attack.",
-                collectRewardInstructions = "(EXPERIMENTAL) Automatically collect monster rewards.",
+                dosiegeInstructions = "Turns on or off automatic siege assist for all monsters only.",
+                useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack.",
+                useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
+                collectRewardInstructions = "Automatically collect monster rewards.",
                 mbattleList = [
                     'Stamina Available',
                     'At Max Stamina',
@@ -1232,7 +1233,7 @@ caap = {
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
                     'Never - disables attacking monsters'
                 ],
-                monsterDelayInstructions = "Max random delay to battle monsters",
+                monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
                 demiPoint = [
                     'Ambrosia',
                     'Malekus',
@@ -1261,8 +1262,14 @@ caap = {
             htmlCode += "</div>";
             htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (gm.getValue('WhenMonster', false) !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "type='text' size='4' style='font-size: 10px; text-align: right'") + "</td></tr>";
-            htmlCode += this.MakeCheckTR("Use Tactics", 'UseTactics', false, '', useTacticsInstructions);
+            htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "type='text' size='3' style='font-size: 10px; text-align: right'") + "</td></tr>";
+            htmlCode += this.MakeCheckTR("Use Tactics", 'UseTactics', false, 'UseTactics_Adv', useTacticsInstructions, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td>&nbsp;&nbsp;&nbsp;Health threshold</td><td style='text-align: right'>" +
+                this.MakeNumberForm('TacticsThreshold', useTacticsThresholdInstructions, 75, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "</div>";
+
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Power Attack Only", 'PowerAttack', true, 'PowerAttack_Adv', powerattackInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Power Attack Max", 'PowerAttackMax', false, '', powerattackMaxInstructions) + "</table>";
@@ -2031,7 +2038,7 @@ caap = {
                     }
                 });
 
-                if (monsterConditions) {
+                if (monsterConditions && monsterConditions !== 'none') {
                     data = {
                         text  : '<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
                         color : 'blue',
@@ -2538,7 +2545,7 @@ caap = {
             html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
             html += '</tr>';
-            
+
             html += "<tr>";
             html += this.makeTd({text: 'Azeron Daily Points', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.demi.azeron.daily.num + '/' + this.demi.azeron.daily.max, color: valueCol, id: '', title: ''});
@@ -6137,7 +6144,7 @@ caap = {
             // Lets get our Freshmeat user settings
             var minRank  = gm.getNumber("FreshMeatMinRank", 99),
                 maxLevel = gm.getNumber("FreshMeatMaxLevel", ((invadeOrDuel === 'Invade') ? 1000 : 15)),
-                ARBase   = gm.getNumber("FreshMeatARBase", 0.5)
+                ARBase   = gm.getNumber("FreshMeatARBase", 0.5),
                 ARMax    = gm.getNumber("FreshMeatARMax", 1000),
                 ARMin    = gm.getNumber("FreshMeatARMin", 0);
 
@@ -6421,7 +6428,7 @@ caap = {
 
     CheckOracle: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.oracle, (6 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.oracle, (12 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6435,7 +6442,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.battlerank, (3 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.battlerank, (12 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6449,7 +6456,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.warrank, (3 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.warrank, (12 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6491,7 +6498,7 @@ caap = {
 
     CheckSymbolQuests: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.symbolquests, (6 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.symbolquests, (12 * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8318,12 +8325,36 @@ caap = {
                     buttonList = singleButtonList;
                 } else {
                     var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', ''),
-                        tactics           = this.parseCondition("tac%", monsterConditions);
-                    if ((gm.getValue('UseTactics', false) || monsterConditions.match(/:tac/i)) && this.CheckForImage('nm_button_tactics.gif')) {
+                        tacticsValue      = 0,
+                        monsterHealth     = 0,
+                        useTactics        = false;
+
+                    if (gm.getValue('UseTactics', false)) {
+                        useTactics = true;
+                        tacticsValue = gm.getValue('TacticsThreshold', false);
+                    }
+
+                    if (monsterConditions && monsterConditions.match(/:tac/i)) {
+                        useTactics = true;
+                        tacticsValue = this.parseCondition("tac%", monsterConditions);
+                    }
+
+                    if (useTactics) {
+                        monsterHealth = parseFloat(gm.getListObjVal('monsterOl', monster, 'Damage%', 0));
+                    }
+
+                    if (tacticsValue !== false && monsterHealth < tacticsValue) {
+                        global.log(1, "Monster health is below threshold value", monsterHealth, tacticsValue);
+                        useTactics = false;
+                    }
+
+                    if (useTactics && this.CheckForImage('nm_button_tactics.gif')) {
+                        global.log(1, "Attacking monster using tactics buttons");
                         buttonList = [
                             'nm_button_tactics.gif'
                         ].concat(singleButtonList);
                     } else {
+                        global.log(1, "Attacking monster using regular buttons");
                         // power attack or if not seamonster power attack or if not regular attack -
                         // need case for seamonster regular attack?
                         buttonList = [
@@ -10203,7 +10234,6 @@ caap = {
             }
 
             if (gm.getValue('DisableGiftReturn', false)) {
-            //if (gm.getValue('DisableGiftReturn', false) || global.is_chrome) {
                 gm.setList('ReceivedList', []);
             }
 
@@ -10226,7 +10256,6 @@ caap = {
             var giftPic = '';
             var giftChoice = gm.getValue('GiftChoice');
             var giftList = gm.getList('GiftList');
-            //if (global.is_chrome) giftChoice = 'Random Gift';
             switch (giftChoice) {
             case 'Random Gift':
                 giftPic = gm.getValue('RandomGiftPic');
@@ -10275,8 +10304,6 @@ caap = {
             }
 
             if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
-            //if ($('div[style*="giftpage_select"]').length !== 0) {
-                //if (this.NavigateTo('giftpage_ca_friends_off.gif', 'giftpage_ca_friends_on.gif')) {
                 if (this.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     return true;
                 }
@@ -10357,19 +10384,19 @@ caap = {
                 var ss = document.evaluate(".//input[contains(@name,'/castle/tracker.php')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                 for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var giftDiv = ss.snapshotItem(s);
-                    var user = giftDiv.name.match(/uid%3D\d+/i);
-                    if (!user) {
+                    var user = giftDiv.name.match(/uid%3D(\d+)/i);
+                    if (!user || user.length !== 2) {
                         continue;
                     }
 
-                    user = String(user).substr(6);
+                    user = parseInt(user[1], 10);
                     if (user !== this.NumberOnly(giftEntry)) {
                         continue;
                     }
 
                     var giftType = $.trim(giftDiv.value.replace(/^Accept /i, ''));
                     if (gm.getList('GiftList').indexOf(giftType) < 0) {
-                        global.log(1, 'Unknown gift type.');
+                        global.log(1, 'Unknown gift type', giftType);
                         giftType = 'Unknown Gift';
                     }
 
@@ -10377,9 +10404,9 @@ caap = {
                         gm.listPush('ReceivedList', giftEntry + global.vs + giftType);
                     }
 
-                    global.log(1, 'This giver: ' + user + ' gave ' + giftType + ' Givers: ' + gm.getList('ReceivedList'));
-                    caap.Click(giftDiv);
+                    global.log(1, 'This giver/gift/givers', user, giftType, gm.getList('ReceivedList'));
                     gm.setValue('GiftEntry', '');
+                    this.Click(giftDiv);
                     return true;
                 }
             }
@@ -10388,13 +10415,13 @@ caap = {
                 return false;
             }
 
-            global.log(1, 'Error: unable to find gift');
+            global.log(1, 'Error: unable to find gift', giftEntry);
             if (gm.getValue('ReceivedList', ' ').indexOf(giftEntry) < 0) {
                 gm.listPush('ReceivedList', giftEntry + '\tUnknown Gift');
             }
 
-            caap.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + this.NumberOnly(giftEntry));
             gm.setValue('GiftEntry', '');
+            this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + this.NumberOnly(giftEntry));
             return true;
         } catch (err) {
             global.error("ERROR in AcceptGiftOnFB: " + err);

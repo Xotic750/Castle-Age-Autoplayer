@@ -198,7 +198,7 @@ $(function () {
         window.location.href = window.location.href;
     }
 
-    global.AddCSS();
+    css.AddCSS();
     gm.setValue('clickUrl', window.location.href);
     if (window.location.href.indexOf('facebook.com/castle_age/') >= 0) {
         caap.LoadStats();

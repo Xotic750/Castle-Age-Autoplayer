@@ -1,3 +1,4 @@
+
 ///////////////////////////
 // Define our global object
 ///////////////////////////
@@ -15,37 +16,6 @@ global = {
     vs                  : '\t',
     // Label separator - used to separate the name from the value
     ls                  : '\f',
-
-    AddCSS: function () {
-        try {
-            var href = window.location.href;
-
-            if (!$('link[href*="jquery-ui-1.8.1.custom.css"').length) {
-                $("<link>").appendTo("head").attr({
-                    rel: "stylesheet",
-                    type: "text/css",
-                    href: "http://cloutman.com/caap/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
-                });
-            }
-
-            if (!$('link[href*="farbtastic.css"').length) {
-                $("<link>").appendTo("head").attr({
-                    rel: "stylesheet",
-                    type: "text/css",
-                    href: "http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.css"
-                });
-            }
-
-            if (gm.getValue("fbFilter", false) && (href.indexOf('apps.facebook.com/reqs.php') >= 0 || href.indexOf('apps.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0)) {
-                $("<style type='text/css'>#contentArea div[id^='div_story_']:not([class*='46755028429']) {\ndisplay:none !important;\n}</style>").appendTo("head");
-            }
-
-            return true;
-        } catch (err) {
-            this.error("ERROR in AddCSS: " + err);
-            return false;
-        }
-    },
 
     alert_id: 0,
 

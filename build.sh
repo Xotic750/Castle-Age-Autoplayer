@@ -8,16 +8,14 @@ rm -f _normal.user.js _min.user.js
 
 echo "Joining files into _normal.user.js"
 cat _head.js >_normal.user.js
+cat object_image64.js >>_normal.user.js
+cat object_css.js >>_normal.user.js
 cat object_global.js >>_normal.user.js
 cat object_gm.js >>_normal.user.js
 cat object_html.js >>_normal.user.js
 cat object_general.js >>_normal.user.js
 cat object_caap.js >>_normal.user.js
 cat _main.js >>_normal.user.js
-#cat css.js >>_normal.user.js
-#cat utility.js >>_normal.user.js
-#cat worker.js >>_normal.user.js
-#cat worker_*.js >>_normal.user.js
 
 # ----------------------------------------------------------------------
 # INSTALLED VERSION - Means you only need to hit F5 / refresh in Firefox
