@@ -14,7 +14,7 @@ css = {
                     $("<link>").appendTo("head").attr({
                         rel: "stylesheet",
                         type: "text/css",
-                        href: "http://cloutman.com/caap/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
+                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/smoothness/jquery-ui.css"
                     });
                 }
 

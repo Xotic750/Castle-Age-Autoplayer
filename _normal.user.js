@@ -4,9 +4,9 @@
 // @description    Auto player for Castle Age
 // @version        140.23.51
 // @require        http://cloutman.com/jquery-latest.min.js
-// @require        http://cloutman.com/caap/jquery-ui-1.8.1/js/jquery-ui-1.8.1.custom.min.js
-// @require        http://cloutman.com/caap/farbtastic12/farbtastic/farbtastic.min.js
-// @require        http://cloutman.com/caap/json2/json2.js
+// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
+// @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
+// @require        http://castle-age-auto-player.googlecode.com/files/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http://www.facebook.com/common/error.html
 // @include        http://www.facebook.com/reqs.php#confirm_46755028429_0
@@ -684,7 +684,7 @@ css = {
                     $("<link>").appendTo("head").attr({
                         rel: "stylesheet",
                         type: "text/css",
-                        href: "http://cloutman.com/caap/jquery-ui-1.8.1/css/smoothness/jquery-ui-1.8.1.custom.css"
+                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/smoothness/jquery-ui.css"
                     });
                 }
 
@@ -9291,10 +9291,10 @@ caap = {
             if (/k$/i.test(value) || /m$/i.test(value)) {
                 var first = /\d+k/i.test(value);
                 var second = /\d+m/i.test(value);
-                value = parseInt(value, 10) * 1000 * (first + second * 1000);
+                value = parseFloat(value, 10) * 1000 * (first + second * 1000);
             }
 
-            return parseInt(value, 10);
+            return parseFloat(value, 10);
         } catch (err) {
             global.error("ERROR in parseCondition: " + err);
             return false;

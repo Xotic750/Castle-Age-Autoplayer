@@ -7175,10 +7175,10 @@ caap = {
             if (/k$/i.test(value) || /m$/i.test(value)) {
                 var first = /\d+k/i.test(value);
                 var second = /\d+m/i.test(value);
-                value = parseInt(value, 10) * 1000 * (first + second * 1000);
+                value = parseFloat(value, 10) * 1000 * (first + second * 1000);
             }
 
-            return parseInt(value, 10);
+            return parseFloat(value, 10);
         } catch (err) {
             global.error("ERROR in parseCondition: " + err);
             return false;
