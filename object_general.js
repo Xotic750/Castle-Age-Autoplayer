@@ -288,6 +288,8 @@ general = {
 
     BankingList: [],
 
+    CollectList: [],
+
     StandardList: [
         'Idle',
         'Monster',
@@ -330,6 +332,12 @@ general = {
             this.BankingList = [
                 'Use Current',
                 'Aeris'
+            ].filter(crossList);
+
+            this.CollectList = [
+                'Use Current',
+                'Angelica',
+                'Morrigan'
             ].filter(crossList);
 
             return true;
@@ -481,6 +489,7 @@ general = {
             caap.ChangeDropDownList('BuyGeneral', this.BuyList, gm.getValue('BuyGeneral', 'Use Current'));
             caap.ChangeDropDownList('IncomeGeneral', this.IncomeList, gm.getValue('IncomeGeneral', 'Use Current'));
             caap.ChangeDropDownList('BankingGeneral', this.BankingList, gm.getValue('BankingGeneral', 'Use Current'));
+            caap.ChangeDropDownList('CollectGeneral', this.BankingList, gm.getValue('CollectGeneral', 'Use Current'));
             caap.ChangeDropDownList('LevelUpGeneral', this.List, gm.getValue('LevelUpGeneral', 'Use Current'));
             return true;
         } catch (err) {

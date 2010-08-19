@@ -1413,6 +1413,7 @@ caap = {
             }
 
             htmlCode += "<tr><td>Buy</td><td style='text-align: right'>" + this.MakeDropDown('BuyGeneral', general.BuyList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
+            htmlCode += "<tr><td>Collect</td><td style='text-align: right'>" + this.MakeDropDown('CollectGeneral', general.CollectList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + this.MakeDropDown('IncomeGeneral', general.IncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + this.MakeDropDown('BankingGeneral', general.BankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
@@ -3705,6 +3706,12 @@ caap = {
             this.performanceTimer('Done selectMonster');
             this.UpdateDashboard();
             this.performanceTimer('Done Dashboard');
+
+            if (general.List.length <= 2) {
+                this.last.generals = 0;
+                this.last.allGenerals = 0;
+                this.CheckGenerals();
+            }
 
             // Check for new gifts
             if (gm.getValue('AutoGift', false) && !gm.getValue('HaveGift', false)) {
@@ -8156,6 +8163,10 @@ caap = {
                     if ((((conditions) && (/:ac\b/.test(conditions))) ||
                             (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
                             (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) && gm.getObjVal(monsterObj, 'status') === 'Collect Reward') {
+                        if (general.Select('CollectGeneral')) {
+                            return true;
+                        }
+
                         link += '&action=collectReward';
                         if (monster.indexOf('Siege') >= 0) {
                             link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
