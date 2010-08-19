@@ -3762,7 +3762,7 @@ caap = {
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
             htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
             if (global.newVersionAvailable) {
-                htmlCode += "<a href='http://cloutman.com/caap/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+                htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
             }
 
             return htmlCode;
@@ -7429,6 +7429,7 @@ caap = {
             }
 
             if (item_title.innerHTML.toString().match(/LOCK/)) {
+                global.log(2, "Quest locked", item_title);
                 return false;
             }
 
@@ -9593,7 +9594,7 @@ caap = {
                 miss         = '',
                 fortPct      = null;
 
-            if (time.length === 3 && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
+            if (time && time.length === 3 && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
                 if (monstType === "Deathrune" || monstType === 'Ice Elemental') {
                     gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
                 } else {
@@ -9626,6 +9627,57 @@ caap = {
                         if (img) {
                             var partyHealth = img.parentNode.style.width;
                             fortPct = partyHealth.substring(0, partyHealth.length - 1);
+                        }
+
+                        // Character type stuff
+                        var bottomDiv  = null,
+                            tempText   = '';
+                            tempArr    = [],
+                            character  = '',
+                            tip        = '',
+                            doCharAtk  = false,
+                            statusTime = '';
+
+                        bottomDiv = $("div[style*='nm_bottom.jpg']");
+                        if (bottomDiv && bottomDiv.length) {
+                            tempText = $.trim(bottomDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
+                            if (tempText) {
+                                global.log(2, "tempText", tempText);
+                                tempArr = tempText.match(/Class: (\w+) /);
+                                if (tempArr && tempArr.length === 2) {
+                                    character = tempArr[1];
+                                    global.log(1, "character", character);
+                                } else {
+                                    global.log(1, "Can't get character", tempArr);
+                                }
+
+                                tempArr = tempText.match(/Tip: ([\w ]+) Status/);
+                                if (tempArr && tempArr.length === 2) {
+                                    tip = tempArr[1];
+                                    global.log(1, "tip", tip);
+                                } else {
+                                    global.log(1, "Can't get tip", tempArr);
+                                }
+
+                                tempArr = tempText.match(/Status Time Remaining: ([\w:]+)\s*/);
+                                if (tempArr && tempArr.length === 2) {
+                                    statusTime = tempArr[1];
+                                    global.log(1, "statusTime", statusTime);
+                                } else {
+                                    global.log(1, "Can't get statusTime", tempArr);
+                                }
+
+                                if (character && tip) {
+                                    doCharAtk = new RegExp(character).test(tip);
+                                    global.log(1, "Do character specific attack", doCharAtk);
+                                } else {
+                                    global.log(1, "Missing 'character' or 'tip'", character, tip);
+                                }
+                            } else {
+                                global.log(1, "Missing tempText");
+                            }
+                        } else {
+                            global.log(1, "Missing bottomDiv");
                         }
                     }
                 }
@@ -10478,7 +10530,7 @@ caap = {
                 } else {
                     var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', ''),
                         tacticsValue      = 0,
-                        monsterHealth     = 0,
+                        partyHealth     = 0,
                         useTactics        = false;
 
                     if (gm.getValue('UseTactics', false)) {
@@ -10492,11 +10544,11 @@ caap = {
                     }
 
                     if (useTactics) {
-                        monsterHealth = parseFloat(gm.getListObjVal('monsterOl', monster, 'Damage%', 0));
+                        partyHealth = parseFloat(gm.getListObjVal('monsterOl', monster, 'Fort%', 0));
                     }
 
-                    if (tacticsValue !== false && monsterHealth < tacticsValue) {
-                        global.log(1, "Monster health is below threshold value", monsterHealth, tacticsValue);
+                    if (tacticsValue !== false && partyHealth < tacticsValue) {
+                        global.log(1, "Party health is below threshold value", partyHealth, tacticsValue);
                         useTactics = false;
                     }
 
