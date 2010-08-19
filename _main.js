@@ -59,9 +59,9 @@ if (gm.getValue('SetTitle')) {
 }
 
 /////////////////////////////////////////////////////////////////////
-//                          cloutman.com updater
+//                          http://code.google.com/ updater
 // Used by browsers other than Chrome (namely Firefox and Flock)
-// to get updates from cloutman.com
+// to get updates from http://code.google.com/
 /////////////////////////////////////////////////////////////////////
 
 if (!global.is_chrome) {
@@ -70,14 +70,14 @@ if (!global.is_chrome) {
             global.newVersionAvailable = true;
         }
 
-        // update script from: http://cloutman.com/caap/Castle-Age-Autoplayer.user.js
+        // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
 
         function updateCheck(forced) {
             if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
                 try {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: 'http://cloutman.com/caap/Castle-Age-Autoplayer.user.js',
+                        url: 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
                         headers: {'Cache-Control': 'no-cache'},
                         onload: function (resp) {
                             var rt             = resp.responseText,
