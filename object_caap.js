@@ -3246,9 +3246,12 @@ caap = {
 
         if (obj && obj.href) {
             gm.setValue('clickUrl', obj.href);
+            global.log(9, 'globalContainer', obj.href);
+        } else {
+            if (obj && !obj.href) {
+                global.log(1, 'globalContainer no href', obj);
+            }
         }
-
-        global.log(9, 'globalContainer: ' + obj.href);
     },
 
     whatFriendBox: function (event) {
@@ -4882,11 +4885,12 @@ caap = {
                 gm.setValue('AutoQuest', '');
             }
 
-            var bestReward = 0;
-            var rewardRatio = 0;
-            var div = document.body;
-            var ss = null;
-            var s = 0;
+            var bestReward  = 0,
+                rewardRatio = 0,
+                div         = document.body,
+                ss          = null,
+                s           = 0;
+
             if (this.CheckForImage('demi_quest_on.gif')) {
                 this.CheckResults_symbolquests();
                 ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",
@@ -4903,15 +4907,25 @@ caap = {
                 }
             }
 
-            ss = document.evaluate(".//div[contains(@class,'quests_background')]",
-                div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            ss = document.evaluate(".//div[contains(@class,'quests_background')]", div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength <= 0) {
                 global.log(1, "Failed to find quests_background");
                 return false;
             }
 
-            var bossList = ["Heart of Fire", "Gift of Earth", "Eye of the Storm", "A Look into the Darkness", "The Rift", "Undead Embrace", "Confrontation"];
-            var haveOrb = false;
+            var bossList = [
+                    "Heart of Fire",
+                    "Gift of Earth",
+                    "Eye of the Storm",
+                    "A Look into the Darkness",
+                    "The Rift",
+                    "Undead Embrace",
+                    "Confrontation",
+                    "Archangels Wrath",
+                    "Entrance to the Throne"
+                ],
+                haveOrb  = false;
+
             if (nHtml.FindByAttrContains(div, 'input', 'src', 'alchemy_summon')) {
                 haveOrb = true;
                 if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest !== 'Manual') {
@@ -4932,12 +4946,13 @@ caap = {
                     continue;
                 }
 
-                var reward = null;
-                var energy = null;
-                var experience = null;
-                var divTxt = nHtml.GetText(div);
-                var expM = new RegExp("\\+([0-9]+)").exec(divTxt);
-                if (expM) {
+                var reward     = null,
+                    energy     = null,
+                    experience = null,
+                    divTxt     = nHtml.GetText(div),
+                    expM       = divTxt.match(new RegExp("\\+([0-9]+)"));
+
+                if (expM && expM.length === 2) {
                     experience = this.NumberOnly(expM[1]);
                 } else {
                     var expObj = nHtml.FindByAttr(div, 'div', 'className', 'quest_experience');
@@ -4953,8 +4968,8 @@ caap = {
                     this.questName = this.questName.substring(0, idx);
                 }
 
-                var energyM = new RegExp("([0-9]+)\\s+(energy)", "i").exec(divTxt);
-                if (energyM) {
+                var energyM = divTxt.match(new RegExp("([0-9]+)\\s+energy", "i"));
+                if (energyM && energyM.length === 2) {
                     energy = this.NumberOnly(energyM[1]);
                 } else {
                     var eObj = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_req');
@@ -4968,13 +4983,22 @@ caap = {
                     continue;
                 }
 
-                var moneyM = new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i").exec(this.RemoveHtmlJunk(divTxt));
-                if (moneyM) {
-                    var rewardLow = this.NumberOnly(moneyM[1]);
-                    var rewardHigh = this.NumberOnly(moneyM[2]);
+                var moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"));
+                if (moneyM && moneyM.length === 3) {
+                    var rewardLow  = this.NumberOnly(moneyM[1]),
+                        rewardHigh = this.NumberOnly(moneyM[2]);
+
                     reward = (rewardLow + rewardHigh) / 2;
                 } else {
-                    global.log(1, 'No money found for', this.questName, divTxt);
+                    moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"));
+                    if (moneyM && moneyM.length === 3) {
+                        var rewardLow  = this.NumberOnly(moneyM[1]) * 1000000,
+                            rewardHigh = this.NumberOnly(moneyM[2]) * 1000000;
+
+                        reward = (rewardLow + rewardHigh) / 2;
+                    } else {
+                        global.log(1, 'No money found for', this.questName, divTxt);
+                    }
                 }
 
                 var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
@@ -4982,6 +5006,7 @@ caap = {
                     global.log(1, 'No button found for', this.questName);
                     continue;
                 }
+
                 var influence = null;
                 if (bossList.indexOf(this.questName) >= 0) {
                     if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
@@ -4991,11 +5016,11 @@ caap = {
                         influence = "0";
                     }
                 } else {
-                    var influenceList = new RegExp("([0-9]+)%").exec(divTxt);
-                    if (influenceList) {
+                    var influenceList = divTxt.match(new RegExp("([0-9]+)%"));
+                    if (influenceList && influenceList.length === 2) {
                         influence = influenceList[1];
                     } else {
-                        global.log(1, "Influence div not found.");
+                        global.log(1, "Influence div not found.", influenceList);
                     }
                 }
 
@@ -5283,11 +5308,12 @@ caap = {
         try {
             var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
             if (!item_title) {
-                global.log(1, "Can't find quest description or sub-title");
+                global.log(2, "Can't find quest description or sub-title");
                 return false;
             }
 
             if (item_title.innerHTML.toString().match(/LOCK/)) {
+                global.log(2, "Quest locked", item_title);
                 return false;
             }
 
