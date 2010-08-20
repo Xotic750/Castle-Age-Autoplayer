@@ -1964,6 +1964,8 @@ caap = {
                     color = gm.getObjVal(monsterObj, 'color', 'black');
                 }
 
+                achLevel = 0;
+                maxDamage = 0;
                 monsterConditions = gm.getObjVal(monsterObj, 'conditions', '');
                 if (monsterConditions) {
                     achLevel = caap.parseCondition('ach', monsterConditions);
