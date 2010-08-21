@@ -1644,9 +1644,16 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td>" +
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-            if (global.newVersionAvailable) {
-                htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+            if (isRelease) {
+                htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+                if (global.newVersionAvailable) {
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+                }
+            } else {
+                htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+                if (global.newVersionAvailable) {
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + " d" + gm.getValue('DEV_remote_version')  + "!</a>";
+                }
             }
 
             return htmlCode;
@@ -2237,21 +2244,21 @@ caap = {
             html += "<tr>";
             html += this.makeTd({text: 'Character Name', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.stats.PlayerName, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Energy', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Energy', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.stats.energy.num + '/' + this.stats.energy.max, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
             html += this.makeTd({text: 'Level', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.stats.level, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Stamina', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Stamina', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.stats.stamina.num + '/' + this.stats.stamina.max, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
             html += this.makeTd({text: 'Battle Rank', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.battleRankTable[this.stats.rank.battle] + ' (' + this.stats.rank.battle + ')', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.makeCommaValue(this.stats.attack), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
@@ -2265,7 +2272,7 @@ caap = {
             html += "<tr>";
             html += this.makeTd({text: 'War Rank', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.warRankTable[this.stats.rank.war] + ' (' + this.stats.rank.war + ')', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Health', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Health', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.stats.health.num + '/' + this.stats.health.max, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
@@ -2274,6 +2281,20 @@ caap = {
             html += this.makeTd({text: this.makeCommaValue(this.stats.rank.warPoints), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Army', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.army.actual), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Generals', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.stats.generals.total, color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Generals When Invade', color: titleCol, id: '', title: 'For every 5 army members you have, one of your generals will also join the fight.'});
+            html += this.makeTd({text: this.stats.generals.invade, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
@@ -3822,6 +3843,10 @@ caap = {
             actual : 0,
             capped : 0
         },
+        generals   : {
+            total  : 0,
+            invade : 0
+        },
         attack     : 0,
         defense    : 0,
         points     : {
@@ -4985,18 +5010,19 @@ caap = {
                     continue;
                 }
 
-                var moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"));
-                if (moneyM && moneyM.length === 3) {
-                    var rewardLow  = this.NumberOnly(moneyM[1]),
-                        rewardHigh = this.NumberOnly(moneyM[2]);
+                var moneyM     = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i")),
+                    rewardLow  = 0,
+                    rewardHigh = 0;
 
+                if (moneyM && moneyM.length === 3) {
+                    rewardLow  = this.NumberOnly(moneyM[1]);
+                    rewardHigh = this.NumberOnly(moneyM[2]);
                     reward = (rewardLow + rewardHigh) / 2;
                 } else {
                     moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"));
                     if (moneyM && moneyM.length === 3) {
-                        var rewardLow  = this.NumberOnly(moneyM[1]) * 1000000,
-                            rewardHigh = this.NumberOnly(moneyM[2]) * 1000000;
-
+                        rewardLow  = this.NumberOnly(moneyM[1]) * 1000000;
+                        rewardHigh = this.NumberOnly(moneyM[2]) * 1000000;
                         reward = (rewardLow + rewardHigh) / 2;
                     } else {
                         global.log(1, 'No money found for', this.questName, divTxt);
@@ -7517,7 +7543,7 @@ caap = {
 
                         // Character type stuff
                         var bottomDiv  = null,
-                            tempText   = '';
+                            tempText   = '',
                             tempArr    = [],
                             character  = '',
                             tip        = '',

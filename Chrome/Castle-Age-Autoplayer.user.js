@@ -3,6 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
+// @dev            1
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -20,7 +21,9 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
-var caapVersion = "140.23.51";
+var caapVersion = "140.23.51",
+    isRelease   = false,
+    devVersion  = "1";
 
 ///////////////////////////
 //       Prototypes
@@ -857,6 +860,116 @@ global = {
 
             global.ReloadOccasionally();
         }, 1000 * 60 * reloadMin + (reloadMin * 60 * 1000 * Math.random()));
+    },
+
+    releaseUpdate: function () {
+        try {
+            if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
+                global.newVersionAvailable = true;
+            }
+
+            // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
+
+            function updateCheck(forced) {
+                if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
+                    try {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onload: function (resp) {
+                                var rt             = resp.responseText,
+                                    remote_version = (new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                    script_name    = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
+
+                                gm.setValue('SUC_last_update', new Date().getTime() + '');
+                                gm.setValue('SUC_target_script_name', script_name);
+                                gm.setValue('SUC_remote_version', remote_version);
+                                global.log(1, 'remote version ', remote_version);
+                                if (remote_version > caapVersion) {
+                                    global.newVersionAvailable = true;
+                                    if (forced) {
+                                        if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                        }
+                                    }
+                                } else if (forced) {
+                                    alert('No update is available for "' + script_name + '."');
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        if (forced) {
+                            alert('An error occurred while checking for updates:\n' + err);
+                        }
+                    }
+                }
+            }
+
+            GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+                updateCheck(true);
+            });
+
+            updateCheck(false);
+        } catch (err) {
+            global.error("ERROR in release updater: " + err);
+        }
+    },
+
+    devUpdate: function () {
+        try {
+            if (gm.getValue('SUC_remote_version', 0) > caapVersion || (gm.getValue('SUC_remote_version', 0) >= caapVersion && gm.getValue('DEV_remote_version', 0) > devVersion)) {
+                global.newVersionAvailable = true;
+            }
+
+            // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
+
+            function updateCheck(forced) {
+                if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
+                    try {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onload: function (resp) {
+                                var rt             = resp.responseText,
+                                    remote_version = (new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                    dev_version    = (new RegExp("@dev\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                    script_name    = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
+
+                                gm.setValue('SUC_last_update', new Date().getTime() + '');
+                                gm.setValue('SUC_target_script_name', script_name);
+                                gm.setValue('SUC_remote_version', remote_version);
+                                gm.setValue('DEV_remote_version', dev_version);
+                                global.log(1, 'remote version ', remote_version, dev_version);
+                                if (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) {
+                                    global.newVersionAvailable = true;
+                                    if (forced) {
+                                        if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                        }
+                                    }
+                                } else if (forced) {
+                                    alert('No update is available for "' + script_name + '."');
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        if (forced) {
+                            alert('An error occurred while checking for updates:\n' + err);
+                        }
+                    }
+                }
+            }
+
+            GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+                updateCheck(true);
+            });
+
+            updateCheck(false);
+        } catch (err) {
+            global.error("ERROR in development updater: " + err);
+        }
     },
 
     hashStr: [
@@ -1918,6 +2031,8 @@ general = {
                 });
 
                 if (save) {
+                    caap.stats.generals.total = this.RecordArray.length;
+                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length)
                     gm.setJValue('AllGeneralsJSON', this.RecordArray);
                     this.RecordArraySortable = [];
                     $.merge(this.RecordArraySortable, this.RecordArray);
@@ -3760,9 +3875,16 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td>" +
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-            if (global.newVersionAvailable) {
-                htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+            if (isRelease) {
+                htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+                if (global.newVersionAvailable) {
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+                }
+            } else {
+                htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
+                if (global.newVersionAvailable) {
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + " d" + gm.getValue('DEV_remote_version')  + "!</a>";
+                }
             }
 
             return htmlCode;
@@ -4353,21 +4475,21 @@ caap = {
             html += "<tr>";
             html += this.makeTd({text: 'Character Name', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.stats.PlayerName, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Energy', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Energy', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.stats.energy.num + '/' + this.stats.energy.max, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
             html += this.makeTd({text: 'Level', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.stats.level, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Stamina', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Stamina', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.stats.stamina.num + '/' + this.stats.stamina.max, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
             html += this.makeTd({text: 'Battle Rank', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.battleRankTable[this.stats.rank.battle] + ' (' + this.stats.rank.battle + ')', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.makeCommaValue(this.stats.attack), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
@@ -4381,7 +4503,7 @@ caap = {
             html += "<tr>";
             html += this.makeTd({text: 'War Rank', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.warRankTable[this.stats.rank.war] + ' (' + this.stats.rank.war + ')', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Health', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: 'Health', color: titleCol, id: '', title: 'Current/Max'});
             html += this.makeTd({text: this.stats.health.num + '/' + this.stats.health.max, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
@@ -4390,6 +4512,20 @@ caap = {
             html += this.makeTd({text: this.makeCommaValue(this.stats.rank.warPoints), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Army', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.army.actual), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Generals', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.stats.generals.total, color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Generals When Invade', color: titleCol, id: '', title: 'For every 5 army members you have, one of your generals will also join the fight.'});
+            html += this.makeTd({text: this.stats.generals.invade, color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
@@ -5938,6 +6074,10 @@ caap = {
             actual : 0,
             capped : 0
         },
+        generals   : {
+            total  : 0,
+            invade : 0
+        },
         attack     : 0,
         defense    : 0,
         points     : {
@@ -7101,18 +7241,19 @@ caap = {
                     continue;
                 }
 
-                var moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"));
-                if (moneyM && moneyM.length === 3) {
-                    var rewardLow  = this.NumberOnly(moneyM[1]),
-                        rewardHigh = this.NumberOnly(moneyM[2]);
+                var moneyM     = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i")),
+                    rewardLow  = 0,
+                    rewardHigh = 0;
 
+                if (moneyM && moneyM.length === 3) {
+                    rewardLow  = this.NumberOnly(moneyM[1]);
+                    rewardHigh = this.NumberOnly(moneyM[2]);
                     reward = (rewardLow + rewardHigh) / 2;
                 } else {
                     moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"));
                     if (moneyM && moneyM.length === 3) {
-                        var rewardLow  = this.NumberOnly(moneyM[1]) * 1000000,
-                            rewardHigh = this.NumberOnly(moneyM[2]) * 1000000;
-
+                        rewardLow  = this.NumberOnly(moneyM[1]) * 1000000;
+                        rewardHigh = this.NumberOnly(moneyM[2]) * 1000000;
                         reward = (rewardLow + rewardHigh) / 2;
                     } else {
                         global.log(1, 'No money found for', this.questName, divTxt);
@@ -9633,7 +9774,7 @@ caap = {
 
                         // Character type stuff
                         var bottomDiv  = null,
-                            tempText   = '';
+                            tempText   = '',
                             tempArr    = [],
                             character  = '',
                             tip        = '',
@@ -13774,56 +13915,10 @@ if (gm.getValue('SetTitle')) {
 /////////////////////////////////////////////////////////////////////
 
 if (!global.is_chrome) {
-    try {
-        if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
-            global.newVersionAvailable = true;
-        }
-
-        // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
-
-        function updateCheck(forced) {
-            if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
-                try {
-                    GM_xmlhttpRequest({
-                        method: 'GET',
-                        url: 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
-                        headers: {'Cache-Control': 'no-cache'},
-                        onload: function (resp) {
-                            var rt             = resp.responseText,
-                                remote_version = (new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt))[1],
-                                script_name    = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
-
-                            gm.setValue('SUC_last_update', new Date().getTime() + '');
-                            gm.setValue('SUC_target_script_name', script_name);
-                            gm.setValue('SUC_remote_version', remote_version);
-                            global.log(1, 'remote version ' + remote_version);
-                            if (remote_version > caapVersion) {
-                                global.newVersionAvailable = true;
-                                if (forced) {
-                                    if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                        GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
-                                    }
-                                }
-                            } else if (forced) {
-                                alert('No update is available for "' + script_name + '."');
-                            }
-                        }
-                    });
-                } catch (err) {
-                    if (forced) {
-                        alert('An error occurred while checking for updates:\n' + err);
-                    }
-                }
-            }
-        }
-
-        GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
-            updateCheck(true);
-        });
-
-        updateCheck(false);
-    } catch (err) {
-        global.error("ERROR in cloutman.com updater: " + err);
+    if (isRelease) {
+        global.releaseUpdate();
+    } else {
+        global.devUpdate();
     }
 }
 

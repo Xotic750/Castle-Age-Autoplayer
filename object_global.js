@@ -122,6 +122,116 @@ global = {
         }, 1000 * 60 * reloadMin + (reloadMin * 60 * 1000 * Math.random()));
     },
 
+    releaseUpdate: function () {
+        try {
+            if (gm.getValue('SUC_remote_version', 0) > caapVersion) {
+                global.newVersionAvailable = true;
+            }
+
+            // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
+
+            function updateCheck(forced) {
+                if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
+                    try {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onload: function (resp) {
+                                var rt             = resp.responseText,
+                                    remote_version = (new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                    script_name    = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
+
+                                gm.setValue('SUC_last_update', new Date().getTime() + '');
+                                gm.setValue('SUC_target_script_name', script_name);
+                                gm.setValue('SUC_remote_version', remote_version);
+                                global.log(1, 'remote version ', remote_version);
+                                if (remote_version > caapVersion) {
+                                    global.newVersionAvailable = true;
+                                    if (forced) {
+                                        if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                        }
+                                    }
+                                } else if (forced) {
+                                    alert('No update is available for "' + script_name + '."');
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        if (forced) {
+                            alert('An error occurred while checking for updates:\n' + err);
+                        }
+                    }
+                }
+            }
+
+            GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+                updateCheck(true);
+            });
+
+            updateCheck(false);
+        } catch (err) {
+            global.error("ERROR in release updater: " + err);
+        }
+    },
+
+    devUpdate: function () {
+        try {
+            if (gm.getValue('SUC_remote_version', 0) > caapVersion || (gm.getValue('SUC_remote_version', 0) >= caapVersion && gm.getValue('DEV_remote_version', 0) > devVersion)) {
+                global.newVersionAvailable = true;
+            }
+
+            // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
+
+            function updateCheck(forced) {
+                if ((forced) || (parseInt(gm.getValue('SUC_last_update', '0'), 10) + (86400000 * 1) <= (new Date().getTime()))) {
+                    try {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onload: function (resp) {
+                                var rt             = resp.responseText,
+                                    remote_version = (new RegExp("@version\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                    dev_version    = (new RegExp("@dev\\s*(.*?)\\s*$", "m").exec(rt))[1],
+                                    script_name    = (new RegExp("@name\\s*(.*?)\\s*$", "m").exec(rt))[1];
+
+                                gm.setValue('SUC_last_update', new Date().getTime() + '');
+                                gm.setValue('SUC_target_script_name', script_name);
+                                gm.setValue('SUC_remote_version', remote_version);
+                                gm.setValue('DEV_remote_version', dev_version);
+                                global.log(1, 'remote version ', remote_version, dev_version);
+                                if (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) {
+                                    global.newVersionAvailable = true;
+                                    if (forced) {
+                                        if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                        }
+                                    }
+                                } else if (forced) {
+                                    alert('No update is available for "' + script_name + '."');
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        if (forced) {
+                            alert('An error occurred while checking for updates:\n' + err);
+                        }
+                    }
+                }
+            }
+
+            GM_registerMenuCommand(gm.getValue('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+                updateCheck(true);
+            });
+
+            updateCheck(false);
+        } catch (err) {
+            global.error("ERROR in development updater: " + err);
+        }
+    },
+
     hashStr: [
         '41030325072',
         '4200014995461306',
