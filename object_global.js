@@ -206,7 +206,7 @@ global = {
                                     global.newVersionAvailable = true;
                                     if (forced) {
                                         if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                            GM_openInTab('http://code.google.com/p/castle-age-auto-player/updates/list');
                                         }
                                     }
                                 } else if (forced) {

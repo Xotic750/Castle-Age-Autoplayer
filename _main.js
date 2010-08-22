@@ -65,7 +65,7 @@ if (gm.getValue('SetTitle')) {
 /////////////////////////////////////////////////////////////////////
 
 if (!global.is_chrome) {
-    if (isRelease) {
+    if (!devVersion) {
         global.releaseUpdate();
     } else {
         global.devUpdate();

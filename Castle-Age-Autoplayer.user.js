@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            1
+// @dev            4
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,8 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    isRelease   = false,
-    devVersion  = "1";
+    devVersion  = "4";
 
 ///////////////////////////
 //       Prototypes
@@ -946,7 +945,7 @@ global = {
                                     global.newVersionAvailable = true;
                                     if (forced) {
                                         if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                            GM_openInTab('http://code.google.com/p/castle-age-auto-player/updates/list');
                                         }
                                     }
                                 } else if (forced) {
@@ -2032,7 +2031,7 @@ general = {
 
                 if (save) {
                     caap.stats.generals.total = this.RecordArray.length;
-                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length)
+                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length);
                     gm.setJValue('AllGeneralsJSON', this.RecordArray);
                     this.RecordArraySortable = [];
                     $.merge(this.RecordArraySortable, this.RecordArray);
@@ -3875,7 +3874,7 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td>" +
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
-            if (isRelease) {
+            if (!devVersion) {
                 htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
                 if (global.newVersionAvailable) {
                     htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
@@ -13915,7 +13914,7 @@ if (gm.getValue('SetTitle')) {
 /////////////////////////////////////////////////////////////////////
 
 if (!global.is_chrome) {
-    if (isRelease) {
+    if (!devVersion) {
         global.releaseUpdate();
     } else {
         global.devUpdate();

@@ -459,7 +459,7 @@ general = {
 
                 if (save) {
                     caap.stats.generals.total = this.RecordArray.length;
-                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length)
+                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length);
                     gm.setJValue('AllGeneralsJSON', this.RecordArray);
                     this.RecordArraySortable = [];
                     $.merge(this.RecordArraySortable, this.RecordArray);

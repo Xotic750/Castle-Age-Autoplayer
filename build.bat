@@ -18,14 +18,19 @@ type object_caap.js >>_normal.user.js 2>nul
 type _main.js >>_normal.user.js 2>nul
 
 rem ----------------------------------------------------------------------
-rem INSTALLED VERSION - Means you only need to hit F5 / refresh in Firefox
-rem Just change the path to your firefox installed version, only the '???' should need changing on Windows7
+rem INSTALLED VERSION
 
-echo Installing new version to Firefox
+echo Creating Firefox and Chrome versions
 copy _normal.user.js Castle-Age-Autoplayer.user.js >nul
 copy Castle-Age-Autoplayer.user.js Chrome/Castle-Age-Autoplayer.user.js >nul
 copy README Chrome/README >nul
-del /F /Q _normal.user.js
+
+if EXIST "build\Chrome.pem" (
+    echo Creating Chrome extension...
+    chrome.exe --no-message-box --pack-extension="Chrome" --pack-extension-key="build\Chrome.pem"
+) ELSE (
+    echo Would create packed Chrome extension, but you are missing Chrome.pem file
+)
 
 rem --------------------------------------------------------------------------------------
 rem MINIMISED VERSION - This will fail on errors so use is advised - required for release!
