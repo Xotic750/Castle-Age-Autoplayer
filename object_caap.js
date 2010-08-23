@@ -1929,7 +1929,7 @@ caap = {
             global.log(9, "Updating Dashboard");
             this.UpdateDashboardWaitLog = true;
             html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
+            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase',/* 'Class', 'ClassAtk',*/ 'Link', '&nbsp;', '&nbsp;'];
             for (pp in headers) {
                 if (headers.hasOwnProperty(pp)) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
@@ -3417,8 +3417,9 @@ caap = {
             $('#app46755028429_globalContainer').bind('DOMNodeInserted', function (event) {
                 var targetStr = event.target.id.replace('app46755028429_', '');
                 // Uncomment this to see the id of domNodes that are inserted
+
                 /*
-                if (event.target.id && !event.target.id.match(/time/)) {
+                if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/)) {
                     caap.SetDivContent('debug2_mess', targetStr);
                     alert(event.target.id);
                 }
@@ -3434,6 +3435,11 @@ caap = {
                     window.setTimeout(function () {
                         caap.CheckResults();
                     }, 100);
+                }
+
+                // Equipped General
+                if (targetStr === "generals" || targetStr === "quests") {
+                    general.GetEquippedStats();
                 }
 
                 // Income timer
@@ -6475,7 +6481,7 @@ caap = {
 
     CheckKeep: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.keep, (60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.keep, (gm.getNumber("CheckKeep", 1) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6489,7 +6495,7 @@ caap = {
 
     CheckOracle: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.oracle, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.oracle, (gm.getNumber("CheckOracle", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6503,7 +6509,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.battlerank, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.battlerank, (gm.getNumber("CheckBattleRank", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6517,7 +6523,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.warrank, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.warrank, (gm.getNumber("CheckWarRank", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6531,7 +6537,7 @@ caap = {
 
     CheckGenerals: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.generals, (60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.generals, (gm.getNumber("CheckGenerals", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6545,7 +6551,7 @@ caap = {
 
     CheckAchievements: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.achievements, (24 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.achievements, (gm.getNumber("CheckAchievements", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -6559,7 +6565,7 @@ caap = {
 
     CheckSymbolQuests: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.symbolquests, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.symbolquests, (gm.getNumber("CheckSymbolQuests", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -7547,10 +7553,16 @@ caap = {
                             tempArr    = [],
                             character  = '',
                             tip        = '',
+                            stun       = 0,
                             doCharAtk  = false,
-                            statusTime = '';
+                            statusTime = {
+                                hours  : 0,
+                                mins   : 0,
+                                secs   : 0,
+                                totMil : 0
+                            };
 
-                        bottomDiv = $("div[style*='nm_bottom.jpg']");
+                        bottomDiv = $("div[style*='nm_bottom']");
                         if (bottomDiv && bottomDiv.length) {
                             tempText = $.trim(bottomDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
                             if (tempText) {
@@ -7571,19 +7583,44 @@ caap = {
                                     global.log(1, "Can't get tip", tempArr);
                                 }
 
-                                tempArr = tempText.match(/Status Time Remaining: ([\w:]+)\s*/);
-                                if (tempArr && tempArr.length === 2) {
-                                    statusTime = tempArr[1];
+                                tempArr = tempText.match(/Status Time Remaining: ([0-9]+):([0-9]+):([0-9]+)\s*/);
+                                if (tempArr && tempArr.length === 4) {
+                                    statusTime.hours = tempArr[1];
+                                    statusTime.mins = tempArr[2];
+                                    statusTime.secs = tempArr[3];
+                                    statusTime.totMil = (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
                                     global.log(1, "statusTime", statusTime);
                                 } else {
                                     global.log(1, "Can't get statusTime", tempArr);
                                 }
 
-                                if (character && tip) {
-                                    doCharAtk = new RegExp(character).test(tip);
-                                    global.log(1, "Do character specific attack", doCharAtk);
+                                tempDiv = bottomDiv.find("img[src*='nm_stun_bar']");
+                                if (tempDiv && tempDiv.length) {
+                                    tempText = tempDiv.css('width');
+                                    global.log(2, "tempText", tempText);
+                                    if (tempText) {
+                                        stun = this.NumberOnly(tempText);
+                                        global.log(1, "stun", stun);
+                                    } else {
+                                        stun = null;
+                                        global.log(1, "Can't get stun bar width");
+                                    }
                                 } else {
-                                    global.log(1, "Missing 'character' or 'tip'", character, tip);
+                                    global.log(1, "Can't get stun bar");
+                                }
+
+                                if (character && tip && stun !== null) {
+                                    doCharAtk = new RegExp(character).test(tip) && stun < 100;
+                                    gm.setListObjVal('monsterOl', monster, 'Class', character);
+                                    gm.setListObjVal('monsterOl', monster, 'ClassAtk', doCharAtk);
+                                    global.log(1, "Do character specific attack", doCharAtk);
+                                    if (doCharAtk && tempArr && tempArr.length === 4) {
+                                        gm.setListObjVal('monsterOl', monster, 'Defer', 0);
+                                    } else {
+                                        gm.setListObjVal('monsterOl', monster, 'Defer', new Date().getTime() + statusTime.totMil);
+                                    }
+                                } else {
+                                    global.log(1, "Missing 'character', 'tip' or 'stun'", character, tip, stun);
                                 }
                             } else {
                                 global.log(1, "Missing tempText");

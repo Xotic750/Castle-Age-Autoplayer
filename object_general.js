@@ -491,7 +491,7 @@ general = {
             caap.ChangeDropDownList('BuyGeneral', this.BuyList, gm.getValue('BuyGeneral', 'Use Current'));
             caap.ChangeDropDownList('IncomeGeneral', this.IncomeList, gm.getValue('IncomeGeneral', 'Use Current'));
             caap.ChangeDropDownList('BankingGeneral', this.BankingList, gm.getValue('BankingGeneral', 'Use Current'));
-            caap.ChangeDropDownList('CollectGeneral', this.BankingList, gm.getValue('CollectGeneral', 'Use Current'));
+            caap.ChangeDropDownList('CollectGeneral', this.CollectList, gm.getValue('CollectGeneral', 'Use Current'));
             caap.ChangeDropDownList('LevelUpGeneral', this.List, gm.getValue('LevelUpGeneral', 'Use Current'));
             return true;
         } catch (err) {
@@ -579,42 +579,29 @@ general = {
         }
     },
 
-    GetAllStats: function () {
+    GetEquippedStats: function () {
         try {
-            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (12 * 60 * 60) + (5 * 60))) {
-                return false;
-            }
-
-            var generalImage = '',
+            var generalName  = '',
                 it           = 0,
                 generalDiv   = null,
                 tempObj      = null,
                 success      = false;
 
+            generalName = this.GetCurrent();
+            if (generalName === 'Use Current') {
+                return false;
+            }
+
+            global.log(1, "Equipped 'General'", generalName);
             for (it = 0; it < this.RecordArray.length; it += 1) {
-                if (caap.WhileSinceDidIt(this.RecordArray[it].last, (60 * 60))) {
+                if (this.RecordArray[it].name === generalName) {
                     break;
                 }
             }
 
-            if (it === this.RecordArray.length) {
-                caap.last.allGenerals = new Date().getTime();
-                caap.SaveStats();
-                global.log(9, "Finished visiting all Generals for their stats");
+            if (it >= this.RecordArray.length) {
+                global.log(1, "Unable to find 'General' record");
                 return false;
-            }
-
-            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
-                global.log(1, "Visiting generals to get 'General' stats");
-                return true;
-            }
-
-            generalImage = this.GetImage(this.RecordArray[it].name);
-            if (caap.CheckForImage(generalImage)) {
-                if (this.GetCurrent().replace('**', '') !== this.RecordArray[it].name) {
-                    global.log(1, "Visiting 'General'", this.RecordArray[it].name);
-                    return caap.NavigateTo(generalImage);
-                }
             }
 
             generalDiv = $("#app46755028429_equippedGeneralContainer .generals_indv_stats div");
@@ -646,7 +633,52 @@ general = {
                     global.log(1, "Unable to get 'General' stats");
                 }
             } else {
-                global.log(1, "Unable to get equipped 'General' divs");
+                global.log(1, "Unable to get equipped 'General' divs", generalDiv);
+            }
+
+            return success;
+        } catch (err) {
+            global.error("ERROR in GetAllStats: " + err);
+            return false;
+        }
+    },
+
+    GetAllStats: function () {
+        try {
+            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + (5 * 60))) {
+                return false;
+            }
+
+            var generalImage = '',
+                it           = 0,
+                generalDiv   = null,
+                tempObj      = null,
+                success      = false;
+
+            for (it = 0; it < this.RecordArray.length; it += 1) {
+                if (caap.WhileSinceDidIt(this.RecordArray[it].last, (3 * 60 * 60))) {
+                    break;
+                }
+            }
+
+            if (it === this.RecordArray.length) {
+                caap.last.allGenerals = new Date().getTime();
+                caap.SaveStats();
+                global.log(9, "Finished visiting all Generals for their stats");
+                return false;
+            }
+
+            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+                global.log(1, "Visiting generals to get 'General' stats");
+                return true;
+            }
+
+            generalImage = this.GetImage(this.RecordArray[it].name);
+            if (caap.CheckForImage(generalImage)) {
+                if (this.GetCurrent().replace('**', '') !== this.RecordArray[it].name) {
+                    global.log(1, "Visiting 'General'", this.RecordArray[it].name);
+                    return caap.NavigateTo(generalImage);
+                }
             }
 
             return true;

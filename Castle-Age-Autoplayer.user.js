@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            4
+// @dev            5
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "4";
+    devVersion  = "5";
 
 ///////////////////////////
 //       Prototypes
@@ -2063,7 +2063,7 @@ general = {
             caap.ChangeDropDownList('BuyGeneral', this.BuyList, gm.getValue('BuyGeneral', 'Use Current'));
             caap.ChangeDropDownList('IncomeGeneral', this.IncomeList, gm.getValue('IncomeGeneral', 'Use Current'));
             caap.ChangeDropDownList('BankingGeneral', this.BankingList, gm.getValue('BankingGeneral', 'Use Current'));
-            caap.ChangeDropDownList('CollectGeneral', this.BankingList, gm.getValue('CollectGeneral', 'Use Current'));
+            caap.ChangeDropDownList('CollectGeneral', this.CollectList, gm.getValue('CollectGeneral', 'Use Current'));
             caap.ChangeDropDownList('LevelUpGeneral', this.List, gm.getValue('LevelUpGeneral', 'Use Current'));
             return true;
         } catch (err) {
@@ -2151,42 +2151,29 @@ general = {
         }
     },
 
-    GetAllStats: function () {
+    GetEquippedStats: function () {
         try {
-            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (12 * 60 * 60) + (5 * 60))) {
-                return false;
-            }
-
-            var generalImage = '',
+            var generalName  = '',
                 it           = 0,
                 generalDiv   = null,
                 tempObj      = null,
                 success      = false;
 
+            generalName = this.GetCurrent();
+            if (generalName === 'Use Current') {
+                return false;
+            }
+
+            global.log(1, "Equipped 'General'", generalName);
             for (it = 0; it < this.RecordArray.length; it += 1) {
-                if (caap.WhileSinceDidIt(this.RecordArray[it].last, (60 * 60))) {
+                if (this.RecordArray[it].name === generalName) {
                     break;
                 }
             }
 
-            if (it === this.RecordArray.length) {
-                caap.last.allGenerals = new Date().getTime();
-                caap.SaveStats();
-                global.log(9, "Finished visiting all Generals for their stats");
+            if (it >= this.RecordArray.length) {
+                global.log(1, "Unable to find 'General' record");
                 return false;
-            }
-
-            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
-                global.log(1, "Visiting generals to get 'General' stats");
-                return true;
-            }
-
-            generalImage = this.GetImage(this.RecordArray[it].name);
-            if (caap.CheckForImage(generalImage)) {
-                if (this.GetCurrent().replace('**', '') !== this.RecordArray[it].name) {
-                    global.log(1, "Visiting 'General'", this.RecordArray[it].name);
-                    return caap.NavigateTo(generalImage);
-                }
             }
 
             generalDiv = $("#app46755028429_equippedGeneralContainer .generals_indv_stats div");
@@ -2218,7 +2205,52 @@ general = {
                     global.log(1, "Unable to get 'General' stats");
                 }
             } else {
-                global.log(1, "Unable to get equipped 'General' divs");
+                global.log(1, "Unable to get equipped 'General' divs", generalDiv);
+            }
+
+            return success;
+        } catch (err) {
+            global.error("ERROR in GetAllStats: " + err);
+            return false;
+        }
+    },
+
+    GetAllStats: function () {
+        try {
+            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + (5 * 60))) {
+                return false;
+            }
+
+            var generalImage = '',
+                it           = 0,
+                generalDiv   = null,
+                tempObj      = null,
+                success      = false;
+
+            for (it = 0; it < this.RecordArray.length; it += 1) {
+                if (caap.WhileSinceDidIt(this.RecordArray[it].last, (3 * 60 * 60))) {
+                    break;
+                }
+            }
+
+            if (it === this.RecordArray.length) {
+                caap.last.allGenerals = new Date().getTime();
+                caap.SaveStats();
+                global.log(9, "Finished visiting all Generals for their stats");
+                return false;
+            }
+
+            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+                global.log(1, "Visiting generals to get 'General' stats");
+                return true;
+            }
+
+            generalImage = this.GetImage(this.RecordArray[it].name);
+            if (caap.CheckForImage(generalImage)) {
+                if (this.GetCurrent().replace('**', '') !== this.RecordArray[it].name) {
+                    global.log(1, "Visiting 'General'", this.RecordArray[it].name);
+                    return caap.NavigateTo(generalImage);
+                }
             }
 
             return true;
@@ -4159,7 +4191,7 @@ caap = {
             global.log(9, "Updating Dashboard");
             this.UpdateDashboardWaitLog = true;
             html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
+            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase',/* 'Class', 'ClassAtk',*/ 'Link', '&nbsp;', '&nbsp;'];
             for (pp in headers) {
                 if (headers.hasOwnProperty(pp)) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
@@ -5647,8 +5679,9 @@ caap = {
             $('#app46755028429_globalContainer').bind('DOMNodeInserted', function (event) {
                 var targetStr = event.target.id.replace('app46755028429_', '');
                 // Uncomment this to see the id of domNodes that are inserted
+
                 /*
-                if (event.target.id && !event.target.id.match(/time/)) {
+                if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/)) {
                     caap.SetDivContent('debug2_mess', targetStr);
                     alert(event.target.id);
                 }
@@ -5664,6 +5697,11 @@ caap = {
                     window.setTimeout(function () {
                         caap.CheckResults();
                     }, 100);
+                }
+
+                // Equipped General
+                if (targetStr === "generals" || targetStr === "quests") {
+                    general.GetEquippedStats();
                 }
 
                 // Income timer
@@ -8705,7 +8743,7 @@ caap = {
 
     CheckKeep: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.keep, (60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.keep, (gm.getNumber("CheckKeep", 1) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8719,7 +8757,7 @@ caap = {
 
     CheckOracle: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.oracle, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.oracle, (gm.getNumber("CheckOracle", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8733,7 +8771,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.battlerank, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.battlerank, (gm.getNumber("CheckBattleRank", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8747,7 +8785,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.warrank, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.warrank, (gm.getNumber("CheckWarRank", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8761,7 +8799,7 @@ caap = {
 
     CheckGenerals: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.generals, (60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.generals, (gm.getNumber("CheckGenerals", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8775,7 +8813,7 @@ caap = {
 
     CheckAchievements: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.achievements, (24 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.achievements, (gm.getNumber("CheckAchievements", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -8789,7 +8827,7 @@ caap = {
 
     CheckSymbolQuests: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.symbolquests, (12 * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.symbolquests, (gm.getNumber("CheckSymbolQuests", 24) * 60 * 60) + (5 * 60))) {
                 return false;
             }
 
@@ -9777,10 +9815,16 @@ caap = {
                             tempArr    = [],
                             character  = '',
                             tip        = '',
+                            stun       = 0,
                             doCharAtk  = false,
-                            statusTime = '';
+                            statusTime = {
+                                hours  : 0,
+                                mins   : 0,
+                                secs   : 0,
+                                totMil : 0
+                            };
 
-                        bottomDiv = $("div[style*='nm_bottom.jpg']");
+                        bottomDiv = $("div[style*='nm_bottom']");
                         if (bottomDiv && bottomDiv.length) {
                             tempText = $.trim(bottomDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
                             if (tempText) {
@@ -9801,19 +9845,44 @@ caap = {
                                     global.log(1, "Can't get tip", tempArr);
                                 }
 
-                                tempArr = tempText.match(/Status Time Remaining: ([\w:]+)\s*/);
-                                if (tempArr && tempArr.length === 2) {
-                                    statusTime = tempArr[1];
+                                tempArr = tempText.match(/Status Time Remaining: ([0-9]+):([0-9]+):([0-9]+)\s*/);
+                                if (tempArr && tempArr.length === 4) {
+                                    statusTime.hours = tempArr[1];
+                                    statusTime.mins = tempArr[2];
+                                    statusTime.secs = tempArr[3];
+                                    statusTime.totMil = (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
                                     global.log(1, "statusTime", statusTime);
                                 } else {
                                     global.log(1, "Can't get statusTime", tempArr);
                                 }
 
-                                if (character && tip) {
-                                    doCharAtk = new RegExp(character).test(tip);
-                                    global.log(1, "Do character specific attack", doCharAtk);
+                                tempDiv = bottomDiv.find("img[src*='nm_stun_bar']");
+                                if (tempDiv && tempDiv.length) {
+                                    tempText = tempDiv.css('width');
+                                    global.log(2, "tempText", tempText);
+                                    if (tempText) {
+                                        stun = this.NumberOnly(tempText);
+                                        global.log(1, "stun", stun);
+                                    } else {
+                                        stun = null;
+                                        global.log(1, "Can't get stun bar width");
+                                    }
                                 } else {
-                                    global.log(1, "Missing 'character' or 'tip'", character, tip);
+                                    global.log(1, "Can't get stun bar");
+                                }
+
+                                if (character && tip && stun !== null) {
+                                    doCharAtk = new RegExp(character).test(tip) && stun < 100;
+                                    gm.setListObjVal('monsterOl', monster, 'Class', character);
+                                    gm.setListObjVal('monsterOl', monster, 'ClassAtk', doCharAtk);
+                                    global.log(1, "Do character specific attack", doCharAtk);
+                                    if (doCharAtk && tempArr && tempArr.length === 4) {
+                                        gm.setListObjVal('monsterOl', monster, 'Defer', 0);
+                                    } else {
+                                        gm.setListObjVal('monsterOl', monster, 'Defer', new Date().getTime() + statusTime.totMil);
+                                    }
+                                } else {
+                                    global.log(1, "Missing 'character', 'tip' or 'stun'", character, tip, stun);
                                 }
                             } else {
                                 global.log(1, "Missing tempText");
