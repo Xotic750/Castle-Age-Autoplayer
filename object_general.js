@@ -645,7 +645,7 @@ general = {
 
     GetAllStats: function () {
         try {
-            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + (5 * 60))) {
+            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 

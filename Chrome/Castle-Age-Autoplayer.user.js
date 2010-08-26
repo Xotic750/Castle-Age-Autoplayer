@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            5
+// @dev            6
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "5";
+    devVersion  = "6";
 
 ///////////////////////////
 //       Prototypes
@@ -2217,7 +2217,7 @@ general = {
 
     GetAllStats: function () {
         try {
-            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + (5 * 60))) {
+            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -2292,12 +2292,13 @@ caap = {
                 $(this.controlXY.selector).css('padding-top', shiftDown);
             }
 
+            this.LoadMonsters();
+            this.ReconRecordArray = gm.getJValue('reconJSON', []);
             this.AddControl();
             this.AddColorWheels();
             this.AddDashboard();
             this.AddListeners();
             this.AddDBListener();
-            this.ReconRecordArray = gm.getJValue('reconJSON', []);
             this.CheckResults();
             return true;
         } catch (err) {
@@ -4055,16 +4056,17 @@ caap = {
     // Display the current monsters and stats
     /////////////////////////////////////////////////////////////////////
     decHours2HoursMin : function (decHours) {
+        global.log(9, "decHours2HoursMin", decHours);
         var hours   = 0,
             minutes = 0;
 
         hours = Math.floor(decHours);
-        minutes = ((decHours - hours) * 60).toFixed(0);
+        minutes = parseInt((decHours - hours) * 60, 10);
         if (minutes < 10) {
             minutes = '0' + minutes;
         }
 
-        return hours + ':' + minutes;
+        return (hours + ':' + minutes);
     },
 
     makeCommaValue: function (nStr) {
@@ -4173,7 +4175,8 @@ caap = {
                 it                       = 0,
                 str                      = '',
                 header                   = {text: '', color: '', id: '', title: '', width: ''},
-                data                     = {text: '', color: '', id: '', title: ''};
+                data                     = {text: '', color: '', id: '', title: ''},
+                width                    = '';
 
             if ($('#caap_top').length === 0) {
                 throw "We are missing the Dashboard div!";
@@ -4191,21 +4194,26 @@ caap = {
             global.log(9, "Updating Dashboard");
             this.UpdateDashboardWaitLog = true;
             html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'TimeLeft', 'T2K', 'Phase',/* 'Class', 'ClassAtk',*/ 'Link', '&nbsp;', '&nbsp;'];
+            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
+            values  = ['name', 'damage', 'life', 'fortify', 'strength', 'timeLeft', 't2k', 'phase', 'link'];
             for (pp in headers) {
                 if (headers.hasOwnProperty(pp)) {
-                    html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    width = '';
+                    if (headers[pp] === 'Name') {
+                        width = '30%';
+                    }
+
+                    html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: width});
                 }
             }
 
             html += '</tr>';
-            headers.shift();
-            monsterList = gm.getList('monsterOl');
+            values.shift();
             global.log(9, "monsterList", monsterList);
-            monsterList.forEach(function (monsterObj) {
-                global.log(9, "monsterObj", monsterObj.split(global.vs));
-                monster = monsterObj.split(global.vs)[0];
-                monstType = gm.getObjVal(monsterObj, 'Type', '');
+            this.monsterArray.forEach(function (monsterObj) {
+                global.log(9, "monsterObj", monsterObj);
+                monster = monsterObj.name;
+                monstType = monsterObj.type;
                 energyRequire = 10;
                 nodeNum = 0;
                 if (caap.monsterInfo[monstType]) {
@@ -4223,25 +4231,27 @@ caap = {
                     }
                 }
 
+                global.log(9, "Energy Required/Node", energyRequire, nodeNum);
                 color = '';
                 html += "<tr>";
-                if (monster === gm.getValue('targetFromfortify') && caap.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
+                //if (monster === gm.getValue('targetFromfortify') && caap.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
+                if (monster === gm.getValue('targetFromfortify')) {
                     color = 'blue';
                 } else if (monster === gm.getValue('targetFromraid') || monster === gm.getValue('targetFrombattle_monster')) {
                     color = 'green';
                 } else {
-                    color = gm.getObjVal(monsterObj, 'color', 'black');
+                    color = monsterObj.color;
                 }
 
                 achLevel = 0;
                 maxDamage = 0;
-                monsterConditions = gm.getObjVal(monsterObj, 'conditions', '');
+                monsterConditions = monsterObj.conditions;
                 if (monsterConditions) {
                     achLevel = caap.parseCondition('ach', monsterConditions);
                     maxDamage = caap.parseCondition('max', monsterConditions);
                 }
 
-                monsterObjLink = gm.getObjVal(monsterObj, 'Link', '');
+                monsterObjLink = monsterObj.link;
                 global.log(9, "monsterObjLink", monsterObjLink);
                 if (monsterObjLink) {
                     visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
@@ -4260,21 +4270,22 @@ caap = {
                     html += caap.makeTd({text: monster, color: color, id: '', title: ''});
                 }
 
-                headers.forEach(function (displayItem) {
-                    global.log(9, ' displayItem ', displayItem, ' value ', gm.getObjVal(monsterObj, displayItem));
+                values.forEach(function (displayItem) {
+                    global.log(9, 'displayItem/value ', displayItem, monsterObj[displayItem]);
                     id = "caap_" + displayItem + "_" + count;
                     title = '';
-                    if (displayItem === 'Phase' && color === 'grey') {
-                        html += caap.makeTd({text: gm.getObjVal(monsterObj, 'status'), color: color, id: '', title: ''});
+                    if (displayItem === 'phase' && color === 'grey') {
+                        html += caap.makeTd({text: monsterObj.status, color: color, id: '', title: ''});
                     } else {
-                        value = gm.getObjVal(monsterObj, displayItem);
-                        if (value && !(displayItem === 'Fort%' && value === 101)) {
-                            if (parseInt(value, 10).toString() === value) {
+                        value = monsterObj[displayItem];
+                        if ((value !== '' && value >= 0) || (value !== '' && isNaN(value))) {
+                            if (parseInt(value, 10) === value && value > 999) {
+                                global.log(9, 'makeCommaValue ', value);
                                 value = caap.makeCommaValue(value);
                             }
 
                             switch (displayItem) {
-                            case 'Damage' :
+                            case 'damage' :
                                 if (achLevel) {
                                     title = "User Set Monster Achievement: " + caap.makeCommaValue(achLevel);
                                 } else if (gm.getValue('AchievementMode', false)) {
@@ -4290,20 +4301,28 @@ caap = {
                                 }
 
                                 break;
-                            case 'TimeLeft' :
+                            case 'timeLeft' :
                                 if (caap.monsterInfo[monstType]) {
                                     title = "Total Monster Duration: " + caap.monsterInfo[monstType].duration + " hours";
                                 }
 
                                 break;
-                            case 'T2K' :
-                                value = caap.decHours2HoursMin(parseFloat(value));
-                                title = "Estimated Time To Kill: " + value + " hours";
+                            case 't2k' :
+                                value = caap.decHours2HoursMin(value);
+                                title = "Estimated Time To Kill: " + value + " hours:mins";
+                                break;
+                            case 'life' :
+                                value = value.toFixed(2);
+                                title = "Percentage of monster life remaining: " + value + "%";
+                                break;
+                            case 'fortify' :
+                                value = value.toFixed(2);
+                                title = "Percentage of monster defense: " + value + "%";
                                 break;
                             default :
                             }
 
-                            html += caap.makeTd({text: value + (displayItem.match(/%/) ? '%' : ''), color: color, id: id, title: title});
+                            html += caap.makeTd({text: value, color: color, id: id, title: title});
                         } else {
                             html += caap.makeTd({text: '', color: color, id: '', title: ''});
                         }
@@ -4391,7 +4410,7 @@ caap = {
                 global.log(9, 'monsterRemove', monsterRemove);
                 resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
                 if (resp === true) {
-                    gm.deleteListObj('monsterOl', monsterRemove.mname);
+                    caap.delMonsterRecord(monsterRemove.mname);
                     caap.UpdateDashboard(true);
                     if (gm.getValue('clickUrl', '').indexOf(monsterRemove.arlink) < 0) {
                         gm.setValue('clickUrl', monsterRemove.rlink);
@@ -4893,7 +4912,7 @@ caap = {
                         } else {
                             if (general.RecordArraySortable[it][values[pp]]) {
                                 if (/pi/.test(values[pp])) {
-                                    str = general.RecordArraySortable[it][values[pp]].toFixed(2).toString();
+                                    str = general.RecordArraySortable[it][values[pp]].toFixed(2);
                                 } else {
                                     str = general.RecordArraySortable[it][values[pp]].toString();
                                 }
@@ -5031,10 +5050,14 @@ caap = {
     },
 
     refreshMonstersListener: function (e) {
-        gm.setValue('monsterReview', 0);
+        caap.monsterArray = [];
+        gm.deleteValue("monsterArray");
+        caap.last.monsterReview = 0;
+        caap.SaveLast();
         gm.setValue('monsterReviewCounter', -3);
         gm.setValue('NotargetFrombattle_monster', 0);
         gm.setValue('ReleaseControl', true);
+        caap.UpdateDashboard();
     },
 
     liveFeedButtonListener: function (e) {
@@ -5200,7 +5223,8 @@ caap = {
                 break;
             case "AchievementMode" :
                 global.log(9, "AchievementMode");
-                gm.setValue('monsterReview', 0);
+                caap.last.monsterReview = 1;
+                caap.SaveLast();
                 gm.setValue('monsterReviewCounter', -3);
                 break;
             default :
@@ -5243,6 +5267,10 @@ caap = {
                 }
             } else if (/AttrValue+/.test(idName)) {
                 caap.statsMatch = true;
+            } else if (/MaxToFortify/.test(idName)) {
+                caap.last.monsterReview = 1;
+                caap.SaveLast();
+                gm.setValue('monsterReviewCounter', -3);
             } else if (/energyPotions+/.test(idName) || /staminaPotions+/.test(idName)) {
                 gm.deleteValue('AutoPotionTimer');
             }
@@ -5389,7 +5417,8 @@ caap = {
             var value = e.target.value;
             global.log(1, 'Change: setting "' + idName + '" to "' + value + '"');
             if (idName === 'orderbattle_monster' || idName === 'orderraid') {
-                gm.setValue('monsterReview', 0);
+                caap.last.monsterReview = 1;
+                caap.SaveLast();
                 gm.setValue('monsterReviewCounter', -3);
             }
 
@@ -6091,15 +6120,25 @@ caap = {
     },
 
     last: {
-        keep         : new Date(2009, 1, 1).getTime(),
-        oracle       : new Date(2009, 1, 1).getTime(),
-        battlerank   : new Date(2009, 1, 1).getTime(),
-        warrank      : new Date(2009, 1, 1).getTime(),
-        generals     : new Date(2009, 1, 1).getTime(),
-        allGenerals  : new Date(2009, 1, 1).getTime(),
-        achievements : new Date(2009, 1, 1).getTime(),
-        battle       : new Date(2009, 1, 1).getTime(),
-        symbolquests : new Date(2009, 1, 1).getTime()
+        keep          : new Date(2009, 1, 1).getTime(),
+        oracle        : new Date(2009, 1, 1).getTime(),
+        battlerank    : new Date(2009, 1, 1).getTime(),
+        warrank       : new Date(2009, 1, 1).getTime(),
+        generals      : new Date(2009, 1, 1).getTime(),
+        allGenerals   : new Date(2009, 1, 1).getTime(),
+        achievements  : new Date(2009, 1, 1).getTime(),
+        battle        : new Date(2009, 1, 1).getTime(),
+        symbolquests  : new Date(2009, 1, 1).getTime(),
+        monsterReview : new Date(2009, 1, 1).getTime(),
+        ajaxGiftCheck : new Date(2009, 1, 1).getTime()
+    },
+
+    LoadLast: function () {
+        $.extend(this.last, gm.getJValue('lastStats'));
+    },
+
+    SaveLast: function () {
+        gm.setJValue('lastStats', this.last);
     },
 
     stats: {
@@ -6221,14 +6260,14 @@ caap = {
 
     LoadStats: function () {
         $.extend(this.stats, gm.getJValue('userStats'));
-        $.extend(this.last, gm.getJValue('lastStats'));
         $.extend(this.demi, gm.getJValue('demiStats'));
+        this.LoadLast();
     },
 
     SaveStats: function () {
         gm.setJValue('userStats', this.stats);
-        gm.setJValue('lastStats', this.last);
         gm.setJValue('demiStats', this.demi);
+        this.SaveLast();
     },
 
     GetStats: function () {
@@ -6857,7 +6896,10 @@ caap = {
 
                 var targetFrombattle_monster = gm.getValue('targetFrombattle_monster', '');
                 if (!targetFrombattle_monster) {
-                    var targetFort = gm.getListObjVal('monsterOl', targetFrombattle_monster, 'ShipHealth');
+                    //var targetFort = gm.getListObjVal('monsterOl', targetFrombattle_monster, 'ShipHealth');
+                    var currentMonster = this.getMonsterRecord(targetFrombattle_monster);
+                    var targetFort = currentMonster.fortify;
+                    // need to check this - if (!targetFort) {
                     if (!targetFort) {
                         if (targetFort < maxHealthtoQuest) {
                             this.SetDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
@@ -8743,7 +8785,7 @@ caap = {
 
     CheckKeep: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.keep, (gm.getNumber("CheckKeep", 1) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.keep, (gm.getNumber("CheckKeep", 1) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -8757,7 +8799,7 @@ caap = {
 
     CheckOracle: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.oracle, (gm.getNumber("CheckOracle", 24) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.oracle, (gm.getNumber("CheckOracle", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -8771,7 +8813,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.battlerank, (gm.getNumber("CheckBattleRank", 24) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.battlerank, (gm.getNumber("CheckBattleRank", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -8785,7 +8827,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.warrank, (gm.getNumber("CheckWarRank", 24) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.warrank, (gm.getNumber("CheckWarRank", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -8799,7 +8841,7 @@ caap = {
 
     CheckGenerals: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.generals, (gm.getNumber("CheckGenerals", 24) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.generals, (gm.getNumber("CheckGenerals", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -8813,7 +8855,7 @@ caap = {
 
     CheckAchievements: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.achievements, (gm.getNumber("CheckAchievements", 24) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.achievements, (gm.getNumber("CheckAchievements", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -8827,7 +8869,7 @@ caap = {
 
     CheckSymbolQuests: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.symbolquests, (gm.getNumber("CheckSymbolQuests", 24) * 60 * 60) + (5 * 60))) {
+            if (!this.WhileSinceDidIt(this.last.symbolquests, (gm.getNumber("CheckSymbolQuests", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -9481,6 +9523,42 @@ caap = {
         }
     },
 
+    monsterArray: [],
+
+    monsterRecord: function () {
+        this.data = {
+            name       : '',
+            attacked   : -1,
+            defended   : -1,
+            damage     : -1,
+            life       : -1,
+            fortify    : -1,
+            timeLeft   : '',
+            t2k        : -1,
+            phase      : '',
+            link       : '',
+            rix        : -1,
+            page       : '',
+            color      : '',
+            review     : -1,
+            type       : '',
+            conditions : '',
+            charClass  : '',
+            strength   : -1,
+            stun       : -1,
+            stunTime   : -1,
+            tip        : ''
+        };
+    },
+
+    LoadMonsters: function () {
+        $.extend(this.monsterArray, gm.getJValue('monsterArray'));
+    },
+
+    SaveMonsters: function () {
+        gm.setJValue('monsterArray', this.monsterArray);
+    },
+
     monster: {},
 
     monsterEngageButtons: {},
@@ -9531,6 +9609,79 @@ caap = {
         }
     },
 
+    getMonsterRecord: function (name) {
+        var it        = 0,
+            success   = false,
+            newRecord = null;
+
+        for (it = 0; it < this.monsterArray.length; it += 1) {
+            if (this.monsterArray[it].name === name) {
+                success = true;
+                break;
+            }
+        }
+
+        if (success) {
+            global.log(3, "Got monster record", name, this.monsterArray[it]);
+            return this.monsterArray[it];
+        } else {
+            newRecord = new this.monsterRecord();
+            newRecord.data.name = name;
+            global.log(3, "New monster record", name, newRecord.data);
+            return newRecord.data;
+        }
+    },
+
+    delMonsterRecord: function (name) {
+        var it        = 0,
+            success   = false;
+
+        for (it = 0; it < this.monsterArray.length; it += 1) {
+            if (this.monsterArray[it].name === name) {
+                success = true;
+                break;
+            }
+        }
+
+        if (success) {
+            this.monsterArray.splice(it, 1);
+            this.SaveMonsters();
+            global.log(3, "Deleted monster record", name, this.monsterArray);
+            return true;
+        } else {
+            global.log(1, "Unable to delete monster record", name, this.monsterArray);
+            return false;
+        }
+    },
+
+    updateMonsterRecord: function (record) {
+        if (record && record.name) {
+            var it      = 0,
+                success = false;
+
+            for (it = 0; it < this.monsterArray.length; it += 1) {
+                if (this.monsterArray[it].name === record.name) {
+                    success = true;
+                    break;
+                }
+            }
+
+            if (success) {
+                this.monsterArray[it] = record;
+                global.log(3, "Updated monster record", record, this.monsterArray);
+            } else {
+                this.monsterArray.push(record);
+                global.log(3, "Added monster record", record, this.monsterArray);
+            }
+
+            this.SaveMonsters();
+            return true;
+        } else {
+            global.log(1, "updateMonsterRecord was not passed a record", record);
+            return false;
+        }
+    },
+
     CheckResults_fightList: function () {
         try {
             global.log(9, "CheckResults_fightList - get all buttons to check monsterObjectList");
@@ -9541,8 +9692,9 @@ caap = {
                 return false;
             }
 
-            var page = gm.getValue('page', 'battle_monster');
-            var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+            var page                  = gm.getValue('page', 'battle_monster'),
+                firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
                     firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
                 var pageUserCheck = gm.getValue('pageUserCheck', '');
@@ -9565,24 +9717,26 @@ caap = {
 
             global.log(9, "startCount", startCount);
             // Review monsters and find attack and fortify button
-            var monsterList = [];
+            var monsterReviewed = {};
             for (var s = startCount; s < ss.snapshotLength; s += 1) {
-                var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0];
-                var monsterRow = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode;
-                var monsterFull = $.trim(nHtml.GetText(monsterRow));
-                var monster = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
-                monsterList.push(monster);
+                var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0],
+                    monsterRow       = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode,
+                    monsterFull      = $.trim(nHtml.GetText(monsterRow)),
+                    monster          = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
+
                 // Make links for easy clickin'
                 var url = ss.snapshotItem(s).parentNode.href;
                 if (!(url && url.match(/user=/) && (url.match(/mpool=/) || url.match(/raid\.php/)))) {
                     continue;
                 }
 
-                gm.setListObjVal('monsterOl', monster, 'page', page);
+                global.log(5, "monster", monster);
+                monsterReviewed = this.getMonsterRecord(monster);
+                monsterReviewed.page = page;
                 switch (engageButtonName) {
                 case 'dragon_list_btn_2' :
-                    gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
-                    gm.setListObjVal('monsterOl', monster, 'color', 'grey');
+                    monsterReviewed.status = 'Collect Reward';
+                    monsterReviewed.color = 'grey';
                     break;
                 case 'dragon_list_btn_3' :
                     this.monsterEngageButtons[monster] = ss.snapshotItem(s);
@@ -9597,15 +9751,16 @@ caap = {
                         this.completeButton[page] = this.CheckForImage('cancelButton.gif', monsterRow);
                     }
 
-                    gm.setListObjVal('monsterOl', monster, 'status', 'Complete');
-                    gm.setListObjVal('monsterOl', monster, 'color', 'grey');
+                    monsterReviewed.status = 'Complete';
+                    monsterReviewed.color = 'grey';
                     break;
                 default :
                 }
 
-                var mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : '');
-                var monstType = this.getMonstType(monster);
-                var siege = '';
+                var mpool     = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : ''),
+                    monstType = this.getMonstType(monster),
+                    siege     = '';
+
                 if (monstType === 'Siege') {
                     siege = "&action=doObjective";
                 } else {
@@ -9613,22 +9768,28 @@ caap = {
                     siege = (boss && boss.siege) ? "&action=doObjective" : '';
                 }
 
-                var link = "<a href='http://apps.facebook.com/castle_age/" + page +
-                        ".php?casuser=" + url.match(/user=\d+/i)[0].split('=')[1] +
-                        mpool + siege + "'>Link</a>";
-                gm.setListObjVal('monsterOl', monster, 'Link', link);
+                var link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?casuser=" +
+                            url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
+
+                monsterReviewed.link = link;
+                this.updateMonsterRecord(monsterReviewed);
             }
-            gm.setValue('reviewDone', 1);
 
-            gm.getList('monsterOl').forEach(function (monsterObj) {
-                var monster = monsterObj.split(global.vs)[0];
-                if (monsterObj.indexOf(global.vs + 'page' + global.ls) < 0) {
-                    gm.deleteListObj('monsterOl', monster);
-                } else if (monsterList.indexOf(monster) < 0 && monsterObj.indexOf('page' + global.ls + page) >= 0) {
-                    gm.deleteListObj('monsterOl', monster);
+            var it = 0,
+                delList = [];
+
+            for (it = 0; it < this.monsterArray.length; it += 1) {
+                if (this.monsterArray[it].page === '') {
+                    delList.push(this.monsterArray[it].name);
                 }
-            });
+            }
 
+            for (it = 0; it < delList.length; it += 1) {
+                this.delMonsterRecord(delList[it]);
+            }
+
+            gm.setValue('reviewDone', 1);
+            this.UpdateDashboard(true);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_fightList: " + err);
@@ -9638,23 +9799,32 @@ caap = {
 
     t2kCalc: function (boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
         try {
-            var siegeStageStr = (siegeStage - 1).toString();
-            var timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
-            var timeUsed = (boss.duration - timeLeft);
+            var siegeStageStr                  = '',
+                timeLeft                       = 0,
+                timeUsed                       = 0,
+                T2K                            = 0,
+                damageDone                     = 0,
+                hpLeft                         = 0,
+                totalSiegeDamage               = 0,
+                totalSiegeClicks               = 0,
+                attackDamPerHour               = 0,
+                clicksPerHour                  = 0,
+                clicksToNextSiege              = 0,
+                nextSiegeAttackPlusSiegeDamage = 0,
+                s                              = 0,
+                siegeImpacts                   = 0;
+
+
+            timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+            timeUsed = boss.duration - timeLeft;
             if (!boss.siege || !boss.hp) {
-                return Math.round((percentHealthLeft * timeUsed / (100 - percentHealthLeft)) * 10) / 10;
+                return (percentHealthLeft * timeUsed) / (100 - percentHealthLeft);
             }
 
-            var T2K = 0;
-            var damageDone = (100 - percentHealthLeft) / 100 * boss.hp;
-            var hpLeft = boss.hp - damageDone;
-            var totalSiegeDamage = 0;
-            var totalSiegeClicks = 0;
-            var attackDamPerHour = 0;
-            var clicksPerHour = 0;
-            var clicksToNextSiege = 0;
-            var nextSiegeAttackPlusSiegeDamage = 0;
-            for (var s in boss.siegeClicks) {
+            siegeStageStr = (siegeStage - 1).toString();
+            damageDone = (100 - percentHealthLeft) / 100 * boss.hp;
+            hpLeft = boss.hp - damageDone;
+            for (s in boss.siegeClicks) {
                 if (boss.siegeClicks.hasOwnProperty(s)) {
                     global.log(9, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
                     if (s < siegeStageStr  || clicksNeededInCurrentStage === 0) {
@@ -9682,9 +9852,9 @@ caap = {
                 }
             }
 
-            var t2kValue = Math.round(T2K * 10) / 10;
-            global.log(1, 'T2K based on siege: ' + t2kValue + ' T2K estimate without calculating siege impacts: ' + Math.round(percentHealthLeft / (100 - percentHealthLeft) * timeLeft * 10) / 10);
-            return t2kValue;
+            siegeImpacts = percentHealthLeft / (100 - percentHealthLeft) * timeLeft;
+            global.log(1, 'T2K based on siege: ' + T2K.toFixed(2) + ' T2K estimate without calculating siege impacts: ' + siegeImpacts.toFixed(2));
+            return T2K;
         } catch (err) {
             global.error("ERROR in t2kCalc: " + err);
             return 0;
@@ -9693,9 +9863,71 @@ caap = {
 
     CheckResults_viewFight: function () {
         try {
+            var yourRegEx         = new RegExp(".+'s "),
+                missRegEx         = new RegExp(".*Need (\\d+) more.*"),
+                webSlice          = null,
+                monster           = '',
+                fort              = null,
+                monstType         = '',
+                currentMonster    = {},
+                time              = [],
+                monsterTicker     = null,
+                boss              = '',
+                currentPhase      = 0,
+                miss              = '',
+                fortPct           = null,
+                strePct           = null,
+                img               = null,
+                manaHealth        = '',
+                shipHealth        = '',
+                extraHealth       = '',
+                partyHealth       = '',
+                partyStrength     = '',
+                bottomDiv         = null,
+                tempDiv           = null,
+                tempText          = '',
+                tempArr           = [],
+                character         = '',
+                tip               = '',
+                stun              = 0,
+                doCharAtk         = false,
+                statusTime        = {
+                    hours  : 0,
+                    mins   : 0,
+                    secs   : 0,
+                    totMil : 0
+                },
+                damDone           = 0,
+                damList           = null,
+                monsterConditions = '',
+                counter           = 0,
+                hp                = 0,
+                monstHealthImg    = '',
+                hpBar             = null,
+                imgHealthBar      = null,
+                divAttr           = '',
+                attrWidth         = '',
+                totalCount        = 0,
+                ind               = 0,
+                divSeigeLogs      = null,
+                divSeigeCount     = 0,
+                achLevel          = 0,
+                maxDamage         = 0,
+                maxToFortify      = 0,
+                isTarget          = false,
+                KOBenable         = false,
+                KOBbiasHours      = 0,
+                KOBach            = false,
+                KOBmax            = false,
+                KOBminFort        = false,
+                KOBtmp            = 0,
+                KOBtimeLeft       = 0,
+                KOBbiasedTF       = 0,
+                KOBPercentTimeRemaining = 0;
+
             // Check if on monster page (nm_top.jpg for Volcanic Dragon & WORTP)
             // (nm_top_2.jpg for Alpha Volcanic Dragon)
-            var webSlice = this.CheckForImage('dragon_title_owner.jpg');
+            webSlice = this.CheckForImage('dragon_title_owner.jpg');
             if (!webSlice) {
                 webSlice = this.CheckForImage('nm_top.jpg');
                 if (!webSlice) {
@@ -9708,9 +9940,7 @@ caap = {
             }
 
             // Get name and type of monster
-            var yourRegEx = new RegExp(".+'s "),
-                monster   = nHtml.GetText(webSlice);
-
+            monster = nHtml.GetText(webSlice);
             if (this.CheckForImage('nm_volcanic_title.jpg')) {
                 monster = monster.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
                 monster = $.trim(monster);
@@ -9729,9 +9959,6 @@ caap = {
             } else {
                 monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
             }
-
-            var fort      = null,
-                monstType = '';
 
             if (this.CheckForImage('raid_1_large.jpg')) {
                 monstType = 'Raid I';
@@ -9753,77 +9980,57 @@ caap = {
                 monster = monster.replace(yourRegEx, 'Your ');
             }
 
-            var now = (new Date().getTime());
-            gm.setListObjVal('monsterOl', monster, 'review', now.toString());
+            currentMonster = this.getMonsterRecord(monster);
+            currentMonster.review = new Date().getTime();
+            currentMonster.type = monstType;
             gm.setValue('monsterRepeatCount', 0);
-            var lastDamDone = gm.getListObjVal('monsterOl', monster, 'Damage', 0);
-            gm.setListObjVal('monsterOl', monster, 'Type', monstType);
             // Extract info
-            var time          = [],
-                monsterTicker = $("#app46755028429_monsterTicker");
-
-            if (monsterTicker.length) {
+            monsterTicker = $("#app46755028429_monsterTicker");
+            if (monsterTicker && monsterTicker.length) {
                 global.log(2, "Monster ticker found.");
                 time = monsterTicker.text().split(":");
             } else {
                 global.log(1, "Could not locate Monster ticker.");
             }
 
-            var boss         = '',
-                currentPhase = 0,
-                miss         = '',
-                fortPct      = null;
-
             if (time && time.length === 3 && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
                 if (monstType === "Deathrune" || monstType === 'Ice Elemental') {
-                    gm.setListObjVal('monsterOl', monster, 'Fort%', 100);
+                    currentMonster.fortify = 100;
                 } else {
-                    gm.setListObjVal('monsterOl', monster, 'Fort%', 0);
+                    currentMonster.fortify = 0;
                 }
 
                 // Check for mana forcefield
-                var img = this.CheckForImage('bar_dispel');
+                img = this.CheckForImage('bar_dispel');
                 if (img) {
-                    var manaHealth = img.parentNode.style.width;
-                    manaHealth = manaHealth.substring(0, manaHealth.length - 1);
-                    fortPct = 100 - Number(manaHealth);
+                    manaHealth = img.parentNode.style.width;
+                    parseFloat(manaHealth = manaHealth.substring(0, manaHealth.length - 1));
+                    fortPct = 100 - manaHealth;
                 } else {
                     // Check fortify stuff
                     img = this.CheckForImage('seamonster_ship_health');
                     if (img) {
-                        var shipHealth = img.parentNode.style.width;
-                        fortPct = shipHealth.substring(0, shipHealth.length - 1);
+                        shipHealth = img.parentNode.style.width;
+                        fortPct = parseFloat(shipHealth.substring(0, shipHealth.length - 1));
                         if (monstType === "Legion" || monstType.indexOf('Elemental') >= 0) {
                             img = this.CheckForImage('repair_bar_grey');
                             if (img) {
-                                var extraHealth = img.parentNode.style.width;
-                                extraHealth = extraHealth.substring(0, extraHealth.length - 1);
-                                fortPct = Math.round(Number(fortPct) * (100 / (100 - Number(extraHealth))));
+                                extraHealth = img.parentNode.style.width;
+                                extraHealth = parseFloat(extraHealth.substring(0, extraHealth.length - 1));
+                                fortPct = fortPct * (100 / (100 - extraHealth));
                             }
                         }
                     } else {
                         // Check party health - Volcanic dragon
                         img = this.CheckForImage('nm_green');
                         if (img) {
-                            var partyHealth = img.parentNode.style.width;
-                            fortPct = partyHealth.substring(0, partyHealth.length - 1);
+                            partyHealth   = img.parentNode.style.width;
+                            partyStrength = img.parentNode.parentNode.style.width;
+                            fortPct = parseFloat(partyHealth.substring(0, partyHealth.length - 1));
+                            strePct = parseFloat(partyStrength.substring(0, partyStrength.length - 1));
                         }
 
                         // Character type stuff
-                        var bottomDiv  = null,
-                            tempText   = '',
-                            tempArr    = [],
-                            character  = '',
-                            tip        = '',
-                            stun       = 0,
-                            doCharAtk  = false,
-                            statusTime = {
-                                hours  : 0,
-                                mins   : 0,
-                                secs   : 0,
-                                totMil : 0
-                            };
-
                         bottomDiv = $("div[style*='nm_bottom']");
                         if (bottomDiv && bottomDiv.length) {
                             tempText = $.trim(bottomDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
@@ -9832,7 +10039,8 @@ caap = {
                                 tempArr = tempText.match(/Class: (\w+) /);
                                 if (tempArr && tempArr.length === 2) {
                                     character = tempArr[1];
-                                    global.log(1, "character", character);
+                                    currentMonster.charClass = character;
+                                    global.log(5, "character", character);
                                 } else {
                                     global.log(1, "Can't get character", tempArr);
                                 }
@@ -9840,7 +10048,8 @@ caap = {
                                 tempArr = tempText.match(/Tip: ([\w ]+) Status/);
                                 if (tempArr && tempArr.length === 2) {
                                     tip = tempArr[1];
-                                    global.log(1, "tip", tip);
+                                    currentMonster.tip = tip;
+                                    global.log(5, "tip", tip);
                                 } else {
                                     global.log(1, "Can't get tip", tempArr);
                                 }
@@ -9851,7 +10060,8 @@ caap = {
                                     statusTime.mins = tempArr[2];
                                     statusTime.secs = tempArr[3];
                                     statusTime.totMil = (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
-                                    global.log(1, "statusTime", statusTime);
+                                    currentMonster.stunTime = new Date().getTime() + statusTime.totMil;
+                                    global.log(5, "statusTime", statusTime);
                                 } else {
                                     global.log(1, "Can't get statusTime", tempArr);
                                 }
@@ -9862,7 +10072,8 @@ caap = {
                                     global.log(2, "tempText", tempText);
                                     if (tempText) {
                                         stun = this.NumberOnly(tempText);
-                                        global.log(1, "stun", stun);
+                                        currentMonster.stun = stun;
+                                        global.log(5, "stun", stun);
                                     } else {
                                         stun = null;
                                         global.log(1, "Can't get stun bar width");
@@ -9873,14 +10084,8 @@ caap = {
 
                                 if (character && tip && stun !== null) {
                                     doCharAtk = new RegExp(character).test(tip) && stun < 100;
-                                    gm.setListObjVal('monsterOl', monster, 'Class', character);
-                                    gm.setListObjVal('monsterOl', monster, 'ClassAtk', doCharAtk);
-                                    global.log(1, "Do character specific attack", doCharAtk);
-                                    if (doCharAtk && tempArr && tempArr.length === 4) {
-                                        gm.setListObjVal('monsterOl', monster, 'Defer', 0);
-                                    } else {
-                                        gm.setListObjVal('monsterOl', monster, 'Defer', new Date().getTime() + statusTime.totMil);
-                                    }
+                                    currentMonster.stunDo = doCharAtk;
+                                    global.log(5, "Do character specific attack", doCharAtk);
                                 } else {
                                     global.log(1, "Missing 'character', 'tip' or 'stun'", character, tip, stun);
                                 }
@@ -9894,11 +10099,18 @@ caap = {
                 }
 
                 if (fortPct !== null) {
-                    gm.setListObjVal('monsterOl', monster, 'Fort%', (Math.round(fortPct * 10)) / 10);
+                    fortPct = parseFloat(fortPct);
+                    currentMonster.fortify = fortPct;
                 }
+
+                if (strePct !== null) {
+                    strePct = parseFloat(strePct);
+                    currentMonster.strength = strePct;
+                }
+
+                this.updateMonsterRecord(currentMonster);
             }
 
-            var damDone = 0;
             // Get damage done to monster
             webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
             if (webSlice) {
@@ -9906,24 +10118,25 @@ caap = {
                 if (webSlice) {
                     webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?casuser=" + this.stats.FBID) || nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + this.stats.FBID);
                     if (webSlice) {
-                        var damList = null;
                         if (monstType === "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType === "Deathrune") {
-                            //damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling)).split("/");
                             damList = $.trim(nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling)).split("/");
                             fort = this.NumberOnly(damList[1]);
                             damDone = this.NumberOnly(damList[0]) + fort;
-                            gm.setListObjVal('monsterOl', monster, 'Fort', fort);
+                            currentMonster.attacked = damDone;
+                            damDone = damDone + fort;
+                            currentMonster.defended = fort;
                         } else if (monstType === "Siege" || monstType === "Raid I" || monstType === "Raid II") {
                             damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling));
                             damDone = this.NumberOnly(damList);
+                            currentMonster.attacked = damDone;
                         } else {
-                            //damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling));
                             damList = $.trim(nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling));
                             damDone = this.NumberOnly(damList);
+                            currentMonster.attacked = damDone;
                         }
 
-                        gm.setListObjVal('monsterOl', monster, 'Damage', damDone);
-                        //if (damDone) global.log(1, "Damage done = " + gm.getListObjVal('monsterOl',monster,'Damage'));
+                        currentMonster.damage = damDone;
+                        this.updateMonsterRecord(currentMonster);
                     } else {
                         global.log(1, "Player hasn't done damage yet");
                     }
@@ -9934,32 +10147,32 @@ caap = {
                 global.log(1, "couldn't get dragoncontainer");
             }
 
-            var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', '');
+            monsterConditions = currentMonster.conditions;
             if (/:ac\b/.test(monsterConditions) ||
                     (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
                     (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) {
-                var counter     = parseInt(gm.getValue('monsterReviewCounter', -3), 10),
-                    monsterList = gm.getList('monsterOl');
 
-                if (counter >= 0 && monsterList[counter].indexOf(monster) >= 0 &&
-                    (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
-                     nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
+                counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+                if (counter >= 0 && this.monsterArray[counter].name === monster &&
+                        (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
+                        nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
+
                     global.log(1, 'Collecting Reward');
-                    gm.setListObjVal('monsterOl', monster, 'review', "1");
+                    currentMonster.review = 1;
                     gm.setValue('monsterReviewCounter', counter -= 1);
-                    gm.setListObjVal('monsterOl', monster, 'status', 'Collect Reward');
+                    currentMonster.status = 'Collect Reward';
                     if (monster.indexOf('Siege') >= 0) {
                         if (nHtml.FindByAttrContains(document.body, 'a', 'href', '&rix=1')) {
-                            gm.setListObjVal('monsterOl', monster, 'rix', 1);
+                            currentMonster.rix = 1;
                         } else {
-                            gm.setListObjVal('monsterOl', monster, 'rix', 2);
+                            currentMonster.rix = 2;
                         }
+
                     }
+
+                    this.updateMonsterRecord(currentMonster);
                 }
             }
-
-            var hp             = 0,
-                monstHealthImg = '';
 
             if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
@@ -9968,36 +10181,34 @@ caap = {
             }
 
             if (time && time.length === 3 && this.CheckForImage(monstHealthImg)) {
-                gm.setListObjVal('monsterOl', monster, 'TimeLeft', time[0] + ":" + time[1]);
-                var hpBar        = null,
-                    imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
-
+                currentMonster.timeLeft = time[0] + ":" + time[1];
+                imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
                 if (imgHealthBar) {
                     global.log(2, "Found monster health div.");
-                    var divAttr   = imgHealthBar.parentNode.getAttribute("style").split(";"),
-                        attrWidth = divAttr[1].split(":");
-
+                    divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
+                    attrWidth = divAttr[1].split(":");
                     hpBar = $.trim(attrWidth[1]);
                 } else {
                     global.log(1, "Could not find monster health div.");
                 }
 
                 if (hpBar) {
-                    hp = Math.round(hpBar.replace(/%/, '') * 10) / 10; //fix two 2 decimal places
-                    gm.setListObjVal('monsterOl', monster, 'Damage%', hp);
+                    //hp = parseFloat(hpBar.replace(/%/, ''));
+                    hp = parseFloat(hpBar);
+                    currentMonster.life = hp;
                     boss = this.monsterInfo[monstType];
                     if (!boss) {
+                        this.updateMonsterRecord(currentMonster);
                         global.log(1, 'Unknown monster');
                         return;
                     }
                 }
 
                 if (boss && boss.siege) {
-                    var missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
-                        var totalCount = 0;
-                        for (var ind = 0; ind < boss.siege_img.length; ind += 1) {
+                        totalCount = 0;
+                        for (ind = 0; ind < boss.siege_img.length; ind += 1) {
                             totalCount += $("img[src*=" + boss.siege_img[ind] + "]").size();
                         }
 
@@ -10009,10 +10220,10 @@ caap = {
                             miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(missRegEx, "$1"));
                         }
 
-                        var divSeigeLogs = document.getElementById("app46755028429_siege_log");
+                        divSeigeLogs = document.getElementById("app46755028429_siege_log");
                         if (divSeigeLogs && !currentPhase) {
-                            //global.log(1, "Found siege logs.");
-                            var divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
+                            global.log(8, "Found siege logs.");
+                            divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
                             if (divSeigeCount) {
                                 currentPhase = Math.round(divSeigeCount / 4) + 1;
                             } else {
@@ -10023,8 +10234,8 @@ caap = {
                         }
                     }
 
-                    var phaseText = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(miss) ? 0 : miss);
-                    gm.setListObjVal('monsterOl', monster, 'Phase', phaseText);
+                    currentMonster.phase = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(miss) ? 0 : miss);
+                    this.updateMonsterRecord(currentMonster);
                 }
 
                 if (boss) {
@@ -10032,33 +10243,31 @@ caap = {
                         miss = 0;
                     }
 
-                    var T2K = this.t2kCalc(boss, time, hp, currentPhase, miss);
-                    gm.setListObjVal('monsterOl', monster, 'T2K', T2K.toString());
+                    currentMonster.t2k = this.t2kCalc(boss, time, hp, currentPhase, miss);
+                    this.updateMonsterRecord(currentMonster);
                 }
             } else {
                 global.log(1, 'Monster is dead or fled');
-                gm.setListObjVal('monsterOl', monster, 'color', 'grey');
-                var dofCheck = gm.getListObjVal('monsterOl', monster, 'status');
-                if (dofCheck !== 'Complete' && dofCheck !== 'Collect Reward') {
-                    gm.setListObjVal('monsterOl', monster, 'status', "Dead or Fled");
+                currentMonster.color = 'grey';
+                if (currentMonster.status !== 'Complete' && currentMonster.status !== 'Collect Reward') {
+                    currentMonster.status = "Dead or Fled";
                 }
 
                 gm.setValue('resetselectMonster', true);
+                this.updateMonsterRecord(currentMonster);
                 return;
             }
 
             boss = this.monsterInfo[monstType];
-            var achLevel = this.parseCondition('ach', monsterConditions);
+            achLevel = this.parseCondition('ach', monsterConditions);
             if (boss && achLevel === false) {
                 achLevel = boss.ach;
             }
 
-            var maxDamage = this.parseCondition('max', monsterConditions);
-            fortPct = gm.getListObjVal('monsterOl', monster, 'Fort%', '');
-            var maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
-            var isTarget = (monster === gm.getValue('targetFromraid', '') ||
-                    monster === gm.getValue('targetFrombattle_monster', '') ||
-                    monster === gm.getValue('targetFromfortify', ''));
+            maxDamage = this.parseCondition('max', monsterConditions);
+            fortPct = currentMonster.fortify;
+            maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
+            isTarget = (monster === gm.getValue('targetFromraid', '') || monster === gm.getValue('targetFrombattle_monster', '') || monster === gm.getValue('targetFromfortify', ''));
             if (monster === gm.getValue('targetFromfortify', '') && fortPct > maxToFortify) {
                 gm.setValue('resetselectMonster', true);
             }
@@ -10067,22 +10276,22 @@ caap = {
             global.log(1, 'Start of Keep On Budget (KOB) Code');
 
             //default is disabled for everything
-            var KOBenable = false;
+            KOBenable = false;
 
             //default is zero bias hours for everything
-            var KOBbiasHours = 0;
+            KOBbiasHours = 0;
 
             //KOB needs to follow achievment mode for this monster so that KOB can be skipped.
-            var KOBach = false;
+            KOBach = false;
 
             //KOB needs to follow max mode for this monster so that KOB can be skipped.
-            var KOBmax = false;
+            KOBmax = false;
 
             //KOB needs to follow minimum fortification state for this monster so that KOB can be skipped.
-            var KOBminFort = false;
+            KOBminFort = false;
 
             //create a temp variable so we don't need to call parseCondition more than once for each if statement
-            var KOBtmp = this.parseCondition('kob', monsterConditions);
+            KOBtmp = this.parseCondition('kob', monsterConditions);
             if (isNaN(KOBtmp)) {
                 global.log(1, 'NaN branch');
                 KOBenable = true;
@@ -10119,11 +10328,11 @@ caap = {
             global.log(1, 'HP left: ' + hp);
 
             //Time Left Remaining
-            var KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+            KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
             global.log(1, 'TimeLeft: ' + KOBtimeLeft);
 
             //calculate the bias offset for time remaining
-            var KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
+            KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
 
             //for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
             // -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
@@ -10132,14 +10341,14 @@ caap = {
             }
 
             //Percentage of time remaining for the currently selected monster
-            var KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
-            global.log(1, 'Percent Time Remaining: ' + KOBPercentTimeRemaining);
+            KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
+            global.log(1, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
 
             // End of Keep On Budget (KOB) code Part 1 -- required variables
 
             if (maxDamage && damDone >= maxDamage) {
-                gm.setListObjVal('monsterOl', monster, 'color', 'red');
-                gm.setListObjVal('monsterOl', monster, 'over', 'max');
+                currentMonster.color = 'red';
+                currentMonster.over = 'max';
                 //used with KOB code
                 KOBmax = true;
                 //used with kob debugging
@@ -10148,7 +10357,7 @@ caap = {
                     gm.setValue('resetselectMonster', true);
                 }
             } else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
-                gm.setListObjVal('monsterOl', monster, 'color', 'purple');
+                currentMonster.color = 'purple';
                 //used with KOB code
                 KOBminFort = true;
                 //used with kob debugging
@@ -10157,23 +10366,23 @@ caap = {
                     gm.setValue('resetselectMonster', true);
                 }
             } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
-                gm.setListObjVal('monsterOl', monster, 'color', 'orange');
-                gm.setListObjVal('monsterOl', monster, 'over', 'ach');
+                currentMonster.color = 'orange';
+                currentMonster.over = 'ach';
                 //used with KOB code
                 KOBach = true;
                 //used with kob debugging
                 global.log(1, 'KOB - achievement reached');
-                if (isTarget && lastDamDone < achLevel) {
+                if (isTarget && currentMonster.damage < achLevel) {
                     gm.setValue('resetselectMonster', true);
                 }
             }
 
             //Start of KOB code Part 2 begins here
             if (KOBenable && !KOBmax && !KOBminFort && KOBach && hp < KOBPercentTimeRemaining) {
-                //need to figure out a color for kob 'someday' - borrowing max's color for now
-                gm.setListObjVal('monsterOl', monster, 'color', 'magenta');
+                //kob color
+                currentMonster.color = 'magenta';
                 // this line is required or we attack anyway.
-                gm.setListObjVal('monsterOl', monster, 'over', 'max');
+                currentMonster.over = 'max';
                 //used with kob debugging
                 global.log(1, 'KOB - budget reached');
                 if (isTarget) {
@@ -10185,11 +10394,13 @@ caap = {
                 if (!KOBmax && !KOBminFort && !KOBach) {
                     //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
                     //had to jump out the black paint if max, ach or fort needed to paint the entry.
-                    gm.setListObjVal('monsterOl', monster, 'color', 'black');
+                    currentMonster.color = 'black';
                 }
             }
             //End of KOB code Part 2 stops here.
 
+            this.updateMonsterRecord(currentMonster);
+            this.UpdateDashboard(true)
             if (this.CheckTimer('battleTimer')) {
                 window.setTimeout(function () {
                     caap.SetDivContent('monster_mess', '');
@@ -10203,10 +10414,10 @@ caap = {
     selectMonster: function () {
         try {
             if (!this.oneMinuteUpdate('selectMonster')) {
-                return;
+                return false;
             }
 
-            global.log(2, 'Selecting monster');
+            global.log(5, 'Selecting monster');
             // First we forget everything about who we already picked.
             gm.setValue('targetFrombattle_monster', '');
             gm.setValue('targetFromfortify', '');
@@ -10214,126 +10425,123 @@ caap = {
 
             // Next we get our monster objects from the reposoitory and break them into separarte lists
             // for monster or raid.  If we are serializing then we make one list only.
-            var monsterList = {};
-            monsterList.battle_monster = [];
-            monsterList.raid = [];
-            monsterList.any = [];
-            var monsterFullList = gm.getList('monsterOl');
-            var monstPage = '';
-            monsterFullList.forEach(function (monsterObj) {
-                gm.setListObjVal('monsterOl', monsterObj.split(global.vs)[0], 'conditions', 'none');
-                monstPage = gm.getObjVal(monsterObj, 'page');
+            var monsterList  = {
+                    battle_monster : [],
+                    raid           : [],
+                    any            : []
+                },
+                it                 = 0,
+                s                  = 0,
+                selectTypes        = [],
+                maxToFortify       = 0,
+                nodeNum            = 0,
+                firstOverAch       = '',
+                firstUnderMax      = '',
+                firstFortOverAch   = '',
+                firstFortUnderMax  = '',
+                monster            = '',
+                monsterObj         = {},
+                monsterConditions  = '',
+                monstType          = '',
+                p                  = 0,
+                m                  = 0,
+                attackOrderList    = [];
+
+
+            for (it = 0; it < this.monsterArray.length; it += 1) {
+                this.monsterArray[it].conditions = 'none';
                 if (gm.getValue('SerializeRaidsAndMonsters', false)) {
-                    monsterList.any.push(monsterObj);
-                } else if ((monstPage === 'raid') || (monstPage === 'battle_monster')) {
-                    monsterList[monstPage].push(monsterObj);
+                    monsterList.any.push(this.monsterArray[it].name);
+                } else if ((this.monsterArray[it].page === 'raid') || (this.monsterArray[it].page === 'battle_monster')) {
+                    monsterList[this.monsterArray[it].page].push(this.monsterArray[it].name);
                 }
-            });
+            }
 
             //PLEASE NOTE BEFORE CHANGING
             //The Serialize Raids and Monsters dictates a 'single-pass' because we only need select
             //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
             //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
             //a round hole. Please reconsider before doing so.
-            var selectTypes = [];
             if (gm.getValue('SerializeRaidsAndMonsters', false)) {
                 selectTypes = ['any'];
             } else {
                 selectTypes = ['battle_monster', 'raid'];
             }
 
+            global.log(9, 'monsterList/selectTypes', monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
-            for (var s in selectTypes) {
+            for (s in selectTypes) {
                 if (selectTypes.hasOwnProperty(s)) {
-                    var selectType = selectTypes[s];
-                    var firstOverAch = '';
-                    var firstUnderMax = '';
-                    var firstFortOverAch = '';
-                    var firstFortUnderMax = '';
-                    var attackOrderList = [];
                     // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-                    if (selectType === 'any') {
-                        var attackOrderList1 = gm.getValue('orderbattle_monster', '').split(/[\n,]/);
-                        var attackOrderList2 = gm.getValue('orderraid', '').split(/[\n,]/).concat('your', "'");
-                        attackOrderList = attackOrderList1.concat(attackOrderList2);
+                    if (selectTypes[s] === 'any') {
+                        attackOrderList = gm.getList('orderbattle_monster');
+                        $.merge(attackOrderList, gm.getList('orderraid').concat('your', "'"));
                     } else {
-                        attackOrderList = gm.getValue('order' + selectType, '').split(/[\n,]/).concat('your', "'");
+                        attackOrderList = gm.getList('order' + selectTypes[s]).concat('your', "'");
                     }
 
-                    var monster = '';
-                    var monsterConditions = '';
-                    var monstType = '';
+                    global.log(9, 'attackOrderList', attackOrderList);
                     // Next we step through the users list getting the name and conditions
-                    for (var p in attackOrderList) {
+                    for (p in attackOrderList) {
                         if (attackOrderList.hasOwnProperty(p)) {
                             if (!($.trim(attackOrderList[p]))) {
                                 continue;
                             }
 
-                            var attackOrderName = $.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase();
                             monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
-                            var monsterListCurrent = monsterList[selectType];
                             // Now we try to match the users name agains our list of monsters
-                            for (var m in monsterListCurrent) {
-                                if (monsterListCurrent.hasOwnProperty(m)) {
-                                    var monsterObj = monsterListCurrent[m];
-                                    monster = monsterObj.split(global.vs)[0];
-                                    monstPage = gm.getObjVal(monsterObj, 'page');
-
+                            for (m in monsterList[selectTypes[s]]) {
+                                if (monsterList[selectTypes[s]].hasOwnProperty(m)) {
+                                    monsterObj = this.getMonsterRecord(monsterList[selectTypes[s]][m]);
                                     // If we set conditions on this monster already then we do not reprocess
-                                    if (gm.getListObjVal('monsterOl', monster, 'conditions') !== 'none') {
+                                    if (monsterObj.conditions !== 'none') {
                                         continue;
                                     }
 
                                     //If this monster does not match, skip to next one
                                     // Or if this monster is dead, skip to next one
                                     // Or if this monster is not the correct type, skip to next one
-                                    if ((monster.toLowerCase().indexOf(attackOrderName) < 0) || (selectType !== 'any' && monstPage !== selectType)) {
+                                    if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
                                         continue;
                                     }
 
                                     //Monster is a match so we set the conditions
-                                    gm.setListObjVal('monsterOl', monster, 'conditions', monsterConditions);
+                                    monsterObj.conditions = monsterConditions;
+                                    this.updateMonsterRecord(monsterObj);
 
                                     // If it's complete or collect rewards, no need to process further
-                                    var color = gm.getObjVal(monsterObj, 'color', '');
-                                    if (color === 'grey') {
+                                    if (monsterObj.color === 'grey') {
                                         continue;
                                     }
 
                                     // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                                    // these to see if this is the monster we should select/
-                                    var over = gm.getObjVal(monsterObj, 'over', '');
-                                    if (!firstUnderMax && color !== 'purple') {
-                                        if (over === 'ach') {
+                                    // these to see if this is the monster we should select
+                                    if (!firstUnderMax && monsterObj.color !== 'purple') {
+                                        if (monsterObj.over === 'ach') {
                                             if (!firstOverAch) {
-                                                firstOverAch = monster;
+                                                firstOverAch = monsterList[selectTypes[s]][m];
+                                                global.log(3, 'firstOverAch', firstOverAch);
                                             }
-                                        } else if (over !== 'max') {
-                                            firstUnderMax = monster;
+                                        } else if (monsterObj.over !== 'max') {
+                                            firstUnderMax = monsterList[selectTypes[s]][m];
+                                            global.log(3, 'firstUnderMax', firstUnderMax);
                                         }
                                     }
 
-                                    var monsterFort = parseFloat(gm.getObjVal(monsterObj, 'Fort%', 0));
-                                    var maxToFortify = (this.parseCondition('f%', monsterConditions)  !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
-                                    monstType = this.getMonstType(monster);
-                                    /*
-                                    global.log(1, monster + ' monsterFort < maxToFortify ' + (monsterFort < maxToFortify) + ' this.monsterInfo[monstType] ' +
-                                        this.monsterInfo[monstType]+ ' this.monsterInfo[monstType].fort ' + this.monsterInfo[monstType].fort);
-                                    */
-                                    if (!firstFortUnderMax && monsterFort < maxToFortify &&
-                                            monstPage === 'battle_monster' &&
-                                            this.monsterInfo[monstType] &&
-                                            this.monsterInfo[monstType].fort) {
-                                        if (over === 'ach') {
+                                    maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
+                                    monstType = this.getMonstType(monsterList[selectTypes[s]][m]);
+                                    //global.log(1, 'Class', monsterObj.charClass);
+                                    //global.log(1, 'Stun', monsterObj.stun);
+                                    if (!firstFortUnderMax && monsterObj.fortify < maxToFortify && monsterObj.page === 'battle_monster' && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
+                                        if (monsterObj.over === 'ach') {
                                             if (!firstFortOverAch) {
-                                                //global.log(1, 'hitit');
-                                                firstFortOverAch = monster;
+                                                firstFortOverAch = monsterList[selectTypes[s]][m];
+                                                global.log(3, 'firstFortOverAch', firstFortOverAch);
                                             }
-                                        } else if (over !== 'max') {
-                                            //global.log(1, 'norm hitit');
-                                            firstFortUnderMax = monster;
+                                        } else if (monsterObj.over !== 'max') {
+                                            firstFortUnderMax = monsterList[selectTypes[s]][m];
+                                            global.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                         }
                                     }
                                 }
@@ -10348,43 +10556,45 @@ caap = {
                         monster = firstOverAch;
                     }
 
-                    if (selectType !== 'raid') {
+                    global.log(5, 'monster', monster);
+                    if (selectTypes[s] !== 'raid') {
                         gm.setValue('targetFromfortify', firstFortUnderMax);
                         if (!gm.getValue('targetFromfortify', '')) {
                             gm.setValue('targetFromfortify', firstFortOverAch);
                         }
-                        //global.log(1, 'fort under max ' + firstFortUnderMax + ' fort over Ach ' + firstFortOverAch + ' fort target ' + gm.getValue('targetFromfortify', ''));
+
+                        global.log(3, 'fort under max ', firstFortUnderMax);
+                        global.log(3, 'fort over Ach ', firstFortOverAch);
+                        global.log(3, 'fort target ', gm.getValue('targetFromfortify', ''));
                     }
 
                     // If we've got a monster for this selection type then we set the GM variables for the name
                     // and stamina requirements
                     if (monster) {
-                        monstPage = gm.getListObjVal('monsterOl', monster, 'page');
-                        gm.setValue('targetFrom' + monstPage, monster);
-                        monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions');
-                        monstType = gm.getListObjVal('monsterOl', monster, 'Type', '');
-                        if (monstPage === 'battle_monster') {
-                            var nodeNum = 0;
-                            if (!this.InLevelUpMode() && this.monsterInfo[monstType] && this.monsterInfo[monstType].staLvl) {
-                                for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                    global.log(9, 'stamina.max:nodeNum:staLvl', this.stats.stamina.max, nodeNum, this.monsterInfo[monstType].staLvl[nodeNum]);
-                                    if (this.stats.stamina.max >= this.monsterInfo[monstType].staLvl[nodeNum]) {
+                        monsterObj = this.getMonsterRecord(monster);
+                        gm.setValue('targetFrom' + monsterObj.page, monster);
+                        if (monsterObj.page === 'battle_monster') {
+                            nodeNum = 0;
+                            if (!this.InLevelUpMode() && this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staLvl) {
+                                for (nodeNum = this.monsterInfo[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                    global.log(9, 'stamina.max:nodeNum:staLvl', this.stats.stamina.max, nodeNum, this.monsterInfo[monsterObj.type].staLvl[nodeNum]);
+                                    if (this.stats.stamina.max >= this.monsterInfo[monsterObj.type].staLvl[nodeNum]) {
                                         break;
                                     }
                                 }
                             }
 
-                            global.log(8, 'MonsterStaminaReq:Info', monstType, nodeNum, this.monsterInfo[monstType]);
-                            if (!this.InLevelUpMode() && this.monsterInfo[monstType] && this.monsterInfo[monstType].staMax && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax')) {
-                                global.log(7, 'MonsterStaminaReq:PowerAttackMax', this.monsterInfo[monstType].staMax[nodeNum]);
-                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monstType].staMax[nodeNum]);
-                            } else if (this.monsterInfo[monstType] && this.monsterInfo[monstType].staUse) {
-                                global.log(7, 'MonsterStaminaReq:staUse', this.monsterInfo[monstType].staUse);
-                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monstType].staUse);
-                            } else if ((this.InLevelUpMode() && this.stats.stamina.num >= 10) || monsterConditions.match(/:pa/i)) {
+                            global.log(8, 'MonsterStaminaReq:Info', monsterObj.type, nodeNum, this.monsterInfo[monsterObj.type]);
+                            if (!this.InLevelUpMode() && this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staMax && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax')) {
+                                global.log(7, 'MonsterStaminaReq:PowerAttackMax', this.monsterInfo[monsterObj.type].staMax[nodeNum]);
+                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monsterObj.type].staMax[nodeNum]);
+                            } else if (this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staUse) {
+                                global.log(7, 'MonsterStaminaReq:staUse', this.monsterInfo[monsterObj.type].staUse);
+                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monsterObj.type].staUse);
+                            } else if ((this.InLevelUpMode() && this.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
                                 global.log(7, 'MonsterStaminaReq:pa', 5);
                                 gm.setValue('MonsterStaminaReq', 5);
-                            } else if (monsterConditions.match(/:sa/i)) {
+                            } else if (monsterObj.conditions.match(/:sa/i)) {
                                 global.log(7, 'MonsterStaminaReq:sa', 1);
                                 gm.setValue('MonsterStaminaReq', 1);
                             } else if (gm.getValue('PowerAttack')) {
@@ -10407,13 +10617,13 @@ caap = {
                             }
                         } else {
                             // Switch RaidPowerAttack
-                            global.log(8, 'RaidStaminaReq:Info', monstType, this.monsterInfo[monstType]);
-                            if (gm.getValue('RaidPowerAttack', false) || monsterConditions.match(/:pa/i)) {
+                            global.log(8, 'RaidStaminaReq:Info', monsterObj.type, this.monsterInfo[monsterObj.type]);
+                            if (gm.getValue('RaidPowerAttack', false) || monsterObj.conditions.match(/:pa/i)) {
                                 global.log(7, 'RaidStaminaReq:pa', 5);
                                 gm.setValue('RaidStaminaReq', 5);
-                            } else if (this.monsterInfo[monstType] && this.monsterInfo[monstType].staUse) {
-                                global.log(7, 'RaidStaminaReq:staUse', this.monsterInfo[monstType].staUse);
-                                gm.setValue('RaidStaminaReq', this.monsterInfo[monstType].staUse);
+                            } else if (this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staUse) {
+                                global.log(7, 'RaidStaminaReq:staUse', this.monsterInfo[monsterObj.type].staUse);
+                                gm.setValue('RaidStaminaReq', this.monsterInfo[monsterObj.type].staUse);
                             } else {
                                 global.log(7, 'RaidStaminaReq:default', 1);
                                 gm.setValue('RaidStaminaReq', 1);
@@ -10423,8 +10633,10 @@ caap = {
                 }
             }
 
+            return true;
         } catch (err) {
             global.error("ERROR in selectMonster: " + err);
+            return false;
         }
     },
 
@@ -10432,8 +10644,7 @@ caap = {
         try {
             // Confirm name and type of monster
             var yourRegEx     = new RegExp(".+'s "),
-                monsterOnPage = nHtml.GetText(webSlice),
-                monstPage     = null;
+                monsterOnPage = nHtml.GetText(webSlice);
 
             if (this.CheckForImage('nm_volcanic_title.jpg')) {
                 monsterOnPage = monsterOnPage.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
@@ -10460,8 +10671,7 @@ caap = {
 
             if (monster !== monsterOnPage) {
                 global.log(1, 'Looking for ' + monster + ' but on ' + monsterOnPage + '. Going back to select screen');
-                monstPage = gm.getListObjVal('monsterOl', monster, 'page');
-                return this.NavigateTo('keep,' + monstPage);
+                return this.NavigateTo('keep,' + this.getMonsterRecord(monster).page);
             }
 
             return false;
@@ -10481,7 +10691,7 @@ caap = {
             We do monster review once an hour.  Some routines may reset this timer to drive
             MonsterReview immediately.
             \-------------------------------------------------------------------------------------*/
-            if (!this.WhileSinceDidIt('monsterReview', 60 * 60) || (gm.getValue('WhenMonster') === 'Never' && gm.getValue('WhenBattle') === 'Never')) {
+            if (!this.WhileSinceDidIt(this.last.monsterReview, (gm.getValue('monsterReviewMins', 60) * 60) + Math.floor(Math.random() * 5 * 60)) || (gm.getValue('WhenMonster') === 'Never' && gm.getValue('WhenBattle') === 'Never')) {
                 return false;
             }
 
@@ -10490,9 +10700,10 @@ caap = {
             the monsterOl completely. Otherwise it will be our index into how far we are into
             reviewing monsterOl.
             \-------------------------------------------------------------------------------------*/
-            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
+            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10),
+                link    = '';
+
             if (counter === -3) {
-                gm.setValue('monsterOl', '');
                 gm.setValue('monsterReviewCounter', counter += 1);
                 return true;
             }
@@ -10523,7 +10734,7 @@ caap = {
                 }
             }
 
-            if (!(gm.getValue('monsterOl', ''))) {
+            if (this.monsterArray && this.monsterArray.length === 0) {
                 return false;
             }
 
@@ -10531,18 +10742,15 @@ caap = {
             Now we step through the monsterOl objects. We set monsterReviewCounter to the next
             index for the next reiteration since we will be doing a click and return in here.
             \-------------------------------------------------------------------------------------*/
-            var monsterObjList = gm.getList('monsterOl');
-            while (counter < monsterObjList.length) {
-                var monsterObj = monsterObjList[counter];
-                if (!monsterObj) {
+            while (counter < this.monsterArray.length) {
+                if (!this.monsterArray[counter]) {
                     gm.setValue('monsterReviewCounter', counter += 1);
                     continue;
                 }
                 /*-------------------------------------------------------------------------------------\
                 If we looked at this monster more recently than an hour ago, skip it
                 \-------------------------------------------------------------------------------------*/
-                if (!this.WhileSinceDidIt(gm.getObjVal(monsterObj, 'review'), 60 * 60) ||
-                            gm.getValue('monsterRepeatCount', 0) > 2) {
+                if (this.monsterArray[counter].status === 'Complete' || !this.WhileSinceDidIt(this.monsterArray[counter].review, 60 * 60) || gm.getValue('monsterRepeatCount', 0) > 2) {
                     gm.setValue('monsterReviewCounter', counter += 1);
                     gm.setValue('monsterRepeatCount', 0);
                     continue;
@@ -10550,43 +10758,45 @@ caap = {
                 /*-------------------------------------------------------------------------------------\
                 We get our monster link
                 \-------------------------------------------------------------------------------------*/
-                var monster = monsterObj.split(global.vs)[0];
-                this.SetDivContent('monster_mess', 'Reviewing/sieging ' + (counter + 1) + '/' + monsterObjList.length + ' ' + monster);
-                var link = gm.getObjVal(monsterObj, 'Link');
+                this.SetDivContent('monster_mess', 'Reviewing/sieging ' + (counter + 1) + '/' + this.monsterArray.length + ' ' + this.monsterArray[counter].name);
+                link = this.monsterArray[counter].link;
                 /*-------------------------------------------------------------------------------------\
                 If the link is good then we get the url and any conditions for monster
                 \-------------------------------------------------------------------------------------*/
                 if (/href/.test(link)) {
                     link = link.split("'")[1];
-                    var conditions = gm.getObjVal(monsterObj, 'conditions', '');
-                    var monstType = gm.getObjVal(monsterObj, 'Type', '');
                     /*-------------------------------------------------------------------------------------\
                     If the autocollect token was specified then we set the link to do auto collect. If
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
-                    if ((((conditions) && (/:ac\b/.test(conditions))) ||
-                            (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
-                            (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) && gm.getObjVal(monsterObj, 'status') === 'Collect Reward') {
+                    if ((((this.monsterArray[counter].conditions) && (/:ac\b/.test(this.monsterArray[counter].conditions))) ||
+                            (this.monsterArray[counter].type.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
+                            (!this.monsterArray[counter].type.match(/Raid/) && gm.getValue('monsterCollectReward', false))) && this.monsterArray[counter].status === 'Collect Reward') {
+
                         if (general.Select('CollectGeneral')) {
                             return true;
                         }
 
                         link += '&action=collectReward';
-                        if (monster.indexOf('Siege') >= 0) {
-                            link += '&rix=' + gm.getObjVal(monsterObj, 'rix', '2');
+                        if (this.monsterArray[counter].name.indexOf('Siege') >= 0) {
+                            if (this.monsterArray[counter].rix !== -1)  {
+                                link += '&rix=' + this.monsterArray[counter].rix;
+                            } else {
+                                link += '&rix=2';
+                            }
                         }
 
                         link = link.replace('&action=doObjective', '');
-                    } else if (((conditions) && (conditions.match(':!s'))) ||
-                               (!gm.getValue('raidDoSiege', true) && monstType.match(/Raid/)) ||
-                               (!gm.getValue('monsterDoSiege', true) && !monstType.match(/Raid/) && this.monsterInfo[monstType].siege) ||
+                    } else if (((this.monsterArray[counter].conditions) && (this.monsterArray[counter].conditions.match(':!s'))) ||
+                               (!gm.getValue('raidDoSiege', true) && this.monsterArray[counter].type.match(/Raid/)) ||
+                               (!gm.getValue('monsterDoSiege', true) && !this.monsterArray[counter].type.match(/Raid/) && this.monsterInfo[this.monsterArray[counter].type].siege) ||
                                this.stats.stamina.num === 0) {
                         link = link.replace('&action=doObjective', '');
                     }
                     /*-------------------------------------------------------------------------------------\
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
-                    global.log(1, 'Reviewing ' + (counter + 1) + '/' + monsterObjList.length + ' ' + monster);
+                    global.log(1, 'Reviewing ' + (counter + 1) + '/' + this.monsterArray.length + ' ' + this.monsterArray[counter].name);
                     gm.setValue('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '');
                     link = link.replace('?', '?twt2&');
@@ -10601,11 +10811,13 @@ caap = {
             All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
             We set the monsterReviewCounter to do a full refresh next time through.
             \-------------------------------------------------------------------------------------*/
-            this.JustDidIt('monsterReview');
+            this.last.monsterReview = new Date().getTime();
+            this.SaveLast();
             gm.setValue('resetselectMonster', true);
             gm.setValue('monsterReviewCounter', -3);
             global.log(1, 'Done with monster/raid review.');
             this.SetDivContent('monster_mess', '');
+            this.UpdateDashboard(true);
             return true;
         } catch (err) {
             global.error("ERROR in MonsterReview: " + err);
@@ -10657,6 +10869,7 @@ caap = {
             var nodeNum = 0;
             var staLvl = null;
             var energyRequire = 10;
+            var currentMonster = this.getMonsterRecord(monster);
 
             if (monstType) {
                 staLvl = this.monsterInfo[monstType].staLvl;
@@ -10673,6 +10886,7 @@ caap = {
                 }
             }
 
+            global.log(9, "Energy Required/Node", energyRequire, nodeNum);
             if (gm.getValue('FortifyGeneral', 'Strider') === 'Orc King') {
                 energyRequire = energyRequire * 5;
                 global.log(2, 'Monsters Fortify:Orc King', energyRequire);
@@ -10687,7 +10901,8 @@ caap = {
                 fightMode = gm.setValue('fightMode', 'Fortify');
             } else {
                 monster = gm.getValue('targetFrombattle_monster');
-                if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && gm.getListObjVal('monsterOl', monster, 'page') === 'battle_monster') {
+                currentMonster = this.getMonsterRecord(monster);
+                if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && currentMonster.page === 'battle_monster') {
                     fightMode = gm.setValue('fightMode', 'Monster');
                 } else {
                     this.SetTimer('NotargetFrombattle_monster', 60);
@@ -10739,9 +10954,10 @@ caap = {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
-                    var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', ''),
+                    //var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', ''),
+                    var monsterConditions = currentMonster.conditions,
                         tacticsValue      = 0,
-                        partyHealth     = 0,
+                        partyHealth       = 0,
                         useTactics        = false;
 
                     if (gm.getValue('UseTactics', false)) {
@@ -10755,7 +10971,8 @@ caap = {
                     }
 
                     if (useTactics) {
-                        partyHealth = parseFloat(gm.getListObjVal('monsterOl', monster, 'Fort%', 0));
+                        //partyHealth = parseFloat(gm.getListObjVal('monsterOl', monster, 'Fort%', 0));
+                        partyHealth = currentMonster.fortify;
                     }
 
                     if (tacticsValue !== false && partyHealth < tacticsValue) {
@@ -10795,6 +11012,10 @@ caap = {
                             }
                         }
                     }
+                }
+
+                if (fightMode === 'Fortify' && gm.getValue('PowerFortifyMax')) {
+                    nodeNum += 1;
                 }
 
                 for (var i in buttonList) {
@@ -10967,7 +11188,7 @@ caap = {
                     this.demi.azeron.daily = this.GetStatusNumbers(points[4]);
                     this.last.battle = new Date().getTime();
                     this.SaveStats();
-                    global.log(1, 'Demi', this.demi, this.last);
+                    global.log(2, 'Demi', this.demi, this.last);
                 }
             } else {
                 global.log(1, 'Demi symDiv problem', symDiv);
@@ -12506,6 +12727,8 @@ caap = {
     },
 
     CheckResults_index: function (resultsText) {
+        this.last.ajaxGiftCheck = new Date().getTime();
+        this.SaveLast();
     },
 
     AutoGift: function () {
@@ -13039,7 +13262,7 @@ caap = {
     AutoCollectMA: function () {
         try {
             if (!gm.getValue('AutoCollectMA', true) ||
-                !(this.WhileSinceDidIt('AutoCollectMATimer', (24 * 60 * 60) + (5 * 60)))) {
+                !(this.WhileSinceDidIt('AutoCollectMATimer', (24 * 60 * 60) + Math.floor(Math.random() * 5 * 60)))) {
                 return false;
             }
 
@@ -13295,7 +13518,7 @@ caap = {
 
     AjaxGiftCheck: function () {
         try {
-            if (!gm.getValue('AutoGift', false) || !this.WhileSinceDidIt("AjaxGiftCheckTimer", (5 * 60) + Math.floor(Math.random() * 3 * 60))) {
+            if (!gm.getValue('AutoGift', false) || !this.WhileSinceDidIt(this.last.ajaxGiftCheck, (10 * 60) + Math.floor(Math.random() * 5 * 60))) {
                 return false;
             }
 
@@ -13326,7 +13549,8 @@ caap = {
                     }
             });
 
-            this.JustDidIt('AjaxGiftCheckTimer');
+            this.last.ajaxGiftCheck = new Date().getTime();
+            this.SaveLast();
             global.log(2, "Completed AjaxGiftCheck");
             return true;
         } catch (err) {
@@ -14050,6 +14274,8 @@ if (gm.getValue('LastVersion', 0) !== caapVersion) {
             gm.deleteValue('AllGenerals');
             gm.deleteValue('GeneralImages');
             gm.deleteValue('LevelUpGenerals');
+            gm.deleteValue('monsterOl');
+            gm.deleteValue('monsterReview');
         }
 
         gm.setValue('LastVersion', caapVersion);

@@ -132,6 +132,8 @@ if (gm.getValue('LastVersion', 0) !== caapVersion) {
             gm.deleteValue('AllGenerals');
             gm.deleteValue('GeneralImages');
             gm.deleteValue('LevelUpGenerals');
+            gm.deleteValue('monsterOl');
+            gm.deleteValue('monsterReview');
         }
 
         gm.setValue('LastVersion', caapVersion);
