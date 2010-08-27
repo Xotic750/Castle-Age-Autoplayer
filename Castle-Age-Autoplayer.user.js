@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            7
+// @dev            8
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "7";
+    devVersion  = "8";
 
 ///////////////////////////
 //       Prototypes
@@ -5973,7 +5973,7 @@ caap = {
                 }
             }
 
-            this.performanceTimer('Start CheckResults');
+            //this.performanceTimer('Start CheckResults');
             this.JustDidIt('CheckResultsTimer');
             gm.setValue('page', '');
             gm.setValue('pageUserCheck', '');
@@ -5994,6 +5994,23 @@ caap = {
             }
 
             if (this.pageList[page]) {
+                if ($("img[src*='" + this.pageList[page].signaturePic + "']").length) {
+                    page = gm.setValue('page', page);
+                    global.log(9, "Page set value", page);
+                }
+
+                if (this.pageList[page].subpages) {
+                    this.pageList[page].subpages.forEach(function (subpage) {
+                        if ($("img[src*='" + caap.pageList[subpage].signaturePic + "']").length) {
+                            page = gm.setValue('page', subpage);
+                            global.log(9, "Page pubpage", page);
+                        }
+                    });
+                }
+            }
+
+            /*
+            if (this.pageList[page]) {
                 if (this.CheckForImage(this.pageList[page].signaturePic)) {
                     page = gm.setValue('page', page);
                     global.log(9, "Page set value", page);
@@ -6008,12 +6025,22 @@ caap = {
                     });
                 }
             }
+            */
 
+            var resultsDiv = $("span[class*='result_body']"),
+                resultsText = '';
+
+            if (resultsDiv && resultsDiv.length) {
+                resultsText = $.trim(resultsDiv.text());
+            }
+
+            /*
             var resultsDiv = nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body');
             var resultsText = '';
             if (resultsDiv) {
                 resultsText = $.trim(nHtml.GetText(resultsDiv));
             }
+            */
 
             if (gm.getValue('page', '')) {
                 global.log(1, 'Checking results for', page);
@@ -6026,24 +6053,16 @@ caap = {
                 global.log(1, 'No results check defined for', page);
             }
 
-            this.performanceTimer('Before selectMonster');
+            //this.performanceTimer('Before selectMonster');
             this.selectMonster();
-            this.performanceTimer('Done selectMonster');
+            //this.performanceTimer('Done selectMonster');
             this.UpdateDashboard();
-            this.performanceTimer('Done Dashboard');
+            //this.performanceTimer('Done Dashboard');
 
             if (general.List.length <= 2) {
                 this.last.generals = 0;
                 this.last.allGenerals = 0;
                 this.CheckGenerals();
-            }
-
-            // Check for new gifts
-            if (gm.getValue('AutoGift', false) && !gm.getValue('HaveGift', false)) {
-                if ($("a[href*='reqs.php#confirm_']").length) {
-                    global.log(1, 'We have a gift waiting!');
-                    gm.setValue('HaveGift', true);
-                }
             }
 
             if (this.stats.level < 10) {
@@ -6065,11 +6084,7 @@ caap = {
                 this[resultsFunction](resultsText);
             }
 
-            if (gm.getValue('NewsSummary', true)) {
-                this.News();
-            }
-
-            this.performanceTimer('Done CheckResults');
+            //this.performanceTimer('Done CheckResults');
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults: " + err);
@@ -12551,6 +12566,21 @@ caap = {
     },
 
     CheckResults_index: function (resultsText) {
+        if (gm.getValue('NewsSummary', true)) {
+            this.News();
+        }
+
+        // Check for new gifts
+        // A warrior wants to join your Army!
+        // Send Gifts to Friends
+        if (gm.getValue('AutoGift', false) && !gm.getValue('HaveGift', false)) {
+            if (/Send Gifts to Friends/.test(resultsText)) {
+            //if ($("a[href*='reqs.php#confirm_']").length && resultsText.match(/Send Gifts to Friends/)) {
+                global.log(1, 'We have a gift waiting!');
+                gm.setValue('HaveGift', true);
+            }
+        }
+
         this.last.ajaxGiftCheck = new Date().getTime();
         this.SaveLast();
     },
