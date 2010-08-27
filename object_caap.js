@@ -3006,9 +3006,10 @@ caap = {
             } else if (/AttrValue+/.test(idName)) {
                 caap.statsMatch = true;
             } else if (/MaxToFortify/.test(idName)) {
-                caap.last.monsterReview = 1;
-                caap.SaveLast();
-                gm.setValue('monsterReviewCounter', -3);
+                gm.setValue("resetselectMonster", true);
+                //caap.last.monsterReview = 1;
+                //caap.SaveLast();
+                //gm.setValue('monsterReviewCounter', -3);
             } else if (/energyPotions+/.test(idName) || /staminaPotions+/.test(idName)) {
                 gm.deleteValue('AutoPotionTimer');
             }
@@ -3155,9 +3156,10 @@ caap = {
             var value = e.target.value;
             global.log(1, 'Change: setting "' + idName + '" to "' + value + '"');
             if (idName === 'orderbattle_monster' || idName === 'orderraid') {
-                caap.last.monsterReview = 1;
-                caap.SaveLast();
-                gm.setValue('monsterReviewCounter', -3);
+                gm.setValue("resermonsterSelect", true);
+                //caap.last.monsterReview = 1;
+                //caap.SaveLast();
+                //gm.setValue('monsterReviewCounter', -3);
             }
 
             if (idName === 'EliteArmyList' || idName === 'BattleTargets') {
@@ -6907,7 +6909,7 @@ caap = {
             reqAtkButton : 'attack_monster_button.jpg',
             v            : 'attack_monster_button2.jpg',
             defButton    : 'button_dispel.gif',
-            general      : ''
+            defense_img  : 'bar_dispel.gif'
         },
         'Ice Elemental' : {
             duration     : 168,
@@ -6925,7 +6927,7 @@ caap = {
             reqAtkButton : 'attack_monster_button.jpg',
             pwrAtkButton : 'attack_monster_button2.jpg',
             defButton    : 'button_dispel.gif',
-            general      : ''
+            defense_img  : 'bar_dispel.gif'
         },
         'Earth Elemental' : {
             duration     : 168,
@@ -6943,7 +6945,8 @@ caap = {
             reqAtkButton : 'attack_monster_button.jpg',
             pwrAtkButton : 'attack_monster_button2.jpg',
             defButton    : 'attack_monster_button3.jpg',
-            general      : ''
+            defense_img  : 'seamonster_ship_health.jpg',
+            repair_img   : 'repair_bar_grey.jpg'
         },
         'Hydra' : {
             duration     : 168,
@@ -6967,7 +6970,8 @@ caap = {
             siege_img    : '/graphics/castle_siege_small',
             fort         : true,
             staUse       : 5,
-            general      : ''
+            defense_img  : 'seamonster_ship_health.jpg',
+            repair_img   : 'repair_bar_grey.jpg'
         },
         'Emerald Dragon' : {
             duration     : 72,
@@ -7026,7 +7030,7 @@ caap = {
             siege        : 0,
             fort         : true,
             //staUse       : 5,
-            general      : ''
+            defense_img  : 'seamonster_ship_health.jpg'
         },
         'Raid I'    : {
             duration     : 88,
@@ -7070,29 +7074,7 @@ caap = {
             staLvl       : [0, 100, 200, 500],
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
-            general      : '',
-            charClass    : {
-                'Warrior' : {
-                    statusWord   : 'jaws',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Rogue'   : {
-                    statusWord   : 'heal',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Mage'    : {
-                    statusWord   : 'lava',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Cleric'  : {
-                    statusWord   : 'mana',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                }
-            }
+            defense_img  : 'nm_green.jpg'
         },
         // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
         'Volcanic Dragon' : {
@@ -7108,29 +7090,7 @@ caap = {
             staLvl       : [0, 100, 200, 500],
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
-            general      : '',
-            charClass    : {
-                'Warrior' : {
-                    statusWord   : 'jaws',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Rogue'   : {
-                    statusWord   : 'heal',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Mage'    : {
-                    statusWord   : 'lava',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Cleric'  : {
-                    statusWord   : 'mana',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                }
-            }
+            defense_img  : 'nm_green.jpg'
         },
         // http://castleage.wikidot.com/alpha-bahamut
         // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
@@ -7151,29 +7111,7 @@ caap = {
             staLvl       : [0, 100, 200, 500],
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
-            general      : '',
-            charClass    : {
-                'Warrior' : {
-                    statusWord   : 'jaws',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Rogue'   : {
-                    statusWord   : 'heal',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Mage'    : {
-                    statusWord   : 'lava',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Cleric'  : {
-                    statusWord   : 'mana',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                }
-            }
+            defense_img  : 'nm_green.jpg'
         },
         // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
         'Wrath' : {
@@ -7193,29 +7131,7 @@ caap = {
             staLvl       : [0, 100, 200, 500],
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
-            general      : '',
-            charClass    : {
-                'Warrior' : {
-                    statusWord   : 'jaws',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Rogue'   : {
-                    statusWord   : 'heal',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Mage'    : {
-                    statusWord   : 'lava',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Cleric'  : {
-                    statusWord   : 'mana',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                }
-            }
+            defense_img  : 'nm_green.jpg'
         },
 
         'Alpha Mephistopheles' : {
@@ -7235,29 +7151,7 @@ caap = {
             staLvl       : [0, 100, 200, 500],
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
-            general      : '',
-            charClass    : {
-                'Warrior' : {
-                    statusWord   : 'jaws',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Rogue'   : {
-                    statusWord   : 'heal',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Mage'    : {
-                    statusWord   : 'lava',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                },
-                'Cleric'  : {
-                    statusWord   : 'mana',
-                    pwrAtkButton : 'nm_primary',
-                    defButton    : 'nm_secondary'
-                }
-            }
+            defense_img  : 'nm_green.jpg'
         }
     },
 
@@ -7276,6 +7170,7 @@ caap = {
             phase      : '',
             link       : '',
             rix        : -1,
+            over       : '',
             page       : '',
             color      : '',
             review     : -1,
@@ -7325,8 +7220,9 @@ caap = {
 
     getMonstType: function (name) {
         try {
-            var words = name.split(" ");
-            var count = words.length - 1;
+            var words = name.split(" "),
+                count = words.length - 1;
+
             if (count >= 4) {
                 if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
                     return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
@@ -7336,6 +7232,7 @@ caap = {
             if (words[count] === 'Mephistopheles' && words[count - 1] === 'Alpha') {
                 return words[count - 1] + ' ' + words[count];
             }
+
             if (words[count] === 'Elemental' || words[count] === 'Dragon') {
                 return words[count - 1] + ' ' + words[count];
             }
@@ -7603,45 +7500,16 @@ caap = {
         try {
             var yourRegEx         = new RegExp(".+'s "),
                 missRegEx         = new RegExp(".*Need (\\d+) more.*"),
-                webSlice          = null,
-                monster           = '',
-                fort              = null,
-                monstType         = '',
                 currentMonster    = {},
                 time              = [],
-                monsterTicker     = null,
-                boss              = '',
                 currentPhase      = 0,
                 miss              = '',
-                fortPct           = null,
-                strePct           = null,
                 img               = null,
-                manaHealth        = '',
-                shipHealth        = '',
-                extraHealth       = '',
-                partyHealth       = '',
-                partyStrength     = '',
-                bottomDiv         = null,
                 tempDiv           = null,
                 tempText          = '',
                 tempArr           = [],
-                character         = '',
-                tip               = '',
-                stun              = 0,
-                doCharAtk         = false,
-                statusTime        = {
-                    hours  : 0,
-                    mins   : 0,
-                    secs   : 0,
-                    totMil : 0
-                },
-                damDone           = 0,
-                damList           = null,
-                monsterConditions = '',
                 counter           = 0,
-                hp                = 0,
                 monstHealthImg    = '',
-                hpBar             = null,
                 imgHealthBar      = null,
                 divAttr           = '',
                 attrWidth         = '',
@@ -7661,299 +7529,248 @@ caap = {
                 KOBtmp            = 0,
                 KOBtimeLeft       = 0,
                 KOBbiasedTF       = 0,
-                KOBPercentTimeRemaining = 0;
+                KOBPercentTimeRemaining = 0,
+                KOBtotalMonsterTime = 0,
+                monsterDiv        = null;
 
-            // Check if on monster page (nm_top.jpg for Volcanic Dragon & WORTP)
-            // (nm_top_2.jpg for Alpha Volcanic Dragon)
-            webSlice = this.CheckForImage('dragon_title_owner.jpg');
-            if (!webSlice) {
-                webSlice = this.CheckForImage('nm_top.jpg');
-                if (!webSlice) {
-                    webSlice = this.CheckForImage('nm_top_2.jpg');
-                    if (!webSlice) {
-                        global.log(1, 'Can not find identifier for monster fight page.');
+            tempDiv = $("div[style*='dragon_title_owner']");
+            if (tempDiv && tempDiv.length) {
+                tempText = $.trim(tempDiv.children().eq(2).text());
+            } else {
+                tempDiv = $("div[style*='nm_top']");
+                if (tempDiv && tempDiv.length) {
+                    tempText = $.trim(tempDiv.children().children().text());
+                    tempDiv = $("div[style*='nm_bars']");
+                    if (tempDiv && tempDiv.length) {
+                        tempText += ' ' + $.trim(tempDiv.children().children().children().siblings().eq(1).children().eq(0).text()).replace("'s Life", "");
+                    } else {
+                        global.log(1, "Problem finding nm_bars");
                         return;
                     }
+                } else {
+                    global.log(1, "Problem finding dragon_title_owner and nm_top");
+                    return;
                 }
             }
 
-            // Get name and type of monster
-            monster = nHtml.GetText(webSlice);
-            if (this.CheckForImage('nm_volcanic_title.jpg')) {
-                monster = monster.match(yourRegEx) + 'Bahamut, the Volcanic Dragon';
-                monster = $.trim(monster);
-            } else if (this.CheckForImage('nm_volcanic_title_2.jpg')) {
-                monster = monster.match(yourRegEx) + 'Alpha Bahamut, the Volcanic Dragon';
-                monster = $.trim(monster);
-            } else if (this.CheckForImage('nm_azriel_title.jpg')) {
-                monster = monster.match(yourRegEx) + 'Azriel, the Angel of Wrath';
-                monster = $.trim(monster);
-            } else if (this.CheckForImage('nm_war_title.jpg')) {
-                monster = monster.match(yourRegEx) + 'War of the Red Plains';
-                monster = $.trim(monster);
-            } else if (this.CheckForImage('nm_mephistopheles2_title.jpg')) {
-                monster = monster.match(yourRegEx) + 'Alpha Mephistopheles';
-                monster = $.trim(monster);
-            } else {
-                monster = $.trim(monster.substring(0, monster.indexOf('You have (')));
+            if (tempDiv.find("img[uid=" + this.stats.FBID + "]").length ? true : false) {
+                tempText = tempText.replace(yourRegEx, 'Your ');
             }
 
-            if (this.CheckForImage('raid_1_large.jpg')) {
-                monstType = 'Raid I';
-            } else if (this.CheckForImage('raid_b1_large.jpg')) {
-                monstType = 'Raid II';
-            } else if (this.CheckForImage('nm_volcanic_large_2.jpg')) {
-                monstType = 'Alpha Volcanic Dragon';
-            } else if (this.CheckForImage('nm_azriel_large2.jpg')) {
-                monstType = 'Wrath';
-            } else if (this.CheckForImage('nm_war_large.jpg')) {
-                monstType = 'Plains';
-            } else if (this.CheckForImage('nm_mephistopheles2_large.jpg')) {
-                monstType = 'Alpha Mephistopheles';
-            } else {
-                monstType = this.getMonstType(monster);
+            currentMonster = this.getMonsterRecord(tempText);
+            currentMonster.type = this.getMonstType(currentMonster.name);
+            if (currentMonster.type === 'Siege') {
+                tempDiv = $("div[style*='raid_back']");
+                if (tempDiv && tempDiv.length) {
+                    if (tempDiv.find("img[src*='raid_1_large.jpg']").length) {
+                        currentMonster.type = 'Raid I';
+                    } else if (tempDiv.find("img[src*='raid_b1_large.jpg']").length) {
+                        currentMonster.type = 'Raid II';
+                    } else {
+                        global.log(1, "Problem finding raid image, probably finished");
+                    }
+                } else {
+                    global.log(1, "Problem finding raid_back");
+                    return;
+                }
             }
 
-            if (nHtml.FindByAttr(webSlice, 'img', 'uid', this.stats.FBID)) {
-                monster = monster.replace(yourRegEx, 'Your ');
-            }
-
-            currentMonster = this.getMonsterRecord(monster);
             currentMonster.review = new Date().getTime();
-            currentMonster.type = monstType;
             gm.setValue('monsterRepeatCount', 0);
             // Extract info
-            monsterTicker = $("#app46755028429_monsterTicker");
-            if (monsterTicker && monsterTicker.length) {
+            tempDiv = $("#app46755028429_monsterTicker");
+            if (tempDiv && tempDiv.length) {
                 global.log(2, "Monster ticker found.");
-                time = monsterTicker.text().split(":");
+                time = tempDiv.text().split(":");
             } else {
                 global.log(1, "Could not locate Monster ticker.");
             }
 
-            if (time && time.length === 3 && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
-                if (monstType === "Deathrune" || monstType === 'Ice Elemental') {
+            if (time && time.length === 3 && this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].fort) {
+                if (currentMonster.type === "Deathrune" || currentMonster.type === 'Ice Elemental') {
                     currentMonster.fortify = 100;
                 } else {
                     currentMonster.fortify = 0;
                 }
 
-                // Check for mana forcefield
-                img = this.CheckForImage('bar_dispel');
-                if (img) {
-                    manaHealth = img.parentNode.style.width;
-                    parseFloat(manaHealth = manaHealth.substring(0, manaHealth.length - 1));
-                    fortPct = 100 - manaHealth;
-                } else {
-                    // Check fortify stuff
-                    img = this.CheckForImage('seamonster_ship_health');
-                    if (img) {
-                        shipHealth = img.parentNode.style.width;
-                        fortPct = parseFloat(shipHealth.substring(0, shipHealth.length - 1));
-                        if (monstType === "Legion" || monstType.indexOf('Elemental') >= 0) {
-                            img = this.CheckForImage('repair_bar_grey');
-                            if (img) {
-                                extraHealth = img.parentNode.style.width;
-                                extraHealth = parseFloat(extraHealth.substring(0, extraHealth.length - 1));
-                                fortPct = fortPct * (100 / (100 - extraHealth));
+                switch (this.monsterInfo[currentMonster.type].defense_img) {
+                case 'bar_dispel.gif' :
+                    tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].defense_img + "']");
+                    if (tempDiv && tempDiv.length) {
+                        currentMonster.fortify = 100 - parseFloat(tempDiv.parent().css('width'));
+                    } else {
+                        global.log(1, "Unable to find defense bar", this.monsterInfo[currentMonster.type].defense_img);
+                    }
+
+                    break;
+                case 'seamonster_ship_health.jpg' :
+                    tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].defense_img + "']");
+                    if (tempDiv && tempDiv.length) {
+                        currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
+                        if (this.monsterInfo[currentMonster.type].repair_img) {
+                            tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].repair_img + "']");
+                            if (tempDiv && tempDiv.length) {
+                                currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().css('width'))));
+                            } else {
+                                global.log(1, "Unable to find repair bar", this.monsterInfo[currentMonster.type].repair_img);
                             }
                         }
                     } else {
-                        // Check party health - Volcanic dragon
-                        img = this.CheckForImage('nm_green');
-                        if (img) {
-                            partyHealth   = img.parentNode.style.width;
-                            partyStrength = img.parentNode.parentNode.style.width;
-                            fortPct = parseFloat(partyHealth.substring(0, partyHealth.length - 1));
-                            strePct = parseFloat(partyStrength.substring(0, partyStrength.length - 1));
-                        }
+                        global.log(1, "Unable to find defense bar", this.monsterInfo[currentMonster.type].defense_img);
+                    }
 
-                        // Character type stuff
-                        bottomDiv = $("div[style*='nm_bottom']");
-                        if (bottomDiv && bottomDiv.length) {
-                            tempText = $.trim(bottomDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
-                            if (tempText) {
+                    break;
+                case 'nm_green.jpg' :
+                    tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].defense_img + "']");
+                    if (tempDiv && tempDiv.length) {
+                        currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
+                        currentMonster.strength = parseFloat(tempDiv.parent().parent().css('width'));
+                    } else {
+                        global.log(1, "Unable to find defense bar", this.monsterInfo[currentMonster.type].defense_img);
+                    }
+
+                    // Character type stuff
+                    monsterDiv = $("div[style*='nm_bottom']");
+                    if (monsterDiv && monsterDiv.length) {
+                        tempText = $.trim(monsterDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
+                        if (tempText) {
+                            global.log(2, "tempText", tempText);
+                            tempArr = tempText.match(/Class: (\w+) /);
+                            if (tempArr && tempArr.length === 2) {
+                                currentMonster.charClass = tempArr[1];
+                                global.log(5, "character", currentMonster.charClass);
+                            } else {
+                                global.log(1, "Can't get character", tempArr);
+                            }
+
+                            tempArr = tempText.match(/Tip: ([\w ]+) Status/);
+                            if (tempArr && tempArr.length === 2) {
+                                currentMonster.tip = tempArr[1];
+                                global.log(5, "tip", currentMonster.tip);
+                            } else {
+                                global.log(1, "Can't get tip", tempArr);
+                            }
+
+                            tempArr = tempText.match(/Status Time Remaining: ([0-9]+):([0-9]+):([0-9]+)\s*/);
+                            if (tempArr && tempArr.length === 4) {
+                                currentMonster.stunTime = new Date().getTime() + (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
+                                global.log(5, "statusTime", currentMonster.stunTime);
+                            } else {
+                                global.log(1, "Can't get statusTime", tempArr);
+                            }
+
+                            tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
+                            if (tempDiv && tempDiv.length) {
+                                tempText = tempDiv.css('width');
                                 global.log(2, "tempText", tempText);
-                                tempArr = tempText.match(/Class: (\w+) /);
-                                if (tempArr && tempArr.length === 2) {
-                                    character = tempArr[1];
-                                    currentMonster.charClass = character;
-                                    global.log(5, "character", character);
+                                if (tempText) {
+                                    currentMonster.stun = this.NumberOnly(tempText);
+                                    global.log(5, "stun", currentMonster.stun);
                                 } else {
-                                    global.log(1, "Can't get character", tempArr);
-                                }
-
-                                tempArr = tempText.match(/Tip: ([\w ]+) Status/);
-                                if (tempArr && tempArr.length === 2) {
-                                    tip = tempArr[1];
-                                    currentMonster.tip = tip;
-                                    global.log(5, "tip", tip);
-                                } else {
-                                    global.log(1, "Can't get tip", tempArr);
-                                }
-
-                                tempArr = tempText.match(/Status Time Remaining: ([0-9]+):([0-9]+):([0-9]+)\s*/);
-                                if (tempArr && tempArr.length === 4) {
-                                    statusTime.hours = tempArr[1];
-                                    statusTime.mins = tempArr[2];
-                                    statusTime.secs = tempArr[3];
-                                    statusTime.totMil = (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
-                                    currentMonster.stunTime = new Date().getTime() + statusTime.totMil;
-                                    global.log(5, "statusTime", statusTime);
-                                } else {
-                                    global.log(1, "Can't get statusTime", tempArr);
-                                }
-
-                                tempDiv = bottomDiv.find("img[src*='nm_stun_bar']");
-                                if (tempDiv && tempDiv.length) {
-                                    tempText = tempDiv.css('width');
-                                    global.log(2, "tempText", tempText);
-                                    if (tempText) {
-                                        stun = this.NumberOnly(tempText);
-                                        currentMonster.stun = stun;
-                                        global.log(5, "stun", stun);
-                                    } else {
-                                        stun = null;
-                                        global.log(1, "Can't get stun bar width");
-                                    }
-                                } else {
-                                    global.log(1, "Can't get stun bar");
-                                }
-
-                                if (character && tip && stun !== null) {
-                                    doCharAtk = new RegExp(character).test(tip) && stun < 100;
-                                    currentMonster.stunDo = doCharAtk;
-                                    global.log(5, "Do character specific attack", doCharAtk);
-                                } else {
-                                    global.log(1, "Missing 'character', 'tip' or 'stun'", character, tip, stun);
+                                    global.log(1, "Can't get stun bar width");
                                 }
                             } else {
-                                global.log(1, "Missing tempText");
+                                global.log(1, "Can't get stun bar");
+                            }
+
+                            if (currentMonster.charClass && currentMonster.tip && currentMonster.stun !== -1) {
+                                currentMonster.stunDo = new RegExp(currentMonster.charClass).test(currentMonster.tip) && currentMonster.stun < 100;
+                                global.log(5, "Do character specific attack", currentMonster.stunDo);
+                            } else {
+                                global.log(1, "Missing 'class', 'tip' or 'stun'", currentMonster);
                             }
                         } else {
-                            global.log(1, "Missing bottomDiv");
+                            global.log(1, "Missing tempText");
                         }
+                    } else {
+                        global.log(1, "Missing nm_bottom");
                     }
-                }
 
-                if (fortPct !== null) {
-                    fortPct = parseFloat(fortPct);
-                    currentMonster.fortify = fortPct;
+                    break;
+                default:
+                    global.log(1, "No match for defense_img", this.monsterInfo[currentMonster.type].defense_img);
                 }
-
-                if (strePct !== null) {
-                    strePct = parseFloat(strePct);
-                    currentMonster.strength = strePct;
-                }
-
-                this.updateMonsterRecord(currentMonster);
             }
 
             // Get damage done to monster
-            webSlice = nHtml.FindByAttrContains(document.body, "td", "class", "dragonContainer");
-            if (webSlice) {
-                webSlice = nHtml.FindByAttrContains(webSlice, "td", "valign", "top");
-                if (webSlice) {
-                    webSlice = nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?casuser=" + this.stats.FBID) || nHtml.FindByAttrContains(webSlice, "a", "href", "keep.php?user=" + this.stats.FBID);
-                    if (webSlice) {
-                        if (monstType === "Serpent" || monstType.indexOf('Elemental') >= 0 || monstType === "Deathrune") {
-                            damList = $.trim(nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling)).split("/");
-                            fort = this.NumberOnly(damList[1]);
-                            damDone = this.NumberOnly(damList[0]) + fort;
-                            currentMonster.attacked = damDone;
-                            damDone = damDone + fort;
-                            currentMonster.defended = fort;
-                        } else if (monstType === "Siege" || monstType === "Raid I" || monstType === "Raid II") {
-                            damList = $.trim(nHtml.GetText(webSlice.parentNode.nextSibling.nextSibling));
-                            damDone = this.NumberOnly(damList);
-                            currentMonster.attacked = damDone;
-                        } else {
-                            damList = $.trim(nHtml.GetText(webSlice.parentNode.parentNode.nextSibling.nextSibling));
-                            damDone = this.NumberOnly(damList);
-                            currentMonster.attacked = damDone;
-                        }
-
-                        currentMonster.damage = damDone;
-                        this.updateMonsterRecord(currentMonster);
+            tempDiv = $("td[class='dragonContainer'] td[valign='top'] a[href*='user=" + this.stats.FBID + "']");
+            if (tempDiv && tempDiv.length) {
+                if (currentMonster.type === "Serpent" || currentMonster.type.indexOf('Elemental') >= 0 || currentMonster.type === "Deathrune") {
+                    tempArr = $.trim(tempDiv.parent().parent().siblings().eq(1).text()).match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def"));
+                    if (tempArr && tempArr.length === 3) {
+                        currentMonster.attacked = this.NumberOnly(tempArr[1]);
+                        currentMonster.defended = this.NumberOnly(tempArr[2]);
+                        currentMonster.damage = currentMonster.attacked + currentMonster.defended;
                     } else {
-                        global.log(1, "Player hasn't done damage yet");
+                        global.log(1, "Unable to get attacked and defended damage");
                     }
+                } else if (currentMonster.type === "Siege" || currentMonster.type.indexOf('Raid') >= 0) {
+                    currentMonster.attacked = this.NumberOnly($.trim(tempDiv.parent().siblings().eq(1).text()));
+                    currentMonster.damage = currentMonster.attacked;
                 } else {
-                    global.log(1, "couldn't get top table");
+                    currentMonster.attacked = this.NumberOnly($.trim(tempDiv.parent().parent().siblings().eq(1).text()));
+                    currentMonster.damage = currentMonster.attacked;
                 }
             } else {
-                global.log(1, "couldn't get dragoncontainer");
+                global.log(1, "Player hasn't done damage yet");
             }
 
-            monsterConditions = currentMonster.conditions;
-            if (/:ac\b/.test(monsterConditions) ||
-                    (monstType.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
-                    (!monstType.match(/Raid/) && gm.getValue('monsterCollectReward', false))) {
+            if (/:ac\b/.test(currentMonster.conditions) ||
+                    (currentMonster.type.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
+                    (!currentMonster.type.match(/Raid/) && gm.getValue('monsterCollectReward', false))) {
 
-                counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10);
-                if (counter >= 0 && this.monsterArray[counter].name === monster &&
-                        (nHtml.FindByAttrContains(document.body, 'a', 'href', '&action=collectReward') ||
-                        nHtml.FindByAttrContains(document.body, 'input', 'alt', 'Collect Reward'))) {
-
+                counter = gm.getNumber('monsterReviewCounter', -3);
+                if (counter >= 0 && this.monsterArray[counter].name === currentMonster.name && ($("a[href*='&action=collectReward']").length || $("input[alt*='Collect Reward']").length)) {
                     global.log(1, 'Collecting Reward');
                     currentMonster.review = 1;
                     gm.setValue('monsterReviewCounter', counter -= 1);
                     currentMonster.status = 'Collect Reward';
-                    if (monster.indexOf('Siege') >= 0) {
-                        if (nHtml.FindByAttrContains(document.body, 'a', 'href', '&rix=1')) {
+                    if (currentMonster.name.indexOf('Siege') >= 0) {
+                        if ($("a[href*='&rix=1']").length) {
                             currentMonster.rix = 1;
                         } else {
                             currentMonster.rix = 2;
                         }
-
                     }
-
-                    this.updateMonsterRecord(currentMonster);
                 }
             }
 
-            if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
+            if (currentMonster.type.indexOf('Volcanic') >= 0 || currentMonster.type.indexOf('Wrath') >= 0 || currentMonster.type.indexOf('Plains') >= 0 || currentMonster.type.indexOf('Alpha Mephistopheles') >= 0) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
             }
 
-            if (time && time.length === 3 && this.CheckForImage(monstHealthImg)) {
+            monsterDiv = $("img[src*='" + monstHealthImg + "']");
+            if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
                 currentMonster.timeLeft = time[0] + ":" + time[1];
-                imgHealthBar = nHtml.FindByAttrContains(document.body, "img", "src", monstHealthImg);
-                if (imgHealthBar) {
+                if (monsterDiv && monsterDiv.length) {
                     global.log(2, "Found monster health div.");
-                    divAttr = imgHealthBar.parentNode.getAttribute("style").split(";");
-                    attrWidth = divAttr[1].split(":");
-                    hpBar = $.trim(attrWidth[1]);
+                    currentMonster.life = parseFloat(monsterDiv.parent().css("width"));
                 } else {
                     global.log(1, "Could not find monster health div.");
                 }
 
-                if (hpBar) {
-                    //hp = parseFloat(hpBar.replace(/%/, ''));
-                    hp = parseFloat(hpBar);
-                    currentMonster.life = hp;
-                    boss = this.monsterInfo[monstType];
-                    if (!boss) {
+                if (currentMonster.life) {
+                    if (!this.monsterInfo[currentMonster.type]) {
                         this.updateMonsterRecord(currentMonster);
                         global.log(1, 'Unknown monster');
                         return;
                     }
                 }
 
-                if (boss && boss.siege) {
-                    if (monstType.indexOf('Volcanic') >= 0 || monstType.indexOf('Wrath') >= 0 || monstType.indexOf('Plains') >= 0 || monstType.indexOf('Alpha Mephistopheles') >= 0) {
+                if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].siege) {
+                    if (currentMonster.type.indexOf('Volcanic') >= 0 || currentMonster.type.indexOf('Wrath') >= 0 || currentMonster.type.indexOf('Plains') >= 0 || currentMonster.type.indexOf('Alpha Mephistopheles') >= 0) {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
                         totalCount = 0;
-                        for (ind = 0; ind < boss.siege_img.length; ind += 1) {
-                            totalCount += $("img[src*=" + boss.siege_img[ind] + "]").size();
+                        for (ind = 0; ind < this.monsterInfo[currentMonster.type].siege_img.length; ind += 1) {
+                            totalCount += $("img[src*=" + this.monsterInfo[currentMonster.type].siege_img[ind] + "]").size();
                         }
 
-                        currentPhase = Math.min(totalCount, boss.siege);
+                        currentPhase = Math.min(totalCount, this.monsterInfo[currentMonster.type].siege);
                     } else {
-                        if (monstType.indexOf('Raid') >= 0) {
-                            miss = $.trim($("img[src*=" + boss.siege_img + "]").parent().parent().text().replace(missRegEx, "$1"));
+                        if (currentMonster.type.indexOf('Raid') >= 0) {
+                            miss = $.trim($("img[src*=" + this.monsterInfo[currentMonster.type].siege_img + "]").parent().parent().text().replace(missRegEx, "$1"));
                         } else {
                             miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(missRegEx, "$1"));
                         }
@@ -7972,17 +7789,15 @@ caap = {
                         }
                     }
 
-                    currentMonster.phase = Math.min(currentPhase, boss.siege) + "/" + boss.siege + " need " + (isNaN(miss) ? 0 : miss);
-                    this.updateMonsterRecord(currentMonster);
+                    currentMonster.phase = Math.min(currentPhase, this.monsterInfo[currentMonster.type].siege) + "/" + this.monsterInfo[currentMonster.type].siege + " need " + (isNaN(miss) ? 0 : miss);
                 }
 
-                if (boss) {
+                if (this.monsterInfo[currentMonster.type]) {
                     if (isNaN(miss)) {
                         miss = 0;
                     }
 
-                    currentMonster.t2k = this.t2kCalc(boss, time, hp, currentPhase, miss);
-                    this.updateMonsterRecord(currentMonster);
+                    currentMonster.t2k = this.t2kCalc(this.monsterInfo[currentMonster.type], time, currentMonster.life, currentPhase, miss);
                 }
             } else {
                 global.log(1, 'Monster is dead or fled');
@@ -7996,17 +7811,16 @@ caap = {
                 return;
             }
 
-            boss = this.monsterInfo[monstType];
-            achLevel = this.parseCondition('ach', monsterConditions);
-            if (boss && achLevel === false) {
-                achLevel = boss.ach;
+            this.monsterInfo[currentMonster.type] = this.monsterInfo[currentMonster.type];
+            achLevel = this.parseCondition('ach', currentMonster.conditions);
+            if (this.monsterInfo[currentMonster.type] && achLevel === false) {
+                achLevel = this.monsterInfo[currentMonster.type].ach;
             }
 
-            maxDamage = this.parseCondition('max', monsterConditions);
-            fortPct = currentMonster.fortify;
-            maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
-            isTarget = (monster === gm.getValue('targetFromraid', '') || monster === gm.getValue('targetFrombattle_monster', '') || monster === gm.getValue('targetFromfortify', ''));
-            if (monster === gm.getValue('targetFromfortify', '') && fortPct > maxToFortify) {
+            maxDamage = this.parseCondition('max', currentMonster.conditions);
+            maxToFortify = (this.parseCondition('f%', currentMonster.conditions) !== false) ? this.parseCondition('f%', currentMonster.conditions) : gm.getNumber('MaxToFortify', 0);
+            isTarget = (currentMonster.name === gm.getValue('targetFromraid', '') || currentMonster.name === gm.getValue('targetFrombattle_monster', '') || currentMonster.name === gm.getValue('targetFromfortify', ''));
+            if (currentMonster.name === gm.getValue('targetFromfortify', '') && currentMonster.fortify > maxToFortify) {
                 gm.setValue('resetselectMonster', true);
             }
 
@@ -8029,7 +7843,7 @@ caap = {
             KOBminFort = false;
 
             //create a temp variable so we don't need to call parseCondition more than once for each if statement
-            KOBtmp = this.parseCondition('kob', monsterConditions);
+            KOBtmp = this.parseCondition('kob', currentMonster.conditions);
             if (isNaN(KOBtmp)) {
                 global.log(1, 'NaN branch');
                 KOBenable = true;
@@ -8059,15 +7873,15 @@ caap = {
             global.log(1, 'KOBenable: ' + KOBenable + ' KOB Bias Hours: ' + KOBbiasHours);
 
             //Total Time alotted for monster
-            var KOBtotalMonsterTime = this.monsterInfo[monstType].duration;
-            global.log(1, 'Total Time for Monster: ' + KOBtotalMonsterTime);
+            KOBtotalMonsterTime = this.monsterInfo[currentMonster.type].duration;
+            global.log(1, 'Total Time for Monster: ', KOBtotalMonsterTime);
 
             //Total Damage remaining
-            global.log(1, 'HP left: ' + hp);
+            global.log(1, 'HP left: ', currentMonster.life);
 
             //Time Left Remaining
             KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
-            global.log(1, 'TimeLeft: ' + KOBtimeLeft);
+            global.log(1, 'TimeLeft: ', KOBtimeLeft);
 
             //calculate the bias offset for time remaining
             KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
@@ -8084,7 +7898,7 @@ caap = {
 
             // End of Keep On Budget (KOB) code Part 1 -- required variables
 
-            if (maxDamage && damDone >= maxDamage) {
+            if (maxDamage && currentMonster.damage >= maxDamage) {
                 currentMonster.color = 'red';
                 currentMonster.over = 'max';
                 //used with KOB code
@@ -8094,7 +7908,7 @@ caap = {
                 if (isTarget) {
                     gm.setValue('resetselectMonster', true);
                 }
-            } else if ((fortPct) && fortPct < gm.getNumber('MinFortToAttack', 1)) {
+            } else if (currentMonster.fortify !== -1 && currentMonster.fortify < gm.getNumber('MinFortToAttack', 1)) {
                 currentMonster.color = 'purple';
                 //used with KOB code
                 KOBminFort = true;
@@ -8103,7 +7917,7 @@ caap = {
                 if (isTarget) {
                     gm.setValue('resetselectMonster', true);
                 }
-            } else if (damDone >= achLevel && gm.getValue('AchievementMode')) {
+            } else if (currentMonster.damage >= achLevel && gm.getValue('AchievementMode')) {
                 currentMonster.color = 'orange';
                 currentMonster.over = 'ach';
                 //used with KOB code
@@ -8116,7 +7930,7 @@ caap = {
             }
 
             //Start of KOB code Part 2 begins here
-            if (KOBenable && !KOBmax && !KOBminFort && KOBach && hp < KOBPercentTimeRemaining) {
+            if (KOBenable && !KOBmax && !KOBminFort && KOBach && currentMonster.life < KOBPercentTimeRemaining) {
                 //kob color
                 currentMonster.color = 'magenta';
                 // this line is required or we attack anyway.
@@ -8138,7 +7952,7 @@ caap = {
             //End of KOB code Part 2 stops here.
 
             this.updateMonsterRecord(currentMonster);
-            this.UpdateDashboard(true)
+            this.UpdateDashboard(true);
             if (this.CheckTimer('battleTimer')) {
                 window.setTimeout(function () {
                     caap.SetDivContent('monster_mess', '');
@@ -8149,13 +7963,13 @@ caap = {
         }
     },
 
-    selectMonster: function () {
+    selectMonster: function (force) {
         try {
-            if (!this.oneMinuteUpdate('selectMonster')) {
+            if (!(force || this.oneMinuteUpdate('selectMonster'))) {
                 return false;
             }
 
-            global.log(5, 'Selecting monster');
+            global.log(1, 'Selecting monster');
             // First we forget everything about who we already picked.
             gm.setValue('targetFrombattle_monster', '');
             gm.setValue('targetFromfortify', '');
@@ -8206,7 +8020,7 @@ caap = {
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            global.log(9, 'monsterList/selectTypes', monsterList, selectTypes);
+            global.log(1, 'monsterArray/monsterList/selectTypes', this.monsterArray, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
             for (s in selectTypes) {
@@ -8246,6 +8060,8 @@ caap = {
 
                                     //Monster is a match so we set the conditions
                                     monsterObj.conditions = monsterConditions;
+
+                                    //monsterObj.over = '';
                                     this.updateMonsterRecord(monsterObj);
 
                                     // If it's complete or collect rewards, no need to process further
@@ -8289,23 +8105,23 @@ caap = {
 
                     // Now we use the first under max/under achievement that we found. If we didn't find any under
                     // achievement then we use the first over achievement
-                    monster = firstUnderMax;
-                    if (!monster) {
-                        monster = firstOverAch;
-                    }
-
-                    global.log(5, 'monster', monster);
                     if (selectTypes[s] !== 'raid') {
                         gm.setValue('targetFromfortify', firstFortUnderMax);
                         if (!gm.getValue('targetFromfortify', '')) {
                             gm.setValue('targetFromfortify', firstFortOverAch);
                         }
 
-                        global.log(3, 'fort under max ', firstFortUnderMax);
-                        global.log(3, 'fort over Ach ', firstFortOverAch);
-                        global.log(3, 'fort target ', gm.getValue('targetFromfortify', ''));
+                        global.log(1, 'fort under max ', firstFortUnderMax);
+                        global.log(1, 'fort over Ach ', firstFortOverAch);
+                        global.log(1, 'fort target ', gm.getValue('targetFromfortify', ''));
                     }
 
+                    monster = firstUnderMax;
+                    if (!monster) {
+                        monster = firstOverAch;
+                    }
+
+                    global.log(1, 'monster', monster);
                     // If we've got a monster for this selection type then we set the GM variables for the name
                     // and stamina requirements
                     if (monster) {
@@ -8371,6 +8187,7 @@ caap = {
                 }
             }
 
+            this.UpdateDashboard(true);
             return true;
         } catch (err) {
             global.error("ERROR in selectMonster: " + err);
@@ -8488,6 +8305,15 @@ caap = {
                 /*-------------------------------------------------------------------------------------\
                 If we looked at this monster more recently than an hour ago, skip it
                 \-------------------------------------------------------------------------------------*/
+                if (this.monsterArray[counter].color === 'grey' && this.monsterArray[counter].life !== -1) {
+                    this.monsterArray[counter].life = -1;
+                    this.monsterArray[counter].fortify = -1;
+                    this.monsterArray[counter].strength = -1;
+                    this.monsterArray[counter].timeLeft = '';
+                    this.monsterArray[counter].t2k = -1;
+                    this.monsterArray[counter].phase = '';
+                }
+
                 if (this.monsterArray[counter].status === 'Complete' || !this.WhileSinceDidIt(this.monsterArray[counter].review, 60 * 60) || gm.getValue('monsterRepeatCount', 0) > 2) {
                     gm.setValue('monsterReviewCounter', counter += 1);
                     gm.setValue('monsterRepeatCount', 0);
@@ -8692,7 +8518,6 @@ caap = {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
-                    //var monsterConditions = gm.getListObjVal('monsterOl', monster, 'conditions', ''),
                     var monsterConditions = currentMonster.conditions,
                         tacticsValue      = 0,
                         partyHealth       = 0,
@@ -8709,7 +8534,6 @@ caap = {
                     }
 
                     if (useTactics) {
-                        //partyHealth = parseFloat(gm.getListObjVal('monsterOl', monster, 'Fort%', 0));
                         partyHealth = currentMonster.fortify;
                     }
 
@@ -11301,6 +11125,12 @@ caap = {
         //Update Monster Finder
         if (this.WhileSinceDidIt("clearedMonsterFinderLinks", 72 * 60 * 60)) {
             this.clearLinks(true);
+        }
+
+        if (gm.getValue('resetselectMonster', false)) {
+            global.log(1, "resetselectMonster");
+            this.selectMonster(true);
+            gm.setValue('resetselectMonster', false);
         }
 
         if (this.CheckGenerals()) {
