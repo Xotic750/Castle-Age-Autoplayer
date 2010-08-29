@@ -296,6 +296,7 @@ general = {
         'Fortify',
         'Battle',
         'Duel',
+        'War',
         'SubQuest'
     ],
 
@@ -579,6 +580,8 @@ general = {
         }
     },
 
+    quickSwitch: false,
+
     GetEquippedStats: function () {
         try {
             var generalName  = '',
@@ -650,10 +653,7 @@ general = {
             }
 
             var generalImage = '',
-                it           = 0,
-                generalDiv   = null,
-                tempObj      = null,
-                success      = false;
+                it           = 0;
 
             for (it = 0; it < this.RecordArray.length; it += 1) {
                 if (caap.WhileSinceDidIt(this.RecordArray[it].last, (3 * 60 * 60))) {

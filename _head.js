@@ -56,45 +56,6 @@ String.prototype.regex = function (r) {
 	return a;
 };
 
-// Adds commas into a string, ignore any number formatting
-var addCommas = function (s) {
-	var a = s ? s.toString() : '0',
-        r = new RegExp('(-?[0-9]+)([0-9]{3})');
-
-	while (r.test(a)) {
-		a = a.replace(r, '$1,$2');
-	}
-
-	return a;
-};
-
-var sortObject = function (obj, sortfunc, deep) {
-	var list   = [],
-        output = {},
-        i      = 0;
-
-	if (typeof deep === 'undefined') {
-		deep = false;
-	}
-
-	for (i in obj) {
-        if (obj.hasOwnProperty(i)) {
-            list.push(i);
-        }
-	}
-
-	list.sort(sortfunc);
-	for (i = 0; i < list.length; i += 1) {
-		if (deep && typeof obj[list[i]] === 'object') {
-			output[list[i]] = sortObject(obj[list[i]], sortfunc, deep);
-		} else {
-			output[list[i]] = obj[list[i]];
-		}
-	}
-
-	return output;
-};
-
 ///////////////////////////
 //       Objects
 ///////////////////////////
