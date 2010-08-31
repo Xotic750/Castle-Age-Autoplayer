@@ -193,6 +193,41 @@ caap = {
 
     CheckForImage: function (image, webSlice, subDocument, nodeNum) {
         try {
+            var traverse   = '',
+                imageSlice = null;
+
+            if (!webSlice) {
+                if (!subDocument) {
+                    webSlice = document.body;
+                } else {
+                    webSlice = subDocument.body;
+                }
+            }
+
+            if (nodeNum) {
+                traverse = ":eq(" + nodeNum + ")"
+            } else {
+                traverse = ":first"
+            }
+
+            imageSlice = $(webSlice).find("input[src*='" + image + "']" + traverse);
+            if (!imageSlice.length) {
+                imageSlice = $(webSlice).find("img[src*='" + image + "']" + traverse);
+                if (!imageSlice.length) {
+                    imageSlice = $(webSlice).find("div[style*='" + image + "']" + traverse);
+                }
+            }
+
+            return (imageSlice.length ? imageSlice.get(0) : null);
+        } catch (err) {
+            global.error("ERROR in CheckForImage: " + err);
+            return null;
+        }
+    },
+
+    /*
+    CheckForImage: function (image, webSlice, subDocument, nodeNum) {
+        try {
             if (!webSlice) {
                 if (!subDocument) {
                     webSlice = document.body;
@@ -222,6 +257,7 @@ caap = {
             return null;
         }
     },
+    */
 
     WhileSinceDidIt: function (nameOrNumber, seconds) {
         try {
@@ -2019,7 +2055,11 @@ caap = {
                                 break;
                             case 'fortify' :
                                 value = value.toFixed(2);
-                                title = "Percentage of monster defense: " + value + "%";
+                                title = "Percentage of party health/monster defense: " + value + "%";
+                                break;
+                            case 'strength' :
+                                value = value.toFixed(2);
+                                title = "Percentage of party strength: " + value + "%";
                                 break;
                             default :
                             }
@@ -5630,10 +5670,10 @@ caap = {
             return false;
         }
 
-        global.log(1, 'Click deity blessing for ' + autoBless);
+        global.log(1, 'Click deity blessing for ', autoBless);
         this.SetTimer('BlessingTimer', 60 * 60);
         this.SetCheckResultsFunction('BlessingResults');
-        caap.Click(picSlice);
+        this.Click(picSlice);
         return true;
     },
 
@@ -6575,99 +6615,108 @@ caap = {
 
     Battle: function (mode) {
         try {
-            if (gm.getValue('WhenBattle', '') === 'Never') {
+            var whenBattle    = '',
+                target        = '',
+                battletype    = '',
+                useGeneral    = '',
+                staminaReq    = 0,
+                chainImg      = '',
+                button        = null,
+                raidName      = '',
+                dfl           = '',
+                battleChainId = '';
+
+            whenBattle = gm.getValue('WhenBattle', '');
+            switch (whenBattle) {
+            case 'Never' :
                 this.SetDivContent('battle_mess', 'Battle off');
                 return false;
-            }
-
-            if (gm.getValue('WhenBattle') === 'Stay Hidden' && !this.NeedToHide()) {
-                this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
-                global.log(1, 'We Dont Need To Hide Yet');
-                return false;
-            }
-
-            if (this.stats.health.num < 10) {
-                global.log(9, 'Health is less than 10', this.stats.health.num);
-                return false;
-            }
-
-            if (gm.getValue('WhenBattle') === 'No Monster' && mode !== 'DemiPoints') {
-                if ((gm.getValue('WhenMonster', '') !== 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
+            case 'Stay Hidden' :
+                if (!this.NeedToHide()) {
+                    this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
+                    global.log(1, 'We Dont Need To Hide Yet');
                     return false;
                 }
-            }
 
-            global.log(9, 'Mode', mode);
-            var target = this.GetCurrentBattleTarget(mode);
-            global.log(9, 'Target', target);
-            if (!target) {
-                global.log(1, 'No valid battle target');
-                return false;
-            }
+                break;
+            case 'No Monster' :
+                if (mode !== 'DemiPoints') {
+                    if ((gm.getValue('WhenMonster', '') !== 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
+                        return false;
+                    }
+                }
 
-            if (target === 'NoRaid') {
-                global.log(9, 'No Raid To Attack');
-                return false;
-            }
-
-            if (gm.getValue('BattleType') === 'War' && !this.CheckStamina('Battle', 10)) {
-                global.log(9, 'Not enough stamina for War');
-                return false;
-            }
-
-            if (gm.getValue('BattleType') === 'Invade' && !this.CheckStamina('Battle', 1)) {
-                global.log(9, 'Not enough stamina for Invade');
-                return false;
-            }
-
-            if (gm.getValue('BattleType') === 'Duel' && !this.CheckStamina('Battle', 1)) {
-                global.log(9, 'Not enough stamina for Duel');
+                break;
+            default :
+                global.log(1, 'WhenBattle is unknown', whenBattle);
                 return false;
             }
 
             if (this.CheckKeep()) {
                 return true;
+            } else if (this.stats.health.num < 10) {
+                global.log(9, 'Health is less than 10', this.stats.health.num);
+                return false;
+            }
+
+            target = this.GetCurrentBattleTarget(mode);
+            global.log(9, 'Mode/Target', mode, target);
+            if (!target) {
+                global.log(1, 'No valid battle target');
+                return false;
+            } else if (typeof target === 'string') {
+                target = target.toLowerCase();
+            }
+
+            if (target === 'noraid') {
+                global.log(9, 'No Raid To Attack');
+                return false;
+            }
+
+            battletype = gm.getValue('BattleType', '');
+            switch (battletype) {
+            case 'Invade' :
+                useGeneral = 'BattleGeneral';
+                staminaReq = 1;
+                chainImg = 'battle_invade_again.gif';
+                break;
+            case 'Duel' :
+                useGeneral = 'DuelGeneral';
+                staminaReq = 1;
+                chainImg = 'battle_duel_again.gif';
+                break;
+            case 'War' :
+                useGeneral = 'WarGeneral';
+                staminaReq = 10;
+                chainImg = 'battle_duel_again.gif';
+                break;
+            default :
+                global.log(1, 'Unknown battle type ', battletype);
+                return false;
+            }
+
+            if (!this.CheckStamina('Battle', staminaReq)) {
+                global.log(9, 'Not enough stamina for ', battletype);
+                return false;
+            } else if (general.Select(useGeneral)) {
+                return true;
             }
 
             // Check if we should chain attack
-            var useGeneral = '';
-            if (gm.getValue('BattleType') === 'Invade') {
-                useGeneral = 'BattleGeneral';
-            } else {
-                useGeneral = 'DuelGeneral';
-            }
-
-            if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
-                if (general.Select(useGeneral)) {
-                    return true;
-                }
-
-                var chainButton = null;
-                if (gm.getValue('BattleType') === 'Invade') {
-                    chainButton = this.CheckForImage('battle_invade_again.gif');
-                } else {
-                    chainButton = this.CheckForImage('battle_duel_again.gif');
-                }
-
-                if (chainButton && gm.getValue("BattleChainId", '')) {
+            if ($("img[src*='battle_victory.gif']").length) {
+                button = this.CheckForImage(chainImg);
+                battleChainId = gm.getValue("BattleChainId", '');
+                if (button && battleChainId) {
                     this.SetDivContent('battle_mess', 'Chain Attack In Progress');
-                    global.log(1, 'Chaining Target', gm.getValue("BattleChainId", ''));
-                    this.ClickBattleButton(chainButton);
+                    global.log(1, 'Chaining Target', battleChainId);
+                    this.ClickBattleButton(button);
                     gm.setValue("BattleChainId", '');
                     return true;
                 }
             }
 
-            if (general.Select(useGeneral)) {
-                return true;
-            }
-
             if (!this.notSafeCount) {
                 this.notSafeCount = 0;
-            }
-
-            if (typeof target === 'string') {
-                target = target.toLowerCase();
             }
 
             global.log(1, 'Battle Target', target);
@@ -6685,11 +6734,11 @@ caap = {
                     return true;
                 }
 
-                var raidName = gm.getValue('targetFromraid', '');
+                raidName = gm.getValue('targetFromraid', '');
                 if (!$("div[style*='dragon_title_owner']").length) {
-                    var engageButton = this.monsterEngageButtons[raidName];
-                    if (engageButton) {
-                        this.Click(engageButton);
+                    button = this.monsterEngageButtons[raidName];
+                    if (button) {
+                        this.Click(button);
                         return true;
                     }
 
@@ -6704,7 +6753,7 @@ caap = {
                 // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                 if (gm.getValue('TargetType', '') === "Userid List") {
                     if (this.BattleFreshmeat('Raid')) {
-                        if (nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body')) {
+                        if ($("span[class*='result_body']").length) {
                             this.NextBattleTarget();
                         }
 
@@ -6730,7 +6779,7 @@ caap = {
                 // The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                 if (gm.getValue('TargetType', '') === "Userid List") {
                     if (this.BattleFreshmeat('Freshmeat')) {
-                        if (nHtml.FindByAttrContains(document.body, 'span', 'class', 'result_body')) {
+                        if ($("span[class*='result_body']").length) {
                             this.NextBattleTarget();
                         }
 
@@ -6748,7 +6797,7 @@ caap = {
 
                 return this.BattleFreshmeat('Freshmeat');
             default:
-                var dfl = gm.getValue('BattlesLostList', '');
+                dfl = gm.getValue('BattlesLostList', '');
                 if (dfl.indexOf(global.vs + target + global.vs) >= 0) {
                     global.log(1, 'Avoiding Losing Target', target);
                     this.NextBattleTarget();
@@ -7008,9 +7057,10 @@ caap = {
         },
         // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
         'Plains' : {
+            alpha        : true,
             duration     : 168,
             hp           : 350000000,
-            ach          : 4000,
+            ach          : 10000,
             siege        : 7,
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
@@ -7029,9 +7079,10 @@ caap = {
         },
         // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
         'Volcanic Dragon' : {
+            alpha        : true,
             duration     : 168,
             hp           : 130000000,
-            ach          : 1000000,
+            ach          : 4000000,
             siege        : 5,
             siegeClicks  : [30, 60, 90, 120, 200],
             siegeDam     : [7896000, 9982500, 11979000, 15972000, 19965000],
@@ -7046,9 +7097,10 @@ caap = {
         // http://castleage.wikidot.com/alpha-bahamut
         // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
         'Alpha Volcanic Dragon' : {
+            alpha        : true,
             duration     : 168,
             hp           : 620000000,
-            ach          : 4000000,
+            ach          : 8000000,
             siege        : 7,
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
@@ -7066,9 +7118,10 @@ caap = {
         },
         // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
         'Wrath' : {
+            alpha        : true,
             duration     : 168,
             hp           : 600000000,
-            ach          : 4000000,
+            ach          : 8000000,
             siege        : 7,
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
@@ -7086,9 +7139,10 @@ caap = {
         },
 
         'Alpha Mephistopheles' : {
+            alpha        : true,
             duration     : 168,
             hp           : 600000000,
-            ach          : 4000000,
+            ach          : 12000000,
             siege        : 10,
             siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam     : [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
@@ -7490,14 +7544,14 @@ caap = {
 
             tempDiv = $("div[style*='dragon_title_owner']");
             if (tempDiv && tempDiv.length) {
-                tempText = $.trim(tempDiv.children().eq(2).text());
+                tempText = $.trim(tempDiv.children(":eq(2)").text());
             } else {
                 tempDiv = $("div[style*='nm_top']");
                 if (tempDiv && tempDiv.length) {
-                    tempText = $.trim(tempDiv.children().eq(0).children().eq(0).text());
+                    tempText = $.trim(tempDiv.children(":eq(0)").children(":eq(0)").text());
                     tempDiv = $("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
-                        tempText += ' ' + $.trim(tempDiv.children().eq(0).children().eq(0).children().eq(0).siblings().eq(1).children().eq(0).text()).replace("'s Life", "");
+                        tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
                     } else {
                         global.log(1, "Problem finding nm_bars");
                         return;
@@ -7690,7 +7744,7 @@ caap = {
                 }
             }
 
-            if (currentMonster.type.indexOf('Volcanic') >= 0 || currentMonster.type.indexOf('Wrath') >= 0 || currentMonster.type.indexOf('Plains') >= 0 || currentMonster.type.indexOf('Alpha Mephistopheles') >= 0) {
+            if (this.monsterInfo[currentMonster.type].alpha) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -7715,8 +7769,8 @@ caap = {
                 }
 
                 if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].siege) {
-                    if (currentMonster.type.indexOf('Volcanic') >= 0 || currentMonster.type.indexOf('Wrath') >= 0 || currentMonster.type.indexOf('Plains') >= 0 || currentMonster.type.indexOf('Alpha Mephistopheles') >= 0) {
-                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(1).children().eq(3).text().replace(missRegEx, "$1"));
+                    if (this.monsterInfo[currentMonster.type].alpha) {
+                        miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                         totalCount = 0;
                         for (ind = 0; ind < this.monsterInfo[currentMonster.type].siege_img.length; ind += 1) {
                             totalCount += $("img[src*=" + this.monsterInfo[currentMonster.type].siege_img[ind] + "]").size();
@@ -7725,9 +7779,9 @@ caap = {
                         currentPhase = Math.min(totalCount, this.monsterInfo[currentMonster.type].siege);
                     } else {
                         if (currentMonster.type.indexOf('Raid') >= 0) {
-                            miss = $.trim($("img[src*=" + this.monsterInfo[currentMonster.type].siege_img + "]").parent().parent().text().replace(missRegEx, "$1"));
+                            miss = $.trim($("img[src*=" + this.monsterInfo[currentMonster.type].siege_img + "]").parent().parent().text()).replace(missRegEx, "$1");
                         } else {
-                            miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text().replace(missRegEx, "$1"));
+                            miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                         }
 
                         divSeigeLogs = document.getElementById("app46755028429_siege_log");
@@ -8042,15 +8096,17 @@ caap = {
                                     monstType = this.getMonstType(monsterList[selectTypes[s]][m]);
                                     //global.log(1, 'Class', monsterObj.charClass);
                                     //global.log(1, 'Stun', monsterObj.stun);
-                                    if (!firstFortUnderMax && monsterObj.fortify < maxToFortify && monsterObj.page === 'battle_monster' && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
-                                        if (monsterObj.over === 'ach') {
-                                            if (!firstFortOverAch) {
-                                                firstFortOverAch = monsterList[selectTypes[s]][m];
-                                                global.log(3, 'firstFortOverAch', firstFortOverAch);
+                                    if (!monsterObj.alpha || (monsterObj.alpha && (monsterObj.charClass === 'Warrior' || monsterObj.charClass === 'Cleric' || monsterObj.charClass === 'Warlock' || monsterObj.charClass === 'Ranger'))) {
+                                        if (!firstFortUnderMax && monsterObj.fortify < maxToFortify && monsterObj.page === 'battle_monster' && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
+                                            if (monsterObj.over === 'ach') {
+                                                if (!firstFortOverAch) {
+                                                    firstFortOverAch = monsterList[selectTypes[s]][m];
+                                                    global.log(3, 'firstFortOverAch', firstFortOverAch);
+                                                }
+                                            } else if (monsterObj.over !== 'max') {
+                                                firstFortUnderMax = monsterList[selectTypes[s]][m];
+                                                global.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                             }
-                                        } else if (monsterObj.over !== 'max') {
-                                            firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                            global.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                         }
                                     }
                                 }
@@ -8106,7 +8162,7 @@ caap = {
                             } else if (monsterObj.conditions.match(/:sa/i)) {
                                 global.log(7, 'MonsterStaminaReq:sa', 1);
                                 gm.setValue('MonsterStaminaReq', 1);
-                            } else if (gm.getValue('PowerAttack')) {
+                            } else if ((this.InLevelUpMode() && this.stats.stamina.num >= 10) || gm.getValue('PowerAttack', true)) {
                                 global.log(7, 'MonsterStaminaReq:PowerAttack', 5);
                                 gm.setValue('MonsterStaminaReq', 5);
                             } else {
@@ -8159,14 +8215,14 @@ caap = {
 
             tempDiv = $("div[style*='dragon_title_owner']");
             if (tempDiv && tempDiv.length) {
-                tempText = $.trim(tempDiv.children().eq(2).text());
+                tempText = $.trim(tempDiv.children(":eq(2)").text());
             } else {
                 tempDiv = $("div[style*='nm_top']");
                 if (tempDiv && tempDiv.length) {
-                    tempText = $.trim(tempDiv.children().eq(0).children().eq(0).text());
+                    tempText = $.trim(tempDiv.children(":eq(0)").children(":eq(0)").text());
                     tempDiv = $("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
-                        tempText += ' ' + $.trim(tempDiv.children().eq(0).children().eq(0).children().eq(0).siblings().eq(1).children().eq(0).text()).replace("'s Life", "");
+                        tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
                     } else {
                         global.log(1, "Problem finding nm_bars");
                         return false;
@@ -8439,7 +8495,7 @@ caap = {
             monstType = this.getMonstType(monster);
             // Check if on engage monster page
             var imageTest = '';
-            if (monstType === 'Alpha Volcanic Dragon' || monstType === 'Volcanic Dragon' || monstType === 'Wrath' || monstType === 'Plains' || monstType === 'Alpha Mephistopheles') {
+            if (this.monsterInfo[monstType].alpha) {
                 imageTest = 'nm_top';
             } else {
                 imageTest = 'dragon_title_owner';
@@ -8530,9 +8586,11 @@ caap = {
                     }
                 }
 
+                /*
                 if (fightMode === 'Fortify' && gm.getValue('PowerFortifyMax')) {
                     nodeNum += 1;
                 }
+                */
 
                 for (var i in buttonList) {
                     if (buttonList.hasOwnProperty(i)) {
@@ -9595,8 +9653,8 @@ caap = {
             }
 
             // Go to gifts page if asked to read in gift list
-            if (gm.getValue('GiftChoice', false) === 'Get Gift List' || !gm.getList('GiftList')) {
-                if (this.NavigateTo('army,gift', 'giftpage_title.jpg')) {
+            if (gm.getValue('GiftChoice', false) === 'Get Gift List' || !gm.getList('GiftList').length) {
+                if (this.NavigateTo('gift', 'tab_gifts_on.gif')) {
                     return true;
                 }
             }
@@ -9604,7 +9662,7 @@ caap = {
             var giverId = [];
             // Gather the gifts
             if (gm.getValue('HaveGift', false)) {
-                if (this.NavigateTo('army', 'invite_on.gif')) {
+                if (this.NavigateTo('gift,army', 'invite_on.gif')) {
                     return true;
                 }
 
@@ -9640,7 +9698,7 @@ caap = {
                 }
 
                 gm.deleteValue('HaveGift');
-                return this.NavigateTo('gift');
+                return this.NavigateTo('gift', 'tab_gifts_on.gif');
             }
 
             var button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
@@ -9713,7 +9771,7 @@ caap = {
                 return false;
             }
 
-            if (this.NavigateTo('army,gift', 'giftpage_title.jpg')) {
+            if (this.NavigateTo('gift', 'tab_gifts_on.gif')) {
                 return true;
             }
 
@@ -9768,10 +9826,10 @@ caap = {
             // Move to gifts page
             var picDiv = this.CheckForImage(giftPic);
             if (!picDiv) {
-                global.log(1, 'Unable to find ' + giftPic);
+                global.log(1, 'Unable to find ', giftPic);
                 return false;
             } else {
-                global.log(1, 'GiftPic is ' + giftPic);
+                global.log(1, 'GiftPic is ', giftPic);
             }
 
             if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
