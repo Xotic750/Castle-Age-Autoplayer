@@ -65,5 +65,6 @@ var image64 = {},
     global  = {},
     gm      = {},
     nHtml   = {},
+    sort    = {},
     general = {},
     caap    = {};

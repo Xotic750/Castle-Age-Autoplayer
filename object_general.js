@@ -9,7 +9,7 @@ general = {
         this.data = {
             name    : '',
             img     : '',
-            level   : 0,
+            lvl     : 0,
             last    : new Date(2009, 1, 1).getTime(),
             special : '',
             atk     : 0,
@@ -64,186 +64,6 @@ general = {
 
     RecordArraySortable : [],
 
-    SortName : function (a, b) {
-        var nameA = a.name.toLowerCase(),
-            nameB = b.name.toLowerCase();
-
-        if (nameA < nameB) {
-            return -1;
-        }
-
-        if (nameA > nameB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortLevel : function (a, b) {
-        var levelA = a.level,
-            levelB = b.level;
-
-        if (levelA > levelB) {
-            return -1;
-        }
-
-        if (levelA < levelB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortAtk : function (a, b) {
-        var atkA = a.atk,
-            atkB = b.atk;
-
-        if (atkA > atkB) {
-            return -1;
-        }
-
-        if (atkA < atkB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortDef : function (a, b) {
-        var defA = a.def,
-            defB = b.def;
-
-        if (defA > defB) {
-            return -1;
-        }
-
-        if (defA < defB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortApi : function (a, b) {
-        var apiA = a.api,
-            apiB = b.api;
-
-        if (apiA > apiB) {
-            return -1;
-        }
-
-        if (apiA < apiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortDpi : function (a, b) {
-        var dpiA = a.dpi,
-            dpiB = b.dpi;
-
-        if (dpiA > dpiB) {
-            return -1;
-        }
-
-        if (dpiA < dpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortMpi : function (a, b) {
-        var mpiA = a.mpi,
-            mpiB = b.mpi;
-
-        if (mpiA > mpiB) {
-            return -1;
-        }
-
-        if (mpiA < mpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEAtk : function (a, b) {
-        var atkA = a.eatk,
-            atkB = b.eatk;
-
-        if (atkA > atkB) {
-            return -1;
-        }
-
-        if (atkA < atkB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEDef : function (a, b) {
-        var defA = a.edef,
-            defB = b.edef;
-
-        if (defA > defB) {
-            return -1;
-        }
-
-        if (defA < defB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEApi : function (a, b) {
-        var apiA = a.eapi,
-            apiB = b.eapi;
-
-        if (apiA > apiB) {
-            return -1;
-        }
-
-        if (apiA < apiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEDpi : function (a, b) {
-        var dpiA = a.edpi,
-            dpiB = b.edpi;
-
-        if (dpiA > dpiB) {
-            return -1;
-        }
-
-        if (dpiA < dpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEMpi : function (a, b) {
-        var mpiA = a.empi,
-            mpiB = b.empi;
-
-        if (mpiA > mpiB) {
-            return -1;
-        }
-
-        if (mpiA < mpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
     GetNames : function () {
         var it    = 0,
             names = [];
@@ -272,7 +92,7 @@ general = {
             names = [];
 
         for (it = 0; it < this.RecordArray.length; it += 1) {
-            if (this.RecordArray[it].level < 4) {
+            if (this.RecordArray[it].lvl < 4) {
                 names.push(this.RecordArray[it].name);
             }
         }
@@ -300,12 +120,25 @@ general = {
         'SubQuest'
     ],
 
+    Load: function () {
+        this.RecordArray = gm.getJValue('AllGeneralsJSON', []);
+        this.RecordArraySortable = [];
+        $.merge(this.RecordArraySortable, this.RecordArray);
+    },
+
+    Save: function () {
+        gm.setJValue('AllGeneralsJSON', this.RecordArray);
+    },
+
+    MakeSort: function () {
+        this.RecordArraySortable = [];
+        $.merge(this.RecordArraySortable, this.RecordArray);
+    },
+
     BuildlLists: function () {
         try {
             global.log(1, 'Building Generals Lists');
-            this.RecordArray = gm.getJValue('AllGeneralsJSON', []);
-            this.RecordArraySortable = [];
-            $.merge(this.RecordArraySortable, this.RecordArray);
+            this.Load();
             this.List = [
                 'Use Current',
                 'Under Level 4'
@@ -437,7 +270,7 @@ general = {
 
                         newGeneral.data.name = name;
                         newGeneral.data.img = img;
-                        newGeneral.data.level = level;
+                        newGeneral.data.lvl = level;
                         newGeneral.data.atk = atk;
                         newGeneral.data.def = def;
                         newGeneral.data.api = atk + (def * 0.7);
@@ -461,9 +294,9 @@ general = {
                 if (save) {
                     caap.stats.generals.total = this.RecordArray.length;
                     caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length);
-                    gm.setJValue('AllGeneralsJSON', this.RecordArray);
-                    this.RecordArraySortable = [];
-                    $.merge(this.RecordArraySortable, this.RecordArray);
+                    this.Save();
+                    caap.SaveStats();
+                    this.MakeSort();
                     if (update) {
                         this.UpdateDropDowns();
                     }
@@ -628,9 +461,8 @@ general = {
                     this.RecordArray[it].edpi = (this.RecordArray[it].edef + (this.RecordArray[it].eatk * 0.7));
                     this.RecordArray[it].empi = ((this.RecordArray[it].eapi + this.RecordArray[it].edpi) / 2);
                     this.RecordArray[it].last = new Date().getTime();
-                    gm.setJValue('AllGeneralsJSON', this.RecordArray);
-                    this.RecordArraySortable = [];
-                    $.merge(this.RecordArraySortable, this.RecordArray);
+                    this.Save();
+                    this.MakeSort();
                     global.log(9, "Got 'General' stats", this.RecordArray[it]);
                 } else {
                     global.log(1, "Unable to get 'General' stats");

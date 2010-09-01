@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            10
+// @dev            11
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "10";
+    devVersion  = "11";
 
 ///////////////////////////
 //       Prototypes
@@ -65,6 +65,7 @@ var image64 = {},
     global  = {},
     gm      = {},
     nHtml   = {},
+    sort    = {},
     general = {},
     caap    = {};
 
@@ -1459,6 +1460,253 @@ nHtml = {
 };
 
 ////////////////////////////////////////////////////////////////////
+//                          sort OBJECT
+// this is the main object for dealing with sort routines
+/////////////////////////////////////////////////////////////////////
+
+sort = {
+    name : function (a, b) {
+        var A = a.name.toLowerCase(),
+            B = b.name.toLowerCase();
+
+        if (A < B) {
+            return -1;
+        }
+
+        if (A > B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    lvl : function (a, b) {
+        var A = a.lvl,
+            B = b.lvl;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    atk : function (a, b) {
+        var A = a.atk,
+            B = b.atk;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    def : function (a, b) {
+        var A = a.def,
+            B = b.def;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    api : function (a, b) {
+        var A = a.api,
+            B = b.api;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    dpi : function (a, b) {
+        var A = a.dpi,
+            B = b.dpi;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    mpi : function (a, b) {
+        var A = a.mpi,
+            B = b.mpi;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    eatk : function (a, b) {
+        var A = a.eatk,
+            B = b.eatk;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    edef : function (a, b) {
+        var A = a.edef,
+            B = b.edef;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    eapi : function (a, b) {
+        var A = a.eapi,
+            B = b.eapi;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    edpi : function (a, b) {
+        var A = a.edpi,
+            B = b.edpi;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    empi : function (a, b) {
+        var A = a.empi,
+            B = b.empi;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    owned : function (a, b) {
+        var A = a.owned,
+            B = b.owned;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    cost : function (a, b) {
+        var A = a.cost,
+            B = b.cost;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    upkeep : function (a, b) {
+        var A = a.upkeep,
+            B = b.upkeep;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    },
+
+    hourly : function (a, b) {
+        var A = a.hourly,
+            B = b.hourly;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
+    }
+};
+
+////////////////////////////////////////////////////////////////////
 //                          general OBJECT
 // this is the main object for dealing with Generals
 /////////////////////////////////////////////////////////////////////
@@ -1468,7 +1716,7 @@ general = {
         this.data = {
             name    : '',
             img     : '',
-            level   : 0,
+            lvl     : 0,
             last    : new Date(2009, 1, 1).getTime(),
             special : '',
             atk     : 0,
@@ -1523,186 +1771,6 @@ general = {
 
     RecordArraySortable : [],
 
-    SortName : function (a, b) {
-        var nameA = a.name.toLowerCase(),
-            nameB = b.name.toLowerCase();
-
-        if (nameA < nameB) {
-            return -1;
-        }
-
-        if (nameA > nameB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortLevel : function (a, b) {
-        var levelA = a.level,
-            levelB = b.level;
-
-        if (levelA > levelB) {
-            return -1;
-        }
-
-        if (levelA < levelB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortAtk : function (a, b) {
-        var atkA = a.atk,
-            atkB = b.atk;
-
-        if (atkA > atkB) {
-            return -1;
-        }
-
-        if (atkA < atkB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortDef : function (a, b) {
-        var defA = a.def,
-            defB = b.def;
-
-        if (defA > defB) {
-            return -1;
-        }
-
-        if (defA < defB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortApi : function (a, b) {
-        var apiA = a.api,
-            apiB = b.api;
-
-        if (apiA > apiB) {
-            return -1;
-        }
-
-        if (apiA < apiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortDpi : function (a, b) {
-        var dpiA = a.dpi,
-            dpiB = b.dpi;
-
-        if (dpiA > dpiB) {
-            return -1;
-        }
-
-        if (dpiA < dpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortMpi : function (a, b) {
-        var mpiA = a.mpi,
-            mpiB = b.mpi;
-
-        if (mpiA > mpiB) {
-            return -1;
-        }
-
-        if (mpiA < mpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEAtk : function (a, b) {
-        var atkA = a.eatk,
-            atkB = b.eatk;
-
-        if (atkA > atkB) {
-            return -1;
-        }
-
-        if (atkA < atkB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEDef : function (a, b) {
-        var defA = a.edef,
-            defB = b.edef;
-
-        if (defA > defB) {
-            return -1;
-        }
-
-        if (defA < defB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEApi : function (a, b) {
-        var apiA = a.eapi,
-            apiB = b.eapi;
-
-        if (apiA > apiB) {
-            return -1;
-        }
-
-        if (apiA < apiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEDpi : function (a, b) {
-        var dpiA = a.edpi,
-            dpiB = b.edpi;
-
-        if (dpiA > dpiB) {
-            return -1;
-        }
-
-        if (dpiA < dpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
-    SortEMpi : function (a, b) {
-        var mpiA = a.empi,
-            mpiB = b.empi;
-
-        if (mpiA > mpiB) {
-            return -1;
-        }
-
-        if (mpiA < mpiB) {
-            return 1;
-        }
-
-        return 0;
-    },
-
     GetNames : function () {
         var it    = 0,
             names = [];
@@ -1731,7 +1799,7 @@ general = {
             names = [];
 
         for (it = 0; it < this.RecordArray.length; it += 1) {
-            if (this.RecordArray[it].level < 4) {
+            if (this.RecordArray[it].lvl < 4) {
                 names.push(this.RecordArray[it].name);
             }
         }
@@ -1759,12 +1827,25 @@ general = {
         'SubQuest'
     ],
 
+    Load: function () {
+        this.RecordArray = gm.getJValue('AllGeneralsJSON', []);
+        this.RecordArraySortable = [];
+        $.merge(this.RecordArraySortable, this.RecordArray);
+    },
+
+    Save: function () {
+        gm.setJValue('AllGeneralsJSON', this.RecordArray);
+    },
+
+    MakeSort: function () {
+        this.RecordArraySortable = [];
+        $.merge(this.RecordArraySortable, this.RecordArray);
+    },
+
     BuildlLists: function () {
         try {
             global.log(1, 'Building Generals Lists');
-            this.RecordArray = gm.getJValue('AllGeneralsJSON', []);
-            this.RecordArraySortable = [];
-            $.merge(this.RecordArraySortable, this.RecordArray);
+            this.Load();
             this.List = [
                 'Use Current',
                 'Under Level 4'
@@ -1896,7 +1977,7 @@ general = {
 
                         newGeneral.data.name = name;
                         newGeneral.data.img = img;
-                        newGeneral.data.level = level;
+                        newGeneral.data.lvl = level;
                         newGeneral.data.atk = atk;
                         newGeneral.data.def = def;
                         newGeneral.data.api = atk + (def * 0.7);
@@ -1920,9 +2001,9 @@ general = {
                 if (save) {
                     caap.stats.generals.total = this.RecordArray.length;
                     caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), this.RecordArray.length);
-                    gm.setJValue('AllGeneralsJSON', this.RecordArray);
-                    this.RecordArraySortable = [];
-                    $.merge(this.RecordArraySortable, this.RecordArray);
+                    this.Save();
+                    caap.SaveStats();
+                    this.MakeSort();
                     if (update) {
                         this.UpdateDropDowns();
                     }
@@ -2087,9 +2168,8 @@ general = {
                     this.RecordArray[it].edpi = (this.RecordArray[it].edef + (this.RecordArray[it].eatk * 0.7));
                     this.RecordArray[it].empi = ((this.RecordArray[it].eapi + this.RecordArray[it].edpi) / 2);
                     this.RecordArray[it].last = new Date().getTime();
-                    gm.setJValue('AllGeneralsJSON', this.RecordArray);
-                    this.RecordArraySortable = [];
-                    $.merge(this.RecordArraySortable, this.RecordArray);
+                    this.Save();
+                    this.MakeSort();
                     global.log(9, "Got 'General' stats", this.RecordArray[it]);
                 } else {
                     global.log(1, "Unable to get 'General' stats");
@@ -2179,8 +2259,11 @@ caap = {
                 $(this.controlXY.selector).css('padding-top', shiftDown);
             }
 
+            this.LoadLast();
             this.LoadMonsters();
-            this.ReconRecordArray = gm.getJValue('reconJSON', []);
+            this.LoadDemi();
+            this.LoadRecon();
+            this.LoadTown();
             this.AddControl();
             this.AddColorWheels();
             this.AddDashboard();
@@ -2354,9 +2437,9 @@ caap = {
             }
 
             if (nodeNum) {
-                traverse = ":eq(" + nodeNum + ")"
+                traverse = ":eq(" + nodeNum + ")";
             } else {
-                traverse = ":first"
+                traverse = ":first";
             }
 
             imageSlice = $(webSlice).find("input[src*='" + image + "']" + traverse);
@@ -3874,7 +3957,7 @@ caap = {
              container and position it within the main container.
             \-------------------------------------------------------------------------------------*/
             var layout      = "<div id='caap_top'>",
-                displayList = ['Monster', 'Target List', 'User Stats', 'Generals Stats'],
+                displayList = ['Monster', 'Target List', 'User Stats', 'Generals Stats', 'Soldier Stats', 'Item Stats', 'Magic Stats'],
                 styleXY = {
                     x: 0,
                     y: 0
@@ -3910,6 +3993,9 @@ caap = {
             layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Target Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
             layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_soldiersStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Soldier Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_itemStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Item Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_magicStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Magic Stats' ? 'block' : 'none') + "'></div>";
             layout += "</div>";
             /*-------------------------------------------------------------------------------------\
              No we apply our CSS to our container
@@ -4040,6 +4126,9 @@ caap = {
                 value                    = 0,
                 headers                  = [],
                 values                   = [],
+                generalValues            = [],
+                townValues               = [],
+                town                     = [],
                 pp                       = 0,
                 i                        = 0,
                 newTime                  = new Date(),
@@ -4765,11 +4854,12 @@ caap = {
             \-------------------------------------------------------------------------------------*/
             html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
             headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
-            values  = ['name', 'level', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
+            values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
+            $.merge(generalValues, values);
             for (pp in headers) {
                 if (headers.hasOwnProperty(pp)) {
                     header = {
-                        text  : '<span id="caap_generalsStats_' + headers[pp].replace(' ', '_') + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                        text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                         color : 'blue',
                         id    : '',
                         title : '',
@@ -4830,48 +4920,121 @@ caap = {
                 var clicked = '';
 
                 if (e.target.id) {
-                    clicked = e.target.id.replace(/caap_generalsStats_/, '');
+                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
                 }
 
                 global.log(9, "Clicked", clicked);
-                switch (clicked) {
-                case "General" :
-                    general.RecordArraySortable.sort(general.SortName);
-                    break;
-                case "Lvl" :
-                    general.RecordArraySortable.sort(general.SortLevel);
-                    break;
-                case "Atk" :
-                    general.RecordArraySortable.sort(general.SortAtk);
-                    break;
-                case "Def" :
-                    general.RecordArraySortable.sort(general.SortDef);
-                    break;
-                case "API" :
-                    general.RecordArraySortable.sort(general.SortApi);
-                    break;
-                case "DPI" :
-                    general.RecordArraySortable.sort(general.SortDpi);
-                    break;
-                case "MPI" :
-                    general.RecordArraySortable.sort(general.SortMpi);
-                    break;
-                case "EAtk" :
-                    general.RecordArraySortable.sort(general.SortEAtk);
-                    break;
-                case "EDef" :
-                    general.RecordArraySortable.sort(general.SortEDef);
-                    break;
-                case "EAPI" :
-                    general.RecordArraySortable.sort(general.SortEApi);
-                    break;
-                case "EDPI" :
-                    general.RecordArraySortable.sort(general.SortEDpi);
-                    break;
-                case "EMPI" :
-                    general.RecordArraySortable.sort(general.SortEMpi);
-                    break;
-                default :
+                if (generalValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                    general.RecordArraySortable.sort(sort[clicked]);
+                }
+
+                caap.UpdateDashboard(true);
+            });
+
+            /*-------------------------------------------------------------------------------------\
+            Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
+            We set our table and then build the header row.
+            \-------------------------------------------------------------------------------------*/
+            town = ['soldiers', 'item', 'magic'];
+            headers = ['Name', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
+            values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
+            $.merge(townValues, values);
+            for (i in town) {
+                if (town.hasOwnProperty(i)) {
+                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                    for (pp in headers) {
+                        if (headers.hasOwnProperty(pp)) {
+                            header = {
+                                text  : '<span id="caap_' + town[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                                color : 'blue',
+                                id    : '',
+                                title : '',
+                                width : ''
+                            };
+
+                            html += this.makeTh(header);
+                        }
+                    }
+
+                    html += '</tr>';
+                    for (it = 0; it < this[town[i] + "ArraySortable"].length; it += 1) {
+                        html += "<tr>";
+                        for (pp in values) {
+                            if (values.hasOwnProperty(pp)) {
+                                str = '';
+                                if (isNaN(this[town[i] + "ArraySortable"][it][values[pp]])) {
+                                    if (this[town[i] + "ArraySortable"][it][values[pp]]) {
+                                        str = this[town[i] + "ArraySortable"][it][values[pp]];
+                                    }
+                                } else {
+                                    if (/pi/.test(values[pp])) {
+                                        str = this[town[i] + "ArraySortable"][it][values[pp]].toFixed(2);
+                                    } else {
+                                        str = this.makeCommaValue(this[town[i] + "ArraySortable"][it][values[pp]]);
+                                        if (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') {
+                                            str = "$" + str;
+                                        }
+                                    }
+                                }
+
+                                if (pp === "0") {
+                                    color = titleCol;
+                                } else {
+                                    color = valueCol;
+                                }
+
+                                html += caap.makeTd({text: str, color: color, id: '', title: ''});
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $("#caap_" + town[i] + "Stats").html(html);
+                }
+            }
+
+            $("#caap_top span[id*='caap_" + town[0] + "Stats_']").click(function (e) {
+                var clicked = '';
+
+                if (e.target.id) {
+                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
+                }
+
+                global.log(9, "Clicked", clicked);
+                if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                    caap[town[0] + "ArraySortable"].sort(sort[clicked]);
+                }
+
+                caap.UpdateDashboard(true);
+            });
+
+            $("#caap_top span[id*='caap_" + town[1] + "Stats_']").click(function (e) {
+                var clicked = '';
+
+                if (e.target.id) {
+                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
+                }
+
+                global.log(9, "Clicked", clicked);
+                if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                    caap[town[1] + "ArraySortable"].sort(sort[clicked]);
+                }
+
+                caap.UpdateDashboard(true);
+            });
+
+            $("#caap_top span[id*='caap_" + town[2] + "Stats_']").click(function (e) {
+                var clicked = '';
+
+                if (e.target.id) {
+                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
+                }
+
+                global.log(9, "Clicked", clicked);
+                if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                    caap[town[2] + "ArraySortable"].sort(sort[clicked]);
                 }
 
                 caap.UpdateDashboard(true);
@@ -4897,6 +5060,9 @@ caap = {
             caap.SetDisplay('infoTargets2', false);
             caap.SetDisplay('userStats', false);
             caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', false);
             caap.SetDisplay('buttonMonster', false);
             caap.SetDisplay('buttonTargets', true);
             break;
@@ -4906,6 +5072,9 @@ caap = {
             caap.SetDisplay('infoTargets2', true);
             caap.SetDisplay('userStats', false);
             caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', false);
             caap.SetDisplay('buttonMonster', false);
             caap.SetDisplay('buttonTargets', true);
             break;
@@ -4915,6 +5084,9 @@ caap = {
             caap.SetDisplay('infoTargets2', false);
             caap.SetDisplay('userStats', true);
             caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', false);
             caap.SetDisplay('buttonMonster', false);
             caap.SetDisplay('buttonTargets', false);
             break;
@@ -4924,6 +5096,45 @@ caap = {
             caap.SetDisplay('infoTargets2', false);
             caap.SetDisplay('userStats', false);
             caap.SetDisplay('generalsStats', true);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', false);
+            caap.SetDisplay('buttonMonster', false);
+            caap.SetDisplay('buttonTargets', false);
+            break;
+        case "Soldier Stats" :
+            caap.SetDisplay('infoMonster', false);
+            caap.SetDisplay('infoTargets1', false);
+            caap.SetDisplay('infoTargets2', false);
+            caap.SetDisplay('userStats', false);
+            caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', true);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', false);
+            caap.SetDisplay('buttonMonster', false);
+            caap.SetDisplay('buttonTargets', false);
+            break;
+        case "Item Stats" :
+            caap.SetDisplay('infoMonster', false);
+            caap.SetDisplay('infoTargets1', false);
+            caap.SetDisplay('infoTargets2', false);
+            caap.SetDisplay('userStats', false);
+            caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', true);
+            caap.SetDisplay('magicStats', false);
+            caap.SetDisplay('buttonMonster', false);
+            caap.SetDisplay('buttonTargets', false);
+            break;
+        case "Magic Stats" :
+            caap.SetDisplay('infoMonster', false);
+            caap.SetDisplay('infoTargets1', false);
+            caap.SetDisplay('infoTargets2', false);
+            caap.SetDisplay('userStats', false);
+            caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', true);
             caap.SetDisplay('buttonMonster', false);
             caap.SetDisplay('buttonTargets', false);
             break;
@@ -4933,6 +5144,9 @@ caap = {
             caap.SetDisplay('infoTargets2', false);
             caap.SetDisplay('userStats', false);
             caap.SetDisplay('generalsStats', false);
+            caap.SetDisplay('soldiersStats', false);
+            caap.SetDisplay('itemStats', false);
+            caap.SetDisplay('magicStats', false);
             caap.SetDisplay('buttonMonster', true);
             caap.SetDisplay('buttonTargets', false);
             break;
@@ -4956,8 +5170,8 @@ caap = {
     },
 
     clearTargetsButtonListener: function (e) {
-        gm.setJValue('reconJSON', []);
         caap.ReconRecordArray = [];
+        caap.SaveRecon();
         caap.UpdateDashboard(true);
     },
 
@@ -5641,7 +5855,6 @@ caap = {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats.energy.max);
                         if (tempE) {
                             caap.stats.energy = tempE;
-                            //caap.SaveStats();
                         } else {
                             global.log(1, "Unable to get energy levels");
                         }
@@ -5658,7 +5871,6 @@ caap = {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats.health.max);
                         if (tempH) {
                             caap.stats.health = tempH;
-                            //caap.SaveStats();
                         } else {
                             global.log(1, "Unable to get health levels");
                         }
@@ -5675,7 +5887,6 @@ caap = {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats.stamina.max);
                         if (tempS) {
                             caap.stats.stamina = tempS;
-                            //caap.SaveStats();
                         } else {
                             global.log(1, "Unable to get stamina levels");
                         }
@@ -5785,6 +5996,18 @@ caap = {
         'battle': {
             signaturePic: 'battle_on.gif',
             CheckResultsFunction: 'CheckResults_battle'
+        },
+        'soldiers': {
+            signaturePic: 'tab_soldiers_on.gif',
+            CheckResultsFunction: 'CheckResults_soldiers'
+        },
+        'item': {
+            signaturePic: 'tab_black_smith_on.gif',
+            CheckResultsFunction: 'CheckResults_item'
+        },
+        'magic': {
+            signaturePic: 'tab_magic_on.gif',
+            CheckResultsFunction: 'CheckResults_magic'
         }
     },
 
@@ -5956,7 +6179,7 @@ caap = {
             general.GetGenerals();
             general.GetEquippedStats();
             this.last.generals = new Date().getTime();
-            this.SaveStats();
+            this.SaveLast();
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_generals: " + err);
@@ -6007,7 +6230,10 @@ caap = {
         battle        : new Date(2009, 1, 1).getTime(),
         symbolquests  : new Date(2009, 1, 1).getTime(),
         monsterReview : new Date(2009, 1, 1).getTime(),
-        ajaxGiftCheck : new Date(2009, 1, 1).getTime()
+        ajaxGiftCheck : new Date(2009, 1, 1).getTime(),
+        soldiers      : new Date(2009, 1, 1).getTime(),
+        item          : new Date(2009, 1, 1).getTime(),
+        magic         : new Date(2009, 1, 1).getTime()
     },
 
     LoadLast: function () {
@@ -6137,14 +6363,10 @@ caap = {
 
     LoadStats: function () {
         $.extend(this.stats, gm.getJValue('userStats'));
-        $.extend(this.demi, gm.getJValue('demiStats'));
-        this.LoadLast();
     },
 
     SaveStats: function () {
         gm.setJValue('userStats', this.stats);
-        gm.setJValue('demiStats', this.demi);
-        this.SaveLast();
     },
 
     GetStats: function () {
@@ -6332,7 +6554,7 @@ caap = {
                 this.PauseListener();
             }
 
-            global.log(2, "Stats", this.stats, this.last);
+            global.log(2, "Stats", this.stats);
             return passed;
         } catch (err) {
             global.error("ERROR GetStats: " + err);
@@ -6507,6 +6729,7 @@ caap = {
                 this.last.keep = new Date().getTime();
                 global.log(2, "Stats", this.stats, this.last);
                 this.SaveStats();
+                this.SaveLast();
             } else {
                 global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
             }
@@ -6554,10 +6777,150 @@ caap = {
 
             this.last.oracle = new Date().getTime();
             this.SaveStats();
+            this.SaveLast();
             global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_oracle: " + err);
+            return false;
+        }
+    },
+
+    soldiersArray: [],
+
+    soldiersArraySortable: [],
+
+    itemArray: [],
+
+    itemArraySortable: [],
+
+    magicArray: [],
+
+    magicArraySortable: [],
+
+    ItemsRecord: function () {
+        this.data = {
+            name    : '',
+            upkeep  : 0,
+            hourly  : 0,
+            atk     : 0,
+            def     : 0,
+            owned   : 0,
+            cost    : 0,
+            api     : 0,
+            dpi     : 0,
+            mpi     : 0
+        };
+    },
+
+    LoadTown: function () {
+        $.extend(this.soldiersArray, gm.getJValue('soldiersStats'));
+        $.merge(this.soldiersArraySortable, this.soldiersArray);
+        $.extend(this.itemArray, gm.getJValue('itemStats'));
+        $.merge(this.itemArraySortable, this.itemArray);
+        $.extend(this.magicArray, gm.getJValue('magicStats'));
+        $.merge(this.magicArraySortable, this.magicArray);
+    },
+
+    SaveTown: function () {
+        gm.setJValue('soldiersStats', this.soldiersArray);
+        gm.setJValue('itemStats', this.itemArray);
+        gm.setJValue('magicStats', this.magicArray);
+    },
+
+    GetItems: function (type) {
+        try {
+            var rowDiv = null,
+                tempDiv = null,
+                current = {};
+
+            this[type + 'Array'] = [];
+            this[type + 'ArraySortable'] = [];
+            rowDiv = $("td[class*='eq_buy_row']");
+            if (rowDiv && rowDiv.length) {
+                rowDiv.each(function (index) {
+                    current = new caap.ItemsRecord();
+                    tempDiv = $(this).find("div[class='eq_buy_txt_int'] strong");
+                    if (tempDiv && tempDiv.length === 1) {
+                        current.data.name = $.trim(tempDiv.text());
+                    }
+
+                    tempDiv = $(this).find("div[class='eq_buy_txt_int'] span[class='negative']");
+                    if (tempDiv && tempDiv.length === 1) {
+                        current.data.upkeep = caap.NumberOnly(tempDiv.text());
+                    }
+
+                    tempDiv = $(this).find("div[class='eq_buy_stats_int'] div");
+                    if (tempDiv && tempDiv.length === 2) {
+                        current.data.atk = caap.NumberOnly(tempDiv.eq(0).text());
+                        current.data.def = caap.NumberOnly(tempDiv.eq(1).text());
+                        current.data.api = (current.data.atk + (current.data.def * 0.7));
+                        current.data.dpi = (current.data.def + (current.data.atk * 0.7));
+                        current.data.mpi = ((current.data.api + current.data.dpi) / 2);
+                    }
+
+                    tempDiv = $(this).find("div[class='eq_buy_costs_int'] strong[class='gold']");
+                    if (tempDiv && tempDiv.length === 1) {
+                        current.data.cost = caap.NumberOnly(tempDiv.text());
+                    }
+
+                    tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td:first");
+                    if (tempDiv && tempDiv.length === 1) {
+                        current.data.owned = caap.NumberOnly(tempDiv.text());
+                        current.data.hourly = current.data.owned * current.data.upkeep;
+                    }
+
+                    caap[type + 'Array'].push(current.data);
+                });
+            }
+
+            $.merge(this[type + 'ArraySortable'], this[type + 'Array']);
+            this.SaveTown();
+            return true;
+        } catch (err) {
+            global.error("ERROR in GetItems: " + err);
+            return false;
+        }
+    },
+
+    CheckResults_soldiers: function () {
+        try {
+            $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
+            this.GetItems("soldiers");
+            this.last.soldiers = new Date().getTime();
+            this.SaveLast();
+            global.log(1, "soldiersArray", this.soldiersArraySortable, this.last);
+            return true;
+        } catch (err) {
+            global.error("ERROR in CheckResults_soldiers: " + err);
+            return false;
+        }
+    },
+
+    CheckResults_item: function () {
+        try {
+            $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
+            this.GetItems("item");
+            this.last.item = new Date().getTime();
+            this.SaveLast();
+            global.log(1, "itemArray", this.itemArray, this.last);
+            return true;
+        } catch (err) {
+            global.error("ERROR in CheckResults_item: " + err);
+            return false;
+        }
+    },
+
+    CheckResults_magic: function () {
+        try {
+            $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
+            this.GetItems("magic");
+            this.last.magic = new Date().getTime();
+            this.SaveLast();
+            global.log(1, "magicArray", this.magicArray, this.last);
+            return true;
+        } catch (err) {
+            global.error("ERROR in CheckResults_magic: " + err);
             return false;
         }
     },
@@ -6586,6 +6949,7 @@ caap = {
 
             this.last.battlerank = new Date().getTime();
             this.SaveStats();
+            this.SaveLast();
             global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
@@ -6618,6 +6982,7 @@ caap = {
 
             this.last.warrank = new Date().getTime();
             this.SaveStats();
+            this.SaveLast();
             global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
@@ -6689,6 +7054,7 @@ caap = {
 
             this.last.achievements = new Date().getTime();
             this.SaveStats();
+            this.SaveLast();
             global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
@@ -7082,7 +7448,8 @@ caap = {
                     this.demi.aurora.power.total = points[3];
                     this.demi.azeron.power.total = points[4];
                     this.last.symbolquests = new Date().getTime();
-                    this.SaveStats();
+                    this.SaveDemi();
+                    this.SaveLast();
                     global.log(1, 'Demi', this.demi, this.last);
                 }
             } else {
@@ -8651,7 +9018,7 @@ caap = {
                 if (engageButton) {
                     this.Click(engageButton);
                 } else {
-                    this.NavigateTo(this.battlePage + ',raid');
+                    this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif');
                 }
             } else {
                 this.NavigateTo(this.battlePage + ',battle_on.gif');
@@ -8671,7 +9038,7 @@ caap = {
             }
 
             global.log(1, 'Visiting keep to get stats');
-            return this.NavigateTo('keep');
+            return this.NavigateTo('keep', 'tab_stats_on.gif');
         } catch (err) {
             global.error("ERROR in CheckKeep: " + err);
             return false;
@@ -8685,7 +9052,7 @@ caap = {
             }
 
             global.log(9, "Checking Oracle for Favor Points");
-            return this.NavigateTo('oracle');
+            return this.NavigateTo('oracle', 'oracle_on.gif');
         } catch (err) {
             global.error("ERROR in CheckOracle: " + err);
             return false;
@@ -8730,6 +9097,49 @@ caap = {
             return this.NavigateTo('mercenary,generals', 'tab_generals_on.gif');
         } catch (err) {
             global.error("ERROR in CheckGenerals: " + err);
+            return false;
+        }
+    },
+
+    CheckSoldiers: function () {
+        try {
+            if (!this.WhileSinceDidIt(this.last.soldiers, (gm.getNumber("CheckSoldiers", 48) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+                return false;
+            }
+
+            global.log(9, "Checking Soldiers");
+            return this.NavigateTo('soldiers', 'tab_soldiers_on.gif');
+        } catch (err) {
+            global.error("ERROR in CheckSoldiers: " + err);
+            return false;
+        }
+    },
+
+
+    CheckItem: function () {
+        try {
+            if (!this.WhileSinceDidIt(this.last.item, (gm.getNumber("CheckItem", 48) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+                return false;
+            }
+
+            global.log(9, "Checking Item");
+            return this.NavigateTo('soldiers,item', 'tab_black_smith_on.gif');
+        } catch (err) {
+            global.error("ERROR in CheckItem: " + err);
+            return false;
+        }
+    },
+
+    CheckMagic: function () {
+        try {
+            if (!this.WhileSinceDidIt(this.last.magic, (gm.getNumber("CheckMagic", 48) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+                return false;
+            }
+
+            global.log(9, "Checking Magic");
+            return this.NavigateTo('soldiers,magic', 'tab_magic_on.gif');
+        } catch (err) {
+            global.error("ERROR in CheckMagic: " + err);
             return false;
         }
     },
@@ -10876,6 +11286,14 @@ caap = {
         }
     },
 
+    LoadDemi: function () {
+        $.extend(this.demi, gm.getJValue('demiStats'));
+    },
+
+    SaveDemi: function () {
+        gm.setJValue('demiStats', this.demi);
+    },
+
     demiTable: {
         0 : 'ambrosia',
         1 : 'malekus',
@@ -10910,7 +11328,8 @@ caap = {
                     this.demi.aurora.daily = this.GetStatusNumbers(points[3]);
                     this.demi.azeron.daily = this.GetStatusNumbers(points[4]);
                     this.last.battle = new Date().getTime();
-                    this.SaveStats();
+                    this.SaveDemi();
+                    this.SaveLast();
                     global.log(2, 'Demi', this.demi, this.last);
                 }
             } else {
@@ -12644,6 +13063,18 @@ caap = {
             return true;
         }
 
+        if (this.CheckSoldiers()) {
+            return true;
+        }
+
+        if (this.CheckItem()) {
+            return true;
+        }
+
+        if (this.CheckMagic()) {
+            return true;
+        }
+
         this.AjaxGiftCheck();
         this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
         this.ReconPlayers();
@@ -12659,6 +13090,7 @@ caap = {
     \-------------------------------------------------------------------------------------*/
 
     ReconRecordArray : [],
+
 
     ReconRecord: function () {
         this.data = {
@@ -12684,6 +13116,14 @@ caap = {
             attackTime      : new Date(2009, 0, 1).getTime(),
             selectTime      : new Date(2009, 0, 1).getTime()
         };
+    },
+
+    LoadRecon: function () {
+        this.ReconRecordArray = gm.getJValue('reconJSON', []);
+    },
+
+    SaveRecon: function () {
+        gm.setJValue('reconJSON', this.ReconRecordArray);
     },
 
     ReconPlayers: function () {
@@ -12821,7 +13261,7 @@ caap = {
                                 }
                             });
 
-                            gm.setJValue('reconJSON', caap.ReconRecordArray);
+                            caap.SaveRecon();
                             caap.SetDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
                             global.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
                             window.setTimeout(function () {
