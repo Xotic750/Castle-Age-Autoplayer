@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            11
+// @dev            12
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "11";
+    devVersion  = "12";
 
 ///////////////////////////
 //       Prototypes
@@ -60,14 +60,15 @@ String.prototype.regex = function (r) {
 //       Objects
 ///////////////////////////
 
-var image64 = {},
-    css     = {},
-    global  = {},
-    gm      = {},
-    nHtml   = {},
-    sort    = {},
-    general = {},
-    caap    = {};
+var image64  = {},
+    css      = {},
+    global   = {},
+    gm       = {},
+    nHtml    = {},
+    sort     = {},
+    schedule = {},
+    general  = {},
+    caap     = {};
 
 ////////////////////////////////////////////////////////////////////
 //                          image64 OBJECT
@@ -1707,6 +1708,182 @@ sort = {
 };
 
 ////////////////////////////////////////////////////////////////////
+//                          schedule OBJECT
+// this is the main object for dealing with scheduling and timers
+/////////////////////////////////////////////////////////////////////
+
+schedule = {
+    timers: [],
+
+    timer: function () {
+        this.data = {
+            name : '',
+            last : new Date(2009, 1, 1).getTime(),
+            next : new Date(2009, 1, 1).getTime()
+        };
+    },
+
+    Load: function () {
+        try {
+            $.extend(this.timers, gm.getJValue('timers'));
+            global.log(2, "schedule.Load", this.timers);
+            return true;
+        } catch (err) {
+            global.error("ERROR in schedule.Load: " + err);
+            return false;
+        }
+    },
+
+    Save: function () {
+        try {
+            gm.setJValue('timers', this.timers);
+            global.log(2, "schedule.Save", this.timers);
+            return true;
+        } catch (err) {
+            global.error("ERROR in schedule.Save: " + err);
+            return false;
+        }
+    },
+
+    Search: function (name) {
+        try {
+            var it = 0;
+
+            for (it = 0; it < this.timers.length; it += 1) {
+                if (this.timers[it].name === name) {
+                    break;
+                }
+            }
+
+            if (it >= this.timers.length) {
+                it = -1;
+            }
+
+            return it;
+        } catch (err) {
+            global.error("ERROR in schedule.Search: " + err);
+            return -2;
+        }
+    },
+
+    Set: function (name, seconds, randomSecs) {
+        try {
+            var tempTimer = new this.timer(),
+                index     = 0;
+
+            if (!randomSecs) {
+                randomSecs = 0;
+            }
+
+            tempTimer.data.name = name;
+            tempTimer.data.last = new Date().getTime();
+            tempTimer.data.next = tempTimer.data.last + (seconds * 1000) + (Math.floor(Math.random() * randomSecs) * 1000);
+            index = this.Search(tempTimer.data.name);
+            if (index >= 0) {
+                this.timers[index] = tempTimer.data;
+            } else {
+                this.timers.push(tempTimer.data);
+            }
+
+            this.Save();
+            return true;
+        } catch (err) {
+            global.error("ERROR in schedule.Set: " + err);
+            return false;
+        }
+    },
+
+    Get: function (name) {
+        try {
+            var tempTimer = new this.timer(),
+                index     = 0;
+
+            index = this.Search(name);
+            if (index >= 0) {
+                tempTimer.data = this.timers[index];
+            }
+
+            return tempTimer.data;
+        } catch (err) {
+            global.error("ERROR in schedule.Get: " + err);
+            return (new this.timer().data);
+        }
+    },
+
+    Check: function (name) {
+        try {
+            var index     = 0,
+                scheduled = false;
+
+            if (this.Get(name).next < new Date().getTime()) {
+                scheduled = true;
+            }
+
+            global.log(3, "schedule.Check", name, scheduled);
+            return scheduled;
+        } catch (err) {
+            global.error("ERROR in schedule.Check: " + err);
+            return false;
+        }
+    },
+
+    FormatTime: function (time) {
+        try {
+            var d_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+                t_day   = time.getDay(),
+                t_hour  = time.getHours(),
+                t_min   = time.getMinutes(),
+                a_p     = "PM";
+
+            if (gm.getValue("use24hr", true)) {
+                t_hour = t_hour + "";
+                if (t_hour && t_hour.length === 1) {
+                    t_hour = "0" + t_hour;
+                }
+
+                t_min = t_min + "";
+                if (t_min && t_min.length === 1) {
+                    t_min = "0" + t_min;
+                }
+
+                return d_names[t_day] + " " + t_hour + ":" + t_min;
+            } else {
+                if (t_hour < 12) {
+                    a_p = "AM";
+                }
+
+                if (t_hour === 0) {
+                    t_hour = 12;
+                }
+
+                if (t_hour > 12) {
+                    t_hour = t_hour - 12;
+                }
+
+                t_min = t_min + "";
+                if (t_min && t_min.length === 1) {
+                    t_min = "0" + t_min;
+                }
+
+                return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
+            }
+        } catch (err) {
+            global.error("ERROR in FormatTime: " + err);
+            return "Time Err";
+        }
+    },
+
+    Display: function (name) {
+        try {
+            return this.FormatTime(new Date(this.Get(name).next));
+        } catch (err) {
+            global.error("ERROR in schedule.Display: " + err);
+            return false;
+        }
+    }
+};
+
+////////////////////////////////////////////////////////////////////
 //                          general OBJECT
 // this is the main object for dealing with Generals
 /////////////////////////////////////////////////////////////////////
@@ -2187,7 +2364,7 @@ general = {
 
     GetAllStats: function () {
         try {
-            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("allGenerals")) {
                 return false;
             }
 
@@ -2195,14 +2372,13 @@ general = {
                 it           = 0;
 
             for (it = 0; it < this.RecordArray.length; it += 1) {
-                if (caap.WhileSinceDidIt(this.RecordArray[it].last, (3 * 60 * 60))) {
+                if (caap.WhileSinceDidIt(this.RecordArray[it].last, 10800)) {
                     break;
                 }
             }
 
             if (it === this.RecordArray.length) {
-                caap.last.allGenerals = new Date().getTime();
-                caap.SaveStats();
+                schedule.Set("allGenerals", gm.getNumber("GetAllGenerals", 24) * 3600, 300);
                 global.log(9, "Finished visiting all Generals for their stats");
                 return false;
             }
@@ -2259,7 +2435,7 @@ caap = {
                 $(this.controlXY.selector).css('padding-top', shiftDown);
             }
 
-            this.LoadLast();
+            schedule.Load();
             this.LoadMonsters();
             this.LoadDemi();
             this.LoadRecon();
@@ -2353,11 +2529,11 @@ caap = {
 
     oneMinuteUpdate: function (funcName) {
         try {
-            if (!gm.getValue('reset' + funcName) && !this.WhileSinceDidIt(funcName + 'Timer', 60)) {
+            if (!gm.getValue('reset' + funcName) && !schedule.Check(funcName + 'Timer')) {
                 return false;
             }
 
-            this.JustDidIt(funcName + 'Timer');
+            schedule.Set(funcName + 'Timer', 60);
             gm.setValue('reset' + funcName, false);
             return true;
         } catch (err) {
@@ -2457,40 +2633,6 @@ caap = {
         }
     },
 
-    /*
-    CheckForImage: function (image, webSlice, subDocument, nodeNum) {
-        try {
-            if (!webSlice) {
-                if (!subDocument) {
-                    webSlice = document.body;
-                } else {
-                    webSlice = subDocument.body;
-                }
-            }
-
-            var imageSlice = nHtml.FindByAttrContains(webSlice, 'input', 'src', image, subDocument, nodeNum);
-            if (imageSlice) {
-                return imageSlice;
-            }
-
-            imageSlice = nHtml.FindByAttrContains(webSlice, 'img', 'src', image, subDocument, nodeNum);
-            if (imageSlice) {
-                return imageSlice;
-            }
-
-            imageSlice = nHtml.FindByAttrContains(webSlice, 'div', 'style', image, subDocument, nodeNum);
-            if (imageSlice) {
-                return imageSlice;
-            }
-
-            return null;
-        } catch (err) {
-            global.error("ERROR in CheckForImage: " + err);
-            return null;
-        }
-    },
-    */
-
     WhileSinceDidIt: function (nameOrNumber, seconds) {
         try {
             if (!/\d+/.test(nameOrNumber)) {
@@ -2516,130 +2658,6 @@ caap = {
             return true;
         } catch (err) {
             global.error("ERROR in JustDidIt: " + err);
-            return false;
-        }
-    },
-
-    DeceiveDidIt: function (name) {
-        try {
-            if (!name) {
-                throw "name not provided!";
-            }
-
-            global.log(1, "Deceive Did It");
-            var now = (new Date().getTime()) - 6500000;
-            gm.setValue(name, now.toString());
-            return true;
-        } catch (err) {
-            global.error("ERROR in DeceiveDidIt: " + err);
-            return false;
-        }
-    },
-
-    // Returns true if timer is passed, or undefined
-    CheckTimer: function (name) {
-        try {
-            if (!name) {
-                throw "name not provided!";
-            }
-
-            var nameTimer = gm.getValue(name),
-                now       = new Date().getTime();
-
-            if (!nameTimer) {
-                return true;
-            }
-
-            return (nameTimer < now);
-        } catch (err) {
-            global.error("ERROR in CheckTimer: " + err);
-            return false;
-        }
-    },
-
-    FormatTime: function (time) {
-        try {
-            var d_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                t_day   = time.getDay(),
-                t_hour  = time.getHours(),
-                t_min   = time.getMinutes(),
-                a_p     = "PM";
-
-            if (gm.getValue("use24hr", true)) {
-                t_hour = t_hour + "";
-                if (t_hour && t_hour.length === 1) {
-                    t_hour = "0" + t_hour;
-                }
-
-                t_min = t_min + "";
-                if (t_min && t_min.length === 1) {
-                    t_min = "0" + t_min;
-                }
-
-                return d_names[t_day] + " " + t_hour + ":" + t_min;
-            } else {
-                if (t_hour < 12) {
-                    a_p = "AM";
-                }
-
-                if (t_hour === 0) {
-                    t_hour = 12;
-                }
-
-                if (t_hour > 12) {
-                    t_hour = t_hour - 12;
-                }
-
-                t_min = t_min + "";
-                if (t_min && t_min.length === 1) {
-                    t_min = "0" + t_min;
-                }
-
-                return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
-            }
-        } catch (err) {
-            global.error("ERROR in FormatTime: " + err);
-            return "Time Err";
-        }
-    },
-
-    DisplayTimer: function (name) {
-        try {
-            if (!name) {
-                throw "name not provided!";
-            }
-
-            var nameTimer = gm.getValue(name),
-                newTime   = new Date();
-
-            if (!nameTimer) {
-                return false;
-            }
-
-            newTime.setTime(parseInt(nameTimer, 10));
-            return this.FormatTime(newTime);
-        } catch (err) {
-            global.error("ERROR in DisplayTimer: " + err);
-            return false;
-        }
-    },
-
-    SetTimer: function (name, time) {
-        try {
-            if (!name) {
-                throw "name not provided!";
-            }
-
-            if (!time) {
-                throw "time not provided!";
-            }
-
-            var now = (new Date().getTime());
-            now += time * 1000;
-            gm.setValue(name, now.toString());
-            return true;
-        } catch (err) {
-            global.error("ERROR in SetTimer: " + err);
             return false;
         }
     },
@@ -4637,7 +4655,7 @@ caap = {
 
             html += "<tr>";
             html += this.makeTd({text: 'Expected Next Level (ENL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.FormatTime(new Date(this.stats.indicators.enl)), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: schedule.FormatTime(new Date(this.stats.indicators.enl)), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Attack Power Index (API)', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.stats.indicators.api.toFixed(2), color: valueCol, id: '', title: ''});
             html += '</tr>';
@@ -5157,10 +5175,9 @@ caap = {
     refreshMonstersListener: function (e) {
         caap.monsterArray = [];
         gm.deleteValue("monsterArray");
-        caap.last.monsterReview = 0;
-        caap.SaveLast();
+        schedule.Set("monsterReview", 0);
         gm.setValue('monsterReviewCounter', -3);
-        gm.setValue('NotargetFrombattle_monster', 0);
+        schedule.Set('NotargetFrombattle_monster', 0);
         gm.setValue('ReleaseControl', true);
         caap.UpdateDashboard();
     },
@@ -5312,8 +5329,8 @@ caap = {
                 break;
             case "AutoElite" :
                 global.log(9, "AutoElite");
-                gm.deleteValue('AutoEliteGetList');
-                gm.deleteValue('AutoEliteReqNext');
+                schedule.Set('AutoEliteGetList', 0);
+                schedule.Set('AutoEliteReqNext', 0);
                 gm.deleteValue('AutoEliteEnd');
                 gm.deleteValue('MyEliteTodo');
                 if (!gm.getValue('FillArmy', false)) {
@@ -5328,8 +5345,7 @@ caap = {
                 break;
             case "AchievementMode" :
                 global.log(9, "AchievementMode");
-                caap.last.monsterReview = 1;
-                caap.SaveLast();
+                schedule.Set("monsterReview", 0);
                 gm.setValue('monsterReviewCounter', -3);
                 break;
             default :
@@ -5373,8 +5389,7 @@ caap = {
             } else if (/AttrValue+/.test(idName)) {
                 caap.statsMatch = true;
             } else if (/MaxToFortify/.test(idName)) {
-                caap.last.monsterReview = 1;
-                caap.SaveLast();
+                schedule.Set("monsterReview", 0);
                 gm.setValue('monsterReviewCounter', -3);
             } else if (/energyPotions+/.test(idName) || /staminaPotions+/.test(idName)) {
                 gm.deleteValue('AutoPotionTimer');
@@ -5523,8 +5538,7 @@ caap = {
             global.log(1, 'Change: setting "' + idName + '" to "' + value + '"');
             if (idName === 'orderbattle_monster' || idName === 'orderraid') {
                 gm.setValue("resermonsterSelect", true);
-                caap.last.monsterReview = 1;
-                caap.SaveLast();
+                schedule.Set("monsterReview", 0);
                 gm.setValue('monsterReviewCounter', -3);
             }
 
@@ -5781,8 +5795,8 @@ caap = {
 
             $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
             $('#caap_resetElite').click(function (e) {
-                gm.deleteValue('AutoEliteGetList');
-                gm.deleteValue('AutoEliteReqNext');
+                schedule.Set('AutoEliteGetList', 0);
+                schedule.Set('AutoEliteReqNext', 0);
                 gm.deleteValue('AutoEliteEnd');
                 if (!gm.getValue('FillArmy', false)) {
                     gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
@@ -5918,7 +5932,8 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     SetCheckResultsFunction: function (resultsFunction) {
-        this.JustDidIt('SetResultsFunctionTimer');
+        //this.JustDidIt('SetResultsFunctionTimer');
+        schedule.Set('SetResultsFunctionTimer', 20);
         gm.setValue('ResultsFunction', resultsFunction);
     },
 
@@ -6055,14 +6070,14 @@ caap = {
         try {
             // Check page to see if we should go to a page specific check function
             // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-            if (!this.WhileSinceDidIt('CheckResultsTimer', 1)) {
+            if (!schedule.Check('CheckResultsTimer')) {
                 return false;
             }
 
             this.pageLoadOK = this.GetStats();
 
             this.AddExpDisplay();
-            this.SetDivContent('level_mess', 'Expected next level: ' + this.FormatTime(new Date(this.stats.indicators.enl)));
+            this.SetDivContent('level_mess', 'Expected next level: ' + schedule.FormatTime(new Date(this.stats.indicators.enl)));
             if (gm.getValue('DemiPointsFirst', false) && gm.getValue('WhenMonster') !== 'Never') {
                 if (gm.getValue('DemiPointsDone', true)) {
                     this.SetDivContent('demipoint_mess', 'Daily Demi Points: Done');
@@ -6073,16 +6088,17 @@ caap = {
                 this.SetDivContent('demipoint_mess', '');
             }
 
-            if (this.DisplayTimer('BlessingTimer')) {
-                if (this.CheckTimer('BlessingTimer')) {
+            if (schedule.Display('BlessingTimer')) {
+                if (schedule.Check('BlessingTimer')) {
                     this.SetDivContent('demibless_mess', 'Demi Blessing = none');
                 } else {
-                    this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + this.DisplayTimer('BlessingTimer'));
+                    this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + schedule.Display('BlessingTimer'));
                 }
             }
 
             //this.performanceTimer('Start CheckResults');
-            this.JustDidIt('CheckResultsTimer');
+            //this.JustDidIt('CheckResultsTimer');
+            schedule.Set('CheckResultsTimer', 1);
             gm.setValue('page', '');
             gm.setValue('pageUserCheck', '');
             var pageUrl = gm.getValue('clickUrl', '');
@@ -6142,8 +6158,8 @@ caap = {
             //this.performanceTimer('Done Dashboard');
 
             if (general.List.length <= 2) {
-                this.last.generals = 0;
-                this.last.allGenerals = 0;
+                schedule.Set("generals", 0);
+                schedule.Set("allGenerals", 0);
                 this.CheckGenerals();
             }
 
@@ -6156,13 +6172,13 @@ caap = {
             // Check for Elite Guard Add image
             if (!gm.getValue('AutoEliteIgnore', false)) {
                 if (this.CheckForImage('elite_guard_add') && gm.getValue('AutoEliteEnd', 'NoArmy') !== 'NoArmy') {
-                    gm.deleteValue('AutoEliteGetList');
+                    schedule.Set('AutoEliteGetList', 0);
                 }
             }
 
             // If set and still recent, go to the function specified in 'ResultsFunction'
             var resultsFunction = gm.getValue('ResultsFunction', '');
-            if ((resultsFunction) && !this.WhileSinceDidIt('SetResultsFunctionTimer', 20)) {
+            if ((resultsFunction) && !schedule.Check('SetResultsFunctionTimer')) {
                 this[resultsFunction](resultsText);
             }
 
@@ -6178,8 +6194,7 @@ caap = {
         try {
             general.GetGenerals();
             general.GetEquippedStats();
-            this.last.generals = new Date().getTime();
-            this.SaveLast();
+            schedule.Set("generals", gm.getNumber("CheckGenerals", 24) * 3600, 300);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_generals: " + err);
@@ -6217,31 +6232,6 @@ caap = {
             global.error("ERROR in GetStatusNumbers: " + err);
             return false;
         }
-    },
-
-    last: {
-        keep          : new Date(2009, 1, 1).getTime(),
-        oracle        : new Date(2009, 1, 1).getTime(),
-        battlerank    : new Date(2009, 1, 1).getTime(),
-        warrank       : new Date(2009, 1, 1).getTime(),
-        generals      : new Date(2009, 1, 1).getTime(),
-        allGenerals   : new Date(2009, 1, 1).getTime(),
-        achievements  : new Date(2009, 1, 1).getTime(),
-        battle        : new Date(2009, 1, 1).getTime(),
-        symbolquests  : new Date(2009, 1, 1).getTime(),
-        monsterReview : new Date(2009, 1, 1).getTime(),
-        ajaxGiftCheck : new Date(2009, 1, 1).getTime(),
-        soldiers      : new Date(2009, 1, 1).getTime(),
-        item          : new Date(2009, 1, 1).getTime(),
-        magic         : new Date(2009, 1, 1).getTime()
-    },
-
-    LoadLast: function () {
-        $.extend(this.last, gm.getJValue('lastStats'));
-    },
-
-    SaveLast: function () {
-        gm.setJValue('lastStats', this.last);
     },
 
     stats: {
@@ -6363,10 +6353,12 @@ caap = {
 
     LoadStats: function () {
         $.extend(this.stats, gm.getJValue('userStats'));
+        global.log(2, "Stats", this.stats);
     },
 
     SaveStats: function () {
         gm.setJValue('userStats', this.stats);
+        global.log(2, "Stats", this.stats);
     },
 
     GetStats: function () {
@@ -6554,7 +6546,6 @@ caap = {
                 this.PauseListener();
             }
 
-            global.log(2, "Stats", this.stats);
             return passed;
         } catch (err) {
             global.error("ERROR GetStats: " + err);
@@ -6726,10 +6717,8 @@ caap = {
                 this.stats.indicators.api = (this.stats.attack + (this.stats.defense * 0.7));
                 this.stats.indicators.dpi = (this.stats.defense + (this.stats.attack * 0.7));
                 this.stats.indicators.mpi = ((this.stats.indicators.api + this.stats.indicators.dpi) / 2);
-                this.last.keep = new Date().getTime();
-                global.log(2, "Stats", this.stats, this.last);
+                schedule.Set("keep", gm.getNumber("CheckKeep", 1) * 3600, 300);
                 this.SaveStats();
-                this.SaveLast();
             } else {
                 global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
             }
@@ -6775,10 +6764,8 @@ caap = {
                 this.stats.points.favor = 0;
             }
 
-            this.last.oracle = new Date().getTime();
+            schedule.Set("oracle", gm.getNumber("CheckOracle", 24) * 3600, 300);
             this.SaveStats();
-            this.SaveLast();
-            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_oracle: " + err);
@@ -6887,9 +6874,8 @@ caap = {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("soldiers");
-            this.last.soldiers = new Date().getTime();
-            this.SaveLast();
-            global.log(1, "soldiersArray", this.soldiersArraySortable, this.last);
+            schedule.Set("soldiers", gm.getNumber("CheckSoldiers", 48) * 3600, 300);
+            global.log(1, "soldiersArray", this.soldiersArray);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_soldiers: " + err);
@@ -6901,9 +6887,8 @@ caap = {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("item");
-            this.last.item = new Date().getTime();
-            this.SaveLast();
-            global.log(1, "itemArray", this.itemArray, this.last);
+            schedule.Set("item", gm.getNumber("CheckItem", 48) * 3600, 300);
+            global.log(1, "itemArray", this.itemArray);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_item: " + err);
@@ -6915,9 +6900,8 @@ caap = {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("magic");
-            this.last.magic = new Date().getTime();
-            this.SaveLast();
-            global.log(1, "magicArray", this.magicArray, this.last);
+            schedule.Set("magic", gm.getNumber("CheckMagic", 48) * 3600, 300);
+            global.log(1, "magicArray", this.magicArray);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_magic: " + err);
@@ -6947,10 +6931,8 @@ caap = {
                 this.stats.rank.battlePoints = 0;
             }
 
-            this.last.battlerank = new Date().getTime();
+            schedule.Set("battlerank", gm.getNumber("CheckBattleRank", 24) * 3600, 300);
             this.SaveStats();
-            this.SaveLast();
-            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_battlerank: " + err);
@@ -6980,10 +6962,8 @@ caap = {
                 this.stats.rank.warPoints = 0;
             }
 
-            this.last.warrank = new Date().getTime();
+            schedule.Set("warrank", gm.getNumber("CheckWarRank", 24) * 3600, 300);
             this.SaveStats();
-            this.SaveLast();
-            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_war_rank: " + err);
@@ -7052,10 +7032,8 @@ caap = {
                 global.log(1, 'Other Achievements not found.');
             }
 
-            this.last.achievements = new Date().getTime();
+            schedule.Set("achievements", gm.getNumber("CheckAchievements", 24) * 3600, 300);
             this.SaveStats();
-            this.SaveLast();
-            global.log(2, "Stats", this.stats, this.last);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_achievements: " + err);
@@ -7447,10 +7425,8 @@ caap = {
                     this.demi.corvintheus.power.total = points[2];
                     this.demi.aurora.power.total = points[3];
                     this.demi.azeron.power.total = points[4];
-                    this.last.symbolquests = new Date().getTime();
+                    schedule.Set("symbolquests", gm.getNumber("CheckSymbolQuests", 24) * 3600, 300);
                     this.SaveDemi();
-                    this.SaveLast();
-                    global.log(1, 'Demi', this.demi, this.last);
                 }
             } else {
                 global.log(1, "Demi demiDiv problem", demiDiv);
@@ -8137,13 +8113,13 @@ caap = {
         if (resultsText.match(/Please come back in: /)) {
             var hours = parseInt(resultsText.match(/ \d+ hour/), 10);
             var minutes = parseInt(resultsText.match(/ \d+ minute/), 10);
-            this.SetTimer('BlessingTimer', (hours * 60 + minutes + 1) * 60);
+            schedule.Set('BlessingTimer', (hours * 60 + minutes) * 60, 300);
             global.log(1, 'Recorded Blessing Time. Scheduling next click!');
         }
 
         // Recieved Demi Blessing.  Wait 24 hours to try again.
         if (resultsText.match(/You have paid tribute to/)) {
-            this.SetTimer('BlessingTimer', 24 * 60 * 60 + 60);
+            schedule.Set('BlessingTimer', 86400, 300);
             global.log(1, 'Received blessing. Scheduling next click!');
         }
 
@@ -8156,7 +8132,7 @@ caap = {
             return false;
         }
 
-        if (!this.CheckTimer('BlessingTimer')) {
+        if (!schedule.Check('BlessingTimer')) {
             return false;
         }
 
@@ -8187,7 +8163,7 @@ caap = {
         }
 
         global.log(1, 'Click deity blessing for ', autoBless);
-        this.SetTimer('BlessingTimer', 60 * 60);
+        schedule.Set('BlessingTimer', 3600, 300);
         this.SetCheckResultsFunction('BlessingResults');
         this.Click(picSlice);
         return true;
@@ -9033,7 +9009,7 @@ caap = {
 
     CheckKeep: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.keep, (gm.getNumber("CheckKeep", 1) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("keep")) {
                 return false;
             }
 
@@ -9047,7 +9023,7 @@ caap = {
 
     CheckOracle: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.oracle, (gm.getNumber("CheckOracle", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("oracle")) {
                 return false;
             }
 
@@ -9061,7 +9037,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.battlerank, (gm.getNumber("CheckBattleRank", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("battlerank")) {
                 return false;
             }
 
@@ -9075,7 +9051,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.warrank, (gm.getNumber("CheckWarRank", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("warrank")) {
                 return false;
             }
 
@@ -9089,7 +9065,7 @@ caap = {
 
     CheckGenerals: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.generals, (gm.getNumber("CheckGenerals", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("generals")) {
                 return false;
             }
 
@@ -9103,7 +9079,7 @@ caap = {
 
     CheckSoldiers: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.soldiers, (gm.getNumber("CheckSoldiers", 48) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("soldiers")) {
                 return false;
             }
 
@@ -9118,7 +9094,7 @@ caap = {
 
     CheckItem: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.item, (gm.getNumber("CheckItem", 48) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("item")) {
                 return false;
             }
 
@@ -9132,7 +9108,7 @@ caap = {
 
     CheckMagic: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.magic, (gm.getNumber("CheckMagic", 48) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("magic")) {
                 return false;
             }
 
@@ -9146,7 +9122,7 @@ caap = {
 
     CheckAchievements: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.achievements, (gm.getNumber("CheckAchievements", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("achievements")) {
                 return false;
             }
 
@@ -9160,7 +9136,7 @@ caap = {
 
     CheckSymbolQuests: function () {
         try {
-            if (!this.WhileSinceDidIt(this.last.symbolquests, (gm.getNumber("CheckSymbolQuests", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("symbolquests")) {
                 return false;
             }
 
@@ -10379,7 +10355,6 @@ caap = {
                 return;
             }
 
-            this.monsterInfo[currentMonster.type] = this.monsterInfo[currentMonster.type];
             achLevel = this.parseCondition('ach', currentMonster.conditions);
             if (this.monsterInfo[currentMonster.type] && achLevel === false) {
                 achLevel = this.monsterInfo[currentMonster.type].ach;
@@ -10485,7 +10460,7 @@ caap = {
                 if (isTarget) {
                     gm.setValue('resetselectMonster', true);
                 }
-            } else if (currentMonster.damage >= achLevel && gm.getValue('AchievementMode')) {
+            } else if (currentMonster.damage >= achLevel && (gm.getValue('AchievementMode') || this.parseCondition('ach', currentMonster.conditions))) {
                 currentMonster.color = 'orange';
                 currentMonster.over = 'ach';
                 //used with KOB code
@@ -10521,7 +10496,7 @@ caap = {
 
             this.updateMonsterRecord(currentMonster);
             this.UpdateDashboard(true);
-            if (this.CheckTimer('battleTimer')) {
+            if (schedule.Check('battleTimer')) {
                 window.setTimeout(function () {
                     caap.SetDivContent('monster_mess', '');
                 }, 2000);
@@ -10818,7 +10793,7 @@ caap = {
             We do monster review once an hour.  Some routines may reset this timer to drive
             MonsterReview immediately.
             \-------------------------------------------------------------------------------------*/
-            if (!this.WhileSinceDidIt(this.last.monsterReview, (gm.getValue('monsterReviewMins', 60) * 60) + Math.floor(Math.random() * 5 * 60)) || (gm.getValue('WhenMonster') === 'Never' && gm.getValue('WhenBattle') === 'Never')) {
+            if (!schedule.Check("monsterReview") || (gm.getValue('WhenMonster') === 'Never' && gm.getValue('WhenBattle') === 'Never')) {
                 return false;
             }
 
@@ -10947,8 +10922,7 @@ caap = {
             All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
             We set the monsterReviewCounter to do a full refresh next time through.
             \-------------------------------------------------------------------------------------*/
-            this.last.monsterReview = new Date().getTime();
-            this.SaveLast();
+            schedule.Set("monsterReview", gm.getValue('monsterReviewMins', 60) * 60, 300);
             gm.setValue('resetselectMonster', true);
             gm.setValue('monsterReviewCounter', -3);
             global.log(1, 'Done with monster/raid review.');
@@ -10976,7 +10950,7 @@ caap = {
                 return false;
             }
 
-            if (!this.CheckTimer('NotargetFrombattle_monster')) {
+            if (!schedule.Check('NotargetFrombattle_monster')) {
                 return false;
             }
 
@@ -10984,16 +10958,15 @@ caap = {
 
             // Establish a delay timer when we are 1 stamina below attack level.
             // Timer includes 5 min for stamina tick plus user defined random interval
-            //global.log(1, !this.InLevelUpMode() + " && " + this.stats.stamina.num + " >= " + (gm.getNumber('MonsterStaminaReq', 1) - 1) + " && " + this.CheckTimer('battleTimer') + " && " + gm.getNumber('seedTime', 0) > 0);
-            if (!this.InLevelUpMode() && this.stats.stamina.num === (gm.getNumber('MonsterStaminaReq', 1) - 1) && this.CheckTimer('battleTimer') && gm.getNumber('seedTime', 0) > 0) {
-                this.SetTimer('battleTimer', 5 * 60 + Math.floor(Math.random() * gm.getValue('seedTime', 0)));
-                this.SetDivContent('monster_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
+            if (!this.InLevelUpMode() && this.stats.stamina.num === (gm.getNumber('MonsterStaminaReq', 1) - 1) && schedule.Check('battleTimer') && gm.getNumber('seedTime', 0) > 0) {
+                schedule.Set('battleTimer', 300, gm.getValue('seedTime', 0));
+                this.SetDivContent('monster_mess', 'Monster Delay Until ' + schedule.Display('battleTimer'));
                 return false;
             }
 
-            if (!this.CheckTimer('battleTimer')) {
+            if (!schedule.Check('battleTimer')) {
                 if (this.stats.stamina.num < gm.getNumber('MaxIdleStamina', this.stats.stamina.max)) {
-                    this.SetDivContent('monster_mess', 'Monster Delay Until ' + this.DisplayTimer('battleTimer'));
+                    this.SetDivContent('monster_mess', 'Monster Delay Until ' + schedule.Display('battleTimer'));
                     return false;
                 }
             }
@@ -11041,7 +11014,7 @@ caap = {
                 if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && currentMonster.page === 'battle_monster') {
                     fightMode = gm.setValue('fightMode', 'Monster');
                 } else {
-                    this.SetTimer('NotargetFrombattle_monster', 60);
+                    schedule.Set('NotargetFrombattle_monster', 60);
                     return false;
                 }
             }
@@ -11175,7 +11148,7 @@ caap = {
                     return true;
                 } else {
                     global.log(1, 'ERROR - No button to attack/fortify with.');
-                    this.SetTimer('NotargetFrombattle_monster', 60);
+                    schedule.Set('NotargetFrombattle_monster', 60);
                     return false;
                 }
             }
@@ -11209,7 +11182,7 @@ caap = {
                 this.Click(engageButton);
                 return true;
             } else {
-                this.SetTimer('NotargetFrombattle_monster', 60);
+                schedule.Set('NotargetFrombattle_monster', 60);
                 global.log(1, 'No "Engage" button for ' + monster);
                 return false;
             }
@@ -11288,10 +11261,12 @@ caap = {
 
     LoadDemi: function () {
         $.extend(this.demi, gm.getJValue('demiStats'));
+        global.log(2, 'Demi', this.demi);
     },
 
     SaveDemi: function () {
         gm.setJValue('demiStats', this.demi);
+        global.log(2, 'Demi', this.demi);
     },
 
     demiTable: {
@@ -11327,10 +11302,8 @@ caap = {
                     this.demi.corvintheus.daily = this.GetStatusNumbers(points[2]);
                     this.demi.aurora.daily = this.GetStatusNumbers(points[3]);
                     this.demi.azeron.daily = this.GetStatusNumbers(points[4]);
-                    this.last.battle = new Date().getTime();
+                    schedule.Set("battle", gm.getValue('CheckDemi', 6) * 3600, 300);
                     this.SaveDemi();
-                    this.SaveLast();
-                    global.log(2, 'Demi', this.demi, this.last);
                 }
             } else {
                 global.log(1, 'Demi symDiv problem', symDiv);
@@ -11349,7 +11322,7 @@ caap = {
                 return false;
             }
 
-            if (!this.WhileSinceDidIt(this.last.battle, (6 * 60 * 60))) {
+            if (!schedule.Check("battle")) {
                 return this.NavigateTo(this.battlePage, 'battle_on.gif');
             }
 
@@ -11605,13 +11578,13 @@ caap = {
 
     AutoPotions: function () {
         try {
-            if (!gm.getValue('AutoPotions', true) || !(this.WhileSinceDidIt('AutoPotionTimerDelay', 10 * 60))) {
+            if (!gm.getValue('AutoPotions', true) || !schedule.Check('AutoPotionTimerDelay')) {
                 return false;
             }
 
             if (this.stats.exp.dif <= gm.getNumber("potionsExperience", 20)) {
                 global.log(1, "AutoPotions, ENL condition. Delaying 10 minutes");
-                this.JustDidIt('AutoPotionTimerDelay');
+                schedule.Set('AutoPotionTimerDelay', 600);
                 return false;
             }
 
@@ -11645,7 +11618,7 @@ caap = {
                 return false;
             }
 
-            if (!this.CheckTimer('AlchemyTimer')) {
+            if (!schedule.Check('AlchemyTimer')) {
                 return false;
             }
     /*-------------------------------------------------------------------------------------\
@@ -11705,7 +11678,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     All done. Set the timer to check back in 3 hours.
     \-------------------------------------------------------------------------------------*/
-                this.SetTimer('AlchemyTimer', 3 * 60 * 60);
+                schedule.Set('AlchemyTimer', 10800, 300);
                 return false;
             }
 
@@ -11871,7 +11844,7 @@ caap = {
                 return false;
             }
 
-            if (!(this.WhileSinceDidIt('AutoEliteGetList', 6 * 60 * 60))) {
+            if (!schedule.Check('AutoEliteGetList')) {
                 if (!gm.getValue('FillArmy', false)) {
                     gm.deleteValue(this.friendListType.giftc.name + 'Requested');
                 }
@@ -11920,7 +11893,7 @@ caap = {
                     }
 
                     global.log(1, 'Set Elite Guard AutoEliteGetList timer');
-                    this.JustDidIt('AutoEliteGetList');
+                    schedule.Set('AutoEliteGetList', 21600, 300);
                     gm.setValue('AutoEliteEnd', 'Full');
                     global.log(1, 'Elite Guard done');
                     return false;
@@ -11937,7 +11910,7 @@ caap = {
                         global.log(1, 'Elite Guard has some defined friend ids');
                         allowPass = true;
                     } else {
-                        this.JustDidIt('AutoEliteGetList');
+                        schedule.Set('AutoEliteGetList', 21600, 300);
                         global.log(1, 'Elite Guard has 0 defined friend ids');
                         gm.setValue('AutoEliteEnd', 'Full');
                         global.log(1, 'Elite Guard done');
@@ -11962,14 +11935,14 @@ caap = {
                         gm.setValue('AutoEliteFew', true);
                     }
                 }
-            } else if (this.WhileSinceDidIt('AutoEliteReqNext', 7)) {
+            } else if (schedule.Check('AutoEliteReqNext')) {
                 global.log(1, 'Elite Guard has a MyEliteTodo list, shifting User ID');
                 var user = eliteList.shift();
                 global.log(1, 'Add Elite Guard ID: ' + user);
                 this.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
                 global.log(1, 'Elite Guard sent request, saving shifted MyEliteTodo');
                 gm.setList('MyEliteTodo', eliteList);
-                this.JustDidIt('AutoEliteReqNext');
+                schedule.Set('AutoEliteReqNext', 7);
                 if (!eliteList.length) {
                     global.log(1, 'Army list exhausted');
                     gm.setValue('AutoEliteEnd', 'NoArmy');
@@ -12186,8 +12159,7 @@ caap = {
             }
         }
 
-        this.last.ajaxGiftCheck = new Date().getTime();
-        this.SaveLast();
+        schedule.Set("ajaxGiftCheck", gm.getValue('CheckGiftMins', 15) * 60, 300);
     },
 
     AutoGift: function () {
@@ -12255,7 +12227,7 @@ caap = {
 
                     gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
                     global.log(1, 'Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
-                    this.JustDidIt('ClickedFacebookURL');
+                    schedule.Set('ClickedFacebookURL', 10);
                     if (global.is_chrome) {
                         acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
                     }
@@ -12290,7 +12262,7 @@ caap = {
                 button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'ok');
                 if (button) {
                     global.log(1, 'Over max gifts per day');
-                    this.JustDidIt('WaitForNextGiftSend');
+                    schedule.Set('WaitForNextGiftSend', 10800, 300);
                     caap.Click(button);
                     return true;
                 }
@@ -12321,11 +12293,11 @@ caap = {
 
 
 
-            if (!this.WhileSinceDidIt('WaitForNextGiftSend', 3 * 60 * 60)) {
+            if (!schedule.Check('WaitForNextGiftSend')) {
                 return false;
             }
 
-            if (this.WhileSinceDidIt('WaitForNotFoundIDs', 3 * 60 * 60) && gm.getList('NotFoundIDs')) {
+            if (schedule.Check('WaitForNotFoundIDs') && gm.getList('NotFoundIDs')) {
                 gm.listAddBefore('ReceivedList', gm.getList('NotFoundIDs'));
                 gm.setList('NotFoundIDs', []);
             }
@@ -12433,7 +12405,7 @@ caap = {
                     if (!nameButton) {
                         global.log(1, 'Unable to find giver ID ' + giverID);
                         gm.listPush('NotFoundIDs', giverList[p]);
-                        this.JustDidIt('WaitForNotFoundIDs');
+                        schedule.Set('WaitForNotFoundIDs', 10800);
                         continue;
                     } else {
                         global.log(1, 'Clicking giver ID ' + giverID);
@@ -12447,7 +12419,7 @@ caap = {
                     } else {
                         global.log(1, 'NOT moved ID ' + giverID);
                         gm.listPush('NotFoundIDs', giverList[p]);
-                        this.JustDidIt('WaitForNotFoundIDs');
+                        schedule.Set('WaitForNotFoundIDs', 10800);
                     }
                 }
             }
@@ -12508,7 +12480,7 @@ caap = {
                 }
             }
 
-            if (!this.WhileSinceDidIt('ClickedFacebookURL', 10)) {
+            if (!schedule.Check('ClickedFacebookURL')) {
                 return false;
             }
 
@@ -12720,8 +12692,7 @@ caap = {
 
     AutoCollectMA: function () {
         try {
-            if (!gm.getValue('AutoCollectMA', true) ||
-                !(this.WhileSinceDidIt('AutoCollectMATimer', (24 * 60 * 60) + Math.floor(Math.random() * 5 * 60)))) {
+            if (!gm.getValue('AutoCollectMA', true) || !schedule.Check('AutoCollectMATimer')) {
                 return false;
             }
 
@@ -12752,7 +12723,7 @@ caap = {
                 caap.SetDivContent('idle_mess', '');
             }, 5000);
 
-            this.JustDidIt('AutoCollectMATimer');
+            schedule.Set('AutoCollectMATimer', 86400, 300);
             global.log(1, "Collect Master and Apprentice reward completed");
             return true;
         } catch (err) {
@@ -12977,7 +12948,7 @@ caap = {
 
     AjaxGiftCheck: function () {
         try {
-            if (!gm.getValue('AutoGift', false) || !this.WhileSinceDidIt(this.last.ajaxGiftCheck, (10 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!gm.getValue('AutoGift', false) || !schedule.Check("ajaxGiftCheck")) {
                 return false;
             }
 
@@ -13010,8 +12981,7 @@ caap = {
                     }
             });
 
-            this.last.ajaxGiftCheck = new Date().getTime();
-            this.SaveLast();
+            schedule.Set("ajaxGiftCheck", gm.getValue('CheckGiftMins', 15) * 60, 300);
             global.log(2, "Completed AjaxGiftCheck");
             return true;
         } catch (err) {
@@ -13136,7 +13106,7 @@ caap = {
                 return false;
             }
 
-            if (!this.CheckTimer('PlayerReconTimer')) {
+            if (!schedule.Check('PlayerReconTimer')) {
                 return false;
             }
 
@@ -13275,7 +13245,7 @@ caap = {
                     }
             });
 
-            this.SetTimer('PlayerReconTimer', gm.getValue('PlayerReconRetry', 60) + Math.floor(Math.random() * 60));
+            schedule.Set('PlayerReconTimer', gm.getValue('PlayerReconRetry', 60), 60);
             return true;
         } catch (err) {
             global.error("ERROR in ReconPlayers:" + err);
@@ -13537,10 +13507,10 @@ caap = {
             var noWindowLoad = gm.getValue('NoWindowLoad', 0);
 
             if (noWindowLoad === 0) {
-                this.JustDidIt('NoWindowLoadTimer');
+                schedule.Set('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
                 gm.setValue('NoWindowLoad', 1);
-            } else if (this.WhileSinceDidIt('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 60 * 60))) {
-                this.JustDidIt('NoWindowLoadTimer');
+            } else if (schedule.Check('NoWindowLoadTimer')) {
+                schedule.Set('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
                 gm.setValue('NoWindowLoad', noWindowLoad + 1);
                 global.ReloadCastleAge();
             }

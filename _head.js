@@ -60,11 +60,12 @@ String.prototype.regex = function (r) {
 //       Objects
 ///////////////////////////
 
-var image64 = {},
-    css     = {},
-    global  = {},
-    gm      = {},
-    nHtml   = {},
-    sort    = {},
-    general = {},
-    caap    = {};
+var image64  = {},
+    css      = {},
+    global   = {},
+    gm       = {},
+    nHtml    = {},
+    sort     = {},
+    schedule = {},
+    general  = {},
+    caap     = {};

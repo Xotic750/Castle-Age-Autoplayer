@@ -480,7 +480,7 @@ general = {
 
     GetAllStats: function () {
         try {
-            if (!caap.WhileSinceDidIt(caap.last.allGenerals, (gm.getNumber("GetAllGenerals", 24) * 60 * 60) + Math.floor(Math.random() * 5 * 60))) {
+            if (!schedule.Check("allGenerals")) {
                 return false;
             }
 
@@ -488,14 +488,13 @@ general = {
                 it           = 0;
 
             for (it = 0; it < this.RecordArray.length; it += 1) {
-                if (caap.WhileSinceDidIt(this.RecordArray[it].last, (3 * 60 * 60))) {
+                if (caap.WhileSinceDidIt(this.RecordArray[it].last, 10800)) {
                     break;
                 }
             }
 
             if (it === this.RecordArray.length) {
-                caap.last.allGenerals = new Date().getTime();
-                caap.SaveStats();
+                schedule.Set("allGenerals", gm.getNumber("GetAllGenerals", 24) * 3600, 300);
                 global.log(9, "Finished visiting all Generals for their stats");
                 return false;
             }
