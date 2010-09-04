@@ -109,19 +109,6 @@ caap = {
         }
     },
 
-    ClickWait: function (obj, loadWaitTime) {
-        try {
-            this.setTimeout(function () {
-                this.Click(obj, loadWaitTime);
-            }, 1000 + Math.floor(Math.random() * 1000));
-
-            return true;
-        } catch (err) {
-            global.error("ERROR in ClickWait: " + err);
-            return false;
-        }
-    },
-
     oneMinuteUpdate: function (funcName) {
         try {
             if (!gm.getValue('reset' + funcName) && !schedule.Check(funcName + 'Timer')) {
@@ -281,16 +268,6 @@ caap = {
     //                          DISPLAY FUNCTIONS
     // these functions set up the control applet and allow it to be changed
     /////////////////////////////////////////////////////////////////////
-
-    AppendTextToDiv: function (divName, text) {
-        try {
-            $('#' + divName).append(text);
-            return true;
-        } catch (err) {
-            global.error("ERROR in AppendTextToDiv: " + err);
-            return false;
-        }
-    },
 
     defaultDropDownOption: "<option disabled='disabled' value='not selected'>Choose one</option>",
 
@@ -2458,6 +2435,31 @@ caap = {
             html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
             html += '</tr>';
 
+
+            html += "<tr>";
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            count = 0;
+            for (pp in this.stats.character) {
+                if(this.stats.character.hasOwnProperty(pp)) {
+                    if (count % 2  === 0) {
+                        html += "<tr>";
+                    }
+
+                    html += this.makeTd({text: this.stats.character[pp].name, color: titleCol, id: '', title: ''});
+                    html += this.makeTd({text: "Level " + this.stats.character[pp].level + " (" + this.stats.character[pp].percent + "%)", color: valueCol, id: '', title: ''});
+                    if (count % 2 === 1) {
+                        html += '</tr>';
+                    }
+
+                    count += 1;
+                }
+            }
+
             html += '</table>';
             $("#caap_userStats").html(html);
 
@@ -3618,6 +3620,10 @@ caap = {
         'magic': {
             signaturePic: 'tab_magic_on.gif',
             CheckResultsFunction: 'CheckResults_magic'
+        },
+        'view_class_progress': {
+            signaturePic: 'nm_class_whole_progress_bar.jpg',
+            CheckResultsFunction: 'CheckResults_view_class_progress'
         }
     },
 
@@ -3941,6 +3947,38 @@ caap = {
             },
             other : {
                 alchemy : 0
+            }
+        },
+        character : {
+            warrior : {
+                name    : '',
+                level   : 0,
+                percent : 0
+            },
+            rogue : {
+                name    : '',
+                level   : 0,
+                percent : 0
+            },
+            mage : {
+                name    : '',
+                level   : 0,
+                percent : 0
+            },
+            cleric : {
+                name    : '',
+                level   : 0,
+                percent : 0
+            },
+            warlock : {
+                name    : '',
+                level   : 0,
+                percent : 0
+            },
+            ranger : {
+                name    : '',
+                level   : 0,
+                percent : 0
             }
         }
 
@@ -4329,7 +4367,8 @@ caap = {
         try {
             var favorDiv = null,
                 text     = '',
-                temp     = [];
+                temp     = [],
+                save     = false;
 
             favorDiv = $(".title_action");
             if (favorDiv.length) {
@@ -4338,29 +4377,33 @@ caap = {
                 if (temp && temp.length === 1) {
                     global.log(1, 'Got number of Favor Points.');
                     this.stats.points.favor = 0;
+                    save = true;
                 } else {
                     temp = text.match(new RegExp("\\s*You have a favor point!\\s*"));
                     if (temp && temp.length === 1) {
                         global.log(1, 'Got number of Favor Points.');
                         this.stats.points.favor = 1;
+                        save = true;
                     } else {
                         temp = text.match(new RegExp("\\s*You have ([0-9]+) favor points!\\s*"));
                         if (temp && temp.length === 2) {
                             global.log(1, 'Got number of Favor Points.');
                             this.stats.points.favor = parseInt(temp[1], 10);
+                            save = true;
                         } else {
                             global.log(1, 'Favor Points RegExp not matched.');
-                            this.stats.points.favor = 0;
                         }
                     }
                 }
             } else {
                 global.log(1, 'Favor Points div not found.');
-                this.stats.points.favor = 0;
+            }
+
+            if (save) {
+                this.SaveStats();
             }
 
             schedule.Set("oracle", gm.getNumber("CheckOracle", 24) * 3600, 300);
-            this.SaveStats();
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_oracle: " + err);
@@ -4412,9 +4455,11 @@ caap = {
 
     GetItems: function (type) {
         try {
-            var rowDiv = null,
+            var rowDiv  = null,
                 tempDiv = null,
-                current = {};
+                current = {},
+                passed  = true,
+                save    = false;
 
             this[type + 'Array'] = [];
             this[type + 'ArraySortable'] = [];
@@ -4425,39 +4470,58 @@ caap = {
                     tempDiv = $(this).find("div[class='eq_buy_txt_int'] strong");
                     if (tempDiv && tempDiv.length === 1) {
                         current.data.name = $.trim(tempDiv.text());
+                    } else {
+                        global.log(1, "Unable to get '" + type + "' name!");
+                        passed = false;
                     }
 
-                    tempDiv = $(this).find("div[class='eq_buy_txt_int'] span[class='negative']");
-                    if (tempDiv && tempDiv.length === 1) {
-                        current.data.upkeep = caap.NumberOnly(tempDiv.text());
-                    }
+                    if (passed) {
+                        tempDiv = $(this).find("div[class='eq_buy_txt_int'] span[class='negative']");
+                        if (tempDiv && tempDiv.length === 1) {
+                            current.data.upkeep = caap.NumberOnly(tempDiv.text());
+                        } else {
+                            global.log(2, "No upkeep found for '" + type + "' '" + current.data.name + "'");
+                        }
 
-                    tempDiv = $(this).find("div[class='eq_buy_stats_int'] div");
-                    if (tempDiv && tempDiv.length === 2) {
-                        current.data.atk = caap.NumberOnly(tempDiv.eq(0).text());
-                        current.data.def = caap.NumberOnly(tempDiv.eq(1).text());
-                        current.data.api = (current.data.atk + (current.data.def * 0.7));
-                        current.data.dpi = (current.data.def + (current.data.atk * 0.7));
-                        current.data.mpi = ((current.data.api + current.data.dpi) / 2);
-                    }
+                        tempDiv = $(this).find("div[class='eq_buy_stats_int'] div");
+                        if (tempDiv && tempDiv.length === 2) {
+                            current.data.atk = caap.NumberOnly(tempDiv.eq(0).text());
+                            current.data.def = caap.NumberOnly(tempDiv.eq(1).text());
+                            current.data.api = (current.data.atk + (current.data.def * 0.7));
+                            current.data.dpi = (current.data.def + (current.data.atk * 0.7));
+                            current.data.mpi = ((current.data.api + current.data.dpi) / 2);
+                        } else {
+                            global.log(1, "No atk/def found for '" + type + "' '" + current.data.name + "'");
+                        }
 
-                    tempDiv = $(this).find("div[class='eq_buy_costs_int'] strong[class='gold']");
-                    if (tempDiv && tempDiv.length === 1) {
-                        current.data.cost = caap.NumberOnly(tempDiv.text());
-                    }
+                        tempDiv = $(this).find("div[class='eq_buy_costs_int'] strong[class='gold']");
+                        if (tempDiv && tempDiv.length === 1) {
+                            current.data.cost = caap.NumberOnly(tempDiv.text());
+                        } else {
+                            global.log(2, "No cost found for '" + type + "' '" + current.data.name + "'");
+                        }
 
-                    tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td:first");
-                    if (tempDiv && tempDiv.length === 1) {
-                        current.data.owned = caap.NumberOnly(tempDiv.text());
-                        current.data.hourly = current.data.owned * current.data.upkeep;
-                    }
+                        tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td:first");
+                        if (tempDiv && tempDiv.length === 1) {
+                            current.data.owned = caap.NumberOnly(tempDiv.text());
+                            current.data.hourly = current.data.owned * current.data.upkeep;
+                        } else {
+                            global.log(1, "No number owned found for '" + type + "' '" + current.data.name + "'");
+                        }
 
-                    caap[type + 'Array'].push(current.data);
+                        caap[type + 'Array'].push(current.data);
+                        save = true;
+                    }
                 });
             }
 
-            $.merge(this[type + 'ArraySortable'], this[type + 'Array']);
-            this.SaveTown();
+            if (save) {
+                $.merge(this[type + 'ArraySortable'], this[type + 'Array']);
+                this.SaveTown();
+            } else {
+                global.log(1, "Nothing to save for '" + type + "'");
+            }
+
             return true;
         } catch (err) {
             global.error("ERROR in GetItems: " + err);
@@ -4470,7 +4534,7 @@ caap = {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("soldiers");
             schedule.Set("soldiers", gm.getNumber("CheckSoldiers", 48) * 3600, 300);
-            global.log(1, "soldiersArray", this.soldiersArray);
+            global.log(3, "soldiersArray", this.soldiersArray);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_soldiers: " + err);
@@ -4483,7 +4547,7 @@ caap = {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("item");
             schedule.Set("item", gm.getNumber("CheckItem", 48) * 3600, 300);
-            global.log(1, "itemArray", this.itemArray);
+            global.log(3, "itemArray", this.itemArray);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_item: " + err);
@@ -4496,7 +4560,7 @@ caap = {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("magic");
             schedule.Set("magic", gm.getNumber("CheckMagic", 48) * 3600, 300);
-            global.log(1, "magicArray", this.magicArray);
+            global.log(3, "magicArray", this.magicArray);
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_magic: " + err);
@@ -4517,17 +4581,15 @@ caap = {
                 if (temp && temp.length === 2) {
                     global.log(1, 'Got Battle Rank Points.');
                     this.stats.rank.battlePoints = this.NumberOnly(temp[1]);
+                    this.SaveStats();
                 } else {
                     global.log(1, 'Battle Rank Points RegExp not matched.');
-                    this.stats.rank.battlePoints = 0;
                 }
             } else {
                 global.log(1, 'Battle Rank Points div not found.');
-                this.stats.rank.battlePoints = 0;
             }
 
             schedule.Set("battlerank", gm.getNumber("CheckBattleRank", 24) * 3600, 300);
-            this.SaveStats();
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_battlerank: " + err);
@@ -4548,17 +4610,15 @@ caap = {
                 if (temp && temp.length === 2) {
                     global.log(1, 'Got War Rank Points.');
                     this.stats.rank.warPoints = this.NumberOnly(temp[1]);
+                    this.SaveStats();
                 } else {
                     global.log(1, 'War Rank Points RegExp not matched.');
-                    this.stats.rank.warPoints = 0;
                 }
             } else {
                 global.log(1, 'War Rank Points div not found.');
-                this.stats.rank.warPoints = 0;
             }
 
             schedule.Set("warrank", gm.getNumber("CheckWarRank", 24) * 3600, 300);
-            this.SaveStats();
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_war_rank: " + err);
@@ -4623,15 +4683,47 @@ caap = {
                 if (tdDiv && tdDiv.length === 1) {
                     this.stats.achievements.other.alchemy = this.NumberOnly(tdDiv.eq(0).text());
                 }
+
+                this.SaveStats();
             } else {
                 global.log(1, 'Other Achievements not found.');
             }
 
             schedule.Set("achievements", gm.getNumber("CheckAchievements", 24) * 3600, 300);
-            this.SaveStats();
             return true;
         } catch (err) {
             global.error("ERROR in CheckResults_achievements: " + err);
+            return false;
+        }
+    },
+
+    CheckResults_view_class_progress: function () {
+        try {
+            var classDiv = null,
+                name     = '';
+
+            classDiv = $("#app46755028429_choose_class_screen div[class*='banner_']");
+            if (classDiv && classDiv.length === 6) {
+                classDiv.each(function (index) {
+                    name = $(this).attr("class").replace("banner_", '');
+                    if (name && typeof caap.stats.character[name] === 'object') {
+                        caap.stats.character[name].name = name.ucFirst();
+                        caap.stats.character[name].percent = caap.NumberOnly($(this).find("img[src*='progress']").css("width"));
+                        caap.stats.character[name].level = caap.NumberOnly($(this).children().eq(2).text());
+                    } else {
+                        global.log(1, "Problem character class name", name);
+                    }
+                });
+
+                this.SaveStats();
+            } else {
+                global.log(1, "Problem with character class records", classDiv);
+            }
+
+            schedule.Set("view_class_progress", gm.getNumber("CheckClassProgress", 48) * 3600, 300);
+            return true;
+        } catch (err) {
+            global.error("ERROR in CheckResults_view_class_progress: " + err);
             return false;
         }
     },
@@ -4710,7 +4802,6 @@ caap = {
 
                 var targetFrombattle_monster = gm.getValue('targetFrombattle_monster', '');
                 if (!targetFrombattle_monster) {
-                    //var targetFort = gm.getListObjVal('monsterOl', targetFrombattle_monster, 'ShipHealth');
                     var currentMonster = this.getMonsterRecord(targetFrombattle_monster);
                     var targetFort = currentMonster.fortify;
                     // need to check this - if (!targetFort) {
@@ -4757,8 +4848,6 @@ caap = {
 
             switch (gm.getValue('QuestArea', 'Quest')) {
             case 'Quest' :
-                //var stageSet0 = $("#app46755028429_stage_set_0").css("display") === 'block' ? true : false;
-                //var stageSet1 = $("#app46755028429_stage_set_1").css("display") === 'block' ? true : false;
                 var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
                 var landPic = this.baseQuestTable[subQArea];
                 var imgExist = false;
@@ -5036,6 +5125,17 @@ caap = {
 
     CheckResults_quests: function (pickQuestTF) {
         try {
+            if ($("#app46755028429_quest_map_container").length) {
+                var metaQuest = $("div[id*='app46755028429_meta_quest_']");
+                if (metaQuest && metaQuest.length) {
+                    metaQuest.each(function (index) {
+                        if (!$(this).find("img[src*='completed']").length) {
+                            $("div[id='app46755028429_quest_wrapper_" + $(this).attr("id").replace("app46755028429_meta_quest_", '') + "']").css("display", "block");
+                        }
+                    });
+                }
+            }
+
             var whyQuest = gm.getValue('WhyQuest', '');
             if (pickQuestTF === true && whyQuest !== 'Manual') {
                 gm.setValue('AutoQuest', '');
@@ -5111,9 +5211,9 @@ caap = {
                 if (expM && expM.length === 2) {
                     experience = this.NumberOnly(expM[1]);
                 } else {
-                    var expObj = nHtml.FindByAttr(div, 'div', 'className', 'quest_experience');
-                    if (expObj) {
-                        experience = (this.NumberOnly(nHtml.GetText(expObj)));
+                    var expObj = $("div[class='quest_experience']");
+                    if (expObj && expObj.length) {
+                        experience = this.NumberOnly(expObj.text());
                     } else {
                         global.log(1, "Can't find experience for", this.questName);
                     }
@@ -5158,7 +5258,7 @@ caap = {
                     }
                 }
 
-                var click = nHtml.FindByAttr(div, "input", "name", /^Do/);
+                var click = $(div).find("input[name*='Do']").get(0);
                 if (!click) {
                     global.log(1, 'No button found for', this.questName);
                     continue;
@@ -5166,7 +5266,7 @@ caap = {
 
                 var influence = null;
                 if (bossList.indexOf(this.questName) >= 0) {
-                    if (nHtml.FindByClassName(document.body, 'div', 'quests_background_sub')) {
+                    if ($("div[class='quests_background_sub']").length) {
                         //if boss and found sub quests
                         influence = "100";
                     } else {
@@ -5652,7 +5752,7 @@ caap = {
     },
 
     LabelQuests: function (div, energy, reward, experience, click) {
-        if (nHtml.FindByAttr(div, 'div', 'className', 'autoquest')) {
+        if ($(div).find("div[class='autoquest'").length) {
             return;
         }
 
@@ -6743,6 +6843,20 @@ caap = {
         }
     },
 
+    CheckCharacterClasses: function () {
+        try {
+            if (!schedule.Check("view_class_progress")) {
+                return false;
+            }
+
+            global.log(9, "Checking Monster Class to get Character Class Stats");
+            return this.NavigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+        } catch (err) {
+            global.error("ERROR in CheckCharacterClasses: " + err);
+            return false;
+        }
+    },
+
     Battle: function (mode) {
         try {
             var whenBattle    = '',
@@ -7641,8 +7755,7 @@ caap = {
 
     CheckResults_viewFight: function () {
         try {
-            var yourRegEx         = new RegExp(".+'s "),
-                missRegEx         = new RegExp(".*Need (\\d+) more.*"),
+            var missRegEx         = new RegExp(".*Need (\\d+) more.*"),
                 currentMonster    = {},
                 time              = [],
                 currentPhase      = 0,
@@ -7672,13 +7785,13 @@ caap = {
                 KOBtotalMonsterTime = 0,
                 monsterDiv        = null;
 
-            tempDiv = $("div[style*='dragon_title_owner']");
-            if (tempDiv && tempDiv.length) {
-                tempText = $.trim(tempDiv.children(":eq(2)").text());
+            monsterDiv = $("div[style*='dragon_title_owner']");
+            if (monsterDiv && monsterDiv.length) {
+                tempText = $.trim(monsterDiv.children(":eq(2)").text());
             } else {
-                tempDiv = $("div[style*='nm_top']");
-                if (tempDiv && tempDiv.length) {
-                    tempText = $.trim(tempDiv.children(":eq(0)").children(":eq(0)").text());
+                monsterDiv = $("div[style*='nm_top']");
+                if (monsterDiv && monsterDiv.length) {
+                    tempText = $.trim(monsterDiv.children(":eq(0)").children(":eq(0)").text());
                     tempDiv = $("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
                         tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
@@ -7692,10 +7805,12 @@ caap = {
                 }
             }
 
-            if (tempDiv.find("img[uid=" + this.stats.FBID + "]").length ? true : false) {
-                tempText = tempText.replace(yourRegEx, 'Your ');
+            if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
+                global.log(1, "monster name found");
+                tempText = tempText.replace(new RegExp(".+'s "), 'Your ');
             }
 
+            global.log(1, "monster name", tempText);
             currentMonster = this.getMonsterRecord(tempText);
             currentMonster.type = this.getMonstType(currentMonster.name);
             if (currentMonster.type === 'Siege') {
@@ -8129,6 +8244,8 @@ caap = {
                 firstUnderMax      = '',
                 firstFortOverAch   = '',
                 firstFortUnderMax  = '',
+                firstStunOverAch   = '',
+                firstStunUnderMax  = '',
                 monster            = '',
                 monsterObj         = {},
                 monsterConditions  = '',
@@ -8223,9 +8340,7 @@ caap = {
 
                                     maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
                                     monstType = this.getMonstType(monsterList[selectTypes[s]][m]);
-                                    //global.log(1, 'Class', monsterObj.charClass);
-                                    //global.log(1, 'Stun', monsterObj.stun);
-                                    if (!monsterObj.alpha || (monsterObj.alpha && (monsterObj.charClass === 'Warrior' || monsterObj.charClass === 'Cleric' || monsterObj.charClass === 'Warlock' || monsterObj.charClass === 'Ranger'))) {
+                                    if (!this.monsterInfo[monsterObj.type].alpha || (this.monsterInfo[monsterObj.type].alpha && (monsterObj.charClass === 'Warrior' || monsterObj.charClass === 'Cleric' || monsterObj.charClass === 'Warlock' || monsterObj.charClass === 'Ranger'))) {
                                         if (!firstFortUnderMax && monsterObj.fortify < maxToFortify && monsterObj.page === 'battle_monster' && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
                                             if (monsterObj.over === 'ach') {
                                                 if (!firstFortOverAch) {
@@ -8235,6 +8350,20 @@ caap = {
                                             } else if (monsterObj.over !== 'max') {
                                                 firstFortUnderMax = monsterList[selectTypes[s]][m];
                                                 global.log(3, 'firstFortUnderMax', firstFortUnderMax);
+                                            }
+                                        }
+                                    }
+
+                                    if (this.monsterInfo[monsterObj.type].alpha && (monsterObj.charClass === 'Mage' || monsterObj.charClass === 'Rogue')) {
+                                        if (!firstStunUnderMax && monsterObj.stunDo && monsterObj.page === 'battle_monster') {
+                                            if (monsterObj.over === 'ach') {
+                                                if (!firstStunOverAch) {
+                                                    firstStunOverAch = monsterList[selectTypes[s]][m];
+                                                    global.log(1, 'firstStunOverAch', firstStunOverAch);
+                                                }
+                                            } else if (monsterObj.over !== 'max') {
+                                                firstStunUnderMax = monsterList[selectTypes[s]][m];
+                                                global.log(1, 'firstStunUnderMax', firstStunUnderMax);
                                             }
                                         }
                                     }
@@ -8251,9 +8380,24 @@ caap = {
                             gm.setValue('targetFromfortify', firstFortOverAch);
                         }
 
+
                         global.log(1, 'fort under max ', firstFortUnderMax);
                         global.log(1, 'fort over Ach ', firstFortOverAch);
                         global.log(1, 'fort target ', gm.getValue('targetFromfortify', ''));
+
+                        gm.setValue('targetFromStun', firstStunUnderMax);
+                        if (!gm.getValue('targetFromStun', '')) {
+                            gm.setValue('targetFromStun', firstStunOverAch);
+                        }
+
+                        global.log(1, 'stun under max ', firstStunUnderMax);
+                        global.log(1, 'stun over Ach ', firstStunOverAch);
+                        global.log(1, 'stun target ', gm.getValue('targetFromStun', ''));
+
+                        if (gm.getValue('targetFromStun', '')) {
+                            gm.setValue('targetFromfortify', gm.getValue('targetFromStun', ''));
+                            global.log(1, 'Stun target replaces fortify ', gm.getValue('targetFromfortify', ''));
+                        }
                     }
 
                     monster = firstUnderMax;
@@ -8338,17 +8482,17 @@ caap = {
     monsterConfirmRightPage: function (monster) {
         try {
             // Confirm name and type of monster
-            var yourRegEx     = new RegExp(".+'s "),
-                tempDiv       = null,
-                tempText      = '';
+            var monsterDiv = null,
+                tempDiv    = null,
+                tempText   = '';
 
-            tempDiv = $("div[style*='dragon_title_owner']");
-            if (tempDiv && tempDiv.length) {
-                tempText = $.trim(tempDiv.children(":eq(2)").text());
+            monsterDiv = $("div[style*='dragon_title_owner']");
+            if (monsterDiv && monsterDiv.length) {
+                tempText = $.trim(monsterDiv.children(":eq(2)").text());
             } else {
-                tempDiv = $("div[style*='nm_top']");
-                if (tempDiv && tempDiv.length) {
-                    tempText = $.trim(tempDiv.children(":eq(0)").children(":eq(0)").text());
+                monsterDiv = $("div[style*='nm_top']");
+                if (monsterDiv && monsterDiv.length) {
+                    tempText = $.trim(monsterDiv.children(":eq(0)").children(":eq(0)").text());
                     tempDiv = $("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
                         tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
@@ -8362,8 +8506,9 @@ caap = {
                 }
             }
 
-            if (tempDiv.find("img[uid=" + this.stats.FBID + "]").length ? true : false) {
-                tempText = tempText.replace(yourRegEx, 'Your ');
+            if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
+                global.log(1, "monster name found");
+                tempText = tempText.replace(new RegExp(".+'s "), 'Your ');
             }
 
             if (monster !== tempText) {
@@ -9141,18 +9286,18 @@ caap = {
                 }
             }
 
-            var formId   = "app46755028429_consume_1",
-                webSlice = null,
-                button   = null;
+            var formId    = "app46755028429_consume_1",
+                potionDiv = null,
+                button    = null;
 
             if (potion === 'stamina') {
                 formId = "app46755028429_consume_2";
             }
 
             global.log(1, "Consuming potion potion");
-            webSlice = nHtml.FindByAttr(document.body, "form", "id", formId);
-            if (webSlice) {
-                button = nHtml.FindByAttrContains(webSlice, "input", "src", 'potion_consume.gif');
+            potionDiv = $("form[id='" + formId + "'] input[src*='potion_consume.gif']");
+            if (potionDiv && potionDiv.length) {
+                button = potionDiv.get(0);
                 if (button) {
                     caap.Click(button);
                 } else {
@@ -10596,11 +10741,23 @@ caap = {
             return true;
         }
 
-        if (general.GetAllStats()) {
+        if (this.CheckKeep()) {
             return true;
         }
 
-        if (this.CheckKeep()) {
+        if (this.AutoCollectMA()) {
+            return true;
+        }
+
+        if (this.AjaxGiftCheck()) {
+            return true;
+        }
+
+        if (this.ReconPlayers()) {
+            return true;
+        }
+
+        if (general.GetAllStats()) {
             return true;
         }
 
@@ -10624,10 +10781,6 @@ caap = {
             return true;
         }
 
-        if (this.AutoCollectMA()) {
-            return true;
-        }
-
         if (this.CheckSoldiers()) {
             return true;
         }
@@ -10640,9 +10793,11 @@ caap = {
             return true;
         }
 
-        this.AjaxGiftCheck();
+        if (this.CheckCharacterClasses()) {
+            return true;
+        }
+
         this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
-        this.ReconPlayers();
         this.UpdateDashboard();
         gm.setValue('ReleaseControl', true);
         return true;

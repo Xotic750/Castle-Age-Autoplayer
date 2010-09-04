@@ -74,48 +74,6 @@ nHtml = {
         return null;
     },
 
-    FindByAttr: function (obj, tag, attr, className, subDocument) {
-        var q    = null,
-            divs = null,
-            d    = 0,
-            div  = null;
-
-        if (className.exec === undefined) {
-            if (attr === "className") {
-                attr = "class";
-            }
-
-            if (!subDocument) {
-                subDocument = document;
-            }
-
-            q = subDocument.evaluate(".//" + tag + "[@" + attr + "='" + className + "']", obj, null, this.xpath.first, null);
-            if (q && q.singleNodeValue) {
-                return q.singleNodeValue;
-            }
-
-            return null;
-        }
-
-        divs = obj.getElementsByTagName(tag);
-        for (d = 0; d < divs.length; d += 1) {
-            div = divs[d];
-            if (className.exec !== undefined) {
-                if (className.exec(div[attr])) {
-                    return div;
-                }
-            } else if (div[attr] === className) {
-                return div;
-            }
-        }
-
-        return null;
-    },
-
-    FindByClassName: function (obj, tag, className) {
-        return this.FindByAttr(obj, tag, "className", className);
-    },
-
     spaceTags: {
         td    : 1,
         br    : 1,
