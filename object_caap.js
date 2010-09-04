@@ -8340,7 +8340,7 @@ caap = {
 
                                     maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
                                     monstType = this.getMonstType(monsterList[selectTypes[s]][m]);
-                                    if (!this.monsterInfo[monsterObj.type].alpha || (this.monsterInfo[monsterObj.type].alpha && (monsterObj.charClass === 'Warrior' || monsterObj.charClass === 'Cleric' || monsterObj.charClass === 'Warlock' || monsterObj.charClass === 'Ranger'))) {
+                                    if (this.monsterInfo[monstType] && (!this.monsterInfo[monstType].alpha || (this.monsterInfo[monstType].alpha && (monsterObj.charClass === 'Warrior' || monsterObj.charClass === 'Cleric' || monsterObj.charClass === 'Warlock' || monsterObj.charClass === 'Ranger')))) {
                                         if (!firstFortUnderMax && monsterObj.fortify < maxToFortify && monsterObj.page === 'battle_monster' && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
                                             if (monsterObj.over === 'ach') {
                                                 if (!firstFortOverAch) {
@@ -8354,7 +8354,7 @@ caap = {
                                         }
                                     }
 
-                                    if (this.monsterInfo[monsterObj.type].alpha && (monsterObj.charClass === 'Mage' || monsterObj.charClass === 'Rogue')) {
+                                    if (this.monsterInfo[monstType] && this.monsterInfo[monstType].alpha) {
                                         if (!firstStunUnderMax && monsterObj.stunDo && monsterObj.page === 'battle_monster') {
                                             if (monsterObj.over === 'ach') {
                                                 if (!firstStunOverAch) {
@@ -9364,17 +9364,32 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     Now we navigate to the Alchemy Recipe page.
     \-------------------------------------------------------------------------------------*/
-            if (!this.NavigateTo('keep,alchemy', 'alchemy_banner.jpg')) {
-                var button = null;
-                if (document.getElementById('app46755028429_recipe_list').className !== 'show_items') {
-                    button = nHtml.FindByAttrContains(document.body, 'div', 'id', 'alchemy_item_tab');
-                    if (button) {
-                        this.Click(button, 5000);
-                        return true;
-                    } else {
-                        global.log(1, 'Cant find recipe div');
-                        return false;
+            if (!this.NavigateTo('keep,alchemy', 'tab_alchemy_on.gif')) {
+                var button = null,
+                    recipeDiv = null,
+                    tempDiv = null;
+
+                recipeDiv = $("#app46755028429_recipe_list");
+                if (recipeDiv && recipeDiv.length) {
+                    if (recipeDiv.attr("class") !== 'show_items') {
+                        tempDiv = recipeDiv.find("div[id*='alchemy_item_tab']");
+                        if (tempDiv && tempDiv.length) {
+                            button = tempDiv.get(0);
+                            if (button) {
+                                this.Click(button, 5000);
+                                return true;
+                            } else {
+                                global.log(1, 'Cant find tab button', button);
+                                return false;
+                            }
+                        } else {
+                            global.log(1, 'Cant find item tab', tempDiv);
+                            return false;
+                        }
                     }
+                } else {
+                    global.log(1, 'Cant find recipe list', recipeDiv);
+                    return false;
                 }
     /*-------------------------------------------------------------------------------------\
     We close the results of our combines so they don't hog up our screen
