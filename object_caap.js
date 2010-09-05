@@ -6892,8 +6892,6 @@ caap = {
 
                 break;
             default :
-                global.log(1, 'WhenBattle is unknown', whenBattle);
-                return false;
             }
 
             if (this.CheckKeep()) {
@@ -8275,7 +8273,7 @@ caap = {
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            global.log(1, 'monsterArray/monsterList/selectTypes', this.monsterArray, monsterList, selectTypes);
+            global.log(3, 'monsterArray/monsterList/selectTypes', this.monsterArray, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
             for (s in selectTypes) {
@@ -8324,6 +8322,8 @@ caap = {
                                         continue;
                                     }
 
+
+                                    global.log(3, 'Current monster being checked', monsterObj);
                                     // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                                     // these to see if this is the monster we should select
                                     if (!firstUnderMax && monsterObj.color !== 'purple') {
@@ -8359,11 +8359,11 @@ caap = {
                                             if (monsterObj.over === 'ach') {
                                                 if (!firstStunOverAch) {
                                                     firstStunOverAch = monsterList[selectTypes[s]][m];
-                                                    global.log(1, 'firstStunOverAch', firstStunOverAch);
+                                                    global.log(3, 'firstStunOverAch', firstStunOverAch);
                                                 }
                                             } else if (monsterObj.over !== 'max') {
                                                 firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                                global.log(1, 'firstStunUnderMax', firstStunUnderMax);
+                                                global.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                             }
                                         }
                                     }
@@ -8380,19 +8380,18 @@ caap = {
                             gm.setValue('targetFromfortify', firstFortOverAch);
                         }
 
-
-                        global.log(1, 'fort under max ', firstFortUnderMax);
-                        global.log(1, 'fort over Ach ', firstFortOverAch);
-                        global.log(1, 'fort target ', gm.getValue('targetFromfortify', ''));
+                        global.log(3, 'fort under max ', firstFortUnderMax);
+                        global.log(3, 'fort over Ach ', firstFortOverAch);
+                        global.log(3, 'fort target ', gm.getValue('targetFromfortify', ''));
 
                         gm.setValue('targetFromStun', firstStunUnderMax);
                         if (!gm.getValue('targetFromStun', '')) {
                             gm.setValue('targetFromStun', firstStunOverAch);
                         }
 
-                        global.log(1, 'stun under max ', firstStunUnderMax);
-                        global.log(1, 'stun over Ach ', firstStunOverAch);
-                        global.log(1, 'stun target ', gm.getValue('targetFromStun', ''));
+                        global.log(3, 'stun under max ', firstStunUnderMax);
+                        global.log(3, 'stun over Ach ', firstStunOverAch);
+                        global.log(3, 'stun target ', gm.getValue('targetFromStun', ''));
 
                         if (gm.getValue('targetFromStun', '')) {
                             gm.setValue('targetFromfortify', gm.getValue('targetFromStun', ''));
@@ -8405,7 +8404,7 @@ caap = {
                         monster = firstOverAch;
                     }
 
-                    global.log(1, 'monster', monster);
+                    global.log(3, 'monster', monster);
                     // If we've got a monster for this selection type then we set the GM variables for the name
                     // and stamina requirements
                     if (monster) {
@@ -9811,7 +9810,8 @@ caap = {
                     user = {};
 
                 $('#app46755028429_battleUpdateBox .alertsContainer .alert_content').each(function (i, el) {
-                    var uid, txt = $(el).text().replace(/,/g, ''),
+                    var uid,
+                        txt = $(el).text().replace(/,/g, ''),
                         title = $(el).prev().text(),
                         days = title.regex(/([0-9]+) days/i),
                         hours = title.regex(/([0-9]+) hours/i),
@@ -9863,7 +9863,7 @@ caap = {
                 });
 
                 if (win || lose) {
-                    list.push('You were challenged <strong>' + (win + lose) + '</strong> times, winning <strong>' + win + '</strong> and losing <strong>' + lose + '</strong>.');
+                    list.push('You were challenged <strong>' + (win + lose) + '</strong> times,<br>winning <strong>' + win + '</strong> and losing <strong>' + lose + '</strong>.');
                     list.push('You ' + (xp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + this.makeCommaValue(Math.abs(xp)) + '</span> experience points.');
                     list.push('You ' + (cash >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + '<b class="gold">$' + this.makeCommaValue(Math.abs(cash)) + '</b></span>.');
                     list.push('You ' + (bp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + this.makeCommaValue(Math.abs(bp)) + '</span> Battle Points.');
@@ -10285,9 +10285,9 @@ caap = {
                 attrAdjustNew = 0,
                 logTxt        = "";
 
-            ajaxLoadIcon = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app46755028429_AjaxLoadIcon');
-            if (!ajaxLoadIcon || ajaxLoadIcon.style.display !== 'none') {
-                global.log(1, "Unable to find AjaxLoadIcon: Fail");
+            ajaxLoadIcon = $('#app46755028429_AjaxLoadIcon');
+            if (!ajaxLoadIcon.length || ajaxLoadIcon.css("display") !== 'none') {
+                global.log(1, "Unable to find AjaxLoadIcon or page not loaded: Fail");
                 return "Fail";
             }
 
