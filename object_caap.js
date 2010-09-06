@@ -271,7 +271,7 @@ caap = {
 
     defaultDropDownOption: "<option disabled='disabled' value='not selected'>Choose one</option>",
 
-    MakeDropDown: function (idName, dropDownList, instructions, formatParms) {
+    MakeDropDown: function (idName, dropDownList, instructions, formatParms, defaultValue) {
         try {
             var selectedItem = gm.getValue(idName, 'defaultValue'),
                 count        = 0,
@@ -280,7 +280,11 @@ caap = {
                 item         = 0;
 
             if (selectedItem === 'defaultValue') {
-                selectedItem = gm.setValue(idName, dropDownList[0]);
+                if (defaultValue) {
+                    selectedItem = gm.setValue(idName, defaultValue);
+                } else {
+                    selectedItem = gm.setValue(idName, dropDownList[0]);
+                }
             }
 
             for (itemcount in dropDownList) {
@@ -870,7 +874,7 @@ caap = {
             htmlCode += "<tr><td style='padding-left: 10px'>But Keep On Hand</td><td style='text-align: right'>$" +
                 this.MakeNumberForm('MinInCash', bankInstructions1, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Heal If Health Below</td><td style='text-align: right'>" + this.MakeNumberForm('MinToHeal', healthInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + "</td></tr>";
+            htmlCode += "<tr><td>Heal If Health Below</td><td style='text-align: right'>" + this.MakeNumberForm('MinToHeal', healthInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + "</td></tr>";
             htmlCode += "<tr><td style='padding-left: 10px'>But Not If Stamina Below</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MinStamToHeal', healthStamInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<hr/></div>";
@@ -891,7 +895,7 @@ caap = {
 
             htmlCode += this.ToggleControl('Quests', 'QUEST');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest', false) !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (gm.getValue('WhenQuest', false) !== 'At X Energy' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -918,7 +922,7 @@ caap = {
 
             htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', this.questForList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', false, '', 'Allows switching quest area after Advancement or Max Influence');
+            htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', true, '', 'Allows switching quest area after Advancement or Max Influence');
             htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
             htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
             htmlCode += "</div>";
@@ -1009,7 +1013,7 @@ caap = {
 
             htmlCode += this.ToggleControl('Battling', 'BATTLE');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) === 'Stay Hidden' && gm.getValue('WhenMonster', false) !== 'Stay Hidden' ? 'block' : 'none') + "'>";
             htmlCode += "<font color='red'><b>Warning: Monster Not Set To 'Stay Hidden'</b></font>";
             htmlCode += "</div>";
@@ -1074,7 +1078,7 @@ caap = {
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 powerfortifyMaxInstructions = "Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 dosiegeInstructions = "Turns on or off automatic siege assist for all monsters only.",
-                useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack.",
+                useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
                 mbattleList = [
@@ -1111,7 +1115,7 @@ caap = {
 
             htmlCode += this.ToggleControl('Monster', 'MONSTER');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'") + '</td></tr></table>';
+            htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (gm.getValue('WhenMonster', false) !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMonsterStamina', XMonsterInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
@@ -1232,7 +1236,7 @@ caap = {
 
             htmlCode += this.ToggleControl('Generals', 'GENERALS');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', false, '', ignoreGeneralImage) + "</table>";
+            htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', true, '', ignoreGeneralImage) + "</table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             for (dropDownItem in general.StandardList) {
                 if (general.StandardList.hasOwnProperty(dropDownItem)) {
@@ -1254,7 +1258,7 @@ caap = {
             htmlCode += this.MakeCheckTR("Level Up Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
             htmlCode += this.MakeCheckTR("Level Up Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
             htmlCode += this.MakeCheckTR("Level Up Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions5);
-            htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', true, '', LevelUpGenInstructions6);
+            htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions6);
             htmlCode += "</table></div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, '', reverseGenInstructions) + "</table>";
@@ -1404,7 +1408,7 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
             htmlCode += this.MakeCheckTR('Enable News Summary', 'NewsSummary', true, '', newsSummaryInstructions);
-            htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', true, '', autoCollectMAInstructions);
+            htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', false, '', autoCollectMAInstructions);
             htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
@@ -1424,7 +1428,7 @@ caap = {
                 this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', true, 'AutoEliteControl', autoEliteInstructions, true);
+            htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', false, 'AutoEliteControl', autoEliteInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -2269,9 +2273,19 @@ caap = {
 
             html += "<tr>";
             html += this.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.other.wlr.toFixed(2), color: valueCol, id: '', title: ''});
+            if (this.stats.other.wlr) {
+                html += this.makeTd({text: this.stats.other.wlr.toFixed(2), color: valueCol, id: '', title: ''});
+            } else {
+                html += this.makeTd({text: this.stats.other.wlr, color: valueCol, id: '', title: ''});
+            }
+
             html += this.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.other.eer.toFixed(2), color: valueCol, id: '', title: ''});
+            if (this.stats.other.eer) {
+                html += this.makeTd({text: this.stats.other.eer.toFixed(2), color: valueCol, id: '', title: ''});
+            } else {
+                html += this.makeTd({text: this.stats.other.eer, color: valueCol, id: '', title: ''});
+            }
+
             html += '</tr>';
 
             html += "<tr>";
@@ -2304,9 +2318,19 @@ caap = {
 
             html += "<tr>";
             html += this.makeTd({text: 'Invasions Win/loss Ratio (IWLR)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+            if (this.stats.achievements.battle.invasions.ratio) {
+                html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+            } else {
+                html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio, color: valueCol, id: '', title: ''});
+            }
+
             html += this.makeTd({text: 'Duels Win/loss Ratio (DWLR)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.achievements.battle.duels.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+            if (this.stats.achievements.battle.duels.ratio) {
+                html += this.makeTd({text: this.stats.achievements.battle.duels.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+            } else {
+                html += this.makeTd({text: this.stats.achievements.battle.duels.ratio, color: valueCol, id: '', title: ''});
+            }
+
             html += '</tr>';
 
             html += "<tr>";
@@ -2506,12 +2530,10 @@ caap = {
                                 str = general.RecordArraySortable[it][values[pp]];
                             }
                         } else {
-                            if (general.RecordArraySortable[it][values[pp]]) {
-                                if (/pi/.test(values[pp])) {
-                                    str = general.RecordArraySortable[it][values[pp]].toFixed(2);
-                                } else {
-                                    str = general.RecordArraySortable[it][values[pp]].toString();
-                                }
+                            if (/pi/.test(values[pp])) {
+                                str = general.RecordArraySortable[it][values[pp]].toFixed(2);
+                            } else {
+                                str = general.RecordArraySortable[it][values[pp]].toString();
                             }
                         }
 
@@ -3712,14 +3734,21 @@ caap = {
                 }
             }
 
-            var page = 'None';
+            var page = 'None',
+                sigImage = '';
             if (pageUrl.match(new RegExp("\/[^\/]+.php", "i"))) {
                 page = pageUrl.match(new RegExp("\/[^\/]+.php", "i"))[0].replace('/', '').replace('.php', '');
                 global.log(9, "Page match", page);
             }
 
             if (this.pageList[page]) {
-                if ($("img[src*='" + this.pageList[page].signaturePic + "']").length) {
+                if (page === "quests" && this.stats.level < 8) {
+                    sigImage = "quest_back_1.jpg";
+                } else {
+                    sigImage = this.pageList[page].signaturePic;
+                }
+
+                if ($("img[src*='" + sigImage + "']").length) {
                     page = gm.setValue('page', page);
                     global.log(9, "Page set value", page);
                 }
@@ -3793,8 +3822,18 @@ caap = {
 
     CheckResults_generals: function () {
         try {
+            var currentGeneral = '',
+                html           = '';
+
             general.GetGenerals();
-            general.GetEquippedStats();
+            currentGeneral = general.GetEquippedStats();
+            if (currentGeneral) {
+                html = "<span title='Equipped Attack Power Index' style='font-size: 12px; font-weight: normal;'>EAPI:" + currentGeneral.eapi.toFixed(2) +
+                       "</span> <span title='Equipped Defense Power Index' style='font-size: 12px; font-weight: normal;'>EDPI:" + currentGeneral.edpi.toFixed(2) +
+                       "</span> <span title='Equipped Mean Power Index' style='font-size: 12px; font-weight: normal;'>EMPI:" + currentGeneral.empi.toFixed(2) + "</span>";
+                $("#app46755028429_general_name_div_int").append(html);
+            }
+
             schedule.Set("generals", gm.getNumber("CheckGenerals", 24) * 3600, 300);
             return true;
         } catch (err) {
@@ -4008,6 +4047,7 @@ caap = {
                 temp           = null,
                 levelArray     = [],
                 newLevel       = 0,
+                newPoints      = 0,
                 armyArray      = [],
                 pointsArray    = [],
                 xS             = 0,
@@ -4145,7 +4185,13 @@ caap = {
                 pointsArray = pointsDiv.text().match(/My Stats \(\+([0-9]+)\)/);
                 if (pointsArray && pointsArray.length === 2) {
                     global.log(8, 'Getting current upgrade points');
-                    this.stats.points.skill = parseInt(pointsArray[1], 10);
+                    newPoints = parseInt(pointsArray[1], 10);
+                    if (newPoints > this.stats.points.skill) {
+                        global.log(1, 'New points. Resetting AutoStat.');
+                        this.statsMatch = true;
+                    }
+
+                    this.stats.points.skill = newPoints;
                 } else {
                     global.log(8, 'No upgrade points found');
                     this.stats.points.skill = 0;
@@ -4211,15 +4257,6 @@ caap = {
                     global.log(1, 'Using stored rank.');
                 }
 
-                // war rank
-                warRankImg = $("img[src*='war_rank_']");
-                if (warRankImg.length) {
-                    warRankImg = warRankImg.attr("src").split('/');
-                    this.stats.rank.war = parseInt((warRankImg[warRankImg.length - 1].match(/war_rank_([0-9]+)\.gif/))[1], 10);
-                } else {
-                    global.log(1, 'Using stored warRank.');
-                }
-
                 // PlayerName
                 playerName = $(".keep_stat_title_inc");
                 if (playerName.length) {
@@ -4228,20 +4265,33 @@ caap = {
                     global.log(1, 'Using stored PlayerName.');
                 }
 
-                // Attack
-                attack = $(".attribute_stat_container:eq(2)");
-                if (attack.length) {
-                    this.stats.attack = parseInt(attack.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
-                } else {
-                    global.log(1, 'Using stored attack value.');
+                if (this.stats.level >= 100) {
+                    // war rank
+                    warRankImg = $("img[src*='war_rank_']");
+                    if (warRankImg.length) {
+                        warRankImg = warRankImg.attr("src").split('/');
+                        this.stats.rank.war = parseInt((warRankImg[warRankImg.length - 1].match(/war_rank_([0-9]+)\.gif/))[1], 10);
+                    } else {
+                        global.log(1, 'Using stored warRank.');
+                    }
                 }
 
-                // Defense
-                defense = $(".attribute_stat_container:eq(3)");
-                if (defense.length) {
-                    this.stats.defense = parseInt(defense.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
-                } else {
-                    global.log(1, 'Using stored defense value.');
+                if (this.stats.level >= 10) {
+                    // Attack
+                    attack = $(".attribute_stat_container:eq(2)");
+                    if (attack.length) {
+                        this.stats.attack = parseInt(attack.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
+                    } else {
+                        global.log(1, 'Using stored attack value.');
+                    }
+
+                    // Defense
+                    defense = $(".attribute_stat_container:eq(3)");
+                    if (defense.length) {
+                        this.stats.defense = parseInt(defense.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
+                    } else {
+                        global.log(1, 'Using stored defense value.');
+                    }
                 }
 
                 // Check for Gold Stored
@@ -4344,12 +4394,15 @@ caap = {
                 }
 
                 // Indicators
-                this.stats.indicators.bsi = (this.stats.attack + this.stats.defense) / this.stats.level;
-                this.stats.indicators.lsi = (this.stats.energy.max + (2 * this.stats.stamina.max)) / this.stats.level;
-                this.stats.indicators.sppl = (this.stats.energy.max + (2 * this.stats.stamina.max) + this.stats.attack + this.stats.defense + this.stats.health.max - 122) / this.stats.level;
-                this.stats.indicators.api = (this.stats.attack + (this.stats.defense * 0.7));
-                this.stats.indicators.dpi = (this.stats.defense + (this.stats.attack * 0.7));
-                this.stats.indicators.mpi = ((this.stats.indicators.api + this.stats.indicators.dpi) / 2);
+                if (this.stats.level >= 10) {
+                    this.stats.indicators.bsi = (this.stats.attack + this.stats.defense) / this.stats.level;
+                    this.stats.indicators.lsi = (this.stats.energy.max + (2 * this.stats.stamina.max)) / this.stats.level;
+                    this.stats.indicators.sppl = (this.stats.energy.max + (2 * this.stats.stamina.max) + this.stats.attack + this.stats.defense + this.stats.health.max - 122) / this.stats.level;
+                    this.stats.indicators.api = (this.stats.attack + (this.stats.defense * 0.7));
+                    this.stats.indicators.dpi = (this.stats.defense + (this.stats.attack * 0.7));
+                    this.stats.indicators.mpi = ((this.stats.indicators.api + this.stats.indicators.dpi) / 2);
+                }
+
                 schedule.Set("keep", gm.getNumber("CheckKeep", 1) * 3600, 300);
                 this.SaveStats();
             } else {
@@ -4848,17 +4901,21 @@ caap = {
 
             switch (gm.getValue('QuestArea', 'Quest')) {
             case 'Quest' :
-                var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
-                var landPic = this.baseQuestTable[subQArea];
-                var imgExist = false;
-                if (landPic === 'tab_underworld' || landPic === 'tab_ivory') {
-                    imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
-                } else if (landPic === 'tab_heaven') {
-                    imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
-                } else if ((landPic === 'land_demon_realm') || (landPic === 'land_undead_realm')) {
-                    imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
+                if (this.stats.level > 7) {
+                    var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
+                    var landPic = this.baseQuestTable[subQArea];
+                    var imgExist = false;
+                    if (landPic === 'tab_underworld' || landPic === 'tab_ivory') {
+                        imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
+                    } else if (landPic === 'tab_heaven') {
+                        imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
+                    } else if ((landPic === 'land_demon_realm') || (landPic === 'land_undead_realm')) {
+                        imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
+                    } else {
+                        imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                    }
                 } else {
-                    imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                    this.NavigateTo('quests', 'quest_back_1.jpg');
                 }
 
                 if (imgExist) {
@@ -5094,7 +5151,7 @@ caap = {
             if (demiDiv && demiDiv.length === 5) {
                 demiDiv.each(function (index) {
                     var temp = caap.NumberOnly($(this).children().next().eq(1).children().children().next().text());
-                    if (temp && typeof temp === 'number') {
+                    if (typeof temp === 'number') {
                         points.push(temp);
                     } else {
                         success = false;
@@ -5129,7 +5186,7 @@ caap = {
                 var metaQuest = $("div[id*='app46755028429_meta_quest_']");
                 if (metaQuest && metaQuest.length) {
                     metaQuest.each(function (index) {
-                        if (!$(this).find("img[src*='completed']").length) {
+                        if (!($(this).find("img[src*='_completed']").length || $(this).find("img[src*='_locked']").length)) {
                             $("div[id='app46755028429_quest_wrapper_" + $(this).attr("id").replace("app46755028429_meta_quest_", '') + "']").css("display", "block");
                         }
                     });
@@ -5182,7 +5239,7 @@ caap = {
                 ],
                 haveOrb  = false;
 
-            if (nHtml.FindByAttrContains(div, 'input', 'src', 'alchemy_summon')) {
+            if ($(div).find("input[src*='alchemy_summon']").length) {
                 haveOrb = true;
                 if (bossList.indexOf(gm.getObjVal('AutoQuest', 'name')) >= 0 && gm.getValue('GetOrbs', false) && whyQuest !== 'Manual') {
                     gm.setValue('AutoQuest', '');
@@ -5309,7 +5366,7 @@ caap = {
                 }
 
                 this.LabelQuests(div, energy, reward, experience, click);
-                //global.log(1, gm.getValue('QuestSubArea', 'Atlantis'));
+                global.log(9, "QuestSubArea", gm.getValue('QuestSubArea', 'Atlantis'));
                 if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
                     if (gm.getValue('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual') {
                         if (!haveOrb) {
@@ -5382,7 +5439,7 @@ caap = {
                 }
 
                 //if not find quest, probably you already maxed the subarea, try another area
-                if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && gm.getValue('switchQuestArea', false)) {
+                if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && gm.getValue('switchQuestArea', true)) {
                     global.log(9, "QuestSubArea", gm.getValue('QuestSubArea'));
                     switch (gm.getValue('QuestSubArea')) {
                     case 'Land of Fire':
@@ -5459,94 +5516,100 @@ caap = {
 
     CheckCurrentQuestArea: function (QuestSubArea) {
         try {
+            var found = false;
+
+            if (this.stats.level < 8 && this.CheckForImage('quest_back_1.jpg')) {
+                found = true;
+            }
+
             switch (QuestSubArea) {
             case 'Land of Fire':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_1')) {
-                    return true;
+                if ($("div[class*='quests_stage_1']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Land of Earth':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_2')) {
-                    return true;
+                if ($("div[class*='quests_stage_2']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Land of Mist':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_3')) {
-                    return true;
+                if ($("div[class*='quests_stage_3']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Land of Water':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_4')) {
-                    return true;
+                if ($("div[class*='quests_stage_4']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Demon Realm':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_5')) {
-                    return true;
+                if ($("div[class*='quests_stage_5']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Undead Realm':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_6')) {
-                    return true;
+                if ($("div[class*='quests_stage_6']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Underworld':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
-                    return true;
+                if ($("div[class*='quests_stage_7']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Kingdom of Heaven':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
-                    return true;
+                if ($("div[class*='quests_stage_8']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Ivory City':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_9')) {
-                    return true;
+                if ($("div[class*='quests_stage_9']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Ambrosia':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_1')) {
-                    return true;
+                if ($("div[class*='symbolquests_stage_1']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Malekus':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_2')) {
-                    return true;
+                if ($("div[class*='symbolquests_stage_2']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Corvintheus':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_3')) {
-                    return true;
+                if ($("div[class*='symbolquests_stage_3']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Aurora':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_4')) {
-                    return true;
+                if ($("div[class*='symbolquests_stage_4']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Azeron':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_5')) {
-                    return true;
+                if ($("div[class*='symbolquests_stage_5']").length) {
+                    found = true;
                 }
 
                 break;
             case 'Atlantis':
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'monster_quests_stage_1')) {
-                    return true;
+                if ($("div[class*='monster_quests_stage_1']").length) {
+                    found = true;
                 }
 
                 break;
@@ -5554,7 +5617,7 @@ caap = {
                 global.log(1, "Can't find QuestSubArea", QuestSubArea);
             }
 
-            return false;
+            return found;
         } catch (err) {
             global.error("ERROR in CheckCurrentQuestArea: " + err);
             return false;
@@ -5686,27 +5749,29 @@ caap = {
             gm.setValue('AutoQuest', 'name' + global.ls + sps[0].innerHTML.toString() + global.vs + 'energy' + global.ls + sps[1].innerHTML.toString());
             gm.setValue('WhyQuest', 'Manual');
             caap.ManualAutoQuest();
-            if (caap.CheckForImage('tab_quest_on.gif')) {
+            if (caap.stats.level < 10 && caap.CheckForImage('quest_back_1.jpg')) {
+                gm.setValue('QuestSubArea', 'Land of Fire');
+            } else if (caap.CheckForImage('tab_quest_on.gif')) {
                 gm.setValue('QuestArea', 'Quest');
                 caap.SelectDropOption('QuestArea', 'Quest');
                 caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_1')) {
+                if ($("div[class*='quests_stage_1']").length) {
                     gm.setValue('QuestSubArea', 'Land of Fire');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_2')) {
+                } else if ($("div[class*='quests_stage_2']").length) {
                     gm.setValue('QuestSubArea', 'Land of Earth');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_3')) {
+                } else if ($("div[class*='quests_stage_3']").length) {
                     gm.setValue('QuestSubArea', 'Land of Mist');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_4')) {
+                } else if ($("div[class*='quests_stage_4']").length) {
                     gm.setValue('QuestSubArea', 'Land of Water');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_5')) {
+                } else if ($("div[class*='quests_stage_5']").length) {
                     gm.setValue('QuestSubArea', 'Demon Realm');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_6')) {
+                } else if ($("div[class*='quests_stage_6']").length) {
                     gm.setValue('QuestSubArea', 'Undead Realm');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_7')) {
+                } else if ($("div[class*='quests_stage_7']").length) {
                     gm.setValue('QuestSubArea', 'Underworld');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_8')) {
+                } else if ($("div[class*='quests_stage_8']").length) {
                     gm.setValue('QuestSubArea', 'Kingdom of Heaven');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'quests_stage_9')) {
+                } else if ($("div[class*='quests_stage_9']").length) {
                     gm.setValue('QuestSubArea', 'Ivory City');
                 }
 
@@ -5717,15 +5782,15 @@ caap = {
                 caap.SelectDropOption('QuestArea', 'Demi Quests');
                 caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
                 // Set Sub Quest Area
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_1')) {
+                if ($("div[class*='symbolquests_stage_1']").length) {
                     gm.setValue('QuestSubArea', 'Ambrosia');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_2')) {
+                } else if ($("div[class*='symbolquests_stage_2']").length) {
                     gm.setValue('QuestSubArea', 'Malekus');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_3')) {
+                } else if ($("div[class*='symbolquests_stage_3']").length) {
                     gm.setValue('QuestSubArea', 'Corvintheus');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_4')) {
+                } else if ($("div[class*='symbolquests_stage_4']").length) {
                     gm.setValue('QuestSubArea', 'Aurora');
-                } else if (nHtml.FindByAttrContains(document.body, "div", "class", 'symbolquests_stage_5')) {
+                } else if ($("div[class*='symbolquests_stage_5']").length) {
                     gm.setValue('QuestSubArea', 'Azeron');
                 }
 
@@ -5735,7 +5800,7 @@ caap = {
                 gm.setValue('QuestArea', 'Atlantis');
                 caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                 // Set Sub Quest Area
-                if (nHtml.FindByAttrContains(document.body, "div", "class", 'monster_quests_stage_1')) {
+                if ($("div[class*='monster_quests_stage_1']").length) {
                     gm.setValue('QuestSubArea', 'Atlantis');
                 }
 
@@ -6164,7 +6229,7 @@ caap = {
                 }
             }
 
-            if (nHtml.FindByAttrContains(document.body, "img", "src", 'battle_victory.gif')) {
+            if (this.CheckForImage('battle_victory.gif')) {
                 var winresults = null,
                     bptxt = '',
                     bpnum = 0,
@@ -6305,16 +6370,7 @@ caap = {
             return true;
         }
 
-        var target = '';
-        if (gm.getValue('BattleType', 'Invade') === "War") {
-            target = this.battles.Freshmeat.War;
-        } else if (gm.getValue('BattleType', 'Invade') === "Duel") {
-            target = this.battles.Freshmeat.Duel;
-        } else {
-            target = this.battles.Freshmeat.Invade;
-        }
-
-        var battleButton = nHtml.FindByAttrContains(document.body, "input", "src", target);
+        var battleButton = this.CheckForImage(this.battles.Freshmeat[gm.getValue('BattleType', 'Invade')]);
         if (battleButton) {
             var form = battleButton.parentNode.parentNode;
             if (form) {
@@ -6383,14 +6439,14 @@ caap = {
     },
 
     battles: {
-        'Raid' : {
+        Raid : {
             Invade   : 'raid_attack_button.gif',
             Duel     : 'raid_attack_button2.gif',
             regex    : new RegExp('Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
             refresh  : 'raid',
             image    : 'tab_raid_on.gif'
         },
-        'Freshmeat' : {
+        Freshmeat : {
             Invade   : 'battle_01.gif',
             Duel     : 'battle_02.gif',
             War      : 'war_button_duel.gif',
@@ -6732,7 +6788,7 @@ caap = {
 
     CheckBattleRank: function () {
         try {
-            if (!schedule.Check("battlerank")) {
+            if (!schedule.Check("battlerank") || this.stats.level < 8) {
                 return false;
             }
 
@@ -6746,7 +6802,7 @@ caap = {
 
     CheckWarRank: function () {
         try {
-            if (!schedule.Check("warrank")) {
+            if (!schedule.Check("warrank") || this.stats.level < 100) {
                 return false;
             }
 
@@ -6831,7 +6887,7 @@ caap = {
 
     CheckSymbolQuests: function () {
         try {
-            if (!schedule.Check("symbolquests")) {
+            if (!schedule.Check("symbolquests") || this.stats.level < 8) {
                 return false;
             }
 
@@ -6845,7 +6901,7 @@ caap = {
 
     CheckCharacterClasses: function () {
         try {
-            if (!schedule.Check("view_class_progress")) {
+            if (!schedule.Check("view_class_progress") || this.stats.level < 50) {
                 return false;
             }
 
@@ -6856,6 +6912,8 @@ caap = {
             return false;
         }
     },
+
+    battleWarnLevel: true,
 
     Battle: function (mode) {
         try {
@@ -6869,6 +6927,15 @@ caap = {
                 raidName      = '',
                 dfl           = '',
                 battleChainId = '';
+
+            if (this.stats.level < 8) {
+                if (this.battleWarnLevel) {
+                    global.log(1, "Battle: Unlock at level 8");
+                    this.battleWarnLevel = false;
+                }
+
+                return false;
+            }
 
             whenBattle = gm.getValue('WhenBattle', '');
             switch (whenBattle) {
@@ -7142,7 +7209,7 @@ caap = {
             siege        : 5,
             siegeClicks  : [30, 60, 90, 120, 200],
             siegeDam     : [6600000, 8250000, 9900000, 13200000, 16500000],
-            siege_img    : '/graphics/death_siege_small',
+            siege_img    : ['/graphics/death_siege_small'],
             fort         : true,
             staUse       : 5,
             staLvl       : [0, 100, 200, 500],
@@ -7160,7 +7227,7 @@ caap = {
             siege        : 5,
             siegeClicks  : [30, 60, 90, 120, 200],
             siegeDam     : [7260000, 9075000, 10890000, 14520000, 18150000],
-            siege_img    : '/graphics/water_siege_small',
+            siege_img    : ['/graphics/water_siege_small'],
             fort         : true,
             staUse       : 5,
             staLvl       : [0, 100, 200, 500],
@@ -7178,7 +7245,7 @@ caap = {
             siege        : 5,
             siegeClicks  : [30, 60, 90, 120, 200],
             siegeDam     : [6600000, 8250000, 9900000, 13200000, 16500000],
-            siege_img    : '/graphics/earth_siege_small',
+            siege_img    : ['/graphics/earth_siege_small'],
             fort         : true,
             staUse       : 5,
             staLvl       : [0, 100, 200, 500],
@@ -7197,7 +7264,7 @@ caap = {
             siege        : 6,
             siegeClicks  : [10, 20, 50, 100, 200, 300],
             siegeDam     : [1340000, 2680000, 5360000, 14700000, 28200000, 37520000],
-            siege_img    : '/graphics/monster_siege_small',
+            siege_img    : ['/graphics/monster_siege_small'],
             staUse       : 5,
             staLvl       : [0, 100, 200, 500],
             staMax       : [5, 10, 20, 50]
@@ -7209,7 +7276,7 @@ caap = {
             siege        : 6,
             siegeClicks  : [10, 20, 40, 80, 150, 300],
             siegeDam     : [3000, 4500, 6000, 9000, 12000, 15000],
-            siege_img    : '/graphics/castle_siege_small',
+            siege_img    : ['/graphics/castle_siege_small'],
             fort         : true,
             staUse       : 5,
             defense_img  : 'seamonster_ship_health.jpg',
@@ -7251,7 +7318,7 @@ caap = {
             siege        : 1,
             siegeClicks  : [11],
             siegeDam     : [500000],
-            siege_img    : '/graphics/boss_sylvanas_drain_icon.gif'
+            siege_img    : ['/graphics/boss_sylvanas_drain_icon.gif']
         },
         'Ravenmoore' : {
             duration     : 48,
@@ -7280,7 +7347,7 @@ caap = {
             siege        : 2,
             siegeClicks  : [30, 50],
             siegeDam     : [200, 500],
-            siege_img    : '/graphics/monster_siege_',
+            siege_img    : ['/graphics/monster_siege_'],
             staUse       : 1
         },
         'Raid II'   : {
@@ -7289,7 +7356,7 @@ caap = {
             siege        : 2,
             siegeClicks  : [80, 100],
             siegeDam     : [300, 1500],
-            siege_img    : '/graphics/monster_siege_',
+            siege_img    : ['/graphics/monster_siege_'],
             staUse       : 1
         },
         'Mephistopheles' : {
@@ -7307,10 +7374,10 @@ caap = {
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
             siege_img    : [
-                '/graphics/water_siege_',
-                '/graphics/alpha_bahamut_siege_blizzard_',
-                '/graphics/azriel_siege_inferno_',
-                '/graphics/war_siege_holy_smite_'
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_small',
+                '/graphics/azriel_siege_inferno_small',
+                '/graphics/war_siege_holy_smite_small'
             ],
             fort         : true,
             staUse       : 5,
@@ -7328,7 +7395,7 @@ caap = {
             siege        : 5,
             siegeClicks  : [30, 60, 90, 120, 200],
             siegeDam     : [7896000, 9982500, 11979000, 15972000, 19965000],
-            siege_img    : ['/graphics/water_siege_'],
+            siege_img    : ['/graphics/water_siege_small'],
             fort         : true,
             staUse       : 5,
             staLvl       : [0, 100, 200, 500],
@@ -7347,9 +7414,9 @@ caap = {
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
             siege_img    : [
-                '/graphics/water_siege_',
-                '/graphics/alpha_bahamut_siege_blizzard_',
-                '/graphics/azriel_siege_inferno_'
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_small',
+                '/graphics/azriel_siege_inferno_small'
             ],
             fort         : true,
             staUse       : 5,
@@ -7368,9 +7435,9 @@ caap = {
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
             siege_img    : [
-                '/graphics/water_siege_',
-                '/graphics/alpha_bahamut_siege_blizzard_',
-                '/graphics/azriel_siege_inferno_'
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_small',
+                '/graphics/azriel_siege_inferno_small'
             ],
             fort         : true,
             staUse       : 5,
@@ -7389,9 +7456,10 @@ caap = {
             siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
             siegeDam     : [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
             siege_img    : [
-                '/graphics/earth_siege_',
-                '/graphics/castle_siege_',
-                '/graphics/skaar_siege_'
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/death_siege_small',
+                '/graphics/skaar_siege_small'
             ],
             fort         : true,
             staUse       : 5,
@@ -7475,6 +7543,10 @@ caap = {
         try {
             var words = [],
                 count = 0;
+
+            if (!name) {
+                return '';
+            }
 
             words = name.split(" ");
             count = words.length - 1;
@@ -7963,6 +8035,8 @@ caap = {
                     currentMonster.attacked = this.NumberOnly($.trim(tempDiv.parent().parent().siblings(":last").text()));
                     currentMonster.damage = currentMonster.attacked;
                 }
+
+                tempDiv.parents("tr:first").css('background-color', gm.getValue("HighlightColor", '#C6A56F'));
             } else {
                 global.log(1, "Player hasn't done damage yet");
             }
@@ -8014,33 +8088,23 @@ caap = {
                 if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].siege) {
                     if (this.monsterInfo[currentMonster.type].alpha) {
                         miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
-                        totalCount = 0;
+                    } else if (currentMonster.type.indexOf('Raid') >= 0) {
+                        tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].siege_img + "']");
+                        miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
+                    } else {
+                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
+                    }
+
+                    if (currentMonster.type.indexOf('Raid') >= 0) {
+                        totalCount = this.NumberOnly(nHtml.getHTMLPredicate(tempDiv.attr("src")));
+                    } else {
+                        totalCount = 1;
                         for (ind = 0; ind < this.monsterInfo[currentMonster.type].siege_img.length; ind += 1) {
                             totalCount += $("img[src*=" + this.monsterInfo[currentMonster.type].siege_img[ind] + "]").size();
                         }
-
-                        currentPhase = Math.min(totalCount, this.monsterInfo[currentMonster.type].siege);
-                    } else {
-                        if (currentMonster.type.indexOf('Raid') >= 0) {
-                            miss = $.trim($("img[src*=" + this.monsterInfo[currentMonster.type].siege_img + "]").parent().parent().text()).replace(missRegEx, "$1");
-                        } else {
-                            miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
-                        }
-
-                        divSeigeLogs = document.getElementById("app46755028429_siege_log");
-                        if (divSeigeLogs && !currentPhase) {
-                            global.log(8, "Found siege logs.");
-                            divSeigeCount = divSeigeLogs.getElementsByTagName("div").length;
-                            if (divSeigeCount) {
-                                currentPhase = Math.round(divSeigeCount / 4) + 1;
-                            } else {
-                                global.log(1, "Could not count siege logs.");
-                            }
-                        } else {
-                            global.log(1, "Could not find siege logs.");
-                        }
                     }
 
+                    currentPhase = Math.min(totalCount, this.monsterInfo[currentMonster.type].siege);
                     currentMonster.phase = Math.min(currentPhase, this.monsterInfo[currentMonster.type].siege) + "/" + this.monsterInfo[currentMonster.type].siege + " need " + (isNaN(miss) ? 0 : miss);
                 }
 
@@ -8216,7 +8280,7 @@ caap = {
 
     selectMonster: function (force) {
         try {
-            if (!(force || this.oneMinuteUpdate('selectMonster'))) {
+            if (!(force || this.oneMinuteUpdate('selectMonster')) || this.stats.level < 7) {
                 return false;
             }
 
@@ -8550,9 +8614,14 @@ caap = {
             }
 
             if (counter === -2) {
-                if (this.NavigateTo('battle_monster', 'tab_monster_list_on.gif')) {
-                    gm.setValue('reviewDone', 0);
-                    return true;
+                if (this.stats.level > 6) {
+                    if (this.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+                        gm.setValue('reviewDone', 0);
+                        return true;
+                    }
+                } else {
+                    global.log(1, "Monsters: Unlock at level 7");
+                    gm.setValue('reviewDone', 1);
                 }
 
                 if (gm.getValue('reviewDone', 1) > 0) {
@@ -8563,9 +8632,14 @@ caap = {
             }
 
             if (counter === -1) {
-                if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
-                    gm.setValue('reviewDone', 0);
-                    return true;
+                if (this.stats.level > 7) {
+                    if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
+                        gm.setValue('reviewDone', 0);
+                        return true;
+                    }
+                } else {
+                    global.log(1, "Raids: Unlock at level 8");
+                    gm.setValue('reviewDone', 1);
                 }
 
                 if (gm.getValue('reviewDone', 1) > 0) {
@@ -8804,12 +8878,12 @@ caap = {
                         partyHealth       = 0,
                         useTactics        = false;
 
-                    if (gm.getValue('UseTactics', false)) {
+                    if (gm.getValue('UseTactics', false) && this.stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = gm.getValue('TacticsThreshold', false);
                     }
 
-                    if (monsterConditions && monsterConditions.match(/:tac/i)) {
+                    if (monsterConditions && monsterConditions.match(/:tac/i) && this.stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = this.parseCondition("tac%", monsterConditions);
                     }
@@ -8911,7 +8985,7 @@ caap = {
                 var pageUserCheck = gm.getValue('pageUserCheck', '');
                 if (pageUserCheck) {
                     global.log(1, "On another player's keep.", pageUserCheck);
-                    return this.NavigateTo('keep,battle_monster');
+                    return this.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
                 }
             }
 
@@ -9057,7 +9131,7 @@ caap = {
 
     DemiPoints: function () {
         try {
-            if (!gm.getValue('DemiPointsFirst', false) || gm.getValue('WhenMonster') === 'Never') {
+            if (!gm.getValue('DemiPointsFirst', false) || gm.getValue('WhenMonster') === 'Never' || this.stats.level < 9) {
                 return false;
             }
 
@@ -9684,7 +9758,11 @@ caap = {
                     gm.deleteValue(this.friendListType.giftc.name + 'Responded');
                     gm.deleteValue(this.friendListType.giftc.name + 'Requested');
                     eliteList = gm.getList('MyEliteTodo');
-                    if (eliteList.length < 50) {
+                    if (eliteList.length === 0) {
+                        global.log(1, 'WARNING! Elite Guard friend list is 0');
+                        gm.setValue('AutoEliteFew', true);
+                        schedule.Set('AutoEliteGetList', 21600, 300);
+                    } else if (eliteList.length < 50) {
                         global.log(1, 'WARNING! Elite Guard friend list is fewer than 50: ' + eliteList.length);
                         gm.setValue('AutoEliteFew', true);
                     }
@@ -9744,6 +9822,14 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     CheckResults_army: function (resultsText) {
+        if ($("a[href*='reqs.php#confirm_46755028429_0']").length) {
+            global.log(1, 'We have a gift waiting!');
+            gm.setValue('HaveGift', true);
+        } else {
+            global.log(1, 'No gifts waiting.');
+            gm.deleteValue('HaveGift');
+        }
+
         var listHref = $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
             .find('a[text="Ignore"]');
         for (var i = 0; i < listHref.length; i += 1) {
@@ -9949,7 +10035,7 @@ caap = {
 
             // Go to gifts page if asked to read in gift list
             if (gm.getValue('GiftChoice', false) === 'Get Gift List' || !gm.getList('GiftList').length) {
-                if (this.NavigateTo('gift', 'tab_gifts_on.gif')) {
+                if (this.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                     return true;
                 }
             }
@@ -9993,7 +10079,7 @@ caap = {
                 }
 
                 gm.deleteValue('HaveGift');
-                return this.NavigateTo('gift', 'tab_gifts_on.gif');
+                return this.NavigateTo('army,gift', 'tab_gifts_on.gif');
             }
 
             var button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
@@ -10066,7 +10152,7 @@ caap = {
                 return false;
             }
 
-            if (this.NavigateTo('gift', 'tab_gifts_on.gif')) {
+            if (this.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                 return true;
             }
 
@@ -10447,7 +10533,7 @@ caap = {
 
     AutoCollectMA: function () {
         try {
-            if (!gm.getValue('AutoCollectMA', true) || !schedule.Check('AutoCollectMATimer')) {
+            if (!gm.getValue('AutoCollectMA', false) || !schedule.Check('AutoCollectMATimer') || this.stats.level < 10) {
                 return false;
             }
 
@@ -10508,14 +10594,14 @@ caap = {
 
     GetFriendList: function (listType, force) {
         try {
-            global.log(1, "Entered GetFriendList and request is for: " + listType.name);
+            global.log(1, "Entered GetFriendList and request is for: ", listType.name);
             if (force) {
                 gm.deleteValue(listType.name + 'Requested');
                 gm.deleteValue(listType.name + 'Responded');
             }
 
             if (!gm.getValue(listType.name + 'Requested', false)) {
-                global.log(1, "Getting Friend List: " + listType.name);
+                global.log(1, "Getting Friend List: ", listType.name);
                 gm.setValue(listType.name + 'Requested', true);
 
                 $.ajax({
@@ -10523,7 +10609,7 @@ caap = {
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
                             gm.deleteValue(listType.name + 'Requested');
-                            global.log(1, "GetFriendList(" + listType.name + "): " + textStatus);
+                            global.log(1, "GetFriendList(" + listType.name + "): ", textStatus);
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
@@ -10545,14 +10631,14 @@ caap = {
                                     friendList.push($(this).val());
                                 });
 
-                                global.log(1, "GetFriendList.ajax saving friend list of " + friendList.length + " ids");
+                                global.log(1, "GetFriendList.ajax saving friend list of: ", friendList.length );
                                 if (friendList.length) {
                                     gm.setList(listType.name + 'Responded', friendList);
                                 } else {
                                     gm.setValue(listType.name + 'Responded', true);
                                 }
 
-                                global.log(1, "GetFriendList(" + listType.name + "): " + textStatus);
+                                global.log(1, "GetFriendList(" + listType.name + "): ",textStatus);
                                 //global.log(1, "GetFriendList(" + listType.name + "): " + friendList);
                             } catch (err) {
                                 gm.deleteValue(listType.name + 'Requested');
@@ -10561,7 +10647,7 @@ caap = {
                         }
                 });
             } else {
-                global.log(1, "Already requested GetFriendList for: " + listType.name);
+                global.log(1, "Already requested GetFriendList for: ", listType.name);
             }
 
             return true;
@@ -10580,7 +10666,7 @@ caap = {
                     caap.addFriendSpamCheck -= 1;
                 }
 
-                global.log(1, "AddFriend(" + id + "): " + textStatus);
+                global.log(1, "AddFriend(" + id + "): ", textStatus);
             };
 
             $.ajax({
@@ -10710,7 +10796,7 @@ caap = {
             global.log(2, "Performing AjaxGiftCheck");
 
             $.ajax({
-                url: "http://apps.facebook.com/castle_age/index.php",
+                url: "http://apps.facebook.com/castle_age/army.php",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
                         global.error("AjaxGiftCheck.ajax", textStatus);
@@ -10719,9 +10805,7 @@ caap = {
                     function (data, textStatus, XMLHttpRequest) {
                         try {
                             global.log(2, "AjaxGiftCheck.ajax: Checking data.");
-                            var resultsDiv = $(data).find("span[class*='result_body']");
-
-                            if (resultsDiv && resultsDiv.length && /Send Gifts to Friends/.test($.trim(resultsDiv.text()))) {
+                            if ($(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
                                 global.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
                                 gm.setValue('HaveGift', true);
                             } else {

@@ -260,7 +260,7 @@ general = {
                         global.log(1, "Unable to find 'attack and defence' containers", index);
                     }
 
-                    if (name && img && level && atk && def && special) {
+                    if (name && img && level && typeof atk === "number" && typeof def === "number" && special) {
                         for (it = 0; it < general.RecordArray.length; it += 1) {
                             if (general.RecordArray[it].name === name) {
                                 newGeneral.data = general.RecordArray[it];
@@ -402,7 +402,7 @@ general = {
 
             caap.SetDivContent('Could not find ' + generalName);
             global.log(1, 'Could not find', generalName, generalImage);
-            if (gm.getValue('ignoreGeneralImage', false)) {
+            if (gm.getValue('ignoreGeneralImage', true)) {
                 return false;
             } else {
                 return this.Clear(whichGeneral);
@@ -471,7 +471,7 @@ general = {
                 global.log(1, "Unable to get equipped 'General' divs", generalDiv);
             }
 
-            return success;
+            return this.RecordArray[it];
         } catch (err) {
             global.error("ERROR in GetAllStats: " + err);
             return false;
