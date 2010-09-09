@@ -2354,13 +2354,6 @@ caap = {
             html += '</tr>';
 
             html += "<tr>";
-            html += this.makeTd({text: 'Sieges Assisted With', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sieges), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
             html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
             html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
@@ -2400,6 +2393,13 @@ caap = {
             html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.genesis), color: valueCol, id: '', title: ''});
             html += this.makeTd({text: 'Skaar Deathrune Slain', color: titleCol, id: '', title: ''});
             html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.skaar), color: valueCol, id: '', title: ''});
+            html += '</tr>';
+
+            html += "<tr>";
+            html += this.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.gehenna), color: valueCol, id: '', title: ''});
+            html += this.makeTd({text: 'Sieges Assisted With', color: titleCol, id: '', title: ''});
+            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sieges), color: valueCol, id: '', title: ''});
             html += '</tr>';
 
             html += "<tr>";
@@ -3986,7 +3986,8 @@ caap = {
                 dragons   : 0,
                 cronus    : 0,
                 sieges    : 0,
-                genesis   : 0
+                genesis   : 0,
+                gehenna   : 0
             },
             other : {
                 alchemy : 0
@@ -3994,32 +3995,32 @@ caap = {
         },
         character : {
             warrior : {
-                name    : '',
+                name    : 'Warrior',
                 level   : 0,
                 percent : 0
             },
             rogue : {
-                name    : '',
+                name    : 'Rogue',
                 level   : 0,
                 percent : 0
             },
             mage : {
-                name    : '',
+                name    : 'Mage',
                 level   : 0,
                 percent : 0
             },
             cleric : {
-                name    : '',
+                name    : 'Cleric',
                 level   : 0,
                 percent : 0
             },
             warlock : {
-                name    : '',
+                name    : 'Warlock',
                 level   : 0,
                 percent : 0
             },
             ranger : {
-                name    : '',
+                name    : 'Ranger',
                 level   : 0,
                 percent : 0
             }
@@ -4719,7 +4720,7 @@ caap = {
             achDiv = $("#app46755028429_achievements_3");
             if (achDiv && achDiv.length) {
                 tdDiv = achDiv.find("td div");
-                if (tdDiv && tdDiv.length === 11) {
+                if (tdDiv && tdDiv.length === 12) {
                     this.stats.achievements.monster.gildamesh = this.NumberOnly(tdDiv.eq(0).text());
                     this.stats.achievements.monster.lotus = this.NumberOnly(tdDiv.eq(1).text());
                     this.stats.achievements.monster.colossus = this.NumberOnly(tdDiv.eq(2).text());
@@ -4731,6 +4732,7 @@ caap = {
                     this.stats.achievements.monster.legion = this.NumberOnly(tdDiv.eq(8).text());
                     this.stats.achievements.monster.genesis = this.NumberOnly(tdDiv.eq(9).text());
                     this.stats.achievements.monster.skaar = this.NumberOnly(tdDiv.eq(10).text());
+                    this.stats.achievements.monster.gehenna = this.NumberOnly(tdDiv.eq(11).text());
                 } else {
                     global.log(1, 'Monster Achievements problem.');
                 }
@@ -4770,7 +4772,7 @@ caap = {
                 classDiv.each(function (index) {
                     name = $(this).attr("class").replace("banner_", '');
                     if (name && typeof caap.stats.character[name] === 'object') {
-                        caap.stats.character[name].name = name.ucFirst();
+                        //caap.stats.character[name].name = name.ucFirst();
                         caap.stats.character[name].percent = caap.NumberOnly($(this).find("img[src*='progress']").css("width"));
                         caap.stats.character[name].level = caap.NumberOnly($(this).children().eq(2).text());
                     } else {
@@ -7164,6 +7166,7 @@ caap = {
     monsterInfo: {
         'Deathrune' : {
             duration     : 96,
+            defense      : true,
             hp           : 100000000,
             ach          : 1000000,
             siege        : 5,
@@ -7182,6 +7185,7 @@ caap = {
         },
         'Ice Elemental' : {
             duration     : 168,
+            defense      : true,
             hp           : 100000000,
             ach          : 1000000,
             siege        : 5,
@@ -7200,6 +7204,7 @@ caap = {
         },
         'Earth Elemental' : {
             duration     : 168,
+            defense      : true,
             hp           : 100000000,
             ach          : 1000000,
             siege        : 5,
@@ -7295,6 +7300,7 @@ caap = {
         },
         'Serpent'   : {
             duration     : 72,
+            defense      : true,
             ach          : 250000,
             siege        : 0,
             fort         : true,
@@ -7303,6 +7309,7 @@ caap = {
         },
         'Raid I'    : {
             duration     : 88,
+            raid         : true,
             ach          : 50,
             siege        : 2,
             siegeClicks  : [30, 50],
@@ -7312,6 +7319,7 @@ caap = {
         },
         'Raid II'   : {
             duration     : 144,
+            raid         : true,
             ach          : 50,
             siege        : 2,
             siegeClicks  : [80, 100],
@@ -7997,7 +8005,7 @@ caap = {
             // Get damage done to monster
             tempDiv = $("td[class='dragonContainer'] td[valign='top'] a[href*='user=" + this.stats.FBID + "']");
             if (tempDiv && tempDiv.length) {
-                if (currentMonster.type === "Serpent" || currentMonster.type.indexOf('Elemental') >= 0 || currentMonster.type === "Deathrune") {
+                if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].defense) {
                     tempArr = $.trim(tempDiv.parent().parent().siblings(":last").text()).match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def"));
                     if (tempArr && tempArr.length === 3) {
                         currentMonster.attacked = this.NumberOnly(tempArr[1]);
@@ -8006,7 +8014,7 @@ caap = {
                     } else {
                         global.log(1, "Unable to get attacked and defended damage");
                     }
-                } else if (currentMonster.type === "Siege" || currentMonster.type.indexOf('Raid') >= 0) {
+                } else if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].raid) {
                     currentMonster.attacked = this.NumberOnly($.trim(tempDiv.parent().siblings(":last").text()));
                     currentMonster.damage = currentMonster.attacked;
                 } else {
