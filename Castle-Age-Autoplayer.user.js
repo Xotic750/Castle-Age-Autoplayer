@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            18
+// @dev            19
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "18";
+    devVersion  = "19";
 
 ///////////////////////////
 //       Prototypes
@@ -7128,7 +7128,7 @@ caap = {
         },
         'Underworld' : {
             clas : 'quests_stage_7',
-            base : 'latab_underworld',
+            base : 'tab_underworld',
             next : 'Kingdom of Heaven',
             area : '',
             list : '',

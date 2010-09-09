@@ -4862,7 +4862,7 @@ caap = {
         },
         'Underworld' : {
             clas : 'quests_stage_7',
-            base : 'latab_underworld',
+            base : 'tab_underworld',
             next : 'Kingdom of Heaven',
             area : '',
             list : '',
