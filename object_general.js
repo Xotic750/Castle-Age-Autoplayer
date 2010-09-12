@@ -188,7 +188,7 @@ general = {
 
             nameObj = $("#app46755028429_equippedGeneralContainer .general_name_div3");
             if (nameObj) {
-                generalName = $.trim(nameObj.text());
+                generalName = $.trim(nameObj.text()).replace(/[\t\r\n]/g, '').replace('**', '');
             }
 
             if (!generalName) {
@@ -385,7 +385,7 @@ general = {
                 global.ReloadCastleAge();
             }
 
-            currentGeneral = getCurrentGeneral.replace('**', '');
+            currentGeneral = getCurrentGeneral;
             if (generalName.indexOf(currentGeneral) >= 0) {
                 return false;
             }
@@ -506,7 +506,7 @@ general = {
 
             generalImage = this.GetImage(this.RecordArray[it].name);
             if (caap.CheckForImage(generalImage)) {
-                if (this.GetCurrent().replace('**', '') !== this.RecordArray[it].name) {
+                if (this.GetCurrent() !== this.RecordArray[it].name) {
                     global.log(1, "Visiting 'General'", this.RecordArray[it].name);
                     return caap.NavigateTo(generalImage);
                 }

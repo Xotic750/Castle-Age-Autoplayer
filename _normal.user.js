@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            19
+// @dev            20
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -22,7 +22,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion = "140.23.51",
-    devVersion  = "19";
+    devVersion  = "20";
 
 ///////////////////////////
 //       Prototypes
@@ -1933,7 +1933,7 @@ general = {
 
             nameObj = $("#app46755028429_equippedGeneralContainer .general_name_div3");
             if (nameObj) {
-                generalName = $.trim(nameObj.text());
+                generalName = $.trim(nameObj.text()).replace(/[\t\r\n]/g, '').replace('**', '');
             }
 
             if (!generalName) {
@@ -2130,7 +2130,7 @@ general = {
                 global.ReloadCastleAge();
             }
 
-            currentGeneral = getCurrentGeneral.replace('**', '');
+            currentGeneral = getCurrentGeneral;
             if (generalName.indexOf(currentGeneral) >= 0) {
                 return false;
             }
@@ -2251,7 +2251,7 @@ general = {
 
             generalImage = this.GetImage(this.RecordArray[it].name);
             if (caap.CheckForImage(generalImage)) {
-                if (this.GetCurrent().replace('**', '') !== this.RecordArray[it].name) {
+                if (this.GetCurrent() !== this.RecordArray[it].name) {
                     global.log(1, "Visiting 'General'", this.RecordArray[it].name);
                     return caap.NavigateTo(generalImage);
                 }
@@ -3255,7 +3255,7 @@ caap = {
                     'Stamina Available will battle whenever you have enough stamina',
                     'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
                     'At X Stamina you can set maximum and minimum stamina to battle',
-                    'No Monster will battle only when there are no active monster battles',
+                    'No Monster will battle only when there are no active monster battles or if get demi points first has been selected.',
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
                     'Never - disables player battles'
                 ],
@@ -3345,7 +3345,7 @@ caap = {
                 questFortifyInstructions = "Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
                 stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)",
                 monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
-                demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Requires that battle mode is set appropriately",
+                demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Set 'Battle When' to 'No Monster'",
                 powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                 powerfortifyMaxInstructions = "Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
@@ -11388,11 +11388,14 @@ caap = {
                 return false;
             }
 
-            if (!schedule.Check("battle")) {
-                return this.NavigateTo(this.battlePage, 'battle_on.gif');
+            if (schedule.Check("battle")) {
+                global.log(5, 'DemiPointsFirst battle page check');
+                if (this.NavigateTo(this.battlePage, 'battle_on.gif')) {
+                    return true;
+                }
             }
 
-            var demiPower      = 0,
+            var demiPower      = '',
                 demiPointsDone = true;
 
             for (demiPower in this.demi) {
@@ -11404,14 +11407,13 @@ caap = {
                 }
             }
 
-            global.log(1, 'DemiPointsDone', demiPointsDone);
+            global.log(5, 'DemiPointsDone', demiPower, demiPointsDone);
             gm.setValue('DemiPointsDone', demiPointsDone);
             if (!demiPointsDone) {
                 return this.Battle('DemiPoints');
+            } else {
+                return false;
             }
-
-            global.log(1, 'DemiPoints here');
-            return false;
         } catch (err) {
             global.error("ERROR in DemiPoints: " + err);
             return false;
@@ -13292,7 +13294,7 @@ caap = {
                                                 if (armyRatio <= 0) {
                                                     global.log(2, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
                                                     goodTarget = false;
-                                                } else if (UserRecord.data.armyNum  > (caap.stats.army * armyRatio)) {
+                                                } else if (UserRecord.data.armyNum  > (caap.stats.army.capped * armyRatio)) {
                                                     global.log(2, 'Army above armyRatio adjustment', armyRatio, UserRecord);
                                                     goodTarget = false;
                                                 }
