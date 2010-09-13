@@ -5550,7 +5550,7 @@ caap = {
                     if (QuestSubArea && this.QuestAreaInfo[QuestSubArea] && this.QuestAreaInfo[QuestSubArea].next) {
                         gm.setValue('QuestSubArea', this.QuestAreaInfo[QuestSubArea].next);
                         if (this.QuestAreaInfo[QuestSubArea].area && this.QuestAreaInfo[QuestSubArea].list) {
-                            gm.setValue('QuestSubArea', this.QuestAreaInfo[gm.getValue('QuestSubArea')].area);
+                            gm.setValue('QuestArea', this.QuestAreaInfo[QuestSubArea].area);
                             this.ChangeDropDownList('QuestSubArea', this[this.QuestAreaInfo[QuestSubArea].list]);
                         }
                     } else {
@@ -8264,6 +8264,15 @@ caap = {
         }
     },
 
+    characterClass: {
+        Warrior : ['Strengthen', 'Heal'],
+        Rogue   : ['Cripple'],
+        Mage    : ['Deflect'],
+        Cleric  : ['Heal'],
+        Warlock : ['Heal', 'Deflect'],
+        Ranger  : ['Strengthen', 'Cripple']
+    },
+
     selectMonster: function (force) {
         try {
             if (!(force || this.oneMinuteUpdate('selectMonster')) || this.stats.level < 7) {
@@ -8328,6 +8337,13 @@ caap = {
             // We then read in the users attack order list
             for (s in selectTypes) {
                 if (selectTypes.hasOwnProperty(s)) {
+                    firstOverAch       = '';
+                    firstUnderMax      = '';
+                    firstFortOverAch   = '';
+                    firstFortUnderMax  = '';
+                    firstStunOverAch   = '';
+                    firstStunUnderMax  = '';
+
                     // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                     if (selectTypes[s] === 'any') {
                         attackOrderList = gm.getList('orderbattle_monster');
@@ -8348,6 +8364,7 @@ caap = {
                             // Now we try to match the users name agains our list of monsters
                             for (m in monsterList[selectTypes[s]]) {
                                 if (monsterList[selectTypes[s]].hasOwnProperty(m)) {
+                                    maxToFortify = 0;
                                     monsterObj = this.getMonsterRecord(monsterList[selectTypes[s]][m]);
                                     // If we set conditions on this monster already then we do not reprocess
                                     if (monsterObj.conditions !== 'none') {
@@ -8372,7 +8389,6 @@ caap = {
                                         continue;
                                     }
 
-
                                     global.log(3, 'Current monster being checked', monsterObj);
                                     // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                                     // these to see if this is the monster we should select
@@ -8388,33 +8404,34 @@ caap = {
                                         }
                                     }
 
-                                    maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
                                     monstType = this.getMonstType(monsterList[selectTypes[s]][m]);
-                                    if (this.monsterInfo[monstType] && (!this.monsterInfo[monstType].alpha || (this.monsterInfo[monstType].alpha &&
-                                            (monsterObj.charClass === 'Warrior' || monsterObj.charClass === 'Cleric' || monsterObj.charClass === 'Warlock' || monsterObj.charClass === 'Ranger')))) {
-                                        if (!firstFortUnderMax && monsterObj.fortify < maxToFortify && monsterObj.page === 'battle_monster' && this.monsterInfo[monstType] && this.monsterInfo[monstType].fort) {
-                                            if (monsterObj.over === 'ach') {
-                                                if (!firstFortOverAch) {
-                                                    firstFortOverAch = monsterList[selectTypes[s]][m];
-                                                    global.log(3, 'firstFortOverAch', firstFortOverAch);
+                                    if (monstType && this.monsterInfo[monstType]) {
+                                        if (!this.monsterInfo[monstType].alpha || (this.monsterInfo[monstType].alpha && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
+                                            maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
+                                            if (this.monsterInfo[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
+                                                if (monsterObj.over === 'ach') {
+                                                    if (!firstFortOverAch) {
+                                                        firstFortOverAch = monsterList[selectTypes[s]][m];
+                                                        global.log(3, 'firstFortOverAch', firstFortOverAch);
+                                                    }
+                                                } else if (monsterObj.over !== 'max') {
+                                                    firstFortUnderMax = monsterList[selectTypes[s]][m];
+                                                    global.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                                 }
-                                            } else if (monsterObj.over !== 'max') {
-                                                firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                                global.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                             }
                                         }
-                                    }
 
-                                    if (this.monsterInfo[monstType] && this.monsterInfo[monstType].alpha) {
-                                        if (!firstStunUnderMax && monsterObj.stunDo && monsterObj.page === 'battle_monster') {
-                                            if (monsterObj.over === 'ach') {
-                                                if (!firstStunOverAch) {
-                                                    firstStunOverAch = monsterList[selectTypes[s]][m];
-                                                    global.log(3, 'firstStunOverAch', firstStunOverAch);
+                                        if (this.monsterInfo[monstType].alpha) {
+                                            if (!firstStunUnderMax && monsterObj.stunDo) {
+                                                if (monsterObj.over === 'ach') {
+                                                    if (!firstStunOverAch) {
+                                                        firstStunOverAch = monsterList[selectTypes[s]][m];
+                                                        global.log(3, 'firstStunOverAch', firstStunOverAch);
+                                                    }
+                                                } else if (monsterObj.over !== 'max') {
+                                                    firstStunUnderMax = monsterList[selectTypes[s]][m];
+                                                    global.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                                 }
-                                            } else if (monsterObj.over !== 'max') {
-                                                firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                                global.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                             }
                                         }
                                     }
