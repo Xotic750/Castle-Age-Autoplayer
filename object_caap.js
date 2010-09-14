@@ -4304,6 +4304,19 @@ caap = {
                 if (moneyStored.length) {
                     this.stats.gold.bank = this.NumberOnly(moneyStored.text());
                     this.stats.gold.total = this.stats.gold.bank + this.stats.gold.cash;
+                    moneyStored.attr({
+                        title         : "Click to copy value to retrieve",
+                        style         : "color: blue;"
+                    }).hover(
+                        function () {
+                            this.style.cursor='pointer';
+                        },
+                        function () {
+                            this.style.cursor='default';
+                        }
+                    ).click(function () {
+                        $("input[name='get_gold']").val(caap.stats.gold.bank);
+                    });
                 } else {
                     global.log(1, 'Using stored inStore.');
                 }
@@ -6863,7 +6876,7 @@ caap = {
 
     CheckCharacterClasses: function () {
         try {
-            if (!schedule.Check("view_class_progress") || this.stats.level < 50) {
+            if (!schedule.Check("view_class_progress") || this.stats.level < 100) {
                 return false;
             }
 
