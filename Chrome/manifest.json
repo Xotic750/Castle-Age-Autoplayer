@@ -10,8 +10,6 @@
               "farbtastic.min.js",
               "json2.js",
               "gm_functions.js",
-              "chrome_support.js",
-              "options.js",
               "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*",
                    "https://*/*" ]
@@ -21,8 +19,7 @@
    "options_page": "options.html",
    "browser_action": {
       "default_icon": "icon.png",
-      "default_title": "Castle Age Autoplayer",
-      "popup": "popup.html"
+      "default_title": "Castle Age Autoplayer"
    },
    "icons": {
       "128": "128x128.png",
@@ -30,9 +27,8 @@
    },
    "name": "Castle Age Autoplayer - Alpha Patched",
    "update_url": "http://castle-age-auto-player.googlecode.com/svn/trunk/updates.xml",
-   "background_page": "background.html",
    "permissions": [ "tabs",
                     "http://apps.facebook.com/castle_age/*",
                     "https://apps.facebook.com/castle_age/*" ],
-   "version": "140.23.51.22"
+   "version": "140.23.51.23"
 }

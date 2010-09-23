@@ -54,7 +54,7 @@ nHtml = {
 
         try {
             if (obj === null) {
-                global.log(1, 'Trying to find xpath with null obj:' + xp);
+                utility.warn('Trying to find xpath with null obj:' + xp);
                 return null;
             }
 
@@ -64,7 +64,7 @@ nHtml = {
 
             q = subDocument.evaluate(xp, obj, null, this.xpath.first, null);
         } catch (err) {
-            global.error("XPath Failed:" + err, xp);
+            utility.error("XPath Failed:" + err, xp);
         }
 
         if (q && q.singleNodeValue) {
@@ -103,27 +103,6 @@ nHtml = {
         return txt;
     },
 
-    timeouts: {},
-
-    setTimeout: function (func, millis) {
-        var t = window.setTimeout(function () {
-            func();
-            nHtml.timeouts[t] = undefined;
-        }, millis);
-
-        this.timeouts[t] = 1;
-    },
-
-    clearTimeouts: function () {
-        for (var t in this.timeouts) {
-            if (this.timeouts.hasOwnProperty(t)) {
-                window.clearTimeout(t);
-            }
-        }
-
-        this.timeouts = {};
-    },
-
     getX: function (path, parent, type) {
         var evaluate = null;
         switch (type) {
@@ -140,15 +119,5 @@ nHtml = {
         }
 
         return evaluate;
-    },
-
-    getHTMLPredicate: function (HTML) {
-        for (var x = HTML.length; x > 1; x -= 1) {
-            if (HTML.substr(x, 1) === '/') {
-                return HTML.substr(x + 1);
-            }
-        }
-
-        return HTML;
     }
 };

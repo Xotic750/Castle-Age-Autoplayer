@@ -5,116 +5,166 @@
 /////////////////////////////////////////////////////////////////////
 
 schedule = {
-    timers: [],
+    timers: {},
 
-    timer: function () {
-        this.data = {
-            name : '',
-            last : new Date(2009, 1, 1).getTime(),
-            next : new Date(2009, 1, 1).getTime()
-        };
-    },
-
-    Load: function () {
+    log: function (level, text) {
         try {
-            $.extend(this.timers, gm.getJValue('timers'));
-            global.log(2, "schedule.Load", this.timers);
+            var snapshot = {};
+            if (utility.logLevel >= level) {
+                $.extend(snapshot, this.timers);
+                utility.log(level, text, snapshot);
+            }
+
             return true;
         } catch (err) {
-            global.error("ERROR in schedule.Load: " + err);
+            utility.error("ERROR in schedule.log: " + err);
             return false;
         }
     },
 
-    Save: function () {
+    load: function () {
         try {
-            gm.setJValue('timers', this.timers);
-            global.log(2, "schedule.Save", this.timers);
+            if (gm.getItem('schedule.timers', 'default') === 'default') {
+                gm.setItem('schedule.timers', this.timers);
+            } else {
+                this.timers = gm.getItem('schedule.timers', this.timers);
+            }
+
+            if (utility.typeOf(this.timers) !== 'object') {
+                utility.warn("Invalid timers object! Resetting!");
+                gm.deleteItem('schedule.timers');
+                this.timers = {};
+            }
+
+            this.log(2, "schedule.load");
             return true;
         } catch (err) {
-            global.error("ERROR in schedule.Save: " + err);
+            utility.error("ERROR in schedule.load: " + err);
             return false;
         }
     },
 
-    Search: function (name) {
+    save: function (force) {
         try {
-            var it = 0;
-
-            for (it = 0; it < this.timers.length; it += 1) {
-                if (this.timers[it].name === name) {
-                    break;
-                }
-            }
-
-            if (it >= this.timers.length) {
-                it = -1;
-            }
-
-            return it;
+            gm.setItem('schedule.timers', this.timers);
+            this.log(2, "schedule.save");
+            return true;
         } catch (err) {
-            global.error("ERROR in schedule.Search: " + err);
-            return -2;
+            utility.error("ERROR in schedule.save: " + err);
+            return false;
         }
     },
 
-    Set: function (name, seconds, randomSecs) {
+    setItem: function (name, seconds, randomSecs) {
         try {
-            var tempTimer = new this.timer(),
-                index     = 0;
+            var now;
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
+            }
 
-            if (!randomSecs) {
+            if (typeof seconds !== 'number' || seconds === undefined || seconds === null || seconds < 0) {
+                throw "Invalid number of seconds supplied for (" + name + ") (" + seconds + ")";
+            }
+
+            if (typeof randomSecs !== 'number' || randomSecs === undefined || randomSecs === null || randomSecs < 0) {
                 randomSecs = 0;
             }
 
-            tempTimer.data.name = name;
-            tempTimer.data.last = new Date().getTime();
-            tempTimer.data.next = tempTimer.data.last + (seconds * 1000) + (Math.floor(Math.random() * randomSecs) * 1000);
-            index = this.Search(tempTimer.data.name);
-            if (index >= 0) {
-                this.timers[index] = tempTimer.data;
-            } else {
-                this.timers.push(tempTimer.data);
+            now = new Date().getTime();
+            this.timers[name] = {
+                last: now,
+                next: now + (seconds * 1000) + (Math.floor(Math.random() * randomSecs) * 1000)
+            };
+
+            this.save();
+            return this.timers[name];
+        } catch (err) {
+            utility.error("ERROR in schedule.setItem: " + err);
+            return undefined;
+        }
+    },
+
+    getItem: function (name) {
+        try {
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
             }
 
-            this.Save();
+            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+                throw "Invalid or non-existant timer! " + name;
+            }
+
+            return this.timers[name];
+        } catch (err) {
+            utility.error("ERROR in schedule.getItem: " + err);
+            return undefined;
+        }
+    },
+
+    deleteItem: function (name) {
+        try {
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
+            }
+
+            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+                utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
+            }
+
+            delete this.timers[name];
             return true;
         } catch (err) {
-            global.error("ERROR in schedule.Set: " + err);
+            utility.error("ERROR in schedule.deleteItem: " + err);
             return false;
         }
     },
 
-    Get: function (name) {
+    check: function (name) {
         try {
-            var tempTimer = new this.timer(),
-                index     = 0;
-
-            index = this.Search(name);
-            if (index >= 0) {
-                tempTimer.data = this.timers[index];
+            var scheduled = false;
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
             }
 
-            return tempTimer.data;
-        } catch (err) {
-            global.error("ERROR in schedule.Get: " + err);
-            return (new this.timer().data);
-        }
-    },
+            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+                if (utility.logLevel > 2) {
+                    utility.warn("Invalid or non-existant timer!", name);
+                }
 
-    Check: function (name) {
-        try {
-            var index     = 0,
-                scheduled = false;
-
-            if (this.Get(name).next < new Date().getTime()) {
+                scheduled = true;
+            } else if (this.timers[name].next < new Date().getTime()) {
                 scheduled = true;
             }
 
-            global.log(3, "schedule.Check", name, scheduled);
             return scheduled;
         } catch (err) {
-            global.error("ERROR in schedule.Check: " + err);
+            utility.error("ERROR in schedule.check: " + err);
+            return false;
+        }
+    },
+
+    since: function (name_or_number, seconds) {
+        try {
+            var value = 0;
+            if (isNaN(name_or_number)) {
+                if (typeof name_or_number !== 'string' || name_or_number === '') {
+                    throw "Invalid identifying name! (" + name_or_number + ")";
+                }
+
+                if (utility.typeOf(this.timers[name_or_number]) !== 'object' || this.timers[name_or_number] === undefined || this.timers[name_or_number] === null) {
+                    if (utility.logLevel > 2) {
+                        utility.warn("Invalid or non-existant timer!", name_or_number);
+                    }
+                } else {
+                    value = this.timers[name_or_number].last;
+                }
+            } else {
+                value = name_or_number;
+            }
+
+            return (value < (new Date().getTime() - 1000 * seconds));
+        } catch (err) {
+            utility.error("ERROR in schedule.since: " + err, arguments.callee.caller);
             return false;
         }
     },
@@ -127,7 +177,7 @@ schedule = {
                 t_min   = time.getMinutes(),
                 a_p     = "PM";
 
-            if (gm.getValue("use24hr", true)) {
+            if (config.getItem("use24hr", true)) {
                 t_hour = t_hour + "";
                 if (t_hour && t_hour.length === 1) {
                     t_hour = "0" + t_hour;
@@ -160,16 +210,31 @@ schedule = {
                 return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
             }
         } catch (err) {
-            global.error("ERROR in FormatTime: " + err);
+            utility.error("ERROR in FormatTime: " + err);
             return "Time Err";
         }
     },
 
-    Display: function (name) {
+    display: function (name) {
         try {
-            return this.FormatTime(new Date(this.Get(name).next));
+            var formatted = '';
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name!";
+            }
+
+            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+                if (utility.logLevel > 2) {
+                    utility.warn("Invalid or non-existant timer!", name);
+                }
+
+                formatted = this.FormatTime(new Date());
+            } else {
+                formatted = this.FormatTime(new Date(this.timers[name].next));
+            }
+
+            return formatted;
         } catch (err) {
-            global.error("ERROR in schedule.Display: " + err);
+            utility.error("ERROR in schedule.display: " + err);
             return false;
         }
     }

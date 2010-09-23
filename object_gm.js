@@ -5,105 +5,137 @@
 /////////////////////////////////////////////////////////////////////
 
 gm = {
-    isInt: function (value) {
-        try {
-            var y = parseInt(value, 10);
-            if (isNaN(y)) {
-                return false;
-            }
-
-            return value === y && value.toString() === y.toString();
-        } catch (err) {
-            global.error("ERROR in gm.isInt: " + err);
-            return false;
-        }
-    },
+    fireFoxUseGM: false,
 
     // use these to set/get values in a way that prepends the game's name
-    setValue: function (n, v) {
+    setItem: function (name, value) {
         try {
-            global.log(10, 'Set ' + n + ' to ' + v);
-            if (this.isInt(v)) {
-                if (v > 999999999 && !global.is_chrome) {
-                    v = v + '';
-                } else {
-                    v = Number(v);
-                }
+            var jsonStr;
+
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
             }
 
-            GM_setValue(global.gameName + "__" + n, v);
-            return v;
-        } catch (err) {
-            global.error("ERROR in gm.setValue: " + err);
-            return null;
-        }
-    },
+            if (value === undefined || value === null) {
+                throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
+            }
 
-    setJValue: function (name, value) {
-        try {
-            var jsonStr = JSON.stringify(value);
+            jsonStr = JSON.stringify(value);
+            if (jsonStr === undefined || jsonStr === null) {
+                throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+            }
 
-            if (global.is_chrome) {
-                localStorage.setItem(global.gameName + "__" + name, jsonStr);
+            if (global.is_html5_storage && !this.fireFoxUseGM) {
+                localStorage.setItem(global.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             } else {
-                GM_setValue(global.gameName + "__" + name, jsonStr);
+                GM_setValue(global.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
 
             return value;
         } catch (error) {
-            global.error("ERROR in gm.setJValue: " + error);
-            return null;
+            utility.error("ERROR in gm.setItem: " + error, arguments.callee.caller);
+            return undefined;
         }
     },
 
-    getJValue: function (name, value) {
+    getItem: function (name, value, hidden) {
         try {
-            var jsonObj = null;
+            var jsonObj;
 
-            $.parseJSON(localStorage.getItem(name));
-            if (global.is_chrome) {
-                jsonObj = $.parseJSON(localStorage.getItem(global.gameName + "__" + name));
-            } else {
-                jsonObj = $.parseJSON(GM_getValue(global.gameName + "__" + name));
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!jsonObj && value) {
-                return value;
+            if (global.is_html5_storage && !this.fireFoxUseGM) {
+                jsonObj = $.parseJSON(localStorage.getItem(global.namespace + "." + caap.stats.FBID + "." + name));
+            } else {
+                jsonObj = $.parseJSON(GM_getValue(global.namespace + "." + caap.stats.FBID + "." + name));
+            }
+
+            if (jsonObj === undefined || jsonObj === null) {
+                if (!hidden) {
+                    utility.warn("gm.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                }
+
+                if (value !== undefined && value !== null) {
+                    if (!hidden) {
+                        utility.warn("gm.getItem using default value ", value);
+                        //this.setItem(name, value);
+                    }
+
+                    jsonObj = value;
+                } else {
+                    throw "No default value supplied! (" + value + ")";
+                }
             }
 
             return jsonObj;
         } catch (error) {
-            global.error("ERROR in gm.getJValue: " + error);
-            return null;
+            utility.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
+            return undefined;
         }
     },
 
-    getValue: function (n, v) {
-        var ret = GM_getValue(global.gameName + "__" + n, v);
-        global.log(10, 'Get ' + n + ' value ' + ret);
-        return ret;
+    deleteItem: function (name) {
+        try {
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name! (" + name + ")";
+            }
+
+            if (global.is_html5_storage && !this.fireFoxUseGM) {
+                localStorage.removeItem(global.namespace + "." + caap.stats.FBID + "." + name);
+            } else {
+                GM_deleteValue(global.namespace + "." + caap.stats.FBID + "." + name);
+            }
+
+            return true;
+        } catch (error) {
+            utility.error("ERROR in gm.deleteItem: " + error, arguments.callee.caller);
+            return false;
+        }
     },
 
-    deleteValue: function (n) {
-        global.log(10, 'Delete ' + n + ' value ');
-        GM_deleteValue(global.gameName + "__" + n);
+    clear: function () {
+        try {
+            if (global.is_html5_storage && !this.fireFoxUseGM) {
+                localStorage.clear();
+            } else {
+                var storageKeys = [],
+                    key         = 0;
+
+                storageKeys = GM_listValues();
+                for (key = 0; key < storageKeys.length; key += 1) {
+                    if (storageKeys[key].match(new RegExp(global.namespace + "." + caap.stats.FBID))) {
+                        GM_deleteValue(storageKeys[key]);
+                    }
+                }
+            }
+
+            return true;
+        } catch (error) {
+            utility.error("ERROR in gm.clear: " + error, arguments.callee.caller);
+            return false;
+        }
     },
 
     setList: function (n, v) {
         if (!$.isArray(v)) {
-            global.log(1, 'Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
+            utility.warn('Attempted to SetList ' + n + ' to ' + v.toString() + ' which is not an array.');
             return undefined;
         }
 
-        GM_setValue(global.gameName + "__" + n, v.join(global.os));
+        this.setItem(n, v.join(global.os));
         return v;
     },
 
     getList: function (n) {
-        var getTheList = GM_getValue(global.gameName + "__" + n, ''),
+        var getTheList = this.getItem(n, 'default'),
             ret        = [];
 
-        global.log(10, 'GetList ' + n + ' value ' + getTheList);
+        if (getTheList === 'default') {
+            getTheList = this.setItem(n, '');
+        }
+
         if (getTheList !== '') {
             ret = getTheList.split(global.os);
         }
@@ -129,7 +161,6 @@ gm = {
         if (max > 0) {
             while (max < list.length) {
                 pushItem = list.shift();
-                global.log(10, 'Removing ' + pushItem + ' from ' + listName + '.');
             }
         }
 
@@ -141,7 +172,6 @@ gm = {
             return item.indexOf(prefix) === 0;
         });
 
-        global.log(10, 'List: ' + list + ' prefix ' + prefix + ' filtered ' + itemList);
         if (itemList.length) {
             return itemList[0];
         }
@@ -150,24 +180,24 @@ gm = {
     },
 
     setObjVal: function (objName, label, value) {
-        var objStr  = this.getValue(objName),
+        var objStr  = this.getItem(objName),
             itemStr = '',
             objList = [];
 
         if (!objStr) {
-            this.setValue(objName, label + global.ls + value);
+            this.setItem(objName, label + global.ls + value);
             return;
         }
 
         itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
         if (!itemStr) {
-            this.setValue(objName, label + global.ls + value + global.vs + objStr);
+            this.setItem(objName, label + global.ls + value + global.vs + objStr);
             return;
         }
 
         objList = objStr.split(global.vs);
         objList.splice(objList.indexOf(itemStr), 1, label + global.ls + value);
-        this.setValue(objName, objList.join(global.vs));
+        this.setItem(objName, objList.join(global.vs));
     },
 
     getObjVal: function (objName, label, defaultValue) {
@@ -175,7 +205,7 @@ gm = {
             itemStr = '';
 
         if (objName.indexOf(global.ls) < 0) {
-            objStr = this.getValue(objName);
+            objStr = this.getItem(objName, '', hiddenVar);
         } else {
             objStr = objName;
         }
@@ -190,29 +220,5 @@ gm = {
         }
 
         return itemStr.split(global.ls)[1];
-    },
-
-    getNumber: function (name, defaultValue) {
-        try {
-            var value  = this.getValue(name),
-                number = null;
-
-            if ((!value && value !== 0) || isNaN(value)) {
-                if ((!defaultValue && defaultValue !== 0) || isNaN(defaultValue)) {
-                    throw "Value of " + name + " and defaultValue are not numbers: " +
-                        "'" + value + "', '" + defaultValue + "'";
-                } else {
-                    number = defaultValue;
-                }
-            } else {
-                number = value;
-            }
-
-            global.log(10, "Name: " + name + " Number: " + number + " Default: " + defaultValue);
-            return Number(number);
-        } catch (err) {
-            global.error("ERROR in GetNumber: " + err);
-            return '';
-        }
     }
 };

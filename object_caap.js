@@ -6,261 +6,45 @@
 caap = {
     lastReload        : new Date(),
     waitingForDomLoad : false,
-    newLevelUpMode    : false,
     pageLoadOK        : false,
     caapDivObject     : null,
     caapTopObject     : null,
 
     init: function () {
         try {
-            gm.deleteValue("statsMatch");
-            gm.deleteValue(this.friendListType.gifta.name + 'Requested');
-            gm.deleteValue(this.friendListType.giftb.name + 'Requested');
-            gm.deleteValue(this.friendListType.giftc.name + 'Requested');
-            gm.deleteValue(this.friendListType.facebook.name + 'Requested');
+            state.setItem(this.friendListType.gifta.name + 'Requested', false);
+            state.setItem(this.friendListType.giftc.name + 'Requested', false);
+            state.setItem(this.friendListType.facebook.name + 'Requested', false);
             // Get rid of those ads now! :P
-            if (gm.getValue('HideAds', false)) {
+            if (config.getItem('HideAds', false)) {
                 $('.UIStandardFrame_SidebarAds').css('display', 'none');
             }
 
             // Can create a blank space above the game to host the dashboard if wanted.
             // Dashboard currently uses '185px'
-            var shiftDown = gm.getValue('ShiftDown', '');
+            var shiftDown = gm.getItem('ShiftDown', '', hiddenVar);
             if (shiftDown) {
                 $(this.controlXY.selector).css('padding-top', shiftDown);
             }
 
-            schedule.Load();
-            this.LoadMonsters();
+            general.load();
+            monster.load();
             this.LoadDemi();
             this.LoadRecon();
-            this.LoadTown();
+            this.LoadSoldiers();
+            this.LoadItem();
+            this.LoadMagic();
             this.AddControl();
             this.AddColorWheels();
             this.AddDashboard();
             this.AddListeners();
             this.AddDBListener();
             this.CheckResults();
+            this.AutoStatCheck();
             return true;
         } catch (err) {
-            global.error("ERROR in init: " + err);
+            utility.error("ERROR in init: " + err);
             return false;
-        }
-    },
-
-    /////////////////////////////////////////////////////////////////////
-    //                          UTILITY FUNCTIONS
-    // Small functions called a lot to reduce duplicate code
-    /////////////////////////////////////////////////////////////////////
-
-    VisitUrl: function (url, loadWaitTime) {
-        try {
-            this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-            window.location.href = url;
-            return true;
-        } catch (err) {
-            global.error("ERROR in VisitUrl: " + err);
-            return false;
-        }
-    },
-
-    Click: function (obj, loadWaitTime) {
-        try {
-            if (!obj) {
-                throw 'Null object passed to Click';
-            }
-
-            if (this.waitingForDomLoad === false) {
-                this.JustDidIt('clickedOnSomething');
-                this.waitingForDomLoad = true;
-            }
-
-            this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
-            var evt = document.createEvent("MouseEvents");
-            evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            /*
-            Return Value: boolean
-            The return value of dispatchEvent indicates whether any of the listeners
-            which handled the event called preventDefault. If preventDefault was called
-            the value is false, else the value is true.
-            */
-            return !obj.dispatchEvent(evt);
-        } catch (err) {
-            global.error("ERROR in Click: " + err);
-            return undefined;
-        }
-    },
-
-    ClickAjax: function (link, loadWaitTime) {
-        try {
-            if (!link) {
-                throw 'No link passed to Click Ajax';
-            }
-
-            if (gm.getValue('clickUrl', '').indexOf(link) < 0) {
-                gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-                this.waitingForDomLoad = false;
-            }
-
-            return this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
-        } catch (err) {
-            global.error("ERROR in ClickAjax: " + err);
-            return false;
-        }
-    },
-
-    oneMinuteUpdate: function (funcName) {
-        try {
-            if (!gm.getValue('reset' + funcName) && !schedule.Check(funcName + 'Timer')) {
-                return false;
-            }
-
-            schedule.Set(funcName + 'Timer', 60);
-            gm.setValue('reset' + funcName, false);
-            return true;
-        } catch (err) {
-            global.error("ERROR in oneMinuteUpdate: " + err);
-            return false;
-        }
-    },
-
-    NavigateTo: function (pathToPage, imageOnPage) {
-        try {
-            var content   = document.getElementById('content'),
-                pathList  = [],
-                s         = 0,
-                a         = null,
-                imageTest = '',
-                input     = null,
-                img       = null;
-
-            if (!content) {
-                global.log(1, 'No content to Navigate to', imageOnPage, pathToPage);
-                return false;
-            }
-
-            if (imageOnPage && this.CheckForImage(imageOnPage)) {
-                return false;
-            }
-
-            pathList = pathToPage.split(",");
-            for (s = pathList.length - 1; s >= 0; s -= 1) {
-                a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
-                if (a) {
-                    global.log(1, 'Go to', pathList[s]);
-                    gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/' + pathList[s] + '.php');
-                    this.Click(a);
-                    return true;
-                }
-
-                imageTest = pathList[s];
-                if (imageTest.indexOf(".") === -1) {
-                    imageTest = imageTest + '.';
-                }
-
-                input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
-                if (input) {
-                    global.log(2, 'Click on image', input.src.match(/[\w.]+$/));
-                    this.Click(input);
-                    return true;
-                }
-
-                img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
-                if (img) {
-                    global.log(2, 'Click on image', img.src.match(/[\w.]+$/));
-                    this.Click(img);
-                    return true;
-                }
-            }
-
-            global.log(1, 'Unable to Navigate to', imageOnPage, pathToPage);
-            return false;
-        } catch (err) {
-            global.error("ERROR in NavigateTo: " + err, imageOnPage, pathToPage);
-            return false;
-        }
-    },
-
-    CheckForImage: function (image, webSlice, subDocument, nodeNum) {
-        try {
-            var traverse   = '',
-                imageSlice = null;
-
-            if (!webSlice) {
-                if (!subDocument) {
-                    webSlice = document.body;
-                } else {
-                    webSlice = subDocument.body;
-                }
-            }
-
-            if (nodeNum) {
-                traverse = ":eq(" + nodeNum + ")";
-            } else {
-                traverse = ":first";
-            }
-
-            imageSlice = $(webSlice).find("input[src*='" + image + "']" + traverse);
-            if (!imageSlice.length) {
-                imageSlice = $(webSlice).find("img[src*='" + image + "']" + traverse);
-                if (!imageSlice.length) {
-                    imageSlice = $(webSlice).find("div[style*='" + image + "']" + traverse);
-                }
-            }
-
-            return (imageSlice.length ? imageSlice.get(0) : null);
-        } catch (err) {
-            global.error("ERROR in CheckForImage: " + err);
-            return null;
-        }
-    },
-
-    WhileSinceDidIt: function (nameOrNumber, seconds) {
-        try {
-            if (!/\d+/.test(nameOrNumber)) {
-                nameOrNumber = gm.getValue(nameOrNumber, 0);
-            }
-
-            var now = new Date().getTime();
-            return (parseInt(nameOrNumber, 10) < (now - 1000 * seconds));
-        } catch (err) {
-            global.error("ERROR in WhileSinceDidIt: " + err);
-            return false;
-        }
-    },
-
-    JustDidIt: function (name) {
-        try {
-            if (!name) {
-                throw "name not provided!";
-            }
-
-            var now = (new Date().getTime());
-            gm.setValue(name, now.toString());
-            return true;
-        } catch (err) {
-            global.error("ERROR in JustDidIt: " + err);
-            return false;
-        }
-    },
-
-    NumberOnly: function (num) {
-        try {
-            var numOnly = parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
-            global.log(10, "NumberOnly", numOnly);
-            return numOnly;
-        } catch (err) {
-            global.error("ERROR in NumberOnly: " + err);
-            return null;
-        }
-    },
-
-    RemoveHtmlJunk: function (html) {
-        try {
-            return html.replace(new RegExp("\\&[^;]+;", "g"), '');
-        } catch (err) {
-            global.error("ERROR in RemoveHtmlJunk: " + err);
-            return null;
         }
     },
 
@@ -273,7 +57,7 @@ caap = {
 
     MakeDropDown: function (idName, dropDownList, instructions, formatParms, defaultValue) {
         try {
-            var selectedItem = gm.getValue(idName, 'defaultValue'),
+            var selectedItem = config.getItem(idName, 'defaultValue'),
                 count        = 0,
                 itemcount    = 0,
                 htmlCode     = '',
@@ -281,9 +65,9 @@ caap = {
 
             if (selectedItem === 'defaultValue') {
                 if (defaultValue) {
-                    selectedItem = gm.setValue(idName, defaultValue);
+                    selectedItem = config.setItem(idName, defaultValue);
                 } else {
-                    selectedItem = gm.setValue(idName, dropDownList[0]);
+                    selectedItem = config.setItem(idName, dropDownList[0]);
                 }
             }
 
@@ -317,7 +101,7 @@ caap = {
             htmlCode += '</select>';
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in MakeDropDown: " + err);
+            utility.error("ERROR in MakeDropDown: " + err);
             return '';
         }
     },
@@ -328,11 +112,11 @@ caap = {
     \-------------------------------------------------------------------------------------*/
     DBDropDown: function (idName, dropDownList, instructions, formatParms) {
         try {
-            var selectedItem = gm.getValue(idName, 'defaultValue'),
+            var selectedItem = config.getItem(idName, 'defaultValue'),
                 htmlCode     = '',
                 item         = 0;
             if (selectedItem === 'defaultValue') {
-                selectedItem = gm.setValue(idName, dropDownList[0]);
+                selectedItem = config.setItem(idName, dropDownList[0]);
             }
 
             htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
@@ -351,21 +135,21 @@ caap = {
             htmlCode += '</select>';
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in DBDropDown: " + err);
+            utility.error("ERROR in DBDropDown: " + err);
             return '';
         }
     },
 
     MakeCheckBox: function (idName, defaultValue, varClass, instructions, tableTF) {
         try {
-            var checkItem = gm.getValue(idName, 'defaultValue'),
+            var checkItem = config.getItem(idName, 'defaultValue'),
                 htmlCode  = '';
 
             if (checkItem === 'defaultValue') {
-                gm.setValue(idName, defaultValue);
+                config.setItem(idName, defaultValue);
             }
 
-            htmlCode = "<input type='checkbox' id='caap_" + idName + "' title=" + '"' + instructions + '"' + ((varClass) ? " class='" + varClass + "'" : '') + (gm.getValue(idName) ? 'checked' : '') + ' />';
+            htmlCode = "<input type='checkbox' id='caap_" + idName + "' title=" + '"' + instructions + '"' + ((varClass) ? " class='" + varClass + "'" : '') + (config.getItem(idName) ? 'checked' : '') + ' />';
             if (varClass) {
                 if (tableTF) {
                     htmlCode += "</td></tr></table>";
@@ -378,29 +162,36 @@ caap = {
 
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in MakeCheckBox: " + err);
+            utility.error("ERROR in MakeCheckBox: " + err);
             return '';
         }
     },
 
-    MakeNumberForm: function (idName, instructions, initDefault, formatParms) {
+    MakeNumberForm: function (idName, instructions, initDefault, formatParms, subtype) {
         try {
+            if (!subtype) {
+                subtype = 'number';
+            }
+
+            if (subtype === 'number' && isNaN(initDefault) && initDefault !== '') {
+                utility.warn("MakeNumberForm - default value is not a number!", idName, initDefault);
+            }
+
             if (!initDefault) {
                 initDefault = '';
             }
 
-            if (gm.getValue(idName, 'defaultValue') === 'defaultValue') {
-                gm.setValue(idName, initDefault);
+            if (config.getItem(idName, 'defaultValue') === 'defaultValue') {
+                config.setItem(idName, initDefault);
             }
 
             if (!formatParms) {
                 formatParms = "size='4'";
             }
 
-            var htmlCode = " <input type='text' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + gm.getValue(idName, '') + "' />";
-            return htmlCode;
+            return (" <input type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + config.getItem(idName) + "' />");
         } catch (err) {
-            global.error("ERROR in MakeNumberForm: " + err);
+            utility.error("ERROR in MakeNumberForm: " + err);
             return '';
         }
     },
@@ -417,26 +208,23 @@ caap = {
 
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in MakeCheckTR: " + err);
+            utility.error("ERROR in MakeCheckTR: " + err);
             return '';
         }
     },
 
     AddCollapsingDiv: function (parentId, subId) {
         try {
-            var htmlCode = "<div id='caap_" + subId + "' style='display: " +
-                (gm.getValue(parentId, false) ? 'block' : 'none') + "'>";
-
-            return htmlCode;
+            return ("<div id='caap_" + subId + "' style='display: " + (config.getItem(parentId, false) ? 'block' : 'none') + "'>");
         } catch (err) {
-            global.error("ERROR in AddCollapsingDiv: " + err);
+            utility.error("ERROR in AddCollapsingDiv: " + err);
             return '';
         }
     },
 
     ToggleControl: function (controlId, staticText) {
         try {
-            var currentDisplay = gm.getValue('Control_' + controlId, "none"),
+            var currentDisplay = state.getItem('Control_' + controlId, "none"),
                 displayChar    = "-",
                 toggleCode     = '';
 
@@ -451,44 +239,60 @@ caap = {
 
             return toggleCode;
         } catch (err) {
-            global.error("ERROR in ToggleControl: " + err);
+            utility.error("ERROR in ToggleControl: " + err);
             return '';
         }
     },
 
-    MakeTextBox: function (idName, instructions, formatParms) {
+    MakeTextBox: function (idName, instructions, initDefault, formatParms) {
         try {
+            if (!initDefault) {
+                initDefault = '';
+            }
+
+            if (config.getItem(idName, 'defaultValue') === 'defaultValue') {
+                config.setItem(idName, initDefault);
+            }
+
             if (formatParms === '') {
-                if (global.is_chrome) {
+                if (utility.is_chrome) {
                     formatParms = " rows='3' cols='25'";
                 } else {
                     formatParms = " rows='3' cols='21'";
                 }
             }
 
-            var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getValue(idName, '') + "</textarea>";
-            return htmlCode;
+            return ("<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + config.getItem(idName) + "</textarea>");
         } catch (err) {
-            global.error("ERROR in MakeTextBox: " + err);
+            utility.error("ERROR in MakeTextBox: " + err);
             return '';
         }
     },
 
-    MakeListBox: function (idName, instructions, formatParms) {
+    // Turns text delimeted with new lines and commas into an array.
+    // Primarily for use with user input text boxes.
+    TextToArray: function (text) {
         try {
-            if (formatParms === '') {
-                if (global.is_chrome) {
-                    formatParms = " rows='3' cols='25'";
-                } else {
-                    formatParms = " rows='3' cols='21'";
+            var theArray  = [],
+                tempArray = [],
+                it        = 0;
+
+            if (typeof text === 'string' && text !== '') {
+                text = text.replace(",", global.os);
+                tempArray = text.split(global.os);
+                if (tempArray && tempArray.length) {
+                    for (it = 0; it < tempArray.length; it += 1) {
+                        if (tempArray[it] !== '') {
+                            theArray.push(tempArray[it]);
+                        }
+                    }
                 }
             }
 
-            var htmlCode = "<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + gm.getList(idName) + "</textarea>";
-            return htmlCode;
+            return theArray;
         } catch (err) {
-            global.error("ERROR in MakeTextBox: " + err);
-            return '';
+            utility.error("ERROR in TextToArray: " + err);
+            return false;
         }
     },
 
@@ -499,20 +303,20 @@ caap = {
                 throw "Value of the textarea id='caap_" + idName + "' is not a string: " + boxText;
             }
 
-            gm.setValue(idName, boxText);
+            config.setItem(idName, boxText);
             return true;
         } catch (err) {
-            global.error("ERROR in SaveBoxText: " + err);
+            utility.error("ERROR in SaveBoxText: " + err);
             return false;
         }
     },
 
     SetDivContent: function (idName, mess) {
         try {
-            if (gm.getValue('SetTitle', false) && gm.getValue('SetTitleAction', false) && idName === "activity_mess") {
+            if (config.getItem('SetTitle', false) && config.getItem('SetTitleAction', false) && idName === "activity_mess") {
                 var DocumentTitle = mess.replace("Activity: ", '') + " - ";
 
-                if (gm.getValue('SetTitleName', false)) {
+                if (config.getItem('SetTitleName', false)) {
                     DocumentTitle += this.stats.PlayerName + " - ";
                 }
 
@@ -521,7 +325,7 @@ caap = {
 
             $('#caap_' + idName).html(mess);
         } catch (err) {
-            global.error("ERROR in SetDivContent: " + err);
+            utility.error("ERROR in SetDivContent: " + err);
         }
     },
 
@@ -585,18 +389,53 @@ caap = {
             $("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
             return true;
         } catch (err) {
-            global.error("ERROR in SelectDropOption: " + err);
+            utility.error("ERROR in SelectDropOption: " + err);
+            return false;
+        }
+    },
+
+    autoQuest: function () {
+        this.data = {
+            name: '',
+            energy: 0,
+            general: 'none',
+            expRatio: 0
+        };
+    },
+
+    newAutoQuest: function () {
+        return (new this.autoQuest()).data;
+    },
+
+    updateAutoQuest: function (id, value) {
+        try {
+            var temp = state.getItem('AutoQuest', this.newAutoQuest());
+
+            if (typeof id !== 'string' || id === '') {
+                throw "No valid id supplied!";
+            }
+
+            if (value === undefined || value === null) {
+                throw "No value supplied!";
+            }
+
+            temp[id] = value;
+            state.setItem('AutoQuest', temp);
+            return true;
+        } catch (err) {
+            utility.error("ERROR in updateAutoQuest: " + err);
             return false;
         }
     },
 
     ShowAutoQuest: function () {
         try {
-            $("#stopAutoQuest").text("Stop auto quest: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+            //$("#stopAutoQuest").text("Stop auto quest: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+            $("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', this.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")");
             $("#stopAutoQuest").css('display', 'block');
             return true;
         } catch (err) {
-            global.error("ERROR in ShowAutoQuest: " + err);
+            utility.error("ERROR in ShowAutoQuest: " + err);
             return false;
         }
     },
@@ -607,7 +446,7 @@ caap = {
             $("#stopAutoQuest").css('display', 'none');
             return true;
         } catch (err) {
-            global.error("ERROR in ClearAutoQuest: " + err);
+            utility.error("ERROR in ClearAutoQuest: " + err);
             return false;
         }
     },
@@ -615,16 +454,17 @@ caap = {
     ManualAutoQuest: function (AutoQuest) {
         try {
             if (!AutoQuest) {
-                AutoQuest = '';
+                AutoQuest = this.newAutoQuest();
             }
 
-            gm.setValue('AutoQuest', AutoQuest);
-            gm.setValue('WhyQuest', 'Manual');
+            //gm.setItem('AutoQuest', AutoQuest);
+            config.setItem('AutoQuest', AutoQuest);
+            config.setItem('WhyQuest', 'Manual');
             this.SelectDropOption('WhyQuest', 'Manual');
             this.ClearAutoQuest();
             return true;
         } catch (err) {
-            global.error("ERROR in ManualAutoQuest: " + err);
+            utility.error("ERROR in ManualAutoQuest: " + err);
             return false;
         }
     },
@@ -636,8 +476,8 @@ caap = {
             for (var item in dropList) {
                 if (dropList.hasOwnProperty(item)) {
                     if (item === '0' && !option) {
-                        gm.setValue(idName, dropList[item]);
-                        global.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
+                        config.setItem(idName, dropList[item]);
+                        utility.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                     }
 
                     $("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
@@ -652,7 +492,7 @@ caap = {
 
             return true;
         } catch (err) {
-            global.error("ERROR in ChangeDropDownList: " + err);
+            utility.error("ERROR in ChangeDropDownList: " + err);
             return false;
         }
     },
@@ -700,7 +540,7 @@ caap = {
 
             return {x: newLeft, y: newTop};
         } catch (err) {
-            global.error("ERROR in GetControlXY: " + err);
+            utility.error("ERROR in GetControlXY: " + err);
             return {x: 0, y: 0};
         }
     },
@@ -708,12 +548,12 @@ caap = {
     SaveControlXY: function () {
         try {
             var refOffset = $(this.controlXY.selector).offset();
-            gm.setValue('caap_div_menuTop', caap.caapDivObject.offset().top);
-            gm.setValue('caap_div_menuLeft', caap.caapDivObject.offset().left - refOffset.left);
-            gm.setValue('caap_top_zIndex', '1');
-            gm.setValue('caap_div_zIndex', '2');
+            state.setItem('caap_div_menuTop', caap.caapDivObject.offset().top);
+            state.setItem('caap_div_menuLeft', caap.caapDivObject.offset().left - refOffset.left);
+            state.setItem('caap_top_zIndex', '1');
+            state.setItem('caap_div_zIndex', '2');
         } catch (err) {
-            global.error("ERROR in SaveControlXY: " + err);
+            utility.error("ERROR in SaveControlXY: " + err);
         }
     },
 
@@ -742,7 +582,7 @@ caap = {
 
             return {x: newLeft, y: newTop};
         } catch (err) {
-            global.error("ERROR in GetDashboardXY: " + err);
+            utility.error("ERROR in GetDashboardXY: " + err);
             return {x: 0, y: 0};
         }
     },
@@ -750,12 +590,12 @@ caap = {
     SaveDashboardXY: function () {
         try {
             var refOffset = $(this.dashboardXY.selector).offset();
-            gm.setValue('caap_top_menuTop', this.caapTopObject.offset().top);
-            gm.setValue('caap_top_menuLeft', this.caapTopObject.offset().left - refOffset.left);
-            gm.setValue('caap_div_zIndex', '1');
-            gm.setValue('caap_top_zIndex', '2');
+            state.setItem('caap_top_menuTop', this.caapTopObject.offset().top);
+            state.setItem('caap_top_menuLeft', this.caapTopObject.offset().left - refOffset.left);
+            state.setItem('caap_div_zIndex', '1');
+            state.setItem('caap_top_zIndex', '2');
         } catch (err) {
-            global.error("ERROR in SaveDashboardXY: " + err);
+            utility.error("ERROR in SaveDashboardXY: " + err);
         }
     },
 
@@ -777,19 +617,19 @@ caap = {
             }
 
             caapDiv += "</div>";
-            this.controlXY.x = gm.getValue('caap_div_menuLeft', '');
-            this.controlXY.y = gm.getValue('caap_div_menuTop', $(this.controlXY.selector).offset().top);
+            this.controlXY.x = state.getItem('caap_div_menuLeft', '');
+            this.controlXY.y = state.getItem('caap_div_menuTop', $(this.controlXY.selector).offset().top);
             styleXY = this.GetControlXY();
             $(caapDiv).css({
                 width                   : '180px',
-                background              : gm.getValue('StyleBackgroundLight', '#E0C691'),
-                opacity                 : gm.getValue('StyleOpacityLight', '1'),
+                background              : config.getItem('StyleBackgroundLight', '#E0C691'),
+                opacity                 : config.getItem('StyleOpacityLight', 1),
                 color                   : '#000',
                 padding                 : "4px",
                 border                  : "2px solid #444",
                 top                     : styleXY.y + 'px',
                 left                    : styleXY.x + 'px',
-                zIndex                  : gm.getValue('caap_div_zIndex', '2'),
+                zIndex                  : state.getItem('caap_div_zIndex', '2'),
                 position                : 'absolute',
                 '-moz-border-radius'    : '5px',
                 '-webkit-border-radius' : '5px'
@@ -797,7 +637,7 @@ caap = {
 
             this.caapDivObject = $("#caap_div");
 
-            banner += "<div id='caap_BannerHide' style='display: " + (gm.getValue('BannerDisplay', true) ? 'block' : 'none') + "'>";
+            banner += "<div id='caap_BannerHide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
             banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
             this.SetDivContent('banner', banner);
 
@@ -814,7 +654,7 @@ caap = {
             htmlCode += this.AddFooterMenu();
             this.SetDivContent('control', htmlCode);
 
-            this.CheckLastAction(gm.getValue('LastAction', 'none'));
+            this.CheckLastAction(state.getItem('LastAction', 'none'));
             $("#caap_resetElite").button();
             $("#caap_StartedColourSelect").button();
             $("#caap_StopedColourSelect").button();
@@ -822,23 +662,17 @@ caap = {
             $("#caap_ResetMenuLocation").button();
             return true;
         } catch (err) {
-            global.error("ERROR in AddControl: " + err);
+            utility.error("ERROR in AddControl: " + err);
             return false;
         }
     },
 
     AddPauseMenu: function () {
         try {
-            var htmlCode = '';
-            if (global.is_chrome) {
-                htmlCode += "<div id='caapPausedDiv' style='display: none'><a href='javascript:;' id='caapPauseA' >Pause</a></div>";
-            }
-
-            htmlCode += "<div id='caapPaused' style='display: " + gm.getValue('caapPause', 'block') + "'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />";
-            return htmlCode;
+            return ("<div id='caapPaused' style='display: " + state.getItem('caapPause', 'block') + "'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
         } catch (err) {
-            global.error("ERROR in AddPauseMenu: " + err);
-            return '';
+            utility.error("ERROR in AddPauseMenu: " + err);
+            return ("<div id='caapPaused' style='display: block'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
         }
     },
 
@@ -851,7 +685,7 @@ caap = {
             htmlCode += this.MakeCheckTR("Disable Autoplayer", 'Disabled', false, '', autoRunInstructions) + '</table><hr />';
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddDisableMenu: " + err);
+            utility.error("ERROR in AddDisableMenu: " + err);
             return '';
         }
     },
@@ -874,11 +708,11 @@ caap = {
             htmlCode += this.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, '', autobuyInstructions);
             htmlCode += this.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, '', autosellInstructions) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Keep In Bank</td><td style='text-align: right'>$" + this.MakeNumberForm('minInStore', bankInstructions0, 100000, "type='text' size='12' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
+            htmlCode += "<tr><td>Keep In Bank</td><td style='text-align: right'>$" + this.MakeNumberForm('minInStore', bankInstructions0, 100000, "size='12' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Bank Above</td><td style='text-align: right'>$" + this.MakeNumberForm('MaxInCash', bankInstructions2, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr>";
+            htmlCode += "<tr><td>Bank Above</td><td style='text-align: right'>$" + this.MakeNumberForm('MaxInCash', bankInstructions2, '', "size='7' style='font-size: 10px; text-align: right'") + "</td></tr>";
             htmlCode += "<tr><td style='padding-left: 10px'>But Keep On Hand</td><td style='text-align: right'>$" +
-                this.MakeNumberForm('MinInCash', bankInstructions1, '', "type='text' size='7' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
+                this.MakeNumberForm('MinInCash', bankInstructions1, '', "size='7' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Heal If Health Below</td><td style='text-align: right'>" + this.MakeNumberForm('MinToHeal', healthInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + "</td></tr>";
             htmlCode += "<tr><td style='padding-left: 10px'>But Not If Stamina Below</td><td style='text-align: right'>" +
@@ -886,7 +720,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddCashHealthMenu: " + err);
+            utility.error("ERROR in AddCashHealthMenu: " + err);
             return '';
         }
     },
@@ -896,14 +730,15 @@ caap = {
             var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.",
                 XQuestInstructions = "Start questing when energy is at or above this value.",
                 XMinQuestInstructions = "Stop quest when energy is at or below this value.",
-                autoQuestName = gm.getObjVal('AutoQuest', 'name'),
+                //autoQuestName = gm.getObjVal('AutoQuest', 'name'),
+                autoQuestName = state.getItem('AutoQuest', this.newAutoQuest()).name,
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Quests', 'QUEST');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (gm.getValue('WhenQuest', false) !== 'Never' ? 'block' : 'none') + "'>";
-            htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (gm.getValue('WhenQuest', false) !== 'At X Energy' ? 'none' : 'block') + "'>";
+            htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'At X Energy' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Start At Or Above Energy</td><td style='text-align: right'>" + this.MakeNumberForm('XQuestEnergy', XQuestInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Stop At Or Below Energy</td><td style='text-align: right'>" +
@@ -911,7 +746,7 @@ caap = {
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', this.questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-            switch (gm.getValue('QuestArea', this.questAreaList[0])) {
+            switch (config.getItem('QuestArea', this.questAreaList[0])) {
             case 'Quest' :
                 htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
                     this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
@@ -933,7 +768,8 @@ caap = {
             htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
             htmlCode += "</div>";
             if (autoQuestName) {
-                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")" + "</a>";
+                //htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")" + "</a>";
+                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")" + "</a>";
             } else {
                 htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;'></a>";
             }
@@ -941,7 +777,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddQuestMenu: " + err);
+            utility.error("ERROR in AddQuestMenu: " + err);
             return '';
         }
     },
@@ -983,14 +819,16 @@ caap = {
                     'At X Stamina',
                     'No Monster',
                     'Stay Hidden',
+                    'Demi Points Only',
                     'Never'
                 ],
                 battleInst = [
                     'Stamina Available will battle whenever you have enough stamina',
                     'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
                     'At X Stamina you can set maximum and minimum stamina to battle',
-                    'No Monster will battle only when there are no active monster battles or if get demi points first has been selected.',
+                    'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
                     'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                    'Demi Points Only will battle only when Daily Demi Points are required, can use in conjunction with Get Demi Points First.',
                     'Never - disables player battles'
                 ],
                 typeList = [
@@ -1020,16 +858,16 @@ caap = {
             htmlCode += this.ToggleControl('Battling', 'BATTLE');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (gm.getValue('WhenBattle', false) === 'Stay Hidden' && gm.getValue('WhenMonster', false) !== 'Stay Hidden' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
             htmlCode += "<font color='red'><b>Warning: Monster Not Set To 'Stay Hidden'</b></font>";
             htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (gm.getValue('WhenBattle', false) !== 'At X Stamina' ? 'none' : 'block') + "'>";
+            htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Start Battles When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
                 this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (gm.getValue('WhenBattle', false) !== 'Never' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle Type</td><td style='text-align: right; width: 40%'>" + this.MakeDropDown('BattleType', typeList, typeInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1041,28 +879,28 @@ caap = {
             htmlCode += "<tr><td>Chain:Gold Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainGold', chainGoldInstructions, '', "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Target Type</td><td style='text-align: right; width: 50%'>" + this.MakeDropDown('TargetType', targetList, targetInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (gm.getValue('TargetType', false) !== 'Userid List' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (config.getItem('TargetType', 'Never') !== 'Userid List' ? 'block' : 'none') + "'>";
             htmlCode += "Attack targets that are:";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
                 this.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" +
-                this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, "0.5", "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, 0.5, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
-            htmlCode += "<div id='caap_RaidSub' style='display: " + (gm.getValue('TargetType', false) === 'Raid' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_RaidSub' style='display: " + (config.getItem('TargetType', 'Invade') === 'Raid' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
             htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
-            htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, '');
+            htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, '', '');
             htmlCode += "</div>";
-            htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (gm.getValue('TargetType', false) === 'Userid List' ? 'block' : 'none') + "'>";
-            htmlCode += this.MakeListBox('BattleTargets', userIdInstructions, '');
+            htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (config.getItem('TargetType', 'Invade') === 'Userid List' ? 'block' : 'none') + "'>";
+            htmlCode += this.MakeTextBox('BattleTargets', userIdInstructions, '', '');
             htmlCode += "</div>";
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddBattleMenu: " + err);
+            utility.error("ERROR in AddBattleMenu: " + err);
             return '';
         }
     },
@@ -1122,15 +960,15 @@ caap = {
             htmlCode += this.ToggleControl('Monster', 'MONSTER');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (gm.getValue('WhenMonster', false) !== 'At X Stamina' ? 'none' : 'block') + "'>";
+            htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (config.getItem('WhenMonster', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMonsterStamina', XMonsterInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
                 this.MakeNumberForm('XMinMonsterStamina', XMinMonsterInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
-            htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (gm.getValue('WhenMonster', false) !== 'Never' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (config.getItem('WhenMonster', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "type='text' size='3' style='font-size: 10px; text-align: right'") + "</td></tr>";
+            htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + this.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "size='3' style='font-size: 10px; text-align: right'") + "</td></tr>";
             htmlCode += this.MakeCheckTR("Use Tactics", 'UseTactics', false, 'UseTactics_Adv', useTacticsInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>&nbsp;&nbsp;&nbsp;Health threshold</td><td style='text-align: right'>" +
@@ -1165,12 +1003,12 @@ caap = {
                 this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
-            htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '');
+            htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddMonsterMenu: " + err);
+            utility.error("ERROR in AddMonsterMenu: " + err);
             return '';
         }
     },
@@ -1203,16 +1041,16 @@ caap = {
             htmlCode += 'Find battle targets that are:';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
-                this.MakeNumberForm('ReconPlayerRank', PRRankInstructions, '3', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+                this.MakeNumberForm('ReconPlayerRank', PRRankInstructions, 3, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than Level Plus</td><td style='text-align: right'>" +
-                this.MakeNumberForm('ReconPlayerLevel', PRLevelInstructions, '10', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+                this.MakeNumberForm('ReconPlayerLevel', PRLevelInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" +
-                this.MakeNumberForm('ReconPlayerARBase', PRARBaseInstructions, '1', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('ReconPlayerARBase', PRARBaseInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddReconMenu: " + err);
+            utility.error("ERROR in AddReconMenu: " + err);
             return '';
         }
     },
@@ -1232,13 +1070,13 @@ caap = {
                 LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.",
                 LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.",
                 LevelUpGenInstructions4 = "Use the Level Up General for Battle mode.",
-                LevelUpGenInstructions5 = "Use the Level Up General for doing sub-quests.",
-                LevelUpGenInstructions6 = "Use the Level Up General for doing primary quests " +
+                LevelUpGenInstructions5 = "Use the Level Up General for Duel mode.",
+                LevelUpGenInstructions6 = "Use the Level Up General for War mode.",
+                LevelUpGenInstructions7 = "Use the Level Up General for doing sub-quests.",
+                LevelUpGenInstructions8 = "Use the Level Up General for doing primary quests " +
                     "(Warning: May cause you not to gain influence if wrong general is equipped.)",
                 dropDownItem = 0,
                 htmlCode = '';
-
-            general.BuildlLists();
 
             htmlCode += this.ToggleControl('Generals', 'GENERALS');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1256,22 +1094,24 @@ caap = {
             htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + this.MakeDropDown('IncomeGeneral', general.IncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + this.MakeDropDown('BankingGeneral', general.BankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (gm.getValue('LevelUpGeneral', false) !== 'Use Current' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Exp To Use LevelUp Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += this.MakeCheckTR("Level Up Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
             htmlCode += this.MakeCheckTR("Level Up Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
             htmlCode += this.MakeCheckTR("Level Up Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
             htmlCode += this.MakeCheckTR("Level Up Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
-            htmlCode += this.MakeCheckTR("Level Up Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions5);
-            htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions6);
+            htmlCode += this.MakeCheckTR("Level Up Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
+            htmlCode += this.MakeCheckTR("Level Up Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
+            htmlCode += this.MakeCheckTR("Level Up Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
+            htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions8);
             htmlCode += "</table></div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, '', reverseGenInstructions) + "</table>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddGeneralsMenu: " + err);
+            utility.error("ERROR in AddGeneralsMenu: " + err);
             return '';
         }
     },
@@ -1286,6 +1126,7 @@ caap = {
                     "used (Math.min, Math.max, etc) !!!Remember your math class: " +
                     "'level + 20' not equals 'level * 2 + 10'!!!",
                 statImmedInstructions = "Update Stats Immediately",
+                statSpendAllInstructions = "If selected then spend all possible points and don't save for stamina upgrade.",
                 attrList = [
                     '',
                     'Energy',
@@ -1300,49 +1141,50 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, 'AutoStat_Adv', statusInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Spend All Possible", 'StatSpendAll', false, '', statSpendAllInstructions);
             htmlCode += this.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, '', statImmedInstructions);
             htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
-            htmlCode += "<div id='caap_Status_Normal' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'none' : 'block') + "'>";
+            htmlCode += "<div id='caap_Status_Normal' style='display: " + (config.getItem('AutoStatAdv', false) ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                this.MakeNumberForm('AttrValue0', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+                this.MakeNumberForm('AttrValue0', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                this.MakeNumberForm('AttrValue1', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+                this.MakeNumberForm('AttrValue1', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                this.MakeNumberForm('AttrValue2', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+                this.MakeNumberForm('AttrValue2', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                this.MakeNumberForm('AttrValue3', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr>";
+                this.MakeNumberForm('AttrValue3', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                this.MakeNumberForm('AttrValue4', statusInstructions, 0, "type='text' size='3' style='font-size: 10px; text-align: right'") + " </td></tr></table>";
+                this.MakeNumberForm('AttrValue4', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr></table>";
             htmlCode += "</div>";
-            htmlCode += "<div id='caap_Status_Adv' style='display: " + (gm.getValue('AutoStatAdv', false) ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_Status_Adv' style='display: " + (config.getItem('AutoStatAdv', false) ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue5', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute6', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue6', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue6', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute7', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue7', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue7', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute8', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue8', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue8', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
                 this.MakeDropDown('Attribute9', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue9', statusInstructions, 0, "type='text' size='7' style='font-size: 10px; width : 98%'") + " </td></tr></table>";
+            htmlCode += "<tr><td colspan='3'>" + this.MakeNumberForm('AttrValue9', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr></table>";
             htmlCode += "</div>";
             htmlCode += "</table></div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddSkillPointsMenu: " + err);
+            utility.error("ERROR in AddSkillPointsMenu: " + err);
             return '';
         }
     },
@@ -1439,7 +1281,7 @@ caap = {
             htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
-            htmlCode += '<tr><td>' + this.MakeListBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '') + '</td></tr></table>';
+            htmlCode += '<tr><td>' + this.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', '') + '</td></tr></table>';
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
@@ -1453,18 +1295,18 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" +
                 this.MakeDropDown('DisplayStyle', styleList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (gm.getValue('DisplayStyle', false) === 'Custom' ? 'block' : 'none') + "'>";
+            htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (config.getItem('DisplayStyle', 'CA Skin') === 'Custom' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
             htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
-                this.MakeNumberForm('StyleBackgroundLight', 'FFF or FFFFFF', '#E0C691', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+                this.MakeNumberForm('StyleBackgroundLight', '#FFF or #FFFFFF', '#E0C691', "size='5' style='font-size: 10px; text-align: right'", 'text') + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
-                this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', '1', "type='text' size='5' style='vertical-align: middle; font-size: 10px; text-align: right'") + '</td></tr>';
+                this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', 1, "size='5' style='vertical-align: middle; font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
             htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
-                this.MakeNumberForm('StyleBackgroundDark', 'FFF or FFFFFF', '#B09060', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+                this.MakeNumberForm('StyleBackgroundDark', '#FFF or #FFFFFF', '#B09060', "size='5' style='font-size: 10px; text-align: right'", 'text') + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
-                this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', '1', "type='text' size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('StyleOpacityDark', '0 ~ 1', 1, "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' /></td></tr></table>";
@@ -1472,7 +1314,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddOtherOptionsMenu: " + err);
+            utility.error("ERROR in AddOtherOptionsMenu: " + err);
             return '';
         }
     },
@@ -1483,21 +1325,22 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td>" +
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
+
             if (!devVersion) {
                 htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
                 if (global.newVersionAvailable) {
-                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + "!</a>";
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>";
                 }
             } else {
                 htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
                 if (global.newVersionAvailable) {
-                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + gm.getValue('SUC_remote_version') + " d" + gm.getValue('DEV_remote_version')  + "!</a>";
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version')  + "!</a>";
                 }
             }
 
             return htmlCode;
         } catch (err) {
-            global.error("ERROR in AddFooterMenu: " + err);
+            utility.error("ERROR in AddFooterMenu: " + err);
             return '';
         }
     },
@@ -1510,12 +1353,12 @@ caap = {
             fb1call = function (color) {
                 $('#caap_ColorSelectorDiv1').css({'background-color': color});
                 $('#caap_StyleBackgroundLight').val(color);
-                gm.setValue("StyleBackgroundLight", color);
-                gm.setValue("CustStyleBackgroundLight", color);
+                config.setItem("StyleBackgroundLight", color);
+                state.setItem("CustStyleBackgroundLight", color);
             };
 
             $.farbtastic($("<div id='caap_ColorSelectorDiv1'></div>").css({
-                background : gm.getValue("StyleBackgroundLight", "#E0C691"),
+                background : config.getItem("StyleBackgroundLight", "#E0C691"),
                 padding    : "5px",
                 border     : "2px solid #000",
                 top        : (window.innerHeight / 2) - 100 + 'px',
@@ -1523,17 +1366,17 @@ caap = {
                 zIndex     : '1337',
                 position   : 'fixed',
                 display    : 'none'
-            }).appendTo(document.body), fb1call).setColor(gm.getValue("StyleBackgroundLight", "#E0C691"));
+            }).appendTo(document.body), fb1call).setColor(config.getItem("StyleBackgroundLight", "#E0C691"));
 
             fb2call = function (color) {
                 $('#caap_ColorSelectorDiv2').css({'background-color': color});
                 $('#caap_StyleBackgroundDark').val(color);
-                gm.setValue("StyleBackgroundDark", color);
-                gm.setValue("CustStyleBackgroundDark", color);
+                config.setItem("StyleBackgroundDark", color);
+                state.setItem("CustStyleBackgroundDark", color);
             };
 
             $.farbtastic($("<div id='caap_ColorSelectorDiv2'></div>").css({
-                background : gm.getValue("StyleBackgroundDark", "#B09060"),
+                background : config.getItem("StyleBackgroundDark", "#B09060"),
                 padding    : "5px",
                 border     : "2px solid #000",
                 top        : (window.innerHeight / 2) - 100 + 'px',
@@ -1541,11 +1384,11 @@ caap = {
                 zIndex     : '1337',
                 position   : 'fixed',
                 display    : 'none'
-            }).appendTo(document.body), fb2call).setColor(gm.getValue("StyleBackgroundDark", "#B09060"));
+            }).appendTo(document.body), fb2call).setColor(config.getItem("StyleBackgroundDark", "#B09060"));
 
             return true;
         } catch (err) {
-            global.error("ERROR in AddColorWheels: " + err);
+            utility.error("ERROR in AddColorWheels: " + err);
             return false;
         }
     },
@@ -1567,13 +1410,13 @@ caap = {
              selected the Monster display.
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonMonster' style='position:absolute;top:0px;left:250px;display:" +
-                (gm.getValue('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'><input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+                (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'><input type='button' id='caap_refreshMonsters' value='Refresh Monster List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
             /*-------------------------------------------------------------------------------------\
              Next we put in the Clear Target List button which will only show when we have
              selected the Target List display
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonTargets' style='position:absolute;top:0px;left:250px;display:" +
-                (gm.getValue('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'><input type='button' id='caap_clearTargets' value='Clear Targets List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+                (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'><input type='button' id='caap_clearTargets' value='Clear Targets List' style='padding: 0; font-size: 9px; height: 18px' /></div>";
             /*-------------------------------------------------------------------------------------\
              Then we put in the Live Feed link since we overlay the Castle Age link.
             \-------------------------------------------------------------------------------------*/
@@ -1588,31 +1431,31 @@ caap = {
             And here we build our empty content divs.  We display the appropriate div
             depending on which display was selected using the control above
             \-------------------------------------------------------------------------------------*/
-            layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Target Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_soldiersStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Soldier Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_itemStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Item Stats' ? 'block' : 'none') + "'></div>";
-            layout += "<div id='caap_magicStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (gm.getValue('DBDisplay', 'Monster') === 'Magic Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoMonster' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Monster' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoTargets1' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target List' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_infoTargets2' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Target Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_soldiersStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Soldier Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_itemStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Item Stats' ? 'block' : 'none') + "'></div>";
+            layout += "<div id='caap_magicStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Magic Stats' ? 'block' : 'none') + "'></div>";
             layout += "</div>";
             /*-------------------------------------------------------------------------------------\
              No we apply our CSS to our container
             \-------------------------------------------------------------------------------------*/
-            this.dashboardXY.x = gm.getValue('caap_top_menuLeft', '');
-            this.dashboardXY.y = gm.getValue('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10);
+            this.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
+            this.dashboardXY.y = state.getItem('caap_top_menuTop', $(this.dashboardXY.selector).offset().top - 10);
             styleXY = this.GetDashboardXY();
             $(layout).css({
-                background              : gm.getValue("StyleBackgroundLight", "white"),
+                background              : config.getItem("StyleBackgroundLight", "white"),
                 padding                 : "5px",
                 height                  : "185px",
                 width                   : "610px",
                 margin                  : "0 auto",
-                opacity                 : gm.getValue('StyleOpacityLight', '1'),
+                opacity                 : config.getItem('StyleOpacityLight', 1),
                 top                     : styleXY.y + 'px',
                 left                    : styleXY.x + 'px',
-                zIndex                  : gm.getValue('caap_top_zIndex', '1'),
+                zIndex                  : state.getItem('caap_top_zIndex', 1),
                 position                : 'absolute',
                 '-moz-border-radius'    : '5px',
                 '-webkit-border-radius' : '5px'
@@ -1625,7 +1468,7 @@ caap = {
 
             return true;
         } catch (err) {
-            global.error("ERROR in AddDashboard: " + err);
+            utility.error("ERROR in AddDashboard: " + err);
             return false;
         }
     },
@@ -1635,7 +1478,7 @@ caap = {
     // Display the current monsters and stats
     /////////////////////////////////////////////////////////////////////
     decHours2HoursMin : function (decHours) {
-        global.log(9, "decHours2HoursMin", decHours);
+        utility.log(9, "decHours2HoursMin", decHours);
         var hours   = 0,
             minutes = 0;
 
@@ -1691,10 +1534,6 @@ caap = {
             html = '<td';
 
         data = obj;
-        if (gm.getObjVal(data.color, 'color')) {
-            data.color = gm.getObjVal(data.color, 'color');
-        }
-
         if (!data.color) {
             data.color = 'black';
         }
@@ -1717,11 +1556,10 @@ caap = {
         try {
             var html                     = '',
                 monsterList              = [],
-                monster                  = '',
+                monsterName              = '',
                 monstType                = '',
                 energyRequire            = 0,
                 nodeNum                  = 0,
-                staLvl                   = [],
                 color                    = '',
                 value                    = 0,
                 headers                  = [],
@@ -1752,940 +1590,991 @@ caap = {
                 str                      = '',
                 header                   = {text: '', color: '', id: '', title: '', width: ''},
                 data                     = {text: '', color: '', id: '', title: ''},
-                width                    = '';
+                width                    = '',
+                handler;
 
             if ($('#caap_top').length === 0) {
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!force && !this.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
+            if (!force && !utility.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
                 if (this.UpdateDashboardWaitLog) {
-                    global.log(3, "Dashboard update is waiting on oneMinuteUpdate");
+                    utility.log(2, "Dashboard update is waiting on oneMinuteUpdate");
                     this.UpdateDashboardWaitLog = false;
                 }
 
                 return false;
             }
 
-            global.log(9, "Updating Dashboard");
+            utility.log(2, "Updating Dashboard");
             this.UpdateDashboardWaitLog = true;
-            html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
-            values  = ['name', 'damage', 'life', 'fortify', 'strength', 'timeLeft', 't2k', 'phase', 'link'];
-            for (pp in headers) {
-                if (headers.hasOwnProperty(pp)) {
-                    width = '';
-                    if (headers[pp] === 'Name') {
-                        width = '30%';
-                    }
-
-                    html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: width});
-                }
-            }
-
-            html += '</tr>';
-            values.shift();
-            global.log(9, "monsterList", monsterList);
-            this.monsterArray.forEach(function (monsterObj) {
-                global.log(9, "monsterObj", monsterObj);
-                monster = monsterObj.name;
-                monstType = monsterObj.type;
-                energyRequire = 10;
-                nodeNum = 0;
-                if (caap.monsterInfo[monstType]) {
-                    staLvl = caap.monsterInfo[monstType].staLvl;
-                    if (!caap.InLevelUpMode() && gm.getValue('PowerFortifyMax') && staLvl) {
-                        for (nodeNum = caap.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                            if (caap.stats.stamina.max > caap.monsterInfo[monstType].staLvl[nodeNum]) {
-                                break;
-                            }
+            if (state.getItem("MonsterDashUpdate", true)) {
+                html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
+                values  = ['name', 'damage', 'life', 'fortify', 'strength', 'timeLeft', 't2k', 'phase', 'link'];
+                for (pp in headers) {
+                    if (headers.hasOwnProperty(pp)) {
+                        width = '';
+                        if (headers[pp] === 'Name') {
+                            width = '30%';
                         }
+
+                        html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: width});
                     }
-
-                    if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && gm.getValue('PowerAttackMax') && caap.monsterInfo[monstType].nrgMax) {
-                        energyRequire = caap.monsterInfo[monstType].nrgMax[nodeNum];
-                    }
-                }
-
-                global.log(9, "Energy Required/Node", energyRequire, nodeNum);
-                color = '';
-                html += "<tr>";
-                //if (monster === gm.getValue('targetFromfortify') && caap.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
-                if (monster === gm.getValue('targetFromfortify')) {
-                    color = 'blue';
-                } else if (monster === gm.getValue('targetFromraid') || monster === gm.getValue('targetFrombattle_monster')) {
-                    color = 'green';
-                } else {
-                    color = monsterObj.color;
-                }
-
-                achLevel = 0;
-                maxDamage = 0;
-                monsterConditions = monsterObj.conditions;
-                if (monsterConditions) {
-                    achLevel = caap.parseCondition('ach', monsterConditions);
-                    maxDamage = caap.parseCondition('max', monsterConditions);
-                }
-
-                monsterObjLink = monsterObj.link;
-                global.log(9, "monsterObjLink", monsterObjLink);
-                if (monsterObjLink) {
-                    visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
-                    global.log(9, "visitMonsterLink", visitMonsterLink);
-                    visitMonsterInstructions = "Clicking this link will take you to " + monster;
-                    data = {
-                        text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monster + '" rlink="' + visitMonsterLink[1] +
-                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monster + '</span>',
-                        color : color,
-                        id    : '',
-                        title : ''
-                    };
-
-                    html += caap.makeTd(data);
-                } else {
-                    html += caap.makeTd({text: monster, color: color, id: '', title: ''});
-                }
-
-                values.forEach(function (displayItem) {
-                    global.log(9, 'displayItem/value ', displayItem, monsterObj[displayItem]);
-                    id = "caap_" + displayItem + "_" + count;
-                    title = '';
-                    if (displayItem === 'phase' && color === 'grey') {
-                        html += caap.makeTd({text: monsterObj.status, color: color, id: '', title: ''});
-                    } else {
-                        value = monsterObj[displayItem];
-                        if ((value !== '' && value >= 0) || (value !== '' && isNaN(value))) {
-                            if (parseInt(value, 10) === value && value > 999) {
-                                global.log(9, 'makeCommaValue ', value);
-                                value = caap.makeCommaValue(value);
-                            }
-
-                            switch (displayItem) {
-                            case 'damage' :
-                                if (achLevel) {
-                                    title = "User Set Monster Achievement: " + caap.makeCommaValue(achLevel);
-                                } else if (gm.getValue('AchievementMode', false)) {
-                                    if (caap.monsterInfo[monstType]) {
-                                        title = "Default Monster Achievement: " + caap.makeCommaValue(caap.monsterInfo[monstType].ach);
-                                    }
-                                } else {
-                                    title = "Achievement Mode Disabled";
-                                }
-
-                                if (maxDamage) {
-                                    title += " - User Set Max Damage: " + caap.makeCommaValue(maxDamage);
-                                }
-
-                                break;
-                            case 'timeLeft' :
-                                if (caap.monsterInfo[monstType]) {
-                                    title = "Total Monster Duration: " + caap.monsterInfo[monstType].duration + " hours";
-                                }
-
-                                break;
-                            case 't2k' :
-                                value = caap.decHours2HoursMin(value);
-                                title = "Estimated Time To Kill: " + value + " hours:mins";
-                                break;
-                            case 'life' :
-                                value = value.toFixed(2);
-                                title = "Percentage of monster life remaining: " + value + "%";
-                                break;
-                            case 'fortify' :
-                                value = value.toFixed(2);
-                                title = "Percentage of party health/monster defense: " + value + "%";
-                                break;
-                            case 'strength' :
-                                value = value.toFixed(2);
-                                title = "Percentage of party strength: " + value + "%";
-                                break;
-                            default :
-                            }
-
-                            html += caap.makeTd({text: value, color: color, id: id, title: title});
-                        } else {
-                            html += caap.makeTd({text: '', color: color, id: '', title: ''});
-                        }
-                    }
-                });
-
-                if (monsterConditions && monsterConditions !== 'none') {
-                    data = {
-                        text  : '<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
-                        color : 'blue',
-                        id    : '',
-                        title : ''
-                    };
-
-                    html += caap.makeTd(data);
-                } else {
-                    html += caap.makeTd({text: '', color: color, id: '', title: ''});
-                }
-
-                if (monsterObjLink) {
-                    removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
-                    global.log(9, "removeLink", removeLink);
-                    removeLinkInstructions = "Clicking this link will remove " + monster + " from both CA and CAAP!";
-                    data = {
-                        text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monster + '" rlink="' + removeLink[1] +
-                                '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
-                        color : 'blue',
-                        id    : '',
-                        title : ''
-                    };
-
-                    html += caap.makeTd(data);
-                } else {
-                    html += caap.makeTd({text: '', color: color, id: '', title: ''});
                 }
 
                 html += '</tr>';
-                count += 1;
-            });
+                values.shift();
+                utility.log(9, "monsterList", monsterList);
+                monster.records.forEach(function (monsterObj) {
+                    utility.log(9, "monsterObj", monsterObj);
+                    monsterName = monsterObj.name;
+                    monstType = monsterObj.type;
+                    energyRequire = 10;
+                    nodeNum = 0;
+                    if (monster.info[monstType]) {
+                        if (!caap.InLevelUpMode() && config.getItem('PowerFortifyMax') && monster.info[monstType].staLvl) {
+                            for (nodeNum = monster.info[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                if (caap.stats.stamina.max > monster.info[monstType].staLvl[nodeNum]) {
+                                    break;
+                                }
+                            }
+                        }
 
-            html += '</table>';
-            $("#caap_infoMonster").html(html);
-
-            $("#caap_top span[id*='caap_monster_']").click(function (e) {
-                global.log(9, "Clicked", e.target.id);
-                var visitMonsterLink = {
-                    mname     : '',
-                    rlink     : '',
-                    arlink    : ''
-                },
-                i = 0;
-
-                for (i = 0; i < e.target.attributes.length; i += 1) {
-                    if (e.target.attributes[i].nodeName === 'mname') {
-                        visitMonsterLink.mname = e.target.attributes[i].nodeValue;
-                    } else if (e.target.attributes[i].nodeName === 'rlink') {
-                        visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
-                        visitMonsterLink.arlink = visitMonsterLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
-                    }
-                }
-
-                global.log(9, 'visitMonsterLink', visitMonsterLink);
-                caap.ClickAjax(visitMonsterLink.arlink);
-            });
-
-            $("#caap_top span[id*='caap_remove_']").click(function (e) {
-                global.log(9, "Clicked", e.target.id);
-                var monsterRemove = {
-                    mname     : '',
-                    rlink     : '',
-                    arlink    : ''
-                },
-                i = 0,
-                resp = false;
-
-                for (i = 0; i < e.target.attributes.length; i += 1) {
-                    if (e.target.attributes[i].nodeName === 'mname') {
-                        monsterRemove.mname = e.target.attributes[i].nodeValue;
-                    } else if (e.target.attributes[i].nodeName === 'rlink') {
-                        monsterRemove.rlink = e.target.attributes[i].nodeValue;
-                        monsterRemove.arlink = monsterRemove.rlink.replace("http://apps.facebook.com/castle_age/", "");
-                    }
-                }
-
-                global.log(9, 'monsterRemove', monsterRemove);
-                resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
-                if (resp === true) {
-                    caap.delMonsterRecord(monsterRemove.mname);
-                    caap.UpdateDashboard(true);
-                    if (gm.getValue('clickUrl', '').indexOf(monsterRemove.arlink) < 0) {
-                        gm.setValue('clickUrl', monsterRemove.rlink);
-                        this.waitingForDomLoad = false;
+                        if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax') && monster.info[monstType].nrgMax) {
+                            energyRequire = monster.info[monstType].nrgMax[nodeNum];
+                        }
                     }
 
-                    caap.VisitUrl("javascript:void(a46755028429_get_cached_ajax('" + monsterRemove.arlink + "', 'get_body'))");
-                }
-            });
+                    utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
+                    color = '';
+                    html += "<tr>";
+                    if (monsterName === state.getItem('targetFromfortify', '')) {
+                        color = 'blue';
+                    } else if (monsterName === state.getItem('targetFromraid', '') || monsterName === state.getItem('targetFrombattle_monster', '')) {
+                        color = 'green';
+                    } else {
+                        color = monsterObj.color;
+                    }
+
+                    achLevel = 0;
+                    maxDamage = 0;
+                    monsterConditions = monsterObj.conditions;
+                    if (monsterConditions) {
+                        achLevel = monster.parseCondition('ach', monsterConditions);
+                        maxDamage = monster.parseCondition('max', monsterConditions);
+                    }
+
+                    monsterObjLink = monsterObj.link;
+                    utility.log(9, "monsterObjLink", monsterObjLink);
+                    if (monsterObjLink) {
+                        visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
+                        utility.log(9, "visitMonsterLink", visitMonsterLink);
+                        visitMonsterInstructions = "Clicking this link will take you to " + monsterName;
+                        data = {
+                            text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterName + '" rlink="' + visitMonsterLink[1] +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterName + '</span>',
+                            color : color,
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+                    } else {
+                        html += caap.makeTd({text: monsterName, color: color, id: '', title: ''});
+                    }
+
+                    values.forEach(function (displayItem) {
+                        utility.log(9, 'displayItem/value ', displayItem, monsterObj[displayItem]);
+                        id = "caap_" + displayItem + "_" + count;
+                        title = '';
+                        if (displayItem === 'phase' && color === 'grey') {
+                            html += caap.makeTd({text: monsterObj.status, color: color, id: '', title: ''});
+                        } else {
+                            value = monsterObj[displayItem];
+                            if ((value !== '' && value >= 0) || (value !== '' && isNaN(value))) {
+                                if (parseInt(value, 10) === value && value > 999) {
+                                    utility.log(9, 'makeCommaValue ', value);
+                                    value = caap.makeCommaValue(value);
+                                }
+
+                                switch (displayItem) {
+                                case 'damage' :
+                                    if (achLevel) {
+                                        title = "User Set Monster Achievement: " + caap.makeCommaValue(achLevel);
+                                    } else if (config.getItem('AchievementMode', false)) {
+                                        if (monster.info[monstType]) {
+                                            title = "Default Monster Achievement: " + caap.makeCommaValue(monster.info[monstType].ach);
+                                        }
+                                    } else {
+                                        title = "Achievement Mode Disabled";
+                                    }
+
+                                    if (maxDamage) {
+                                        title += " - User Set Max Damage: " + caap.makeCommaValue(maxDamage);
+                                    }
+
+                                    break;
+                                case 'timeLeft' :
+                                    if (monster.info[monstType]) {
+                                        title = "Total Monster Duration: " + monster.info[monstType].duration + " hours";
+                                    }
+
+                                    break;
+                                case 't2k' :
+                                    value = caap.decHours2HoursMin(value);
+                                    title = "Estimated Time To Kill: " + value + " hours:mins";
+                                    break;
+                                case 'life' :
+                                    value = value.toFixed(2);
+                                    title = "Percentage of monster life remaining: " + value + "%";
+                                    break;
+                                case 'fortify' :
+                                    value = value.toFixed(2);
+                                    title = "Percentage of party health/monster defense: " + value + "%";
+                                    break;
+                                case 'strength' :
+                                    value = value.toFixed(2);
+                                    title = "Percentage of party strength: " + value + "%";
+                                    break;
+                                default :
+                                }
+
+                                html += caap.makeTd({text: value, color: color, id: id, title: title});
+                            } else {
+                                html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                            }
+                        }
+                    });
+
+                    if (monsterConditions && monsterConditions !== 'none') {
+                        data = {
+                            text  : '<span title="User Set Conditions: ' + monsterConditions + '" class="ui-icon ui-icon-info">i</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+                    } else {
+                        html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                    }
+
+                    if (monsterObjLink) {
+                        removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
+                        utility.log(9, "removeLink", removeLink);
+                        removeLinkInstructions = "Clicking this link will remove " + monsterName + " from both CA and CAAP!";
+                        data = {
+                            text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterName + '" rlink="' + removeLink[1] +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+                    } else {
+                        html += caap.makeTd({text: '', color: color, id: '', title: ''});
+                    }
+
+                    html += '</tr>';
+                    count += 1;
+                });
+
+                html += '</table>';
+                $("#caap_infoMonster").html(html);
+
+                handler = function (e) {
+                    utility.log(9, "Clicked", e.target.id);
+                    var visitMonsterLink = {
+                        mname     : '',
+                        rlink     : '',
+                        arlink    : ''
+                    },
+                    i = 0;
+
+                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                        if (e.target.attributes[i].nodeName === 'mname') {
+                            visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                        } else if (e.target.attributes[i].nodeName === 'rlink') {
+                            visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
+                            visitMonsterLink.arlink = visitMonsterLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
+                        }
+                    }
+
+                    utility.log(9, 'visitMonsterLink', visitMonsterLink);
+                    utility.ClickAjax(visitMonsterLink.arlink);
+                };
+
+                $("#caap_top span[id*='caap_monster_']").unbind('click', handler).click(handler);
+
+                handler = function (e) {
+                    utility.log(9, "Clicked", e.target.id);
+                    var monsterRemove = {
+                        mname     : '',
+                        rlink     : '',
+                        arlink    : ''
+                    },
+                    i = 0,
+                    resp = false;
+
+                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                        if (e.target.attributes[i].nodeName === 'mname') {
+                            monsterRemove.mname = e.target.attributes[i].nodeValue;
+                        } else if (e.target.attributes[i].nodeName === 'rlink') {
+                            monsterRemove.rlink = e.target.attributes[i].nodeValue;
+                            monsterRemove.arlink = monsterRemove.rlink.replace("http://apps.facebook.com/castle_age/", "");
+                        }
+                    }
+
+                    utility.log(9, 'monsterRemove', monsterRemove);
+                    resp = confirm("Are you sure you want to remove " + monsterRemove.mname + "?");
+                    if (resp === true) {
+                        monster.deleteItem(monsterRemove.mname);
+                        caap.UpdateDashboard(true);
+                        if (state.getItem('clickUrl', '').indexOf(monsterRemove.arlink) < 0) {
+                            state.setItem('clickUrl', monsterRemove.rlink);
+                            this.waitingForDomLoad = false;
+                        }
+
+                        utility.VisitUrl("javascript:void(a46755028429_get_cached_ajax('" + monsterRemove.arlink + "', 'get_body'))");
+                    }
+                };
+
+                $("#caap_top span[id*='caap_remove_']").unbind('click', handler).click(handler);
+                state.setItem("MonsterDashUpdate", false);
+            }
 
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
             table and then build the header row.
             \-------------------------------------------------------------------------------------*/
-            html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['UserId', 'Name',    'Deity#',   'Rank',    'Rank#',   'Level',    'Army',    'Last Alive'];
-            values  = ['userID', 'nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
-            for (pp in headers) {
-                if (headers.hasOwnProperty(pp)) {
-                    html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                }
-            }
-
-            html += '</tr>';
-            for (i = 0; i < this.ReconRecordArray.length; i += 1) {
-                html += "<tr>";
-                for (pp in values) {
-                    if (values.hasOwnProperty(pp)) {
-                        if (/userID/.test(values[pp])) {
-                            userIdLinkInstructions = "Clicking this link will take you to the user keep of " + this.ReconRecordArray[i][values[pp]];
-                            userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + this.ReconRecordArray[i][values[pp]];
-                            data = {
-                                text  : '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
-                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + this.ReconRecordArray[i][values[pp]] + '</span>',
-                                color : 'blue',
-                                id    : '',
-                                title : ''
-                            };
-
-                            html += caap.makeTd(data);
-                        } else if (/\S+Num/.test(values[pp])) {
-                            html += caap.makeTd({text: this.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
-                        } else if (/\S+Time/.test(values[pp])) {
-                            newTime = new Date(this.ReconRecordArray[i][values[pp]]);
-                            data = {
-                                text  : newTime.getDate() + '-' + shortMonths[newTime.getMonth()] + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes(),
-                                color : 'black',
-                                id    : '',
-                                title : ''
-                            };
-
-                            html += caap.makeTd(data);
-                        } else {
-                            html += caap.makeTd({text: this.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
-                        }
+            if (state.getItem("ReconDashUpdate", true)) {
+                html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                headers = ['UserId', 'Name',    'Deity#',   'Rank',    'Rank#',   'Level',    'Army',    'Last Alive'];
+                values  = ['userID', 'nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
+                for (pp in headers) {
+                    if (headers.hasOwnProperty(pp)) {
+                        html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                     }
                 }
 
                 html += '</tr>';
-            }
+                for (i = 0; i < this.ReconRecordArray.length; i += 1) {
+                    html += "<tr>";
+                    for (pp in values) {
+                        if (values.hasOwnProperty(pp)) {
+                            if (/userID/.test(values[pp])) {
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + this.ReconRecordArray[i][values[pp]];
+                                userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + this.ReconRecordArray[i][values[pp]];
+                                data = {
+                                    text  : '<span id="caap_target_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + this.ReconRecordArray[i][values[pp]] + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
 
-            html += '</table>';
-            $("#caap_infoTargets1").html(html);
+                                html += caap.makeTd(data);
+                            } else if (/\S+Num/.test(values[pp])) {
+                                html += caap.makeTd({text: this.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
+                            } else if (/\S+Time/.test(values[pp])) {
+                                newTime = new Date(this.ReconRecordArray[i][values[pp]]);
+                                data = {
+                                    text  : newTime.getDate() + '-' + shortMonths[newTime.getMonth()] + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes(),
+                                    color : 'black',
+                                    id    : '',
+                                    title : ''
+                                };
 
-            $("#caap_top span[id*='caap_target_']").click(function (e) {
-                global.log(9, "Clicked", e.target.id);
-                var visitUserIdLink = {
-                    rlink     : '',
-                    arlink    : ''
-                },
-                i = 0;
-
-                for (i = 0; i < e.target.attributes.length; i += 1) {
-                    if (e.target.attributes[i].nodeName === 'rlink') {
-                        visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                        visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({text: this.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
+                            }
+                        }
                     }
+
+                    html += '</tr>';
                 }
 
-                global.log(9, 'visitUserIdLink', visitUserIdLink);
-                caap.ClickAjax(visitUserIdLink.arlink);
-            });
+                html += '</table>';
+                $("#caap_infoTargets1").html(html);
+
+                $("#caap_top span[id*='caap_target_']").click(function (e) {
+                    utility.log(9, "Clicked", e.target.id);
+                    var visitUserIdLink = {
+                        rlink     : '',
+                        arlink    : ''
+                    },
+                    i = 0;
+
+                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                        if (e.target.attributes[i].nodeName === 'rlink') {
+                            visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                            visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
+                        }
+                    }
+
+                    utility.log(9, 'visitUserIdLink', visitUserIdLink);
+                    utility.ClickAjax(visitUserIdLink.arlink);
+                });
+
+                state.setItem("ReconDashUpdate", false);
+            }
 
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_userStats' div. We set our
             table and then build the header row.
             \-------------------------------------------------------------------------------------*/
-            html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['Name', 'Value', 'Name', 'Value'];
-            for (pp in headers) {
-                if (headers.hasOwnProperty(pp)) {
-                    html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                }
-            }
-
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Facebook ID', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.FBID, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Account Name', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.account, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Character Name', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.PlayerName, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Energy', color: titleCol, id: '', title: 'Current/Max'});
-            html += this.makeTd({text: this.stats.energy.num + '/' + this.stats.energy.max, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Level', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.level, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Stamina', color: titleCol, id: '', title: 'Current/Max'});
-            html += this.makeTd({text: this.stats.stamina.num + '/' + this.stats.stamina.max, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Battle Rank', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.battleRankTable[this.stats.rank.battle] + ' (' + this.stats.rank.battle + ')', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: 'Current/Max'});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.attack), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Battle Rank Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.rank.battlePoints), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Defense', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.defense), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'War Rank', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.warRankTable[this.stats.rank.war] + ' (' + this.stats.rank.war + ')', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Health', color: titleCol, id: '', title: 'Current/Max'});
-            html += this.makeTd({text: this.stats.health.num + '/' + this.stats.health.max, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'War Rank Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.rank.warPoints), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Army', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.army.actual), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Generals', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.generals.total, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Generals When Invade', color: titleCol, id: '', title: 'For every 5 army members you have, one of your generals will also join the fight.'});
-            html += this.makeTd({text: this.stats.generals.invade, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Gold In Bank', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.bank), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Total Income Per Hour', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.income), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Gold In Cash', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.cash), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Upkeep', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.upkeep), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Total Gold', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.total), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Cash Flow Per Hour', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.flow), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Skill Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.points.skill, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Energy Potions', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.potions.energy, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Favor Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.points.favor, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Stamina Potions', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.potions.stamina, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Experience To Next Level (ETNL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.exp.dif), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Battle Strength Index (BSI)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.indicators.bsi.toFixed(2), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Hours To Level (HTL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.decHours2HoursMin(this.stats.indicators.htl), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Levelling Speed Index (LSI)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.indicators.lsi.toFixed(2), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Hours Remaining To Level (HRTL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.decHours2HoursMin(this.stats.indicators.hrtl), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Skill Points Per Level (SPPL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.indicators.sppl.toFixed(2), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Expected Next Level (ENL)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: schedule.FormatTime(new Date(this.stats.indicators.enl)), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Attack Power Index (API)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.indicators.api.toFixed(2), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Defense Power Index (DPI)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.indicators.dpi.toFixed(2), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Mean Power Index (MPI)', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.stats.indicators.mpi.toFixed(2), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Battles/Wars Won', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.bww), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Times eliminated', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.te), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Battles/Wars Lost', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.bwl), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Times you eliminated an enemy', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.tee), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: titleCol, id: '', title: ''});
-            if (this.stats.other.wlr) {
-                html += this.makeTd({text: this.stats.other.wlr.toFixed(2), color: valueCol, id: '', title: ''});
-            } else {
-                html += this.makeTd({text: this.stats.other.wlr, color: valueCol, id: '', title: ''});
-            }
-
-            html += this.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: titleCol, id: '', title: ''});
-            if (this.stats.other.eer) {
-                html += this.makeTd({text: this.stats.other.eer.toFixed(2), color: valueCol, id: '', title: ''});
-            } else {
-                html += this.makeTd({text: this.stats.other.eer, color: valueCol, id: '', title: ''});
-            }
-
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Invasions Won', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.won), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Duels Won', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.won), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Invasions Lost', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.lost), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Duels Lost', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.lost), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Invasions Streak', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.streak), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Duels Streak', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.streak), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Invasions Win/loss Ratio (IWLR)', color: titleCol, id: '', title: ''});
-            if (this.stats.achievements.battle.invasions.ratio) {
-                html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio.toFixed(2), color: valueCol, id: '', title: ''});
-            } else {
-                html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio, color: valueCol, id: '', title: ''});
-            }
-
-            html += this.makeTd({text: 'Duels Win/loss Ratio (DWLR)', color: titleCol, id: '', title: ''});
-            if (this.stats.achievements.battle.duels.ratio) {
-                html += this.makeTd({text: this.stats.achievements.battle.duels.ratio.toFixed(2), color: valueCol, id: '', title: ''});
-            } else {
-                html += this.makeTd({text: this.stats.achievements.battle.duels.ratio, color: valueCol, id: '', title: ''});
-            }
-
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Quests Completed', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.other.qc), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Alchemy Performed', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.other.alchemy), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Gildamesh, The Orc King Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.gildamesh), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Lotus Ravenmoore Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.lotus), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'The Colossus of Terra Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.colossus), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Dragons Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.dragons), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sylvanas), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Cronus, The World Hydra Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.cronus), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Keira the Dread Knight Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.keira), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'The Battle of the Dark Legion Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.legion), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Genesis, The Earth Elemental Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.genesis), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Skaar Deathrune Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.skaar), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.gehenna), color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Sieges Assisted With', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sieges), color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Ambrosia Daily Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.ambrosia.daily.num + '/' + this.demi.ambrosia.daily.max, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Malekus Daily Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.malekus.daily.num + '/' + this.demi.ambrosia.daily.max, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Ambrosia Total Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.ambrosia.power.total, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Malekus Total Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.malekus.power.total, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Corvintheus Daily Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.corvintheus.daily.num + '/' + this.demi.corvintheus.daily.max, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Aurora Daily Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.aurora.daily.num + '/' + this.demi.aurora.daily.max, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Corvintheus Total Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.corvintheus.power.total, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: 'Aurora Total Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.aurora.power.total, color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Azeron Daily Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.azeron.daily.num + '/' + this.demi.azeron.daily.max, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            html += "<tr>";
-            html += this.makeTd({text: 'Azeron Total Points', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: this.demi.azeron.power.total, color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-
-            html += "<tr>";
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-            html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-            html += '</tr>';
-
-            count = 0;
-            for (pp in this.stats.character) {
-                if (this.stats.character.hasOwnProperty(pp)) {
-                    if (count % 2  === 0) {
-                        html += "<tr>";
+            if (state.getItem("UserDashUpdate", true)) {
+                html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                headers = ['Name', 'Value', 'Name', 'Value'];
+                for (pp in headers) {
+                    if (headers.hasOwnProperty(pp)) {
+                        html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                     }
-
-                    html += this.makeTd({text: this.stats.character[pp].name, color: titleCol, id: '', title: ''});
-                    html += this.makeTd({text: "Level " + this.stats.character[pp].level + " (" + this.stats.character[pp].percent + "%)", color: valueCol, id: '', title: ''});
-                    if (count % 2 === 1) {
-                        html += '</tr>';
-                    }
-
-                    count += 1;
                 }
-            }
 
-            html += '</table>';
-            $("#caap_userStats").html(html);
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Facebook ID', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.FBID, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Account Name', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.account, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Character Name', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.PlayerName, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Energy', color: titleCol, id: '', title: 'Current/Max'});
+                html += this.makeTd({text: this.stats.energy.num + '/' + this.stats.energy.max, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Level', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.level, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Stamina', color: titleCol, id: '', title: 'Current/Max'});
+                html += this.makeTd({text: this.stats.stamina.num + '/' + this.stats.stamina.max, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Battle Rank', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.battleRankTable[this.stats.rank.battle] + ' (' + this.stats.rank.battle + ')', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Attack', color: titleCol, id: '', title: 'Current/Max'});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.attack), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Battle Rank Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.rank.battlePoints), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Defense', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.defense), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'War Rank', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.warRankTable[this.stats.rank.war] + ' (' + this.stats.rank.war + ')', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Health', color: titleCol, id: '', title: 'Current/Max'});
+                html += this.makeTd({text: this.stats.health.num + '/' + this.stats.health.max, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'War Rank Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.rank.warPoints), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Army', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.army.actual), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Generals', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.generals.total, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Generals When Invade', color: titleCol, id: '', title: 'For every 5 army members you have, one of your generals will also join the fight.'});
+                html += this.makeTd({text: this.stats.generals.invade, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Gold In Bank', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.bank), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Total Income Per Hour', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.income), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Gold In Cash', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.cash), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Upkeep', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.upkeep), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Total Gold', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.total), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Cash Flow Per Hour', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '$' + this.makeCommaValue(this.stats.gold.flow), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Skill Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.points.skill, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Energy Potions', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.potions.energy, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Favor Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.points.favor, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Stamina Potions', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.potions.stamina, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Experience To Next Level (ETNL)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.exp.dif), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Battle Strength Index (BSI)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.indicators.bsi.toFixed(2), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Hours To Level (HTL)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.decHours2HoursMin(this.stats.indicators.htl), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Levelling Speed Index (LSI)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.indicators.lsi.toFixed(2), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Hours Remaining To Level (HRTL)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.decHours2HoursMin(this.stats.indicators.hrtl), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Skill Points Per Level (SPPL)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.indicators.sppl.toFixed(2), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Expected Next Level (ENL)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: schedule.FormatTime(new Date(this.stats.indicators.enl)), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Attack Power Index (API)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.indicators.api.toFixed(2), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Defense Power Index (DPI)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.indicators.dpi.toFixed(2), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Mean Power Index (MPI)', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.stats.indicators.mpi.toFixed(2), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Battles/Wars Won', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.other.bww), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Times eliminated', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.other.te), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Battles/Wars Lost', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.other.bwl), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Times you eliminated an enemy', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.other.tee), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: titleCol, id: '', title: ''});
+                if (this.stats.other.wlr) {
+                    html += this.makeTd({text: this.stats.other.wlr.toFixed(2), color: valueCol, id: '', title: ''});
+                } else {
+                    html += this.makeTd({text: this.stats.other.wlr, color: valueCol, id: '', title: ''});
+                }
+
+                html += this.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: titleCol, id: '', title: ''});
+                if (this.stats.other.eer) {
+                    html += this.makeTd({text: this.stats.other.eer.toFixed(2), color: valueCol, id: '', title: ''});
+                } else {
+                    html += this.makeTd({text: this.stats.other.eer, color: valueCol, id: '', title: ''});
+                }
+
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Invasions Won', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.won), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Duels Won', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.won), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Invasions Lost', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.lost), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Duels Lost', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.lost), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Invasions Streak', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.invasions.streak), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Duels Streak', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.battle.duels.streak), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Invasions Win/loss Ratio (IWLR)', color: titleCol, id: '', title: ''});
+                if (this.stats.achievements.battle.invasions.ratio) {
+                    html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+                } else {
+                    html += this.makeTd({text: this.stats.achievements.battle.invasions.ratio, color: valueCol, id: '', title: ''});
+                }
+
+                html += this.makeTd({text: 'Duels Win/loss Ratio (DWLR)', color: titleCol, id: '', title: ''});
+                if (this.stats.achievements.battle.duels.ratio) {
+                    html += this.makeTd({text: this.stats.achievements.battle.duels.ratio.toFixed(2), color: valueCol, id: '', title: ''});
+                } else {
+                    html += this.makeTd({text: this.stats.achievements.battle.duels.ratio, color: valueCol, id: '', title: ''});
+                }
+
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Quests Completed', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.other.qc), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Alchemy Performed', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.other.alchemy), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Gildamesh, The Orc King Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.gildamesh), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Lotus Ravenmoore Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.lotus), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'The Colossus of Terra Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.colossus), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Dragons Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.dragons), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sylvanas), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Cronus, The World Hydra Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.cronus), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Keira the Dread Knight Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.keira), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'The Battle of the Dark Legion Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.legion), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Genesis, The Earth Elemental Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.genesis), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Skaar Deathrune Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.skaar), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.gehenna), color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Sieges Assisted With', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.makeCommaValue(this.stats.achievements.monster.sieges), color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Ambrosia Daily Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.ambrosia.daily.num + '/' + this.demi.ambrosia.daily.max, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Malekus Daily Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.malekus.daily.num + '/' + this.demi.ambrosia.daily.max, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Ambrosia Total Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.ambrosia.power.total, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Malekus Total Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.malekus.power.total, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Corvintheus Daily Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.corvintheus.daily.num + '/' + this.demi.corvintheus.daily.max, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Aurora Daily Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.aurora.daily.num + '/' + this.demi.aurora.daily.max, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Corvintheus Total Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.corvintheus.power.total, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: 'Aurora Total Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.aurora.power.total, color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Azeron Daily Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.azeron.daily.num + '/' + this.demi.azeron.daily.max, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                html += "<tr>";
+                html += this.makeTd({text: 'Azeron Total Points', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: this.demi.azeron.power.total, color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+
+                html += "<tr>";
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                html += '</tr>';
+
+                count = 0;
+                for (pp in this.stats.character) {
+                    if (this.stats.character.hasOwnProperty(pp)) {
+                        if (count % 2  === 0) {
+                            html += "<tr>";
+                        }
+
+                        html += this.makeTd({text: this.stats.character[pp].name, color: titleCol, id: '', title: ''});
+                        html += this.makeTd({text: "Level " + this.stats.character[pp].level + " (" + this.stats.character[pp].percent + "%)", color: valueCol, id: '', title: ''});
+                        if (count % 2 === 1) {
+                            html += '</tr>';
+                        }
+
+                        count += 1;
+                    }
+                }
+
+                html += '</table>';
+                $("#caap_userStats").html(html);
+                state.setItem("UserDashUpdate", false);
+            }
 
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
             table and then build the header row.
             \-------------------------------------------------------------------------------------*/
-            html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-            headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
-            values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
-            $.merge(generalValues, values);
-            for (pp in headers) {
-                if (headers.hasOwnProperty(pp)) {
-                    header = {
-                        text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                        color : 'blue',
-                        id    : '',
-                        title : '',
-                        width : ''
-                    };
-
-                    if (headers[pp] === 'Special') {
+            if (state.getItem("GeneralsDashUpdate", true)) {
+                html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
+                values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
+                $.merge(generalValues, values);
+                for (pp in headers) {
+                    if (headers.hasOwnProperty(pp)) {
                         header = {
-                            text  : headers[pp],
-                            color : 'black',
+                            text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                            color : 'blue',
                             id    : '',
                             title : '',
-                            width : '25%'
+                            width : ''
                         };
-                    }
 
-                    html += this.makeTh(header);
-                }
-            }
-
-            html += '</tr>';
-            for (it = 0; it < general.RecordArraySortable.length; it += 1) {
-                html += "<tr>";
-                for (pp in values) {
-                    if (values.hasOwnProperty(pp)) {
-                        str = '';
-                        if (isNaN(general.RecordArraySortable[it][values[pp]])) {
-                            if (general.RecordArraySortable[it][values[pp]]) {
-                                str = general.RecordArraySortable[it][values[pp]];
-                            }
-                        } else {
-                            if (/pi/.test(values[pp])) {
-                                str = general.RecordArraySortable[it][values[pp]].toFixed(2);
-                            } else {
-                                str = general.RecordArraySortable[it][values[pp]].toString();
-                            }
+                        if (headers[pp] === 'Special') {
+                            header = {
+                                text  : headers[pp],
+                                color : 'black',
+                                id    : '',
+                                title : '',
+                                width : '25%'
+                            };
                         }
 
-                        if (pp === "0") {
-                            color = titleCol;
-                        } else {
-                            color = valueCol;
-                        }
-
-                        html += caap.makeTd({text: str, color: color, id: '', title: ''});
+                        html += this.makeTh(header);
                     }
                 }
 
                 html += '</tr>';
+                for (it = 0; it < general.recordsSortable.length; it += 1) {
+                    html += "<tr>";
+                    for (pp in values) {
+                        if (values.hasOwnProperty(pp)) {
+                            str = '';
+                            if (isNaN(general.recordsSortable[it][values[pp]])) {
+                                if (general.recordsSortable[it][values[pp]]) {
+                                    str = general.recordsSortable[it][values[pp]];
+                                }
+                            } else {
+                                if (/pi/.test(values[pp])) {
+                                    str = general.recordsSortable[it][values[pp]].toFixed(2);
+                                } else {
+                                    str = general.recordsSortable[it][values[pp]].toString();
+                                }
+                            }
+
+                            if (pp === "0") {
+                                color = titleCol;
+                            } else {
+                                color = valueCol;
+                            }
+
+                            html += caap.makeTd({text: str, color: color, id: '', title: ''});
+                        }
+                    }
+
+                    html += '</tr>';
+                }
+
+                html += '</table>';
+                $("#caap_generalsStats").html(html);
+
+                handler = function (e) {
+                    var clicked = '';
+
+                    if (e.target.id) {
+                        clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
+                    }
+
+                    utility.log(9, "Clicked", clicked);
+                    if (generalValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                        general.recordsSortable.sort(sort[clicked]);
+                        state.setItem("GeneralsDashUpdate", true);
+                        caap.UpdateDashboard(true);
+                    }
+                };
+
+                $("#caap_top span[id*='caap_generalsStats_']").unbind('click', handler).click(handler);
+                state.setItem("GeneralsDashUpdate", false);
             }
-
-            html += '</table>';
-            $("#caap_generalsStats").html(html);
-
-            $("#caap_top span[id*='caap_generalsStats_']").click(function (e) {
-                var clicked = '';
-
-                if (e.target.id) {
-                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
-                }
-
-                global.log(9, "Clicked", clicked);
-                if (generalValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
-                    general.RecordArraySortable.sort(sort[clicked]);
-                }
-
-                caap.UpdateDashboard(true);
-            });
 
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
             We set our table and then build the header row.
             \-------------------------------------------------------------------------------------*/
-            town = ['soldiers', 'item', 'magic'];
-            headers = ['Name', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
-            values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
-            $.merge(townValues, values);
-            for (i in town) {
-                if (town.hasOwnProperty(i)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    for (pp in headers) {
-                        if (headers.hasOwnProperty(pp)) {
-                            header = {
-                                text  : '<span id="caap_' + town[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
-                                color : 'blue',
-                                id    : '',
-                                title : '',
-                                width : ''
-                            };
+            if (state.getItem("SoldiersDashUpdate", true) || state.getItem("ItemDashUpdate", true) || state.getItem("MagicDashUpdate", true)) {
+                town = ['soldiers', 'item', 'magic'];
+                headers = ['Name', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
+                values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
+                $.merge(townValues, values);
+                for (i in town) {
+                    if (town.hasOwnProperty(i)) {
+                        switch (i) {
+                        case 'soldiers' :
+                            if (!state.getItem("SoldiersDashUpdate", true)) {
+                                continue;
+                            }
 
-                            html += this.makeTh(header);
+                            break;
+                        case 'item' :
+                            if (!state.getItem("ItemDashUpdate", true)) {
+                                continue;
+                            }
+
+                            break;
+                        case 'magic' :
+                            if (!state.getItem("MagicDashUpdate", true)) {
+                                continue;
+                            }
+
+                            break;
+                        default :
                         }
-                    }
 
-                    html += '</tr>';
-                    for (it = 0; it < this[town[i] + "ArraySortable"].length; it += 1) {
-                        html += "<tr>";
-                        for (pp in values) {
-                            if (values.hasOwnProperty(pp)) {
-                                str = '';
-                                if (isNaN(this[town[i] + "ArraySortable"][it][values[pp]])) {
-                                    if (this[town[i] + "ArraySortable"][it][values[pp]]) {
-                                        str = this[town[i] + "ArraySortable"][it][values[pp]];
-                                    }
-                                } else {
-                                    if (/pi/.test(values[pp])) {
-                                        str = this[town[i] + "ArraySortable"][it][values[pp]].toFixed(2);
-                                    } else {
-                                        str = this.makeCommaValue(this[town[i] + "ArraySortable"][it][values[pp]]);
-                                        if (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') {
-                                            str = "$" + str;
-                                        }
-                                    }
-                                }
+                        html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                        for (pp in headers) {
+                            if (headers.hasOwnProperty(pp)) {
+                                header = {
+                                    text  : '<span id="caap_' + town[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : '',
+                                    width : ''
+                                };
 
-                                if (pp === "0") {
-                                    color = titleCol;
-                                } else {
-                                    color = valueCol;
-                                }
-
-                                html += caap.makeTd({text: str, color: color, id: '', title: ''});
+                                html += this.makeTh(header);
                             }
                         }
 
                         html += '</tr>';
+                        for (it = 0; it < this[town[i] + "ArraySortable"].length; it += 1) {
+                            html += "<tr>";
+                            for (pp in values) {
+                                if (values.hasOwnProperty(pp)) {
+                                    str = '';
+                                    if (isNaN(this[town[i] + "ArraySortable"][it][values[pp]])) {
+                                        if (this[town[i] + "ArraySortable"][it][values[pp]]) {
+                                            str = this[town[i] + "ArraySortable"][it][values[pp]];
+                                        }
+                                    } else {
+                                        if (/pi/.test(values[pp])) {
+                                            str = this[town[i] + "ArraySortable"][it][values[pp]].toFixed(2);
+                                        } else {
+                                            str = this.makeCommaValue(this[town[i] + "ArraySortable"][it][values[pp]]);
+                                            if (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') {
+                                                str = "$" + str;
+                                            }
+                                        }
+                                    }
+
+                                    if (pp === "0") {
+                                        color = titleCol;
+                                    } else {
+                                        color = valueCol;
+                                    }
+
+                                    html += caap.makeTd({text: str, color: color, id: '', title: ''});
+                                }
+                            }
+
+                            html += '</tr>';
+                        }
+
+                        html += '</table>';
+                        $("#caap_" + town[i] + "Stats").html(html);
+                    }
+                }
+
+                handler = function (e) {
+                    var clicked = '';
+
+                    if (e.target.id) {
+                        clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
                     }
 
-                    html += '</table>';
-                    $("#caap_" + town[i] + "Stats").html(html);
-                }
+                    utility.log(9, "Clicked", clicked);
+                    if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                        caap.soldiersArraySortable.sort(sort[clicked]);
+                        state.setItem("SoldiersDashUpdate", true);
+                        caap.UpdateDashboard(true);
+                    }
+                };
+
+                $("#caap_top span[id*='caap_soldiersStats_']").unbind('click', handler).click(handler);
+                state.setItem("SoldiersDashUpdate", false);
+
+                handler = function (e) {
+                    var clicked = '';
+
+                    if (e.target.id) {
+                        clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
+                    }
+
+                    utility.log(9, "Clicked", clicked);
+                    if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                        caap.itemArraySortable.sort(sort[clicked]);
+                        state.setItem("ItemDashUpdate", true);
+                        caap.UpdateDashboard(true);
+                    }
+                };
+
+                $("#caap_top span[id*='caap_itemStats_']").unbind('click', handler).click(handler);
+                state.setItem("ItemDashUpdate", false);
+
+                handler = function (e) {
+                    var clicked = '';
+
+                    if (e.target.id) {
+                        clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
+                    }
+
+                    utility.log(9, "Clicked", clicked);
+                    if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
+                        caap.magicArraySortable.sort(sort[clicked]);
+                        state.setItem("MagicDashUpdate", true);
+                        caap.UpdateDashboard(true);
+                    }
+                };
+
+                $("#caap_top span[id*='caap_magicStats_']").unbind('click', handler).click(handler);
+                state.setItem("MagicDashUpdate", false);
             }
-
-            $("#caap_top span[id*='caap_" + town[0] + "Stats_']").click(function (e) {
-                var clicked = '';
-
-                if (e.target.id) {
-                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
-                }
-
-                global.log(9, "Clicked", clicked);
-                if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
-                    caap[town[0] + "ArraySortable"].sort(sort[clicked]);
-                }
-
-                caap.UpdateDashboard(true);
-            });
-
-            $("#caap_top span[id*='caap_" + town[1] + "Stats_']").click(function (e) {
-                var clicked = '';
-
-                if (e.target.id) {
-                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
-                }
-
-                global.log(9, "Clicked", clicked);
-                if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
-                    caap[town[1] + "ArraySortable"].sort(sort[clicked]);
-                }
-
-                caap.UpdateDashboard(true);
-            });
-
-            $("#caap_top span[id*='caap_" + town[2] + "Stats_']").click(function (e) {
-                var clicked = '';
-
-                if (e.target.id) {
-                    clicked = e.target.id.replace(new RegExp("caap_.*Stats_"), '');
-                }
-
-                global.log(9, "Clicked", clicked);
-                if (townValues.indexOf(clicked) !== -1 && typeof sort[clicked] === 'function') {
-                    caap[town[2] + "ArraySortable"].sort(sort[clicked]);
-                }
-
-                caap.UpdateDashboard(true);
-            });
 
             return true;
         } catch (err) {
-            global.error("ERROR in UpdateDashboard: " + err);
+            utility.error("ERROR in UpdateDashboard: " + err);
             return false;
         }
     },
@@ -2695,7 +2584,7 @@ caap = {
     \-------------------------------------------------------------------------------------*/
     dbDisplayListener: function (e) {
         var value = e.target.options[e.target.selectedIndex].value;
-        gm.setValue('DBDisplay', value);
+        config.setItem('DBDisplay', value);
         switch (value) {
         case "Target List" :
             caap.SetDisplay('infoMonster', false);
@@ -2798,17 +2687,11 @@ caap = {
     },
 
     refreshMonstersListener: function (e) {
-        caap.monsterArray = [];
-        gm.deleteValue("monsterArray");
-        schedule.Set("monsterReview", 0);
-        gm.setValue('monsterReviewCounter', -3);
-        schedule.Set('NotargetFrombattle_monster', 0);
-        gm.setValue('ReleaseControl', true);
-        caap.UpdateDashboard();
+        monster.flagFullReview();
     },
 
     liveFeedButtonListener: function (e) {
-        caap.ClickAjax('army_news_feed.php');
+        utility.ClickAjax('army_news_feed.php');
     },
 
     clearTargetsButtonListener: function (e) {
@@ -2819,19 +2702,19 @@ caap = {
 
     AddDBListener: function () {
         try {
-            global.log(1, "Adding listeners for caap_top");
+            utility.log(1, "Adding listeners for caap_top");
             if (!$('#caap_DBDisplay').length) {
-                global.ReloadCastleAge();
+                caap.ReloadCastleAge();
             }
 
             $('#caap_DBDisplay').change(this.dbDisplayListener);
             $('#caap_refreshMonsters').click(this.refreshMonstersListener);
             $('#caap_liveFeed').click(this.liveFeedButtonListener);
             $('#caap_clearTargets').click(this.clearTargetsButtonListener);
-            global.log(8, "Listeners added for caap_top");
+            utility.log(8, "Listeners added for caap_top");
             return true;
         } catch (err) {
-            global.error("ERROR in AddDBListener: " + err);
+            utility.error("ERROR in AddDBListener: " + err);
             return false;
         }
     },
@@ -2851,7 +2734,7 @@ caap = {
 
             return true;
         } catch (err) {
-            global.error("ERROR in SetDisplay: " + err);
+            utility.error("ERROR in SetDisplay: " + err);
             return false;
         }
     },
@@ -2862,15 +2745,15 @@ caap = {
                 DocumentTitle = '',
                 d             = '';
 
-            global.log(1, "Change: setting '" + idName + "' to " + e.target.checked);
-            gm.setValue(idName, e.target.checked);
+            utility.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
+            config.setItem(idName, e.target.checked);
             if (e.target.className) {
                 caap.SetDisplay(e.target.className, e.target.checked);
             }
 
             switch (idName) {
             case "AutoStatAdv" :
-                global.log(9, "AutoStatAdv");
+                utility.log(9, "AutoStatAdv");
                 if (e.target.checked) {
                     caap.SetDisplay('Status_Normal', false);
                     caap.SetDisplay('Status_Adv', true);
@@ -2879,10 +2762,10 @@ caap = {
                     caap.SetDisplay('Status_Adv', false);
                 }
 
-                caap.statsMatch = true;
+                state.setItem("statsMatch", true);
                 break;
             case "HideAds" :
-                global.log(9, "HideAds");
+                utility.log(9, "HideAds");
                 if (e.target.checked) {
                     $('.UIStandardFrame_SidebarAds').css('display', 'none');
                 } else {
@@ -2891,7 +2774,7 @@ caap = {
 
                 break;
             case "BannerDisplay" :
-                global.log(9, "BannerDisplay");
+                utility.log(9, "BannerDisplay");
                 if (e.target.checked) {
                     $('#caap_BannerHide').css('display', 'block');
                 } else {
@@ -2900,27 +2783,27 @@ caap = {
 
                 break;
             case "IgnoreBattleLoss" :
-                global.log(9, "IgnoreBattleLoss");
+                utility.log(9, "IgnoreBattleLoss");
                 if (e.target.checked) {
-                    global.log(1, "Ignore Battle Losses has been enabled.");
-                    gm.deleteValue("BattlesLostList");
-                    global.log(1, "Battle Lost List has been cleared.");
+                    utility.log(1, "Ignore Battle Losses has been enabled.");
+                    gm.setItem("BattlesLostList", '');
+                    utility.log(1, "Battle Lost List has been cleared.");
                 }
 
                 break;
             case "SetTitle" :
             case "SetTitleAction" :
             case "SetTitleName" :
-                global.log(9, idName);
+                utility.log(9, idName);
                 if (e.target.checked) {
-                    if (gm.getValue('SetTitleAction', false)) {
+                    if (config.getItem('SetTitleAction', false)) {
                         d = $('#caap_activity_mess').html();
                         if (d) {
                             DocumentTitle += d.replace("Activity: ", '') + " - ";
                         }
                     }
 
-                    if (gm.getValue('SetTitleName', false)) {
+                    if (config.getItem('SetTitleName', false)) {
                         DocumentTitle += caap.stats.PlayerName + " - ";
                     }
 
@@ -2931,7 +2814,7 @@ caap = {
 
                 break;
             case "unlockMenu" :
-                global.log(9, "unlockMenu");
+                utility.log(9, "unlockMenu");
                 if (e.target.checked) {
                     $(":input[id^='caap_']").attr({disabled: true});
                     caap.caapDivObject.css('cursor', 'move').draggable({
@@ -2953,32 +2836,31 @@ caap = {
 
                 break;
             case "AutoElite" :
-                global.log(9, "AutoElite");
-                schedule.Set('AutoEliteGetList', 0);
-                schedule.Set('AutoEliteReqNext', 0);
-                gm.deleteValue('AutoEliteEnd');
-                gm.deleteValue('MyEliteTodo');
-                if (!gm.getValue('FillArmy', false)) {
-                    gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
-                    gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
+                utility.log(9, "AutoElite");
+                schedule.setItem('AutoEliteGetList', 0);
+                schedule.setItem('AutoEliteReqNext', 0);
+                state.setItem('AutoEliteEnd', '');
+                state.setItem("MyEliteTodo", []);
+                if (!state.getItem('FillArmy', false)) {
+                    state.setItem(caap.friendListType.giftc.name + 'Requested', false);
+                    state.setItem(caap.friendListType.giftc.name + 'Responded', []);
                 }
 
                 break;
-            case "AutoPotions" :
-                global.log(9, "AutoPotions");
-                gm.deleteValue('AutoPotionTimer');
-                break;
             case "AchievementMode" :
-                global.log(9, "AchievementMode");
-                schedule.Set("monsterReview", 0);
-                gm.setValue('monsterReviewCounter', -3);
+                utility.log(9, "AchievementMode");
+                monster.flagReview();
+                break;
+            case "StatSpendAll" :
+                state.setItem("statsMatch", true);
+                state.setItem("autoStatRuleLog", true);
                 break;
             default :
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in CheckBoxListener: " + err);
+            utility.error("ERROR in CheckBoxListener: " + err);
             return false;
         }
     },
@@ -2986,7 +2868,8 @@ caap = {
     TextBoxListener: function (e) {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
-            global.log(1, 'Change: setting "' + idName + '" to "' + e.target.value + '"');
+
+            utility.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
             if (/Style+/.test(idName)) {
                 switch (idName) {
                 case "StyleBackgroundLight" :
@@ -2994,36 +2877,54 @@ caap = {
                         e.target.value = '#' + e.target.value;
                     }
 
-                    gm.setValue("CustStyleBackgroundLight", e.target.value);
+                    state.setItem("CustStyleBackgroundLight", e.target.value);
                     break;
                 case "StyleBackgroundDark" :
                     if (e.target.value.substr(0, 1) !== '#') {
                         e.target.value = '#' + e.target.value;
                     }
 
-                    gm.setValue("CustStyleBackgroundDark", e.target.value);
-                    break;
-                case "StyleOpacityLight" :
-                    gm.setValue("CustStyleOpacityLight", e.target.value);
-                    break;
-                case "StyleOpacityDark" :
-                    gm.setValue("CustStyleOpacityDark", e.target.value);
+                    state.setItem("CustStyleBackgroundDark", e.target.value);
                     break;
                 default :
                 }
             } else if (/AttrValue+/.test(idName)) {
-                caap.statsMatch = true;
-            } else if (/MaxToFortify/.test(idName)) {
-                schedule.Set("monsterReview", 0);
-                gm.setValue('monsterReviewCounter', -3);
-            } else if (/energyPotions+/.test(idName) || /staminaPotions+/.test(idName)) {
-                gm.deleteValue('AutoPotionTimer');
+                state.setItem("statsMatch", true);
             }
 
-            gm.setValue(idName, e.target.value);
+            config.setItem(idName, String(e.target.value));
             return true;
         } catch (err) {
-            global.error("ERROR in TextBoxListener: " + err);
+            utility.error("ERROR in TextBoxListener: " + err);
+            return false;
+        }
+    },
+
+    NumberBoxListener: function (e) {
+        try {
+            var idName = e.target.id.replace(/caap_/i, '');
+
+            utility.log(1, 'Change: setting "' + idName + '" to ', parseFloat(e.target.value));
+            if (/Style+/.test(idName)) {
+                switch (idName) {
+                case "StyleOpacityLight" :
+                    state.setItem("CustStyleOpacityLight", e.target.value);
+                    break;
+                case "StyleOpacityDark" :
+                    state.setItem("CustStyleOpacityDark", e.target.value);
+                    break;
+                default :
+                }
+            } else if (/AttrValue+/.test(idName)) {
+                state.setItem("statsMatch", true);
+            } else if (/MaxToFortify/.test(idName)) {
+                monster.flagFullReview();
+            }
+
+            config.setItem(idName, parseFloat(e.target.value));
+            return true;
+        } catch (err) {
+            utility.error("ERROR in NumberBoxListener: " + err);
             return false;
         }
     },
@@ -3035,14 +2936,14 @@ caap = {
                     value  = e.target.options[e.target.selectedIndex].value,
                     title  = e.target.options[e.target.selectedIndex].title;
 
-                global.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
-                gm.setValue(idName, value);
+                utility.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
+                config.setItem(idName, value);
                 e.target.title = title;
                 if (idName === 'WhenQuest' || idName === 'WhenBattle' || idName === 'WhenMonster' || idName === 'LevelUpGeneral') {
                     caap.SetDisplay(idName + 'Hide', (value !== 'Never'));
                     if (idName === 'WhenBattle' || idName === 'WhenMonster') {
                         caap.SetDisplay(idName + 'XStamina', (value === 'At X Stamina'));
-                        caap.SetDisplay('WhenBattleStayHidden1', ((gm.getValue('WhenBattle', false) === 'Stay Hidden' && gm.getValue('WhenMonster', false) !== 'Stay Hidden')));
+                        caap.SetDisplay('WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
                         if (idName === 'WhenBattle') {
                             if (value === 'Never') {
                                 caap.SetDivContent('battle_mess', 'Battle off');
@@ -3062,7 +2963,8 @@ caap = {
                         caap.SetDisplay(idName + 'XEnergy', (value === 'At X Energy'));
                     }
                 } else if (idName === 'QuestArea' || idName === 'QuestSubArea' || idName === 'WhyQuest') {
-                    gm.setValue('AutoQuest', '');
+                    //gm.setItem('AutoQuest', '');
+                    state.setItem('AutoQuest', caap.newAutoQuest());
                     caap.ClearAutoQuest();
                     if (idName === 'QuestArea') {
                         switch (value) {
@@ -3081,9 +2983,6 @@ caap = {
                         default :
                         }
                     }
-                } else if (idName === 'IdleGeneral') {
-                    gm.setValue('MaxIdleEnergy', 0);
-                    gm.setValue('MaxIdleStamina', 0);
                 } else if (idName === 'TargetType') {
                     switch (value) {
                     case "Freshmeat" :
@@ -3107,51 +3006,50 @@ caap = {
                         caap.SetDisplay('RaidSub', false);
                     }
                 } else if (/Attribute?/.test(idName)) {
-                    //gm.setValue("SkillPointsNeed", 1);
-                    caap.statsMatch = true;
+                    state.setItem("statsMatch", true);
                 } else if (idName === 'DisplayStyle') {
                     caap.SetDisplay(idName + 'Hide', (value === 'Custom'));
                     switch (value) {
                     case "CA Skin" :
-                        gm.setValue("StyleBackgroundLight", "#E0C691");
-                        gm.setValue("StyleBackgroundDark", "#B09060");
-                        gm.setValue("StyleOpacityLight", "1");
-                        gm.setValue("StyleOpacityDark", "1");
+                        config.setItem("StyleBackgroundLight", "#E0C691");
+                        config.setItem("StyleBackgroundDark", "#B09060");
+                        config.setItem("StyleOpacityLight", 1);
+                        config.setItem("StyleOpacityDark", 1);
                         break;
                     case "None" :
-                        gm.setValue("StyleBackgroundLight", "white");
-                        gm.setValue("StyleBackgroundDark", "white");
-                        gm.setValue("StyleOpacityLight", "1");
-                        gm.setValue("StyleOpacityDark", "1");
+                        config.setItem("StyleBackgroundLight", "white");
+                        config.setItem("StyleBackgroundDark", "white");
+                        config.setItem("StyleOpacityLight", 1);
+                        config.setItem("StyleOpacityDark", 1);
                         break;
                     case "Custom" :
-                        gm.setValue("StyleBackgroundLight", gm.getValue("CustStyleBackgroundLight", "#E0C691"));
-                        gm.setValue("StyleBackgroundDark", gm.getValue("CustStyleBackgroundDark", "#B09060"));
-                        gm.setValue("StyleOpacityLight", gm.getValue("CustStyleOpacityLight", "1"));
-                        gm.setValue("StyleOpacityDark", gm.getValue("CustStyleOpacityDark", "1"));
+                        config.setItem("StyleBackgroundLight", state.getItem("CustStyleBackgroundLight", "#E0C691"));
+                        config.setItem("StyleBackgroundDark", state.getItem("CustStyleBackgroundDark", "#B09060"));
+                        config.setItem("StyleOpacityLight", state.getItem("CustStyleOpacityLight", 1));
+                        config.setItem("StyleOpacityDark", state.getItem("CustStyleOpacityDark", 1));
                         break;
                     default :
-                        gm.setValue("StyleBackgroundLight", "#efe");
-                        gm.setValue("StyleBackgroundDark", "#fee");
-                        gm.setValue("StyleOpacityLight", "1");
-                        gm.setValue("StyleOpacityDark", "1");
+                        config.setItem("StyleBackgroundLight", "#efe");
+                        config.setItem("StyleBackgroundDark", "#fee");
+                        config.setItem("StyleOpacityLight", 1);
+                        config.setItem("StyleOpacityDark", 1);
                     }
 
                     caap.caapDivObject.css({
-                        background: gm.getValue('StyleBackgroundDark', '#fee'),
-                        opacity: gm.getValue('StyleOpacityDark', '1')
+                        background: config.getItem('StyleBackgroundDark', '#fee'),
+                        opacity: config.getItem('StyleOpacityDark', 1)
                     });
 
                     caap.caapTopObject.css({
-                        background: gm.getValue('StyleBackgroundDark', '#fee'),
-                        opacity: gm.getValue('StyleOpacityDark', '1')
+                        background: config.getItem('StyleBackgroundDark', '#fee'),
+                        opacity: config.getItem('StyleOpacityDark', 1)
                     });
                 }
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in DropBoxListener: " + err);
+            utility.error("ERROR in DropBoxListener: " + err);
             return false;
         }
     },
@@ -3160,94 +3058,63 @@ caap = {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
             var value = e.target.value;
-            global.log(1, 'Change: setting "' + idName + '" to "' + value + '"');
+            utility.log(1, 'Change: setting "' + idName + '" to ', value);
             if (idName === 'orderbattle_monster' || idName === 'orderraid') {
-                gm.setValue("resermonsterSelect", true);
-                schedule.Set("monsterReview", 0);
-                gm.setValue('monsterReviewCounter', -3);
+                monster.flagFullReview();;
             }
 
-            if (idName === 'EliteArmyList' || idName === 'BattleTargets') {
-                var eList = [];
-                if (value.length) {
-                    value = value.replace(/\n/gi, ',');
-                    eList = value.split(',');
-                    var fEmpty = function (e) {
-                        return e !== '';
-                    };
-
-                    eList = eList.filter(fEmpty);
-                    if (!eList.length) {
-                        eList = [];
-                    }
-                }
-
-                gm.setList(idName, eList);
-                e.target.value = eList;
-            } else {
-                caap.SaveBoxText(idName);
-            }
-
+            caap.SaveBoxText(idName);
             return true;
         } catch (err) {
-            global.error("ERROR in TextAreaListener: " + err);
+            utility.error("ERROR in TextAreaListener: " + err);
             return false;
         }
     },
 
     PauseListener: function (e) {
         $('#caap_div').css({
-            'background': gm.getValue('StyleBackgroundDark', '#fee'),
+            'background': config.getItem('StyleBackgroundDark', '#fee'),
             'opacity': '1',
             'z-index': '3'
         });
 
         $('#caap_top').css({
-            'background': gm.getValue('StyleBackgroundDark', '#fee'),
+            'background': config.getItem('StyleBackgroundDark', '#fee'),
             'opacity': '1'
         });
 
         $('#caapPaused').css('display', 'block');
-        if (global.is_chrome) {
-            CE_message("paused", null, 'block');
-        }
-
-        gm.setValue('caapPause', 'block');
+        state.setItem('caapPause', 'block');
     },
 
     RestartListener: function (e) {
         $('#caapPaused').css('display', 'none');
         $('#caap_div').css({
-            'background': gm.getValue('StyleBackgroundLight', '#efe'),
-            'opacity': gm.getValue('StyleOpacityLight', '1'),
-            'z-index': gm.getValue('caap_div_zIndex', '2'),
+            'background': config.getItem('StyleBackgroundLight', '#efe'),
+            'opacity': config.getItem('StyleOpacityLight', 1),
+            'z-index': state.getItem('caap_div_zIndex', '2'),
             'cursor': ''
         });
 
         $('#caap_top').css({
-            'background': gm.getValue('StyleBackgroundLight', '#efe'),
-            'opacity': gm.getValue('StyleOpacityLight', '1'),
-            'z-index': gm.getValue('caap_top_zIndex', '1'),
+            'background': config.getItem('StyleBackgroundLight', '#efe'),
+            'opacity': config.getItem('StyleOpacityLight', 1),
+            'z-index': state.getItem('caap_top_zIndex', '1'),
             'cursor': ''
         });
 
         $(":input[id*='caap_']").attr({disabled: false});
         $('#unlockMenu').attr('checked', false);
-
-        gm.setValue('caapPause', 'none');
-        if (global.is_chrome) {
-            CE_message("paused", null, gm.getValue('caapPause', 'none'));
-        }
-
-        gm.setValue('ReleaseControl', true);
-        gm.setValue('resetselectMonster', true);
+        state.setItem('caapPause', 'none');
+        state.setItem('ReleaseControl', true);
+        state.setItem('resetselectMonster', true);
         caap.waitingForDomLoad = false;
     },
 
     ResetMenuLocationListener: function (e) {
-        gm.deleteValue('caap_div_menuLeft');
-        gm.deleteValue('caap_div_menuTop');
-        gm.deleteValue('caap_div_zIndex');
+        state.deleteItem('caap_div_menuLeft');
+        state.deleteItem('caap_div_menuTop');
+        state.deleteItem('caap_div_zIndex');
         caap.controlXY.x = '';
         caap.controlXY.y = $(caap.controlXY.selector).offset().top;
         var caap_divXY = caap.GetControlXY(true);
@@ -3258,9 +3125,9 @@ caap = {
             'left' : caap_divXY.x + 'px'
         });
 
-        gm.deleteValue('caap_top_menuLeft');
-        gm.deleteValue('caap_top_menuTop');
-        gm.deleteValue('caap_top_zIndex');
+        state.deleteItem('caap_top_menuLeft');
+        state.deleteItem('caap_top_menuTop');
+        state.deleteItem('caap_top_zIndex');
         caap.dashboardXY.x = '';
         caap.dashboardXY.y = $(caap.dashboardXY.selector).offset().top - 10;
         var caap_topXY = caap.GetDashboardXY(true);
@@ -3276,23 +3143,24 @@ caap = {
 
     FoldingBlockListener: function (e) {
         try {
-            var subId = e.target.id.replace(/_Switch/i, '');
-            var subDiv = document.getElementById(subId);
+            var subId = e.target.id.replace(/_Switch/i, ''),
+                subDiv = document.getElementById(subId);
+
             if (subDiv.style.display === "block") {
-                global.log(1, 'Folding: ' + subId);
+                utility.log(2, 'Folding: ', subId);
                 subDiv.style.display = "none";
                 e.target.innerHTML = e.target.innerHTML.replace(/-/, '+');
-                gm.setValue('Control_' + subId.replace(/caap_/i, ''), "none");
+                state.setItem('Control_' + subId.replace(/caap_/i, ''), "none");
             } else {
-                global.log(1, 'Unfolding: ' + subId);
+                utility.log(2, 'Unfolding: ', subId);
                 subDiv.style.display = "block";
                 e.target.innerHTML = e.target.innerHTML.replace(/\+/, '-');
-                gm.setValue('Control_' + subId.replace(/caap_/i, ''), "block");
+                state.setItem('Control_' + subId.replace(/caap_/i, ''), "block");
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in FoldingBlockListener: " + err);
+            utility.error("ERROR in FoldingBlockListener: " + err);
             return false;
         }
     },
@@ -3304,17 +3172,17 @@ caap = {
         }
 
         if (obj && obj.href) {
-            gm.setValue('clickUrl', obj.href);
-            global.log(9, 'globalContainer', obj.href);
+            state.setItem('clickUrl', obj.href);
+            //utility.log(9, 'globalContainer', obj.href);
         } else {
             if (obj && !obj.href) {
-                global.log(1, 'globalContainer no href', obj);
+                utility.warn('whatClickedURLListener globalContainer no href', obj);
             }
         }
     },
 
     whatFriendBox: function (event) {
-        global.log(9, 'whatFriendBox', event);
+        utility.log(9, 'whatFriendBox', event);
         var obj    = event.target,
             userID = [],
             txt    = '';
@@ -3324,16 +3192,16 @@ caap = {
         }
 
         if (obj && obj.id) {
-            global.log(9, 'globalContainer', obj.onclick);
+            //utility.log(9, 'globalContainer', obj.onclick);
             userID = obj.onclick.toString().match(/friendKeepBrowse\('([0-9]+)'/);
             if (userID && userID.length === 2) {
                 txt = "?casuser=" + userID[1];
             }
 
-            gm.setValue('clickUrl', 'http://apps.facebook.com/castle_age/keep.php' + txt);
+            state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/keep.php' + txt);
         }
 
-        global.log(9, 'globalContainer', obj.id, txt);
+        //utility.log(9, 'globalContainer', obj.id, txt);
     },
 
     windowResizeListener: function (e) {
@@ -3380,23 +3248,24 @@ caap = {
 
     AddListeners: function () {
         try {
-            global.log(1, "Adding listeners for caap_div");
+            utility.log(1, "Adding listeners for caap_div");
             if ($('#caap_div').length === 0) {
                 throw "Unable to find div for caap_div";
             }
 
             $('#caap_div input:checkbox[id^="caap_"]').change(this.CheckBoxListener);
-            $('#caap_div input:text[id^="caap_"]').change(this.TextBoxListener);
+            $('#caap_div input[data-subtype="text"]').change(this.TextBoxListener);
+            $('#caap_div input[data-subtype="number"]').change(this.NumberBoxListener);
             $('#unlockMenu').change(this.CheckBoxListener);
             $('#caap_div select[id^="caap_"]').change(this.DropBoxListener);
             $('#caap_div textarea[id^="caap_"]').change(this.TextAreaListener);
             $('#caap_div a[id^="caap_Switch"]').click(this.FoldingBlockListener);
             $('#caap_FillArmy').click(function (e) {
-                gm.setValue("FillArmy", true);
-                gm.deleteValue("ArmyCount");
-                gm.deleteValue('FillArmyList');
-                gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
-                gm.deleteValue(caap.friendListType.facebook.name + 'Responded');
+                state.setItem("FillArmy", true);
+                state.setItem("ArmyCount", 0);
+                state.setItem('FillArmyList', []);
+                state.setItem(caap.friendListType.giftc.name + 'Responded', []);
+                state.setItem(caap.friendListType.facebook.name + 'Responded', false);
 
             });
 
@@ -3420,23 +3289,19 @@ caap = {
 
             $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
             $('#caap_resetElite').click(function (e) {
-                schedule.Set('AutoEliteGetList', 0);
-                schedule.Set('AutoEliteReqNext', 0);
-                gm.deleteValue('AutoEliteEnd');
-                if (!gm.getValue('FillArmy', false)) {
-                    gm.deleteValue(caap.friendListType.giftc.name + 'Requested');
-                    gm.deleteValue(caap.friendListType.giftc.name + 'Responded');
+                schedule.setItem('AutoEliteGetList', 0);
+                schedule.setItem('AutoEliteReqNext', 0);
+                state.setItem('AutoEliteEnd', '');
+                if (!state.getItem('FillArmy', false)) {
+                    state.setItem(caap.friendListType.giftc.name + 'Requested', false);
+                    state.setItem(caap.friendListType.giftc.name + 'Responded', []);
                 }
             });
 
             $('#caapRestart').click(this.RestartListener);
             $('#caap_control').mousedown(this.PauseListener);
-            if (global.is_chrome) {
-                $('#caap_control').mousedown(this.PauseListener);
-            }
-
             $('#stopAutoQuest').click(function (e) {
-                global.log(1, 'Change: setting stopAutoQuest and go to Manual');
+                utility.log(1, 'Change: setting stopAutoQuest and go to Manual');
                 caap.ManualAutoQuest();
             });
 
@@ -3460,12 +3325,10 @@ caap = {
                 */
 
                 if ($.inArray(targetStr, caap.targetList) !== -1) {
-                    global.log(9, "Refreshing DOM Listeners", event.target.id);
+                    utility.log(9, "Refreshing DOM Listeners", event.target.id);
                     caap.waitingForDomLoad = false;
-                    $('#app46755028429_globalContainer').find('a').unbind('click', caap.whatClickedURLListener);
-                    $('#app46755028429_globalContainer').find('a').bind('click', caap.whatClickedURLListener);
-                    $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox);
-                    $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").bind('click', caap.whatFriendBox);
+                    $('#app46755028429_globalContainer').find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                    $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
                     window.setTimeout(function () {
                         caap.CheckResults();
                     }, 100);
@@ -3474,7 +3337,7 @@ caap = {
                 // Income timer
                 if (targetStr === "gold_time_value") {
                     var payTimer = $(event.target).text().match(/([0-9]+):([0-9]+)/);
-                    global.log(10, "gold_time_value", payTimer);
+                    utility.log(10, "gold_time_value", payTimer);
                     if (payTimer && payTimer.length === 3) {
                         caap.stats.gold.payTime.ticker = payTimer[0];
                         caap.stats.gold.payTime.minutes = parseInt(payTimer[1], 10);
@@ -3485,15 +3348,18 @@ caap = {
                 // Energy
                 if (targetStr === "energy_current_value") {
                     var energy = parseInt($(event.target).text(), 10),
-                        tempE  = null;
+                        tempE  = null,
+                        tempET = null;
 
-                    global.log(9, "energy_current_value", energy);
+                    utility.log(9, "energy_current_value", energy);
                     if (typeof energy === 'number') {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats.energy.max);
-                        if (tempE) {
+                        tempET = caap.GetStatusNumbers(energy + "/" + caap.stats.energyT.max);
+                        if (tempE && tempET) {
                             caap.stats.energy = tempE;
+                            caap.stats.energyT = tempET;
                         } else {
-                            global.log(1, "Unable to get energy levels");
+                            utility.warn("Unable to get energy levels");
                         }
                     }
                 }
@@ -3501,15 +3367,18 @@ caap = {
                 // Health
                 if (targetStr === "health_current_value") {
                     var health = parseInt($(event.target).text(), 10),
-                        tempH  = null;
+                        tempH  = null,
+                        tempHT = null;
 
-                    global.log(9, "health_current_value", health);
+                    utility.log(9, "health_current_value", health);
                     if (typeof health === 'number') {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats.health.max);
-                        if (tempH) {
+                        tempHT = caap.GetStatusNumbers(health + "/" + caap.stats.healthT.max);
+                        if (tempH && tempHT) {
                             caap.stats.health = tempH;
+                            caap.stats.healthT = tempHT;
                         } else {
-                            global.log(1, "Unable to get health levels");
+                            utility.warn("Unable to get health levels");
                         }
                     }
                 }
@@ -3517,15 +3386,18 @@ caap = {
                 // Stamina
                 if (targetStr === "stamina_current_value") {
                     var stamina = parseInt($(event.target).text(), 10),
-                        tempS   = null;
+                        tempS   = null,
+                        tempST  = null;
 
-                    global.log(9, "stamina_current_value", stamina);
+                    utility.log(9, "stamina_current_value", stamina);
                     if (typeof stamina === 'number') {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats.stamina.max);
+                        tempST = caap.GetStatusNumbers(stamina + "/" + caap.stats.staminaT.max);
                         if (tempS) {
                             caap.stats.stamina = tempS;
+                            caap.stats.staminaT = tempST;
                         } else {
-                            global.log(1, "Unable to get stamina levels");
+                            utility.warn("Unable to get stamina levels");
                         }
                     }
                 }
@@ -3536,13 +3408,12 @@ caap = {
                 }
             });
 
-            $(window).unbind('resize', this.windowResizeListener);
-            $(window).bind('resize', this.windowResizeListener);
+            $(window).unbind('resize', this.windowResizeListener).bind('resize', this.windowResizeListener);
 
-            global.log(8, "Listeners added for caap_div");
+            utility.log(8, "Listeners added for caap_div");
             return true;
         } catch (err) {
-            global.error("ERROR in AddListeners: " + err);
+            utility.error("ERROR in AddListeners: " + err);
             return false;
         }
     },
@@ -3555,9 +3426,8 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     SetCheckResultsFunction: function (resultsFunction) {
-        //this.JustDidIt('SetResultsFunctionTimer');
-        schedule.Set('SetResultsFunctionTimer', 20);
-        gm.setValue('ResultsFunction', resultsFunction);
+        schedule.setItem('SetResultsFunctionTimer', 20);
+        state.setItem('ResultsFunction', resultsFunction);
     },
 
     pageList: {
@@ -3653,42 +3523,29 @@ caap = {
         }
     },
 
-    trackPerformance: false,
-
-    performanceTimer: function (marker) {
-        if (!this.trackPerformance) {
-            return;
-        }
-
-        var now = (new Date().getTime());
-        var elapsedTime = now - parseInt(gm.getValue('performanceTimer', 0), 10);
-        global.log(1, 'Performance Timer At ' + marker + ' Time elapsed: ' + elapsedTime);
-        gm.setValue('performanceTimer', now.toString());
-    },
-
     AddExpDisplay: function () {
         try {
             var expDiv = $("#app46755028429_st_2_5 strong"),
                 enlDiv = null;
 
             if (!expDiv.length) {
-                global.log(1, "Unable to get experience array");
+                utility.warn("Unable to get experience array");
                 return false;
             }
 
             enlDiv = $("#caap_enl");
             if (enlDiv.length) {
-                global.log(8, "Experience to Next Level already displayed. Updating.");
+                utility.log(8, "Experience to Next Level already displayed. Updating.");
                 enlDiv.html(this.stats.exp.dif);
             } else {
-                global.log(8, "Prepending Experience to Next Level to display");
+                utility.log(8, "Prepending Experience to Next Level to display");
                 expDiv.prepend("(<span id='caap_enl' style='color:red'>" + (this.stats.exp.dif) + "</span>) ");
             }
 
             this.SetDivContent('exp_mess', "Experience to next level: " + this.stats.exp.dif);
             return true;
         } catch (err) {
-            global.error("ERROR in AddExpDisplay: " + err);
+            utility.error("ERROR in AddExpDisplay: " + err);
             return false;
         }
     },
@@ -3697,7 +3554,7 @@ caap = {
         try {
             // Check page to see if we should go to a page specific check function
             // todo find a way to verify if a function exists, and replace the array with a check_functionName exists check
-            if (!schedule.Check('CheckResultsTimer')) {
+            if (!schedule.check('CheckResultsTimer')) {
                 return false;
             }
 
@@ -3705,36 +3562,38 @@ caap = {
 
             this.AddExpDisplay();
             this.SetDivContent('level_mess', 'Expected next level: ' + schedule.FormatTime(new Date(this.stats.indicators.enl)));
-            if (gm.getValue('DemiPointsFirst', false) && gm.getValue('WhenMonster') !== 'Never') {
-                if (gm.getValue('DemiPointsDone', true)) {
+            if ((config.getItem('DemiPointsFirst', false) && config.getItem('WhenMonster', 'Never') !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
+                if (state.getItem('DemiPointsDone', true)) {
                     this.SetDivContent('demipoint_mess', 'Daily Demi Points: Done');
                 } else {
-                    this.SetDivContent('demipoint_mess', 'Daily Demi Points: First');
+                    if (config.getItem('DemiPointsFirst', false) && config.getItem('WhenMonster', 'Never') !== 'Never') {
+                        this.SetDivContent('demipoint_mess', 'Daily Demi Points: First');
+                    } else {
+                        this.SetDivContent('demipoint_mess', 'Daily Demi Points: Only');
+                    }
                 }
             } else {
                 this.SetDivContent('demipoint_mess', '');
             }
 
-            if (schedule.Display('BlessingTimer')) {
-                if (schedule.Check('BlessingTimer')) {
+            if (schedule.display('BlessingTimer')) {
+                if (schedule.check('BlessingTimer')) {
                     this.SetDivContent('demibless_mess', 'Demi Blessing = none');
                 } else {
-                    this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + schedule.Display('BlessingTimer'));
+                    this.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + schedule.display('BlessingTimer'));
                 }
             }
 
-            //this.performanceTimer('Start CheckResults');
-            //this.JustDidIt('CheckResultsTimer');
-            schedule.Set('CheckResultsTimer', 1);
-            gm.setValue('page', '');
-            gm.setValue('pageUserCheck', '');
-            var pageUrl = gm.getValue('clickUrl', '');
-            global.log(9, "Page url", pageUrl);
+            schedule.setItem('CheckResultsTimer', 1);
+            state.getItem('page', '');
+            state.setItem('pageUserCheck', '');
+            var pageUrl = state.getItem('clickUrl', '');
+            utility.log(9, "Page url", pageUrl);
             if (pageUrl) {
                 var pageUserCheck = pageUrl.match(/user=([0-9]+)/);
-                global.log(6, "pageUserCheck", pageUserCheck);
+                utility.log(6, "pageUserCheck", pageUserCheck);
                 if (pageUserCheck) {
-                    gm.setValue('pageUserCheck', pageUserCheck[1]);
+                    state.setItem('pageUserCheck', pageUserCheck[1]);
                 }
             }
 
@@ -3742,7 +3601,7 @@ caap = {
                 sigImage = '';
             if (pageUrl.match(new RegExp("\/[^\/]+.php", "i"))) {
                 page = pageUrl.match(new RegExp("\/[^\/]+.php", "i"))[0].replace('/', '').replace('.php', '');
-                global.log(9, "Page match", page);
+                utility.log(9, "Page match", page);
             }
 
             if (this.pageList[page]) {
@@ -3753,15 +3612,15 @@ caap = {
                 }
 
                 if ($("img[src*='" + sigImage + "']").length) {
-                    page = gm.setValue('page', page);
-                    global.log(9, "Page set value", page);
+                    state.setItem('page', page);
+                    utility.log(9, "Page set value", page);
                 }
 
                 if (this.pageList[page].subpages) {
                     this.pageList[page].subpages.forEach(function (subpage) {
                         if ($("img[src*='" + caap.pageList[subpage].signaturePic + "']").length) {
-                            page = gm.setValue('page', subpage);
-                            global.log(9, "Page pubpage", page);
+                            page = state.setItem('page', subpage);
+                            utility.log(9, "Page pubpage", page);
                         }
                     });
                 }
@@ -3774,26 +3633,22 @@ caap = {
                 resultsText = $.trim(resultsDiv.text());
             }
 
-            if (gm.getValue('page', '')) {
-                global.log(1, 'Checking results for', page);
+            if (page && this.pageList[page]) {
+                utility.log(1, 'Checking results for', page);
                 if (typeof this[this.pageList[page].CheckResultsFunction] === 'function') {
                     this[this.pageList[page].CheckResultsFunction](resultsText);
                 } else {
-                    global.log(1, 'Check Results function not found', this[this.pageList[page].CheckResultsFunction]);
+                    utility.warn('Check Results function not found', this.pageList[page]);
                 }
             } else {
-                global.log(1, 'No results check defined for', page);
+                utility.log(1, 'No results check defined for', page);
             }
 
-            //this.performanceTimer('Before selectMonster');
-            this.selectMonster();
-            //this.performanceTimer('Done selectMonster');
+            monster.select();
             this.UpdateDashboard();
-            //this.performanceTimer('Done Dashboard');
-
             if (general.List.length <= 2) {
-                schedule.Set("generals", 0);
-                schedule.Set("allGenerals", 0);
+                schedule.setItem("generals", 0);
+                schedule.setItem("allGenerals", 0);
                 this.CheckGenerals();
             }
 
@@ -3804,22 +3659,21 @@ caap = {
             }
 
             // Check for Elite Guard Add image
-            if (!gm.getValue('AutoEliteIgnore', false)) {
-                if (this.CheckForImage('elite_guard_add') && gm.getValue('AutoEliteEnd', 'NoArmy') !== 'NoArmy') {
-                    schedule.Set('AutoEliteGetList', 0);
+            if (!config.getItem('AutoEliteIgnore', false)) {
+                if (utility.CheckForImage('elite_guard_add') && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy') {
+                    schedule.setItem('AutoEliteGetList', 0);
                 }
             }
 
             // If set and still recent, go to the function specified in 'ResultsFunction'
-            var resultsFunction = gm.getValue('ResultsFunction', '');
-            if ((resultsFunction) && !schedule.Check('SetResultsFunctionTimer')) {
+            var resultsFunction = state.getItem('ResultsFunction', '');
+            if ((resultsFunction) && !schedule.check('SetResultsFunctionTimer')) {
                 this[resultsFunction](resultsText);
             }
 
-            //this.performanceTimer('Done CheckResults');
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults: " + err);
+            utility.error("ERROR in CheckResults: " + err);
             return false;
         }
     },
@@ -3838,10 +3692,10 @@ caap = {
                 $("#app46755028429_general_name_div_int").append(html);
             }
 
-            schedule.Set("generals", gm.getNumber("CheckGenerals", 24) * 3600, 300);
+            schedule.setItem("generals", gm.getItem("CheckGenerals", 24, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_generals: " + err);
+            utility.error("ERROR in CheckResults_generals: " + err);
             return false;
         }
     },
@@ -3856,15 +3710,13 @@ caap = {
         try {
             var txtArr = [];
 
-            if (!text || typeof text !== 'string') {
-                global.log(1, "No text supplied for status numbers", text);
-                return false;
+            if (text === '' || typeof text !== 'string') {
+                throw "No text supplied for status numbers:" + text;
             }
 
             txtArr = text.match(/([0-9]+)\/([0-9]+)/);
             if (txtArr.length !== 3) {
-                global.log(1, "Unable to match status numbers", text);
-                return false;
+                throw "Unable to match status numbers" + text;
             }
 
             return {
@@ -3873,7 +3725,7 @@ caap = {
                 dif: parseInt(txtArr[2], 10) - parseInt(txtArr[1], 10)
             };
         } catch (err) {
-            global.error("ERROR in GetStatusNumbers: " + err);
+            utility.error("ERROR in GetStatusNumbers: " + err);
             return false;
         }
     },
@@ -3936,12 +3788,27 @@ caap = {
             max : 0,
             dif : 0
         },
+        energyT : {
+            num : 0,
+            max : 0,
+            dif : 0
+        },
         health : {
             num : 0,
             max : 0,
             dif : 0
         },
+        healthT : {
+            num : 0,
+            max : 0,
+            dif : 0
+        },
         stamina : {
+            num : 0,
+            max : 0,
+            dif : 0
+        },
+        staminaT : {
             num : 0,
             max : 0,
             dif : 0
@@ -4025,17 +3892,23 @@ caap = {
                 percent : 0
             }
         }
-
     },
 
     LoadStats: function () {
-        $.extend(this.stats, gm.getJValue('userStats'));
-        global.log(2, "Stats", this.stats);
+        if (gm.getItem('stats.record', 'default') === 'default') {
+            gm.setItem('stats.record', this.stats);
+        } else {
+            this.stats = gm.getItem('stats.record', this.stats);
+        }
+
+        utility.log(2, "Stats", this.stats);
+        state.setItem("UserDashUpdate", true);
     },
 
     SaveStats: function () {
-        gm.setJValue('userStats', this.stats);
-        global.log(2, "Stats", this.stats);
+        gm.setItem('stats.record', this.stats);
+        utility.log(2, "Stats", this.stats);
+        state.setItem("UserDashUpdate", true);
     },
 
     GetStats: function () {
@@ -4050,6 +3923,7 @@ caap = {
                 pointsDiv      = null,
                 passed         = true,
                 temp           = null,
+                tempT          = null,
                 levelArray     = [],
                 newLevel       = 0,
                 newPoints      = 0,
@@ -4058,85 +3932,91 @@ caap = {
                 xS             = 0,
                 xE             = 0;
 
-            global.log(8, "Getting Gold, Energy, Health, Stamina and Experience");
+            utility.log(8, "Getting Gold, Energy, Health, Stamina and Experience");
             // gold
             cashDiv = $("#app46755028429_gold_current_value");
             if (cashDiv.length) {
-                global.log(8, 'Getting current cash value');
-                temp = this.NumberOnly(cashDiv.text());
+                utility.log(8, 'Getting current cash value');
+                temp = utility.NumberOnly(cashDiv.text());
                 if (!isNaN(temp)) {
                     this.stats.gold.cash = temp;
                     this.stats.gold.total = this.stats.gold.bank + this.stats.gold.cash;
                 } else {
-                    global.log(1, "Cash value is not a number");
+                    utility.warn("Cash value is not a number", temp);
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get cashDiv");
+                utility.warn("Unable to get cashDiv");
                 passed = false;
             }
 
             // energy
             energyDiv = $("#app46755028429_st_2_2");
             if (energyDiv.length) {
-                global.log(8, 'Getting current energy levels');
-                temp = this.GetStatusNumbers(energyDiv.text());
-                if (temp) {
+                utility.log(8, 'Getting current energy levels');
+                tempT = this.GetStatusNumbers(energyDiv.text());
+                temp = this.GetStatusNumbers(tempT.num + "/" + this.stats.energy.max);
+                if (temp && tempT) {
                     this.stats.energy = temp;
+                    this.stats.energyT = tempT;
                 } else {
-                    global.log(1, "Unable to get energy levels");
+                    utility.warn("Unable to get energy levels");
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get energyDiv");
+                utility.warn("Unable to get energyDiv");
                 passed = false;
             }
 
             // health
             healthDiv = $("#app46755028429_st_2_3");
             if (healthDiv.length) {
-                global.log(8, 'Getting current health levels');
-                temp = this.GetStatusNumbers(healthDiv.text());
-                if (temp) {
+                utility.log(8, 'Getting current health levels');
+                tempT = this.GetStatusNumbers(healthDiv.text());
+                temp = this.GetStatusNumbers(tempT.num + "/" + this.stats.health.max);
+                if (temp && tempT) {
                     this.stats.health = temp;
+                    this.stats.healthT = tempT;
                 } else {
-                    global.log(1, "Unable to get health levels");
+                    utility.warn("Unable to get health levels");
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get healthDiv");
+                utility.warn("Unable to get healthDiv");
                 passed = false;
             }
 
             // stamina
             staminaDiv = $("#app46755028429_st_2_4");
             if (staminaDiv.length) {
-                global.log(8, 'Getting current stamina values');
-                temp = this.GetStatusNumbers(staminaDiv.text());
-                if (temp) {
+                utility.log(8, 'Getting current stamina values');
+                tempT = this.GetStatusNumbers(staminaDiv.text());
+                temp = this.GetStatusNumbers(tempT.num + "/" + this.stats.stamina.max);
+                if (temp && tempT) {
                     this.stats.stamina = temp;
+                    this.stats.staminaT = tempT;
                 } else {
-                    global.log(1, "Unable to get stamina values");
+                    utility.warn("Unable to get stamina values");
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get staminaDiv");
+                utility.warn("Unable to get staminaDiv");
                 passed = false;
             }
 
             // experience
             expDiv = $("#app46755028429_st_2_5");
             if (expDiv.length) {
-                global.log(8, 'Getting current experience values');
+                utility.log(8, 'Getting current experience values');
                 temp = this.GetStatusNumbers(expDiv.text());
                 if (temp) {
                     this.stats.exp = temp;
                 } else {
-                    global.log(1, "Unable to get experience values");
+                    utility.warn("Unable to get experience values");
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get expDiv");
+                utility.warn("Unable to get expDiv");
                 passed = false;
             }
 
@@ -4145,19 +4025,19 @@ caap = {
             if (levelDiv.length) {
                 levelArray = levelDiv.text().match(/Level: ([0-9]+)!/);
                 if (levelArray && levelArray.length === 2) {
-                    global.log(8, 'Getting current level');
+                    utility.log(8, 'Getting current level');
                     newLevel = parseInt(levelArray[1], 10);
                     if (newLevel > this.stats.level) {
-                        global.log(1, 'New level. Resetting Best Land Cost.');
-                        gm.deleteValue('BestLandCost');
+                        utility.log(1, 'New level. Resetting Best Land Cost.');
+                        state.setItem('BestLandCost', 0);
                         this.stats.level = newLevel;
                     }
                 } else {
-                    global.log(1, 'levelArray incorrect');
+                    utility.warn('levelArray incorrect');
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get levelDiv");
+                utility.warn("Unable to get levelDiv");
                 passed = false;
             }
 
@@ -4166,21 +4046,21 @@ caap = {
             if (armyDiv.length) {
                 armyArray = armyDiv.text().match(/My Army \(([0-9]+)\)/);
                 if (armyArray && armyArray.length === 2) {
-                    global.log(8, 'Getting current army count');
+                    utility.log(8, 'Getting current army count');
                     this.stats.army.actual = parseInt(armyArray[1], 10);
                     temp = Math.min(this.stats.army.actual, 501);
                     if (temp >= 0 && temp <= 501) {
                         this.stats.army.capped = temp;
                     } else {
-                        global.log(1, "Army count not in limits");
+                        utility.warn("Army count not in limits");
                         passed = false;
                     }
                 } else {
-                    global.log(1, 'armyArray incorrect');
+                    utility.warn('armyArray incorrect');
                     passed = false;
                 }
             } else {
-                global.log(1, "Unable to get armyDiv");
+                utility.warn("Unable to get armyDiv");
                 passed = false;
             }
 
@@ -4189,50 +4069,51 @@ caap = {
             if (pointsDiv.length) {
                 pointsArray = pointsDiv.text().match(/My Stats \(\+([0-9]+)\)/);
                 if (pointsArray && pointsArray.length === 2) {
-                    global.log(8, 'Getting current upgrade points');
+                    utility.log(8, 'Getting current upgrade points');
                     newPoints = parseInt(pointsArray[1], 10);
                     if (newPoints > this.stats.points.skill) {
-                        global.log(1, 'New points. Resetting AutoStat.');
-                        this.statsMatch = true;
+                        utility.log(1, 'New points. Resetting AutoStat.');
+                        state.setItem("statsMatch", true);
                     }
 
                     this.stats.points.skill = newPoints;
                 } else {
-                    global.log(8, 'No upgrade points found');
+                    utility.log(8, 'No upgrade points found');
                     this.stats.points.skill = 0;
                 }
             } else {
-                global.log(1, "Unable to get pointsDiv");
+                utility.warn("Unable to get pointsDiv");
                 passed = false;
             }
 
             // Indicators: Hours To Level, Time Remaining To Level and Expected Next Level
             if (this.stats.exp) {
-                global.log(8, 'Calculating time to next level');
-                xS = gm.getNumber("expStaminaRatio", 2.4);
-                xE = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || gm.getNumber("expEnergyRatio", 1.4);
+                utility.log(8, 'Calculating time to next level');
+                xS = gm.getItem("expStaminaRatio", 2.4, hiddenVar);
+                //xE = parseFloat(gm.getObjVal('AutoQuest', 'expRatio')) || gm.getItem("expEnergyRatio", 1.4, hiddenVar);
+                xE = state.getItem('AutoQuest', this.newAutoQuest()).expRatio || gm.getItem("expEnergyRatio", 1.4, hiddenVar);
                 this.stats.indicators.htl = ((this.stats.level * 12.5) - (this.stats.stamina.max * xS) - (this.stats.energy.max * xE)) / (12 * (xS + xE));
                 this.stats.indicators.hrtl = (this.stats.exp.dif - (this.stats.stamina.num * xS) - (this.stats.energy.num * xE)) / (12 * (xS + xE));
                 this.stats.indicators.enl = new Date().getTime() + Math.ceil(this.stats.indicators.hrtl * 60 * 60 * 1000);
             } else {
-                global.log(1, 'Could not calculate time to next level. Missing experience stats!');
+                utility.warn('Could not calculate time to next level. Missing experience stats!');
                 passed = false;
             }
 
             if (!passed)  {
-                global.log(8, 'Saving stats');
+                utility.log(8, 'Saving stats');
                 this.SaveStats();
             }
 
-            if (passed && this.stats.energy.max === 0 && this.stats.health.max === 0 && this.stats.stamina.max === 0) {
-                global.alert("Paused as this account may have been disabled!");
-                global.log(1, "Paused as this account may have been disabled!", this.stats);
+            if (!passed && this.stats.energy.max === 0 && this.stats.health.max === 0 && this.stats.stamina.max === 0) {
+                utility.alert("Paused as this account may have been disabled!");
+                utility.warn("Paused as this account may have been disabled!", this.stats);
                 this.PauseListener();
             }
 
             return passed;
         } catch (err) {
-            global.error("ERROR GetStats: " + err);
+            utility.error("ERROR GetStats: " + err);
             return false;
         }
     },
@@ -4248,26 +4129,32 @@ caap = {
                 energyPotions  = null,
                 staminaPotions = null,
                 otherStats     = null,
+                energy         = null,
+                stamina        = null,
                 attack         = null,
-                defense        = null;
+                defense        = null,
+                health         = null,
+                statCont       = null,
+                anotherEl      = null;
 
             if ($(".keep_attribute_section").length) {
-                global.log(8, "Getting new values from player keep");
+                utility.log(8, "Getting new values from player keep");
                 // rank
                 rankImg = $("img[src*='gif/rank']");
                 if (rankImg.length) {
                     rankImg = rankImg.attr("src").split('/');
                     this.stats.rank.battle = parseInt((rankImg[rankImg.length - 1].match(/rank([0-9]+)\.gif/))[1], 10);
                 } else {
-                    global.log(1, 'Using stored rank.');
+                    utility.warn('Using stored rank.');
                 }
 
                 // PlayerName
                 playerName = $(".keep_stat_title_inc");
                 if (playerName.length) {
                     this.stats.PlayerName = playerName.text().match(new RegExp("\"(.+)\","))[1];
+                    state.setItem("PlayerName", this.stats.PlayerName);
                 } else {
-                    global.log(1, 'Using stored PlayerName.');
+                    utility.warn('Using stored PlayerName.');
                 }
 
                 if (this.stats.level >= 100) {
@@ -4277,64 +4164,93 @@ caap = {
                         warRankImg = warRankImg.attr("src").split('/');
                         this.stats.rank.war = parseInt((warRankImg[warRankImg.length - 1].match(/war_rank_([0-9]+)\.gif/))[1], 10);
                     } else {
-                        global.log(1, 'Using stored warRank.');
+                        utility.warn('Using stored warRank.');
                     }
                 }
 
-                if (this.stats.level >= 10) {
-                    // Attack
-                    attack = $(".attribute_stat_container:eq(2)");
-                    if (attack.length) {
-                        this.stats.attack = parseInt(attack.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
+                statCont = $(".attribute_stat_container");
+                if (statCont.length === 6) {
+                    // Energy
+                    energy = statCont.eq(0);
+                    if (energy.length) {
+                        this.stats.energy = this.GetStatusNumbers(this.stats.energyT.num + '/' + parseInt(energy.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10));
                     } else {
-                        global.log(1, 'Using stored attack value.');
+                        utility.warn('Using stored energy value.');
                     }
 
-                    // Defense
-                    defense = $(".attribute_stat_container:eq(3)");
-                    if (defense.length) {
-                        this.stats.defense = parseInt(defense.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
+                    // Stamina
+                    stamina = statCont.eq(1);
+                    if (stamina.length) {
+                        this.stats.stamina = this.GetStatusNumbers(this.stats.staminaT.num + '/' + parseInt(stamina.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10));
                     } else {
-                        global.log(1, 'Using stored defense value.');
+                        utility.warn('Using stored stamina value.');
                     }
+
+                    if (this.stats.level >= 10) {
+                        // Attack
+                        attack = statCont.eq(2);
+                        if (attack.length) {
+                            this.stats.attack = parseInt(attack.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
+                        } else {
+                            utility.warn('Using stored attack value.');
+                        }
+
+                        // Defense
+                        defense = statCont.eq(3);
+                        if (defense.length) {
+                            this.stats.defense = parseInt(defense.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10);
+                        } else {
+                            utility.warn('Using stored defense value.');
+                        }
+                    }
+
+                    // Health
+                    health = statCont.eq(4);
+                    if (health.length) {
+                        this.stats.health = this.GetStatusNumbers(this.stats.healthT.num + '/' + parseInt(health.text().match(new RegExp("\\s*([0-9]+).*"))[1], 10));
+                    } else {
+                        utility.warn('Using stored health value.');
+                    }
+                } else {
+                    utility.warn("Can't find stats containers! Using stored stats values.");
                 }
 
                 // Check for Gold Stored
                 moneyStored = $(".statsTB .money");
                 if (moneyStored.length) {
-                    this.stats.gold.bank = this.NumberOnly(moneyStored.text());
+                    this.stats.gold.bank = utility.NumberOnly(moneyStored.text());
                     this.stats.gold.total = this.stats.gold.bank + this.stats.gold.cash;
                     moneyStored.attr({
                         title         : "Click to copy value to retrieve",
                         style         : "color: blue;"
                     }).hover(
                         function () {
-                            this.style.cursor='pointer';
+                            this.style.cursor = 'pointer';
                         },
                         function () {
-                            this.style.cursor='default';
+                            this.style.cursor = 'default';
                         }
                     ).click(function () {
                         $("input[name='get_gold']").val(caap.stats.gold.bank);
                     });
                 } else {
-                    global.log(1, 'Using stored inStore.');
+                    utility.warn('Using stored inStore.');
                 }
 
                 // Check for income
                 income = $(".statsTB .positive:first");
                 if (income.length) {
-                    this.stats.gold.income = this.NumberOnly(income.text());
+                    this.stats.gold.income = utility.NumberOnly(income.text());
                 } else {
-                    global.log(1, 'Using stored income.');
+                    utility.warn('Using stored income.');
                 }
 
                 // Check for upkeep
                 upkeep = $(".statsTB .negative");
                 if (upkeep.length) {
-                    this.stats.gold.upkeep = this.NumberOnly(upkeep.text());
+                    this.stats.gold.upkeep = utility.NumberOnly(upkeep.text());
                 } else {
-                    global.log(1, 'Using stored upkeep.');
+                    utility.warn('Using stored upkeep.');
                 }
 
                 // Cash Flow
@@ -4362,7 +4278,7 @@ caap = {
                 if (otherStats.length) {
                     this.stats.other.qc = parseInt(otherStats.text(), 10);
                 } else {
-                    global.log(1, 'Using stored other.');
+                    utility.warn('Using stored other.');
                 }
 
                 // Battles/Wars Won
@@ -4370,7 +4286,7 @@ caap = {
                 if (otherStats.length) {
                     this.stats.other.bww = parseInt(otherStats.text(), 10);
                 } else {
-                    global.log(1, 'Using stored other.');
+                    utility.warn('Using stored other.');
                 }
 
                 // Battles/Wars Lost
@@ -4378,7 +4294,7 @@ caap = {
                 if (otherStats.length) {
                     this.stats.other.bwl = parseInt(otherStats.text(), 10);
                 } else {
-                    global.log(1, 'Using stored other.');
+                    utility.warn('Using stored other.');
                 }
 
                 // Times eliminated
@@ -4386,7 +4302,7 @@ caap = {
                 if (otherStats.length) {
                     this.stats.other.te = parseInt(otherStats.text(), 10);
                 } else {
-                    global.log(1, 'Using stored other.');
+                    utility.warn('Using stored other.');
                 }
 
                 // Times you eliminated an enemy
@@ -4394,7 +4310,7 @@ caap = {
                 if (otherStats.length) {
                     this.stats.other.tee = parseInt(otherStats.text(), 10);
                 } else {
-                    global.log(1, 'Using stored other.');
+                    utility.warn('Using stored other.');
                 }
 
                 // Win/Loss Ratio (WLR)
@@ -4421,15 +4337,20 @@ caap = {
                     this.stats.indicators.mpi = ((this.stats.indicators.api + this.stats.indicators.dpi) / 2);
                 }
 
-                schedule.Set("keep", gm.getNumber("CheckKeep", 1) * 3600, 300);
+                schedule.setItem("keep", gm.getItem("CheckKeep", 1, hiddenVar) * 3600, 300);
                 this.SaveStats();
             } else {
-                global.log(1, "On another player's keep", $("a[href*='keep.php?user=']").attr("href").match(/user=([0-9]+)/)[1]);
+                anotherEl = $("a[href*='keep.php?user=']");
+                if (anotherEl && anotherEl.length) {
+                    utility.log(1, "On another player's keep", anotherEl.attr("href").match(/user=([0-9]+)/)[1]);
+                } else {
+                    utility.warn("Attribute section not found and not identified as another player's keep!");
+                }
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_keep: " + err);
+            utility.error("ERROR in CheckResults_keep: " + err);
             return false;
         }
     },
@@ -4446,38 +4367,38 @@ caap = {
                 text = favorDiv.text();
                 temp = text.match(new RegExp("\\s*You have zero favor points!\\s*"));
                 if (temp && temp.length === 1) {
-                    global.log(1, 'Got number of Favor Points.');
+                    utility.log(1, 'Got number of Favor Points.');
                     this.stats.points.favor = 0;
                     save = true;
                 } else {
                     temp = text.match(new RegExp("\\s*You have a favor point!\\s*"));
                     if (temp && temp.length === 1) {
-                        global.log(1, 'Got number of Favor Points.');
+                        utility.log(1, 'Got number of Favor Points.');
                         this.stats.points.favor = 1;
                         save = true;
                     } else {
                         temp = text.match(new RegExp("\\s*You have ([0-9]+) favor points!\\s*"));
                         if (temp && temp.length === 2) {
-                            global.log(1, 'Got number of Favor Points.');
+                            utility.log(1, 'Got number of Favor Points.');
                             this.stats.points.favor = parseInt(temp[1], 10);
                             save = true;
                         } else {
-                            global.log(1, 'Favor Points RegExp not matched.');
+                            utility.warn('Favor Points RegExp not matched.');
                         }
                     }
                 }
             } else {
-                global.log(1, 'Favor Points div not found.');
+                utility.warn('Favor Points div not found.');
             }
 
             if (save) {
                 this.SaveStats();
             }
 
-            schedule.Set("oracle", gm.getNumber("CheckOracle", 24) * 3600, 300);
+            schedule.setItem("oracle", gm.getItem("CheckOracle", 24, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_oracle: " + err);
+            utility.error("ERROR in CheckResults_oracle: " + err);
             return false;
         }
     },
@@ -4509,19 +4430,55 @@ caap = {
         };
     },
 
-    LoadTown: function () {
-        $.extend(this.soldiersArray, gm.getJValue('soldiersStats'));
+    LoadSoldiers: function () {
+        this.soldiersArray = gm.getItem('soldiers.records', 'default');
+        if (this.soldiersArray === 'default') {
+            this.soldiersArray = [];
+            gm.setItem('soldiers.records', this.soldiersArray);
+        }
+
+        this.soldiersArraySortable = [];
         $.merge(this.soldiersArraySortable, this.soldiersArray);
-        $.extend(this.itemArray, gm.getJValue('itemStats'));
-        $.merge(this.itemArraySortable, this.itemArray);
-        $.extend(this.magicArray, gm.getJValue('magicStats'));
-        $.merge(this.magicArraySortable, this.magicArray);
+        state.setItem("SoldiersDashUpdate", true);
     },
 
-    SaveTown: function () {
-        gm.setJValue('soldiersStats', this.soldiersArray);
-        gm.setJValue('itemStats', this.itemArray);
-        gm.setJValue('magicStats', this.magicArray);
+    SaveSoldiers: function () {
+        gm.setItem('soldiers.records', this.soldiersArray);
+        state.setItem("SoldiersDashUpdate", true);
+    },
+
+    LoadItem: function () {
+        this.itemArray = gm.getItem('item.records', 'default');
+        if (this.itemArray === 'default') {
+            this.itemArray = [];
+            gm.setItem('item.records', this.itemArray);
+        }
+
+        this.itemArraySortable = [];
+        $.merge(this.itemArraySortable, this.itemArray);
+        state.setItem("ItemDashUpdate", true);
+    },
+
+    SaveItem: function () {
+        gm.setItem('item.records', this.itemArray);
+        state.setItem("ItemDashUpdate", true);
+    },
+
+    LoadMagic: function () {
+        this.magicArray = gm.getItem('magic.records', 'default');
+        if (this.magicArray === 'default') {
+            this.magicArray = [];
+            gm.setItem('magic.records', this.magicArray);
+        }
+
+        this.magicArraySortable = [];
+        $.merge(this.magicArraySortable, this.magicArray);
+        state.setItem("MagicDashUpdate", true);
+    },
+
+    SaveMagic: function () {
+        gm.setItem('magic.records', this.magicArray);
+        state.setItem("MagicDashUpdate", true);
     },
 
     GetItems: function (type) {
@@ -4542,42 +4499,42 @@ caap = {
                     if (tempDiv && tempDiv.length === 1) {
                         current.data.name = $.trim(tempDiv.text());
                     } else {
-                        global.log(1, "Unable to get '" + type + "' name!");
+                        utility.warn("Unable to get '" + type + "' name!");
                         passed = false;
                     }
 
                     if (passed) {
                         tempDiv = $(this).find("div[class='eq_buy_txt_int'] span[class='negative']");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data.upkeep = caap.NumberOnly(tempDiv.text());
+                            current.data.upkeep = utility.NumberOnly(tempDiv.text());
                         } else {
-                            global.log(2, "No upkeep found for '" + type + "' '" + current.data.name + "'");
+                            utility.log(2, "No upkeep found for '" + type + "' '" + current.data.name + "'");
                         }
 
                         tempDiv = $(this).find("div[class='eq_buy_stats_int'] div");
                         if (tempDiv && tempDiv.length === 2) {
-                            current.data.atk = caap.NumberOnly(tempDiv.eq(0).text());
-                            current.data.def = caap.NumberOnly(tempDiv.eq(1).text());
+                            current.data.atk = utility.NumberOnly(tempDiv.eq(0).text());
+                            current.data.def = utility.NumberOnly(tempDiv.eq(1).text());
                             current.data.api = (current.data.atk + (current.data.def * 0.7));
                             current.data.dpi = (current.data.def + (current.data.atk * 0.7));
                             current.data.mpi = ((current.data.api + current.data.dpi) / 2);
                         } else {
-                            global.log(1, "No atk/def found for '" + type + "' '" + current.data.name + "'");
+                            utility.warn("No atk/def found for '" + type + "' '" + current.data.name + "'");
                         }
 
                         tempDiv = $(this).find("div[class='eq_buy_costs_int'] strong[class='gold']");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data.cost = caap.NumberOnly(tempDiv.text());
+                            current.data.cost = utility.NumberOnly(tempDiv.text());
                         } else {
-                            global.log(2, "No cost found for '" + type + "' '" + current.data.name + "'");
+                            utility.log(2, "No cost found for '" + type + "' '" + current.data.name + "'");
                         }
 
                         tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td:first");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data.owned = caap.NumberOnly(tempDiv.text());
+                            current.data.owned = utility.NumberOnly(tempDiv.text());
                             current.data.hourly = current.data.owned * current.data.upkeep;
                         } else {
-                            global.log(1, "No number owned found for '" + type + "' '" + current.data.name + "'");
+                            utility.warn("No number owned found for '" + type + "' '" + current.data.name + "'");
                         }
 
                         caap[type + 'Array'].push(current.data);
@@ -4588,14 +4545,14 @@ caap = {
 
             if (save) {
                 $.merge(this[type + 'ArraySortable'], this[type + 'Array']);
-                this.SaveTown();
+                this['Save' + type.ucFirst()]();
             } else {
-                global.log(1, "Nothing to save for '" + type + "'");
+                utility.log(1, "Nothing to save for '" + type + "'");
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in GetItems: " + err);
+            utility.error("ERROR in GetItems: " + err);
             return false;
         }
     },
@@ -4604,11 +4561,11 @@ caap = {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("soldiers");
-            schedule.Set("soldiers", gm.getNumber("CheckSoldiers", 48) * 3600, 300);
-            global.log(3, "soldiersArray", this.soldiersArray);
+            schedule.setItem("soldiers", gm.getItem("CheckSoldiers", 72, hiddenVar) * 3600, 300);
+            utility.log(3, "soldiersArray", this.soldiersArray);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_soldiers: " + err);
+            utility.error("ERROR in CheckResults_soldiers: " + err);
             return false;
         }
     },
@@ -4617,11 +4574,11 @@ caap = {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("item");
-            schedule.Set("item", gm.getNumber("CheckItem", 48) * 3600, 300);
-            global.log(3, "itemArray", this.itemArray);
+            schedule.setItem("item", gm.getItem("CheckItem", 72, hiddenVar) * 3600, 300);
+            utility.log(3, "itemArray", this.itemArray);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_item: " + err);
+            utility.error("ERROR in CheckResults_item: " + err);
             return false;
         }
     },
@@ -4630,11 +4587,11 @@ caap = {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
             this.GetItems("magic");
-            schedule.Set("magic", gm.getNumber("CheckMagic", 48) * 3600, 300);
-            global.log(3, "magicArray", this.magicArray);
+            schedule.setItem("magic", gm.getItem("CheckMagic", 72, hiddenVar) * 3600, 300);
+            utility.log(3, "magicArray", this.magicArray);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_magic: " + err);
+            utility.error("ERROR in CheckResults_magic: " + err);
             return false;
         }
     },
@@ -4650,20 +4607,20 @@ caap = {
                 text = rankDiv.text();
                 temp = text.match(new RegExp(".*with (.*) Battle Points.*"));
                 if (temp && temp.length === 2) {
-                    global.log(1, 'Got Battle Rank Points.');
-                    this.stats.rank.battlePoints = this.NumberOnly(temp[1]);
+                    utility.log(1, 'Got Battle Rank Points.');
+                    this.stats.rank.battlePoints = utility.NumberOnly(temp[1]);
                     this.SaveStats();
                 } else {
-                    global.log(1, 'Battle Rank Points RegExp not matched.');
+                    utility.warn('Battle Rank Points RegExp not matched.');
                 }
             } else {
-                global.log(1, 'Battle Rank Points div not found.');
+                utility.warn('Battle Rank Points div not found.');
             }
 
-            schedule.Set("battlerank", gm.getNumber("CheckBattleRank", 24) * 3600, 300);
+            schedule.setItem("battlerank", gm.getItem("CheckBattleRank", 48, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_battlerank: " + err);
+            utility.error("ERROR in CheckResults_battlerank: " + err);
             return false;
         }
     },
@@ -4679,20 +4636,20 @@ caap = {
                 text = rankDiv.text();
                 temp = text.match(new RegExp(".*with (.*) War Points.*"));
                 if (temp && temp.length === 2) {
-                    global.log(1, 'Got War Rank Points.');
-                    this.stats.rank.warPoints = this.NumberOnly(temp[1]);
+                    utility.log(1, 'Got War Rank Points.');
+                    this.stats.rank.warPoints = utility.NumberOnly(temp[1]);
                     this.SaveStats();
                 } else {
-                    global.log(1, 'War Rank Points RegExp not matched.');
+                    utility.warn('War Rank Points RegExp not matched.');
                 }
             } else {
-                global.log(1, 'War Rank Points div not found.');
+                utility.warn('War Rank Points div not found.');
             }
 
-            schedule.Set("warrank", gm.getNumber("CheckWarRank", 24) * 3600, 300);
+            schedule.setItem("warrank", gm.getItem("CheckWarRank", 48, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_war_rank: " + err);
+            utility.error("ERROR in CheckResults_war_rank: " + err);
             return false;
         }
     },
@@ -4706,10 +4663,10 @@ caap = {
             if (achDiv && achDiv.length) {
                 tdDiv = achDiv.find("td div");
                 if (tdDiv && tdDiv.length === 6) {
-                    this.stats.achievements.battle.invasions.won = this.NumberOnly(tdDiv.eq(0).text());
-                    this.stats.achievements.battle.duels.won = this.NumberOnly(tdDiv.eq(1).text());
-                    this.stats.achievements.battle.invasions.lost = this.NumberOnly(tdDiv.eq(2).text());
-                    this.stats.achievements.battle.duels.lost = this.NumberOnly(tdDiv.eq(3).text());
+                    this.stats.achievements.battle.invasions.won = utility.NumberOnly(tdDiv.eq(0).text());
+                    this.stats.achievements.battle.duels.won = utility.NumberOnly(tdDiv.eq(1).text());
+                    this.stats.achievements.battle.invasions.lost = utility.NumberOnly(tdDiv.eq(2).text());
+                    this.stats.achievements.battle.duels.lost = utility.NumberOnly(tdDiv.eq(3).text());
                     this.stats.achievements.battle.invasions.streak = parseInt(tdDiv.eq(4).text(), 10);
                     this.stats.achievements.battle.duels.streak = parseInt(tdDiv.eq(5).text(), 10);
                     if (this.stats.achievements.battle.invasions.lost) {
@@ -4724,53 +4681,53 @@ caap = {
                         this.stats.achievements.battle.duels.ratio = Infinity;
                     }
                 } else {
-                    global.log(1, 'Battle Achievements problem.');
+                    utility.warn('Battle Achievements problem.');
                 }
             } else {
-                global.log(1, 'Battle Achievements not found.');
+                utility.warn('Battle Achievements not found.');
             }
 
             achDiv = $("#app46755028429_achievements_3");
             if (achDiv && achDiv.length) {
                 tdDiv = achDiv.find("td div");
                 if (tdDiv && tdDiv.length === 12) {
-                    this.stats.achievements.monster.gildamesh = this.NumberOnly(tdDiv.eq(0).text());
-                    this.stats.achievements.monster.lotus = this.NumberOnly(tdDiv.eq(1).text());
-                    this.stats.achievements.monster.colossus = this.NumberOnly(tdDiv.eq(2).text());
-                    this.stats.achievements.monster.dragons = this.NumberOnly(tdDiv.eq(3).text());
-                    this.stats.achievements.monster.sylvanas = this.NumberOnly(tdDiv.eq(4).text());
-                    this.stats.achievements.monster.cronus = this.NumberOnly(tdDiv.eq(5).text());
-                    this.stats.achievements.monster.keira = this.NumberOnly(tdDiv.eq(6).text());
-                    this.stats.achievements.monster.sieges = this.NumberOnly(tdDiv.eq(7).text());
-                    this.stats.achievements.monster.legion = this.NumberOnly(tdDiv.eq(8).text());
-                    this.stats.achievements.monster.genesis = this.NumberOnly(tdDiv.eq(9).text());
-                    this.stats.achievements.monster.skaar = this.NumberOnly(tdDiv.eq(10).text());
-                    this.stats.achievements.monster.gehenna = this.NumberOnly(tdDiv.eq(11).text());
+                    this.stats.achievements.monster.gildamesh = utility.NumberOnly(tdDiv.eq(0).text());
+                    this.stats.achievements.monster.lotus = utility.NumberOnly(tdDiv.eq(1).text());
+                    this.stats.achievements.monster.colossus = utility.NumberOnly(tdDiv.eq(2).text());
+                    this.stats.achievements.monster.dragons = utility.NumberOnly(tdDiv.eq(3).text());
+                    this.stats.achievements.monster.sylvanas = utility.NumberOnly(tdDiv.eq(4).text());
+                    this.stats.achievements.monster.cronus = utility.NumberOnly(tdDiv.eq(5).text());
+                    this.stats.achievements.monster.keira = utility.NumberOnly(tdDiv.eq(6).text());
+                    this.stats.achievements.monster.sieges = utility.NumberOnly(tdDiv.eq(7).text());
+                    this.stats.achievements.monster.legion = utility.NumberOnly(tdDiv.eq(8).text());
+                    this.stats.achievements.monster.genesis = utility.NumberOnly(tdDiv.eq(9).text());
+                    this.stats.achievements.monster.skaar = utility.NumberOnly(tdDiv.eq(10).text());
+                    this.stats.achievements.monster.gehenna = utility.NumberOnly(tdDiv.eq(11).text());
                 } else {
-                    global.log(1, 'Monster Achievements problem.');
+                    utility.warn('Monster Achievements problem.');
                 }
             } else {
-                global.log(1, 'Monster Achievements not found.');
+                utility.warn('Monster Achievements not found.');
             }
 
             achDiv = $("#app46755028429_achievements_4");
             if (achDiv && achDiv.length) {
                 tdDiv = achDiv.find("td div");
                 if (tdDiv && tdDiv.length === 1) {
-                    this.stats.achievements.other.alchemy = this.NumberOnly(tdDiv.eq(0).text());
+                    this.stats.achievements.other.alchemy = utility.NumberOnly(tdDiv.eq(0).text());
                 } else {
-                    global.log(1, 'Other Achievements problem.');
+                    utility.warn('Other Achievements problem.');
                 }
 
                 this.SaveStats();
             } else {
-                global.log(1, 'Other Achievements not found.');
+                utility.warn('Other Achievements not found.');
             }
 
-            schedule.Set("achievements", gm.getNumber("CheckAchievements", 24) * 3600, 300);
+            schedule.setItem("achievements", gm.getItem("CheckAchievements", 72, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_achievements: " + err);
+            utility.error("ERROR in CheckResults_achievements: " + err);
             return false;
         }
     },
@@ -4786,22 +4743,22 @@ caap = {
                     name = $(this).attr("class").replace("banner_", '');
                     if (name && typeof caap.stats.character[name] === 'object') {
                         //caap.stats.character[name].name = name.ucFirst();
-                        caap.stats.character[name].percent = caap.NumberOnly($(this).find("img[src*='progress']").css("width"));
-                        caap.stats.character[name].level = caap.NumberOnly($(this).children().eq(2).text());
+                        caap.stats.character[name].percent = utility.NumberOnly($(this).find("img[src*='progress']").css("width"));
+                        caap.stats.character[name].level = utility.NumberOnly($(this).children().eq(2).text());
                     } else {
-                        global.log(1, "Problem character class name", name);
+                        utility.warn("Problem character class name", name);
                     }
                 });
 
                 this.SaveStats();
             } else {
-                global.log(1, "Problem with character class records", classDiv);
+                utility.warn("Problem with character class records", classDiv);
             }
 
-            schedule.Set("view_class_progress", gm.getNumber("CheckClassProgress", 48) * 3600, 300);
+            schedule.setItem("view_class_progress", gm.getItem("CheckClassProgress", 48, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_view_class_progress: " + err);
+            utility.error("ERROR in CheckResults_view_class_progress: " + err);
             return false;
         }
     },
@@ -4812,12 +4769,21 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     MaxEnergyQuest: function () {
-        if (!gm.getValue('MaxIdleEnergy', 0)) {
-            global.log(1, "Changing to idle general to get Max energy");
-            return this.PassiveGeneral();
+        var maxIdleEnergy = this.stats.energy.max,
+            theGeneral = config.getItem('IdleGeneral', 'Use Current');
+
+        if (theGeneral !== 'Use Current') {
+            maxIdleEnergy = general.GetEnergyMax(theGeneral);
         }
 
-        if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) {
+        if (theGeneral !== 'Use Current' && !maxIdleEnergy) {
+            utility.log(1, "Changing to idle general to get Max energy");
+            if (general.Select('IdleGeneral')) {
+                return true;
+            }
+        }
+
+        if (this.stats.energy.num >= maxIdleEnergy) {
             return this.Quests();
         }
 
@@ -4945,14 +4911,14 @@ caap = {
 
     Quests: function () {
         try {
-            var storeRetrieve = gm.getValue('storeRetrieve', '');
+            var storeRetrieve = state.getItem('storeRetrieve', '');
             if (storeRetrieve) {
                 if (storeRetrieve === 'general') {
                     if (general.Select('BuyGeneral')) {
                         return true;
                     }
 
-                    gm.setValue('storeRetrieve', '');
+                    state.setItem('storeRetrieve', '');
                     return true;
                 } else {
                     return this.RetrieveFromBank(storeRetrieve);
@@ -4960,28 +4926,28 @@ caap = {
             }
 
             this.SetDivContent('quest_mess', '');
-            var whenQuest = gm.getValue('WhenQuest', 'Never');
+            var whenQuest = config.getItem('WhenQuest', 'Never');
             if (whenQuest === 'Never') {
                 this.SetDivContent('quest_mess', 'Questing off');
                 return false;
             }
 
             if (whenQuest === 'Not Fortifying') {
-                var maxHealthtoQuest = gm.getNumber('MaxHealthtoQuest', 0);
+                var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
                 if (!maxHealthtoQuest) {
                     this.SetDivContent('quest_mess', '<b>No valid over fortify %</b>');
                     return false;
                 }
 
-                var fortMon = gm.getValue('targetFromfortify', '');
+                var fortMon = state.getItem('targetFromfortify', '');
                 if (fortMon) {
-                    this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + gm.getNumber('MaxToFortify', 0) + '%');
+                    this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + config.getItem('MaxToFortify', 0) + '%');
                     return false;
                 }
 
-                var targetFrombattle_monster = gm.getValue('targetFrombattle_monster', '');
+                var targetFrombattle_monster = state.getItem('targetFrombattle_monster', '');
                 if (!targetFrombattle_monster) {
-                    var currentMonster = this.getMonsterRecord(targetFrombattle_monster);
+                    var currentMonster = monster.getItem(targetFrombattle_monster);
                     var targetFort = currentMonster.fortify;
                     // need to check this - if (!targetFort) {
                     if (!targetFort) {
@@ -4993,55 +4959,57 @@ caap = {
                 }
             }
 
-            if (!gm.getObjVal('AutoQuest', 'name')) {
-                if (gm.getValue('WhyQuest', '') === 'Manual') {
+            //if (!gm.getObjVal('AutoQuest', 'name')) {
+            if (!state.getItem('AutoQuest', this.newAutoQuest()).name) {
+                if (config.getItem('WhyQuest', 'Never') === 'Manual') {
                     this.SetDivContent('quest_mess', 'Pick quest manually.');
                     return false;
                 }
 
                 this.SetDivContent('quest_mess', 'Searching for quest.');
-                global.log(1, "Searching for quest");
+                utility.log(1, "Searching for quest");
             } else {
-                var energyCheck = this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), whenQuest, 'quest_mess');
+                //var energyCheck = this.CheckEnergy(gm.getObjVal('AutoQuest', 'energy'), whenQuest, 'quest_mess');
+                var energyCheck = this.CheckEnergy(state.getItem('AutoQuest', this.newAutoQuest()).energy, whenQuest, 'quest_mess');
                 if (!energyCheck) {
                     return false;
                 }
             }
 
-            if (gm.getObjVal('AutoQuest', 'general') === 'none' || gm.getValue('ForceSubGeneral')) {
+            //if (gm.getObjVal('AutoQuest', 'general') === 'none' || config.getItem('ForceSubGeneral', false)) {
+            if (state.getItem('AutoQuest', this.newAutoQuest()).general === 'none' || config.getItem('ForceSubGeneral', false)) {
                 if (general.Select('SubQuestGeneral')) {
                     return true;
                 }
             }
 
-            if (gm.getValue('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
-                    gm.getValue('QuestLevelUpGeneral', false) &&
-                    this.stats.exp.dif &&
-                    this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
+            if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
+                    config.getItem('QuestLevelUpGeneral', false) && this.stats.exp.dif &&
+                    this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
                 if (general.Select('LevelUpGeneral')) {
                     return true;
                 }
 
-                global.log(1, 'Using level up general');
+                utility.log(1, 'Using level up general');
             }
 
-            switch (gm.getValue('QuestArea', 'Quest')) {
+            switch (config.getItem('QuestArea', 'Quest')) {
             case 'Quest' :
                 var imgExist = false;
                 if (this.stats.level > 7) {
-                    var subQArea = gm.getValue('QuestSubArea', 'Land of Fire');
+                    var subQArea = config.getItem('QuestSubArea', 'Land of Fire');
                     var landPic = this.QuestAreaInfo[subQArea].base;
                     if (landPic === 'tab_underworld' || landPic === 'tab_ivory') {
-                        imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
+                        imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                     } else if (landPic === 'tab_heaven') {
-                        imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
+                        imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
                     } else if ((landPic === 'land_demon_realm') || (landPic === 'land_undead_realm')) {
-                        imgExist = this.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
+                        imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
                     } else {
-                        imgExist = this.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                        imgExist = utility.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
                     }
                 } else {
-                    imgExist = this.NavigateTo('quests', 'quest_back_1.jpg');
+                    imgExist = utility.NavigateTo('quests', 'quest_back_1.jpg');
                 }
 
                 if (imgExist) {
@@ -5050,40 +5018,39 @@ caap = {
 
                 break;
             case 'Demi Quests' :
-                if (this.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
+                if (utility.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
                     return true;
                 }
 
-                var subDQArea = gm.getValue('QuestSubArea', 'Ambrosia');
+                var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
                 var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + this.demiQuestTable[subDQArea]);
                 if (picSlice.style.height !== '160px') {
-                    return this.NavigateTo('deity_' + this.demiQuestTable[subDQArea]);
+                    return utility.NavigateTo('deity_' + this.demiQuestTable[subDQArea]);
                 }
 
                 break;
             case 'Atlantis' :
-                if (!this.CheckForImage('tab_atlantis_on.gif')) {
-                    return this.NavigateTo('quests,monster_quests');
+                if (!utility.CheckForImage('tab_atlantis_on.gif')) {
+                    return utility.NavigateTo('quests,monster_quests');
                 }
 
                 break;
             default :
             }
 
-            var button = this.CheckForImage('quick_switch_button.gif');
-            if (button && !gm.getValue('ForceSubGeneral', false)) {
-                if (gm.getValue('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
-                    gm.getValue('QuestLevelUpGeneral', false) &&
-                    this.stats.exp.dif &&
-                    this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
+            var button = utility.CheckForImage('quick_switch_button.gif');
+            if (button && !config.getItem('ForceSubGeneral', false)) {
+                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
+                        config.getItem('QuestLevelUpGeneral', false) && this.stats.exp.dif &&
+                        this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
                     if (general.Select('LevelUpGeneral')) {
                         return true;
                     }
 
-                    global.log(1, 'Using level up general');
+                    utility.log(1, 'Using level up general');
                 } else {
-                    global.log(1, 'Clicking on quick switch general button.');
-                    this.Click(button);
+                    utility.log(1, 'Clicking on quick switch general button.');
+                    utility.Click(button);
                     general.quickSwitch = true;
                     return true;
                 }
@@ -5097,86 +5064,89 @@ caap = {
             //Buy quest requires popup
             var itemBuyPopUp = nHtml.FindByAttrContains(document.body, "form", "id", 'itemBuy');
             if (itemBuyPopUp) {
-                gm.setValue('storeRetrieve', 'general');
+                state.setItem('storeRetrieve', 'general');
                 if (general.Select('BuyGeneral')) {
                     return true;
                 }
 
-                gm.setValue('storeRetrieve', '');
+                state.setItem('storeRetrieve', '');
                 costToBuy = itemBuyPopUp.textContent.replace(new RegExp(".*\\$"), '').replace(new RegExp("[^0-9]{3,}.*"), '');
-                global.log(1, "costToBuy", costToBuy);
+                utility.log(1, "costToBuy", costToBuy);
                 if (this.stats.gold.cash < costToBuy) {
                     //Retrieving from Bank
-                    if (this.stats.gold.cash + (this.stats.gold.bank - gm.getNumber('minInStore', 0)) >= costToBuy) {
-                        global.log(1, "Trying to retrieve", costToBuy - this.stats.gold.cash);
-                        gm.setValue("storeRetrieve", costToBuy - this.stats.gold.cash);
+                    if (this.stats.gold.cash + (this.stats.gold.bank - config.getItem('minInStore', 0)) >= costToBuy) {
+                        utility.log(1, "Trying to retrieve", costToBuy - this.stats.gold.cash);
+                        state.setItem("storeRetrieve", costToBuy - this.stats.gold.cash);
                         return this.RetrieveFromBank(costToBuy - this.stats.gold.cash);
                     } else {
-                        global.log(1, "Cant buy requires, stopping quest");
+                        utility.log(1, "Cant buy requires, stopping quest");
                         this.ManualAutoQuest();
                         return false;
                     }
                 }
 
-                button = this.CheckForImage('quick_buy_button.jpg');
+                button = utility.CheckForImage('quick_buy_button.jpg');
                 if (button) {
-                    global.log(1, 'Clicking on quick buy button.');
-                    this.Click(button);
+                    utility.log(1, 'Clicking on quick buy button.');
+                    utility.Click(button);
                     return true;
                 }
 
-                global.log(1, "Cant find buy button");
+                utility.warn("Cant find buy button");
                 return false;
             }
 
-            button = this.CheckForImage('quick_buy_button.jpg');
+            button = utility.CheckForImage('quick_buy_button.jpg');
             if (button) {
-                gm.setValue('storeRetrieve', 'general');
+                state.setItem('storeRetrieve', 'general');
                 if (general.Select('BuyGeneral')) {
                     return true;
                 }
 
-                gm.setValue('storeRetrieve', '');
+                state.setItem('storeRetrieve', '');
                 costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling
                     .previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling
                     .firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
-                global.log(1, "costToBuy", costToBuy);
+                utility.log(1, "costToBuy", costToBuy);
                 if (this.stats.gold.cash < costToBuy) {
                     //Retrieving from Bank
-                    if (this.stats.gold.cash + (this.stats.gold.bank - gm.getNumber('minInStore', 0)) >= costToBuy) {
-                        global.log(1, "Trying to retrieve", costToBuy - this.stats.gold.cash);
-                        gm.setValue("storeRetrieve", costToBuy - this.stats.gold.cash);
+                    if (this.stats.gold.cash + (this.stats.gold.bank - config.getItem('minInStore', 0)) >= costToBuy) {
+                        utility.log(1, "Trying to retrieve: ", costToBuy - this.stats.gold.cash);
+                        state.setItem("storeRetrieve", costToBuy - this.stats.gold.cash);
                         return this.RetrieveFromBank(costToBuy - this.stats.gold.cash);
                     } else {
-                        global.log(1, "Cant buy General, stopping quest");
+                        utility.log(1, "Cant buy General, stopping quest");
                         this.ManualAutoQuest();
                         return false;
                     }
                 }
 
-                global.log(1, 'Clicking on quick buy general button.');
-                this.Click(button);
+                utility.log(1, 'Clicking on quick buy general button.');
+                utility.Click(button);
                 return true;
             }
 
             var autoQuestDivs = this.CheckResults_quests(true);
-            if (!gm.getObjVal('AutoQuest', 'name')) {
-                global.log(1, 'Could not find AutoQuest.');
+            //if (!gm.getObjVal('AutoQuest', 'name')) {
+            if (!state.getItem('AutoQuest', this.newAutoQuest()).name) {
+                utility.log(1, 'Could not find AutoQuest.');
                 this.SetDivContent('quest_mess', 'Could not find AutoQuest.');
                 return false;
             }
 
-            var autoQuestName = gm.getObjVal('AutoQuest', 'name');
-            if (gm.getObjVal('AutoQuest', 'name') !== autoQuestName) {
-                global.log(1, 'New AutoQuest found.');
+            //var autoQuestName = gm.getObjVal('AutoQuest', 'name');
+            var autoQuestName = state.getItem('AutoQuest', this.newAutoQuest()).name;
+            //if (gm.getObjVal('AutoQuest', 'name') !== autoQuestName) {
+            if (state.getItem('AutoQuest', this.newAutoQuest()).name !== autoQuestName) {
+                utility.log(1, 'New AutoQuest found.');
                 this.SetDivContent('quest_mess', 'New AutoQuest found.');
                 return true;
             }
 
             // if found missing requires, click to buy
             if (autoQuestDivs.tr !== undefined) {
-                if (gm.getValue('QuestSubArea', 'Atlantis') === 'Atlantis') {
-                    global.log(1, "Cant buy Atlantis items, stopping quest");
+                if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
+                    utility.log(1, "Cant buy Atlantis items, stopping quest");
                     this.ManualAutoQuest();
                     return false;
                 }
@@ -5184,64 +5154,65 @@ caap = {
                 var background = nHtml.FindByAttrContains(autoQuestDivs.tr, "div", "style", 'background-color');
                 if (background) {
                     if (background.style.backgroundColor === 'rgb(158, 11, 15)') {
-                        global.log(1, " background.style.backgroundColor", background.style.backgroundColor);
-                        gm.setValue('storeRetrieve', 'general');
+                        utility.log(3, " background.style.backgroundColor", background.style.backgroundColor);
+                        state.setItem('storeRetrieve', 'general');
                         if (general.Select('BuyGeneral')) {
                             return true;
                         }
 
-                        gm.setValue('storeRetrieve', '');
+                        state.setItem('storeRetrieve', '');
                         if (background.firstChild.firstChild.title) {
-                            global.log(1, "Clicking to buy", background.firstChild.firstChild.title);
-                            this.Click(background.firstChild.firstChild);
+                            utility.log(1, "Clicking to buy", background.firstChild.firstChild.title);
+                            utility.Click(background.firstChild.firstChild);
                             return true;
                         }
                     }
                 }
             } else {
-                global.log(1, 'Can not buy quest item');
+                utility.warn('Can not buy quest item');
                 return false;
             }
 
-            var questGeneral = gm.getObjVal('AutoQuest', 'general');
-            if (questGeneral === 'none' || gm.getValue('ForceSubGeneral', false)) {
+            //var questGeneral = gm.getObjVal('AutoQuest', 'general');
+            var questGeneral = state.getItem('AutoQuest', this.newAutoQuest()).general;
+            if (questGeneral === 'none' || config.getItem('ForceSubGeneral', false)) {
                 if (general.Select('SubQuestGeneral')) {
                     return true;
                 }
             } else if ((questGeneral) && questGeneral !== general.GetCurrent()) {
-                if (gm.getValue('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
-                        gm.getValue('QuestLevelUpGeneral', false) && this.stats.exp.dif &&
-                        this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0)) {
+                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
+                        config.getItem('QuestLevelUpGeneral', false) && this.stats.exp.dif &&
+                        this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
                     if (general.Select('LevelUpGeneral')) {
                         return true;
                     }
 
-                    global.log(1, 'Using level up general');
+                    utility.log(1, 'Using level up general');
                 } else {
                     if (autoQuestDivs.genDiv !== undefined) {
-                        global.log(1, 'Clicking on general', questGeneral);
-                        this.Click(autoQuestDivs.genDiv);
+                        utility.log(1, 'Clicking on general', questGeneral);
+                        utility.Click(autoQuestDivs.genDiv);
                         return true;
                     } else {
-                        global.log(1, 'Can not click on general', questGeneral);
+                        utility.warn('Can not click on general', questGeneral);
                         return false;
                     }
                 }
             }
 
             if (autoQuestDivs.click !== undefined) {
-                global.log(1, 'Clicking auto quest', autoQuestName);
-                gm.setValue('ReleaseControl', true);
-                this.Click(autoQuestDivs.click, 10000);
-                //global.log(1, "Quests: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
+                utility.log(1, 'Clicking auto quest', autoQuestName);
+                state.setItem('ReleaseControl', true);
+                utility.Click(autoQuestDivs.click, 10000);
+                //utility.log(1, "Quests: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
                 this.ShowAutoQuest();
                 return true;
             } else {
-                global.log(1, 'Can not click auto quest', autoQuestName);
+                utility.warn('Can not click auto quest', autoQuestName);
                 return false;
             }
         } catch (err) {
-            global.error("ERROR in Quests: " + err);
+            utility.error("ERROR in Quests: " + err);
             return false;
         }
     },
@@ -5257,32 +5228,32 @@ caap = {
             demiDiv = $("div[id*='app46755028429_symbol_desc_symbolquests']");
             if (demiDiv && demiDiv.length === 5) {
                 demiDiv.each(function (index) {
-                    var temp = caap.NumberOnly($(this).children().next().eq(1).children().children().next().text());
+                    var temp = utility.NumberOnly($(this).children().next().eq(1).children().children().next().text());
                     if (typeof temp === 'number') {
                         points.push(temp);
                     } else {
                         success = false;
-                        global.log(1, 'Demi-Power temp text problem', temp);
+                        utility.warn('Demi-Power temp text problem', temp);
                     }
                 });
 
-                global.log(2, 'Points', points);
+                utility.log(2, 'Points', points);
                 if (success) {
                     this.demi.ambrosia.power.total = points[0];
                     this.demi.malekus.power.total = points[1];
                     this.demi.corvintheus.power.total = points[2];
                     this.demi.aurora.power.total = points[3];
                     this.demi.azeron.power.total = points[4];
-                    schedule.Set("symbolquests", gm.getNumber("CheckSymbolQuests", 24) * 3600, 300);
+                    schedule.setItem("symbolquests", gm.getItem("CheckSymbolQuests", 24, hiddenVar) * 3600, 300);
                     this.SaveDemi();
                 }
             } else {
-                global.log(1, "Demi demiDiv problem", demiDiv);
+                utility.warn("Demi demiDiv problem", demiDiv);
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_symbolquests: " + err);
+            utility.error("ERROR in CheckResults_symbolquests: " + err);
             return false;
         }
     },
@@ -5303,7 +5274,7 @@ caap = {
 
             return found;
         } catch (err) {
-            global.error("ERROR in isBossQuest: " + err);
+            utility.error("ERROR in isBossQuest: " + err);
             return false;
         }
     },
@@ -5321,9 +5292,10 @@ caap = {
                 }
             }
 
-            var whyQuest = gm.getValue('WhyQuest', '');
+            var whyQuest = config.getItem('WhyQuest', 'Manual');
             if (pickQuestTF === true && whyQuest !== 'Manual') {
-                gm.setValue('AutoQuest', '');
+                //gm.setItem('AutoQuest', '');
+                state.setItem('AutoQuest', this.newAutoQuest());
             }
 
             var bestReward  = 0,
@@ -5332,12 +5304,12 @@ caap = {
                 ss          = null,
                 s           = 0;
 
-            if (this.CheckForImage('demi_quest_on.gif')) {
+            if (utility.CheckForImage('demi_quest_on.gif')) {
                 this.CheckResults_symbolquests();
                 ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",
                     div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
                 if (ss.snapshotLength <= 0) {
-                    global.log(1, "Failed to find symbol_displaysymbolquest");
+                    utility.warn("Failed to find symbol_displaysymbolquest");
                 }
 
                 for (s = 0; s < ss.snapshotLength; s += 1) {
@@ -5350,15 +5322,17 @@ caap = {
 
             ss = document.evaluate(".//div[contains(@class,'quests_background')]", div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength <= 0) {
-                global.log(1, "Failed to find quests_background");
+                utility.warn("Failed to find quests_background");
                 return false;
             }
 
             var haveOrb = false;
             if ($(div).find("input[src*='alchemy_summon']").length) {
                 haveOrb = true;
-                if (this.isBossQuest(gm.getObjVal('AutoQuest', 'name')) && gm.getValue('GetOrbs', false) && whyQuest !== 'Manual') {
-                    gm.setValue('AutoQuest', '');
+                //if (this.isBossQuest(gm.getObjVal('AutoQuest', 'name')) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual') {
+                if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual') {
+                    //gm.setItem('AutoQuest', '');
+                    state.setItem('AutoQuest', this.newAutoQuest());
                 }
             }
 
@@ -5382,13 +5356,13 @@ caap = {
                     expM       = divTxt.match(new RegExp("\\+([0-9]+)"));
 
                 if (expM && expM.length === 2) {
-                    experience = this.NumberOnly(expM[1]);
+                    experience = utility.NumberOnly(expM[1]);
                 } else {
                     var expObj = $("div[class='quest_experience']");
                     if (expObj && expObj.length) {
-                        experience = this.NumberOnly(expObj.text());
+                        experience = utility.NumberOnly(expObj.text());
                     } else {
-                        global.log(1, "Can't find experience for", this.questName);
+                        utility.warn("Can't find experience for", this.questName);
                     }
                 }
 
@@ -5399,7 +5373,7 @@ caap = {
 
                 var energyM = divTxt.match(new RegExp("([0-9]+)\\s+energy", "i"));
                 if (energyM && energyM.length === 2) {
-                    energy = this.NumberOnly(energyM[1]);
+                    energy = utility.NumberOnly(energyM[1]);
                 } else {
                     var eObj = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_req');
                     if (eObj) {
@@ -5408,26 +5382,26 @@ caap = {
                 }
 
                 if (!energy) {
-                    global.log(1, "Can't find energy for", this.questName);
+                    utility.warn("Can't find energy for", this.questName);
                     continue;
                 }
 
-                var moneyM     = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i")),
+                var moneyM     = utility.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i")),
                     rewardLow  = 0,
                     rewardHigh = 0;
 
                 if (moneyM && moneyM.length === 3) {
-                    rewardLow  = this.NumberOnly(moneyM[1]);
-                    rewardHigh = this.NumberOnly(moneyM[2]);
+                    rewardLow  = utility.NumberOnly(moneyM[1]);
+                    rewardHigh = utility.NumberOnly(moneyM[2]);
                     reward = (rewardLow + rewardHigh) / 2;
                 } else {
-                    moneyM = this.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"));
+                    moneyM = utility.RemoveHtmlJunk(divTxt).match(new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"));
                     if (moneyM && moneyM.length === 3) {
-                        rewardLow  = this.NumberOnly(moneyM[1]) * 1000000;
-                        rewardHigh = this.NumberOnly(moneyM[2]) * 1000000;
+                        rewardLow  = utility.NumberOnly(moneyM[1]) * 1000000;
+                        rewardHigh = utility.NumberOnly(moneyM[2]) * 1000000;
                         reward = (rewardLow + rewardHigh) / 2;
                     } else {
-                        global.log(1, 'No money found for', this.questName, divTxt);
+                        utility.warn('No money found for', this.questName, divTxt);
                     }
                 }
 
@@ -5435,7 +5409,7 @@ caap = {
                 if (click && click.length) {
                     click = click.get(0);
                 } else {
-                    global.log(1, 'No button found for', this.questName);
+                    utility.warn('No button found for', this.questName);
                     continue;
                 }
 
@@ -5452,12 +5426,12 @@ caap = {
                     if (influenceList && influenceList.length === 2) {
                         influence = influenceList[1];
                     } else {
-                        global.log(1, "Influence div not found.", influenceList);
+                        utility.warn("Influence div not found.", influenceList);
                     }
                 }
 
                 if (!influence) {
-                    global.log(1, 'No influence found for', this.questName, divTxt);
+                    utility.warn('No influence found for', this.questName, divTxt);
                 }
 
                 var general = 'none';
@@ -5480,15 +5454,16 @@ caap = {
                 }
 
                 if (s === 0) {
-                    global.log(1, "Adding Quest Labels and Listeners");
+                    utility.log(1, "Adding Quest Labels and Listeners");
                 }
 
                 this.LabelQuests(div, energy, reward, experience, click);
-                global.log(9, "QuestSubArea", gm.getValue('QuestSubArea', 'Atlantis'));
-                if (this.CheckCurrentQuestArea(gm.getValue('QuestSubArea', 'Atlantis'))) {
-                    if (gm.getValue('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual') {
+                utility.log(9, "QuestSubArea", config.getItem('QuestSubArea', 'Atlantis'));
+                if (this.CheckCurrentQuestArea(config.getItem('QuestSubArea', 'Atlantis'))) {
+                    if (config.getItem('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual') {
                         if (!haveOrb) {
-                            gm.setObjVal('AutoQuest', 'name', this.questName);
+                            //gm.setObjVal('AutoQuest', 'name', this.questName);
+                            this.updateAutoQuest('name', this.questName);
                             pickQuestTF = true;
                         }
                     }
@@ -5496,30 +5471,35 @@ caap = {
                     switch (whyQuest) {
                     case 'Advancement' :
                         if (influence) {
-                            if (!gm.getObjVal('AutoQuest', 'name') && questType === 'primary' && this.NumberOnly(influence) < 100) {
-                                gm.setObjVal('AutoQuest', 'name', this.questName);
+                            //if (!gm.getObjVal('AutoQuest', 'name') && questType === 'primary' && utility.NumberOnly(influence) < 100) {
+                            if (!state.getItem('AutoQuest', this.newAutoQuest()).name && questType === 'primary' && utility.NumberOnly(influence) < 100) {
+                                //gm.setObjVal('AutoQuest', 'name', this.questName);
+                                this.updateAutoQuest('name', this.questName);
                                 pickQuestTF = true;
                             }
                         } else {
-                            global.log(1, "Can't find influence for", this.questName, influence);
+                            utility.warn("Can't find influence for", this.questName, influence);
                         }
 
                         break;
                     case 'Max Influence' :
                         if (influence) {
-                            if (!gm.getObjVal('AutoQuest', 'name') && this.NumberOnly(influence) < 100) {
-                                gm.setObjVal('AutoQuest', 'name', this.questName);
+                            //if (!gm.getObjVal('AutoQuest', 'name') && utility.NumberOnly(influence) < 100) {
+                            if (!state.getItem('AutoQuest', this.newAutoQuest()).name && utility.NumberOnly(influence) < 100) {
+                                //gm.setObjVal('AutoQuest', 'name', this.questName);
+                                this.updateAutoQuest('name', this.questName);
                                 pickQuestTF = true;
                             }
                         } else {
-                            global.log(1, "Can't find influence for", this.questName, influence);
+                            utility.warn("Can't find influence for", this.questName, influence);
                         }
 
                         break;
                     case 'Max Experience' :
                         rewardRatio = (Math.floor(experience / energy * 100) / 100);
                         if (bestReward < rewardRatio) {
-                            gm.setObjVal('AutoQuest', 'name', this.questName);
+                            //gm.setObjVal('AutoQuest', 'name', this.questName);
+                            this.updateAutoQuest('name', this.questName);
                             pickQuestTF = true;
                         }
 
@@ -5527,7 +5507,8 @@ caap = {
                     case 'Max Gold' :
                         rewardRatio = (Math.floor(reward / energy * 10) / 10);
                         if (bestReward < rewardRatio) {
-                            gm.setObjVal('AutoQuest', 'name', this.questName);
+                            //gm.setObjVal('AutoQuest', 'name', this.questName);
+                            this.updateAutoQuest('name', this.questName);
                             pickQuestTF = true;
                         }
 
@@ -5535,12 +5516,19 @@ caap = {
                     default :
                     }
 
-                    if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
+                    //if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
+                    if (state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / energy;
-                        global.log(1, "Setting AutoQuest", this.questName);
-                        gm.setValue('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
-                        global.log(9, "CheckResults_quests", gm.getValue('AutoQuest'));
+                        utility.log(1, "Setting AutoQuest", this.questName);
+                        //gm.setItem('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
+                        var tempAutoQuest = this.newAutoQuest();
+                        tempAutoQuest.name = this.questName;
+                        tempAutoQuest.energy = energy;
+                        tempAutoQuest.general = general;
+                        tempAutoQuest.expRatio = expRatio;
+                        state.setItem('AutoQuest', tempAutoQuest);
+                        utility.log(2, "CheckResults_quests", state.getItem('AutoQuest', this.newAutoQuest()));
                         this.ShowAutoQuest();
                         autoQuestDivs.click  = click;
                         autoQuestDivs.tr     = div;
@@ -5550,40 +5538,41 @@ caap = {
             }
 
             if (pickQuestTF) {
-                if (gm.getObjVal('AutoQuest', 'name')) {
-                    global.log(9, "CheckResults_quests(pickQuestTF)", gm.getValue('AutoQuest'));
+                //if (gm.getObjVal('AutoQuest', 'name')) {
+                if (state.getItem('AutoQuest', this.newAutoQuest()).name) {
+                    utility.log(2, "CheckResults_quests(pickQuestTF)", state.getItem('AutoQuest', this.newAutoQuest()));
                     this.ShowAutoQuest();
                     return autoQuestDivs;
                 }
 
                 //if not find quest, probably you already maxed the subarea, try another area
-                if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && gm.getValue('switchQuestArea', true)) {
-                    var QuestSubArea = gm.getValue('QuestSubArea', '');
-                    global.log(9, "QuestSubArea", QuestSubArea);
+                if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && config.getItem('switchQuestArea', true)) {
+                    var QuestSubArea = config.getItem('QuestSubArea', 'Land Of Fire');
+                    utility.log(9, "QuestSubArea", QuestSubArea);
                     if (QuestSubArea && this.QuestAreaInfo[QuestSubArea] && this.QuestAreaInfo[QuestSubArea].next) {
-                        gm.setValue('QuestSubArea', this.QuestAreaInfo[QuestSubArea].next);
+                        config.setItem('QuestSubArea', this.QuestAreaInfo[QuestSubArea].next);
                         if (this.QuestAreaInfo[QuestSubArea].area && this.QuestAreaInfo[QuestSubArea].list) {
-                            gm.setValue('QuestArea', this.QuestAreaInfo[QuestSubArea].area);
+                            config.setItem('QuestArea', this.QuestAreaInfo[QuestSubArea].area);
                             this.ChangeDropDownList('QuestSubArea', this[this.QuestAreaInfo[QuestSubArea].list]);
                         }
                     } else {
-                        global.log(1, "Setting questing to manual");
+                        utility.log(1, "Setting questing to manual");
                         this.ManualAutoQuest();
                     }
 
-                    global.log(1, "UpdateQuestGUI: Setting drop down menus");
-                    this.SelectDropOption('QuestArea', gm.getValue('QuestArea'));
-                    this.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
+                    utility.log(1, "UpdateQuestGUI: Setting drop down menus");
+                    this.SelectDropOption('QuestArea', config.getItem('QuestArea', 'Quest'));
+                    this.SelectDropOption('QuestSubArea', config.getItem('QuestSubArea', 'Land Of Fire'));
                     return false;
                 }
 
-                global.log(1, "Finished QuestArea.");
+                utility.log(1, "Finished QuestArea.");
                 this.ManualAutoQuest();
             }
 
             return false;
         } catch (err) {
-            global.error("ERROR in CheckResults_quests: " + err);
+            utility.error("ERROR in CheckResults_quests: " + err);
             this.ManualAutoQuest();
             return false;
         }
@@ -5612,7 +5601,7 @@ caap = {
             var found = false;
 
             if (this.stats.level < 8) {
-                if (this.CheckForImage('quest_back_1.jpg')) {
+                if (utility.CheckForImage('quest_back_1.jpg')) {
                     found = true;
                 }
             } else if (QuestSubArea && this.QuestAreaInfo[QuestSubArea]) {
@@ -5623,7 +5612,7 @@ caap = {
 
             return found;
         } catch (err) {
-            global.error("ERROR in CheckCurrentQuestArea: " + err);
+            utility.error("ERROR in CheckCurrentQuestArea: " + err);
             return false;
         }
     },
@@ -5632,30 +5621,30 @@ caap = {
         try {
             var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
             if (!item_title) {
-                global.log(2, "Can't find quest description or sub-title");
+                utility.log(2, "Can't find quest description or sub-title");
                 return false;
             }
 
             if (item_title.innerHTML.toString().match(/LOCK/)) {
-                global.log(2, "Quest locked", item_title);
+                utility.log(2, "Quest locked", item_title);
                 return false;
             }
 
             var firstb = item_title.getElementsByTagName('b')[0];
             if (!firstb) {
-                global.log(1, "Can't get bolded member out of", item_title.innerHTML.toString());
+                utility.warn("Can't get bolded member out of", item_title.innerHTML.toString());
                 return false;
             }
 
             this.questName = $.trim(firstb.innerHTML.toString()).stripHTML();
             if (!this.questName) {
-                global.log(1, 'No quest name for this row');
+                utility.warn('No quest name for this row');
                 return false;
             }
 
             return this.questName;
         } catch (err) {
-            global.error("ERROR in GetQuestName: " + err);
+            utility.error("ERROR in GetQuestName: " + err);
             return false;
         }
     },
@@ -5687,29 +5676,43 @@ caap = {
                     return true;
                 }
 
-                if ((this.stats.energy.num >= gm.getValue('XQuestEnergy', 1)) && (this.stats.energy.num >= energy)) {
-                    return true;
+                var whichEnergy = config.getItem('XQuestEnergy', 1);
+                if (this.stats.energy.num >= whichEnergy) {
+                    state.setItem('AtXQuestEnergy', true);
                 }
 
-                if ((this.stats.energy.num >= gm.getValue('XMinQuestEnergy', 0)) && (this.stats.energy.num >= energy)) {
-                    return true;
+                if (this.stats.energy.num >= energy) {
+                    if (state.getItem('AtXQuestEnergy', false) && this.stats.energy.num >= config.getItem('XMinQuestEnergy', 0)) {
+                        this.SetDivContent(msgdiv, 'At X energy. Burning to ' + config.getItem('XMinQuestEnergy', 0));
+                        return true;
+                    } else {
+                        state.setItem('AtXQuestEnergy', false);
+                    }
                 }
 
-                var whichEnergy = gm.getValue('XQuestEnergy', 1);
                 if (energy > whichEnergy) {
                     whichEnergy = energy;
                 }
 
                 if (msgdiv) {
-                    this.SetDivContent(msgdiv, 'Waiting for more energy:' + this.stats.energy.num + "/" + whichEnergy);
+                    this.SetDivContent(msgdiv, 'Waiting for X energy: ' + this.stats.energy.num + "/" + whichEnergy);
                 }
             } else if (condition === 'At Max Energy') {
-                if (!gm.getValue('MaxIdleEnergy', 0)) {
-                    global.log(1, "Changing to idle general to get Max energy");
-                    this.PassiveGeneral();
+                var maxIdleEnergy = this.stats.energy.max,
+                    theGeneral = config.getItem('IdleGeneral', 'Use Current');
+
+                if (theGeneral !== 'Use Current') {
+                    maxIdleEnergy = general.GetEnergyMax(theGeneral);
                 }
 
-                if (this.stats.energy.num >= gm.getValue('MaxIdleEnergy')) {
+                if (theGeneral !== 'Use Current' && !maxIdleEnergy) {
+                    utility.log(1, "Changing to idle general to get Max energy");
+                    if (general.Select('IdleGeneral')) {
+                        return true;
+                    }
+                }
+
+                if (this.stats.energy.num >= maxIdleEnergy) {
                     return true;
                 }
 
@@ -5722,13 +5725,13 @@ caap = {
                 }
 
                 if (msgdiv) {
-                    this.SetDivContent(msgdiv, 'Waiting for max energy:' + this.stats.energy.num + "/" + gm.getValue('MaxIdleEnergy'));
+                    this.SetDivContent(msgdiv, 'Waiting for max energy: ' + this.stats.energy.num + "/" + maxIdleEnergy);
                 }
             }
 
             return false;
         } catch (err) {
-            global.error("ERROR in CheckEnergy: " + err);
+            utility.error("ERROR in CheckEnergy: " + err);
             return false;
         }
     },
@@ -5738,7 +5741,7 @@ caap = {
             element.addEventListener(type, this[listener], usecapture);
             return true;
         } catch (err) {
-            global.error("ERROR in AddLabelListener: " + err);
+            utility.error("ERROR in AddLabelListener: " + err);
             return false;
         }
     },
@@ -5754,20 +5757,20 @@ caap = {
             }
 
             caap.ManualAutoQuest('name' + global.ls + sps[0].innerHTML.toString() + global.vs + 'energy' + global.ls + sps[1].innerHTML.toString());
-            if (caap.stats.level < 10 && caap.CheckForImage('quest_back_1.jpg')) {
-                gm.setValue('QuestArea', 'Quest');
-                gm.setValue('QuestSubArea', 'Land of Fire');
+            if (caap.stats.level < 10 && utility.CheckForImage('quest_back_1.jpg')) {
+                config.setItem('QuestArea', 'Quest');
+                config.setItem('QuestSubArea', 'Land of Fire');
             } else {
-                if (caap.CheckForImage('tab_quest_on.gif')) {
-                    gm.setValue('QuestArea', 'Quest');
+                if (utility.CheckForImage('tab_quest_on.gif')) {
+                    config.setItem('QuestArea', 'Quest');
                     caap.SelectDropOption('QuestArea', 'Quest');
                     caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
-                } else if (caap.CheckForImage('demi_quest_on.gif')) {
-                    gm.setValue('QuestArea', 'Demi Quests');
+                } else if (utility.CheckForImage('demi_quest_on.gif')) {
+                    config.setItem('QuestArea', 'Demi Quests');
                     caap.SelectDropOption('QuestArea', 'Demi Quests');
                     caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
-                } else if (caap.CheckForImage('tab_atlantis_on.gif')) {
-                    gm.setValue('QuestArea', 'Atlantis');
+                } else if (utility.CheckForImage('tab_atlantis_on.gif')) {
+                    config.setItem('QuestArea', 'Atlantis');
                     caap.SelectDropOption('QuestArea', 'Atlantis');
                     caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                 }
@@ -5776,17 +5779,17 @@ caap = {
                 if (mainDiv && mainDiv.length) {
                     className = mainDiv.attr("class");
                     if (className && caap.ClassToQuestArea[className]) {
-                        gm.setValue('QuestSubArea', caap.ClassToQuestArea[className]);
+                        config.setItem('QuestSubArea', caap.ClassToQuestArea[className]);
                     }
                 }
             }
 
-            global.log(1, 'Setting QuestSubArea to', gm.getValue('QuestSubArea'));
-            caap.SelectDropOption('QuestSubArea', gm.getValue('QuestSubArea'));
+            utility.log(1, 'Setting QuestSubArea to', config.getItem('QuestSubArea', 'Land Of Fire'));
+            caap.SelectDropOption('QuestSubArea', config.getItem('QuestSubArea', 'Land Of Fire'));
             caap.ShowAutoQuest();
             return true;
         } catch (err) {
-            global.error("ERROR in LabelListener: " + err);
+            utility.error("ERROR in LabelListener: " + err);
             return false;
         }
     },
@@ -5802,7 +5805,8 @@ caap = {
         div.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
             "<br />Exp per energy: " + (Math.floor(experience / energy * 100) / 100) + "<br />";
 
-        if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
+        //if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
+        if (state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
             var b = document.createElement('b');
             b.innerHTML = "Current auto quest";
             div.appendChild(b);
@@ -5846,61 +5850,62 @@ caap = {
     BlessingResults: function (resultsText) {
         // Check time until next Oracle Blessing
         if (resultsText.match(/Please come back in: /)) {
-            var hours = parseInt(resultsText.match(/ \d+ hour/), 10);
-            var minutes = parseInt(resultsText.match(/ \d+ minute/), 10);
-            schedule.Set('BlessingTimer', (hours * 60 + minutes) * 60, 300);
-            global.log(1, 'Recorded Blessing Time. Scheduling next click!');
+            var hours   = parseInt(resultsText.match(/ \d+ hour/), 10),
+                minutes = parseInt(resultsText.match(/ \d+ minute/), 10);
+
+            schedule.setItem('BlessingTimer', (hours * 60 + minutes) * 60, 300);
+            utility.log(1, 'Recorded Blessing Time. Scheduling next click!');
         }
 
         // Recieved Demi Blessing.  Wait 24 hours to try again.
         if (resultsText.match(/You have paid tribute to/)) {
-            schedule.Set('BlessingTimer', 86400, 300);
-            global.log(1, 'Received blessing. Scheduling next click!');
+            schedule.setItem('BlessingTimer', 86400, 300);
+            utility.log(1, 'Received blessing. Scheduling next click!');
         }
 
         this.SetCheckResultsFunction('');
     },
 
     AutoBless: function () {
-        var autoBless = gm.getValue('AutoBless', 'none').toLowerCase();
+        var autoBless = config.getItem('AutoBless', 'None').toLowerCase();
         if (autoBless === 'none') {
             return false;
         }
 
-        if (!schedule.Check('BlessingTimer')) {
+        if (!schedule.check('BlessingTimer')) {
             return false;
         }
 
-        if (this.NavigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
+        if (utility.NavigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
             return true;
         }
 
         var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + autoBless);
         if (!picSlice) {
-            global.log(1, 'No diety pics for deity', autoBless);
+            utility.warn('No diety pics for deity', autoBless);
             return false;
         }
 
         if (picSlice.style.height !== '160px') {
-            return this.NavigateTo('deity_' + autoBless);
+            return utility.NavigateTo('deity_' + autoBless);
         }
 
         picSlice = nHtml.FindByAttrContains(document.body, 'form', 'id', '_symbols_form_' + this.deityTable[autoBless]);
         if (!picSlice) {
-            global.log(1, 'No form for deity blessing.');
+            utility.warn('No form for deity blessing.');
             return false;
         }
 
-        picSlice = this.CheckForImage('demi_quest_bless', picSlice);
+        picSlice = utility.CheckForImage('demi_quest_bless', picSlice);
         if (!picSlice) {
-            global.log(1, 'No image for deity blessing.');
+            utility.warn('No image for deity blessing.');
             return false;
         }
 
-        global.log(1, 'Click deity blessing for ', autoBless);
-        schedule.Set('BlessingTimer', 3600, 300);
+        utility.log(1, 'Click deity blessing for ', autoBless);
+        schedule.setItem('BlessingTimer', 3600, 300);
         this.SetCheckResultsFunction('BlessingResults');
-        this.Click(picSlice);
+        utility.Click(picSlice);
         return true;
     },
 
@@ -5913,7 +5918,7 @@ caap = {
         // schoolofmagic, etc. <div class=item_title
         var infoDiv = nHtml.FindByAttrXPath(row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
         if (!infoDiv) {
-            global.log(1, "can't find land_buy_info");
+            utility.warn("can't find land_buy_info");
         }
 
         if (infoDiv.className.indexOf('item_title') >= 0) {
@@ -5938,7 +5943,7 @@ caap = {
             return null;
         }
 
-        gm.deleteValue('BestLandCost');
+        state.setItem('BestLandCost', 0);
         this.sellLand = '';
         this.bestLand.roi = 0;
         this.IterateLands(function (land) {
@@ -5972,15 +5977,15 @@ caap = {
                 if (!(this.bestLand.roi || roi === 0) || roi > this.bestLand.roi) {
                     this.bestLand.roi = roi;
                     this.bestLand.land = land;
-                    gm.setValue('BestLandCost', this.bestLand.land.cost);
+                    state.setItem('BestLandCost', this.bestLand.land.cost);
                 }
             }
         });
 
-        var bestLandCost = gm.getValue('BestLandCost', '');
-        global.log(1, "Best Land Cost", bestLandCost);
+        var bestLandCost = state.getItem('BestLandCost', '');
+        utility.log(1, "Best Land Cost: ", bestLandCost);
         if (!bestLandCost) {
-            gm.setValue('BestLandCost', 'none');
+            state.setItem('BestLandCost', 'none');
         }
 
         var div = document.createElement('div');
@@ -5994,14 +5999,14 @@ caap = {
         var content = document.getElementById('content');
         var ss = document.evaluate(".//tr[contains(@class,'land_buy_row')]", content, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         if (!ss || (ss.snapshotLength === 0)) {
-            global.log(9, "Can't find land_buy_row");
+            utility.log(9, "Can't find land_buy_row");
             return null;
         }
 
         var landByName = {};
         var landNames = [];
 
-        global.log(9, 'forms found', ss.snapshotLength);
+        utility.log(9, 'forms found', ss.snapshotLength);
         for (var s = 0; s < ss.snapshotLength; s += 1) {
             var row = ss.snapshotItem(s);
             if (!row) {
@@ -6010,13 +6015,13 @@ caap = {
 
             var name = this.LandsGetNameFromRow(row);
             if (name === null || name === '') {
-                global.log(1, "Can't find land name");
+                utility.warn("Can't find land name");
                 continue;
             }
 
             var moneyss = document.evaluate(".//*[contains(@class,'gold') or contains(@class,'currency')]", row, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (moneyss.snapshotLength < 2) {
-                global.log(1, "Can't find 2 gold instances");
+                utility.warn("Can't find 2 gold instances");
                 continue;
             }
 
@@ -6030,14 +6035,14 @@ caap = {
                     var m = numberRe.exec(income.textContent);
                     if (m && m.length >= 2 && m[1].length > 1) {
                         // number must be more than a digit or else it could be a "? required" text
-                        income = this.NumberOnly(m[1]);
+                        income = utility.NumberOnly(m[1]);
                     } else {
-                        global.log(9, 'Cannot find income for', name, income.textContent);
+                        utility.log(9, 'Cannot find income for ', name, income.textContent);
                         income = 0;
                         continue;
                     }
                 } else {
-                    income = this.NumberOnly(income.textContent);
+                    income = utility.NumberOnly(income.textContent);
                 }
                 nums.push(income);
             }
@@ -6045,7 +6050,7 @@ caap = {
             income = nums[0];
             var cost = nums[1];
             if (!income || !cost) {
-                global.log(1, "Can't find income or cost for", name);
+                utility.warn("Can't find income or cost for", name);
                 continue;
             }
 
@@ -6091,10 +6096,10 @@ caap = {
         this.SelectLands(land.row, 2);
         var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
         if (button) {
-            global.log(9, "Clicking buy button", button);
-            global.log(1, "Buying Land", land.name);
-            this.Click(button, 13000);
-            gm.deleteValue('BestLandCost');
+            utility.log(9, "Clicking buy button", button);
+            utility.log(1, "Buying Land", land.name);
+            utility.Click(button, 13000);
+            state.seteItem('BestLandCost', 0);
             this.bestLand.roi = 0;
             return true;
         }
@@ -6106,9 +6111,9 @@ caap = {
         this.SelectLands(land.row, select);
         var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
         if (button) {
-            global.log(9, "Clicking sell button", button);
-            global.log(1, "Selling Land", land.name);
-            this.Click(button, 13000);
+            utility.log(9, "Clicking sell button", button);
+            utility.log(1, "Selling Land: ", land.name);
+            utility.Click(button, 13000);
             this.sellLand = '';
             return true;
         }
@@ -6117,60 +6122,67 @@ caap = {
     },
 
     Lands: function () {
-        if (gm.getValue('autoBuyLand', false)) {
+        if (config.getItem('autoBuyLand', false)) {
             // Do we have lands above our max to sell?
-            if (this.sellLand && gm.getValue('SellLands', false)) {
+            if (this.sellLand && config.getItem('SellLands', false)) {
                 this.SellLand(this.sellLand, this.sellLand.selection);
                 return true;
             }
 
-            var bestLandCost = gm.getValue('BestLandCost', '');
+            var bestLandCost = state.getItem('BestLandCost', '');
             if (!bestLandCost) {
-                global.log(1, "Going to land to get Best Land Cost");
-                if (this.NavigateTo('soldiers,land', 'tab_land_on.gif')) {
+                utility.log(1, "Going to land to get Best Land Cost");
+                if (utility.NavigateTo('soldiers,land', 'tab_land_on.gif')) {
                     return true;
                 }
             }
 
             if (bestLandCost === 'none') {
-                global.log(2, "No Lands avaliable");
+                utility.log(2, "No Lands avaliable");
                 return false;
             }
 
-            global.log(2, "Lands: How much gold in store?", this.stats.gold.bank);
+            utility.log(2, "Lands: How much gold in store?", this.stats.gold.bank);
             if (!this.stats.gold.bank && this.stats.gold.bank !== 0) {
-                global.log(1, "Going to keep to get Stored Value");
-                if (this.NavigateTo('keep')) {
+                utility.log(1, "Going to keep to get Stored Value");
+                if (utility.NavigateTo('keep')) {
                     return true;
                 }
             }
 
             // Retrieving from Bank
-            var cashTotAvail = this.stats.gold.cash + (this.stats.gold.bank - gm.getNumber('minInStore', 0));
+            var cashTotAvail = this.stats.gold.cash + (this.stats.gold.bank - config.getItem('minInStore', 0));
             var cashNeed = 10 * bestLandCost;
+            var theGeneral = config.getItem('IdleGeneral', 'Use Current');
             if ((cashTotAvail >= cashNeed) && (this.stats.gold.cash < cashNeed)) {
-                if (this.PassiveGeneral()) {
-                    return true;
+                if (theGeneral !== 'Use Current') {
+                    utility.log(1, "Changing to idle general");
+                    if (general.Select('IdleGeneral')) {
+                        return true;
+                    }
                 }
 
-                global.log(1, "Trying to retrieve", 10 * bestLandCost - this.stats.gold.cash);
+                utility.log(1, "Trying to retrieve", 10 * bestLandCost - this.stats.gold.cash);
                 return this.RetrieveFromBank(10 * bestLandCost - this.stats.gold.cash);
             }
 
             // Need to check for enough moneys + do we have enough of the builton type that we already own.
             if (bestLandCost && this.stats.gold.cash >= 10 * bestLandCost) {
-                if (this.PassiveGeneral()) {
-                    return true;
+                if (theGeneral !== 'Use Current') {
+                    utility.log(1, "Changing to idle general");
+                    if (general.Select('IdleGeneral')) {
+                        return true;
+                    }
                 }
 
-                this.NavigateTo('soldiers,land');
-                if (this.CheckForImage('tab_land_on.gif')) {
-                    global.log(2, "Buying land", this.bestLand.land.name);
+                utility.NavigateTo('soldiers,land');
+                if (utility.CheckForImage('tab_land_on.gif')) {
+                    utility.log(2, "Buying land", this.bestLand.land.name);
                     if (this.BuyLand(this.bestLand.land)) {
                         return true;
                     }
                 } else {
-                    return this.NavigateTo('soldiers,land');
+                    return utility.NavigateTo('soldiers,land');
                 }
             }
         }
@@ -6195,16 +6207,16 @@ caap = {
             if (resultsDiv) {
                 var resultsText = $.trim(nHtml.GetText(resultsDiv));
                 if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
-                    global.log(1, "This opponent is dead or hiding: " + this.lastBattleID);
-                    if (!this.doNotBattle) {
-                        this.doNotBattle = this.lastBattleID;
+                    utility.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", ''));
+                    if (!state.getItem("lastBattleID", '')) {
+                        state.setItem("doNotBattle", state.getItem("lastBattleID", ''));
                     } else {
-                        this.doNotBattle += " " + this.lastBattleID;
+                        state.setItem("doNotBattle", state.getItem("doNotBattle", '') + " " + state.getItem("lastBattleID", ''));
                     }
                 }
             }
 
-            if (this.CheckForImage('battle_victory.gif')) {
+            if (utility.CheckForImage('battle_victory.gif')) {
                 var winresults = null,
                     bptxt = '',
                     bpnum = 0,
@@ -6212,18 +6224,18 @@ caap = {
                     goldnum = 0,
                     wins = 1;
 
-                if (gm.getValue("BattleType", "Invade") === "War") {
+                if (config.getItem("BattleType", "Invade") === "War") {
                     winresults = nHtml.FindByAttrContains(document.body, "b", "class", 'gold');
                     bptxt = $.trim(nHtml.GetText(winresults.parentNode.parentNode).toString());
-                    bpnum = ((/\d+\s+War Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+War Points/i)) : 0);
+                    bpnum = ((/\d+\s+War Points/i.test(bptxt)) ? utility.NumberOnly(bptxt.match(/\d+\s+War Points/i)) : 0);
                     goldtxt = winresults.innerHTML;
                     goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
-                    userId = this.lastBattleID;
+                    userId = state.getItem("lastBattleID", '');
                     userName = $("div[style*='war_win_left.jpg']").text().match(new RegExp("(.+)'s Defense"))[1];
                 } else {
                     winresults = nHtml.FindByAttrContains(document.body, 'span', 'class', 'positive');
                     bptxt = $.trim(nHtml.GetText(winresults.parentNode).toString());
-                    bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? this.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
+                    bpnum = ((/\d+\s+Battle Points/i.test(bptxt)) ? utility.NumberOnly(bptxt.match(/\d+\s+Battle Points/i)) : 0);
                     goldtxt = nHtml.FindByAttrContains(document.body, "b", "class", 'gold').innerHTML;
                     goldnum = Number(goldtxt.substring(1).replace(/,/, ''));
                     resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
@@ -6233,71 +6245,72 @@ caap = {
                     userName = $.trim(nHtml.GetText(nameLink));
                 }
 
-                global.log(1, "We Defeated " + userName + "!!");
+                utility.log(1, "We Defeated ", userName);
                 //Test if we should chain this guy
-                gm.setValue("BattleChainId", '');
-                var chainBP = gm.getValue('ChainBP', 'empty');
+                state.setItem("BattleChainId", '');
+                var chainBP = config.getItem('ChainBP', 'empty');
                 if (chainBP !== 'empty') {
-                    if (bpnum >= Number(chainBP)) {
-                        gm.setValue("BattleChainId", userId);
-                        if (gm.getValue("BattleType", "Invade") === "War") {
-                            global.log(1, "Chain Attack: " + userId + "  War Points:" + bpnum);
+                    if (bpnum >= parseFloat(chainBP)) {
+                        state.setItem("BattleChainId", userId);
+                        if (config.getItem("BattleType", "Invade") === "War") {
+                            utility.log(1, "Chain Attack: " + userId + "  War Points:" + bpnum);
                         } else {
-                            global.log(1, "Chain Attack: " + userId + "  Battle Points:" + bpnum);
+                            utility.log(1, "Chain Attack: " + userId + "  Battle Points:" + bpnum);
                         }
                     } else {
-                        if (!this.doNotBattle) {
-                            this.doNotBattle = this.lastBattleID;
+                        if (!state.getItem("lastBattleID", '')) {
+                            state.setItem("doNotBattle", state.getItem("lastBattleID", ''));
                         } else {
-                            this.doNotBattle += " " + this.lastBattleID;
+                            state.setItem("doNotBattle", state.getItem("doNotBattle", '') + " " + state.getItem("lastBattleID", ''));
                         }
                     }
                 }
 
-                var chainGold = gm.getNumber('ChainGold', 0);
+                var chainGold = config.getItem('ChainGold', 0);
                 if (chainGold) {
                     if (goldnum >= chainGold) {
-                        gm.setValue("BattleChainId", userId);
-                        global.log(1, "Chain Attack " + userId + " Gold:" + goldnum);
+                        state.setItem("BattleChainId", userId);
+                        utility.log(1, "Chain Attack " + userId + " Gold:" + goldnum);
                     } else {
-                        if (!this.doNotBattle) {
-                            this.doNotBattle = this.lastBattleID;
+                        if (!state.getItem("lastBattleID", '')) {
+                            state.setItem("doNotBattle", state.getItem("lastBattleID", ''));
                         } else {
-                            this.doNotBattle += " " + this.lastBattleID;
+                            state.setItem("doNotBattle", state.getItem("doNotBattle", '') + " " + state.getItem("lastBattleID", ''));
                         }
                     }
                 }
 
-                if (gm.getValue("BattleChainId", '')) {
-                    var chainCount = gm.getNumber('ChainCount', 0) + 1;
-                    if (chainCount >= gm.getNumber('MaxChains', 4)) {
-                        global.log(1, "Lets give this guy a break.");
-                        if (!this.doNotBattle) {
-                            this.doNotBattle = this.lastBattleID;
+                if (state.getItem("BattleChainId", '')) {
+                    var chainCount = state.getItem('ChainCount', 0) + 1;
+                    if (chainCount >= config.getItem('MaxChains', 4)) {
+                        utility.log(1, "Lets give this guy a break.");
+                        if (!state.getItem("lastBattleID", '')) {
+                            state.setItem("doNotBattle", state.getItem("lastBattleID", ''));
                         } else {
-                            this.doNotBattle += " " + this.lastBattleID;
+                            state.setItem("doNotBattle", state.getItem("doNotBattle", '') + " " + state.getItem("lastBattleID", ''));
                         }
 
-                        gm.setValue("BattleChainId", '');
+                        state.setItem("BattleChainId", '');
                         chainCount = 0;
                     }
 
-                    gm.setValue('ChainCount', chainCount);
+                    state.setItem('ChainCount', chainCount);
                 } else {
-                    gm.setValue('ChainCount', 0);
+                    state.setItem('ChainCount', 0);
                 }
 
-                if (gm.getValue('BattlesWonList', '').indexOf(global.vs + userId + global.vs) === -1 &&
-                    (bpnum >= gm.getValue('ReconBPWon', 0) || (goldnum >= gm.getValue('ReconGoldWon', 0)))) {
+                // ReconBPWon && ReconGoldWon don't appear to be used - bug?
+                if (gm.getItem('BattlesWonList', '').indexOf(global.vs + userId + global.vs) === -1 &&
+                    (bpnum >= gm.getItem('ReconBPWon', 0) || (goldnum >= gm.getItem('ReconGoldWon', 0)))) {
                     now = (new Date().getTime()).toString();
                     newelement = now + global.vs + userId + global.vs + userName + global.vs + wins + global.vs + bpnum + global.vs + goldnum;
                     gm.listPush('BattlesWonList', newelement, 100);
                 }
 
                 this.SetCheckResultsFunction('');
-            } else if (this.CheckForImage('battle_defeat.gif')) {
-                if (gm.getValue("BattleType", "Invade") === "War") {
-                    userId = this.lastBattleID;
+            } else if (utility.CheckForImage('battle_defeat.gif')) {
+                if (config.getItem("BattleType", "Invade") === "War") {
+                    userId = state.getItem("lastBattleID", '');
                     userName = $("div[style*='war_lose_left.jpg']").text().match(new RegExp("(.+)'s Defense"))[1];
                 } else {
                     resultsDiv = nHtml.FindByAttrContains(document.body, 'div', 'id', 'app_body');
@@ -6307,27 +6320,27 @@ caap = {
                     userName = $.trim(nHtml.GetText(nameLink));
                 }
 
-                global.log(1, "We Were Defeated By " + userName + ".");
-                gm.setValue('ChainCount', 0);
-                if (gm.getValue('BattlesLostList', '').indexOf(global.vs + userId + global.vs) === -1) {
+                utility.log(1, "We Were Defeated By ", userName);
+                state.setItem('ChainCount', 0);
+                if (gm.getItem('BattlesLostList', '').indexOf(global.vs + userId + global.vs) === -1) {
                     now = (new Date().getTime()).toString();
                     newelement = now + global.vs + userId + global.vs + userName;
-                    if (!gm.getValue('IgnoreBattleLoss', false)) {
+                    if (!config.getItem('IgnoreBattleLoss', false)) {
                         gm.listPush('BattlesLostList', newelement, 100);
                     }
                 }
 
                 this.SetCheckResultsFunction('');
             } else {
-                gm.setValue('ChainCount', 0);
+                state.setItem('ChainCount', 0);
             }
         } catch (err) {
-            global.error("ERROR in CheckBattleResults: " + err);
+            utility.error("ERROR in CheckBattleResults: " + err);
         }
     },
 
     hashThisId: function (userid) {
-        if (!gm.getValue('AllowProtected', true)) {
+        if (!gm.getItem('AllowProtected', true, hiddenVar)) {
             return false;
         }
 
@@ -6345,25 +6358,25 @@ caap = {
             return true;
         }
 
-        var battleButton = this.CheckForImage(this.battles.Freshmeat[gm.getValue('BattleType', 'Invade')]);
+        var battleButton = utility.CheckForImage(this.battles.Freshmeat[config.getItem('BattleType', 'Invade')]);
         if (battleButton) {
             var form = battleButton.parentNode.parentNode;
             if (form) {
                 var inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
                 if (inp) {
                     inp.value = userid;
-                    this.lastBattleID = userid;
+                    state.setItem("lastBattleID", userid);
                     this.ClickBattleButton(battleButton);
-                    this.notSafeCount = 0;
+                    state.setItem("notSafeCount", 0);
                     return true;
                 }
 
-                global.log(1, "target_id not found in battleForm");
+                utility.warn("target_id not found in battleForm");
             }
 
-            global.log(1, "form not found in battleButton");
+            utility.warn("form not found in battleButton");
         } else {
-            global.log(1, "battleButton not found");
+            utility.warn("battleButton not found");
         }
 
         return false;
@@ -6395,29 +6408,32 @@ caap = {
     },
 
     warRankTable: {
-        0 : 'No Rank',
-        1 : 'Reserve',
-        2 : 'Footman',
-        3 : 'Corporal',
-        4 : 'Lieutenant',
-        5 : 'Captain',
-        6 : 'First Captain',
-        7 : 'Blackguard',
-        8 : 'Warguard',
-        9 : 'Master Warguard'
+        0  : 'No Rank',
+        1  : 'Reserve',
+        2  : 'Footman',
+        3  : 'Corporal',
+        4  : 'Lieutenant',
+        5  : 'Captain',
+        6  : 'First Captain',
+        7  : 'Blackguard',
+        8  : 'Warguard',
+        9  : 'Master Warguard',
+        10 : 'Lieutenant Colonel',
+        11 : 'Colonel',
+        12 : 'First Colonel'
     },
 
     ClickBattleButton: function (battleButton) {
-        gm.setValue('ReleaseControl', true);
+        state.setItem('ReleaseControl', true);
         this.SetCheckResultsFunction('CheckBattleResults');
-        this.Click(battleButton);
+        utility.Click(battleButton);
     },
 
     battles: {
         Raid : {
             Invade   : 'raid_attack_button.gif',
             Duel     : 'raid_attack_button2.gif',
-            regex    : new RegExp('Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
+            regex1   : new RegExp('Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
             refresh  : 'raid',
             image    : 'tab_raid_on.gif'
         },
@@ -6425,7 +6441,7 @@ caap = {
             Invade   : 'battle_01.gif',
             Duel     : 'battle_02.gif',
             War      : 'war_button_duel.gif',
-            regex    : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
+            regex1   : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
             regex2   : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
             warLevel : true,
             refresh  : 'battle_on.gif',
@@ -6435,13 +6451,13 @@ caap = {
 
     BattleFreshmeat: function (type) {
         try {
-            var invadeOrDuel = gm.getValue('BattleType'),
+            var invadeOrDuel = config.getItem('BattleType', 'Invade'),
                 target       = "//input[contains(@src,'" + this.battles[type][invadeOrDuel] + "')]",
                 ss           = document.evaluate(target, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
-            global.log(1, 'target ' + target);
+            utility.log(1, 'target ', target);
             if (ss.snapshotLength <= 0) {
-                global.log(1, 'Not on battlepage');
+                utility.warn('Not on battlepage');
                 return false;
             }
 
@@ -6454,28 +6470,53 @@ caap = {
                 yourRank    = 0,
                 txt         = '';
 
-            chainId = gm.getValue('BattleChainId', '');
-            gm.setValue('BattleChainId', '');
-            if (gm.getValue("BattleType") === "War") {
+            chainId = state.getItem('BattleChainId', '');
+            state.setItem('BattleChainId', '');
+            if (config.getItem("BattleType", 'Invade') === "War") {
                 yourRank = this.stats.rank.war;
             } else {
                 yourRank = this.stats.rank.battle;
             }
 
             // Lets get our Freshmeat user settings
-            var minRank  = gm.getNumber("FreshMeatMinRank", 99),
-                maxLevel = gm.getNumber("FreshMeatMaxLevel", ((invadeOrDuel === 'Invade') ? 1000 : 15)),
-                ARBase   = gm.getNumber("FreshMeatARBase", 0.5),
-                ARMax    = gm.getNumber("FreshMeatARMax", 1000),
-                ARMin    = gm.getNumber("FreshMeatARMin", 0);
+            var minRank  = 0,
+                maxLevel = 0,
+                ARBase   = 0,
+                ARMax    = 0,
+                ARMin    = 0;
 
-            //global.log(1, "my army/rank/level: " + this.stats.army.capped + "/" + this.stats.rank.battle + "/" + this.stats.level);
+            minRank = config.getItem("FreshMeatMinRank", 99);
+            if (!isNaN(minRank)) {
+                minRank = 99;
+            }
+
+            maxLevel = gm.getItem("FreshMeatMaxLevel", ((invadeOrDuel === 'Invade') ? 1000 : 15), hiddenVar);
+            if (!isNaN(maxLevel)) {
+                maxLevel = (invadeOrDuel === 'Invade') ? 1000 : 15;
+            }
+
+            ARBase = config.getItem("FreshMeatARBase", 0.5);
+            if (!isNaN(ARBase)) {
+                ARBase = 0.5;
+            }
+
+            ARMax = gm.getItem("FreshMeatARMax", 1000, hiddenVar);
+            if (!isNaN(ARMax)) {
+                ARMax = 1000;
+            }
+
+            ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
+            if (!isNaN(ARMin)) {
+                ARMin = 0;
+            }
+
+            //utility.log(1, "my army/rank/level: " + this.stats.army.capped + "/" + this.stats.rank.battle + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s += 1) {
                 var button = ss.snapshotItem(s),
                     tr = button;
 
                 if (!tr) {
-                    global.log(1, 'No tr parent of button?');
+                    utility.warn('No tr parent of button?');
                     continue;
                 }
 
@@ -6489,9 +6530,9 @@ caap = {
                 if (type === 'Raid') {
                     tr = tr.parentNode.parentNode.parentNode.parentNode.parentNode;
                     txt = tr.childNodes[3].childNodes[3].textContent;
-                    levelm = this.battles.Raid.regex.exec(txt);
+                    levelm = this.battles.Raid.regex1.exec(txt);
                     if (!levelm) {
-                        global.log(1, "Can't match battleRaidRe in " + txt);
+                        utility.warn("Can't match Raid regex in ", txt);
                         continue;
                     }
 
@@ -6504,25 +6545,25 @@ caap = {
                     }
 
                     // If looking for demi points, and already full, continue
-                    if (gm.getValue('DemiPointsFirst', false) && !gm.getValue('DemiPointsDone', true) && (gm.getValue('WhenMonster') !== 'Never')) {
-                        var demiNumber = this.NumberOnly(this.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1,
+                    if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
+                        var demiNumber = utility.NumberOnly(utility.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i).toString()) - 1,
                             demiName   = this.demiTable[demiNumber];
 
-                        global.log(9, "Demi Points First", demiNumber, demiName, this.demi[demiName], gm.getValue('DemiPoint' + demiNumber));
-                        if (this.demi[demiName].daily.dif <= 0 || !gm.getValue('DemiPoint' + demiNumber)) {
-                            global.log(1, "Daily Demi Points done for", demiName);
+                        utility.log(9, "Demi Points First", demiNumber, demiName, this.demi[demiName], config.getItem('DemiPoint' + demiNumber, true));
+                        if (this.demi[demiName].daily.dif <= 0 || !config.getItem('DemiPoint' + demiNumber, true)) {
+                            utility.log(1, "Daily Demi Points done for", demiName);
                             continue;
                         }
                     }
 
                     txt = $.trim(nHtml.GetText(tr));
                     if (!txt.length) {
-                        global.log(1, "Can't find txt in tr");
+                        utility.warn("Can't find txt in tr");
                         continue;
                     }
 
                     if (this.battles.Freshmeat.warLevel) {
-                        levelm = this.battles.Freshmeat.regex.exec(txt);
+                        levelm = this.battles.Freshmeat.regex1.exec(txt);
                         if (!levelm) {
                             levelm = this.battles.Freshmeat.regex2.exec(txt);
                             this.battles.Freshmeat.warLevel = false;
@@ -6530,19 +6571,19 @@ caap = {
                     } else {
                         levelm = this.battles.Freshmeat.regex2.exec(txt);
                         if (!levelm) {
-                            levelm = this.battles.Freshmeat.regex.exec(txt);
+                            levelm = this.battles.Freshmeat.regex1.exec(txt);
                             this.battles.Freshmeat.warLevel = true;
                         }
                     }
 
                     if (!levelm) {
-                        global.log(1, "Can't match Freshmeat.regex(2) in " + txt);
+                        utility.warn("Can't match Freshmeat regex in ", txt);
                         continue;
                     }
 
                     userName = levelm[1];
                     level = parseInt(levelm[2], 10);
-                    if (gm.getValue("BattleType") === "War" && this.battles.Freshmeat.warLevel) {
+                    if (config.getItem("BattleType", 'Invade') === "War" && this.battles.Freshmeat.warLevel) {
                         rank = parseInt(levelm[6], 10);
                     } else {
                         rank = parseInt(levelm[4], 10);
@@ -6561,30 +6602,30 @@ caap = {
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
                 if (armyRatio <= 0) {
-                    global.log(1, "Bad ratio");
+                    utility.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
                     continue;
                 }
 
-                global.log(8, "Army Ratio: " + armyRatio + " Level: " + level + " Rank: " + rank + " Army: " + army);
+                utility.log(8, "Army Ratio: " + armyRatio + " Level: " + level + " Rank: " + rank + " Army: " + army);
                 if (level - this.stats.level > maxLevel) {
-                    global.log(8, "Greater than maxLevel");
+                    utility.log(8, "Greater than maxLevel");
                     continue;
                 }
 
                 if (yourRank && (yourRank - rank  > minRank)) {
-                    global.log(8, "Greater than minRank");
+                    utility.log(8, "Greater than minRank");
                     continue;
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (this.stats.army.capped && (army > (this.stats.army.capped * armyRatio))) {
-                    global.log(8, "Greater than armyRatio");
+                    utility.log(8, "Greater than armyRatio");
                     continue;
                 }
 
                 inp = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'");
                 if (!inp) {
-                    global.log(1, "Could not find 'target_id' input");
+                    utility.warn("Could not find 'target_id' input");
                     continue;
                 }
 
@@ -6593,22 +6634,22 @@ caap = {
                     continue;
                 }
 
-                if (gm.getValue("BattleType") === "War" && this.battles.Freshmeat.warLevel) {
-                    global.log(1, "ID: " + userid + "    \tLevel: " + level + "\tWar Rank: " + rank + " \tArmy: " + army);
+                if (config.getItem("BattleType", 'Invade') === "War" && this.battles.Freshmeat.warLevel) {
+                    utility.log(1, "ID: " + userid + "    \tLevel: " + level + "\tWar Rank: " + rank + " \tArmy: " + army);
                 } else {
-                    global.log(1, "ID: " + userid + "    \tLevel: " + level + "\tBattle Rank: " + rank + "  \tArmy: " + army);
+                    utility.log(1, "ID: " + userid + "    \tLevel: " + level + "\tBattle Rank: " + rank + "  \tArmy: " + army);
                 }
 
-                var dfl = gm.getValue('BattlesLostList', '');
+                var dfl = gm.getItem('BattlesLostList', '');
                 // don't battle people we recently lost to
                 if (dfl.indexOf(global.vs + userid + global.vs) >= 0) {
-                    global.log(1, "We lost to this id before: " + userid);
+                    utility.log(1, "We lost to this id before: " + userid);
                     continue;
                 }
 
                 // don't battle people we've already battled too much
-                if (this.doNotBattle && this.doNotBattle.indexOf(userid) >= 0) {
-                    global.log(1, "We attacked this id before: " + userid);
+                if (state.getItem("doNotBattle", '') && state.getItem("doNotBattle", '').indexOf(userid) >= 0) {
+                    utility.log(1, "We attacked this id before: " + userid);
                     continue;
                 }
 
@@ -6652,16 +6693,16 @@ caap = {
                     inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
                     if (inp) {
                         inp.value = chainId;
-                        global.log(1, "Chain attacking: " + chainId);
+                        utility.log(1, "Chain attacking: ", chainId);
                         this.ClickBattleButton(anyButton);
-                        this.lastBattleID = chainId;
-                        this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
-                        this.notSafeCount = 0;
+                        state.setItem("lastBattleID", chainId);
+                        this.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", ''));
+                        state.setItem("notSafeCount", 0);
                         return true;
                     }
 
-                    global.log(1, "Could not find 'target_id' input");
-                } else if (gm.getValue('PlusOneKills', false) && type === 'Raid') {
+                    utility.warn("Could not find 'target_id' input");
+                } else if (config.getItem('PlusOneKills', false) && type === 'Raid') {
                     if (plusOneSafe) {
                         anyButton = ss.snapshotItem(0);
                         form = anyButton.parentNode.parentNode;
@@ -6669,150 +6710,151 @@ caap = {
                         if (inp) {
                             var firstId = inp.value;
                             inp.value = '200000000000001';
-                            global.log(1, "Target ID Overriden For +1 Kill. Expected Defender: " + firstId);
+                            utility.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
                             this.ClickBattleButton(anyButton);
-                            this.lastBattleID = firstId;
-                            this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
-                            this.notSafeCount = 0;
+                            state.setItem("lastBattleID", firstId);
+                            this.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", ''));
+                            state.setItem("notSafeCount", 0);
                             return true;
                         }
 
-                        global.log(1, "Could not find 'target_id' input");
+                        utility.warn("Could not find 'target_id' input");
                     } else {
-                        global.log(1, "Not safe for +1 kill.");
+                        utility.log(1, "Not safe for +1 kill.");
                     }
                 } else {
                     for (var z = 0; z < count; z += 1) {
-                        //global.log(1, "safeTargets["+z+"].id = "+safeTargets[z].id+" safeTargets["+z+"].score = "+safeTargets[z].score);
-                        if (!this.lastBattleID && this.lastBattleID === safeTargets[z].id && z < count - 1) {
+                        //utility.log(1, "safeTargets["+z+"].id = "+safeTargets[z].id+" safeTargets["+z+"].score = "+safeTargets[z].score);
+                        if (!state.getItem("lastBattleID", '') && state.getItem("lastBattleID", '') === safeTargets[z].id && z < count - 1) {
                             continue;
                         }
 
                         var bestButton = safeTargets[z].button;
                         if (bestButton !== null) {
-                            global.log(1, 'Found Target score: ' + safeTargets[z].score + ' id: ' + safeTargets[z].id + ' Number: ' + safeTargets[z].targetNumber);
+                            utility.log(1, 'Found Target score: ' + safeTargets[z].score + ' id: ' + safeTargets[z].id + ' Number: ' + safeTargets[z].targetNumber);
                             this.ClickBattleButton(bestButton);
-                            this.lastBattleID = safeTargets[z].id;
-                            this.lastUserName = safeTargets[z].userName;
-                            this.SetDivContent('battle_mess', 'Attacked: ' + this.lastBattleID);
-                            this.notSafeCount = 0;
+                            state.setItem("lastBattleID", safeTargets[z].id);
+                            //this.lastUserName = safeTargets[z].userName;
+                            this.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", ''));
+                            state.setItem("notSafeCount", 0);
                             return true;
                         }
 
-                        global.log(1, 'Attack button is null');
+                        utility.warn('Attack button is null');
                     }
                 }
             }
 
-            this.notSafeCount += 1;
-            if (this.notSafeCount > 100) {
+            state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
+            if (state.getItem("notSafeCount", 0) > 100) {
                 this.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
-                global.log(1, 'No safe targets limit reached. Releasing control for other processes.', this.notSafeCount);
-                this.notSafeCount = 0;
+                utility.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
+                state.setItem("notSafeCount", 0);
                 return false;
             }
 
             this.SetDivContent('battle_mess', 'No targets matching criteria');
-            global.log(1, 'No safe targets', this.notSafeCount);
+            utility.log(1, 'No safe targets: ', state.getItem("notSafeCount", 0));
 
             if (type === 'Raid') {
-                var engageButton = this.monsterEngageButtons[gm.getValue('targetFromraid', '')];
-                if (engageButton) {
-                    this.Click(engageButton);
+                var engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
+                if (state.getItem("page", '') === 'raid' && engageButton) {
+                    utility.Click(engageButton);
                 } else {
-                    this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif');
+                    schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
+                    utility.NavigateTo(this.battlePage + ',raid');
                 }
             } else {
-                this.NavigateTo(this.battlePage + ',battle_on.gif');
+                utility.NavigateTo(this.battlePage + ',battle_on.gif');
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in BattleFreshmeat: " + err);
-            return this.ClickAjax('raid.php');
+            utility.error("ERROR in BattleFreshmeat: " + err);
+            return utility.ClickAjax('raid.php');
         }
     },
 
     CheckKeep: function () {
         try {
-            if (!schedule.Check("keep")) {
+            if (!schedule.check("keep")) {
                 return false;
             }
 
-            global.log(1, 'Visiting keep to get stats');
-            return this.NavigateTo('keep', 'tab_stats_on.gif');
+            utility.log(1, 'Visiting keep to get stats');
+            return utility.NavigateTo('keep', 'tab_stats_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckKeep: " + err);
+            utility.error("ERROR in CheckKeep: " + err);
             return false;
         }
     },
 
     CheckOracle: function () {
         try {
-            if (!schedule.Check("oracle")) {
+            if (!schedule.check("oracle")) {
                 return false;
             }
 
-            global.log(9, "Checking Oracle for Favor Points");
-            return this.NavigateTo('oracle', 'oracle_on.gif');
+            utility.log(9, "Checking Oracle for Favor Points");
+            return utility.NavigateTo('oracle', 'oracle_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckOracle: " + err);
+            utility.error("ERROR in CheckOracle: " + err);
             return false;
         }
     },
 
     CheckBattleRank: function () {
         try {
-            if (!schedule.Check("battlerank") || this.stats.level < 8) {
+            if (!schedule.check("battlerank") || this.stats.level < 8) {
                 return false;
             }
 
-            global.log(1, 'Visiting Battle Rank to get stats');
-            return this.NavigateTo('battle,battlerank', 'tab_battle_rank_on.gif');
+            utility.log(1, 'Visiting Battle Rank to get stats');
+            return utility.NavigateTo('battle,battlerank', 'tab_battle_rank_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckBattleRank: " + err);
+            utility.error("ERROR in CheckBattleRank: " + err);
             return false;
         }
     },
 
     CheckWarRank: function () {
         try {
-            if (!schedule.Check("warrank") || this.stats.level < 100) {
+            if (!schedule.check("warrank") || this.stats.level < 100) {
                 return false;
             }
 
-            global.log(1, 'Visiting War Rank to get stats');
-            return this.NavigateTo('battle,war_rank', 'tab_war_on.gif');
+            utility.log(1, 'Visiting War Rank to get stats');
+            return utility.NavigateTo('battle,war_rank', 'tab_war_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckWar: " + err);
+            utility.error("ERROR in CheckWar: " + err);
             return false;
         }
     },
 
     CheckGenerals: function () {
         try {
-            if (!schedule.Check("generals")) {
+            if (!schedule.check("generals")) {
                 return false;
             }
 
-            global.log(1, "Visiting generals to get 'General' list");
-            return this.NavigateTo('mercenary,generals', 'tab_generals_on.gif');
+            utility.log(1, "Visiting generals to get 'General' list");
+            return utility.NavigateTo('mercenary,generals', 'tab_generals_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckGenerals: " + err);
+            utility.error("ERROR in CheckGenerals: " + err);
             return false;
         }
     },
 
     CheckSoldiers: function () {
         try {
-            if (!schedule.Check("soldiers")) {
+            if (!schedule.check("soldiers")) {
                 return false;
             }
 
-            global.log(9, "Checking Soldiers");
-            return this.NavigateTo('soldiers', 'tab_soldiers_on.gif');
+            utility.log(9, "Checking Soldiers");
+            return utility.NavigateTo('soldiers', 'tab_soldiers_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckSoldiers: " + err);
+            utility.error("ERROR in CheckSoldiers: " + err);
             return false;
         }
     },
@@ -6820,70 +6862,70 @@ caap = {
 
     CheckItem: function () {
         try {
-            if (!schedule.Check("item")) {
+            if (!schedule.check("item")) {
                 return false;
             }
 
-            global.log(9, "Checking Item");
-            return this.NavigateTo('soldiers,item', 'tab_black_smith_on.gif');
+            utility.log(9, "Checking Item");
+            return utility.NavigateTo('soldiers,item', 'tab_black_smith_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckItem: " + err);
+            utility.error("ERROR in CheckItem: " + err);
             return false;
         }
     },
 
     CheckMagic: function () {
         try {
-            if (!schedule.Check("magic")) {
+            if (!schedule.check("magic")) {
                 return false;
             }
 
-            global.log(9, "Checking Magic");
-            return this.NavigateTo('soldiers,magic', 'tab_magic_on.gif');
+            utility.log(9, "Checking Magic");
+            return utility.NavigateTo('soldiers,magic', 'tab_magic_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckMagic: " + err);
+            utility.error("ERROR in CheckMagic: " + err);
             return false;
         }
     },
 
     CheckAchievements: function () {
         try {
-            if (!schedule.Check("achievements")) {
+            if (!schedule.check("achievements")) {
                 return false;
             }
 
-            global.log(1, 'Visiting achievements to get stats');
-            return this.NavigateTo('keep,achievements', 'tab_achievements_on.gif');
+            utility.log(1, 'Visiting achievements to get stats');
+            return utility.NavigateTo('keep,achievements', 'tab_achievements_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckAchievements: " + err);
+            utility.error("ERROR in CheckAchievements: " + err);
             return false;
         }
     },
 
     CheckSymbolQuests: function () {
         try {
-            if (!schedule.Check("symbolquests") || this.stats.level < 8) {
+            if (!schedule.check("symbolquests") || this.stats.level < 8) {
                 return false;
             }
 
-            global.log(1, "Visiting symbolquests to get 'Demi-Power' points");
-            return this.NavigateTo('quests,symbolquests', 'demi_quest_on.gif');
+            utility.log(1, "Visiting symbolquests to get 'Demi-Power' points");
+            return utility.NavigateTo('quests,symbolquests', 'demi_quest_on.gif');
         } catch (err) {
-            global.error("ERROR in CheckSymbolQuests: " + err);
+            utility.error("ERROR in CheckSymbolQuests: " + err);
             return false;
         }
     },
 
     CheckCharacterClasses: function () {
         try {
-            if (!schedule.Check("view_class_progress") || this.stats.level < 100) {
+            if (!schedule.check("view_class_progress") || this.stats.level < 100) {
                 return false;
             }
 
-            global.log(9, "Checking Monster Class to get Character Class Stats");
-            return this.NavigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+            utility.log(9, "Checking Monster Class to get Character Class Stats");
+            return utility.NavigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
         } catch (err) {
-            global.error("ERROR in CheckCharacterClasses: " + err);
+            utility.error("ERROR in CheckCharacterClasses: " + err);
             return false;
         }
     },
@@ -6901,18 +6943,24 @@ caap = {
                 button        = null,
                 raidName      = '',
                 dfl           = '',
-                battleChainId = '';
+                battleChainId = '',
+                targetMonster = '',
+                whenMonster   = '',
+                targetType    = '',
+                rejoinSecs    = '';
 
             if (this.stats.level < 8) {
                 if (this.battleWarnLevel) {
-                    global.log(1, "Battle: Unlock at level 8");
+                    utility.log(1, "Battle: Unlock at level 8");
                     this.battleWarnLevel = false;
                 }
 
                 return false;
             }
 
-            whenBattle = gm.getValue('WhenBattle', '');
+            whenBattle = config.getItem('WhenBattle', 'Never');
+            whenMonster = config.getItem('WhenMonster', 'Never');
+            targetMonster = state.getItem('targetFrombattle_monster', '');
             switch (whenBattle) {
             case 'Never' :
                 this.SetDivContent('battle_mess', 'Battle off');
@@ -6920,16 +6968,30 @@ caap = {
             case 'Stay Hidden' :
                 if (!this.NeedToHide()) {
                     this.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
-                    global.log(1, 'We Dont Need To Hide Yet');
+                    utility.log(1, 'We Dont Need To Hide Yet');
                     return false;
                 }
 
                 break;
             case 'No Monster' :
                 if (mode !== 'DemiPoints') {
-                    if ((gm.getValue('WhenMonster', '') !== 'Never') && gm.getValue('targetFrombattle_monster') && !gm.getValue('targetFrombattle_monster').match(/the deathrune siege/i)) {
+                    if (whenMonster !== 'Never' && targetMonster && !targetMonster.match(/the deathrune siege/i)) {
                         return false;
                     }
+                }
+
+                break;
+            case 'Demi Points Only' :
+                if (mode === 'DemiPoints' && whenMonster === 'Never') {
+                    return false;
+                }
+
+                if (mode !== 'DemiPoints' && whenMonster !== 'Never' && targetMonster && !targetMonster.match(/the deathrune siege/i)) {
+                    return false;
+                }
+
+                if (state.getItem('DemiPointsDone', true)) {
+                    return false;
                 }
 
                 break;
@@ -6939,48 +7001,69 @@ caap = {
             if (this.CheckKeep()) {
                 return true;
             } else if (this.stats.health.num < 10) {
-                global.log(9, 'Health is less than 10', this.stats.health.num);
+                utility.log(9, 'Health is less than 10: ', this.stats.health.num);
                 return false;
             }
 
             target = this.GetCurrentBattleTarget(mode);
-            global.log(9, 'Mode/Target', mode, target);
+            utility.log(9, 'Mode/Target', mode, target);
             if (!target) {
-                global.log(1, 'No valid battle target');
+                utility.log(1, 'No valid battle target');
                 return false;
             } else if (typeof target === 'string') {
                 target = target.toLowerCase();
             }
 
             if (target === 'noraid') {
-                global.log(9, 'No Raid To Attack');
+                utility.log(9, 'No Raid To Attack');
                 return false;
             }
 
-            battletype = gm.getValue('BattleType', '');
+            battletype = config.getItem('BattleType', 'Invade');
             switch (battletype) {
             case 'Invade' :
                 useGeneral = 'BattleGeneral';
                 staminaReq = 1;
                 chainImg = 'battle_invade_again.gif';
+                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
+                        config.getItem('BattleLevelUpGeneral', false) && this.stats.exp.dif &&
+                        this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
+                    useGeneral = 'LevelUpGeneral';
+                    utility.log(1, 'Using level up general');
+                }
+
                 break;
             case 'Duel' :
                 useGeneral = 'DuelGeneral';
                 staminaReq = 1;
                 chainImg = 'battle_duel_again.gif';
+                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
+                        config.getItem('DuelLevelUpGeneral', false) && this.stats.exp.dif &&
+                        this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
+                    useGeneral = 'LevelUpGeneral';
+                    utility.log(1, 'Using level up general');
+                }
+
                 break;
             case 'War' :
                 useGeneral = 'WarGeneral';
                 staminaReq = 10;
                 chainImg = 'battle_duel_again.gif';
+                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' &&
+                        config.getItem('WarLevelUpGeneral', false) && this.stats.exp.dif &&
+                        this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
+                    useGeneral = 'LevelUpGeneral';
+                    utility.log(1, 'Using level up general');
+                }
+
                 break;
             default :
-                global.log(1, 'Unknown battle type ', battletype);
+                utility.warn('Unknown battle type ', battletype);
                 return false;
             }
 
             if (!this.CheckStamina('Battle', staminaReq)) {
-                global.log(9, 'Not enough stamina for ', battletype);
+                utility.log(9, 'Not enough stamina for ', battletype);
                 return false;
             } else if (general.Select(useGeneral)) {
                 return true;
@@ -6988,45 +7071,53 @@ caap = {
 
             // Check if we should chain attack
             if ($("img[src*='battle_victory.gif']").length) {
-                button = this.CheckForImage(chainImg);
-                battleChainId = gm.getValue("BattleChainId", '');
+                button = utility.CheckForImage(chainImg);
+                battleChainId = state.getItem("BattleChainId", '');
                 if (button && battleChainId) {
                     this.SetDivContent('battle_mess', 'Chain Attack In Progress');
-                    global.log(1, 'Chaining Target', battleChainId);
+                    utility.log(1, 'Chaining Target', battleChainId);
                     this.ClickBattleButton(button);
-                    gm.setValue("BattleChainId", '');
+                    state.setItem("BattleChainId", '');
                     return true;
                 }
             }
 
-            if (!this.notSafeCount) {
-                this.notSafeCount = 0;
+            if (!state.getItem("notSafeCount", 0)) {
+                state.setItem("notSafeCount", 0);
             }
 
-            global.log(1, 'Battle Target', target);
+            utility.log(1, 'Battle Target', target);
+            targetType = config.getItem('TargetType', 'Invade');
             switch (target) {
             case 'raid' :
+                if (!schedule.check("RaidNoTargetDelay")) {
+                    rejoinSecs = ((schedule.getItem("RaidNoTargetDelay").next - new Date().getTime()) / 1000).toFixed() + ' secs';
+                    utility.log(1, 'Rejoining the raid in', rejoinSecs);
+                    this.SetDivContent('battle_mess', 'Joining the Raid in ' + rejoinSecs);
+                    return true;
+                }
+
                 this.SetDivContent('battle_mess', 'Joining the Raid');
-                if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
+                if (utility.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
                     return true;
                 }
 
-                if (gm.getValue('clearCompleteRaids', false) && this.completeButton.raid) {
-                    this.Click(this.completeButton.raid, 1000);
-                    this.completeButton.raid = '';
-                    global.log(1, 'Cleared a completed raid');
+                if (config.getItem('clearCompleteRaids', false) && monster.completeButton.raid) {
+                    utility.Click(monster.completeButton.raid, 1000);
+                    monster.completeButton.raid = '';
+                    utility.log(1, 'Cleared a completed raid');
                     return true;
                 }
 
-                raidName = gm.getValue('targetFromraid', '');
+                raidName = state.getItem('targetFromraid', '');
                 if (!$("div[style*='dragon_title_owner']").length) {
-                    button = this.monsterEngageButtons[raidName];
+                    button = monster.engageButtons[raidName];
                     if (button) {
-                        this.Click(button);
+                        utility.Click(button);
                         return true;
                     }
 
-                    global.log(1, 'Unable to engage raid', raidName);
+                    utility.warn('Unable to engage raid', raidName);
                     return false;
                 }
 
@@ -7035,94 +7126,101 @@ caap = {
                 }
 
                 // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
-                if (gm.getValue('TargetType', '') === "Userid List") {
+                if (targetType === "Userid List") {
                     if (this.BattleFreshmeat('Raid')) {
                         if ($("span[class*='result_body']").length) {
                             this.NextBattleTarget();
                         }
 
-                        if (this.notSafeCount > 10) {
-                            this.notSafeCount = 0;
+                        if (state.getItem("notSafeCount", 0) > 10) {
+                            state.setItem("notSafeCount", 0);
                             this.NextBattleTarget();
                         }
 
                         return true;
                     }
 
-                    global.log(1, 'Doing Raid UserID list, but no target');
+                    utility.warn('Doing Raid UserID list, but no target');
                     return false;
                 }
 
                 return this.BattleFreshmeat('Raid');
             case 'freshmeat' :
-                if (this.NavigateTo(this.battlePage, 'battle_on.gif')) {
+                if (utility.NavigateTo(this.battlePage, 'battle_on.gif')) {
                     return true;
                 }
 
                 this.SetDivContent('battle_mess', 'Battling ' + target);
                 // The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
-                if (gm.getValue('TargetType', '') === "Userid List") {
+                if (targetType === "Userid List") {
                     if (this.BattleFreshmeat('Freshmeat')) {
                         if ($("span[class*='result_body']").length) {
                             this.NextBattleTarget();
                         }
 
-                        if (this.notSafeCount > 10) {
-                            this.notSafeCount = 0;
+                        if (state.getItem("notSafeCount", 0) > 10) {
+                            state.setItem("notSafeCount", 0);
                             this.NextBattleTarget();
                         }
 
                         return true;
                     }
 
-                    global.log(1, 'Doing Freshmeat UserID list, but no target');
+                    utility.warn('Doing Freshmeat UserID list, but no target');
                     return false;
                 }
 
                 return this.BattleFreshmeat('Freshmeat');
             default:
-                dfl = gm.getValue('BattlesLostList', '');
+                dfl = gm.getItem('BattlesLostList', '');
                 if (dfl.indexOf(global.vs + target + global.vs) >= 0) {
-                    global.log(1, 'Avoiding Losing Target', target);
+                    utility.log(1, 'Avoiding Losing Target', target);
                     this.NextBattleTarget();
                     return true;
                 }
 
-                if (this.NavigateTo(this.battlePage, 'battle_on.gif')) {
+                if (utility.NavigateTo(this.battlePage, 'battle_on.gif')) {
                     return true;
                 }
 
-                gm.setValue('BattleChainId', '');
+                state.setItem('BattleChainId', '');
                 if (this.BattleUserId(target)) {
                     this.NextBattleTarget();
                     return true;
                 }
 
-                global.log(1, 'Doing default UserID list, but no target');
+                utility.warn('Doing default UserID list, but no target');
                 return false;
             }
         } catch (err) {
-            global.error("ERROR in Battle: " + err);
+            utility.error("ERROR in Battle: " + err);
             return false;
         }
     },
 
     NextBattleTarget: function () {
-        var battleUpto = gm.getValue('BattleTargetUpto', 0);
-        gm.setValue('BattleTargetUpto', battleUpto + 1);
+        state.setItem('BattleTargetUpto', state.getItem('BattleTargetUpto', 0) + 1);
     },
 
     GetCurrentBattleTarget: function (mode) {
+        var target     = '',
+            targets    = [],
+            battleUpto = '',
+            targetType = '',
+            targetRaid = '';
+
+        targetType = config.getItem('TargetType', 'Invade');
+        targetRaid = state.getItem('targetFromraid', '');
         if (mode === 'DemiPoints') {
-            if (gm.getValue('targetFromraid', '') && gm.getValue('TargetType', '') === 'Raid') {
+            if (targetRaid && targetType === 'Raid') {
                 return 'Raid';
             }
 
             return 'Freshmeat';
         }
 
-        if (gm.getValue('TargetType', '') === 'Raid') {
-            if (gm.getValue('targetFromraid', '')) {
+        if (targetType === 'Raid') {
+            if (targetRaid) {
                 return 'Raid';
             }
 
@@ -7130,24 +7228,24 @@ caap = {
             return 'NoRaid';
         }
 
-        if (gm.getValue('TargetType', '') === 'Freshmeat') {
+        if (targetType === 'Freshmeat') {
             return 'Freshmeat';
         }
 
-        var target = gm.getValue('BattleChainId');
+        target = state.getItem('BattleChainId', '');
         if (target) {
             return target;
         }
 
-        var targets = gm.getList('BattleTargets');
+        targets = this.TextToArray(config.getItem('BattleTargets', ''));
         if (!targets.length) {
             return false;
         }
 
-        var battleUpto = gm.getValue('BattleTargetUpto', 0);
+        battleUpto = state.getItem('BattleTargetUpto', 0);
         if (battleUpto > targets.length - 1) {
             battleUpto = 0;
-            gm.setValue('BattleTargetUpto', 0);
+            state.setItem('BattleTargetUpto', 0);
         }
 
         if (!targets[battleUpto]) {
@@ -7155,9 +7253,9 @@ caap = {
             return false;
         }
 
-        this.SetDivContent('battle_mess', 'Battling User ' + gm.getValue('BattleTargetUpto', 0) + '/' + targets.length + ' ' + targets[battleUpto]);
+        this.SetDivContent('battle_mess', 'Battling User ' + battleUpto + '/' + targets.length + ' ' + targets[battleUpto]);
         if (targets[battleUpto].toLowerCase() === 'raid') {
-            if (gm.getValue('targetFromraid', '')) {
+            if (targetRaid) {
                 return 'Raid';
             }
 
@@ -7173,501 +7271,31 @@ caap = {
     //                          ATTACKING MONSTERS
     /////////////////////////////////////////////////////////////////////
 
-    // http://castleage.wikidot.com/monster for monster info
-
-    // http://castleage.wikidot.com/skaar
-    monsterInfo: {
-        'Deathrune' : {
-            duration     : 96,
-            defense      : true,
-            hp           : 100000000,
-            ach          : 1000000,
-            siege        : 5,
-            siegeClicks  : [30, 60, 90, 120, 200],
-            siegeDam     : [6600000, 8250000, 9900000, 13200000, 16500000],
-            siege_img    : ['/graphics/death_siege_small'],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            reqAtkButton : 'attack_monster_button.jpg',
-            v            : 'attack_monster_button2.jpg',
-            defButton    : 'button_dispel.gif',
-            defense_img  : 'bar_dispel.gif'
-        },
-        'Ice Elemental' : {
-            duration     : 168,
-            defense      : true,
-            hp           : 100000000,
-            ach          : 1000000,
-            siege        : 5,
-            siegeClicks  : [30, 60, 90, 120, 200],
-            siegeDam     : [7260000, 9075000, 10890000, 14520000, 18150000],
-            siege_img    : ['/graphics/water_siege_small'],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            reqAtkButton : 'attack_monster_button.jpg',
-            pwrAtkButton : 'attack_monster_button2.jpg',
-            defButton    : 'button_dispel.gif',
-            defense_img  : 'bar_dispel.gif'
-        },
-        'Earth Elemental' : {
-            duration     : 168,
-            defense      : true,
-            hp           : 100000000,
-            ach          : 1000000,
-            siege        : 5,
-            siegeClicks  : [30, 60, 90, 120, 200],
-            siegeDam     : [6600000, 8250000, 9900000, 13200000, 16500000],
-            siege_img    : ['/graphics/earth_siege_small'],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            reqAtkButton : 'attack_monster_button.jpg',
-            pwrAtkButton : 'attack_monster_button2.jpg',
-            defButton    : 'attack_monster_button3.jpg',
-            defense_img  : 'seamonster_ship_health.jpg',
-            repair_img   : 'repair_bar_grey.jpg'
-        },
-        'Hydra' : {
-            duration     : 168,
-            hp           : 100000000,
-            ach          : 500000,
-            siege        : 6,
-            siegeClicks  : [10, 20, 50, 100, 200, 300],
-            siegeDam     : [1340000, 2680000, 5360000, 14700000, 28200000, 37520000],
-            siege_img    : ['/graphics/monster_siege_small'],
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50]
-        },
-        'Legion' : {
-            duration     : 168,
-            hp           : 100000,
-            ach          : 1000,
-            siege        : 6,
-            siegeClicks  : [10, 20, 40, 80, 150, 300],
-            siegeDam     : [3000, 4500, 6000, 9000, 12000, 15000],
-            siege_img    : ['/graphics/castle_siege_small'],
-            fort         : true,
-            staUse       : 5,
-            defense_img  : 'seamonster_ship_health.jpg',
-            repair_img   : 'repair_bar_grey.jpg'
-        },
-        'Emerald Dragon' : {
-            duration     : 72,
-            ach          : 100000,
-            siege        : 0
-        },
-        'Frost Dragon' : {
-            duration     : 72,
-            ach          : 100000,
-            siege        : 0
-        },
-        'Gold Dragon' : {
-            duration     : 72,
-            ach          : 100000,
-            siege        : 0
-        },
-        'Red Dragon' : {
-            duration     : 72,
-            ach          : 100000,
-            siege        : 0
-        },
-        'King'      : {
-            duration     : 72,
-            ach          : 15000,
-            siege        : 0
-        },
-        'Terra'     : {
-            duration     : 72,
-            ach          : 20000,
-            siege        : 0
-        },
-        'Queen'     : {
-            duration     : 48,
-            ach          : 50000,
-            siege        : 1,
-            siegeClicks  : [11],
-            siegeDam     : [500000],
-            siege_img    : ['/graphics/boss_sylvanas_drain_icon.gif']
-        },
-        'Ravenmoore' : {
-            duration     : 48,
-            ach          : 500000,
-            siege        : 0
-        },
-        'Knight'    : {
-            duration     : 48,
-            ach          : 30000,
-            siege        : 0,
-            reqAtkButton : 'event_attack1.gif',
-            pwrAtkButton : 'event_attack2.gif',
-            defButton    : null
-        },
-        'Serpent'   : {
-            duration     : 72,
-            defense      : true,
-            ach          : 250000,
-            siege        : 0,
-            fort         : true,
-            //staUse       : 5,
-            defense_img  : 'seamonster_ship_health.jpg'
-        },
-        'Raid I'    : {
-            duration     : 88,
-            raid         : true,
-            ach          : 50,
-            siege        : 2,
-            siegeClicks  : [30, 50],
-            siegeDam     : [200, 500],
-            siege_img    : ['/graphics/monster_siege_'],
-            staUse       : 1
-        },
-        'Raid II'   : {
-            duration     : 144,
-            raid         : true,
-            ach          : 50,
-            siege        : 2,
-            siegeClicks  : [80, 100],
-            siegeDam     : [300, 1500],
-            siege_img    : ['/graphics/monster_siege_'],
-            staUse       : 1
-        },
-        'Mephistopheles' : {
-            duration     : 48,
-            ach          : 200000,
-            siege        : 0
-        },
-        // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
-        'Plains' : {
-            alpha        : true,
-            duration     : 168,
-            hp           : 350000000,
-            ach          : 10000,
-            siege        : 7,
-            siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
-            siegeDam     : [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
-            siege_img    : [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_small',
-                '/graphics/azriel_siege_inferno_small',
-                '/graphics/war_siege_holy_smite_small'
-            ],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            defense_img  : 'nm_green.jpg'
-        },
-        // http://castleage.wikia.com/wiki/Bahamut,_the_Volcanic_Dragon
-        'Volcanic Dragon' : {
-            alpha        : true,
-            duration     : 168,
-            hp           : 130000000,
-            ach          : 4000000,
-            siege        : 5,
-            siegeClicks  : [30, 60, 90, 120, 200],
-            siegeDam     : [7896000, 9982500, 11979000, 15972000, 19965000],
-            siege_img    : ['/graphics/water_siege_small'],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            defense_img  : 'nm_green.jpg'
-        },
-        // http://castleage.wikidot.com/alpha-bahamut
-        // http://castleage.wikia.com/wiki/Alpha_Bahamut,_The_Volcanic_Dragon
-        'Alpha Volcanic Dragon' : {
-            alpha        : true,
-            duration     : 168,
-            hp           : 620000000,
-            ach          : 8000000,
-            siege        : 7,
-            siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
-            siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img    : [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_small',
-                '/graphics/azriel_siege_inferno_small'
-            ],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            defense_img  : 'nm_green.jpg'
-        },
-        // http://castleage.wikia.com/wiki/Azriel,_the_Angel_of_Wrath
-        'Wrath' : {
-            alpha        : true,
-            duration     : 168,
-            hp           : 600000000,
-            ach          : 8000000,
-            siege        : 7,
-            siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
-            siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
-            siege_img    : [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_small',
-                '/graphics/azriel_siege_inferno_small'
-            ],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            defense_img  : 'nm_green.jpg'
-        },
-        'Alpha Mephistopheles' : {
-            alpha        : true,
-            duration     : 168,
-            hp           : 600000000,
-            ach          : 12000000,
-            siege        : 10,
-            siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-            siegeDam     : [19050000, 22860000, 26670000, 30480000, 34290000, 38100000, 45720000, 49530000, 53340000, 60960000],
-            siege_img    : [
-                '/graphics/earth_siege_small',
-                '/graphics/castle_siege_small',
-                '/graphics/death_siege_small',
-                '/graphics/skaar_siege_small'
-            ],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            defense_img  : 'nm_green.jpg'
-        },
-        'Fire Elemental' : {
-            alpha        : true,
-            duration     : 168,
-            hp           : 350000000,
-            ach          : 6000000,
-            siege        : 7,
-            siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
-            siegeDam     : [14750000, 18500000, 21000000, 24250000, 27000000, 30000000, 35000000],
-            siege_img    : [
-                '/graphics/water_siege_small',
-                '/graphics/alpha_bahamut_siege_blizzard_small',
-                '/graphics/azriel_siege_inferno_small',
-                '/graphics/war_siege_holy_smite_small'
-            ],
-            fort         : true,
-            staUse       : 5,
-            staLvl       : [0, 100, 200, 500],
-            staMax       : [5, 10, 20, 50],
-            nrgMax       : [10, 20, 40, 100],
-            defense_img  : 'nm_green.jpg'
-        }
-    },
-
-    monsterArray: [],
-
-    monsterRecord: function () {
-        this.data = {
-            name       : '',
-            attacked   : -1,
-            defended   : -1,
-            damage     : -1,
-            life       : -1,
-            fortify    : -1,
-            timeLeft   : '',
-            t2k        : -1,
-            phase      : '',
-            link       : '',
-            rix        : -1,
-            over       : '',
-            page       : '',
-            color      : '',
-            review     : -1,
-            type       : '',
-            conditions : '',
-            charClass  : '',
-            strength   : -1,
-            stun       : -1,
-            stunTime   : -1,
-            tip        : ''
-        };
-    },
-
-    LoadMonsters: function () {
-        $.extend(this.monsterArray, gm.getJValue('monsterArray'));
-    },
-
-    SaveMonsters: function () {
-        gm.setJValue('monsterArray', this.monsterArray);
-    },
-
-    monster: {},
-
-    monsterEngageButtons: {},
-
-    completeButton: {},
-
-    parseCondition: function (type, conditions) {
-        try {
-            if (!conditions || conditions.toLowerCase().indexOf(':' + type) < 0) {
-                return false;
-            }
-
-            var str    = '',
-                value  = 0,
-                first  = false,
-                second = false;
-
-            str = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
-            value = parseFloat(str);
-            if (/k$/i.test(str) || /m$/i.test(str)) {
-                first = /\d+k/i.test(str);
-                second = /\d+m/i.test(str);
-                value = value * 1000 * (first + second * 1000);
-            }
-
-            return value;
-        } catch (err) {
-            global.error("ERROR in parseCondition: " + err);
-            return false;
-        }
-    },
-
-    getMonstType: function (name) {
-        try {
-            var words = [],
-                count = 0;
-
-            if (!name) {
-                return '';
-            }
-
-            words = name.split(" ");
-            count = words.length - 1;
-            if (count >= 4) {
-                if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
-                    return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
-                }
-            }
-
-            if (words[count] === 'Elemental' || words[count] === 'Dragon' ||
-                    (words[count - 1] === 'Alpha' && words[count] === 'Mephistopheles') ||
-                    (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
-                return words[count - 1] + ' ' + words[count];
-            }
-
-            return words[count];
-        } catch (err) {
-            global.error("ERROR in getMonstType: " + err);
-            return '';
-        }
-    },
-
-    getMonsterRecord: function (name) {
-        var it        = 0,
-            success   = false,
-            newRecord = null;
-
-        for (it = 0; it < this.monsterArray.length; it += 1) {
-            if (this.monsterArray[it].name === name) {
-                success = true;
-                break;
-            }
-        }
-
-        if (success) {
-            global.log(3, "Got monster record", name, this.monsterArray[it]);
-            return this.monsterArray[it];
-        } else {
-            newRecord = new this.monsterRecord();
-            newRecord.data.name = name;
-            global.log(3, "New monster record", name, newRecord.data);
-            return newRecord.data;
-        }
-    },
-
-    delMonsterRecord: function (name) {
-        var it        = 0,
-            success   = false;
-
-        for (it = 0; it < this.monsterArray.length; it += 1) {
-            if (this.monsterArray[it].name === name) {
-                success = true;
-                break;
-            }
-        }
-
-        if (success) {
-            this.monsterArray.splice(it, 1);
-            this.SaveMonsters();
-            global.log(3, "Deleted monster record", name, this.monsterArray);
-            return true;
-        } else {
-            global.log(1, "Unable to delete monster record", name, this.monsterArray);
-            return false;
-        }
-    },
-
-    updateMonsterRecord: function (record) {
-        if (record && record.name) {
-            var it      = 0,
-                success = false;
-
-            for (it = 0; it < this.monsterArray.length; it += 1) {
-                if (this.monsterArray[it].name === record.name) {
-                    success = true;
-                    break;
-                }
-            }
-
-            if (success) {
-                this.monsterArray[it] = record;
-                global.log(3, "Updated monster record", record, this.monsterArray);
-            } else {
-                this.monsterArray.push(record);
-                global.log(3, "Added monster record", record, this.monsterArray);
-            }
-
-            this.SaveMonsters();
-            return true;
-        } else {
-            global.log(1, "updateMonsterRecord was not passed a record", record);
-            return false;
-        }
-    },
-
     CheckResults_fightList: function () {
         try {
-            global.log(9, "CheckResults_fightList - get all buttons to check monsterObjectList");
+            utility.log(9, "CheckResults_fightList - get all buttons to check monsterObjectList");
             // get all buttons to check monsterObjectList
             var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_') or contains(@src,'mp_button_summon_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
             if (ss.snapshotLength === 0) {
-                global.log(1, "No monster buttons found");
+                utility.warn("No monster buttons found");
                 return false;
             }
 
-            var page                  = gm.getValue('page', 'battle_monster'),
-                firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+            var page                  = state.getItem('page', 'battle_monster'),
+                firstMonsterButtonDiv = utility.CheckForImage('dragon_list_btn_');
 
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
                     firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                var pageUserCheck = gm.getValue('pageUserCheck', '');
+                var pageUserCheck = state.getItem('pageUserCheck', '');
                 if (pageUserCheck) {
-                    global.log(1, "On another player's keep.", pageUserCheck);
+                    utility.log(1, "On another player's keep.", pageUserCheck);
                     return false;
                 }
             }
 
             if (page === 'battle_monster' && ss.snapshotLength === 1) {
-                global.log(1, "No monsters to review");
-                gm.setValue('reviewDone', 1);
+                utility.log(1, "No monsters to review");
+                state.setItem('reviewDone', true);
                 return true;
             }
 
@@ -7676,14 +7304,14 @@ caap = {
                 startCount = 1;
             }
 
-            global.log(9, "startCount", startCount);
+            utility.log(9, "startCount", startCount);
             // Review monsters and find attack and fortify button
             var monsterReviewed = {};
             for (var s = startCount; s < ss.snapshotLength; s += 1) {
                 var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0],
                     monsterRow       = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode,
                     monsterFull      = $.trim(nHtml.GetText(monsterRow)),
-                    monster          = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
+                    monsterName          = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
 
                 // Make links for easy clickin'
                 var url = ss.snapshotItem(s).parentNode.href;
@@ -7691,8 +7319,8 @@ caap = {
                     continue;
                 }
 
-                global.log(5, "monster", monster);
-                monsterReviewed = this.getMonsterRecord(monster);
+                utility.log(5, "monster", monsterName);
+                monsterReviewed = monster.getItem(monsterName);
                 monsterReviewed.page = page;
                 switch (engageButtonName) {
                 case 'dragon_list_btn_2' :
@@ -7700,16 +7328,16 @@ caap = {
                     monsterReviewed.color = 'grey';
                     break;
                 case 'dragon_list_btn_3' :
-                    this.monsterEngageButtons[monster] = ss.snapshotItem(s);
+                    monster.engageButtons[monsterName] = ss.snapshotItem(s);
                     break;
                 case 'dragon_list_btn_4' :
                     if (page === 'raid' && !(/!/.test(monsterFull))) {
-                        this.monsterEngageButtons[monster] = ss.snapshotItem(s);
+                        monster.engageButtons[monsterName] = ss.snapshotItem(s);
                         break;
                     }
 
-                    if (!this.completeButton[page]) {
-                        this.completeButton[page] = this.CheckForImage('cancelButton.gif', monsterRow);
+                    if (!monster.completeButton[page]) {
+                        monster.completeButton[page] = utility.CheckForImage('cancelButton.gif', monsterRow);
                     }
 
                     monsterReviewed.status = 'Complete';
@@ -7719,13 +7347,13 @@ caap = {
                 }
 
                 var mpool     = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : ''),
-                    monstType = this.getMonstType(monster),
+                    monstType = monster.type(monsterName),
                     siege     = '';
 
                 if (monstType === 'Siege') {
                     siege = "&action=doObjective";
                 } else {
-                    var boss = this.monsterInfo[monstType];
+                    var boss = monster.info[monstType];
                     siege = (boss && boss.siege) ? "&action=doObjective" : '';
                 }
 
@@ -7733,92 +7361,28 @@ caap = {
                             url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
 
                 monsterReviewed.link = link;
-                this.updateMonsterRecord(monsterReviewed);
+                monster.setItem(monsterReviewed);
             }
 
             var it = 0,
                 delList = [];
 
-            for (it = 0; it < this.monsterArray.length; it += 1) {
-                if (this.monsterArray[it].page === '') {
-                    delList.push(this.monsterArray[it].name);
+            for (it = 0; it < monster.records.length; it += 1) {
+                if (monster.records[it].page === '') {
+                    delList.push(monster.records[it].name);
                 }
             }
 
             for (it = 0; it < delList.length; it += 1) {
-                this.delMonsterRecord(delList[it]);
+                monster.deleteItem(delList[it]);
             }
 
-            gm.setValue('reviewDone', 1);
+            state.setItem('reviewDone', true);
             this.UpdateDashboard(true);
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_fightList: " + err);
+            utility.error("ERROR in CheckResults_fightList: " + err);
             return false;
-        }
-    },
-
-    t2kCalc: function (boss, time, percentHealthLeft, siegeStage, clicksNeededInCurrentStage) {
-        try {
-            var siegeStageStr                  = '',
-                timeLeft                       = 0,
-                timeUsed                       = 0,
-                T2K                            = 0,
-                damageDone                     = 0,
-                hpLeft                         = 0,
-                totalSiegeDamage               = 0,
-                totalSiegeClicks               = 0,
-                attackDamPerHour               = 0,
-                clicksPerHour                  = 0,
-                clicksToNextSiege              = 0,
-                nextSiegeAttackPlusSiegeDamage = 0,
-                s                              = 0,
-                siegeImpacts                   = 0;
-
-
-            timeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
-            timeUsed = boss.duration - timeLeft;
-            if (!boss.siege || !boss.hp) {
-                return (percentHealthLeft * timeUsed) / (100 - percentHealthLeft);
-            }
-
-            siegeStageStr = (siegeStage - 1).toString();
-            damageDone = (100 - percentHealthLeft) / 100 * boss.hp;
-            hpLeft = boss.hp - damageDone;
-            for (s in boss.siegeClicks) {
-                if (boss.siegeClicks.hasOwnProperty(s)) {
-                    global.log(9, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
-                    if (s < siegeStageStr  || clicksNeededInCurrentStage === 0) {
-                        totalSiegeDamage += boss.siegeDam[s];
-                        totalSiegeClicks += boss.siegeClicks[s];
-                    }
-
-                    if (s === siegeStageStr) {
-                        attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
-                        clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - clicksNeededInCurrentStage) / timeUsed;
-                        global.log(9, 'Attack Damage Per Hour: ', attackDamPerHour, ' Damage Done: ', damageDone, ' Total Siege Damage: ', totalSiegeDamage, ' Time Used: ', timeUsed, ' Clicks Per Hour: ', clicksPerHour);
-                    }
-
-                    if (s >= siegeStageStr) {
-                        clicksToNextSiege = (s === siegeStageStr) ? clicksNeededInCurrentStage : boss.siegeClicks[s];
-                        nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-                        if (hpLeft <= nextSiegeAttackPlusSiegeDamage || clicksNeededInCurrentStage === 0) {
-                            T2K += hpLeft / attackDamPerHour;
-                            break;
-                        }
-
-                        T2K += clicksToNextSiege / clicksPerHour;
-                        hpLeft -= nextSiegeAttackPlusSiegeDamage;
-                    }
-                }
-            }
-
-            siegeImpacts = percentHealthLeft / (100 - percentHealthLeft) * timeLeft;
-            global.log(1, 'T2K based on siege: ' + T2K.toFixed(2) + ' T2K estimate without calculating siege impacts: ' + siegeImpacts.toFixed(2));
-            return T2K;
-        } catch (err) {
-            global.error("ERROR in t2kCalc: " + err);
-            return 0;
         }
     },
 
@@ -7852,7 +7416,8 @@ caap = {
                 KOBbiasedTF       = 0,
                 KOBPercentTimeRemaining = 0,
                 KOBtotalMonsterTime = 0,
-                monsterDiv        = null;
+                monsterDiv        = null,
+                damageDiv         = null;
 
             monsterDiv = $("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
@@ -7865,23 +7430,26 @@ caap = {
                     if (tempDiv && tempDiv.length) {
                         tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
                     } else {
-                        global.log(1, "Problem finding nm_bars");
+                        utility.warn("Problem finding nm_bars");
                         return;
                     }
                 } else {
-                    global.log(1, "Problem finding dragon_title_owner and nm_top");
+                    utility.warn("Problem finding dragon_title_owner and nm_top");
                     return;
                 }
             }
 
             if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
-                global.log(1, "monster name found");
+                utility.log(2, "monster name found");
                 tempText = tempText.replace(new RegExp(".+'s "), 'Your ');
             }
 
-            global.log(1, "monster name", tempText);
-            currentMonster = this.getMonsterRecord(tempText);
-            currentMonster.type = this.getMonstType(currentMonster.name);
+            utility.log(2, "monster name", tempText);
+            currentMonster = monster.getItem(tempText);
+            if (currentMonster.type === '') {
+                currentMonster.type = monster.type(currentMonster.name);
+            }
+
             if (currentMonster.type === 'Siege') {
                 tempDiv = $("div[style*='raid_back']");
                 if (tempDiv && tempDiv.length) {
@@ -7889,166 +7457,113 @@ caap = {
                         currentMonster.type = 'Raid I';
                     } else if (tempDiv.find("img[src*='raid_b1_large.jpg']").length) {
                         currentMonster.type = 'Raid II';
+                    } else if (tempDiv.find("img[src*='raid_1_large_victory.jpg']").length) {
+                        utility.log(1, "Siege Victory!");
                     } else {
-                        global.log(1, "Problem finding raid image, probably finished");
+                        utility.warn("Problem finding raid image! Probably finished.");
                     }
                 } else {
-                    global.log(1, "Problem finding raid_back");
+                    utility.warn("Problem finding raid_back");
                     return;
                 }
             }
 
             currentMonster.review = new Date().getTime();
-            gm.setValue('monsterRepeatCount', 0);
+            state.setItem('monsterRepeatCount', 0);
             // Extract info
             tempDiv = $("#app46755028429_monsterTicker");
             if (tempDiv && tempDiv.length) {
-                global.log(2, "Monster ticker found.");
+                utility.log(2, "Monster ticker found.");
                 time = tempDiv.text().split(":");
             } else {
-                global.log(1, "Could not locate Monster ticker.");
+                if (!utility.CheckForImage("dead.jpg")) {
+                    utility.warn("Could not locate Monster ticker.");
+                }
             }
 
-            if (time && time.length === 3 && this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].fort) {
+            if (time && time.length === 3 && monster.info[currentMonster.type] && monster.info[currentMonster.type].fort) {
                 if (currentMonster.type === "Deathrune" || currentMonster.type === 'Ice Elemental') {
                     currentMonster.fortify = 100;
                 } else {
                     currentMonster.fortify = 0;
                 }
 
-                switch (this.monsterInfo[currentMonster.type].defense_img) {
+                switch (monster.info[currentMonster.type].defense_img) {
                 case 'bar_dispel.gif' :
-                    tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].defense_img + "']");
+                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         currentMonster.fortify = 100 - parseFloat(tempDiv.parent().css('width'));
                     } else {
-                        global.log(1, "Unable to find defense bar", this.monsterInfo[currentMonster.type].defense_img);
+                        utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
 
                     break;
                 case 'seamonster_ship_health.jpg' :
-                    tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].defense_img + "']");
+                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
-                        if (this.monsterInfo[currentMonster.type].repair_img) {
-                            tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].repair_img + "']");
+                        if (monster.info[currentMonster.type].repair_img) {
+                            tempDiv = $("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
                             if (tempDiv && tempDiv.length) {
                                 currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().css('width'))));
                             } else {
-                                global.log(1, "Unable to find repair bar", this.monsterInfo[currentMonster.type].repair_img);
+                                utility.warn("Unable to find repair bar", monster.info[currentMonster.type].repair_img);
                             }
                         }
                     } else {
-                        global.log(1, "Unable to find defense bar", this.monsterInfo[currentMonster.type].defense_img);
+                        utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
 
                     break;
                 case 'nm_green.jpg' :
-                    tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].defense_img + "']");
+                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
                         currentMonster.strength = parseFloat(tempDiv.parent().parent().css('width'));
                     } else {
-                        global.log(1, "Unable to find defense bar", this.monsterInfo[currentMonster.type].defense_img);
-                    }
-
-                    // Character type stuff
-                    monsterDiv = $("div[style*='nm_bottom']");
-                    if (monsterDiv && monsterDiv.length) {
-                        tempText = $.trim(monsterDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
-                        if (tempText) {
-                            global.log(2, "tempText", tempText);
-                            tempArr = tempText.match(/Class: (\w+) /);
-                            if (tempArr && tempArr.length === 2) {
-                                currentMonster.charClass = tempArr[1];
-                                global.log(5, "character", currentMonster.charClass);
-                            } else {
-                                global.log(1, "Can't get character", tempArr);
-                            }
-
-                            tempArr = tempText.match(/Tip: ([\w ]+) Status/);
-                            if (tempArr && tempArr.length === 2) {
-                                currentMonster.tip = tempArr[1];
-                                global.log(5, "tip", currentMonster.tip);
-                            } else {
-                                global.log(1, "Can't get tip", tempArr);
-                            }
-
-                            tempArr = tempText.match(/Status Time Remaining: ([0-9]+):([0-9]+):([0-9]+)\s*/);
-                            if (tempArr && tempArr.length === 4) {
-                                currentMonster.stunTime = new Date().getTime() + (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
-                                global.log(5, "statusTime", currentMonster.stunTime);
-                            } else {
-                                global.log(1, "Can't get statusTime", tempArr);
-                            }
-
-                            tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
-                            if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.css('width');
-                                global.log(2, "tempText", tempText);
-                                if (tempText) {
-                                    currentMonster.stun = this.NumberOnly(tempText);
-                                    global.log(5, "stun", currentMonster.stun);
-                                } else {
-                                    global.log(1, "Can't get stun bar width");
-                                }
-                            } else {
-                                global.log(1, "Can't get stun bar");
-                            }
-
-                            if (currentMonster.charClass && currentMonster.tip && currentMonster.stun !== -1) {
-                                currentMonster.stunDo = new RegExp(currentMonster.charClass).test(currentMonster.tip) && currentMonster.stun < 100;
-                                global.log(5, "Do character specific attack", currentMonster.stunDo);
-                            } else {
-                                global.log(1, "Missing 'class', 'tip' or 'stun'", currentMonster);
-                            }
-                        } else {
-                            global.log(1, "Missing tempText");
-                        }
-                    } else {
-                        global.log(1, "Missing nm_bottom");
+                        utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
 
                     break;
                 default:
-                    global.log(1, "No match for defense_img", this.monsterInfo[currentMonster.type].defense_img);
+                    utility.warn("No match for defense_img", monster.info[currentMonster.type].defense_img);
                 }
             }
 
             // Get damage done to monster
-            tempDiv = $("td[class='dragonContainer'] td[valign='top'] a[href*='user=" + this.stats.FBID + "']");
-            if (tempDiv && tempDiv.length) {
-                if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].defense) {
-                    tempArr = $.trim(tempDiv.parent().parent().siblings(":last").text()).match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def"));
+            damageDiv = $("td[class='dragonContainer'] td[valign='top'] a[href*='user=" + this.stats.FBID + "']");
+            if (damageDiv && damageDiv.length) {
+                if (monster.info[currentMonster.type] && monster.info[currentMonster.type].defense) {
+                    tempArr = $.trim(damageDiv.parent().parent().siblings(":last").text()).match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def"));
                     if (tempArr && tempArr.length === 3) {
-                        currentMonster.attacked = this.NumberOnly(tempArr[1]);
-                        currentMonster.defended = this.NumberOnly(tempArr[2]);
+                        currentMonster.attacked = utility.NumberOnly(tempArr[1]);
+                        currentMonster.defended = utility.NumberOnly(tempArr[2]);
                         currentMonster.damage = currentMonster.attacked + currentMonster.defended;
                     } else {
-                        global.log(1, "Unable to get attacked and defended damage");
+                        utility.warn("Unable to get attacked and defended damage");
                     }
-                } else if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].raid) {
-                    currentMonster.attacked = this.NumberOnly($.trim(tempDiv.parent().siblings(":last").text()));
+                } else if (currentMonster.type === 'Siege' || (monster.info[currentMonster.type] && monster.info[currentMonster.type].raid)) {
+                    currentMonster.attacked = utility.NumberOnly($.trim(damageDiv.parent().siblings(":last").text()));
                     currentMonster.damage = currentMonster.attacked;
                 } else {
-                    currentMonster.attacked = this.NumberOnly($.trim(tempDiv.parent().parent().siblings(":last").text()));
+                    currentMonster.attacked = utility.NumberOnly($.trim(damageDiv.parent().parent().siblings(":last").text()));
                     currentMonster.damage = currentMonster.attacked;
                 }
 
-                tempDiv.parents("tr:first").css('background-color', gm.getValue("HighlightColor", '#C6A56F'));
+                damageDiv.parents("tr:first").css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
             } else {
-                global.log(1, "Player hasn't done damage yet");
+                utility.log(1, "Player hasn't done damage yet");
             }
 
             if (/:ac\b/.test(currentMonster.conditions) ||
-                    (currentMonster.type.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
-                    (!currentMonster.type.match(/Raid/) && gm.getValue('monsterCollectReward', false))) {
+                    (currentMonster.type.match(/Raid/) && config.getItem('raidCollectReward', false)) ||
+                    (!currentMonster.type.match(/Raid/) && config.getItem('monsterCollectReward', false))) {
 
-                counter = gm.getNumber('monsterReviewCounter', -3);
-                if (counter >= 0 && this.monsterArray[counter].name === currentMonster.name && ($("a[href*='&action=collectReward']").length || $("input[alt*='Collect Reward']").length)) {
-                    global.log(1, 'Collecting Reward');
+                counter = state.getItem('monsterReviewCounter', -3);
+                if (counter >= 0 && monster.records[counter] && monster.records[counter].name === currentMonster.name && ($("a[href*='&action=collectReward']").length || $("input[alt*='Collect Reward']").length)) {
+                    utility.log(1, 'Collecting Reward');
                     currentMonster.review = 1;
-                    gm.setValue('monsterReviewCounter', counter -= 1);
+                    state.setItem('monsterReviewCounter', counter -= 1);
                     currentMonster.status = 'Collect Reward';
                     if (currentMonster.name.indexOf('Siege') >= 0) {
                         if ($("a[href*='&rix=1']").length) {
@@ -8060,7 +7575,7 @@ caap = {
                 }
             }
 
-            if (this.monsterInfo[currentMonster.type].alpha) {
+            if (monster.info[currentMonster.type] && monster.info[currentMonster.type].alpha) {
                 monstHealthImg = 'nm_red.jpg';
             } else {
                 monstHealthImg = 'monster_health_background.jpg';
@@ -8070,496 +7585,298 @@ caap = {
             if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
                 currentMonster.timeLeft = time[0] + ":" + time[1];
                 if (monsterDiv && monsterDiv.length) {
-                    global.log(2, "Found monster health div.");
+                    utility.log(2, "Found monster health div.");
                     currentMonster.life = parseFloat(monsterDiv.parent().css("width"));
                 } else {
-                    global.log(1, "Could not find monster health div.");
+                    utility.warn("Could not find monster health div.");
                 }
 
                 if (currentMonster.life) {
-                    if (!this.monsterInfo[currentMonster.type]) {
-                        this.updateMonsterRecord(currentMonster);
-                        global.log(1, 'Unknown monster');
+                    if (!monster.info[currentMonster.type]) {
+                        monster.setItem(currentMonster);
+                        utility.warn('Unknown monster');
                         return;
                     }
                 }
 
-                if (this.monsterInfo[currentMonster.type] && this.monsterInfo[currentMonster.type].siege) {
-                    if (this.monsterInfo[currentMonster.type].alpha) {
+                if (damageDiv && damageDiv.length && monster.info[currentMonster.type] && monster.info[currentMonster.type].alpha) {
+                    // Character type stuff
+                    monsterDiv = $("div[style*='nm_bottom']");
+                    if (monsterDiv && monsterDiv.length) {
+                        tempText = $.trim(monsterDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
+                        if (tempText) {
+                            utility.log(2, "tempText", tempText);
+                            tempArr = tempText.match(/Class: (\w+) /);
+                            if (tempArr && tempArr.length === 2) {
+                                currentMonster.charClass = tempArr[1];
+                                utility.log(2, "character", currentMonster.charClass);
+                            } else {
+                                utility.warn("Can't get character", tempArr);
+                            }
+
+                            tempArr = tempText.match(/Tip: ([\w ]+) Status/);
+                            if (tempArr && tempArr.length === 2) {
+                                currentMonster.tip = tempArr[1];
+                                utility.log(2, "tip", currentMonster.tip);
+                            } else {
+                                utility.warn("Can't get tip", tempArr);
+                            }
+
+                            tempArr = tempText.match(/Status Time Remaining: ([0-9]+):([0-9]+):([0-9]+)\s*/);
+                            if (tempArr && tempArr.length === 4) {
+                                currentMonster.stunTime = new Date().getTime() + (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
+                                utility.log(2, "statusTime", currentMonster.stunTime);
+                            } else {
+                                utility.warn("Can't get statusTime", tempArr);
+                            }
+
+                            tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
+                            if (tempDiv && tempDiv.length) {
+                                tempText = tempDiv.css('width');
+                                utility.log(2, "tempText", tempText);
+                                if (tempText) {
+                                    currentMonster.stun = utility.NumberOnly(tempText);
+                                    utility.log(2, "stun", currentMonster.stun);
+                                } else {
+                                    utility.warn("Can't get stun bar width");
+                                }
+                            } else {
+                                if (currentMonster.strength !== 100) {
+                                    utility.warn("Can't get stun bar");
+                                }
+                            }
+
+                            if (currentMonster.charClass && currentMonster.tip && currentMonster.stun !== -1) {
+                                currentMonster.stunDo = new RegExp(currentMonster.charClass).test(currentMonster.tip) && currentMonster.stun < 100;
+                                currentMonster.stunType = '';
+                                if (currentMonster.stunDo) {
+                                    utility.log(1, "Do character specific attack", currentMonster.stunDo);
+                                    tempArr = currentMonster.tip.split(" ");
+                                    if (tempArr && tempArr.length) {
+                                        tempText = tempArr[tempArr.length - 1].toLowerCase();
+                                        if (tempText && tempText.indexOf(["strengthen", "cripple", "heal", "deflect"]) >= 0) {
+                                            currentMonster.stunType = tempText;
+                                            utility.log(1, "Character specific attack type", currentMonster.stunType);
+                                        } else {
+                                            utility.warn("Type does match list!", tempText);
+                                        }
+                                    } else {
+                                        utility.warn("Unable to get type from tip!", currentMonster.tip);
+                                    }
+                                }
+                            } else {
+                                utility.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
+                            }
+                        } else {
+                            utility.warn("Missing tempText");
+                        }
+                    } else {
+                        utility.warn("Missing nm_bottom");
+                    }
+                }
+
+                if (monster.info[currentMonster.type] && monster.info[currentMonster.type].siege) {
+                    if (monster.info[currentMonster.type].alpha) {
                         miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
-                        tempDiv = $("img[src*='" + this.monsterInfo[currentMonster.type].siege_img + "']");
+                        tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
                         miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
                     } else {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }
 
                     if (currentMonster.type.indexOf('Raid') >= 0) {
-                        totalCount = this.NumberOnly(nHtml.getHTMLPredicate(tempDiv.attr("src")));
+                        totalCount = utility.NumberOnly(utility.getHTMLPredicate(tempDiv.attr("src")));
                     } else {
                         totalCount = 1;
-                        for (ind = 0; ind < this.monsterInfo[currentMonster.type].siege_img.length; ind += 1) {
-                            totalCount += $("img[src*=" + this.monsterInfo[currentMonster.type].siege_img[ind] + "]").size();
+                        for (ind = 0; ind < monster.info[currentMonster.type].siege_img.length; ind += 1) {
+                            totalCount += $("img[src*=" + monster.info[currentMonster.type].siege_img[ind] + "]").size();
                         }
                     }
 
-                    currentPhase = Math.min(totalCount, this.monsterInfo[currentMonster.type].siege);
-                    currentMonster.phase = Math.min(currentPhase, this.monsterInfo[currentMonster.type].siege) + "/" + this.monsterInfo[currentMonster.type].siege + " need " + (isNaN(miss) ? 0 : miss);
+                    currentPhase = Math.min(totalCount, monster.info[currentMonster.type].siege);
+                    currentMonster.phase = Math.min(currentPhase, monster.info[currentMonster.type].siege) + "/" + monster.info[currentMonster.type].siege + " need " + (isNaN(miss) ? 0 : miss);
                 }
 
-                if (this.monsterInfo[currentMonster.type]) {
+                if (monster.info[currentMonster.type]) {
                     if (isNaN(miss)) {
                         miss = 0;
                     }
 
-                    currentMonster.t2k = this.t2kCalc(this.monsterInfo[currentMonster.type], time, currentMonster.life, currentPhase, miss);
+                    currentMonster.t2k = monster.t2kCalc(monster.info[currentMonster.type], time, currentMonster.life, currentPhase, miss);
                 }
             } else {
-                global.log(1, 'Monster is dead or fled');
+                utility.log(1, 'Monster is dead or fled');
                 currentMonster.color = 'grey';
                 if (currentMonster.status !== 'Complete' && currentMonster.status !== 'Collect Reward') {
                     currentMonster.status = "Dead or Fled";
                 }
 
-                gm.setValue('resetselectMonster', true);
-                this.updateMonsterRecord(currentMonster);
+                state.setItem('resetselectMonster', true);
+                monster.setItem(currentMonster);
                 return;
             }
 
-            achLevel = this.parseCondition('ach', currentMonster.conditions);
-            if (this.monsterInfo[currentMonster.type] && achLevel === false) {
-                achLevel = this.monsterInfo[currentMonster.type].ach;
-            }
+            if (damageDiv && damageDiv.length) {
+                achLevel = monster.parseCondition('ach', currentMonster.conditions);
+                if (monster.info[currentMonster.type] && achLevel === false) {
+                    achLevel = monster.info[currentMonster.type].ach;
+                }
 
-            maxDamage = this.parseCondition('max', currentMonster.conditions);
-            maxToFortify = (this.parseCondition('f%', currentMonster.conditions) !== false) ? this.parseCondition('f%', currentMonster.conditions) : gm.getNumber('MaxToFortify', 0);
-            isTarget = (currentMonster.name === gm.getValue('targetFromraid', '') || currentMonster.name === gm.getValue('targetFrombattle_monster', '') || currentMonster.name === gm.getValue('targetFromfortify', ''));
-            if (currentMonster.name === gm.getValue('targetFromfortify', '') && currentMonster.fortify > maxToFortify) {
-                gm.setValue('resetselectMonster', true);
-            }
+                maxDamage = monster.parseCondition('max', currentMonster.conditions);
+                maxToFortify = (monster.parseCondition('f%', currentMonster.conditions) !== false) ? monster.parseCondition('f%', currentMonster.conditions) : config.getItem('MaxToFortify', 0);
+                isTarget = (currentMonster.name === state.getItem('targetFromraid', '') || currentMonster.name === state.getItem('targetFrombattle_monster', '') || currentMonster.name === state.getItem('targetFromfortify', ''));
+                if (currentMonster.name === state.getItem('targetFromfortify', '') && currentMonster.fortify > maxToFortify) {
+                    state.setItem('resetselectMonster', true);
+                }
 
-            // Start of Keep On Budget (KOB) code Part 1 -- required variables
-            global.log(1, 'Start of Keep On Budget (KOB) Code');
+                // Start of Keep On Budget (KOB) code Part 1 -- required variables
+                utility.log(1, 'Start of Keep On Budget (KOB) Code');
 
-            //default is disabled for everything
-            KOBenable = false;
-
-            //default is zero bias hours for everything
-            KOBbiasHours = 0;
-
-            //KOB needs to follow achievment mode for this monster so that KOB can be skipped.
-            KOBach = false;
-
-            //KOB needs to follow max mode for this monster so that KOB can be skipped.
-            KOBmax = false;
-
-            //KOB needs to follow minimum fortification state for this monster so that KOB can be skipped.
-            KOBminFort = false;
-
-            //create a temp variable so we don't need to call parseCondition more than once for each if statement
-            KOBtmp = this.parseCondition('kob', currentMonster.conditions);
-            if (isNaN(KOBtmp)) {
-                global.log(1, 'NaN branch');
-                KOBenable = true;
-                KOBbiasHours = 0;
-            } else if (!KOBtmp) {
-                global.log(1, 'false branch');
+                //default is disabled for everything
                 KOBenable = false;
+
+                //default is zero bias hours for everything
                 KOBbiasHours = 0;
+
+                //KOB needs to follow achievment mode for this monster so that KOB can be skipped.
+                KOBach = false;
+
+                //KOB needs to follow max mode for this monster so that KOB can be skipped.
+                KOBmax = false;
+
+                //KOB needs to follow minimum fortification state for this monster so that KOB can be skipped.
+                KOBminFort = false;
+
+                //create a temp variable so we don't need to call parseCondition more than once for each if statement
+                KOBtmp = monster.parseCondition('kob', currentMonster.conditions);
+                if (isNaN(KOBtmp)) {
+                    utility.log(1, 'NaN branch');
+                    KOBenable = true;
+                    KOBbiasHours = 0;
+                } else if (!KOBtmp) {
+                    utility.log(1, 'false branch');
+                    KOBenable = false;
+                    KOBbiasHours = 0;
+                } else {
+                    utility.log(1, 'passed value branch');
+                    KOBenable = true;
+                    KOBbiasHours = KOBtmp;
+                }
+
+                //test if user wants kob active globally
+                if (!KOBenable && gm.getItem('KOBAllMonters', false, hiddenVar)) {
+                    KOBenable = true;
+                }
+
+                //disable kob if in level up mode or if we are within 5 stamina of max potential stamina
+                if (this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max - 5) {
+                    KOBenable = false;
+                }
+
+                utility.log(1, 'Level Up Mode: ', this.InLevelUpMode());
+                utility.log(1, 'Stamina Avail: ', this.stats.stamina.num);
+                utility.log(1, 'Stamina Max: ', this.stats.stamina.max);
+
+                //log results of previous two tests
+                utility.log(1, 'KOBenable: ', KOBenable);
+                utility.log(1, 'KOB Bias Hours: ', KOBbiasHours);
+
+                //Total Time alotted for monster
+                KOBtotalMonsterTime = monster.info[currentMonster.type].duration;
+                utility.log(1, 'Total Time for Monster: ', KOBtotalMonsterTime);
+
+                //Total Damage remaining
+                utility.log(1, 'HP left: ', currentMonster.life);
+
+                //Time Left Remaining
+                KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
+                utility.log(1, 'TimeLeft: ', KOBtimeLeft);
+
+                //calculate the bias offset for time remaining
+                KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
+
+                //for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
+                // -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
+                if (KOBtotalMonsterTime >= 168) {
+                    KOBtotalMonsterTime = KOBtotalMonsterTime - gm.getItem('KOBDelayStart', 48, hiddenVar);
+                }
+
+                //Percentage of time remaining for the currently selected monster
+                KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
+                utility.log(1, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
+
+                // End of Keep On Budget (KOB) code Part 1 -- required variables
+
+                if (maxDamage && currentMonster.damage >= maxDamage) {
+                    currentMonster.color = 'red';
+                    currentMonster.over = 'max';
+                    //used with KOB code
+                    KOBmax = true;
+                    //used with kob debugging
+                    utility.log(1, 'KOB - max activated');
+                    if (isTarget) {
+                        state.setItem('resetselectMonster', true);
+                    }
+                } else if (currentMonster.fortify !== -1 && currentMonster.fortify < config.getItem('MinFortToAttack', 1)) {
+                    currentMonster.color = 'purple';
+                    //used with KOB code
+                    KOBminFort = true;
+                    //used with kob debugging
+                    utility.log(1, 'KOB - MinFort activated');
+                    if (isTarget) {
+                        state.setItem('resetselectMonster', true);
+                    }
+                } else if (currentMonster.damage >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster.conditions))) {
+                    currentMonster.color = 'orange';
+                    currentMonster.over = 'ach';
+                    //used with KOB code
+                    KOBach = true;
+                    //used with kob debugging
+                    utility.log(1, 'KOB - achievement reached');
+                    if (isTarget && currentMonster.damage < achLevel) {
+                        state.setItem('resetselectMonster', true);
+                    }
+                }
+
+                //Start of KOB code Part 2 begins here
+                if (KOBenable && !KOBmax && !KOBminFort && KOBach && currentMonster.life < KOBPercentTimeRemaining) {
+                    //kob color
+                    currentMonster.color = 'magenta';
+                    // this line is required or we attack anyway.
+                    currentMonster.over = 'max';
+                    //used with kob debugging
+                    utility.log(1, 'KOB - budget reached');
+                    if (isTarget) {
+                        state.setItem('resetselectMonster', true);
+                        utility.log(1, 'This monster no longer a target due to kob');
+                    }
+
+                } else {
+                    if (!KOBmax && !KOBminFort && !KOBach) {
+                        //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
+                        //had to jump out the black paint if max, ach or fort needed to paint the entry.
+                        currentMonster.color = 'black';
+                    }
+                }
+                //End of KOB code Part 2 stops here.
             } else {
-                global.log(1, 'passed value branch');
-                KOBenable = true;
-                KOBbiasHours = KOBtmp;
+                currentMonster.color = 'black';
             }
 
-            //test if user wants kob active globally
-            if (!KOBenable && gm.getValue('KOBAllMonters', false)) {
-                KOBenable = true;
-            }
-
-            //disable kob if in level up mode or if we are within 5 stamina of max potential stamina
-            if (this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max - 5) {
-                KOBenable = false;
-            }
-            global.log(1, 'Level Up Mode: ' + this.InLevelUpMode() + ' Stamina Avail: ' + this.stats.stamina.num + ' Stamina Max: ' + this.stats.stamina.max);
-
-            //log results of previous two tests
-            global.log(1, 'KOBenable: ' + KOBenable + ' KOB Bias Hours: ' + KOBbiasHours);
-
-            //Total Time alotted for monster
-            KOBtotalMonsterTime = this.monsterInfo[currentMonster.type].duration;
-            global.log(1, 'Total Time for Monster: ', KOBtotalMonsterTime);
-
-            //Total Damage remaining
-            global.log(1, 'HP left: ', currentMonster.life);
-
-            //Time Left Remaining
-            KOBtimeLeft = parseInt(time[0], 10) + (parseInt(time[1], 10) * 0.0166);
-            global.log(1, 'TimeLeft: ', KOBtimeLeft);
-
-            //calculate the bias offset for time remaining
-            KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
-
-            //for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
-            // -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
-            if (KOBtotalMonsterTime >= 168) {
-                KOBtotalMonsterTime = KOBtotalMonsterTime - gm.getValue('KOBDelayStart', 48);
-            }
-
-            //Percentage of time remaining for the currently selected monster
-            KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
-            global.log(1, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
-
-            // End of Keep On Budget (KOB) code Part 1 -- required variables
-
-            if (maxDamage && currentMonster.damage >= maxDamage) {
-                currentMonster.color = 'red';
-                currentMonster.over = 'max';
-                //used with KOB code
-                KOBmax = true;
-                //used with kob debugging
-                global.log(1, 'KOB - max activated');
-                if (isTarget) {
-                    gm.setValue('resetselectMonster', true);
-                }
-            } else if (currentMonster.fortify !== -1 && currentMonster.fortify < gm.getNumber('MinFortToAttack', 1)) {
-                currentMonster.color = 'purple';
-                //used with KOB code
-                KOBminFort = true;
-                //used with kob debugging
-                global.log(1, 'KOB - MinFort activated');
-                if (isTarget) {
-                    gm.setValue('resetselectMonster', true);
-                }
-            } else if (currentMonster.damage >= achLevel && (gm.getValue('AchievementMode') || this.parseCondition('ach', currentMonster.conditions))) {
-                currentMonster.color = 'orange';
-                currentMonster.over = 'ach';
-                //used with KOB code
-                KOBach = true;
-                //used with kob debugging
-                global.log(1, 'KOB - achievement reached');
-                if (isTarget && currentMonster.damage < achLevel) {
-                    gm.setValue('resetselectMonster', true);
-                }
-            }
-
-            //Start of KOB code Part 2 begins here
-            if (KOBenable && !KOBmax && !KOBminFort && KOBach && currentMonster.life < KOBPercentTimeRemaining) {
-                //kob color
-                currentMonster.color = 'magenta';
-                // this line is required or we attack anyway.
-                currentMonster.over = 'max';
-                //used with kob debugging
-                global.log(1, 'KOB - budget reached');
-                if (isTarget) {
-                    gm.setValue('resetselectMonster', true);
-                    global.log(1, 'This monster no longer a target due to kob');
-                }
-
-            } else {
-                if (!KOBmax && !KOBminFort && !KOBach) {
-                    //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
-                    //had to jump out the black paint if max, ach or fort needed to paint the entry.
-                    currentMonster.color = 'black';
-                }
-            }
-            //End of KOB code Part 2 stops here.
-
-            this.updateMonsterRecord(currentMonster);
+            monster.setItem(currentMonster);
             this.UpdateDashboard(true);
-            if (schedule.Check('battleTimer')) {
+            if (schedule.check('battleTimer')) {
                 window.setTimeout(function () {
                     caap.SetDivContent('monster_mess', '');
                 }, 2000);
             }
         } catch (err) {
-            global.error("ERROR in CheckResults_viewFight: " + err);
+            utility.error("ERROR in CheckResults_viewFight: " + err);
         }
     },
 
-    characterClass: {
-        Warrior : ['Strengthen', 'Heal'],
-        Rogue   : ['Cripple'],
-        Mage    : ['Deflect'],
-        Cleric  : ['Heal'],
-        Warlock : ['Heal', 'Deflect'],
-        Ranger  : ['Strengthen', 'Cripple']
-    },
-
-    selectMonster: function (force) {
-        try {
-            if (!(force || this.oneMinuteUpdate('selectMonster')) || this.stats.level < 7) {
-                return false;
-            }
-
-            global.log(1, 'Selecting monster');
-            // First we forget everything about who we already picked.
-            gm.setValue('targetFrombattle_monster', '');
-            gm.setValue('targetFromfortify', '');
-            gm.setValue('targetFromraid', '');
-
-            // Next we get our monster objects from the reposoitory and break them into separarte lists
-            // for monster or raid.  If we are serializing then we make one list only.
-            var monsterList  = {
-                    battle_monster : [],
-                    raid           : [],
-                    any            : []
-                },
-                it                 = 0,
-                s                  = 0,
-                selectTypes        = [],
-                maxToFortify       = 0,
-                nodeNum            = 0,
-                firstOverAch       = '',
-                firstUnderMax      = '',
-                firstFortOverAch   = '',
-                firstFortUnderMax  = '',
-                firstStunOverAch   = '',
-                firstStunUnderMax  = '',
-                monster            = '',
-                monsterObj         = {},
-                monsterConditions  = '',
-                monstType          = '',
-                p                  = 0,
-                m                  = 0,
-                attackOrderList    = [];
-
-
-            for (it = 0; it < this.monsterArray.length; it += 1) {
-                this.monsterArray[it].conditions = 'none';
-                if (gm.getValue('SerializeRaidsAndMonsters', false)) {
-                    monsterList.any.push(this.monsterArray[it].name);
-                } else if ((this.monsterArray[it].page === 'raid') || (this.monsterArray[it].page === 'battle_monster')) {
-                    monsterList[this.monsterArray[it].page].push(this.monsterArray[it].name);
-                }
-            }
-
-            //PLEASE NOTE BEFORE CHANGING
-            //The Serialize Raids and Monsters dictates a 'single-pass' because we only need select
-            //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
-            //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
-            //a round hole. Please reconsider before doing so.
-            if (gm.getValue('SerializeRaidsAndMonsters', false)) {
-                selectTypes = ['any'];
-            } else {
-                selectTypes = ['battle_monster', 'raid'];
-            }
-
-            global.log(3, 'monsterArray/monsterList/selectTypes', this.monsterArray, monsterList, selectTypes);
-            // We loop through for each selection type (only once if serialized between the two)
-            // We then read in the users attack order list
-            for (s in selectTypes) {
-                if (selectTypes.hasOwnProperty(s)) {
-                    firstOverAch       = '';
-                    firstUnderMax      = '';
-                    firstFortOverAch   = '';
-                    firstFortUnderMax  = '';
-                    firstStunOverAch   = '';
-                    firstStunUnderMax  = '';
-
-                    // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-                    if (selectTypes[s] === 'any') {
-                        attackOrderList = gm.getList('orderbattle_monster');
-                        $.merge(attackOrderList, gm.getList('orderraid').concat('your', "'"));
-                    } else {
-                        attackOrderList = gm.getList('order' + selectTypes[s]).concat('your', "'");
-                    }
-
-                    global.log(9, 'attackOrderList', attackOrderList);
-                    // Next we step through the users list getting the name and conditions
-                    for (p in attackOrderList) {
-                        if (attackOrderList.hasOwnProperty(p)) {
-                            if (!($.trim(attackOrderList[p]))) {
-                                continue;
-                            }
-
-                            monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
-                            // Now we try to match the users name agains our list of monsters
-                            for (m in monsterList[selectTypes[s]]) {
-                                if (monsterList[selectTypes[s]].hasOwnProperty(m)) {
-                                    maxToFortify = 0;
-                                    monsterObj = this.getMonsterRecord(monsterList[selectTypes[s]][m]);
-                                    // If we set conditions on this monster already then we do not reprocess
-                                    if (monsterObj.conditions !== 'none') {
-                                        continue;
-                                    }
-
-                                    //If this monster does not match, skip to next one
-                                    // Or if this monster is dead, skip to next one
-                                    // Or if this monster is not the correct type, skip to next one
-                                    if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
-                                        continue;
-                                    }
-
-                                    //Monster is a match so we set the conditions
-                                    monsterObj.conditions = monsterConditions;
-
-                                    //monsterObj.over = '';
-                                    this.updateMonsterRecord(monsterObj);
-
-                                    // If it's complete or collect rewards, no need to process further
-                                    if (monsterObj.color === 'grey') {
-                                        continue;
-                                    }
-
-                                    global.log(3, 'Current monster being checked', monsterObj);
-                                    // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                                    // these to see if this is the monster we should select
-                                    if (!firstUnderMax && monsterObj.color !== 'purple') {
-                                        if (monsterObj.over === 'ach') {
-                                            if (!firstOverAch) {
-                                                firstOverAch = monsterList[selectTypes[s]][m];
-                                                global.log(3, 'firstOverAch', firstOverAch);
-                                            }
-                                        } else if (monsterObj.over !== 'max') {
-                                            firstUnderMax = monsterList[selectTypes[s]][m];
-                                            global.log(3, 'firstUnderMax', firstUnderMax);
-                                        }
-                                    }
-
-                                    monstType = this.getMonstType(monsterList[selectTypes[s]][m]);
-                                    if (monstType && this.monsterInfo[monstType]) {
-                                        if (!this.monsterInfo[monstType].alpha || (this.monsterInfo[monstType].alpha && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
-                                            maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : gm.getNumber('MaxToFortify', 0);
-                                            if (this.monsterInfo[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
-                                                if (monsterObj.over === 'ach') {
-                                                    if (!firstFortOverAch) {
-                                                        firstFortOverAch = monsterList[selectTypes[s]][m];
-                                                        global.log(3, 'firstFortOverAch', firstFortOverAch);
-                                                    }
-                                                } else if (monsterObj.over !== 'max') {
-                                                    firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                                    global.log(3, 'firstFortUnderMax', firstFortUnderMax);
-                                                }
-                                            }
-                                        }
-
-                                        if (this.monsterInfo[monstType].alpha) {
-                                            if (!firstStunUnderMax && monsterObj.stunDo) {
-                                                if (monsterObj.over === 'ach') {
-                                                    if (!firstStunOverAch) {
-                                                        firstStunOverAch = monsterList[selectTypes[s]][m];
-                                                        global.log(3, 'firstStunOverAch', firstStunOverAch);
-                                                    }
-                                                } else if (monsterObj.over !== 'max') {
-                                                    firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                                    global.log(3, 'firstStunUnderMax', firstStunUnderMax);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Now we use the first under max/under achievement that we found. If we didn't find any under
-                    // achievement then we use the first over achievement
-                    if (selectTypes[s] !== 'raid') {
-                        gm.setValue('targetFromfortify', firstFortUnderMax);
-                        if (!gm.getValue('targetFromfortify', '')) {
-                            gm.setValue('targetFromfortify', firstFortOverAch);
-                        }
-
-                        global.log(3, 'fort under max ', firstFortUnderMax);
-                        global.log(3, 'fort over Ach ', firstFortOverAch);
-                        global.log(3, 'fort target ', gm.getValue('targetFromfortify', ''));
-
-                        gm.setValue('targetFromStun', firstStunUnderMax);
-                        if (!gm.getValue('targetFromStun', '')) {
-                            gm.setValue('targetFromStun', firstStunOverAch);
-                        }
-
-                        global.log(3, 'stun under max ', firstStunUnderMax);
-                        global.log(3, 'stun over Ach ', firstStunOverAch);
-                        global.log(3, 'stun target ', gm.getValue('targetFromStun', ''));
-
-                        if (gm.getValue('targetFromStun', '')) {
-                            gm.setValue('targetFromfortify', gm.getValue('targetFromStun', ''));
-                            global.log(1, 'Stun target replaces fortify ', gm.getValue('targetFromfortify', ''));
-                        }
-                    }
-
-                    monster = firstUnderMax;
-                    if (!monster) {
-                        monster = firstOverAch;
-                    }
-
-                    global.log(3, 'monster', monster);
-                    // If we've got a monster for this selection type then we set the GM variables for the name
-                    // and stamina requirements
-                    if (monster) {
-                        monsterObj = this.getMonsterRecord(monster);
-                        gm.setValue('targetFrom' + monsterObj.page, monster);
-                        if (monsterObj.page === 'battle_monster') {
-                            nodeNum = 0;
-                            if (!this.InLevelUpMode() && this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staLvl) {
-                                for (nodeNum = this.monsterInfo[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                    global.log(9, 'stamina.max:nodeNum:staLvl', this.stats.stamina.max, nodeNum, this.monsterInfo[monsterObj.type].staLvl[nodeNum]);
-                                    if (this.stats.stamina.max >= this.monsterInfo[monsterObj.type].staLvl[nodeNum]) {
-                                        break;
-                                    }
-                                }
-                            }
-
-                            global.log(8, 'MonsterStaminaReq:Info', monsterObj.type, nodeNum, this.monsterInfo[monsterObj.type]);
-                            if (!this.InLevelUpMode() && this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staMax && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax')) {
-                                global.log(7, 'MonsterStaminaReq:PowerAttackMax', this.monsterInfo[monsterObj.type].staMax[nodeNum]);
-                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monsterObj.type].staMax[nodeNum]);
-                            } else if (this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staUse) {
-                                global.log(7, 'MonsterStaminaReq:staUse', this.monsterInfo[monsterObj.type].staUse);
-                                gm.setValue('MonsterStaminaReq', this.monsterInfo[monsterObj.type].staUse);
-                            } else if ((this.InLevelUpMode() && this.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
-                                global.log(7, 'MonsterStaminaReq:pa', 5);
-                                gm.setValue('MonsterStaminaReq', 5);
-                            } else if (monsterObj.conditions.match(/:sa/i)) {
-                                global.log(7, 'MonsterStaminaReq:sa', 1);
-                                gm.setValue('MonsterStaminaReq', 1);
-                            } else if ((this.InLevelUpMode() && this.stats.stamina.num >= 10) || gm.getValue('PowerAttack', true)) {
-                                global.log(7, 'MonsterStaminaReq:PowerAttack', 5);
-                                gm.setValue('MonsterStaminaReq', 5);
-                            } else {
-                                global.log(7, 'MonsterStaminaReq:default', 1);
-                                gm.setValue('MonsterStaminaReq', 1);
-                            }
-
-                            global.log(2, 'MonsterStaminaReq:MonsterGeneral', gm.getValue('MonsterGeneral', 'Strider'));
-                            if (gm.getValue('MonsterGeneral', 'Strider') === 'Orc King') {
-                                global.log(2, 'MonsterStaminaReq:Orc King', gm.getValue('MonsterStaminaReq', 1) * 5);
-                                gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq', 1) * 5);
-                            }
-
-                            if (gm.getValue('MonsterGeneral', 'Strider') === 'Barbarus') {
-                                global.log(2, 'MonsterStaminaReq:Barbarus', gm.getValue('MonsterStaminaReq', 1) * 3);
-                                gm.setValue('MonsterStaminaReq', gm.getValue('MonsterStaminaReq', 1) * 3);
-                            }
-                        } else {
-                            // Switch RaidPowerAttack
-                            global.log(8, 'RaidStaminaReq:Info', monsterObj.type, this.monsterInfo[monsterObj.type]);
-                            if (gm.getValue('RaidPowerAttack', false) || monsterObj.conditions.match(/:pa/i)) {
-                                global.log(7, 'RaidStaminaReq:pa', 5);
-                                gm.setValue('RaidStaminaReq', 5);
-                            } else if (this.monsterInfo[monsterObj.type] && this.monsterInfo[monsterObj.type].staUse) {
-                                global.log(7, 'RaidStaminaReq:staUse', this.monsterInfo[monsterObj.type].staUse);
-                                gm.setValue('RaidStaminaReq', this.monsterInfo[monsterObj.type].staUse);
-                            } else {
-                                global.log(7, 'RaidStaminaReq:default', 1);
-                                gm.setValue('RaidStaminaReq', 1);
-                            }
-                        }
-                    }
-                }
-            }
-
-            this.UpdateDashboard(true);
-            return true;
-        } catch (err) {
-            global.error("ERROR in selectMonster: " + err);
-            return false;
-        }
-    },
-
-    monsterConfirmRightPage: function (monster) {
+    monsterConfirmRightPage: function (monsterName) {
         try {
             // Confirm name and type of monster
             var monsterDiv = null,
@@ -8577,28 +7894,28 @@ caap = {
                     if (tempDiv && tempDiv.length) {
                         tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
                     } else {
-                        global.log(1, "Problem finding nm_bars");
+                        utility.warn("Problem finding nm_bars");
                         return false;
                     }
                 } else {
-                    global.log(1, "Problem finding dragon_title_owner and nm_top");
+                    utility.warn("Problem finding dragon_title_owner and nm_top");
                     return false;
                 }
             }
 
             if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
-                global.log(1, "monster name found");
+                utility.log(2, "monster name found");
                 tempText = tempText.replace(new RegExp(".+'s "), 'Your ');
             }
 
-            if (monster !== tempText) {
-                global.log(1, 'Looking for ' + monster + ' but on ' + tempText + '. Going back to select screen');
-                return this.NavigateTo('keep,' + this.getMonsterRecord(monster).page);
+            if (monsterName !== tempText) {
+                utility.log(1, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
+                return utility.NavigateTo('keep,' + monster.getItem(monsterName).page);
             }
 
             return false;
         } catch (err) {
-            global.error("ERROR in monsterConfirmRightPage: " + err);
+            utility.error("ERROR in monsterConfirmRightPage: " + err);
             return false;
         }
     },
@@ -8613,7 +7930,7 @@ caap = {
             We do monster review once an hour.  Some routines may reset this timer to drive
             MonsterReview immediately.
             \-------------------------------------------------------------------------------------*/
-            if (!schedule.Check("monsterReview") || (gm.getValue('WhenMonster') === 'Never' && gm.getValue('WhenBattle') === 'Never')) {
+            if (!schedule.check("monsterReview") || (config.getItem('WhenMonster', 'Never') === 'Never' && config.getItem('WhenBattle', 'Never') === 'Never')) {
                 return false;
             }
 
@@ -8622,27 +7939,27 @@ caap = {
             the monsterOl completely. Otherwise it will be our index into how far we are into
             reviewing monsterOl.
             \-------------------------------------------------------------------------------------*/
-            var counter = parseInt(gm.getValue('monsterReviewCounter', -3), 10),
+            var counter = state.getItem('monsterReviewCounter', -3),
                 link    = '';
 
             if (counter === -3) {
-                gm.setValue('monsterReviewCounter', counter += 1);
+                state.setItem('monsterReviewCounter', counter += 1);
                 return true;
             }
 
             if (counter === -2) {
                 if (this.stats.level > 6) {
-                    if (this.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
-                        gm.setValue('reviewDone', 0);
+                    if (utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+                        state.setItem('reviewDone', false);
                         return true;
                     }
                 } else {
-                    global.log(1, "Monsters: Unlock at level 7");
-                    gm.setValue('reviewDone', 1);
+                    utility.log(1, "Monsters: Unlock at level 7");
+                    state.setItem('reviewDone', true);
                 }
 
-                if (gm.getValue('reviewDone', 1) > 0) {
-                    gm.setValue('monsterReviewCounter', counter += 1);
+                if (state.getItem('reviewDone', true)) {
+                    state.setItem('monsterReviewCounter', counter += 1);
                 } else {
                     return true;
                 }
@@ -8650,23 +7967,23 @@ caap = {
 
             if (counter === -1) {
                 if (this.stats.level > 7) {
-                    if (this.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
-                        gm.setValue('reviewDone', 0);
+                    if (utility.NavigateTo(this.battlePage + ',raid', 'tab_raid_on.gif')) {
+                        state.setItem('reviewDone', false);
                         return true;
                     }
                 } else {
-                    global.log(1, "Raids: Unlock at level 8");
-                    gm.setValue('reviewDone', 1);
+                    utility.log(1, "Raids: Unlock at level 8");
+                    state.setItem('reviewDone', true);
                 }
 
-                if (gm.getValue('reviewDone', 1) > 0) {
-                    gm.setValue('monsterReviewCounter', counter += 1);
+                if (state.getItem('reviewDone', true)) {
+                    state.setItem('monsterReviewCounter', counter += 1);
                 } else {
                     return true;
                 }
             }
 
-            if (this.monsterArray && this.monsterArray.length === 0) {
+            if (monster.records && monster.records.length === 0) {
                 return false;
             }
 
@@ -8674,33 +7991,33 @@ caap = {
             Now we step through the monsterOl objects. We set monsterReviewCounter to the next
             index for the next reiteration since we will be doing a click and return in here.
             \-------------------------------------------------------------------------------------*/
-            while (counter < this.monsterArray.length) {
-                if (!this.monsterArray[counter]) {
-                    gm.setValue('monsterReviewCounter', counter += 1);
+            while (counter < monster.records.length) {
+                if (!monster.records[counter]) {
+                    state.setItem('monsterReviewCounter', counter += 1);
                     continue;
                 }
                 /*-------------------------------------------------------------------------------------\
                 If we looked at this monster more recently than an hour ago, skip it
                 \-------------------------------------------------------------------------------------*/
-                if (this.monsterArray[counter].color === 'grey' && this.monsterArray[counter].life !== -1) {
-                    this.monsterArray[counter].life = -1;
-                    this.monsterArray[counter].fortify = -1;
-                    this.monsterArray[counter].strength = -1;
-                    this.monsterArray[counter].timeLeft = '';
-                    this.monsterArray[counter].t2k = -1;
-                    this.monsterArray[counter].phase = '';
+                if (monster.records[counter].color === 'grey' && monster.records[counter].life !== -1) {
+                    monster.records[counter].life = -1;
+                    monster.records[counter].fortify = -1;
+                    monster.records[counter].strength = -1;
+                    monster.records[counter].timeLeft = '';
+                    monster.records[counter].t2k = -1;
+                    monster.records[counter].phase = '';
                 }
 
-                if (this.monsterArray[counter].status === 'Complete' || !this.WhileSinceDidIt(this.monsterArray[counter].review, 60 * 60) || gm.getValue('monsterRepeatCount', 0) > 2) {
-                    gm.setValue('monsterReviewCounter', counter += 1);
-                    gm.setValue('monsterRepeatCount', 0);
+                if (monster.records[counter].status === 'Complete' || !schedule.since(monster.records[counter].review, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
+                    state.setItem('monsterReviewCounter', counter += 1);
+                    state.setItem('monsterRepeatCount', 0);
                     continue;
                 }
                 /*-------------------------------------------------------------------------------------\
                 We get our monster link
                 \-------------------------------------------------------------------------------------*/
-                this.SetDivContent('monster_mess', 'Reviewing/sieging ' + (counter + 1) + '/' + this.monsterArray.length + ' ' + this.monsterArray[counter].name);
-                link = this.monsterArray[counter].link;
+                this.SetDivContent('monster_mess', 'Reviewing/sieging ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter].name);
+                link = monster.records[counter].link;
                 /*-------------------------------------------------------------------------------------\
                 If the link is good then we get the url and any conditions for monster
                 \-------------------------------------------------------------------------------------*/
@@ -8710,77 +8027,82 @@ caap = {
                     If the autocollect token was specified then we set the link to do auto collect. If
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
-                    if ((((this.monsterArray[counter].conditions) && (/:ac\b/.test(this.monsterArray[counter].conditions))) ||
-                            (this.monsterArray[counter].type.match(/Raid/) && gm.getValue('raidCollectReward', false)) ||
-                            (!this.monsterArray[counter].type.match(/Raid/) && gm.getValue('monsterCollectReward', false))) && this.monsterArray[counter].status === 'Collect Reward') {
+                    if ((((monster.records[counter].conditions) && (/:ac\b/.test(monster.records[counter].conditions))) ||
+                            (monster.records[counter].type.match(/Raid/) && config.getItem('raidCollectReward', false)) ||
+                            (!monster.records[counter].type.match(/Raid/) && config.getItem('monsterCollectReward', false))) && monster.records[counter].status === 'Collect Reward') {
 
                         if (general.Select('CollectGeneral')) {
                             return true;
                         }
 
                         link += '&action=collectReward';
-                        if (this.monsterArray[counter].name.indexOf('Siege') >= 0) {
-                            if (this.monsterArray[counter].rix !== -1)  {
-                                link += '&rix=' + this.monsterArray[counter].rix;
+                        if (monster.records[counter].name.indexOf('Siege') >= 0) {
+                            if (monster.records[counter].rix !== -1)  {
+                                link += '&rix=' + monster.records[counter].rix;
                             } else {
                                 link += '&rix=2';
                             }
                         }
 
                         link = link.replace('&action=doObjective', '');
-                    } else if (((this.monsterArray[counter].conditions) && (this.monsterArray[counter].conditions.match(':!s'))) ||
-                               (!gm.getValue('raidDoSiege', true) && this.monsterArray[counter].type.match(/Raid/)) ||
-                               (!gm.getValue('monsterDoSiege', true) && !this.monsterArray[counter].type.match(/Raid/) && this.monsterInfo[this.monsterArray[counter].type].siege) ||
+                        state.setItem('CollectedRewards', true);
+                    } else if (((monster.records[counter].conditions) && (monster.records[counter].conditions.match(':!s'))) ||
+                               (!config.getItem('raidDoSiege', true) && monster.records[counter].type.match(/Raid/)) ||
+                               (!config.getItem('monsterDoSiege', true) && !monster.records[counter].type.match(/Raid/) && monster.info[monster.records[counter].type].siege) ||
                                this.stats.stamina.num === 0) {
                         link = link.replace('&action=doObjective', '');
                     }
                     /*-------------------------------------------------------------------------------------\
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
-                    global.log(1, 'Reviewing ' + (counter + 1) + '/' + this.monsterArray.length + ' ' + this.monsterArray[counter].name);
-                    gm.setValue('ReleaseControl', true);
+                    utility.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter].name);
+                    state.setItem('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '');
                     link = link.replace('?', '?twt2&');
-                    global.log(9, "Link", link);
-                    this.ClickAjax(link);
-                    gm.setValue('monsterRepeatCount', gm.getValue('monsterRepeatCount', 0) + 1);
-                    gm.setValue('resetselectMonster', true);
+                    utility.log(9, "Link", link);
+                    utility.ClickAjax(link);
+                    state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
+                    state.setItem('resetselectMonster', true);
                     return true;
                 }
             }
             /*-------------------------------------------------------------------------------------\
-            All done.  Set timer and tell selectMonster and dashboard they need to do thier thing.
+            All done.  Set timer and tell monster.select and dashboard they need to do thier thing.
             We set the monsterReviewCounter to do a full refresh next time through.
             \-------------------------------------------------------------------------------------*/
-            schedule.Set("monsterReview", gm.getValue('monsterReviewMins', 60) * 60, 300);
-            gm.setValue('resetselectMonster', true);
-            gm.setValue('monsterReviewCounter', -3);
-            global.log(1, 'Done with monster/raid review.');
+            schedule.setItem("monsterReview", gm.getItem('monsterReviewMins', 60, hiddenVar) * 60, 300);
+            state.setItem('resetselectMonster', true);
+            state.setItem('monsterReviewCounter', -3);
+            utility.log(1, 'Done with monster/raid review.');
             this.SetDivContent('monster_mess', '');
             this.UpdateDashboard(true);
+            if (state.getItem('CollectedRewards', false)) {
+                monster.flagReview();
+            }
+
             return true;
         } catch (err) {
-            global.error("ERROR in MonsterReview: " + err);
+            utility.error("ERROR in MonsterReview: " + err);
             return false;
         }
     },
 
     Monsters: function () {
         try {
-            if (gm.getValue('WhenMonster', '') === 'Never') {
+            if (config.getItem('WhenMonster', 'Never') === 'Never') {
                 this.SetDivContent('monster_mess', 'Monster off');
                 return false;
             }
 
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
-            if (gm.getValue('WhenMonster') === 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
-                global.log(1, "Stay Hidden Mode: We're not safe. Go battle.");
+            if (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && this.NeedToHide() && this.CheckStamina('Monster', 1)) {
+                utility.log(1, "Stay Hidden Mode: We're not safe. Go battle.");
                 this.SetDivContent('monster_mess', 'Not Safe For Monster. Battle!');
                 return false;
             }
 
-            if (!schedule.Check('NotargetFrombattle_monster')) {
+            if (!schedule.check('NotargetFrombattle_monster')) {
                 return false;
             }
 
@@ -8788,63 +8110,62 @@ caap = {
 
             // Establish a delay timer when we are 1 stamina below attack level.
             // Timer includes 5 min for stamina tick plus user defined random interval
-            if (!this.InLevelUpMode() && this.stats.stamina.num === (gm.getNumber('MonsterStaminaReq', 1) - 1) && schedule.Check('battleTimer') && gm.getNumber('seedTime', 0) > 0) {
-                schedule.Set('battleTimer', 300, gm.getValue('seedTime', 0));
-                this.SetDivContent('monster_mess', 'Monster Delay Until ' + schedule.Display('battleTimer'));
+            if (!this.InLevelUpMode() && this.stats.stamina.num === (state.getItem('MonsterStaminaReq', 1) - 1) && schedule.check('battleTimer') && config.getItem('seedTime', 0) > 0) {
+                schedule.setItem('battleTimer', 300, config.getItem('seedTime', 0));
+                this.SetDivContent('monster_mess', 'Monster Delay Until ' + schedule.display('battleTimer'));
                 return false;
             }
 
-            if (!schedule.Check('battleTimer')) {
-                if (this.stats.stamina.num < gm.getNumber('MaxIdleStamina', this.stats.stamina.max)) {
-                    this.SetDivContent('monster_mess', 'Monster Delay Until ' + schedule.Display('battleTimer'));
+            if (!schedule.check('battleTimer')) {
+                if (this.stats.stamina.num < general.GetStaminaMax(config.getItem('IdleGeneral', 'Use Current'))) {
+                    this.SetDivContent('monster_mess', 'Monster Delay Until ' + schedule.display('battleTimer'));
                     return false;
                 }
             }
 
             var fightMode = '';
             // Check to see if we should fortify, attack monster, or battle raid
-            var monster = gm.getValue('targetFromfortify');
-            var monstType = this.getMonstType(monster);
+            var monsterName = state.getItem('targetFromfortify', '');
+            var monstType = monster.type(monsterName);
             var nodeNum = 0;
-            var staLvl = null;
             var energyRequire = 10;
-            var currentMonster = this.getMonsterRecord(monster);
+            var currentMonster = monster.getItem(monsterName);
 
             if (monstType) {
-                staLvl = this.monsterInfo[monstType].staLvl;
-                if (!this.InLevelUpMode() && gm.getValue('PowerFortifyMax') && staLvl) {
-                    for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                        if (this.stats.stamina.max >= this.monsterInfo[monstType].staLvl[nodeNum]) {
+                if (!this.InLevelUpMode() && config.getItem('PowerFortifyMax', false) && monster.info[monstType].staLvl) {
+                    for (nodeNum = monster.info[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                        if (this.stats.stamina.max >= monster.info[monstType].staLvl[nodeNum]) {
                             break;
                         }
                     }
                 }
 
-                if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && gm.getValue('PowerAttackMax')) {
-                    energyRequire = this.monsterInfo[monstType].nrgMax[nodeNum];
+                if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax', false)) {
+                    energyRequire = monster.info[monstType].nrgMax[nodeNum];
                 }
             }
 
-            global.log(9, "Energy Required/Node", energyRequire, nodeNum);
-            if (gm.getValue('FortifyGeneral', 'Strider') === 'Orc King') {
+            utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
+            if (config.getItem('FortifyGeneral', 'Use Current') === 'Orc King') {
                 energyRequire = energyRequire * 5;
-                global.log(2, 'Monsters Fortify:Orc King', energyRequire);
+                utility.log(2, 'Monsters Fortify:Orc King', energyRequire);
             }
 
-            if (gm.getValue('FortifyGeneral', 'Strider') === 'Barbarus') {
+            if (config.getItem('FortifyGeneral', 'Use Current') === 'Barbarus') {
                 energyRequire = energyRequire * 3;
-                global.log(2, 'Monsters Fortify:Barbarus', energyRequire);
+                utility.log(2, 'Monsters Fortify:Barbarus', energyRequire);
             }
 
-            if (monster && this.CheckEnergy(energyRequire, gm.getValue('WhenFortify', 'Energy Available'), 'fortify_mess')) {
-                fightMode = gm.setValue('fightMode', 'Fortify');
+            if (monsterName && this.CheckEnergy(energyRequire, gm.getItem('WhenFortify', 'Energy Available', hiddenVar), 'fortify_mess')) {
+                fightMode = 'Fortify';
             } else {
-                monster = gm.getValue('targetFrombattle_monster');
-                currentMonster = this.getMonsterRecord(monster);
-                if (monster && this.CheckStamina('Monster', gm.getValue('MonsterStaminaReq', 1)) && currentMonster.page === 'battle_monster') {
-                    fightMode = gm.setValue('fightMode', 'Monster');
+                monsterName = state.getItem('targetFrombattle_monster', '');
+                monstType = monster.type(monsterName);
+                currentMonster = monster.getItem(monsterName);
+                if (monsterName && this.CheckStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster.page === 'battle_monster') {
+                    fightMode = 'Monster';
                 } else {
-                    schedule.Set('NotargetFrombattle_monster', 60);
+                    schedule.setItem('NotargetFrombattle_monster', 60);
                     return false;
                 }
             }
@@ -8854,17 +8175,14 @@ caap = {
                 return true;
             }
 
-            monstType = this.getMonstType(monster);
             // Check if on engage monster page
-            var imageTest = '';
-            if (this.monsterInfo[monstType].alpha) {
+            var imageTest = 'dragon_title_owner';
+            if (monstType && monster.info[monstType].alpha) {
                 imageTest = 'nm_top';
-            } else {
-                imageTest = 'dragon_title_owner';
             }
 
             if ($("div[style*='" + imageTest + "']").length) {
-                if (this.monsterConfirmRightPage(monster)) {
+                if (this.monsterConfirmRightPage(monsterName)) {
                     return true;
                 }
 
@@ -8882,11 +8200,18 @@ caap = {
                 if (fightMode === 'Fortify') {
                     buttonList = [
                         'seamonster_fortify.gif',
-                        "button_nm_s_",
                         'button_dispel.gif',
                         'attack_monster_button3.jpg'
                     ];
-                } else if (gm.getValue('MonsterStaminaReq', 1) === 1) {
+
+                    if (currentMonster && currentMonster.stunType !== '') {
+                        buttonList.unshift("button_nm_s_" + currentMonster.stunType);
+                    } else {
+                        buttonList.unshift("button_nm_s_");
+                    }
+
+                    utility.log(1, "monster/button list", currentMonster, buttonList);
+                } else if (state.getItem('MonsterStaminaReq', 1) === 1) {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
@@ -8895,14 +8220,14 @@ caap = {
                         partyHealth       = 0,
                         useTactics        = false;
 
-                    if (gm.getValue('UseTactics', false) && this.stats.level >= 50) {
+                    if (config.getItem('UseTactics', false) && this.stats.level >= 50) {
                         useTactics = true;
-                        tacticsValue = gm.getValue('TacticsThreshold', false);
+                        tacticsValue = config.getItem('TacticsThreshold', false);
                     }
 
                     if (monsterConditions && monsterConditions.match(/:tac/i) && this.stats.level >= 50) {
                         useTactics = true;
-                        tacticsValue = this.parseCondition("tac%", monsterConditions);
+                        tacticsValue = monster.parseCondition("tac%", monsterConditions);
                     }
 
                     if (useTactics) {
@@ -8910,17 +8235,17 @@ caap = {
                     }
 
                     if (tacticsValue !== false && partyHealth < tacticsValue) {
-                        global.log(1, "Party health is below threshold value", partyHealth, tacticsValue);
+                        utility.log(1, "Party health is below threshold value", partyHealth, tacticsValue);
                         useTactics = false;
                     }
 
-                    if (useTactics && this.CheckForImage('nm_button_tactics.gif')) {
-                        global.log(1, "Attacking monster using tactics buttons");
+                    if (useTactics && utility.CheckForImage('nm_button_tactics.gif')) {
+                        utility.log(1, "Attacking monster using tactics buttons");
                         buttonList = [
                             'nm_button_tactics.gif'
                         ].concat(singleButtonList);
                     } else {
-                        global.log(1, "Attacking monster using regular buttons");
+                        utility.log(1, "Attacking monster using regular buttons");
                         // power attack or if not seamonster power attack or if not regular attack -
                         // need case for seamonster regular attack?
                         buttonList = [
@@ -8937,26 +8262,19 @@ caap = {
                 }
 
                 nodeNum = 0;
-                staLvl = this.monsterInfo[monstType].staLvl;
                 if (!this.InLevelUpMode()) {
-                    if (((fightMode === 'Fortify' && gm.getValue('PowerFortifyMax')) || (fightMode !== 'Fortify' && gm.getValue('PowerAttack') && gm.getValue('PowerAttackMax'))) && staLvl) {
-                        for (nodeNum = this.monsterInfo[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                            if (this.stats.stamina.max >= this.monsterInfo[monstType].staLvl[nodeNum]) {
+                    if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monster.info[monstType].staLvl) {
+                        for (nodeNum = monster.info[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                            if (this.stats.stamina.max >= monster.info[monstType].staLvl[nodeNum]) {
                                 break;
                             }
                         }
                     }
                 }
 
-                /*
-                if (fightMode === 'Fortify' && gm.getValue('PowerFortifyMax')) {
-                    nodeNum += 1;
-                }
-                */
-
                 for (var i in buttonList) {
                     if (buttonList.hasOwnProperty(i)) {
-                        attackButton = this.CheckForImage(buttonList[i], null, null, nodeNum);
+                        attackButton = utility.CheckForImage(buttonList[i], null, null, nodeNum);
                         if (attackButton) {
                             break;
                         }
@@ -8966,58 +8284,58 @@ caap = {
                 if (attackButton) {
                     var attackMess = '';
                     if (fightMode === 'Fortify') {
-                        attackMess = 'Fortifying ' + monster;
+                        attackMess = 'Fortifying ' + monsterName;
                     } else {
-                        attackMess = (gm.getValue('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monster;
+                        attackMess = (state.getItem('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monsterName;
                     }
 
-                    global.log(1, attackMess);
+                    utility.log(1, attackMess);
                     this.SetDivContent('monster_mess', attackMess);
-                    gm.setValue('ReleaseControl', true);
-                    this.Click(attackButton, 8000);
+                    state.setItem('ReleaseControl', true);
+                    utility.Click(attackButton, 8000);
                     return true;
                 } else {
-                    global.log(1, 'ERROR - No button to attack/fortify with.');
-                    schedule.Set('NotargetFrombattle_monster', 60);
+                    utility.warn('No button to attack/fortify with.');
+                    schedule.setItem('NotargetFrombattle_monster', 60);
                     return false;
                 }
             }
 
             ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
 
-            if (this.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+            if (utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                 return true;
             }
 
-            if (gm.getValue('clearCompleteMonsters', false) && this.completeButton.battle_monster) {
-                this.Click(this.completeButton.battle_monster, 1000);
-                global.log(1, 'Cleared a completed monster');
-                this.completeButton.battle_monster = '';
+            if (config.getItem('clearCompleteMonsters', false) && monster.completeButton.battle_monster) {
+                utility.Click(monster.completeButton.battle_monster, 1000);
+                utility.log(1, 'Cleared a completed monster');
+                monster.completeButton.battle_monster = '';
                 return true;
             }
 
-            var firstMonsterButtonDiv = this.CheckForImage('dragon_list_btn_');
+            var firstMonsterButtonDiv = utility.CheckForImage('dragon_list_btn_');
             if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
                     firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                var pageUserCheck = gm.getValue('pageUserCheck', '');
+                var pageUserCheck = state.getItem('pageUserCheck', '');
                 if (pageUserCheck) {
-                    global.log(1, "On another player's keep.", pageUserCheck);
-                    return this.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
+                    utility.log(1, "On another player's keep.", pageUserCheck);
+                    return utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
                 }
             }
 
-            var engageButton = this.monsterEngageButtons[monster];
+            var engageButton = monster.engageButtons[monsterName];
             if (engageButton) {
-                this.SetDivContent('monster_mess', 'Opening ' + monster);
-                this.Click(engageButton);
+                this.SetDivContent('monster_mess', 'Opening ' + monsterName);
+                utility.Click(engageButton);
                 return true;
             } else {
-                schedule.Set('NotargetFrombattle_monster', 60);
-                global.log(1, 'No "Engage" button for ' + monster);
+                schedule.setItem('NotargetFrombattle_monster', 60);
+                utility.warn('No "Engage" button for ', monsterName);
                 return false;
             }
         } catch (err) {
-            global.error("ERROR in Monsters: " + err);
+            utility.error("ERROR in Monsters: " + err);
             return false;
         }
     },
@@ -9090,13 +8408,20 @@ caap = {
     },
 
     LoadDemi: function () {
-        $.extend(this.demi, gm.getJValue('demiStats'));
-        global.log(2, 'Demi', this.demi);
+        if (gm.getItem('demipoint.records', 'default') === 'default') {
+            gm.setItem('demipoint.records', this.demi);
+        } else {
+            this.demi = gm.getItem('demipoint.records', this.demi);
+        }
+
+        utility.log(2, 'Demi', this.demi);
+        state.setItem("UserDashUpdate", true);
     },
 
     SaveDemi: function () {
-        gm.setJValue('demiStats', this.demi);
-        global.log(2, 'Demi', this.demi);
+        gm.setItem('demipoint.records', this.demi);
+        utility.log(2, 'Demi', this.demi);
+        state.setItem("UserDashUpdate", true);
     },
 
     demiTable: {
@@ -9121,40 +8446,40 @@ caap = {
                         points.push(temp);
                     } else {
                         success = false;
-                        global.log(1, 'Demi temp text problem', temp);
+                        utility.warn('Demi temp text problem', temp);
                     }
                 });
 
-                global.log(2, 'Points', points);
+                utility.log(2, 'Points', points);
                 if (success) {
                     this.demi.ambrosia.daily = this.GetStatusNumbers(points[0]);
                     this.demi.malekus.daily = this.GetStatusNumbers(points[1]);
                     this.demi.corvintheus.daily = this.GetStatusNumbers(points[2]);
                     this.demi.aurora.daily = this.GetStatusNumbers(points[3]);
                     this.demi.azeron.daily = this.GetStatusNumbers(points[4]);
-                    schedule.Set("battle", gm.getValue('CheckDemi', 6) * 3600, 300);
+                    schedule.setItem("battle", gm.getItem('CheckDemi', 6, hiddenVar) * 3600, 300);
                     this.SaveDemi();
                 }
             } else {
-                global.log(1, 'Demi symDiv problem', symDiv);
+                utility.warn('Demi symDiv problem', symDiv);
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in CheckResults_battle: " + err);
+            utility.error("ERROR in CheckResults_battle: " + err);
             return false;
         }
     },
 
     DemiPoints: function () {
         try {
-            if (!gm.getValue('DemiPointsFirst', false) || gm.getValue('WhenMonster') === 'Never' || this.stats.level < 9) {
+            if (!config.getItem('DemiPointsFirst', false) || config.getItem('WhenMonster', 'Never') === 'Never' || this.stats.level < 9) {
                 return false;
             }
 
-            if (schedule.Check("battle")) {
-                global.log(5, 'DemiPointsFirst battle page check');
-                if (this.NavigateTo(this.battlePage, 'battle_on.gif')) {
+            if (schedule.check("battle")) {
+                utility.log(5, 'DemiPointsFirst battle page check');
+                if (utility.NavigateTo(this.battlePage, 'battle_on.gif')) {
                     return true;
                 }
             }
@@ -9171,40 +8496,39 @@ caap = {
                 }
             }
 
-            global.log(5, 'DemiPointsDone', demiPower, demiPointsDone);
-            gm.setValue('DemiPointsDone', demiPointsDone);
+            utility.log(5, 'DemiPointsDone', demiPower, demiPointsDone);
+            state.setItem("DemiPointsDone", demiPointsDone);
             if (!demiPointsDone) {
                 return this.Battle('DemiPoints');
             } else {
                 return false;
             }
         } catch (err) {
-            global.error("ERROR in DemiPoints: " + err);
+            utility.error("ERROR in DemiPoints: " + err);
             return false;
         }
     },
 
-    minutesBeforeLevelToUseUpStaEnergy : 5,
-
     InLevelUpMode: function () {
         try {
-            if (!gm.getValue('EnableLevelUpMode', true)) {
+            if (!gm.getItem('EnableLevelUpMode', true, hiddenVar)) {
                 //if levelup mode is false then new level up mode is also false (kob)
-                this.newLevelUpMode = false;
+                state.setItem("newLevelUpMode", false);
                 return false;
             }
 
             if (!(this.stats.indicators.enl) || (this.stats.indicators.enl).toString().match(new Date(2009, 1, 1).getTime())) {
                 //if levelup mode is false then new level up mode is also false (kob)
-                this.newLevelUpMode = false;
+                state.setItem("newLevelUpMode", false);
                 return false;
             }
 
-            if (((this.stats.indicators.enl - new Date().getTime()) < this.minutesBeforeLevelToUseUpStaEnergy * 60 * 1000) || (this.stats.exp.dif <= gm.getValue('LevelUpGeneralExp', 0))) {
+            // minutesBeforeLevelToUseUpStaEnergy : 5, = 30000
+            if (((this.stats.indicators.enl - new Date().getTime()) < 30000) || (this.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
                 //detect if we are entering level up mode for the very first time (kob)
-                if (!this.newLevelUpMode) {
+                if (!state.getItem("newLevelUpMode", false)) {
                     //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
-                    this.newLevelUpMode = true;
+                    state.setItem("newLevelUpMode", true);
                     this.refreshMonstersListener();
                 }
 
@@ -9212,22 +8536,25 @@ caap = {
             }
 
             //if levelup mode is false then new level up mode is also false (kob)
-            this.newLevelUpMode = false;
+            state.setItem("newLevelUpMode", false);
             return false;
         } catch (err) {
-            global.error("ERROR in InLevelUpMode: " + err);
+            utility.error("ERROR in InLevelUpMode: " + err);
             return false;
         }
     },
 
     CheckStamina: function (battleOrBattle, attackMinStamina) {
         try {
-            global.log(9, "CheckStamina", battleOrBattle, attackMinStamina);
+            utility.log(9, "CheckStamina", battleOrBattle, attackMinStamina);
             if (!attackMinStamina) {
                 attackMinStamina = 1;
             }
 
-            var when = gm.getValue('When' + battleOrBattle, '');
+            var when           = config.getItem('When' + battleOrBattle, 'Never'),
+                maxIdleStamina = 0,
+                theGeneral     = '';
+
             if (when === 'Never') {
                 return false;
             }
@@ -9249,30 +8576,38 @@ caap = {
                 }
 
                 var staminaMF = battleOrBattle + 'Stamina';
-                if (gm.getValue('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= gm.getValue('X' + staminaMF, 1)) {
-                    if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= gm.getValue('XMin' + staminaMF, 0)) {
-                        gm.setValue('BurnMode_' + staminaMF, false);
+                if (state.getItem('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= config.getItem('X' + staminaMF, 1)) {
+                    if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= config.getItem('XMin' + staminaMF, 0)) {
+                        state.setItem('BurnMode_' + staminaMF, false);
                         return false;
                     }
 
                     //this.SetDivContent('battle_mess', 'Burning stamina');
-                    gm.setValue('BurnMode_' + staminaMF, true);
+                    state.setItem('BurnMode_' + staminaMF, true);
                     return true;
                 } else {
-                    gm.setValue('BurnMode_' + staminaMF, false);
+                    state.setItem('BurnMode_' + staminaMF, false);
                 }
 
-                this.SetDivContent('battle_mess', 'Waiting for stamina: ' + this.stats.stamina.num + "/" + gm.getValue('X' + staminaMF, 1));
+                this.SetDivContent('battle_mess', 'Waiting for stamina: ' + this.stats.stamina.num + "/" + config.getItem('X' + staminaMF, 1));
                 return false;
             }
 
             if (when === 'At Max Stamina') {
-                if (!gm.getValue('MaxIdleStamina', 0)) {
-                    global.log(1, "Changing to idle general to get Max Stamina");
-                    this.PassiveGeneral();
+                maxIdleStamina = this.stats.stamina.max;
+                theGeneral = config.getItem('IdleGeneral', 'Use Current');
+                if (theGeneral !== 'Use Current') {
+                    maxIdleStamina = general.GetStaminaMax(theGeneral);
                 }
 
-                if (this.stats.stamina.num >= gm.getValue('MaxIdleStamina')) {
+                if (theGeneral !== 'Use Current' && !maxIdleStamina) {
+                    utility.log(1, "Changing to idle general to get Max Stamina");
+                    if (general.Select('IdleGeneral')) {
+                        return true;
+                    }
+                }
+
+                if (this.stats.stamina.num >= maxIdleStamina) {
                     this.SetDivContent('battle_mess', 'Using max stamina');
                     return true;
                 }
@@ -9282,7 +8617,7 @@ caap = {
                     return true;
                 }
 
-                this.SetDivContent('battle_mess', 'Waiting for max stamina: ' + this.stats.stamina.num + "/" + gm.getValue('MaxIdleStamina'));
+                this.SetDivContent('battle_mess', 'Waiting for max stamina: ' + this.stats.stamina.num + "/" + maxIdleStamina);
                 return false;
             }
 
@@ -9293,7 +8628,7 @@ caap = {
             this.SetDivContent('battle_mess', 'Waiting for more stamina: ' + this.stats.stamina.num + "/" + attackMinStamina);
             return false;
         } catch (err) {
-            global.error("ERROR in CheckStamina: " + err);
+            utility.error("ERROR in CheckStamina: " + err);
             return false;
         }
     },
@@ -9305,13 +8640,13 @@ caap = {
     other stamina uses).
     \-------------------------------------------------------------------------------------*/
     NeedToHide: function () {
-        if (gm.getValue('WhenMonster', '') === 'Never') {
-            global.log(1, 'Stay Hidden Mode: Monster battle not enabled');
+        if (config.getItem('WhenMonster', 'Never') === 'Never') {
+            utility.log(1, 'Stay Hidden Mode: Monster battle not enabled');
             return true;
         }
 
-        if (!gm.getValue('targetFrombattle_monster', '')) {
-            global.log(1, 'Stay Hidden Mode: No monster to battle');
+        if (!state.getItem('targetFrombattle_monster', '')) {
+            utility.log(1, 'Stay Hidden Mode: No monster to battle');
             return true;
         }
     /*-------------------------------------------------------------------------------------\
@@ -9348,7 +8683,7 @@ caap = {
             18  -   -   -   -   -   -   -   -   -
 
     \-------------------------------------------------------------------------------------*/
-        var riskConstant = gm.getNumber('HidingRiskConstant', 1.7);
+        var riskConstant = gm.getItem('HidingRiskConstant', 1.7, hiddenVar);
     /*-------------------------------------------------------------------------------------\
     The formula for determining if we should hide goes something like this:
 
@@ -9372,8 +8707,8 @@ caap = {
     ConsumePotion: function (potion) {
         try {
             if (!$(".statsTTitle").length) {
-                global.log(1, "Going to keep for potions");
-                if (this.NavigateTo('keep')) {
+                utility.log(1, "Going to keep for potions");
+                if (utility.NavigateTo('keep')) {
                     return true;
                 }
             }
@@ -9386,55 +8721,55 @@ caap = {
                 formId = "app46755028429_consume_2";
             }
 
-            global.log(1, "Consuming potion potion");
+            utility.log(1, "Consuming potion potion");
             potionDiv = $("form[id='" + formId + "'] input[src*='potion_consume.gif']");
             if (potionDiv && potionDiv.length) {
                 button = potionDiv.get(0);
                 if (button) {
-                    caap.Click(button);
+                    utility.Click(button);
                 } else {
-                    global.log(1, "Could not find consume button for", potion);
+                    utility.warn("Could not find consume button for", potion);
                     return false;
                 }
             } else {
-                global.log(1, "Could not find consume form for", potion);
+                utility.warn("Could not find consume form for", potion);
                 return false;
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in ConsumePotion: " + err, potion);
+            utility.error("ERROR in ConsumePotion: " + err, potion);
             return false;
         }
     },
 
     AutoPotions: function () {
         try {
-            if (!gm.getValue('AutoPotions', true) || !schedule.Check('AutoPotionTimerDelay')) {
+            if (!config.getItem('AutoPotions', true) || !schedule.check('AutoPotionTimerDelay')) {
                 return false;
             }
 
-            if (this.stats.exp.dif <= gm.getNumber("potionsExperience", 20)) {
-                global.log(1, "AutoPotions, ENL condition. Delaying 10 minutes");
-                schedule.Set('AutoPotionTimerDelay', 600);
+            if (this.stats.exp.dif <= config.getItem("potionsExperience", 20)) {
+                utility.log(1, "AutoPotions, ENL condition. Delaying 10 minutes");
+                schedule.setItem('AutoPotionTimerDelay', 600);
                 return false;
             }
 
             if (this.stats.energy.num < this.stats.energy.max - 10 &&
-                this.stats.potions.energy >= gm.getNumber("energyPotionsSpendOver", 39) &&
-                this.stats.potions.energy > gm.getNumber("energyPotionsKeepUnder", 35)) {
+                this.stats.potions.energy >= config.getItem("energyPotionsSpendOver", 39) &&
+                this.stats.potions.energy > config.getItem("energyPotionsKeepUnder", 35)) {
                 return this.ConsumePotion('energy');
             }
 
             if (this.stats.stamina.num < this.stats.stamina.max - 10 &&
-                this.stats.potions.stamina >= gm.getNumber("staminaPotionsSpendOver", 39) &&
-                this.stats.potions.stamina > gm.getNumber("staminaPotionsKeepUnder", 35)) {
+                this.stats.potions.stamina >= config.getItem("staminaPotionsSpendOver", 39) &&
+                this.stats.potions.stamina > config.getItem("staminaPotionsKeepUnder", 35)) {
                 return this.ConsumePotion('stamina');
             }
 
             return false;
         } catch (err) {
-            global.error("ERROR in AutoPotion: " + err);
+            utility.error("ERROR in AutoPotion: " + err);
             return false;
         }
     },
@@ -9446,20 +8781,20 @@ caap = {
     \-------------------------------------------------------------------------------------*/
     AutoAlchemy: function () {
         try {
-            if (!gm.getValue('AutoAlchemy', false)) {
+            if (!config.getItem('AutoAlchemy', false)) {
                 return false;
             }
 
-            if (!schedule.Check('AlchemyTimer')) {
+            if (!schedule.check('AlchemyTimer')) {
                 return false;
             }
     /*-------------------------------------------------------------------------------------\
     Now we navigate to the Alchemy Recipe page.
     \-------------------------------------------------------------------------------------*/
-            if (!this.NavigateTo('keep,alchemy', 'tab_alchemy_on.gif')) {
-                var button = null,
+            if (!utility.NavigateTo('keep,alchemy', 'tab_alchemy_on.gif')) {
+                var button    = null,
                     recipeDiv = null,
-                    tempDiv = null;
+                    tempDiv   = null;
 
                 recipeDiv = $("#app46755028429_recipe_list");
                 if (recipeDiv && recipeDiv.length) {
@@ -9468,27 +8803,27 @@ caap = {
                         if (tempDiv && tempDiv.length) {
                             button = tempDiv.get(0);
                             if (button) {
-                                this.Click(button, 5000);
+                                utility.Click(button, 5000);
                                 return true;
                             } else {
-                                global.log(1, 'Cant find tab button', button);
+                                utility.warn('Cant find tab button', button);
                                 return false;
                             }
                         } else {
-                            global.log(1, 'Cant find item tab', tempDiv);
+                            utility.warn('Cant find item tab', tempDiv);
                             return false;
                         }
                     }
                 } else {
-                    global.log(1, 'Cant find recipe list', recipeDiv);
+                    utility.warn('Cant find recipe list', recipeDiv);
                     return false;
                 }
     /*-------------------------------------------------------------------------------------\
     We close the results of our combines so they don't hog up our screen
     \-------------------------------------------------------------------------------------*/
-                button = this.CheckForImage('help_close_x.gif');
+                button = utility.CheckForImage('help_close_x.gif');
                 if (button) {
-                    this.Click(button, 1000);
+                    utility.Click(button, 1000);
                     return true;
                 }
     /*-------------------------------------------------------------------------------------\
@@ -9501,14 +8836,14 @@ caap = {
     If we are missing an ingredient then skip it
     \-------------------------------------------------------------------------------------*/
                     if (nHtml.FindByAttrContains(recipeDiv, 'div', 'class', 'missing')) {
-                        // global.log(1, 'Skipping Recipe');
+                        utility.log(5, 'Skipping Recipe');
                         continue;
                     }
     /*-------------------------------------------------------------------------------------\
     If we are skipping battle hearts then skip it
     \-------------------------------------------------------------------------------------*/
-                    if (this.CheckForImage('raid_hearts', recipeDiv) && !gm.getValue('AutoAlchemyHearts', false)) {
-                        global.log(1, 'Skipping Hearts');
+                    if (utility.CheckForImage('raid_hearts', recipeDiv) && !config.getItem('AutoAlchemyHearts', false)) {
+                        utility.log(1, 'Skipping Hearts');
                         continue;
                     }
     /*-------------------------------------------------------------------------------------\
@@ -9516,22 +8851,22 @@ caap = {
     \-------------------------------------------------------------------------------------*/
                     button = nHtml.FindByAttrXPath(recipeDiv, 'input', "@type='image'");
                     if (button) {
-                        this.Click(button, 2000);
+                        utility.Click(button, 2000);
                         return true;
                     } else {
-                        global.log(1, 'Cant Find Item Image Button');
+                        utility.warn('Cant Find Item Image Button');
                     }
                 }
     /*-------------------------------------------------------------------------------------\
     All done. Set the timer to check back in 3 hours.
     \-------------------------------------------------------------------------------------*/
-                schedule.Set('AlchemyTimer', 10800, 300);
+                schedule.setItem('AlchemyTimer', 10800, 300);
                 return false;
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in Alchemy: " + err);
+            utility.error("ERROR in Alchemy: " + err);
             return false;
         }
     },
@@ -9542,7 +8877,7 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     ImmediateBanking: function () {
-        if (!gm.getValue("BankImmed")) {
+        if (!config.getItem("BankImmed", false)) {
             return false;
         }
 
@@ -9551,8 +8886,9 @@ caap = {
 
     Bank: function () {
         try {
-            var maxInCash = gm.getNumber('MaxInCash', -1);
-            var minInCash = gm.getNumber('MinInCash', 0);
+            var maxInCash = config.getItem('MaxInCash', -1),
+                minInCash = config.getItem('MinInCash', 0);
+
             if (!maxInCash || maxInCash < 0 || this.stats.gold.cash <= minInCash || this.stats.gold.cash < maxInCash || this.stats.gold.cash < 10) {
                 return false;
             }
@@ -9561,10 +8897,10 @@ caap = {
                 return true;
             }
 
-            var depositButton = this.CheckForImage('btn_stash.gif');
+            var depositButton = utility.CheckForImage('btn_stash.gif');
             if (!depositButton) {
                 // Cannot find the link
-                return this.NavigateTo('keep');
+                return utility.NavigateTo('keep');
             }
 
             var depositForm = depositButton.form;
@@ -9572,27 +8908,15 @@ caap = {
             if (numberInput) {
                 numberInput.value = parseInt(numberInput.value, 10) - minInCash;
             } else {
-                global.log(1, 'Cannot find box to put in number for bank deposit.');
+                utility.warn('Cannot find box to put in number for bank deposit.');
                 return false;
             }
 
-            global.log(1, 'Depositing into bank');
-            this.Click(depositButton);
-            // added a true result by default until we can find a fix for the result check
+            utility.log(1, 'Depositing into bank');
+            utility.Click(depositButton);
             return true;
-
-            /*
-            var checkBanked = nHtml.FindByAttrContains(div, "div", "class", 'result');
-            if (checkBanked && (checkBanked.firstChild.data.indexOf("You have stashed") < 0)) {
-                global.log(1, 'Banking succeeded!');
-                return true;
-            }
-
-            global.log(1, 'Banking failed! Cannot find result or not stashed!');
-            return false;
-            */
         } catch (err) {
-            global.error("ERROR in Bank: " + err);
+            utility.error("ERROR in Bank: " + err);
             return false;
         }
     },
@@ -9603,13 +8927,13 @@ caap = {
                 return false;
             }
 
-            var retrieveButton = this.CheckForImage('btn_retrieve.gif');
+            var retrieveButton = utility.CheckForImage('btn_retrieve.gif');
             if (!retrieveButton) {
                 // Cannot find the link
-                return this.NavigateTo('keep');
+                return utility.NavigateTo('keep');
             }
 
-            var minInStore = gm.getNumber('minInStore', 0);
+            var minInStore = config.getItem('minInStore', 0);
             if (!(minInStore || minInStore <= this.stats.gold.bank - num)) {
                 return false;
             }
@@ -9619,16 +8943,16 @@ caap = {
             if (numberInput) {
                 numberInput.value = num;
             } else {
-                global.log(1, 'Cannot find box to put in number for bank retrieve.');
+                utility.warn('Cannot find box to put in number for bank retrieve.');
                 return false;
             }
 
-            global.log(1, 'Retrieving ' + num + ' from bank');
-            gm.setValue('storeRetrieve', '');
-            this.Click(retrieveButton);
+            utility.log(1, 'Retrieving from bank: ', num);
+            state.setItem('storeRetrieve', '');
+            utility.Click(retrieveButton);
             return true;
         } catch (err) {
-            global.error("ERROR in RetrieveFromBank: " + err);
+            utility.error("ERROR in RetrieveFromBank: " + err);
             return false;
         }
     },
@@ -9643,12 +8967,12 @@ caap = {
                 minStamToHeal = 0;
 
             this.SetDivContent('heal_mess', '');
-            minToHeal = gm.getNumber('MinToHeal', 0);
+            minToHeal = config.getItem('MinToHeal', 0);
             if (!minToHeal) {
                 return false;
             }
 
-            minStamToHeal = gm.getNumber('MinStamToHeal', 0);
+            minStamToHeal = config.getItem('MinStamToHeal', 0);
             if (minStamToHeal === "") {
                 minStamToHeal = 0;
             }
@@ -9657,10 +8981,10 @@ caap = {
                 return false;
             }
 
-            if ((gm.getValue('WhenBattle', '') !== 'Never') || (gm.getValue('WhenMonster', '') !== 'Never')) {
+            if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
                 if ((this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max) && this.stats.health.num < 10) {
-                    global.log(1, 'Heal');
-                    return this.NavigateTo('keep,heal_button.gif');
+                    utility.log(1, 'Heal');
+                    return utility.NavigateTo('keep,heal_button.gif');
                 }
             }
 
@@ -9673,10 +8997,10 @@ caap = {
                 return false;
             }
 
-            global.log(1, 'Heal');
-            return this.NavigateTo('keep,heal_button.gif');
+            utility.log(1, 'Heal');
+            return utility.NavigateTo('keep,heal_button.gif');
         } catch (err) {
-            global.error("ERROR in Heal: " + err);
+            utility.error("ERROR in Heal: " + err);
             return false;
         }
     },
@@ -9687,123 +9011,121 @@ caap = {
 
     AutoElite: function () {
         try {
-            if (!gm.getValue('AutoElite', false)) {
+            if (!config.getItem('AutoElite', false)) {
                 return false;
             }
 
-            if (!schedule.Check('AutoEliteGetList')) {
-                if (!gm.getValue('FillArmy', false)) {
-                    gm.deleteValue(this.friendListType.giftc.name + 'Requested');
+            if (!schedule.check('AutoEliteGetList')) {
+                if (!state.getItem('FillArmy', false) && state.getItem(this.friendListType.giftc.name + 'Requested', false)) {
+                    state.setItem(this.friendListType.giftc.name + 'Requested', false);
                 }
 
                 return false;
             }
 
-            global.log(1, 'Elite Guard cycle');
+            utility.log(1, 'Elite Guard cycle');
             var MergeMyEliteTodo = function (list) {
-                global.log(1, 'Elite Guard MergeMyEliteTodo list');
-                var eliteArmyList = gm.getList('EliteArmyList');
+                utility.log(1, 'Elite Guard MergeMyEliteTodo list');
+                var eliteArmyList = caap.TextToArray(config.getItem('EliteArmyList', ''));
                 if (eliteArmyList.length) {
-                    global.log(1, 'Merge and save Elite Guard MyEliteTodo list');
+                    utility.log(1, 'Merge and save Elite Guard MyEliteTodo list');
                     var diffList = list.filter(function (todoID) {
                         return (eliteArmyList.indexOf(todoID) < 0);
                     });
 
                     $.merge(eliteArmyList, diffList);
-                    gm.setList('MyEliteTodo', eliteArmyList);
+                    state.setItem('MyEliteTodo', eliteArmyList);
                 } else {
-                    global.log(1, 'Save Elite Guard MyEliteTodo list');
-                    gm.setList('MyEliteTodo', list);
+                    utility.log(1, 'Save Elite Guard MyEliteTodo list');
+                    state.setItem('MyEliteTodo', list);
                 }
             };
 
-            var eliteList = gm.getList('MyEliteTodo');
+            var eliteList = state.getItem('MyEliteTodo', []);
             if (!$.isArray(eliteList)) {
-                global.log(1, 'MyEliteTodo list is not expected format, deleting');
-                eliteList = [];
-                gm.deleteValue('MyEliteTodo');
+                utility.warn('MyEliteTodo list is not expected format, deleting', eliteList);
+                eliteList = state.setItem('MyEliteTodo', []);
             }
 
             if (window.location.href.indexOf('party.php')) {
-                global.log(1, 'Checking Elite Guard status');
-                var autoEliteFew = gm.getValue('AutoEliteFew', false);
+                utility.log(1, 'Checking Elite Guard status');
+                var autoEliteFew = state.getItem('AutoEliteFew', false);
                 var autoEliteFull = $('.result_body').text().match(/YOUR Elite Guard is FULL/i);
-                if (autoEliteFull || (autoEliteFew && gm.getValue('AutoEliteEnd', '') === 'NoArmy')) {
+                if (autoEliteFull || (autoEliteFew && state.getItem('AutoEliteEnd', '') === 'NoArmy')) {
                     if (autoEliteFull) {
-                        global.log(1, 'Elite Guard is FULL');
+                        utility.log(1, 'Elite Guard is FULL');
                         if (eliteList.length) {
                             MergeMyEliteTodo(eliteList);
                         }
-                    } else if (autoEliteFew && gm.getValue('AutoEliteEnd', '') === 'NoArmy') {
-                        global.log(1, 'Not enough friends to fill Elite Guard');
-                        gm.deleteValue('AutoEliteFew');
+                    } else if (autoEliteFew && state.getItem('AutoEliteEnd', '') === 'NoArmy') {
+                        utility.log(1, 'Not enough friends to fill Elite Guard');
+                        state.setItem('AutoEliteFew', false);
                     }
 
-                    global.log(1, 'Set Elite Guard AutoEliteGetList timer');
-                    schedule.Set('AutoEliteGetList', 21600, 300);
-                    gm.setValue('AutoEliteEnd', 'Full');
-                    global.log(1, 'Elite Guard done');
+                    utility.log(1, 'Set Elite Guard AutoEliteGetList timer');
+                    schedule.setItem('AutoEliteGetList', 21600, 300);
+                    state.setItem('AutoEliteEnd', 'Full');
+                    utility.log(1, 'Elite Guard done');
                     return false;
                 }
             }
 
             if (!eliteList.length) {
-                global.log(1, 'Elite Guard no MyEliteTodo cycle');
+                utility.log(1, 'Elite Guard no MyEliteTodo cycle');
                 var allowPass = false;
-                if (gm.getValue(this.friendListType.giftc.name + 'Requested', false) &&
-                    gm.getValue(this.friendListType.giftc.name + 'Responded', false) === true) {
-                    global.log(1, 'Elite Guard received 0 friend ids');
-                    if (gm.getList('EliteArmyList').length) {
-                        global.log(1, 'Elite Guard has some defined friend ids');
+                if (state.getItem(this.friendListType.giftc.name + 'Requested', false) && state.getItem(this.friendListType.giftc.name + 'Responded', false) === true) {
+                    utility.log(1, 'Elite Guard received 0 friend ids');
+                    if (this.TextToArray(config.getItem('EliteArmyList', '')).length) {
+                        utility.log(1, 'Elite Guard has some defined friend ids');
                         allowPass = true;
                     } else {
-                        schedule.Set('AutoEliteGetList', 21600, 300);
-                        global.log(1, 'Elite Guard has 0 defined friend ids');
-                        gm.setValue('AutoEliteEnd', 'Full');
-                        global.log(1, 'Elite Guard done');
+                        schedule.setItem('AutoEliteGetList', 21600, 300);
+                        utility.log(1, 'Elite Guard has 0 defined friend ids');
+                        state.setItem('AutoEliteEnd', 'Full');
+                        utility.log(1, 'Elite Guard done');
                         return false;
                     }
                 }
 
                 this.GetFriendList(this.friendListType.giftc);
                 var castleageList = [];
-                if (gm.getValue(this.friendListType.giftc.name + 'Responded', false) !== true) {
-                    castleageList = gm.getList(this.friendListType.giftc.name + 'Responded');
+                if (state.getItem(this.friendListType.giftc.name + 'Responded', false) !== true) {
+                    castleageList = state.getItem(this.friendListType.giftc.name + 'Responded', []);
                 }
 
                 if (castleageList.length || (this.stats.army.capped <= 1) || allowPass) {
-                    global.log(1, 'Elite Guard received a new friend list');
+                    utility.log(1, 'Elite Guard received a new friend list');
                     MergeMyEliteTodo(castleageList);
-                    gm.deleteValue(this.friendListType.giftc.name + 'Responded');
-                    gm.deleteValue(this.friendListType.giftc.name + 'Requested');
-                    eliteList = gm.getList('MyEliteTodo');
+                    state.setItem(this.friendListType.giftc.name + 'Responded', []);
+                    state.setItem(this.friendListType.giftc.name + 'Requested', false);
+                    eliteList = state.getItem('MyEliteTodo', []);
                     if (eliteList.length === 0) {
-                        global.log(1, 'WARNING! Elite Guard friend list is 0');
-                        gm.setValue('AutoEliteFew', true);
-                        schedule.Set('AutoEliteGetList', 21600, 300);
+                        utility.log(1, 'WARNING! Elite Guard friend list is 0');
+                        state.setItem('AutoEliteFew', true);
+                        schedule.setItem('AutoEliteGetList', 21600, 300);
                     } else if (eliteList.length < 50) {
-                        global.log(1, 'WARNING! Elite Guard friend list is fewer than 50: ' + eliteList.length);
-                        gm.setValue('AutoEliteFew', true);
+                        utility.log(1, 'WARNING! Elite Guard friend list is fewer than 50: ', eliteList.length);
+                        state.setItem('AutoEliteFew', true);
                     }
                 }
-            } else if (schedule.Check('AutoEliteReqNext')) {
-                global.log(1, 'Elite Guard has a MyEliteTodo list, shifting User ID');
+            } else if (schedule.check('AutoEliteReqNext')) {
+                utility.log(1, 'Elite Guard has a MyEliteTodo list, shifting User ID');
                 var user = eliteList.shift();
-                global.log(1, 'Add Elite Guard ID: ' + user);
-                this.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
-                global.log(1, 'Elite Guard sent request, saving shifted MyEliteTodo');
-                gm.setList('MyEliteTodo', eliteList);
-                schedule.Set('AutoEliteReqNext', 7);
+                utility.log(1, 'Add Elite Guard ID: ', user);
+                utility.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
+                utility.log(1, 'Elite Guard sent request, saving shifted MyEliteTodo');
+                state.setItem('MyEliteTodo', eliteList);
+                schedule.setItem('AutoEliteReqNext', 7);
                 if (!eliteList.length) {
-                    global.log(1, 'Army list exhausted');
-                    gm.setValue('AutoEliteEnd', 'NoArmy');
+                    utility.log(1, 'Army list exhausted');
+                    state.setItem('AutoEliteEnd', 'NoArmy');
                 }
             }
 
-            global.log(1, 'Release Elite Guard cycle');
+            utility.log(1, 'Release Elite Guard cycle');
             return true;
         } catch (err) {
-            global.error("ERROR in AutoElite: " + err);
+            utility.error("ERROR in AutoElite: " + err);
             return false;
         }
     },
@@ -9813,12 +9135,12 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     PassiveGeneral: function () {
-        if (general.Select('IdleGeneral')) {
-            return true;
+        if (config.getItem('IdleGeneral', 'Use Current') !== 'Use Current') {
+            if (general.Select('IdleGeneral')) {
+                return true;
+            }
         }
 
-        gm.setValue('MaxIdleEnergy', this.stats.energy.max);
-        gm.setValue('MaxIdleStamina', this.stats.stamina.max);
         return false;
     },
 
@@ -9827,8 +9149,7 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     AutoIncome: function () {
-        if (this.stats.gold.payTime.minutes < 1 && this.stats.gold.payTime.ticker.match(/[0-9]+:[0-9]+/) &&
-                gm.getValue('IncomeGeneral') !== 'Use Current') {
+        if (this.stats.gold.payTime.minutes < 1 && this.stats.gold.payTime.ticker.match(/[0-9]+:[0-9]+/) && config.getItem('IncomeGeneral', 'Use Current') !== 'Use Current') {
             general.Select('IncomeGeneral');
             return true;
         }
@@ -9842,11 +9163,11 @@ caap = {
 
     CheckResults_army: function (resultsText) {
         if ($("a[href*='reqs.php#confirm_46755028429_0']").length) {
-            global.log(1, 'We have a gift waiting!');
-            gm.setValue('HaveGift', true);
+            utility.log(1, 'We have a gift waiting!');
+            state.setItem('HaveGift', true);
         } else {
-            global.log(1, 'No gifts waiting.');
-            gm.deleteValue('HaveGift');
+            utility.log(1, 'No gifts waiting.');
+            state.setItem('HaveGift', false);
         }
 
         var listHref = $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
@@ -9866,9 +9187,9 @@ caap = {
     CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
         if ($('#app46755028429_app_body').text().match(/You have sent \d+ gifts?/)) {
-            global.log(1, 'Confirmed gifts sent out.');
-            gm.setValue('RandomGiftPic', '');
-            gm.setValue('FBSendList', '');
+            utility.log(1, 'Confirmed gifts sent out.');
+            gm.setItem('RandomGiftPic', '');
+            gm.setList('FBSendList', []);
         }
     },
 
@@ -9999,31 +9320,31 @@ caap = {
 
             return true;
         } catch (err) {
-            global.error("ERROR in News: " + err);
+            utility.error("ERROR in News: " + err);
             return false;
         }
     },
 
     CheckResults_index: function (resultsText) {
-        if (gm.getValue('NewsSummary', true)) {
+        if (config.getItem('NewsSummary', true)) {
             this.News();
         }
 
         // Check for new gifts
         // A warrior wants to join your Army!
         // Send Gifts to Friends
-        if (gm.getValue('AutoGift', false) && !gm.getValue('HaveGift', false)) {
+        if (config.getItem('AutoGift', false) && !state.getItem('HaveGift', false)) {
             if (resultsText && /Send Gifts to Friends/.test(resultsText)) {
-                global.log(1, 'We have a gift waiting!');
-                gm.setValue('HaveGift', true);
-                schedule.Set("ajaxGiftCheck", gm.getValue('CheckGiftMins', 15) * 60, 300);
+                utility.log(1, 'We have a gift waiting!');
+                state.setItem('HaveGift', true);
+                schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
             }
         }
     },
 
     AutoGift: function () {
         try {
-            if (!gm.getValue('AutoGift', false)) {
+            if (!config.getItem('AutoGift', false)) {
                 return false;
             }
 
@@ -10035,33 +9356,33 @@ caap = {
                 for (var s = 0; s < ss.snapshotLength; s += 1) {
                     var giftDiv = ss.snapshotItem(s);
                     var giftName = $.trim(nHtml.GetText(giftDiv)).replace(/!/i, '');
-                    if (gm.getValue("GiftList").indexOf(giftName) >= 0) {
+                    if (gm.getList("GiftList").indexOf(giftName) >= 0) {
                         giftName += ' #2';
                     }
 
                     gm.listPush('GiftList', giftName);
-                    giftNamePic[giftName] = this.CheckForImage('mystery', giftDiv).src.match(/[\w_\.]+$/i).toString();
-                    //global.log(1, 'Gift name: ' + giftName + ' pic ' + giftNamePic[giftName] + ' hidden ' + giftExtraGiftTF[giftName]);
+                    giftNamePic[giftName] = utility.CheckForImage('mystery', giftDiv).src.match(/[\w_\.]+$/i).toString();
+                    //utility.log(1, 'Gift name: ' + giftName + ' pic ' + giftNamePic[giftName] + ' hidden ' + giftExtraGiftTF[giftName]);
                 }
 
-                //global.log(1, 'Gift list: ' + gm.getList('GiftList'));
-                if (gm.getValue('GiftChoice') === 'Get Gift List') {
-                    gm.setValue('GiftChoice', 'Same Gift As Received');
+                //utility.log(1, 'Gift list: ' + gm.getList('GiftList'));
+                if (config.getItem('GiftChoice', 'Get Gift List') === 'Get Gift List') {
+                    config.setItem('GiftChoice', 'Same Gift As Received');
                     this.SelectDropOption('GiftChoice', 'Same Gift As Received');
                 }
             }
 
             // Go to gifts page if asked to read in gift list
-            if (gm.getValue('GiftChoice', false) === 'Get Gift List' || !gm.getList('GiftList').length) {
-                if (this.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
+            if (config.getItem('GiftChoice', 'Get Gift List') === 'Get Gift List' || !gm.getList('GiftList').length) {
+                if (utility.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                     return true;
                 }
             }
 
             var giverId = [];
             // Gather the gifts
-            if (gm.getValue('HaveGift', false)) {
-                if (this.NavigateTo('gift,army', 'invite_on.gif')) {
+            if (state.getItem('HaveGift', false)) {
+                if (utility.NavigateTo('gift,army', 'invite_on.gif')) {
                     return true;
                 }
 
@@ -10070,7 +9391,7 @@ caap = {
                 if (ignoreDiv && acceptDiv) {
                     giverId = new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)").exec(ignoreDiv.href);
                     if (!giverId) {
-                        global.log(1, 'Unable to find giver ID');
+                        utility.log(1, 'Unable to find giver ID, perhaps gift pending.');
                         return false;
                     }
 
@@ -10084,35 +9405,32 @@ caap = {
                         giverName = $.trim(nHtml.GetText(profDiv));
                     }
 
-                    gm.setValue('GiftEntry', giverId[2] + global.vs + giverName);
-                    global.log(1, 'Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
-                    schedule.Set('ClickedFacebookURL', 10);
-                    if (global.is_chrome) {
-                        acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
-                    }
-
-                    gm.setValue('clickUrl', acceptDiv.href);
-                    this.VisitUrl(acceptDiv.href);
+                    gm.setItem('GiftEntry', giverId[2] + global.vs + giverName);
+                    utility.log(1, 'Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
+                    schedule.setItem('ClickedFacebookURL', 10);
+                    acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
+                    state.setItem('clickUrl', acceptDiv.href);
+                    utility.VisitUrl(acceptDiv.href);
                     return true;
                 }
 
-                gm.deleteValue('HaveGift');
-                return this.NavigateTo('army,gift', 'tab_gifts_on.gif');
+                state.setItem('HaveGift', false);
+                return utility.NavigateTo('army,gift', 'tab_gifts_on.gif');
             }
 
             var button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
             if (button) {
-                global.log(1, 'Denying Email Nag For Gift Send');
-                caap.Click(button);
+                utility.log(1, 'Denying Email Nag For Gift Send');
+                utility.Click(button);
                 return true;
             }
 
             // Facebook pop-up on CA
-            if (gm.getValue('FBSendList', '')) {
+            if (gm.getList('FBSendList').length) {
                 button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'sendit');
                 if (button) {
-                    global.log(1, 'Sending gifts to Facebook');
-                    caap.Click(button);
+                    utility.log(1, 'Sending gifts to Facebook');
+                    utility.Click(button);
                     return true;
                 }
 
@@ -10120,48 +9438,46 @@ caap = {
                 gm.setList('FBSendList', []);
                 button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'ok');
                 if (button) {
-                    global.log(1, 'Over max gifts per day');
-                    schedule.Set('WaitForNextGiftSend', 10800, 300);
-                    caap.Click(button);
+                    utility.log(1, 'Over max gifts per day');
+                    schedule.setItem('WaitForNextGiftSend', 10800, 300);
+                    utility.Click(button);
                     return true;
                 }
 
-                global.log(1, 'No Facebook pop up to send gifts');
+                utility.log(1, 'No Facebook pop up to send gifts');
                 return false;
             }
 
             // CA send gift button
-            if (gm.getValue('CASendList', '')) {
+            if (gm.getList('CASendList').length) {
                 var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
                 if (sendForm) {
                     button = nHtml.FindByAttrContains(sendForm, 'input', 'name', 'send');
                     if (button) {
-                        global.log(1, 'Clicked CA send gift button');
+                        utility.log(1, 'Clicked CA send gift button');
                         gm.listAddBefore('FBSendList', gm.getList('CASendList'));
                         gm.setList('CASendList', []);
-                        caap.Click(button);
+                        utility.Click(button);
                         return true;
                     }
                 }
 
-                global.log(1, 'No CA button to send gifts');
+                utility.warn('No CA button to send gifts');
                 gm.listAddBefore('ReceivedList', gm.getList('CASendList'));
                 gm.setList('CASendList', []);
                 return false;
             }
 
-
-
-            if (!schedule.Check('WaitForNextGiftSend')) {
+            if (!schedule.check('WaitForNextGiftSend')) {
                 return false;
             }
 
-            if (schedule.Check('WaitForNotFoundIDs') && gm.getList('NotFoundIDs')) {
+            if (schedule.check('WaitForNotFoundIDs') && gm.getList('NotFoundIDs')) {
                 gm.listAddBefore('ReceivedList', gm.getList('NotFoundIDs'));
                 gm.setList('NotFoundIDs', []);
             }
 
-            if (gm.getValue('DisableGiftReturn', false)) {
+            if (gm.getItem('DisableGiftReturn', false, hiddenVar)) {
                 gm.setList('ReceivedList', []);
             }
 
@@ -10170,23 +9486,23 @@ caap = {
                 return false;
             }
 
-            if (this.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
+            if (utility.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                 return true;
             }
 
             // Get the gift to send out
             if (giftNamePic && giftNamePic.length === 0) {
-                global.log(1, 'No list of pictures for gift choices');
+                utility.warn('No list of pictures for gift choices');
                 return false;
             }
 
             var givenGiftType = '';
             var giftPic = '';
-            var giftChoice = gm.getValue('GiftChoice');
+            var giftChoice = config.getItem('GiftChoice', 'Get Gift List');
             var giftList = gm.getList('GiftList');
             switch (giftChoice) {
             case 'Random Gift':
-                giftPic = gm.getValue('RandomGiftPic');
+                giftPic = gm.getItem('RandomGiftPic');
                 if (giftPic) {
                     break;
                 }
@@ -10198,46 +9514,47 @@ caap = {
                         n += 1;
                         if (n === picNum) {
                             giftPic = giftNamePic[picN];
-                            gm.setValue('RandomGiftPic', giftPic);
+                            gm.setItem('RandomGiftPic', giftPic);
                             break;
                         }
                     }
                 }
+
                 if (!giftPic) {
-                    global.log(1, 'No gift type match. GiverList: ' + giverList);
+                    utility.log(1, 'No gift type match. GiverList: ', giverList);
                     return false;
                 }
                 break;
             case 'Same Gift As Received':
                 givenGiftType = giverList[0].split(global.vs)[2];
-                global.log(1, 'Looking for same gift as ' + givenGiftType);
+                utility.log(1, 'Looking for same gift as ', givenGiftType);
                 if (giftList.indexOf(givenGiftType) < 0) {
-                    global.log(1, 'No gift type match. Using first gift as default.');
+                    utility.log(1, 'No gift type match. Using first gift as default.');
                     givenGiftType = gm.getList('GiftList')[0];
                 }
                 giftPic = giftNamePic[givenGiftType];
                 break;
             default:
-                giftPic = giftNamePic[gm.getValue('GiftChoice')];
+                giftPic = giftNamePic[config.getItem('GiftChoice', 'Get Gift List')];
                 break;
             }
 
             // Move to gifts page
-            var picDiv = this.CheckForImage(giftPic);
+            var picDiv = utility.CheckForImage(giftPic);
             if (!picDiv) {
-                global.log(1, 'Unable to find ', giftPic);
+                utility.warn('Unable to find ', giftPic);
                 return false;
             } else {
-                global.log(1, 'GiftPic is ', giftPic);
+                utility.log(1, 'GiftPic is ', giftPic);
             }
 
             if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
-                if (this.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
+                if (utility.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                     return true;
                 }
             } else {
-                this.NavigateTo('gift_more_gifts.gif');
-                return this.NavigateTo(giftPic);
+                utility.NavigateTo('gift_more_gifts.gif');
+                return utility.NavigateTo(giftPic);
             }
 
             // Click on names
@@ -10255,104 +9572,127 @@ caap = {
                     var giverID = giverData[0];
                     var giftType = giverData[2];
                     if (giftChoice === 'Same Gift As Received' && giftType !== givenGiftType && giftList.indexOf(giftType) >= 0) {
-                        //global.log(1, 'giftType ' + giftType + ' givenGiftType ' + givenGiftType);
+                        //utility.log(1, 'giftType ' + giftType + ' givenGiftType ' + givenGiftType);
                         gm.listPush('ReceivedList', giverList[p]);
                         continue;
                     }
 
                     var nameButton = nHtml.FindByAttrContains(giveDiv, 'input', 'value', giverID);
                     if (!nameButton) {
-                        global.log(1, 'Unable to find giver ID ' + giverID);
+                        utility.log(1, 'Unable to find giver ID ', giverID);
                         gm.listPush('NotFoundIDs', giverList[p]);
-                        schedule.Set('WaitForNotFoundIDs', 10800);
+                        schedule.setItem('WaitForNotFoundIDs', 10800);
                         continue;
                     } else {
-                        global.log(1, 'Clicking giver ID ' + giverID);
-                        this.Click(nameButton);
+                        utility.log(1, 'Clicking giver ID ', giverID);
+                        utility.Click(nameButton);
                     }
 
                     //test actually clicked
                     if (nHtml.FindByAttrContains(doneDiv, 'input', 'value', giverID)) {
                         gm.listPush('CASendList', giverList[p]);
-                        global.log(1, 'Moved ID ' + giverID);
+                        utility.log(1, 'Moved ID ', giverID);
                     } else {
-                        global.log(1, 'NOT moved ID ' + giverID);
+                        utility.log(1, 'NOT moved ID ', giverID);
                         gm.listPush('NotFoundIDs', giverList[p]);
-                        schedule.Set('WaitForNotFoundIDs', 10800);
+                        schedule.setItem('WaitForNotFoundIDs', 10800);
                     }
                 }
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in AutoGift: " + err);
+            utility.error("ERROR in AutoGift: " + err);
             return false;
         }
     },
 
     AcceptGiftOnFB: function () {
         try {
-            if (global.is_chrome) {
-                if (window.location.href.indexOf('apps.facebook.com/reqs.php') < 0 && window.location.href.indexOf('apps.facebook.com/home.php') < 0) {
-                    return false;
-                }
-            } else {
-                if (window.location.href.indexOf('www.facebook.com/reqs.php') < 0 && window.location.href.indexOf('www.facebook.com/home.php') < 0) {
-                    return false;
-                }
+            if (window.location.href.indexOf('reqs.php') < 0) {
+                return false;
             }
 
-            var giftEntry = gm.getValue('GiftEntry', '');
+            var giftEntry = '',
+                appDiv    = null,
+                inputDiv  = null,
+                user      = '',
+                giftDiv   = null,
+                giftText  = '',
+                giftArr   = [],
+                giftType  = '';
+
+
+            giftEntry = gm.getItem('GiftEntry', '');
             if (!giftEntry) {
                 return false;
             }
 
-            global.log(1, 'On FB page with gift ready to go');
-            if (window.location.href.indexOf('facebook.com/reqs.php') >= 0) {
-                var ss = document.evaluate(".//input[contains(@name,'/castle/tracker.php')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0; s < ss.snapshotLength; s += 1) {
-                    var giftDiv = ss.snapshotItem(s);
-                    var user = giftDiv.name.match(/uid%3D(\d+)/i);
-                    if (!user || user.length !== 2) {
-                        continue;
+            utility.log(1, 'On FB page with gift ready to go');
+            appDiv = $("div[id*='app_46755028429']");
+            if (appDiv && appDiv.length) {
+                appDiv.each(function () {
+                    inputDiv = $(this).find("input[name*='/castle/tracker.php']");
+                    if (inputDiv && inputDiv.length) {
+                        user = inputDiv.attr("name").match(/uid%3D(\d+)/i);
+                        if (!user || user.length !== 2) {
+                            return true;
+                        }
+
+                        user = utility.NumberOnly(user[1]);
+                        if (user !== utility.NumberOnly(giftEntry)) {
+                            return true;
+                        }
+
+                        giftDiv = $(this).find("div[class='pts requestBody']");
+                        giftText = '';
+                        giftArr = [];
+                        giftType = '';
+                        if (giftDiv && giftDiv.length) {
+                            giftText = $.trim(giftDiv.text());
+                            giftArr = giftDiv.text().match(new RegExp("(.*) has sent you a (.*) in Castle Age!.*"));
+                            if (giftArr && giftArr.length === 3) {
+                                giftType = giftArr[2];
+                            }
+                        }
+
+                        if (gm.getList('GiftList', '').indexOf(giftType) < 0) {
+                            utility.log(1, 'Unknown gift type', giftType);
+                            giftType = 'Unknown Gift';
+                        }
+
+                        if (gm.getItem('ReceivedList', ' ').indexOf(giftEntry) < 0) {
+                            gm.listPush('ReceivedList', giftEntry + global.vs + giftType);
+                        }
+
+                        utility.log(1, 'This giver/gift/givers', user, giftType, gm.getList('ReceivedList'));
+                        gm.setItem('GiftEntry', '');
+                        utility.Click(inputDiv.get(0));
+                        return false;
                     }
 
-                    user = parseInt(user[1], 10);
-                    if (user !== this.NumberOnly(giftEntry)) {
-                        continue;
-                    }
-
-                    var giftType = $.trim(giftDiv.value.replace(/^Accept /i, ''));
-                    if (gm.getList('GiftList').indexOf(giftType) < 0) {
-                        global.log(1, 'Unknown gift type', giftType);
-                        giftType = 'Unknown Gift';
-                    }
-
-                    if (gm.getValue('ReceivedList', ' ').indexOf(giftEntry) < 0) {
-                        gm.listPush('ReceivedList', giftEntry + global.vs + giftType);
-                    }
-
-                    global.log(1, 'This giver/gift/givers', user, giftType, gm.getList('ReceivedList'));
-                    gm.setValue('GiftEntry', '');
-                    this.Click(giftDiv);
                     return true;
-                }
+                });
             }
 
-            if (!schedule.Check('ClickedFacebookURL')) {
+            if (!gm.setItem('GiftEntry', '')) {
+                return true;
+            }
+
+            if (!schedule.check('ClickedFacebookURL')) {
                 return false;
             }
 
-            global.log(1, 'Error: unable to find gift', giftEntry);
-            if (gm.getValue('ReceivedList', ' ').indexOf(giftEntry) < 0) {
+            utility.log(1, 'Unable to find gift', giftEntry);
+            if (gm.getItem('ReceivedList', ' ').indexOf(giftEntry) < 0) {
                 gm.listPush('ReceivedList', giftEntry + '\tUnknown Gift');
             }
 
-            gm.setValue('GiftEntry', '');
-            this.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + this.NumberOnly(giftEntry));
+            gm.setItem('GiftEntry', '');
+            utility.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + utility.NumberOnly(giftEntry));
             return true;
         } catch (err) {
-            global.error("ERROR in AcceptGiftOnFB: " + err);
+            utility.error("ERROR in AcceptGiftOnFB: " + err);
             return false;
         }
     },
@@ -10362,7 +9702,7 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     ImmediateAutoStat: function () {
-        if (!gm.getValue("StatImmed") || !gm.getValue('AutoStat')) {
+        if (!config.getItem("StatImmed", false) || !config.getItem('AutoStat', false)) {
             return false;
         }
 
@@ -10375,7 +9715,7 @@ caap = {
 
     IncreaseStat: function (attribute, attrAdjust, atributeSlice) {
         try {
-            global.log(9, "Attribute: " + attribute + "   Adjust: " + attrAdjust);
+            utility.log(9, "Attribute: " + attribute + "   Adjust: " + attrAdjust);
             attribute = attribute.toLowerCase();
             var button        = null,
                 ajaxLoadIcon  = null,
@@ -10391,13 +9731,19 @@ caap = {
 
             ajaxLoadIcon = $('#app46755028429_AjaxLoadIcon');
             if (!ajaxLoadIcon.length || ajaxLoadIcon.css("display") !== 'none') {
-                global.log(1, "Unable to find AjaxLoadIcon or page not loaded: Fail");
+                utility.warn("Unable to find AjaxLoadIcon or page not loaded: Fail");
                 return "Fail";
             }
 
             if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                global.log(1, "Stamina requires 2 upgrade points: Next");
-                return "Next";
+                if (config.getItem("StatSpendAll", false)) {
+                    utility.log(1, "Stamina requires 2 upgrade points: Next");
+                    return "Next";
+                } else {
+                    utility.log(1, "Stamina requires 2 upgrade points: Save");
+                    state.setItem("statsMatch", false);
+                    return "Save";
+                }
             }
 
             switch (attribute) {
@@ -10421,12 +9767,12 @@ caap = {
             }
 
             if (!button) {
-                global.log(1, "Unable to locate upgrade button: " + attribute);
+                utility.warn("Unable to locate upgrade button: Fail ", attribute);
                 return "Fail";
             }
 
             attrAdjustNew = attrAdjust;
-            logTxt += attrAdjust;
+            logTxt = attrAdjust;
             level = this.stats.level;
             attrCurrent = parseInt(button.parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
             energy = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
@@ -10437,40 +9783,119 @@ caap = {
                 health = parseInt(nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(new RegExp("[^0-9]", "g"), ''), 10);
             }
 
-            global.log(9, "Energy=" + energy + " Stamina=" + stamina + " Attack=" + attack + " Defense=" + defense + " Heath=" + health);
-            if (gm.getValue('AutoStatAdv', false)) {
+            utility.log(9, "Energy=" + energy + " Stamina=" + stamina + " Attack=" + attack + " Defense=" + defense + " Heath=" + health);
+            if (config.getItem('AutoStatAdv', false)) {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
                 attrAdjustNew = eval(attrAdjust);
                 logTxt = "(" + attrAdjust + ")=" + attrAdjustNew;
             }
 
             if (attrAdjustNew > attrCurrent) {
-                global.log(1, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
-                this.Click(button);
+                utility.log(1, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
+                utility.Click(button);
                 return "Click";
             }
 
             return "Next";
         } catch (err) {
-            global.error("ERROR in IncreaseStat: " + err);
+            utility.error("ERROR in IncreaseStat: " + err);
             return "Error";
         }
     },
 
-    statsMatch: true,
-
-    autoStatRuleLog: true,
-
-    AutoStat: function () {
+    AutoStatCheck: function () {
         try {
-            if (!gm.getValue('AutoStat') || !this.stats.points.skill) {
+            var startAtt   = 0,
+                stopAtt    = 4,
+                attribute  = '',
+                attrValue  = 0,
+                n          = 0,
+                level      = 0,
+                energy     = 0,
+                stamina    = 0,
+                attack     = 0,
+                defense    = 0,
+                health     = 0,
+                attrAdjust = 0,
+                value      = 0,
+                passed     = false;
+
+            if (!config.getItem('AutoStat', false) || !this.stats.points.skill) {
                 return false;
             }
 
-            if (!this.statsMatch) {
-                if (this.autoStatRuleLog) {
-                    global.log(1, "User should change their stats rules");
-                    this.autoStatRuleLog = false;
+            if (config.getItem("AutoStatAdv", false)) {
+                startAtt = 5;
+                stopAtt = 9;
+            }
+
+            for (n = startAtt; n <= stopAtt; n += 1) {
+                attribute = config.getItem('Attribute' + n, '').toLowerCase();
+                if (attribute === '') {
+                    continue;
+                }
+
+                if (this.stats.level < 10) {
+                    if (attribute === 'attack' || attribute === 'defense' || attribute === 'health') {
+                        continue;
+                    }
+                }
+
+                if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
+                    if (config.getItem("StatSpendAll", false)) {
+                        continue;
+                    } else {
+                        passed = false;
+                        break;
+                    }
+                }
+
+                attrValue = config.getItem('AttrValue' + n, 0);
+                attrAdjust = attrValue;
+                level = this.stats.level;
+                energy = this.stats.energy.num;
+                stamina = this.stats.stamina.num;
+                if (level >= 10) {
+                    attack = this.stats.attack;
+                    defense = this.stats.defense;
+                    health = this.stats.health.num;
+                }
+
+                if (config.getItem('AutoStatAdv', false)) {
+                    //Using eval, so user can define formulas on menu, like energy = level + 50
+                    attrAdjust = eval(attrValue);
+                }
+
+                if (attribute === "attack" || attribute === "defense") {
+                    value = this.stats[attribute];
+                } else {
+                    value = this.stats[attribute].num;
+                }
+
+                if (attrAdjust > value) {
+                    passed = true;
+                    break;
+                }
+            }
+
+            state.setItem("statsMatch", passed);
+            return true;
+        } catch (err) {
+            utility.error("ERROR in AutoStatCheck: " + err);
+            return false;
+        }
+    },
+
+    AutoStat: function () {
+        try {
+            if (!config.getItem('AutoStat', false) || !this.stats.points.skill) {
+                return false;
+            }
+
+            if (!state.getItem("statsMatch", true)) {
+                if (state.getItem("autoStatRuleLog", true)) {
+                    utility.log(1, "User should possibly change their stats rules");
+                    state.setItem("autoStatRuleLog", false);
                 }
 
                 return false;
@@ -10485,95 +9910,97 @@ caap = {
                 n                  = 0,
                 returnIncreaseStat = '';
 
-            atributeSlice = nHtml.FindByAttrContains(document.body, "div", "class", 'keep_attribute_section');
+            //atributeSlice = nHtml.FindByAttrContains(document.body, "div", "class", 'keep_attribute_section');
+            atributeSlice = $("div[class*='keep_attribute_section']").get(0);
             if (!atributeSlice) {
-                this.NavigateTo('keep');
+                utility.NavigateTo('keep');
                 return true;
             }
 
-            if (gm.getValue("AutoStatAdv", false)) {
+            if (config.getItem("AutoStatAdv", false)) {
                 startAtt = 5;
                 stopAtt = 9;
             }
 
             for (n = startAtt; n <= stopAtt; n += 1) {
                 attrName = 'Attribute' + n;
-                attribute = gm.getValue(attrName, '');
+                attribute = config.getItem(attrName, '');
                 if (attribute === '') {
-                    global.log(9, attrName + " is blank: continue");
+                    utility.log(9, attrName + " is blank: continue");
                     continue;
                 }
 
                 if (this.stats.level < 10) {
                     if (attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health') {
-                        global.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
+                        utility.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
                         continue;
                     }
                 }
 
-                attrValue = gm.getValue('AttrValue' + n, 0);
+                attrValue = config.getItem('AttrValue' + n, 0);
                 returnIncreaseStat = this.IncreaseStat(attribute, attrValue, atributeSlice);
                 switch (returnIncreaseStat) {
-                case "Fail" :
                 case "Next" :
-                    global.log(9, attrName + " : next");
+                    utility.log(9, attrName + " : next");
                     continue;
                 case "Click" :
-                    global.log(9, attrName + " : click");
+                    utility.log(9, attrName + " : click");
                     return true;
                 default :
-                    global.log(9, attrName + " return value: " + returnIncreaseStat);
+                    utility.log(9, attrName + " return value: " + returnIncreaseStat);
                     return false;
                 }
             }
 
-            global.log(1, "No rules match to increase stats");
-            this.statsMatch = false;
+            utility.log(1, "No rules match to increase stats");
+            state.setItem("statsMatch", false);
             return false;
         } catch (err) {
-            global.error("ERROR in AutoStat: " + err);
+            utility.error("ERROR in AutoStat: " + err);
             return false;
         }
     },
 
     AutoCollectMA: function () {
         try {
-            if (!gm.getValue('AutoCollectMA', false) || !schedule.Check('AutoCollectMATimer') || this.stats.level < 10) {
+            if (!config.getItem('AutoCollectMA', false) || !schedule.check('AutoCollectMATimer') || this.stats.level < 10) {
                 return false;
             }
 
-            global.log(1, "Collecting Master and Apprentice reward");
+            utility.log(1, "Collecting Master and Apprentice reward");
             caap.SetDivContent('idle_mess', 'Collect MA Reward');
-            var buttonMas = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main"),
-                buttonApp = nHtml.FindByAttrContains(document.body, "img", "src", "ma_main_learn_more");
+            //var buttonMas = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main"),
+            //    buttonApp = nHtml.FindByAttrContains(document.body, "img", "src", "ma_main_learn_more");
+            var buttonMas = utility.CheckForImage("ma_view_progress_main"),
+                buttonApp = utility.CheckForImage("ma_main_learn_more");
 
             if (!buttonMas && !buttonApp) {
-                global.log(1, "Going to home");
-                if (this.NavigateTo('index')) {
+                utility.log(1, "Going to home");
+                if (utility.NavigateTo('index')) {
                     return true;
                 }
             }
 
             if (buttonMas) {
-                this.Click(buttonMas);
-                caap.SetDivContent('idle_mess', 'Collected MA Reward');
-                global.log(1, "Collected Master and Apprentice reward");
+                utility.Click(buttonMas);
+                this.SetDivContent('idle_mess', 'Collected MA Reward');
+                utility.log(1, "Collected Master and Apprentice reward");
             }
 
             if (!buttonMas && buttonApp) {
-                caap.SetDivContent('idle_mess', 'No MA Rewards');
-                global.log(1, "No Master and Apprentice rewards");
+                this.SetDivContent('idle_mess', 'No MA Rewards');
+                utility.log(1, "No Master and Apprentice rewards");
             }
 
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
             }, 5000);
 
-            schedule.Set('AutoCollectMATimer', 86400, 300);
-            global.log(1, "Collect Master and Apprentice reward completed");
+            schedule.setItem('AutoCollectMATimer', 86400, 300);
+            utility.log(1, "Collect Master and Apprentice reward completed");
             return true;
         } catch (err) {
-            global.error("ERROR in AutoCollectMA: " + err);
+            utility.error("ERROR in AutoCollectMA: " + err);
             return false;
         }
     },
@@ -10599,27 +10026,27 @@ caap = {
 
     GetFriendList: function (listType, force) {
         try {
-            global.log(1, "Entered GetFriendList and request is for: ", listType.name);
+            utility.log(1, "Entered GetFriendList and request is for: ", listType.name);
             if (force) {
-                gm.deleteValue(listType.name + 'Requested');
-                gm.deleteValue(listType.name + 'Responded');
+                state.setItem(listType.name + 'Requested', false);
+                state.setItem(listType.name + 'Responded', []);
             }
 
-            if (!gm.getValue(listType.name + 'Requested', false)) {
-                global.log(1, "Getting Friend List: ", listType.name);
-                gm.setValue(listType.name + 'Requested', true);
+            if (!state.getItem(listType.name + 'Requested', false)) {
+                utility.log(1, "Getting Friend List: ", listType.name);
+                state.setItem(listType.name + 'Requested', true);
 
                 $.ajax({
                     url: listType.url,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
-                            gm.deleteValue(listType.name + 'Requested');
-                            global.log(1, "GetFriendList(" + listType.name + "): ", textStatus);
+                            state.setItem(listType.name + 'Requested', false);
+                            utility.log(1, "GetFriendList(" + listType.name + "): ", textStatus);
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
-                                global.log(1, "GetFriendList.ajax splitting data");
+                                utility.log(1, "GetFriendList.ajax splitting data");
                                 data = data.split('<div class="unselected_list">');
                                 if (data.length < 2) {
                                     throw "Could not locate 'unselected_list'";
@@ -10630,34 +10057,34 @@ caap = {
                                     throw "Could not locate 'selected_list'";
                                 }
 
-                                global.log(1, "GetFriendList.ajax data split ok");
+                                utility.log(1, "GetFriendList.ajax data split ok");
                                 var friendList = [];
                                 $('<div></div>').html(data[0]).find('input').each(function (index) {
                                     friendList.push($(this).val());
                                 });
 
-                                global.log(1, "GetFriendList.ajax saving friend list of: ", friendList.length);
+                                utility.log(1, "GetFriendList.ajax saving friend list of: ", friendList.length);
                                 if (friendList.length) {
-                                    gm.setList(listType.name + 'Responded', friendList);
+                                    state.setItem(listType.name + 'Responded', friendList);
                                 } else {
-                                    gm.setValue(listType.name + 'Responded', true);
+                                    state.setItem(listType.name + 'Responded', true);
                                 }
 
-                                global.log(1, "GetFriendList(" + listType.name + "): ", textStatus);
-                                //global.log(1, "GetFriendList(" + listType.name + "): " + friendList);
+                                utility.log(1, "GetFriendList(" + listType.name + "): ", textStatus);
+                                //utility.log(1, "GetFriendList(" + listType.name + "): " + friendList);
                             } catch (err) {
-                                gm.deleteValue(listType.name + 'Requested');
-                                global.error("ERROR in GetFriendList.ajax: " + err);
+                                state.setItem(listType.name + 'Requested', false);
+                                utility.error("ERROR in GetFriendList.ajax: " + err);
                             }
                         }
                 });
             } else {
-                global.log(1, "Already requested GetFriendList for: ", listType.name);
+                utility.log(1, "Already requested GetFriendList for: ", listType.name);
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in GetFriendList(" + listType.name + "): " + err);
+            utility.error("ERROR in GetFriendList(" + listType.name + "): " + err);
             return false;
         }
     },
@@ -10671,7 +10098,7 @@ caap = {
                     caap.addFriendSpamCheck -= 1;
                 }
 
-                global.log(1, "AddFriend(" + id + "): ", textStatus);
+                utility.log(1, "AddFriend(" + id + "): ", textStatus);
             };
 
             $.ajax({
@@ -10682,64 +10109,62 @@ caap = {
 
             return true;
         } catch (err) {
-            global.error("ERROR in AddFriend(" + id + "): " + err);
+            utility.error("ERROR in AddFriend(" + id + "): " + err);
             return false;
         }
     },
 
     AutoFillArmy: function (caListType, fbListType) {
         try {
-            if (!gm.getValue('FillArmy', false)) {
+            if (!state.getItem('FillArmy', false)) {
                 return false;
             }
 
-            var armyCount = gm.getValue("ArmyCount", 0);
+            var armyCount = state.getItem("ArmyCount", 0);
             if (armyCount === 0) {
                 this.SetDivContent('idle_mess', 'Filling Army');
-                global.log(1, "Filling army");
+                utility.log(1, "Filling army");
             }
 
-            if (gm.getValue(caListType.name + 'Responded', false) === true ||
-                    gm.getValue(fbListType.name + 'Responded', false) === true) {
+            if (state.getItem(caListType.name + 'Responded', false) === true || state.getItem(fbListType.name + 'Responded', false) === true) {
                 this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
-                global.log(1, "Fill Army Completed: no friends found");
+                utility.log(1, "Fill Army Completed: no friends found");
                 window.setTimeout(function () {
                     caap.SetDivContent('idle_mess', '');
                 }, 5000);
 
-                gm.setValue('FillArmy', false);
-                gm.deleteValue("ArmyCount");
-                gm.deleteValue('FillArmyList');
-                gm.deleteValue(caListType.name + 'Responded');
-                gm.deleteValue(fbListType.name + 'Responded');
-                gm.deleteValue(caListType.name + 'Requested');
-                gm.deleteValue(fbListType.name + 'Requested');
+                state.setItem('FillArmy', false);
+                state.setItem("ArmyCount", 0);
+                state.setItem('FillArmyList', []);
+                state.setItem(caListType.name + 'Responded', false);
+                state.setItem(fbListType.name + 'Responded', false);
+                state.setItem(caListType.name + 'Requested', []);
+                state.setItem(fbListType.name + 'Requested', []);
                 return true;
             }
 
-            var fillArmyList = gm.getList('FillArmyList');
+            var fillArmyList = state.getItem('FillArmyList', []);
             if (!fillArmyList.length) {
                 this.GetFriendList(caListType);
                 this.GetFriendList(fbListType);
             }
 
-            var castleageList = gm.getList(caListType.name + 'Responded');
-            //global.log(1, "gifList: " + castleageList);
-            var facebookList = gm.getList(fbListType.name + 'Responded');
-            //global.log(1, "facebookList: " + facebookList);
+            var castleageList = state.getItem(caListType.name + 'Responded', []);
+            //utility.log(1, "gifList: " + castleageList);
+            var facebookList = state.getItem(fbListType.name + 'Responded', []);
+            //utility.log(1, "facebookList: " + facebookList);
             if ((castleageList.length && facebookList.length) || fillArmyList.length) {
                 if (!fillArmyList.length) {
                     var diffList = facebookList.filter(function (facebookID) {
                         return (castleageList.indexOf(facebookID) >= 0);
                     });
 
-                    //global.log(1, "diffList: " + diffList);
-                    gm.setList('FillArmyList', diffList);
-                    fillArmyList = gm.getList('FillArmyList');
-                    gm.deleteValue(caListType.name + 'Responded');
-                    gm.deleteValue(fbListType.name + 'Responded');
-                    gm.deleteValue(caListType.name + 'Requested');
-                    gm.deleteValue(fbListType.name + 'Requested');
+                    //utility.log(1, "diffList: " + diffList);
+                    fillArmyList = state.setItem('FillArmyList', diffList);
+                    state.setItem(caListType.name + 'Responded', false);
+                    state.setItem(fbListType.name + 'Responded', false);
+                    state.setItem(caListType.name + 'Requested', []);
+                    state.setItem(fbListType.name + 'Requested', []);
                 }
 
                 // Add army members //
@@ -10758,94 +10183,102 @@ caap = {
                 }
 
                 this.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
-                global.log(1, 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
-                gm.setValue("ArmyCount", armyCount);
+                utility.log(1, 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
+                state.setItem("ArmyCount", armyCount);
                 if (armyCount >= fillArmyList.length) {
                     this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
                     window.setTimeout(function () {
                         caap.SetDivContent('idle_mess', '');
                     }, 5000);
 
-                    global.log(1, "Fill Army Completed");
-                    gm.setValue('FillArmy', false);
-                    gm.deleteValue("ArmyCount");
-                    gm.deleteValue('FillArmyList');
+                    utility.log(1, "Fill Army Completed");
+                    state.setItem('FillArmy', false);
+                    state.setItem("ArmyCount", 0);
+                    state.setItem('FillArmyList', []);
                 }
             }
 
             return true;
         } catch (err) {
-            global.error("ERROR in AutoFillArmy: " + err);
+            utility.error("ERROR in AutoFillArmy: " + err);
             this.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
             }, 5000);
 
-            gm.setValue('FillArmy', false);
-            gm.deleteValue("ArmyCount");
-            gm.deleteValue('FillArmyList');
-            gm.deleteValue(caListType.name + 'Responded');
-            gm.deleteValue(fbListType.name + 'Responded');
-            gm.deleteValue(caListType.name + 'Requested');
-            gm.deleteValue(fbListType.name + 'Requested');
+            state.setItem('FillArmy', false);
+            state.setItem("ArmyCount", 0);
+            state.setItem('FillArmyList', []);
+            state.setItem(caListType.name + 'Responded', false);
+            state.setItem(fbListType.name + 'Responded', false);
+            state.setItem(caListType.name + 'Requested', []);
+            state.setItem(fbListType.name + 'Requested', []);
             return false;
         }
     },
 
     AjaxGiftCheck: function () {
         try {
-            if (!gm.getValue('AutoGift', false) || !schedule.Check("ajaxGiftCheck")) {
+            if (!config.getItem('AutoGift', false) || !schedule.check("ajaxGiftCheck")) {
                 return false;
             }
 
-            global.log(2, "Performing AjaxGiftCheck");
+            utility.log(2, "Performing AjaxGiftCheck");
 
             $.ajax({
                 url: "http://apps.facebook.com/castle_age/army.php",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        global.error("AjaxGiftCheck.ajax", textStatus);
+                        utility.error("AjaxGiftCheck.ajax", textStatus);
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
                         try {
-                            global.log(2, "AjaxGiftCheck.ajax: Checking data.");
+                            utility.log(2, "AjaxGiftCheck.ajax: Checking data.");
                             if ($(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
-                                global.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
-                                gm.setValue('HaveGift', true);
+                                utility.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
+                                state.setItem('HaveGift', true);
                             } else {
-                                global.log(1, 'AjaxGiftCheck.ajax: No gifts waiting.');
-                                gm.deleteValue('HaveGift');
+                                utility.log(1, 'AjaxGiftCheck.ajax: No gifts waiting.');
+                                state.setItem('HaveGift', false);
                             }
 
-                            global.log(2, "AjaxGiftCheck.ajax: Done.");
+                            utility.log(2, "AjaxGiftCheck.ajax: Done.");
                         } catch (err) {
-                            global.error("ERROR in AjaxGiftCheck.ajax: " + err);
+                            utility.error("ERROR in AjaxGiftCheck.ajax: " + err);
                         }
                     }
             });
 
-            schedule.Set("ajaxGiftCheck", gm.getValue('CheckGiftMins', 15) * 60, 300);
-            global.log(2, "Completed AjaxGiftCheck");
+            schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
+            utility.log(2, "Completed AjaxGiftCheck");
             return true;
         } catch (err) {
-            global.error("ERROR in AjaxGiftCheck: " + err);
+            utility.error("ERROR in AjaxGiftCheck: " + err);
             return false;
         }
     },
 
     Idle: function () {
-        if (gm.getValue('resetselectMonster', false)) {
-            global.log(1, "resetselectMonster");
-            this.selectMonster(true);
-            gm.setValue('resetselectMonster', false);
+        if (state.getItem('resetselectMonster', false)) {
+            utility.log(1, "resetselectMonster");
+            monster.select(true);
+            state.setItem('resetselectMonster', false);
         }
 
         if (this.CheckGenerals()) {
             return true;
         }
 
+        if (general.GetAllStats()) {
+            return true;
+        }
+
         if (this.CheckKeep()) {
+            return true;
+        }
+
+        if (this.CheckAchievements()) {
             return true;
         }
 
@@ -10861,10 +10294,6 @@ caap = {
             return true;
         }
 
-        if (general.GetAllStats()) {
-            return true;
-        }
-
         if (this.CheckOracle()) {
             return true;
         }
@@ -10874,10 +10303,6 @@ caap = {
         }
 
         if (this.CheckWarRank()) {
-            return true;
-        }
-
-        if (this.CheckAchievements()) {
             return true;
         }
 
@@ -10903,7 +10328,7 @@ caap = {
 
         this.AutoFillArmy(this.friendListType.giftc, this.friendListType.facebook);
         this.UpdateDashboard();
-        gm.setValue('ReleaseControl', true);
+        state.setItem('ReleaseControl', true);
         return true;
     },
 
@@ -10943,16 +10368,23 @@ caap = {
     },
 
     LoadRecon: function () {
-        this.ReconRecordArray = gm.getJValue('reconJSON', []);
+        this.ReconRecordArray = gm.getItem('recon.records', 'default');
+        if (this.ReconRecordArray === 'default') {
+            this.ReconRecordArray = [];
+            gm.setItem('recon.records', this.ReconRecordArray);
+        }
+
+        state.setItem("ReconDashUpdate", true);
     },
 
     SaveRecon: function () {
-        gm.setJValue('reconJSON', this.ReconRecordArray);
+        gm.setItem('recon.records', this.ReconRecordArray);
+        state.setItem("ReconDashUpdate", true);
     },
 
     ReconPlayers: function () {
         try {
-            if (!gm.getValue('DoPlayerRecon', false)) {
+            if (!config.getItem('DoPlayerRecon', false)) {
                 return false;
             }
 
@@ -10960,24 +10392,24 @@ caap = {
                 return false;
             }
 
-            if (!schedule.Check('PlayerReconTimer')) {
+            if (!schedule.check('PlayerReconTimer')) {
                 return false;
             }
 
             this.SetDivContent('idle_mess', 'Player Recon: In Progress');
-            global.log(1, "Player Recon: In Progress");
+            utility.log(1, "Player Recon: In Progress");
 
             $.ajax({
                 url: "http://apps.facebook.com/castle_age/battle.php",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        global.error("ReconPlayers2.ajax", textStatus);
+                        utility.error("ReconPlayers2.ajax", textStatus);
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
                         try {
                             var found = 0;
-                            global.log(2, "ReconPlayers.ajax: Checking data.");
+                            utility.log(2, "ReconPlayers.ajax: Checking data.");
 
                             $(data).find("img[src*='symbol_']").not("[src*='symbol_tiny_']").each(function (index) {
                                 var UserRecord      = new caap.ReconRecord(),
@@ -10986,12 +10418,12 @@ caap = {
                                     txt             = '',
                                     regex           = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
                                     regex2          = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-                                    entryLimit      = gm.getNumber('LimitTargets', 100),
+                                    entryLimit      = gm.getItem('LimitTargets', 100, hiddenVar),
                                     i               = 0,
                                     OldRecord       = null,
-                                    reconRank       = gm.getNumber('ReconPlayerRank', 99),
-                                    reconLevel      = gm.getNumber('ReconPlayerLevel', 999),
-                                    reconARBase     = gm.getNumber('ReconPlayerARBase', 999),
+                                    reconRank       = config.getItem('ReconPlayerRank', 99),
+                                    reconLevel      = config.getItem('ReconPlayerLevel', 999),
+                                    reconARBase     = config.getItem('ReconPlayerARBase', 999),
                                     levelMultiplier = 0,
                                     armyRatio       = 0,
                                     goodTarget      = true;
@@ -11006,7 +10438,7 @@ caap = {
                                         if (caap.ReconRecordArray[i].userID === UserRecord.data.userID) {
                                             UserRecord.data = caap.ReconRecordArray[i];
                                             caap.ReconRecordArray.splice(i, 1);
-                                            global.log(2, "UserRecord exists. Loaded and removed.", UserRecord);
+                                            utility.log(2, "UserRecord exists. Loaded and removed.", UserRecord);
                                             break;
                                         }
                                     }
@@ -11047,19 +10479,19 @@ caap = {
                                             }
 
                                             if (UserRecord.data.levelNum - caap.stats.level > reconLevel) {
-                                                global.log(2, 'Level above reconLevel max', reconLevel, UserRecord);
+                                                utility.log(2, 'Level above reconLevel max', reconLevel, UserRecord);
                                                 goodTarget = false;
                                             } else if (caap.stats.rank.battle - UserRecord.data.rankNum > reconRank) {
-                                                global.log(2, 'Rank below reconRank min', reconRank, UserRecord);
+                                                utility.log(2, 'Rank below reconRank min', reconRank, UserRecord);
                                                 goodTarget = false;
                                             } else {
                                                 levelMultiplier = caap.stats.level / UserRecord.data.levelNum;
                                                 armyRatio = reconARBase * levelMultiplier;
                                                 if (armyRatio <= 0) {
-                                                    global.log(2, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
+                                                    utility.log(2, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
                                                     goodTarget = false;
                                                 } else if (UserRecord.data.armyNum  > (caap.stats.army.capped * armyRatio)) {
-                                                    global.log(2, 'Army above armyRatio adjustment', armyRatio, UserRecord);
+                                                    utility.log(2, 'Army above armyRatio adjustment', armyRatio, UserRecord);
                                                     goodTarget = false;
                                                 }
                                             }
@@ -11067,51 +10499,45 @@ caap = {
                                             if (goodTarget) {
                                                 while (caap.ReconRecordArray.length >= entryLimit) {
                                                     OldRecord = caap.ReconRecordArray.shift();
-                                                    global.log(2, "Entry limit matched. Deleted an old record", OldRecord);
+                                                    utility.log(2, "Entry limit matched. Deleted an old record", OldRecord);
                                                 }
 
-                                                global.log(2, "UserRecord", UserRecord);
+                                                utility.log(2, "UserRecord", UserRecord);
                                                 caap.ReconRecordArray.push(UserRecord.data);
                                                 found += 1;
                                             }
                                         } else {
-                                            global.log(1, 'Recon can not parse target text string', txt);
+                                            utility.warn('Recon can not parse target text string', txt);
                                         }
                                     } else {
-                                        global.log(1, "Can't find txt in $tempObj", $tempObj);
+                                        utility.warn("Can't find txt in $tempObj", $tempObj);
                                     }
                                 } else {
-                                    global.log(1, "$tempObj is empty");
+                                    utility.warn("$tempObj is empty");
                                 }
                             });
 
                             caap.SaveRecon();
                             caap.SetDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
-                            global.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
+                            utility.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
                             window.setTimeout(function () {
                                 caap.SetDivContent('idle_mess', '');
                             }, 5 * 1000);
 
-                            global.log(2, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
+                            utility.log(2, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
                         } catch (err) {
-                            global.error("ERROR in ReconPlayers.ajax: " + err);
+                            utility.error("ERROR in ReconPlayers.ajax: " + err);
                         }
                     }
             });
 
-            schedule.Set('PlayerReconTimer', gm.getValue('PlayerReconRetry', 60), 60);
+            schedule.setItem('PlayerReconTimer', gm.getItem('PlayerReconRetry', 60, hiddenVar), 60);
             return true;
         } catch (err) {
-            global.error("ERROR in ReconPlayers:" + err);
+            utility.error("ERROR in ReconPlayers:" + err);
             return false;
         }
     },
-
-    currentPage: "",
-
-    currentTab: "",
-
-    waitMilliSecs: 5000,
 
     /////////////////////////////////////////////////////////////////////
     //                          MAIN LOOP
@@ -11142,7 +10568,7 @@ caap = {
     },
 
     CheckLastAction: function (thisAction) {
-        var lastAction = gm.getValue('LastAction', 'none');
+        var lastAction = state.getItem('LastAction', 'none');
         if (this.actionDescTable[thisAction]) {
             this.SetDivContent('activity_mess', 'Activity: ' + this.actionDescTable[thisAction]);
         } else {
@@ -11150,8 +10576,8 @@ caap = {
         }
 
         if (lastAction !== thisAction) {
-            global.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
-            gm.setValue('LastAction', thisAction);
+            utility.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
+            state.setItem('LastAction', thisAction);
         }
     },
 
@@ -11162,8 +10588,8 @@ caap = {
         0x02: 'ImmediateBanking',
         0x03: 'ImmediateAutoStat',
         0x04: 'MaxEnergyQuest',
-        0x05: 'DemiPoints',
-        0x06: 'MonsterReview',
+        0x05: 'MonsterReview',
+        0x06: 'DemiPoints',
         0x07: 'Monsters',
         0x08: 'Battle',
         0x09: 'Quests',
@@ -11183,18 +10609,18 @@ caap = {
     MakeActionsList: function () {
         try {
             if (this.actionsList && this.actionsList.length === 0) {
-                global.log(1, "Loading a fresh Action List");
+                utility.log(1, "Loading a fresh Action List");
                 // actionOrder is a comma seperated string of action numbers as
                 // hex pairs and can be referenced in the Master Action List
                 // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12"
                 var action = '';
                 var actionOrderArray = [];
                 var masterActionListCount = 0;
-                var actionOrderUser = gm.getValue("actionOrder", '');
+                var actionOrderUser = gm.getItem("actionOrder", '', hiddenVar);
                 if (actionOrderUser !== '') {
                     // We are using the user defined actionOrder set in the
                     // Advanced Hidden Options
-                    global.log(1, "Trying user defined Action Order");
+                    utility.log(1, "Trying user defined Action Order");
                     // We take the User Action Order and convert it from a comma
                     // separated list into an array
                     actionOrderArray = actionOrderUser.split(",");
@@ -11203,23 +10629,23 @@ caap = {
                     for (action in this.masterActionList) {
                         if (this.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount += 1;
-                            global.log(9, "Counting Action List", masterActionListCount);
+                            utility.log(9, "Counting Action List", masterActionListCount);
                         } else {
-                            global.log(1, "Error Getting Master Action List length!");
-                            global.log(1, "Skipping 'action' from masterActionList: " + action);
+                            utility.warn("Error Getting Master Action List length!");
+                            utility.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
                 } else {
                     // We are building the Action Order Array from the
                     // Master Action List
-                    global.log(1, "Building the default Action Order");
+                    utility.log(1, "Building the default Action Order");
                     for (action in this.masterActionList) {
                         if (this.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount = actionOrderArray.push(action);
-                            global.log(9, "Action Added", action);
+                            utility.log(9, "Action Added", action);
                         } else {
-                            global.log(1, "Error Building Default Action Order!");
-                            global.log(1, "Skipping 'action' from masterActionList: " + action);
+                            utility.warn("Error Building Default Action Order!");
+                            utility.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
                 }
@@ -11233,60 +10659,60 @@ caap = {
                 }
 
                 if (actionOrderArrayCount < masterActionListCount) {
-                    global.log(1, "Warning! Action Order Array has fewer orders than default!");
+                    utility.warn("Warning! Action Order Array has fewer orders than default!");
                 }
 
                 if (actionOrderArrayCount > masterActionListCount) {
-                    global.log(1, "Warning! Action Order Array has more orders than default!");
+                    utility.warn("Warning! Action Order Array has more orders than default!");
                 }
 
                 // We build the Action List
-                global.log(8, "Building Action List ...");
+                utility.log(8, "Building Action List ...");
                 for (var itemCount = 0; itemCount !== actionOrderArrayCount; itemCount += 1) {
                     var actionItem = '';
                     if (actionOrderUser !== '') {
                         // We are using the user defined comma separated list
                         // of hex pairs
                         actionItem = this.masterActionList[parseInt(actionOrderArray[itemCount], 16)];
-                        global.log(9, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
+                        utility.log(9, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
                     } else {
                         // We are using the Master Action List
                         actionItem = this.masterActionList[actionOrderArray[itemCount]];
-                        global.log(9, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
+                        utility.log(9, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
                     }
 
                     // Check the Action Item
                     if (actionItem.length > 0 && typeof(actionItem) === "string") {
                         // We add the Action Item to the Action List
                         this.actionsList.push(actionItem);
-                        global.log(9, "Added action to the list", actionItem);
+                        utility.log(9, "Added action to the list", actionItem);
                     } else {
-                        global.log(1, "Error! Skipping actionItem");
-                        global.log(1, "Action Item(" + itemCount + "): " + actionItem);
+                        utility.warn("Error! Skipping actionItem");
+                        utility.warn("Action Item(" + itemCount + "): ", actionItem);
                     }
                 }
 
                 if (actionOrderUser !== '') {
-                    global.log(1, "Get Action List: " + this.actionsList);
+                    utility.log(1, "Get Action List: " + this.actionsList);
                 }
             }
             return true;
         } catch (err) {
             // Something went wrong, log it and use the emergency Action List.
-            global.error("ERROR in MakeActionsList: " + err);
+            utility.error("ERROR in MakeActionsList: " + err);
             this.actionsList = [
                 "AutoElite",
                 "Heal",
                 "ImmediateBanking",
                 "ImmediateAutoStat",
                 "MaxEnergyQuest",
-                "DemiPoints",
                 "MonsterReview",
+                "DemiPoints",
                 "Monsters",
                 "Battle",
                 "Quests",
                 "Bank",
-                "PassiveGeneral",
+                'PassiveGeneral',
                 "Lands",
                 "AutoBless",
                 "AutoStat",
@@ -11301,11 +10727,11 @@ caap = {
     },
 
     MainLoop: function () {
-        this.waitMilliSecs = 5000;
+        utility.waitMilliSecs = 5000;
         // assorted errors...
         var href = window.location.href;
         if (href.indexOf('/common/error.html') >= 0) {
-            global.log(1, 'detected error page, waiting to go back to previous page.');
+            utility.log(1, 'detected error page, waiting to go back to previous page.');
             window.setTimeout(function () {
                 window.history.go(-1);
             }, 30 * 1000);
@@ -11314,7 +10740,7 @@ caap = {
         }
 
         if ($('#try_again_button').length) {
-            global.log(1, 'detected Try Again message, waiting to reload');
+            utility.log(1, 'detected Try Again message, waiting to reload');
             // error
             window.setTimeout(function () {
                 window.history.go(0);
@@ -11324,14 +10750,8 @@ caap = {
         }
 
         var locationFBMF = false;
-        if (global.is_chrome) {
-            if (href.indexOf('apps.facebook.com/reqs.php') >= 0 || href.indexOf('apps.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0) {
-                locationFBMF = true;
-            }
-        } else {
-            if (href.indexOf('www.facebook.com/reqs.php') >= 0 || href.indexOf('www.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0) {
-                locationFBMF = true;
-            }
+        if (href.indexOf('apps.facebook.com/reqs.php') >= 0 || href.indexOf('apps.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0) {
+            locationFBMF = true;
         }
 
         if (locationFBMF) {
@@ -11343,58 +10763,54 @@ caap = {
         //We don't need to send out any notifications
         var button = nHtml.FindByAttrContains(document.body, "a", "class", 'undo_link');
         if (button) {
-            this.Click(button);
-            global.log(1, 'Undoing notification');
+            utility.Click(button);
+            utility.log(1, 'Undoing notification');
         }
 
-        var caapDisabled = gm.getValue('Disabled', false);
+        var caapDisabled = config.getItem('Disabled', false);
         if (caapDisabled) {
-            if (global.is_chrome) {
-                CE_message("disabled", null, caapDisabled);
-            }
-
             this.WaitMainLoop();
             return;
         }
 
         if (!this.pageLoadOK) {
-            var noWindowLoad = gm.getValue('NoWindowLoad', 0);
+            var noWindowLoad = state.getItem('NoWindowLoad', 0);
 
             if (noWindowLoad === 0) {
-                schedule.Set('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
-                gm.setValue('NoWindowLoad', 1);
-            } else if (schedule.Check('NoWindowLoadTimer')) {
-                schedule.Set('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
-                gm.setValue('NoWindowLoad', noWindowLoad + 1);
-                global.ReloadCastleAge();
+                schedule.setItem('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
+                state.setItem('NoWindowLoad', 1);
+            } else if (schedule.check('NoWindowLoadTimer')) {
+                schedule.setItem('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
+                state.setItem('NoWindowLoad', noWindowLoad + 1);
+                this.ReloadCastleAge();
             }
 
-            global.log(1, 'Page no-load count: ' + noWindowLoad);
+            utility.log(1, 'Page no-load count: ', noWindowLoad);
             this.pageLoadOK = this.GetStats();
             this.WaitMainLoop();
             return;
         } else {
-            gm.setValue('NoWindowLoad', 0);
+            state.setItem('NoWindowLoad', 0);
         }
 
-        if (gm.getValue('caapPause', 'none') !== 'none') {
+        if (state.getItem('caapPause', 'none') !== 'none') {
             this.caapDivObject.css({
-                background : gm.getValue('StyleBackgroundDark', '#fee'),
-                opacity    : gm.getValue('StyleOpacityDark', '1')
+                background : config.getItem('StyleBackgroundDark', '#fee'),
+                opacity    : config.getItem('StyleOpacityDark', 1)
             });
 
             this.caapTopObject.css({
-                background : gm.getValue('StyleBackgroundDark', '#fee'),
-                opacity    : gm.getValue('StyleOpacityDark', '1')
+                background : config.getItem('StyleBackgroundDark', '#fee'),
+                opacity    : config.getItem('StyleOpacityDark', 1)
             });
 
             this.WaitMainLoop();
             return;
         }
 
-        if (this.WhileSinceDidIt('clickedOnSomething', 45) && this.waitingForDomLoad) {
-            global.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
-            global.ReloadCastleAge();
+        if (schedule.since('clickedOnSomething', 45) && this.waitingForDomLoad) {
+            utility.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
+            this.ReloadCastleAge();
         }
 
         if (this.AutoIncome()) {
@@ -11406,17 +10822,17 @@ caap = {
         this.MakeActionsList();
         var actionsListCopy = this.actionsList.slice();
 
-        global.log(9, "Action List", actionsListCopy);
-        if (!gm.getValue('ReleaseControl', false)) {
-            actionsListCopy.unshift(gm.getValue('LastAction', 'Idle'));
+        utility.log(9, "Action List", actionsListCopy);
+        if (!state.getItem('ReleaseControl', false)) {
+            actionsListCopy.unshift(state.getItem('LastAction', 'Idle'));
         } else {
-            gm.setValue('ReleaseControl', false);
+            state.setItem('ReleaseControl', false);
         }
 
-        global.log(9, 'Action List2', actionsListCopy);
+        utility.log(9, 'Action List2', actionsListCopy);
         for (var action in actionsListCopy) {
             if (actionsListCopy.hasOwnProperty(action)) {
-                global.log(8, 'Action', actionsListCopy[action]);
+                utility.log(8, 'Action', actionsListCopy[action]);
                 if (this[actionsListCopy[action]]()) {
                     this.CheckLastAction(actionsListCopy[action]);
                     break;
@@ -11429,9 +10845,32 @@ caap = {
 
     WaitMainLoop: function () {
         this.waitForPageChange = true;
-        nHtml.setTimeout(function () {
+        utility.setTimeout(function () {
             caap.waitForPageChange = false;
             caap.MainLoop();
-        }, caap.waitMilliSecs * (1 + Math.random() * 0.2));
+        }, utility.waitMilliSecs * (1 + Math.random() * 0.2));
+    },
+
+    ReloadCastleAge: function () {
+        // better than reload... no prompt on forms!
+        if (!config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
+            window.location.href = "http://apps.facebook.com/castle_age/index.php?bm=1";
+        }
+    },
+
+    ReloadOccasionally: function () {
+        var reloadMin = gm.getItem('ReloadFrequency', 8, hiddenVar);
+        if (!reloadMin || reloadMin < 8) {
+            reloadMin = 8;
+        }
+
+        utility.setTimeout(function () {
+            if (schedule.since('clickedOnSomething', 5 * 60)) {
+                utility.log(1, 'Reloading if not paused after inactivity');
+                caap.ReloadCastleAge();
+            }
+
+            caap.ReloadOccasionally();
+        }, 60000 * reloadMin + (reloadMin * 60000 * Math.random()));
     }
 };
