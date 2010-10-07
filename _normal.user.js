@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            23
+// @dev            24
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "23",
+    devVersion   = "24",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -5407,7 +5407,7 @@ gifting = {
             return null;
         } catch (err) {
             utility.error("ERROR in gifting.popCheck: " + err);
-            return unknown;
+            return undefined;
         }
     },
 
@@ -5685,7 +5685,7 @@ gifting = {
                 gifting.save("queue");
                 return true;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.deleteIndex: " + err, record);
+                utility.error("ERROR in gifting.queue.deleteIndex: " + err, index);
                 return false;
             }
         },
@@ -16890,6 +16890,7 @@ $(function () {
         idOk          = false,
         DocumentTitle = '',
         tempText      = '',
+        tempArr       = [],
         accountEl;
 
     utility.log(1, 'Full page load completed');
@@ -16906,6 +16907,15 @@ $(function () {
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;
+            } else {
+                tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', ''));
+                if (tempArr && tempArr === 2) {
+                    FBID = tempArr[1];
+                    if (utility.isNum(FBID) && FBID > 0) {
+                        caap.stats.FBID = FBID;
+                        idOk = true;
+                    }
+                }
             }
         }
     }

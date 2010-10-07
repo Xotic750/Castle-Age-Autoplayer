@@ -385,7 +385,7 @@ gifting = {
             return null;
         } catch (err) {
             utility.error("ERROR in gifting.popCheck: " + err);
-            return unknown;
+            return undefined;
         }
     },
 
@@ -663,7 +663,7 @@ gifting = {
                 gifting.save("queue");
                 return true;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.deleteIndex: " + err, record);
+                utility.error("ERROR in gifting.queue.deleteIndex: " + err, index);
                 return false;
             }
         },

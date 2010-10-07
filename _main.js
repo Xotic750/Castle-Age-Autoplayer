@@ -18,6 +18,7 @@ $(function () {
         idOk          = false,
         DocumentTitle = '',
         tempText      = '',
+        tempArr       = [],
         accountEl;
 
     utility.log(1, 'Full page load completed');
@@ -34,6 +35,15 @@ $(function () {
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;
+            } else {
+                tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', ''));
+                if (tempArr && tempArr === 2) {
+                    FBID = tempArr[1];
+                    if (utility.isNum(FBID) && FBID > 0) {
+                        caap.stats.FBID = FBID;
+                        idOk = true;
+                    }
+                }
             }
         }
     }
