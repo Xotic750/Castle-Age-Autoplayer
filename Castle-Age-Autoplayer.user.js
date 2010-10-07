@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            29
+// @dev            30
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "29",
+    devVersion   = "30",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -3650,7 +3650,7 @@ monster = {
             nrgMax       : [10, 20, 40, 100],
             defense_img  : 'nm_green.jpg'
         },
-        "Rebellion's Life" : {
+        "Lion's Rebellion" : {
             alpha        : true,
             duration     : 168,
             hp           : 350000000,
@@ -3758,6 +3758,7 @@ monster = {
             }
 
             words = name.split(" ");
+            utility.log(1, "Words", words);
             count = words.length - 1;
             if (count >= 4) {
                 if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
@@ -3767,7 +3768,7 @@ monster = {
 
             if (words[count] === 'Elemental' || words[count] === 'Dragon' ||
                     (words[count - 1] === 'Alpha' && words[count] === 'Mephistopheles') ||
-                    (words[count - 1] === "Rebellion's" && words[count] === 'Life') ||
+                    (words[count - 1] === "Lion's" && words[count] === 'Rebellion') ||
                     (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
                 return words[count - 1] + ' ' + words[count];
             }
