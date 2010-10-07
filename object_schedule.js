@@ -62,11 +62,11 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (typeof seconds !== 'number' || seconds === undefined || seconds === null || seconds < 0) {
+            if (!utility.isNum(seconds) || seconds < 0) {
                 throw "Invalid number of seconds supplied for (" + name + ") (" + seconds + ")";
             }
 
-            if (typeof randomSecs !== 'number' || randomSecs === undefined || randomSecs === null || randomSecs < 0) {
+            if (!utility.isNum(randomSecs) || randomSecs < 0) {
                 randomSecs = 0;
             }
 
@@ -90,7 +90,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+            if (utility.typeOf(this.timers[name]) !== 'object') {
                 throw "Invalid or non-existant timer! " + name;
             }
 
@@ -107,7 +107,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+            if (utility.typeOf(this.timers[name]) !== 'object') {
                 utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
             }
 
@@ -126,7 +126,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+            if (utility.typeOf(this.timers[name]) !== 'object') {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
@@ -151,7 +151,7 @@ schedule = {
                     throw "Invalid identifying name! (" + name_or_number + ")";
                 }
 
-                if (utility.typeOf(this.timers[name_or_number]) !== 'object' || this.timers[name_or_number] === undefined || this.timers[name_or_number] === null) {
+                if (utility.typeOf(this.timers[name_or_number]) !== 'object') {
                     if (utility.logLevel > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
@@ -222,7 +222,7 @@ schedule = {
                 throw "Invalid identifying name!";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object' || this.timers[name] === undefined || this.timers[name] === null) {
+            if (utility.typeOf(this.timers[name]) !== 'object') {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }

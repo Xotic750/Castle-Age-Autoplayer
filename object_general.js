@@ -402,7 +402,7 @@ general = {
                         utility.warn("Unable to find 'attack and defence' containers", index);
                     }
 
-                    if (name && img && level && typeof atk === "number" && typeof def === "number" && special) {
+                    if (name && img && level && utility.isNum(atk) && utility.isNum(def) && special) {
                         for (it = 0; it < general.records.length; it += 1) {
                             if (general.records[it].name === name) {
                                 newGeneral.data = general.records[it];
@@ -488,21 +488,44 @@ general = {
         }
     },
 
+    LevelUpCheck: function (whichGeneral) {
+        try {
+            var generalType = '',
+                use = false,
+                keepGeneral = false;
+
+            if ((caap.stats.staminaT.num > caap.stats.stamina.max || caap.stats.energyT.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
+                utility.log(1, "Keep Level Up General");
+                keepGeneral = true;
+            } else if (state.getItem('KeepLevelUpGeneral', false)) {
+                utility.log(1, "Clearing Keep Level Up General flag");
+                state.setItem('KeepLevelUpGeneral', false);
+            }
+
+            generalType = $.trim(whichGeneral.replace(/General/i, ''));
+            if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (this.StandardList.indexOf(generalType) >= 0 || generalType === 'Quest')) {
+                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats.exp.dif && caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
+                    use = true;
+                }
+            }
+
+            return use;
+        } catch (err) {
+            utility.error("ERROR in LevelUpCheck: " + err);
+            return undefined;
+        }
+    },
+
     Select: function (whichGeneral) {
         try {
-            var generalType       = '',
-                generalName       = '',
+            var generalName       = '',
                 getCurrentGeneral = '',
                 currentGeneral    = '',
                 generalImage      = '';
 
-            generalType = $.trim(whichGeneral.replace(/General/i, ''));
-            if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && generalType.indexOf(this.StandardList) >= 0) {
-                if (config.getItem(generalType + 'LevelUpGeneral', false) &&
-                        caap.stats.exp.dif && caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0)) {
-                    whichGeneral = 'LevelUpGeneral';
-                    utility.log(1, 'Using level up general');
-                }
+            if (this.LevelUpCheck(whichGeneral)) {
+                whichGeneral = 'LevelUpGeneral';
+                utility.log(1, 'Using level up general');
             }
 
             generalName = config.getItem(whichGeneral, 'Use Current');

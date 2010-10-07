@@ -72,4 +72,7 @@ var image64  = {},
     schedule = {},
     general  = {},
     monster  = {},
+    battle   = {},
+    town     = {},
+    gifting  = {},
     caap     = {};

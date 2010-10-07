@@ -123,6 +123,9 @@ monster = {
             siege_img    : ['/graphics/castle_siege_small'],
             fort         : true,
             staUse       : 5,
+            staLvl       : [0, 100, 200, 500],
+            staMax       : [5, 10, 20, 50],
+            nrgMax       : [10, 20, 40, 100],
             defense_img  : 'seamonster_ship_health.jpg',
             repair_img   : 'repair_bar_grey.jpg'
         },
@@ -334,6 +337,27 @@ monster = {
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
             defense_img  : 'nm_green.jpg'
+        },
+        "Rebellion's Life" : {
+            alpha        : true,
+            duration     : 168,
+            hp           : 350000000,
+            ach          : 20000,
+            siege        : 7,
+            siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
+            siegeDam     : [15250000, 19000000, 21500000, 24750000, 27500000, 30500000, 35500000],
+            siege_img    : [
+                '/graphics/water_siege_small',
+                '/graphics/alpha_bahamut_siege_blizzard_small',
+                '/graphics/azriel_siege_inferno_small',
+                '/graphics/war_siege_holy_smite_small'
+            ],
+            fort         : true,
+            staUse       : 5,
+            staLvl       : [0, 100, 200, 500],
+            staMax       : [5, 10, 20, 50],
+            nrgMax       : [10, 20, 40, 100],
+            defense_img  : 'nm_green.jpg'
         }
     },
 
@@ -376,7 +400,7 @@ monster = {
             this.log(2, "monster.save");
             return true;
         } catch (err) {
-            utility.error("ERROR in general.save: " + err);
+            utility.error("ERROR in monster.save: " + err);
             return false;
         }
     },
@@ -431,6 +455,7 @@ monster = {
 
             if (words[count] === 'Elemental' || words[count] === 'Dragon' ||
                     (words[count - 1] === 'Alpha' && words[count] === 'Mephistopheles') ||
+                    (words[count - 1] === "Rebellion's" && words[count] === 'Life') ||
                     (words[count - 1] === 'Fire' && words[count] === 'Elemental')) {
                 return words[count - 1] + ' ' + words[count];
             }
@@ -486,7 +511,7 @@ monster = {
             }
 
             if (typeof record.name !== 'string' || record.name === '') {
-                utility.warn("name", name);
+                utility.warn("name", record.name);
                 throw "Invalid identifying name!";
             }
 
@@ -550,7 +575,7 @@ monster = {
 
     clear: function () {
         try {
-            this.records = state.setItem("monsterArray", []);
+            this.records = state.setItem("monster.records", []);
             return true;
         } catch (err) {
             utility.error("ERROR in monster.clear: " + err);
@@ -702,7 +727,7 @@ monster = {
 
             for (it = 0; it < this.records.length; it += 1) {
                 if (this.records[it].type === '') {
-                    this.records[it].type = monster.type(this.records[it].name);
+                    this.records[it].type = this.type(this.records[it].name);
                 }
 
                 if (this.info[this.records[it].type] && this.info[this.records[it].type].alpha) {
@@ -735,7 +760,7 @@ monster = {
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            utility.log(3, 'monsterArray/monsterList/selectTypes', this.records, monsterList, selectTypes);
+            utility.log(3, 'records/monsterList/selectTypes', this.records, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
             for (s in selectTypes) {
@@ -753,10 +778,10 @@ monster = {
 
                     // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                     if (selectTypes[s] === 'any') {
-                        attackOrderList = caap.TextToArray(config.getItem('orderbattle_monster', ''));
-                        $.merge(attackOrderList, caap.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
+                        attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
+                        $.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
                     } else {
-                        attackOrderList = caap.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
+                        attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
                     }
 
                     utility.log(9, 'attackOrderList', attackOrderList);
@@ -793,7 +818,7 @@ monster = {
                                     monsterObj.conditions = monsterConditions;
 
                                     //monsterObj.over = '';
-                                    monster.setItem(monsterObj);
+                                    this.setItem(monsterObj);
 
                                     // If it's complete or collect rewards, no need to process further
                                     if (monsterObj.color === 'grey') {
@@ -815,7 +840,7 @@ monster = {
                                         }
                                     }
 
-                                    monstType = monster.type(monsterList[selectTypes[s]][m]);
+                                    monstType = this.type(monsterList[selectTypes[s]][m]);
                                     if (monstType && this.info[monstType]) {
                                         if (!this.info[monstType].alpha || (this.info[monstType].alpha && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
                                             maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
@@ -951,6 +976,50 @@ monster = {
             return true;
         } catch (err) {
             utility.error("ERROR in monster.select: " + err);
+            return false;
+        }
+    },
+
+    ConfirmRightPage: function (monsterName) {
+        try {
+            // Confirm name and type of monster
+            var monsterDiv = null,
+                tempDiv    = null,
+                tempText   = '';
+
+            monsterDiv = $("div[style*='dragon_title_owner']");
+            if (monsterDiv && monsterDiv.length) {
+                tempText = $.trim(monsterDiv.children(":eq(2)").text());
+            } else {
+                monsterDiv = $("div[style*='nm_top']");
+                if (monsterDiv && monsterDiv.length) {
+                    tempText = $.trim(monsterDiv.children(":eq(0)").children(":eq(0)").text());
+                    tempDiv = $("div[style*='nm_bars']");
+                    if (tempDiv && tempDiv.length) {
+                        tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
+                    } else {
+                        utility.warn("Problem finding nm_bars");
+                        return false;
+                    }
+                } else {
+                    utility.warn("Problem finding dragon_title_owner and nm_top");
+                    return false;
+                }
+            }
+
+            if (monsterDiv.find("img[uid='" + caap.stats.FBID + "']").length) {
+                utility.log(2, "monster name found");
+                tempText = tempText.replace(new RegExp(".+'s "), 'Your ');
+            }
+
+            if (monsterName !== tempText) {
+                utility.log(1, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
+                return utility.NavigateTo('keep,' + this.getItem(monsterName).page);
+            }
+
+            return false;
+        } catch (err) {
+            utility.error("ERROR in monster.ConfirmRightPage: " + err);
             return false;
         }
     }

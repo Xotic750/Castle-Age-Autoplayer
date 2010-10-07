@@ -21,6 +21,9 @@ cat object_sort.js >> _normal.user.js
 cat object_schedule.js >> _normal.user.js
 cat object_general.js >> _normal.user.js
 cat object_monster.js >> _normal.user.js
+cat object_battle.js >> _normal.user.js
+cat object_town.js >> _normal.user.js
+cat object_gifting.js >> _normal.user.js
 cat object_caap.js >> _normal.user.js
 cat _main.js >> _normal.user.js
 echo "Done."

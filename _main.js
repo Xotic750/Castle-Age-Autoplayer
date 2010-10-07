@@ -3,8 +3,7 @@
 //                         BEGIN
 /////////////////////////////////////////////////////////////////////
 
-document.title = "Starting CAAP";
-utility.log(1, document.title);
+utility.log(1, "Starting CAAP ... waiting page load");
 utility.setTimeout(function () {
         utility.error('DOM onload timeout!!! Releading ...', window.location.href);
         window.location.href = window.location.href;
@@ -23,12 +22,16 @@ $(function () {
 
     utility.log(1, 'Full page load completed');
     utility.clearTimeouts();
+    if (caap.ErrorCheck()) {
+        return;
+    }
+
     accountEl = $('#navAccountName');
     if (accountEl && accountEl.length) {
         tempText = accountEl.attr('href');
         if (tempText) {
             FBID = tempText.regex(/id=([0-9]+)/i);
-            if (typeof FBID === 'number' && FBID > 0) {
+            if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;
             }
@@ -48,6 +51,7 @@ $(function () {
     caap.stats.FBID = FBID;
     caap.stats.account = accountEl.text();
     utility.logLevel = gm.getItem('DebugLevel', utility.logLevel, hiddenVar);
+    gifting.init();
     state.setItem('clickUrl', window.location.href);
     schedule.setItem('clickedOnSomething', 0);
     css.AddCSS();
