@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            28
+// @dev            29
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "28",
+    devVersion   = "29",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -5392,11 +5392,14 @@ gifting = {
                 if (tempText) {
                     if (/Loading/.test(tempText)) {
                         utility.log(1, "Popup is loading ...");
+                        return true;
                     } else {
                         utility.warn('Unknown popup!', popDiv.text());
+                        return false;
                     }
                 } else {
                     utility.warn('Popup message but no text found', popDiv);
+                    return false;
                 }
             }
 

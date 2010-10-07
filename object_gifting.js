@@ -370,11 +370,14 @@ gifting = {
                 if (tempText) {
                     if (/Loading/.test(tempText)) {
                         utility.log(1, "Popup is loading ...");
+                        return true;
                     } else {
                         utility.warn('Unknown popup!', popDiv.text());
+                        return false;
                     }
                 } else {
                     utility.warn('Popup message but no text found', popDiv);
+                    return false;
                 }
             }
 
