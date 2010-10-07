@@ -389,7 +389,7 @@ utility = {
                 it        = 0;
 
             if (typeof text === 'string' && text !== '') {
-                text = text.replace(",", global.os);
+                text = text.replace(/,/g, global.os).replace(/ /g, '');
                 tempArray = text.split(global.os);
                 if (tempArray && tempArray.length) {
                     for (it = 0; it < tempArray.length; it += 1) {
@@ -400,7 +400,7 @@ utility = {
                 }
             }
 
-            this.log(2, "theArray", theArray);
+            this.log(1, "theArray", theArray);
             return theArray;
         } catch (err) {
             utility.error("ERROR in utility.TextToArray: " + err);
