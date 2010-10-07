@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            24
+// @dev            26
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "24",
+    devVersion   = "26",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -16903,14 +16903,14 @@ $(function () {
     if (accountEl && accountEl.length) {
         tempText = accountEl.attr('href');
         if (tempText) {
-            FBID = tempText.regex(/id=([0-9]+)/i);
+            //FBID = tempText.regex(/id=([0-9]+)/i);
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;
             } else {
                 tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', ''));
-                if (tempArr && tempArr === 2) {
-                    FBID = tempArr[1];
+                if (tempArr && tempArr.length === 2) {
+                    FBID = parseInt(tempArr[1], 10);
                     if (utility.isNum(FBID) && FBID > 0) {
                         caap.stats.FBID = FBID;
                         idOk = true;
@@ -16922,7 +16922,7 @@ $(function () {
 
     if (!idOk) {
         // Force reload without retrying
-        utility.error('No Facebook UserID!!! Reloading ...', window.location.href);
+        utility.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
         window.location.href = window.location.href;
     }
 
