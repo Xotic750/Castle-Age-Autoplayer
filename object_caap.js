@@ -2668,7 +2668,6 @@ caap = {
                 state.setItem("GiftHistoryDashUpdate", false);
             }
 
-
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
             table and then build the header row.
@@ -3066,7 +3065,7 @@ caap = {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
 
-            utility.log(1, 'Change: setting "' + idName + '" to ', parseFloat(e.target.value));
+            utility.log(1, 'Change: setting "' + idName + '" to ', parseFloat(e.target.value) || '');
             if (/Style+/.test(idName)) {
                 switch (idName) {
                 case "StyleOpacityLight" :
@@ -3085,7 +3084,7 @@ caap = {
                 state.getItem('BattleChainId', 0);
             }
 
-            config.setItem(idName, parseFloat(e.target.value));
+            config.setItem(idName, parseFloat(e.target.value) || '');
             return true;
         } catch (err) {
             utility.error("ERROR in NumberBoxListener: " + err);

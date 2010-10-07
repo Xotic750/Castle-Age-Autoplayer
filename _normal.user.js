@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            27
+// @dev            28
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "27",
+    devVersion   = "28",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -1042,7 +1042,7 @@ utility = {
                 }
             }
 
-            this.log(1, "theArray", theArray);
+            this.log(2, "theArray", theArray);
             return theArray;
         } catch (err) {
             utility.error("ERROR in utility.TextToArray: " + err);
@@ -8655,7 +8655,6 @@ caap = {
                 state.setItem("GiftHistoryDashUpdate", false);
             }
 
-
             /*-------------------------------------------------------------------------------------\
             Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
             table and then build the header row.
@@ -9053,7 +9052,7 @@ caap = {
         try {
             var idName = e.target.id.replace(/caap_/i, '');
 
-            utility.log(1, 'Change: setting "' + idName + '" to ', parseFloat(e.target.value));
+            utility.log(1, 'Change: setting "' + idName + '" to ', parseFloat(e.target.value) || '');
             if (/Style+/.test(idName)) {
                 switch (idName) {
                 case "StyleOpacityLight" :
@@ -9072,7 +9071,7 @@ caap = {
                 state.getItem('BattleChainId', 0);
             }
 
-            config.setItem(idName, parseFloat(e.target.value));
+            config.setItem(idName, parseFloat(e.target.value) || '');
             return true;
         } catch (err) {
             utility.error("ERROR in NumberBoxListener: " + err);

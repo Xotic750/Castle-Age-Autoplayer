@@ -400,7 +400,7 @@ utility = {
                 }
             }
 
-            this.log(1, "theArray", theArray);
+            this.log(2, "theArray", theArray);
             return theArray;
         } catch (err) {
             utility.error("ERROR in utility.TextToArray: " + err);
