@@ -16,7 +16,6 @@
    } ],
    "converted_from_user_script": true,
    "description": "Autoplayer for Castle Age game on Facebook.",
-   "options_page": "options.html",
    "browser_action": {
       "default_icon": "icon.png",
       "default_title": "Castle Age Autoplayer"

@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            31
+// @dev            32
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "31",
+    devVersion   = "32",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -12411,8 +12411,11 @@ caap = {
             minRank = config.getItem("FreshMeatMinRank", 99);
             utility.log(2, "FreshMeatMinRank", minRank);
             if (!utility.isNum(minRank)) {
+                if (minRank !== '') {
+                    utility.warn("FreshMeatMinRank is NaN, using default", 99);
+                }
+
                 minRank = 99;
-                utility.warn("FreshMeatMinRank is NaN, using default", minRank);
             }
 
             maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
@@ -12436,10 +12439,10 @@ caap = {
                 utility.warn("FreshMeatARMax is NaN, using default", ARMax);
             }
 
-            ARMin = gm.getItem("FreshMeatARMin", 99999, hiddenVar);
+            ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
             utility.log(2, "FreshMeatARMin", ARMin);
             if (!utility.isNum(ARMin)) {
-                ARMin = 99999;
+                ARMin = 0;
                 utility.warn("FreshMeatARMin is NaN, using default", ARMin);
             }
 

@@ -6411,8 +6411,11 @@ caap = {
             minRank = config.getItem("FreshMeatMinRank", 99);
             utility.log(2, "FreshMeatMinRank", minRank);
             if (!utility.isNum(minRank)) {
+                if (minRank !== '') {
+                    utility.warn("FreshMeatMinRank is NaN, using default", 99);
+                }
+
                 minRank = 99;
-                utility.warn("FreshMeatMinRank is NaN, using default", minRank);
             }
 
             maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
@@ -6436,10 +6439,10 @@ caap = {
                 utility.warn("FreshMeatARMax is NaN, using default", ARMax);
             }
 
-            ARMin = gm.getItem("FreshMeatARMin", 99999, hiddenVar);
+            ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
             utility.log(2, "FreshMeatARMin", ARMin);
             if (!utility.isNum(ARMin)) {
-                ARMin = 99999;
+                ARMin = 0;
                 utility.warn("FreshMeatARMin is NaN, using default", ARMin);
             }
 
