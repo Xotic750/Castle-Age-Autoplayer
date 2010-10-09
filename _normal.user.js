@@ -3,9 +3,9 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            30
+// @dev            31
 // @require        http://cloutman.com/jquery-latest.min.js
-// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
+// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "30",
+    devVersion   = "31",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -3350,7 +3350,16 @@ monster = {
 
     engageButtons: {},
 
-    completeButton: {},
+    completeButton: {
+        battle_monster: {
+            name   : undefined,
+            button : undefined
+        },
+        raid: {
+            name   : undefined,
+            button : undefined
+        }
+    },
 
     // http://castleage.wikidot.com/monster for monster info
     // http://castleage.wikidot.com/skaar
@@ -3758,7 +3767,7 @@ monster = {
             }
 
             words = name.split(" ");
-            utility.log(1, "Words", words);
+            utility.log(2, "Words", words);
             count = words.length - 1;
             if (count >= 4) {
                 if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
@@ -11066,18 +11075,10 @@ caap = {
 
             var button = utility.CheckForImage('quick_switch_button.gif');
             if (button && !config.getItem('ForceSubGeneral', false)) {
-                if (general.LevelUpCheck('QuestGeneral')) {
-                    if (general.Select('LevelUpGeneral')) {
-                        return true;
-                    }
-
-                    utility.log(1, 'Using level up general');
-                } else {
-                    utility.log(1, 'Clicking on quick switch general button.');
-                    utility.Click(button);
-                    general.quickSwitch = true;
-                    return true;
-                }
+                utility.log(1, 'Clicking on quick switch general button.');
+                utility.Click(button);
+                general.quickSwitch = true;
+                return true;
             }
 
             if (general.quickSwitch) {
@@ -12553,12 +12554,12 @@ caap = {
                 }
 
                 if (config.getItem("BattleType", 'Invade') === "War" && this.battles.Freshmeat.warLevel) {
-                    if (this.stats.rank.war && (this.stats.rank.war - tempRecord.warRankNum  > minRank)) {
+                    if (this.stats.rank.war && (this.stats.rank.war - tempRecord.warRankNum > minRank)) {
                         utility.log(2, "Greater than minRank", minRank);
                         continue;
                     }
                 } else {
-                    if (this.stats.rank.battle && (this.stats.rank.battle - tempRecord.rankNum  > minRank)) {
+                    if (this.stats.rank.battle && (this.stats.rank.battle - tempRecord.rankNum > minRank)) {
                         utility.log(2, "Greater than minRank", minRank);
                         continue;
                     }
@@ -12584,23 +12585,25 @@ caap = {
 
                 // don't battle people we lost to in the last week
                 battleRecord = battle.getItem(tempRecord.userId);
-                switch (config.getItem("BattleType", 'Invade')) {
-                case 'Invade' :
-                    tempTime = battleRecord.invadeLostTime  ? battleRecord.invadeLostTime : new Date(2009, 0, 1).getTime();
-                    break;
-                case 'Duel' :
-                    tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : new Date(2009, 0, 1).getTime();
-                    break;
-                case 'War' :
-                    tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : new Date(2009, 0, 1).getTime();
-                    break;
-                default :
-                    utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
-                }
+                if (!config.getItem("IgnoreBattleLoss", false)) {
+                    switch (config.getItem("BattleType", 'Invade')) {
+                    case 'Invade' :
+                        tempTime = battleRecord.invadeLostTime  ? battleRecord.invadeLostTime : new Date(2009, 0, 1).getTime();
+                        break;
+                    case 'Duel' :
+                        tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : new Date(2009, 0, 1).getTime();
+                        break;
+                    case 'War' :
+                        tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : new Date(2009, 0, 1).getTime();
+                        break;
+                    default :
+                        utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
+                    }
 
-                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                    utility.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.userId);
-                    continue;
+                    if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
+                        utility.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.userId);
+                        continue;
+                    }
                 }
 
                 // don't battle people that were dead or hiding in the last hour
@@ -13087,9 +13090,11 @@ caap = {
                     return true;
                 }
 
-                if (config.getItem('clearCompleteRaids', false) && monster.completeButton.raid) {
-                    utility.Click(monster.completeButton.raid, 1000);
-                    monster.completeButton.raid = '';
+                if (config.getItem('clearCompleteRaids', false) && monster.completeButton.raid.button && monster.completeButton.raid.name) {
+                    utility.Click(monster.completeButton.raid.button);
+                    monster.deleteItem(monster.completeButton.raid.name);
+                    monster.completeButton.raid = {};
+                    this.UpdateDashboard(true);
                     utility.log(1, 'Cleared a completed raid');
                     return true;
                 }
@@ -13338,7 +13343,7 @@ caap = {
                 var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0],
                     monsterRow       = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode,
                     monsterFull      = $.trim(nHtml.GetText(monsterRow)),
-                    monsterName          = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
+                    monsterName      = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
 
                 // Make links for easy clickin'
                 var url = ss.snapshotItem(s).parentNode.href;
@@ -13363,8 +13368,9 @@ caap = {
                         break;
                     }
 
-                    if (!monster.completeButton[page]) {
-                        monster.completeButton[page] = utility.CheckForImage('cancelButton.gif', monsterRow);
+                    if (!monster.completeButton[page].button && !monster.completeButton[page].name) {
+                        monster.completeButton[page].name = monsterName;
+                        monster.completeButton[page].button = utility.CheckForImage('cancelButton.gif', monsterRow);
                     }
 
                     monsterReviewed.status = 'Complete';
@@ -14318,10 +14324,12 @@ caap = {
                 return true;
             }
 
-            if (config.getItem('clearCompleteMonsters', false) && monster.completeButton.battle_monster) {
-                utility.Click(monster.completeButton.battle_monster, 1000);
+            if (config.getItem('clearCompleteMonsters', false) && monster.completeButton.battle_monster.button && monster.completeButton.battle_monster.name) {
+                utility.Click(monster.completeButton.battle_monster.button);
+                monster.deleteItem(monster.completeButton.battle_monster.name);
+                monster.completeButton.battle_monster = {};
+                this.UpdateDashboard(true);
                 utility.log(1, 'Cleared a completed monster');
-                monster.completeButton.battle_monster = '';
                 return true;
             }
 
@@ -16906,7 +16914,7 @@ $(function () {
     if (accountEl && accountEl.length) {
         tempText = accountEl.attr('href');
         if (tempText) {
-            //FBID = tempText.regex(/id=([0-9]+)/i);
+            FBID = tempText.regex(/id=([0-9]+)/i);
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;

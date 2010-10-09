@@ -38,7 +38,16 @@ monster = {
 
     engageButtons: {},
 
-    completeButton: {},
+    completeButton: {
+        battle_monster: {
+            name   : undefined,
+            button : undefined
+        },
+        raid: {
+            name   : undefined,
+            button : undefined
+        }
+    },
 
     // http://castleage.wikidot.com/monster for monster info
     // http://castleage.wikidot.com/skaar
@@ -446,7 +455,7 @@ monster = {
             }
 
             words = name.split(" ");
-            utility.log(1, "Words", words);
+            utility.log(2, "Words", words);
             count = words.length - 1;
             if (count >= 4) {
                 if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {

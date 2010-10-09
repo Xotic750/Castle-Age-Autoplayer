@@ -5,7 +5,7 @@
 // @version        !version!
 // @dev            !dev!
 // @require        http://cloutman.com/jquery-latest.min.js
-// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/jquery-ui.min.js
+// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*

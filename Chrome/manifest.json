@@ -6,7 +6,7 @@
                          "http*://apps.facebook.com/reqs.php#confirm_46755028429_0",
                          "http*://*.facebook.com/common/error.html" ],
       "js": [ "jquery-1.4.2.min.js",
-              "jquery-ui-1.8.4.custom.min.js",
+              "jquery-ui-1.8.5.custom.min.js",
               "farbtastic.min.js",
               "json2.js",
               "gm_functions.js",
@@ -30,5 +30,5 @@
    "permissions": [ "tabs",
                     "http://apps.facebook.com/castle_age/*",
                     "https://apps.facebook.com/castle_age/*" ],
-   "version": "140.23.51.30"
+   "version": "140.23.51.31"
 }

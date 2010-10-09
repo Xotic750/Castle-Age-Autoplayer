@@ -31,7 +31,7 @@ $(function () {
     if (accountEl && accountEl.length) {
         tempText = accountEl.attr('href');
         if (tempText) {
-            //FBID = tempText.regex(/id=([0-9]+)/i);
+            FBID = tempText.regex(/id=([0-9]+)/i);
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;
