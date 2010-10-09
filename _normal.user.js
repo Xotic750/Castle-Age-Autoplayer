@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            32
+// @dev            33
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "32",
+    devVersion   = "33",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -13165,25 +13165,27 @@ caap = {
 
                 return this.BattleFreshmeat('Freshmeat');
             default:
-                battleRecord = battle.getItem(target);
-                switch (config.getItem("BattleType", 'Invade')) {
-                case 'Invade' :
-                    tempTime = battleRecord.invadeLostTime ? battleRecord.invadeLostTime : tempTime;
-                    break;
-                case 'Duel' :
-                    tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : tempTime;
-                    break;
-                case 'War' :
-                    tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : tempTime;
-                    break;
-                default :
-                    utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
-                }
+                if (!config.getItem("IgnoreBattleLoss", false)) {
+                    battleRecord = battle.getItem(target);
+                    switch (config.getItem("BattleType", 'Invade')) {
+                    case 'Invade' :
+                        tempTime = battleRecord.invadeLostTime ? battleRecord.invadeLostTime : tempTime;
+                        break;
+                    case 'Duel' :
+                        tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : tempTime;
+                        break;
+                    case 'War' :
+                        tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : tempTime;
+                        break;
+                    default :
+                        utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
+                    }
 
-                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                    utility.log(1, 'Avoiding Losing Target', target);
-                    this.NextBattleTarget();
-                    return true;
+                    if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
+                        utility.log(1, 'Avoiding Losing Target', target);
+                        this.NextBattleTarget();
+                        return true;
+                    }
                 }
 
                 if (utility.NavigateTo(this.battlePage, 'battle_on.gif')) {

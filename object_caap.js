@@ -7165,25 +7165,27 @@ caap = {
 
                 return this.BattleFreshmeat('Freshmeat');
             default:
-                battleRecord = battle.getItem(target);
-                switch (config.getItem("BattleType", 'Invade')) {
-                case 'Invade' :
-                    tempTime = battleRecord.invadeLostTime ? battleRecord.invadeLostTime : tempTime;
-                    break;
-                case 'Duel' :
-                    tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : tempTime;
-                    break;
-                case 'War' :
-                    tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : tempTime;
-                    break;
-                default :
-                    utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
-                }
+                if (!config.getItem("IgnoreBattleLoss", false)) {
+                    battleRecord = battle.getItem(target);
+                    switch (config.getItem("BattleType", 'Invade')) {
+                    case 'Invade' :
+                        tempTime = battleRecord.invadeLostTime ? battleRecord.invadeLostTime : tempTime;
+                        break;
+                    case 'Duel' :
+                        tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : tempTime;
+                        break;
+                    case 'War' :
+                        tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : tempTime;
+                        break;
+                    default :
+                        utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
+                    }
 
-                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                    utility.log(1, 'Avoiding Losing Target', target);
-                    this.NextBattleTarget();
-                    return true;
+                    if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
+                        utility.log(1, 'Avoiding Losing Target', target);
+                        this.NextBattleTarget();
+                        return true;
+                    }
                 }
 
                 if (utility.NavigateTo(this.battlePage, 'battle_on.gif')) {
