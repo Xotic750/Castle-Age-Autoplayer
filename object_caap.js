@@ -8607,7 +8607,7 @@ caap = {
                 return false;
             }
 
-            if (this.stats.health.num < 12) {
+            if (config.getItem("waitSafeHealth", false) && this.stats.health.num < 12) {
                 this.SetDivContent('battle_mess', "Unsafe. Need spare health to fight: " + this.stats.health.num + "/12");
                 return false;
             }
