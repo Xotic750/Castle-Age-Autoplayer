@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            33
+// @dev            34
 // @require        http://cloutman.com/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -21,7 +21,7 @@
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
 
 var caapVersion  = "140.23.51",
-    devVersion   = "33",
+    devVersion   = "34",
     hiddenVar    = true;
 
 ///////////////////////////
@@ -5341,7 +5341,10 @@ gifting = {
             var giftEntry = this.getCurrent();
             if (!utility.isEmpty(giftEntry)) {
                 if (force || utility.CheckForImage("gift_yes.gif")) {
-                    this.queue.setItem(giftEntry);
+                    if (!gifting.queue.collectOnly()) {
+                        this.queue.setItem(giftEntry);
+                    }
+
                     this.history.received(giftEntry);
                 }
 
@@ -5425,7 +5428,7 @@ gifting = {
     },
 
     gifts: {
-        options: ['Same Gift As Received', 'Random Gift'],
+        options: ['Same Gift As Received', 'Random Gift', 'Collect Only'],
 
         records: [],
 
@@ -5708,6 +5711,15 @@ gifting = {
                 return this.records.length;
             } catch (err) {
                 utility.error("ERROR in gifting.queue.length: " + err);
+                return undefined;
+            }
+        },
+
+        collectOnly: function () {
+            try {
+                return (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[2] ? false : true);
+            } catch (err) {
+                utility.error("ERROR in gifting.queue.collectOnly: " + err);
                 return undefined;
             }
         },
@@ -6433,10 +6445,11 @@ caap = {
             }
 
             //gm.setItem('AutoQuest', AutoQuest);
-            config.setItem('AutoQuest', AutoQuest);
+            state.setItem('AutoQuest', AutoQuest);
             config.setItem('WhyQuest', 'Manual');
             this.SelectDropOption('WhyQuest', 'Manual');
             this.ClearAutoQuest();
+            utility.log(5, "ManualAutoQuest", state.getItem('AutoQuest'));
             return true;
         } catch (err) {
             utility.error("ERROR in ManualAutoQuest: " + err);
@@ -6761,14 +6774,14 @@ caap = {
         try {
             var XBattleInstructions = "Start battling if stamina is above this points",
                 XMinBattleInstructions = "Don't battle if stamina is below this points",
+                safeHealthInstructions = "Wait until health is 12 instead of 10, prevents you killing yourself but leaves you unhidden for upto 10 minutes",
                 userIdInstructions = "User IDs(not user name).  Click with the " +
                     "right mouse button on the link to the users profile & copy link." +
                     "  Then paste it here and remove everything but the last numbers." +
                     " (ie. 123456789)",
-                chainBPInstructions = "Number of battle points won to initiate a " +
-                    "chain attack. Specify 0 to always chain attack.",
-                chainGoldInstructions = "Amount of gold won to initiate a chain " +
-                    "attack. Specify 0 to always chain attack.",
+                chainBPInstructions = "Number of battle points won to initiate a chain attack. Specify 0 to always chain attack.",
+                chainGoldInstructions = "Amount of gold won to initiate a chain attack. Specify 0 to always chain attack.",
+                maxChainsInstructions = "Maximum number of chain hits after the initial attack.",
                 FMRankInstructions = "The lowest relative rank below yours that " +
                     "you are willing to spend your stamina on. Leave blank to attack " +
                     "any rank.",
@@ -6846,12 +6859,14 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle Type</td><td style='text-align: right; width: 40%'>" + this.MakeDropDown('BattleType', typeList, typeInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, '', safeHealthInstructions);
             htmlCode += this.MakeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, '', dosiegeInstructions);
             htmlCode += this.MakeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, '', collectRewardInstructions);
             htmlCode += this.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '', '');
             htmlCode += this.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, '', ignorebattlelossInstructions);
             htmlCode += "<tr><td>Chain:Battle Points Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainBP', chainBPInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td>Chain:Gold Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainGold', chainGoldInstructions, '', "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<tr><td>Chain:Gold Won</td><td style='text-align: right'>" + this.MakeNumberForm('ChainGold', chainGoldInstructions, '', "size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td>Max Chains</td><td style='text-align: right'>" + this.MakeNumberForm('MaxChains', maxChainsInstructions, 4, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Target Type</td><td style='text-align: right; width: 50%'>" + this.MakeDropDown('TargetType', targetList, targetInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (config.getItem('TargetType', 'Never') !== 'Userid List' ? 'block' : 'none') + "'>";
@@ -7309,7 +7324,7 @@ caap = {
             } else {
                 htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
                 if (global.newVersionAvailable) {
-                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version')  + "!</a>";
+                    htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version')  + "!</a>";
                 }
             }
 
@@ -11540,6 +11555,7 @@ caap = {
                     }
 
                     //if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
+                    utility.log(5, "Setting AutoQuest?", state.getItem('AutoQuest', this.newAutoQuest()), this.questName);
                     if (state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / energy;
@@ -11774,13 +11790,21 @@ caap = {
         try {
             var sps = e.target.getElementsByTagName('span'),
                 mainDiv = null,
-                className = '';
+                className = '',
+                tempAutoQuest = {};
 
             if (sps.length <= 0) {
                 throw 'what did we click on?';
             }
 
-            caap.ManualAutoQuest('name' + global.ls + sps[0].innerHTML.toString() + global.vs + 'energy' + global.ls + sps[1].innerHTML.toString());
+            tempAutoQuest = caap.newAutoQuest();
+            tempAutoQuest.name = sps[0].innerHTML;
+            tempAutoQuest.energy = parseInt(sps[1].innerHTML, 10);
+            //tempAutoQuest.general = general;
+            //tempAutoQuest.expRatio = expRatio;
+
+            caap.ManualAutoQuest(tempAutoQuest);
+            utility.log(5, 'LabelListener', sps, state.getItem('AutoQuest'));
             if (caap.stats.level < 10 && utility.CheckForImage('quest_back_1.jpg')) {
                 config.setItem('QuestArea', 'Quest');
                 config.setItem('QuestSubArea', 'Land of Fire');
@@ -12231,6 +12255,7 @@ caap = {
                 tempTime     = new Date(2009, 0, 1).getTime(),
                 chainBP      = 0,
                 chainGold    = 0,
+                maxChains    = 0,
                 result       = {
                     userId     : 0,
                     userName   : '',
@@ -12255,50 +12280,47 @@ caap = {
                 //Test if we should chain this guy
                 state.setItem("BattleChainId", 0);
                 tempTime = battleRecord.chainTime ? battleRecord.chainTime : new Date(2009, 0, 1).getTime();
-                if (schedule.since(tempTime, 86400)) {
-                    chainBP = config.getItem('ChainBP', '');
+                chainBP = config.getItem('ChainBP', '');
+                chainGold = config.getItem('ChainGold', '');
+                if (schedule.since(tempTime, 86400) && ((utility.isNum(chainBP) && chainBP >= 0) || (utility.isNum(chainGold) && chainGold >= 0))) {
                     if (utility.isNum(chainBP) && chainBP >= 0) {
                         if (result.points >= chainBP) {
                             state.setItem("BattleChainId", result.userId);
                             utility.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
                         } else {
                             battleRecord.ignoreTime = new Date().getTime();
-                            battle.setItem(battleRecord);
                         }
                     }
 
-                    chainGold = config.getItem('ChainGold', '');
                     if (utility.isNum(chainGold) && chainGold >= 0) {
                         if (result.gold >= chainGold) {
                             state.setItem("BattleChainId", result.userId);
                             utility.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
                         } else {
                             battleRecord.ignoreTime = new Date().getTime();
-                            battle.setItem(battleRecord);
                         }
-                    }
-
-                    if (state.getItem("BattleChainId", 0)) {
-                        battleRecord.chainCount = battleRecord.chainCount ? battleRecord.chainCount += 1 : 1;
-                        if (battleRecord.chainCount >= config.getItem('MaxChains', 4)) {
-                            utility.log(1, "Lets give this guy a break. Chained", battleRecord.chainCount);
-                            battleRecord.chainTime = new Date().getTime();
-                            battleRecord.chainCount = 0;
-                        }
-
-                        battle.setItem(battleRecord);
                     }
                 }
 
-                this.SetCheckResultsFunction('');
+                battleRecord.chainCount = battleRecord.chainCount ? battleRecord.chainCount += 1 : 1;
+                maxChains = config.getItem('MaxChains', 4);
+                if (!utility.isNum(maxChains) || maxChains < 0) {
+                    maxChains = 4;
+                }
+
+                if (battleRecord.chainCount >= maxChains) {
+                    utility.log(1, "Lets give this guy a break. Chained", battleRecord.chainCount);
+                    battleRecord.chainTime = new Date().getTime();
+                    battleRecord.chainCount = 0;
+                }
             } else {
                 utility.log(1, "We Were Defeated By ", result.userName);
                 battleRecord.chainCount = 0;
                 battleRecord.chainTime = new Date(2009, 0, 1).getTime();
-                battle.setItem(battleRecord);
-                this.SetCheckResultsFunction('');
             }
 
+            battle.setItem(battleRecord);
+            this.SetCheckResultsFunction('');
             return true;
         } catch (err) {
             utility.error("ERROR in CheckBattleResults: " + err);
@@ -12994,10 +13016,14 @@ caap = {
 
             if (this.CheckKeep()) {
                 return true;
-            } else if (this.stats.health.num < 10) {
+            }
+
+            if (this.stats.health.num < 10) {
                 utility.log(9, 'Health is less than 10: ', this.stats.health.num);
                 return false;
-            } else if (this.stats.health.num < 12) {
+            }
+
+            if (config.getItem("waitSafeHealth", false) && this.stats.health.num < 12) {
                 utility.log(9, 'Unsafe. Health is less than 12: ', this.stats.health.num);
                 return false;
             }
@@ -15416,6 +15442,11 @@ caap = {
                 return collecting;
             }
 
+
+            if (gifting.queue.collectOnly()) {
+                return false;
+            }
+
             if (!schedule.check("NoGiftDelay")) {
                 return false;
             }
@@ -15472,235 +15503,6 @@ caap = {
             }
 
             return true;
-            /*
-            var giverId = [];
-            // Gather the gifts
-            if (state.getItem('HaveGift', false)) {
-                if (utility.NavigateTo('gift,army', 'invite_on.gif')) {
-                    return true;
-                }
-
-                var acceptDiv = nHtml.FindByAttrContains(document.body, 'a', 'href', 'reqs.php#confirm_');
-                var ignoreDiv = nHtml.FindByAttrContains(document.body, 'a', 'href', 'act=ignore');
-                if (ignoreDiv && acceptDiv) {
-                    giverId = new RegExp("(userId=|user=|/profile/|uid=)([0-9]+)").exec(ignoreDiv.href);
-                    if (!giverId) {
-                        utility.log(1, 'Unable to find giver ID, perhaps gift pending.');
-                        return false;
-                    }
-
-                    var profDiv = nHtml.FindByAttrContains(acceptDiv.parentNode.parentNode, 'a', 'href', 'profile.php');
-                    if (!profDiv) {
-                        profDiv = nHtml.FindByAttrContains(acceptDiv.parentNode.parentNode, 'div', 'style', 'overflow: hidden; text-align: center; width: 170px;');
-                    }
-
-                    var giverName = "Unknown";
-                    if (profDiv) {
-                        giverName = $.trim(nHtml.GetText(profDiv));
-                    }
-
-                    gm.setItem('GiftEntry', [giverId[2], giverName]);
-                    utility.log(1, 'Giver ID = ' + giverId[2] + ' Name  = ' + giverName);
-                    schedule.setItem('ClickedFacebookURL', 30);
-                    acceptDiv.href = "http://apps.facebook.com/reqs.php#confirm_46755028429_0";
-                    state.setItem('clickUrl', acceptDiv.href);
-                    utility.VisitUrl(acceptDiv.href);
-                    return true;
-                }
-
-                state.setItem('HaveGift', false);
-                return utility.NavigateTo('army,gift', 'tab_gifts_on.gif');
-            }
-
-            var button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'skip_ci_btn');
-            if (button) {
-                utility.log(1, 'Denying Email Nag For Gift Send');
-                utility.Click(button);
-                return true;
-            }
-
-            // Facebook pop-up on CA
-            if (gm.getItem('FBSendList', []).length) {
-                button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'sendit');
-                if (button) {
-                    utility.log(1, 'Sending gifts to Facebook');
-                    utility.Click(button);
-                    return true;
-                }
-
-                gm.unshift('ReceivedList', gm.getItem('FBSendList', []));
-                gm.setItem('FBSendList', []);
-                button = nHtml.FindByAttrContains(document.body, 'input', 'name', 'ok');
-                if (button) {
-                    utility.log(1, 'Over max gifts per day');
-                    schedule.setItem('WaitForNextGiftSend', 10800, 300);
-                    utility.Click(button);
-                    return true;
-                }
-
-                utility.log(1, 'No Facebook pop up to send gifts');
-                return false;
-            }
-
-            // CA send gift button
-            if (gm.getItem('CASendList', []).length) {
-                var sendForm = nHtml.FindByAttrContains(document.body, 'form', 'id', 'req_form_');
-                if (sendForm) {
-                    button = nHtml.FindByAttrContains(sendForm, 'input', 'name', 'send');
-                    if (button) {
-                        utility.log(1, 'Clicked CA send gift button');
-                        gm.unshift('FBSendList', gm.getItem('CASendList', []));
-                        gm.setItem('CASendList', []);
-                        utility.Click(button);
-                        return true;
-                    }
-                }
-
-                utility.warn('No CA button to send gifts');
-                gm.unshift('ReceivedList', gm.getItem('CASendList', []));
-                gm.setItem('CASendList', []);
-                return false;
-            }
-
-            if (!schedule.check('WaitForNextGiftSend')) {
-                return false;
-            }
-
-            if (schedule.check('WaitForNotFoundIDs') && gm.getItem('NotFoundIDs', [])) {
-                gm.unshift('ReceivedList', gm.getItem('NotFoundIDs', []));
-                gm.setItem('NotFoundIDs', []);
-            }
-
-            if (gm.getItem('DisableGiftReturn', false, hiddenVar)) {
-                gm.setItem('ReceivedList', []);
-            }
-
-            var giverList = gm.getItem('ReceivedList', []);
-            if (!giverList.length) {
-                return false;
-            }
-
-            if (utility.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
-                return true;
-            }
-
-            // Get the gift to send out
-            if (giftNamePic && giftNamePic.length === 0) {
-                utility.warn('No list of pictures for gift choices');
-                return false;
-            }
-
-            var givenGiftType = '';
-            var giftPic = '';
-            var giftChoice = config.getItem('GiftChoice', 'Get Gift List');
-            var giftList = gm.getItem('GiftList', []);
-            switch (giftChoice) {
-            case 'Random Gift':
-                giftPic = gm.getItem('RandomGiftPic');
-                if (giftPic) {
-                    break;
-                }
-
-                var picNum = Math.floor(Math.random() * (giftList.length));
-                var n = 0;
-                for (var picN in giftNamePic) {
-                    if (giftNamePic.hasOwnProperty(picN)) {
-                        n += 1;
-                        if (n === picNum) {
-                            giftPic = giftNamePic[picN];
-                            gm.setItem('RandomGiftPic', giftPic);
-                            break;
-                        }
-                    }
-                }
-
-                if (!giftPic) {
-                    utility.log(1, 'No gift type match. GiverList: ', giverList);
-                    return false;
-                }
-                break;
-            case 'Same Gift As Received':
-                givenGiftType = giverList[0].split(global.vs)[2];
-                utility.log(1, 'Looking for same gift as ', givenGiftType);
-                if (giftList.indexOf(givenGiftType) < 0) {
-                    utility.log(1, 'No gift type match. Using first gift as default.');
-                    givenGiftType = gm.getItem('GiftList', [])[0];
-                }
-                giftPic = giftNamePic[givenGiftType];
-                break;
-            default:
-                giftPic = giftNamePic[config.getItem('GiftChoice', 'Get Gift List')];
-                break;
-            }
-
-            // Move to gifts page
-            var picDiv = utility.CheckForImage(giftPic);
-            if (!picDiv) {
-                utility.warn('Unable to find ', giftPic);
-                return false;
-            } else {
-                utility.log(1, 'GiftPic is ', giftPic);
-            }
-
-            if (nHtml.FindByAttrContains(picDiv.parentNode.parentNode.parentNode.parentNode, 'div', 'style', 'giftpage_select')) {
-                if (utility.NavigateTo('gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
-                    return true;
-                }
-            } else {
-                utility.NavigateTo('gift_more_gifts.gif');
-                return utility.NavigateTo(giftPic);
-            }
-
-            // Click on names
-            var giveDiv = nHtml.FindByAttrContains(document.body, 'div', 'class', 'unselected_list');
-            var doneDiv = nHtml.FindByAttrContains(document.body, 'div', 'class', 'selected_list');
-            gm.setItem('ReceivedList', []);
-            for (var p in giverList) {
-                if (giverList.hasOwnProperty(p)) {
-                    if (p > 9) {
-                        if (giverList[p].length) {
-                            gm.push('ReceivedList', giverList[p]);
-                        }
-
-                        continue;
-                    }
-
-                    var giverData = giverList[p].split(global.vs);
-                    var giverID = giverData[0];
-                    var giftType = giverData[2];
-                    if (giftChoice === 'Same Gift As Received' && giftType !== givenGiftType && giftList.indexOf(giftType) >= 0) {
-                        //utility.log(1, 'giftType ' + giftType + ' givenGiftType ' + givenGiftType);
-                        if (giverList[p].length) {
-                            gm.push('ReceivedList', giverList[p]);
-                        }
-                        continue;
-                    }
-
-                    var nameButton = nHtml.FindByAttrContains(giveDiv, 'input', 'value', giverID);
-                    if (!nameButton) {
-                        utility.log(1, 'Unable to find giver ID ', giverID);
-                        gm.push('NotFoundIDs', giverList[p]);
-                        schedule.setItem('WaitForNotFoundIDs', 10800);
-                        continue;
-                    } else {
-                        utility.log(1, 'Clicking giver ID ', giverID);
-                        utility.Click(nameButton);
-                    }
-
-                    //test actually clicked
-                    if (nHtml.FindByAttrContains(doneDiv, 'input', 'value', giverID)) {
-                        gm.push('CASendList', giverList[p]);
-                        utility.log(1, 'Moved ID ', giverID);
-                    } else {
-                        utility.log(1, 'NOT moved ID ', giverID);
-                        gm.push('NotFoundIDs', giverList[p]);
-                        schedule.setItem('WaitForNotFoundIDs', 10800);
-                    }
-                }
-            }
-
-            return true;
-            */
         } catch (err) {
             utility.error("ERROR in AutoGift: " + err);
             return false;

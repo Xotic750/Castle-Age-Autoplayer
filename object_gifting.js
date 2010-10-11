@@ -309,7 +309,10 @@ gifting = {
             var giftEntry = this.getCurrent();
             if (!utility.isEmpty(giftEntry)) {
                 if (force || utility.CheckForImage("gift_yes.gif")) {
-                    this.queue.setItem(giftEntry);
+                    if (!gifting.queue.collectOnly()) {
+                        this.queue.setItem(giftEntry);
+                    }
+
                     this.history.received(giftEntry);
                 }
 
@@ -393,7 +396,7 @@ gifting = {
     },
 
     gifts: {
-        options: ['Same Gift As Received', 'Random Gift'],
+        options: ['Same Gift As Received', 'Random Gift', 'Collect Only'],
 
         records: [],
 
@@ -676,6 +679,15 @@ gifting = {
                 return this.records.length;
             } catch (err) {
                 utility.error("ERROR in gifting.queue.length: " + err);
+                return undefined;
+            }
+        },
+
+        collectOnly: function () {
+            try {
+                return (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[2] ? false : true);
+            } catch (err) {
+                utility.error("ERROR in gifting.queue.collectOnly: " + err);
                 return undefined;
             }
         },
