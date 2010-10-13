@@ -16,7 +16,6 @@ utility.setTimeout(function () {
 $(function () {
     var FBID          = 0,
         idOk          = false,
-        DocumentTitle = '',
         tempText      = '',
         tempArr       = [],
         accountEl;
@@ -74,9 +73,9 @@ $(function () {
 
     if (utility.is_firefox) {
         if (!devVersion) {
-            global.releaseUpdate();
+            caap.releaseUpdate();
         } else {
-            global.devUpdate();
+            caap.devUpdate();
         }
     }
 

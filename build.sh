@@ -14,7 +14,6 @@ cat object_utility.js >> _normal.user.js
 cat object_config.js >> _normal.user.js
 cat object_state.js >> _normal.user.js
 cat object_css.js >> _normal.user.js
-cat object_global.js >> _normal.user.js
 cat object_gm.js >> _normal.user.js
 cat object_html.js >> _normal.user.js
 cat object_sort.js >> _normal.user.js

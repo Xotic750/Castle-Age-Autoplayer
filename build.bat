@@ -10,7 +10,6 @@ echo Joining files into _normal.user.js
 type _head.js >_normal.user.js 2>nul
 type object_image64.js >>_normal.user.js 2>nul
 type object_css.js >>_normal.user.js 2>nul
-type object_global.js >>_normal.user.js 2>nul
 type object_gm.js >>_normal.user.js 2>nul
 type object_html.js >>_normal.user.js 2>nul
 type object_sort.js >>_normal.user.js 2>nul

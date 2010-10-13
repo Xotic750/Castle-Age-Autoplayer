@@ -5,6 +5,8 @@
 /////////////////////////////////////////////////////////////////////
 
 gm = {
+    namespace: 'caap',
+
     fireFoxUseGM: false,
 
     // use these to set/get values in a way that prepends the game's name
@@ -25,10 +27,10 @@ gm = {
                 throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
             }
 
-            if (global.is_html5_storage && !this.fireFoxUseGM) {
-                localStorage.setItem(global.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+            if (utility.is_html5_storage && !this.fireFoxUseGM) {
+                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             } else {
-                GM_setValue(global.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
 
             return value;
@@ -46,10 +48,10 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (global.is_html5_storage && !this.fireFoxUseGM) {
-                jsonObj = $.parseJSON(localStorage.getItem(global.namespace + "." + caap.stats.FBID + "." + name));
+            if (utility.is_html5_storage && !this.fireFoxUseGM) {
+                jsonObj = $.parseJSON(localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
             } else {
-                jsonObj = $.parseJSON(GM_getValue(global.namespace + "." + caap.stats.FBID + "." + name));
+                jsonObj = $.parseJSON(GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name));
             }
 
             if (jsonObj === undefined || jsonObj === null) {
@@ -82,10 +84,10 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (global.is_html5_storage && !this.fireFoxUseGM) {
-                localStorage.removeItem(global.namespace + "." + caap.stats.FBID + "." + name);
+            if (utility.is_html5_storage && !this.fireFoxUseGM) {
+                localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
             } else {
-                GM_deleteValue(global.namespace + "." + caap.stats.FBID + "." + name);
+                GM_deleteValue(this.namespace + "." + caap.stats.FBID + "." + name);
             }
 
             return true;
@@ -97,7 +99,7 @@ gm = {
 
     clear: function () {
         try {
-            if (global.is_html5_storage && !this.fireFoxUseGM) {
+            if (utility.is_html5_storage && !this.fireFoxUseGM) {
                 localStorage.clear();
             } else {
                 var storageKeys = [],
@@ -105,7 +107,7 @@ gm = {
 
                 storageKeys = GM_listValues();
                 for (key = 0; key < storageKeys.length; key += 1) {
-                    if (storageKeys[key].match(new RegExp(global.namespace + "." + caap.stats.FBID))) {
+                    if (storageKeys[key].match(new RegExp(this.namespace + "." + caap.stats.FBID))) {
                         GM_deleteValue(storageKeys[key]);
                     }
                 }
@@ -262,60 +264,5 @@ gm = {
             utility.error("ERROR in gm.pop: " + error, arguments.callee.caller);
             return undefined;
         }
-    },
-
-    listFindItemByPrefix: function (list, prefix) {
-        var itemList = list.filter(function (item) {
-            return item.indexOf(prefix) === 0;
-        });
-
-        if (itemList.length) {
-            return itemList[0];
-        }
-
-        return null;
-    },
-
-    setObjVal: function (objName, label, value) {
-        var objStr  = this.getItem(objName),
-            itemStr = '',
-            objList = [];
-
-        if (!objStr) {
-            this.setItem(objName, label + global.ls + value);
-            return;
-        }
-
-        itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
-        if (!itemStr) {
-            this.setItem(objName, label + global.ls + value + global.vs + objStr);
-            return;
-        }
-
-        objList = objStr.split(global.vs);
-        objList.splice(objList.indexOf(itemStr), 1, label + global.ls + value);
-        this.setItem(objName, objList.join(global.vs));
-    },
-
-    getObjVal: function (objName, label, defaultValue) {
-        var objStr  = '',
-            itemStr = '';
-
-        if (objName.indexOf(global.ls) < 0) {
-            objStr = this.getItem(objName, '', hiddenVar);
-        } else {
-            objStr = objName;
-        }
-
-        if (!objStr) {
-            return defaultValue;
-        }
-
-        itemStr = this.listFindItemByPrefix(objStr.split(global.vs), label + global.ls);
-        if (!itemStr) {
-            return defaultValue;
-        }
-
-        return itemStr.split(global.ls)[1];
     }
 };

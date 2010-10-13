@@ -1,6 +1,5 @@
 {
    "content_scripts": [ {
-      "exclude_globs": [ "*#iframe*" ],
       "include_globs": [ "http*://apps.facebook.com/castle_age/*",
                          "http*://apps.facebook.com/*filter=app_46755028429*",
                          "http*://apps.facebook.com/reqs.php#confirm_46755028429_0",
@@ -9,7 +8,6 @@
               "jquery-ui-1.8.5.custom.min.js",
               "farbtastic.min.js",
               "json2.js",
-              "gm_functions.js",
               "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*",
                    "https://*/*" ]

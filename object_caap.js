@@ -4,11 +4,119 @@
 /////////////////////////////////////////////////////////////////////
 
 caap = {
-    lastReload        : new Date(),
-    waitingForDomLoad : false,
-    pageLoadOK        : false,
-    caapDivObject     : null,
-    caapTopObject     : null,
+    lastReload          : new Date(),
+    waitingForDomLoad   : false,
+    pageLoadOK          : false,
+    caapDivObject       : null,
+    caapTopObject       : null,
+    documentTitle       : document.title,
+    newVersionAvailable : false,
+
+    releaseUpdate: function () {
+        try {
+            if (state.getItem('SUC_remote_version', 0) > caapVersion) {
+                this.newVersionAvailable = true;
+            }
+
+            // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
+            function updateCheck(forced) {
+                if (forced || schedule.check('SUC_last_update')) {
+                    try {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: 'http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onload: function (resp) {
+                                var remote_version = resp.responseText.match(new RegExp("@version\\s*(.*?)\\s*$", "m"))[1],
+                                    script_name    = resp.responseText.match(new RegExp("@name\\s*(.*?)\\s*$", "m"))[1];
+
+                                schedule.setItem('SUC_last_update', 86400000);
+                                state.setItem('SUC_target_script_name', script_name);
+                                state.setItem('SUC_remote_version', remote_version);
+                                utility.log(1, 'remote version ', remote_version);
+                                if (remote_version > caapVersion) {
+                                    caap.newVersionAvailable = true;
+                                    if (forced) {
+                                        if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                        }
+                                    }
+                                } else if (forced) {
+                                    alert('No update is available for "' + script_name + '."');
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        if (forced) {
+                            alert('An error occurred while checking for updates:\n' + err);
+                        }
+                    }
+                }
+            }
+
+            GM_registerMenuCommand(state.getItem('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+                updateCheck(true);
+            });
+
+            updateCheck(false);
+        } catch (err) {
+            utility.error("ERROR in release updater: " + err);
+        }
+    },
+
+    devUpdate: function () {
+        try {
+            if (state.getItem('SUC_remote_version', 0) > caapVersion || (state.getItem('SUC_remote_version', 0) >= caapVersion && state.getItem('DEV_remote_version', 0) > devVersion)) {
+                this.newVersionAvailable = true;
+            }
+
+            // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
+            function updateCheck(forced) {
+                if (forced || schedule.check('SUC_last_update')) {
+                    try {
+                        GM_xmlhttpRequest({
+                            method: 'GET',
+                            url: 'http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js',
+                            headers: {'Cache-Control': 'no-cache'},
+                            onload: function (resp) {
+                                var remote_version = resp.responseText.match(new RegExp("@version\\s*(.*?)\\s*$", "m"))[1],
+                                    dev_version    = resp.responseText.match(new RegExp("@dev\\s*(.*?)\\s*$", "m"))[1],
+                                    script_name    = resp.responseText.match(new RegExp("@name\\s*(.*?)\\s*$", "m"))[1];
+
+                                schedule.setItem('SUC_last_update', 86400000);
+                                state.setItem('SUC_target_script_name', script_name);
+                                state.setItem('SUC_remote_version', remote_version);
+                                state.setItem('DEV_remote_version', dev_version);
+                                utility.log(1, 'remote version ', remote_version, dev_version);
+                                if (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) {
+                                    caap.newVersionAvailable = true;
+                                    if (forced) {
+                                        if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            GM_openInTab('http://code.google.com/p/castle-age-auto-player/updates/list');
+                                        }
+                                    }
+                                } else if (forced) {
+                                    alert('No update is available for "' + script_name + '."');
+                                }
+                            }
+                        });
+                    } catch (err) {
+                        if (forced) {
+                            alert('An error occurred while checking for updates:\n' + err);
+                        }
+                    }
+                }
+            }
+
+            GM_registerMenuCommand(state.getItem('SUC_target_script_name', '???') + ' - Manual Update Check', function () {
+                updateCheck(true);
+            });
+
+            updateCheck(false);
+        } catch (err) {
+            utility.error("ERROR in development updater: " + err);
+        }
+    },
 
     init: function () {
         try {
@@ -25,7 +133,9 @@ caap = {
             }
 
             if (config.getItem('HideFBChat', false)) {
-                $("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', 'none');
+                window.setTimeout(function () {
+                    $("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', 'none');
+                }, 100);
             }
 
             // Can create a blank space above the game to host the dashboard if wanted.
@@ -302,7 +412,7 @@ caap = {
                     DocumentTitle += this.stats.PlayerName + " - ";
                 }
 
-                document.title = DocumentTitle + global.documentTitle;
+                document.title = DocumentTitle + this.documentTitle;
             }
 
             $('#caap_' + idName).html(mess);
@@ -413,7 +523,6 @@ caap = {
 
     ShowAutoQuest: function () {
         try {
-            //$("#stopAutoQuest").text("Stop auto quest: " + gm.getObjVal('AutoQuest', 'name') + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
             $("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', this.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")");
             $("#stopAutoQuest").css('display', 'block');
             return true;
@@ -440,7 +549,6 @@ caap = {
                 AutoQuest = this.newAutoQuest();
             }
 
-            //gm.setItem('AutoQuest', AutoQuest);
             state.setItem('AutoQuest', AutoQuest);
             config.setItem('WhyQuest', 'Manual');
             this.SelectDropOption('WhyQuest', 'Manual');
@@ -714,7 +822,6 @@ caap = {
             var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.",
                 XQuestInstructions = "Start questing when energy is at or above this value.",
                 XMinQuestInstructions = "Stop quest when energy is at or below this value.",
-                //autoQuestName = gm.getObjVal('AutoQuest', 'name'),
                 autoQuestName = state.getItem('AutoQuest', this.newAutoQuest()).name,
                 htmlCode = '';
 
@@ -752,7 +859,6 @@ caap = {
             htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
             htmlCode += "</div>";
             if (autoQuestName) {
-                //htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")" + "</a>";
                 htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")" + "</a>";
             } else {
                 htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;'></a>";
@@ -1274,7 +1380,7 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions) + '</table>';
+            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%; padding-left: 10px'>Give</td><td style='text-align: right'>" +
                 this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
@@ -1317,13 +1423,13 @@ caap = {
                 "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
 
             if (!devVersion) {
-                htmlCode += "Version: " + caapVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-                if (global.newVersionAvailable) {
+                htmlCode += "Version: " + caapVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a><br />";
+                if (this.newVersionAvailable) {
                     htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>";
                 }
             } else {
-                htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='" + global.discussionURL + "' target='_blank'>CAAP Forum</a><br />";
-                if (global.newVersionAvailable) {
+                htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a><br />";
+                if (this.newVersionAvailable) {
                     htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version')  + "!</a>";
                 }
             }
@@ -2921,7 +3027,8 @@ caap = {
         try {
             var idName        = e.target.id.replace(/caap_/i, ''),
                 DocumentTitle = '',
-                d             = '';
+                d             = '',
+                styleXY       = {};
 
             utility.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
             config.setItem(idName, e.target.checked);
@@ -3009,9 +3116,9 @@ caap = {
                         DocumentTitle += caap.stats.PlayerName + " - ";
                     }
 
-                    document.title = DocumentTitle + global.documentTitle;
+                    document.title = DocumentTitle + caap.documentTitle;
                 } else {
-                    document.title = global.documentTitle;
+                    document.title = caap.documentTitle;
                 }
 
                 break;
@@ -3167,7 +3274,6 @@ caap = {
                         caap.SetDisplay(idName + 'XEnergy', (value === 'At X Energy'));
                     }
                 } else if (idName === 'QuestArea' || idName === 'QuestSubArea' || idName === 'WhyQuest') {
-                    //gm.setItem('AutoQuest', '');
                     state.setItem('AutoQuest', caap.newAutoQuest());
                     caap.ClearAutoQuest();
                     if (idName === 'QuestArea') {
@@ -5197,16 +5303,13 @@ caap = {
             }
 
             var autoQuestDivs = this.CheckResults_quests(true);
-            //if (!gm.getObjVal('AutoQuest', 'name')) {
             if (!state.getItem('AutoQuest', this.newAutoQuest()).name) {
                 utility.log(1, 'Could not find AutoQuest.');
                 this.SetDivContent('quest_mess', 'Could not find AutoQuest.');
                 return false;
             }
 
-            //var autoQuestName = gm.getObjVal('AutoQuest', 'name');
             var autoQuestName = state.getItem('AutoQuest', this.newAutoQuest()).name;
-            //if (gm.getObjVal('AutoQuest', 'name') !== autoQuestName) {
             if (state.getItem('AutoQuest', this.newAutoQuest()).name !== autoQuestName) {
                 utility.log(1, 'New AutoQuest found.');
                 this.SetDivContent('quest_mess', 'New AutoQuest found.');
@@ -5243,7 +5346,6 @@ caap = {
                 return false;
             }
 
-            //var questGeneral = gm.getObjVal('AutoQuest', 'general');
             var questGeneral = state.getItem('AutoQuest', this.newAutoQuest()).general;
             if (questGeneral === 'none' || config.getItem('ForceSubGeneral', false)) {
                 if (general.Select('SubQuestGeneral')) {
@@ -5272,7 +5374,6 @@ caap = {
                 utility.log(1, 'Clicking auto quest', autoQuestName);
                 state.setItem('ReleaseControl', true);
                 utility.Click(autoQuestDivs.click, 10000);
-                //utility.log(1, "Quests: " + autoQuestName + " (energy: " + gm.getObjVal('AutoQuest', 'energy') + ")");
                 this.ShowAutoQuest();
                 return true;
             } else {
@@ -5362,7 +5463,6 @@ caap = {
 
             var whyQuest = config.getItem('WhyQuest', 'Manual');
             if (pickQuestTF === true && whyQuest !== 'Manual') {
-                //gm.setItem('AutoQuest', '');
                 state.setItem('AutoQuest', this.newAutoQuest());
             }
 
@@ -5397,9 +5497,7 @@ caap = {
             var haveOrb = false;
             if ($(div).find("input[src*='alchemy_summon']").length) {
                 haveOrb = true;
-                //if (this.isBossQuest(gm.getObjVal('AutoQuest', 'name')) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual') {
                 if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual') {
-                    //gm.setItem('AutoQuest', '');
                     state.setItem('AutoQuest', this.newAutoQuest());
                 }
             }
@@ -5530,7 +5628,6 @@ caap = {
                 if (this.CheckCurrentQuestArea(config.getItem('QuestSubArea', 'Atlantis'))) {
                     if (config.getItem('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual') {
                         if (!haveOrb) {
-                            //gm.setObjVal('AutoQuest', 'name', this.questName);
                             this.updateAutoQuest('name', this.questName);
                             pickQuestTF = true;
                         }
@@ -5539,9 +5636,7 @@ caap = {
                     switch (whyQuest) {
                     case 'Advancement' :
                         if (influence) {
-                            //if (!gm.getObjVal('AutoQuest', 'name') && questType === 'primary' && utility.NumberOnly(influence) < 100) {
                             if (!state.getItem('AutoQuest', this.newAutoQuest()).name && questType === 'primary' && utility.NumberOnly(influence) < 100) {
-                                //gm.setObjVal('AutoQuest', 'name', this.questName);
                                 this.updateAutoQuest('name', this.questName);
                                 pickQuestTF = true;
                             }
@@ -5552,9 +5647,7 @@ caap = {
                         break;
                     case 'Max Influence' :
                         if (influence) {
-                            //if (!gm.getObjVal('AutoQuest', 'name') && utility.NumberOnly(influence) < 100) {
                             if (!state.getItem('AutoQuest', this.newAutoQuest()).name && utility.NumberOnly(influence) < 100) {
-                                //gm.setObjVal('AutoQuest', 'name', this.questName);
                                 this.updateAutoQuest('name', this.questName);
                                 pickQuestTF = true;
                             }
@@ -5566,7 +5659,6 @@ caap = {
                     case 'Max Experience' :
                         rewardRatio = (Math.floor(experience / energy * 100) / 100);
                         if (bestReward < rewardRatio) {
-                            //gm.setObjVal('AutoQuest', 'name', this.questName);
                             this.updateAutoQuest('name', this.questName);
                             pickQuestTF = true;
                         }
@@ -5575,7 +5667,6 @@ caap = {
                     case 'Max Gold' :
                         rewardRatio = (Math.floor(reward / energy * 10) / 10);
                         if (bestReward < rewardRatio) {
-                            //gm.setObjVal('AutoQuest', 'name', this.questName);
                             this.updateAutoQuest('name', this.questName);
                             pickQuestTF = true;
                         }
@@ -5584,13 +5675,11 @@ caap = {
                     default :
                     }
 
-                    //if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
                     utility.log(5, "Setting AutoQuest?", state.getItem('AutoQuest', this.newAutoQuest()), this.questName);
                     if (state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / energy;
                         utility.log(1, "Setting AutoQuest", this.questName);
-                        //gm.setItem('AutoQuest', 'name' + global.ls + this.questName + global.vs + 'energy' + global.ls + energy + global.vs + 'general' + global.ls + general + global.vs + 'expRatio' + global.ls + expRatio);
                         var tempAutoQuest = this.newAutoQuest();
                         tempAutoQuest.name = this.questName;
                         tempAutoQuest.energy = energy;
@@ -5607,7 +5696,6 @@ caap = {
             }
 
             if (pickQuestTF) {
-                //if (gm.getObjVal('AutoQuest', 'name')) {
                 if (state.getItem('AutoQuest', this.newAutoQuest()).name) {
                     utility.log(2, "CheckResults_quests(pickQuestTF)", state.getItem('AutoQuest', this.newAutoQuest()));
                     this.ShowAutoQuest();
@@ -5883,7 +5971,6 @@ caap = {
         div.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
             "<br />Exp per energy: " + (Math.floor(experience / energy * 100) / 100) + "<br />";
 
-        //if (gm.getObjVal('AutoQuest', 'name') === this.questName) {
         if (state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
             var b = document.createElement('b');
             b.innerHTML = "Current auto quest";
@@ -6274,14 +6361,7 @@ caap = {
 
     CheckBattleResults: function () {
         try {
-            var now          = null,
-                newelement   = null,
-                battleRecord = {},
-                resultsDiv   = null,
-                resultsText  = '',
-                wins         = 0,
-                tempDiv      = null,
-                tempText     = '',
+            var battleRecord = {},
                 tempTime     = new Date(2009, 0, 1).getTime(),
                 chainBP      = 0,
                 chainGold    = 0,
@@ -6434,28 +6514,24 @@ caap = {
                 return false;
             }
 
-            var plusOneSafe = false,
-                safeTargets = [],
-                count       = 0,
-                chainId     = '',
-                chainAttack = false,
-                inp         = null,
-                yourRank    = 0,
-                txt         = '',
-                levelm   = '',
-                minRank  = 0,
-                maxLevel = 0,
-                tempNum = 0,
-                ARBase   = 0,
-                ARMax    = 0,
-                ARMin    = 0,
+            var plusOneSafe     = false,
+                safeTargets     = [],
+                count           = 0,
+                chainId         = '',
+                chainAttack     = false,
+                inp             = null,
+                txt             = '',
+                levelm          = '',
+                minRank         = 0,
+                maxLevel        = 0,
+                ARBase          = 0,
+                ARMax           = 0,
+                ARMin           = 0,
                 levelMultiplier = 0,
-                armyRatio = 0,
-                dfl = '',
-                tempRecord = {},
-                battleRecord = {},
-                tempText = '',
-                tempTime = new Date(2009, 0, 1).getTime();
+                armyRatio       = 0,
+                tempRecord      = {},
+                battleRecord    = {},
+                tempTime        = new Date(2009, 0, 1).getTime();
 
             chainId = state.getItem('BattleChainId', 0);
             state.setItem('BattleChainId', '');
@@ -6498,7 +6574,6 @@ caap = {
                 utility.warn("FreshMeatARMin is NaN, using default", ARMin);
             }
 
-            //utility.log(1, "my army/rank/level: " + this.stats.army.capped + "/" + this.stats.rank.battle + "/" + this.stats.level);
             for (var s = 0; s < ss.snapshotLength; s += 1) {
                 tempTime = new Date(2009, 0, 1).getTime();
                 tempRecord = {};
@@ -6986,7 +7061,6 @@ caap = {
                 chainImg      = '',
                 button        = null,
                 raidName      = '',
-                dfl           = '',
                 battleChainId = 0,
                 targetMonster = '',
                 whenMonster   = '',
@@ -7343,14 +7417,13 @@ caap = {
 
     CheckResults_guild_current_battles: function () {
         try {
-            var tempDiv = null,
-                buttonsEl = null;
+            var tempDiv = null;
 
             tempDiv = $("img[src*='guild_symbol']");
             if (tempDiv && tempDiv.length) {
                 tempDiv.each(function () {
-                    utility.log(1, "name", $.trim($(this).parent().parent().next().text()));
-                    utility.log(1, "button", $(this).parent().parent().parent().next().find("input[src*='dragon_list_btn_']"));
+                    utility.log(2, "name", $.trim($(this).parent().parent().next().text()));
+                    utility.log(2, "button", $(this).parent().parent().parent().next().find("input[src*='dragon_list_btn_']"));
                 });
             } else {
                 return false;
@@ -7482,7 +7555,7 @@ caap = {
 
     CheckResults_viewFight: function () {
         try {
-            var missRegEx         = new RegExp(".*Need (\\d+) more.*"),
+            var missRegEx         = null,
                 currentMonster    = {},
                 time              = [],
                 currentPhase      = 0,
@@ -7494,8 +7567,6 @@ caap = {
                 monstHealthImg    = '',
                 totalCount        = 0,
                 ind               = 0,
-                divSeigeLogs      = null,
-                divSeigeCount     = 0,
                 achLevel          = 0,
                 maxDamage         = 0,
                 maxToFortify      = 0,
@@ -7795,11 +7866,11 @@ caap = {
                 }
 
                 if (monster.info[currentMonster.type] && monster.info[currentMonster.type].siege) {
+                    missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monster.info[currentMonster.type].alpha) {
                         miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
-                        tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
-                        miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
+                        miss = $.trim($("img[src*='" + monster.info[currentMonster.type].siege_img + "']").parent().parent().text()).replace(missRegEx, "$1");
                     } else {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }
@@ -8667,7 +8738,6 @@ caap = {
                         return false;
                     }
 
-                    //this.SetDivContent('battle_mess', 'Burning stamina');
                     state.setItem('BurnMode_' + staminaMF, true);
                     return true;
                 } else {
@@ -9752,7 +9822,6 @@ caap = {
                 n                  = 0,
                 returnIncreaseStat = '';
 
-            //atributeSlice = nHtml.FindByAttrContains(document.body, "div", "class", 'keep_attribute_section');
             atributeSlice = $("div[class*='keep_attribute_section']").get(0);
             if (!atributeSlice) {
                 utility.NavigateTo('keep');
@@ -9811,8 +9880,6 @@ caap = {
 
             utility.log(1, "Collecting Master and Apprentice reward");
             caap.SetDivContent('idle_mess', 'Collect MA Reward');
-            //var buttonMas = nHtml.FindByAttrContains(document.body, "img", "src", "ma_view_progress_main"),
-            //    buttonApp = nHtml.FindByAttrContains(document.body, "img", "src", "ma_main_learn_more");
             var buttonMas = utility.CheckForImage("ma_view_progress_main"),
                 buttonApp = utility.CheckForImage("ma_main_learn_more");
 
@@ -9913,7 +9980,6 @@ caap = {
                                 }
 
                                 utility.log(1, "GetFriendList(" + listType.name + "): ", textStatus);
-                                //utility.log(1, "GetFriendList(" + listType.name + "): " + friendList);
                             } catch (err) {
                                 state.setItem(listType.name + 'Requested', false);
                                 utility.error("ERROR in GetFriendList.ajax: " + err);
@@ -9992,16 +10058,16 @@ caap = {
             }
 
             var castleageList = state.getItem(caListType.name + 'Responded', []);
-            //utility.log(1, "gifList: " + castleageList);
+            utility.log(3, "gifList: ", castleageList);
             var facebookList = state.getItem(fbListType.name + 'Responded', []);
-            //utility.log(1, "facebookList: " + facebookList);
+            utility.log(3, "facebookList: ", facebookList);
             if ((castleageList.length && facebookList.length) || fillArmyList.length) {
                 if (!fillArmyList.length) {
                     var diffList = facebookList.filter(function (facebookID) {
                         return (castleageList.indexOf(facebookID) >= 0);
                     });
 
-                    //utility.log(1, "diffList: " + diffList);
+                    utility.log(3, "diffList: ", diffList);
                     fillArmyList = state.setItem('FillArmyList', diffList);
                     state.setItem(caListType.name + 'Responded', false);
                     state.setItem(fbListType.name + 'Responded', false);

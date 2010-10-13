@@ -40,7 +40,7 @@ gifting = {
                 gm.setItem("gifting." + type, this[type].records);
             }
 
-            this.log(type, 1, "gifting.load " + type);
+            this.log(type, 2, "gifting.load " + type);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -57,7 +57,7 @@ gifting = {
             }
 
             gm.setItem("gifting." + type, this[type].records);
-            this.log(type, 1, "gifting.save " + type);
+            this.log(type, 2, "gifting.save " + type);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -98,7 +98,7 @@ gifting = {
                 result = false;
             }
 
-            this.queue.fix();
+            //this.queue.fix();
             return result;
         } catch (err) {
             utility.error("ERROR in gifting.init: " + err);

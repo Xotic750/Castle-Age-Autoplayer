@@ -389,8 +389,8 @@ utility = {
                 it        = 0;
 
             if (typeof text === 'string' && text !== '') {
-                text = text.replace(/,/g, global.os).replace(/ /g, '');
-                tempArray = text.split(global.os);
+                text = text.replace(/,/g, '\n').replace(/ /g, '');
+                tempArray = text.split('\n');
                 if (tempArray && tempArray.length) {
                     for (it = 0; it < tempArray.length; it += 1) {
                         if (tempArray[it] !== '') {
@@ -447,18 +447,6 @@ utility = {
             function rotate_left(n, s) {
                 var t4 = (n << s) | (n >>> (32 - s));
                 return t4;
-            }
-
-            function lsb_hex(val) {
-                var str = "", i, vh, vl;
-
-                for (i = 0; i <= 6; i += 2) {
-                    vh = (val >>> (i * 4 + 4)) & 0x0f;
-                    vl = (val >>> (i * 4)) & 0x0f;
-                    str += vh.toString(16) + vl.toString(16);
-                }
-
-                return str;
             }
 
             function cvt_hex(val) {
