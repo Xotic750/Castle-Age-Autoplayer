@@ -7923,7 +7923,8 @@ caap = {
                     if (monster.info[currentMonster.type].alpha) {
                         miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
-                        miss = $.trim($("img[src*='" + monster.info[currentMonster.type].siege_img + "']").parent().parent().text()).replace(missRegEx, "$1");
+                        tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
+                        miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
                     } else {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }

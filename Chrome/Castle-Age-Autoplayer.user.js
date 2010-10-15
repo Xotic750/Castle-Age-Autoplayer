@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            38
+// @dev            39
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "38",
+    devVersion  = "39",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
@@ -13742,7 +13742,8 @@ caap = {
                     if (monster.info[currentMonster.type].alpha) {
                         miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
-                        miss = $.trim($("img[src*='" + monster.info[currentMonster.type].siege_img + "']").parent().parent().text()).replace(missRegEx, "$1");
+                        tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
+                        miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
                     } else {
                         miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }
