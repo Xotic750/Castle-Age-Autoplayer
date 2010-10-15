@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            39
+// @dev            40
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-latest.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "39",
+    devVersion  = "40",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
@@ -2663,6 +2663,24 @@ general = {
         }
     },
 
+    GetLevel: function (general) {
+        try {
+            var genLevel = this.find(general);
+
+            if (genLevel === false) {
+                utility.warn("Unable to find 'General' level");
+                genLevel = 1;
+            } else {
+                genLevel = genLevel.lvl;
+            }
+
+            return genLevel;
+        } catch (err) {
+            utility.error("ERROR in general.GetLevel: " + err);
+            return false;
+        }
+    },
+
     GetLevelUpNames: function () {
         try {
             var it    = 0,
@@ -4075,13 +4093,13 @@ monster = {
 
                             utility.log(2, 'MonsterStaminaReq:MonsterGeneral', config.getItem('MonsterGeneral', 'Use Current'));
                             if (config.getItem('MonsterGeneral', 'Use Current') === 'Orc King') {
-                                utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1) * 5);
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * 5);
+                                utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
                             }
 
                             if (config.getItem('MonsterGeneral', 'Use Current') === 'Barbarus') {
-                                utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1) * 3);
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * 3);
+                                utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
                             }
                         } else {
                             // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
@@ -14169,12 +14187,12 @@ caap = {
 
             utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
             if (config.getItem('FortifyGeneral', 'Use Current') === 'Orc King') {
-                energyRequire = energyRequire * 5;
+                energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
                 utility.log(2, 'Monsters Fortify:Orc King', energyRequire);
             }
 
             if (config.getItem('FortifyGeneral', 'Use Current') === 'Barbarus') {
-                energyRequire = energyRequire * 3;
+                energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
                 utility.log(2, 'Monsters Fortify:Barbarus', energyRequire);
             }
 

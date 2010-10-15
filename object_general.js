@@ -240,6 +240,24 @@ general = {
         }
     },
 
+    GetLevel: function (general) {
+        try {
+            var genLevel = this.find(general);
+
+            if (genLevel === false) {
+                utility.warn("Unable to find 'General' level");
+                genLevel = 1;
+            } else {
+                genLevel = genLevel.lvl;
+            }
+
+            return genLevel;
+        } catch (err) {
+            utility.error("ERROR in general.GetLevel: " + err);
+            return false;
+        }
+    },
+
     GetLevelUpNames: function () {
         try {
             var it    = 0,

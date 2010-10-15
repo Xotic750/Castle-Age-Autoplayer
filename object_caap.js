@@ -8350,12 +8350,12 @@ caap = {
 
             utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
             if (config.getItem('FortifyGeneral', 'Use Current') === 'Orc King') {
-                energyRequire = energyRequire * 5;
+                energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
                 utility.log(2, 'Monsters Fortify:Orc King', energyRequire);
             }
 
             if (config.getItem('FortifyGeneral', 'Use Current') === 'Barbarus') {
-                energyRequire = energyRequire * 3;
+                energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
                 utility.log(2, 'Monsters Fortify:Barbarus', energyRequire);
             }
 

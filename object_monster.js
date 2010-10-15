@@ -956,13 +956,13 @@ monster = {
 
                             utility.log(2, 'MonsterStaminaReq:MonsterGeneral', config.getItem('MonsterGeneral', 'Use Current'));
                             if (config.getItem('MonsterGeneral', 'Use Current') === 'Orc King') {
-                                utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1) * 5);
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * 5);
+                                utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
                             }
 
                             if (config.getItem('MonsterGeneral', 'Use Current') === 'Barbarus') {
-                                utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1) * 3);
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * 3);
+                                utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
                             }
                         } else {
                             // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
