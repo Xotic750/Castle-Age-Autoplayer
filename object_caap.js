@@ -129,7 +129,7 @@ caap = {
             }
 
             if (config.getItem('HideAdsIframe', false)) {
-                $("iframe[name*='fb_iframe']:first").parent().parent().css('display', 'none');
+                $("iframe[name*='fb_iframe']:first").parent().css('display', 'none');
             }
 
             if (config.getItem('HideFBChat', false)) {
@@ -351,9 +351,9 @@ caap = {
                 displayChar = "+";
             }
 
-            toggleCode = '<b><a id="caap_Switch_' + controlId +
+            toggleCode = '<a style="font-weight: bold;" id="caap_Switch_' + controlId +
                 '" href="javascript:;" style="text-decoration: none;"> ' +
-                displayChar + ' ' + staticText + '</a></b><br />' +
+                displayChar + ' ' + staticText + '</a><br />' +
                 "<div id='caap_" + controlId + "' style='display: " + currentDisplay + "'>";
 
             return toggleCode;
@@ -742,6 +742,9 @@ caap = {
             htmlCode += this.AddReconMenu();
             htmlCode += this.AddGeneralsMenu();
             htmlCode += this.AddSkillPointsMenu();
+            htmlCode += this.AddEliteGuardOptionsMenu();
+            htmlCode += this.AddGiftingOptionsMenu();
+            htmlCode += this.AddAutoOptionsMenu();
             htmlCode += this.AddOtherOptionsMenu();
             htmlCode += this.AddFooterMenu();
             this.SetDivContent('control', htmlCode);
@@ -761,10 +764,10 @@ caap = {
 
     AddPauseMenu: function () {
         try {
-            return ("<div id='caapPaused' style='display: " + state.getItem('caapPause', 'block') + "'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
+            return ("<div id='caapPaused' style='font-weight: bold; display: " + state.getItem('caapPause', 'block') + "'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
         } catch (err) {
             utility.error("ERROR in AddPauseMenu: " + err);
-            return ("<div id='caapPaused' style='display: block'><b>Paused on mouse click.</b><br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
+            return ("<div id='caapPaused' style='font-weight: bold; display: block'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
         }
     },
 
@@ -948,8 +951,8 @@ caap = {
             htmlCode += this.ToggleControl('Battling', 'BATTLE');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + this.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
-            htmlCode += "<div id='caap_WhenBattleStayHidden1' style='display: " + (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
-            htmlCode += "<font color='red'><b>Warning: Monster Not Set To 'Stay Hidden'</b></font>";
+            htmlCode += "<div id='caap_WhenBattleStayHidden1' style='color: red; font-weight: bold; display: " +
+                (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>Warning: Monster Not Set To 'Stay Hidden'";
             htmlCode += "</div>";
             htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -982,7 +985,7 @@ caap = {
             htmlCode += "<div id='caap_RaidSub' style='display: " + (config.getItem('TargetType', 'Invade') === 'Raid' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
-            htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
+            htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
             htmlCode += this.MakeTextBox('orderraid', raidOrderInstructions, '', '');
             htmlCode += "</div>";
             htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (config.getItem('TargetType', 'Invade') === 'Userid List' ? 'block' : 'none') + "'>";
@@ -1052,6 +1055,9 @@ caap = {
             htmlCode += this.ToggleControl('Monster', 'MONSTER');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
+            htmlCode += "<div id='caap_WhenMonsterStayHidden1' style='color: red; font-weight: bold; display: " +
+                (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>Warning: Battle Not Set To 'Stay Hidden'";
+            htmlCode += "</div>";
             htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (config.getItem('WhenMonster', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td>Battle When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XMonsterStamina', XMonsterInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
@@ -1089,12 +1095,12 @@ caap = {
             htmlCode += "</table>";
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Fortify If Percentage Under</td><td style='text-align: right'>" +
+            htmlCode += "<tr><td>Fortify If % Under</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MaxToFortify', fortifyInstructions, 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Quest If Percentage Over</td><td style='text-align: right'>" +
+            htmlCode += "<tr><td style='padding-left: 10px'>Quest If % Over</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td>No Attack If Percentage Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank'><font color='red'>?</font></a><br />";
+            htmlCode += "<tr><td>No Attack If % Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
             htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
@@ -1285,20 +1291,61 @@ caap = {
         }
     },
 
-    AddOtherOptionsMenu: function () {
+    AddGiftingOptionsMenu: function () {
         try {
             // Other controls
             var giftInstructions = "Automatically receive and send return gifts.",
                 giftQueueUniqueInstructions = "When enabled only unique user's gifts will be queued, otherwise all received gifts will be queued.",
-                timeInstructions = "Use 24 hour format for displayed times.",
-                titleInstructions0 = "Set the title bar.",
-                titleInstructions1 = "Add the current action.",
-                titleInstructions2 = "Add the player name.",
-                autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.",
-                hideAdsInstructions = "Hides the sidebar adverts.",
-                hideAdsIframeInstructions = "Hide the FaceBook Iframe adverts",
-                hideFBChatInstructions = "Hide the FaceBook Chat",
-                newsSummaryInstructions = "Enable or disable the news summary on the index page.",
+                htmlCode = '';
+
+            htmlCode += this.ToggleControl('Gifting', 'GIFTING OPTIONS');
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Auto Gifting', 'AutoGift', false, 'GiftControl', giftInstructions, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='width: 25%'>Give</td><td style='text-align: right'>" +
+                this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += '</div>';
+            htmlCode += "<hr/></div>";
+            return htmlCode;
+        } catch (err) {
+            utility.error("ERROR in AddGiftingOptionsMenu: " + err);
+            return '';
+        }
+    },
+
+    AddEliteGuardOptionsMenu: function () {
+        try {
+            // Other controls
+            var autoEliteInstructions = "Enable or disable Auto Elite function",
+                autoEliteIgnoreInstructions = "Use this option if you have a small " +
+                    "army and are unable to fill all 10 Elite positions. This prevents " +
+                    "the script from checking for any empty places and will cause " +
+                    "Auto Elite to run on its timer only.",
+                htmlCode = '';
+
+            htmlCode += this.ToggleControl('Elite', 'ELITE GUARD OPTIONS');
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', false, 'AutoEliteControl', autoEliteInstructions, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
+            htmlCode += '<tr><td>' + this.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', '') + '</td></tr></table>';
+            htmlCode += '</div>';
+            htmlCode += "<hr/></div>";
+            return htmlCode;
+        } catch (err) {
+            utility.error("ERROR in AddEliteGuardOptionsMenu: " + err);
+            return '';
+        }
+    },
+
+    AddAutoOptionsMenu: function () {
+        try {
+            // Other controls
+            var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.",
                 autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
                     "that do not have missing ingredients. By default, it will not " +
                     "combine Battle Hearts recipes.",
@@ -1314,12 +1361,6 @@ caap = {
                 autoPotionsInstructions4 = "Number of energy potions to keep.",
                 autoPotionsInstructions5 = "Do not consume potions if the " +
                     "experience points to the next level are within this value.",
-                autoEliteInstructions = "Enable or disable Auto Elite function",
-                autoEliteIgnoreInstructions = "Use this option if you have a small " +
-                    "army and are unable to fill all 10 Elite positions. This prevents " +
-                    "the script from checking for any empty places and will cause " +
-                    "Auto Elite to run on its timer only.",
-                bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
                 autoBlessList = [
                     'None',
                     'Energy',
@@ -1328,6 +1369,53 @@ caap = {
                     'Stamina',
                     'Health'
                 ],
+                htmlCode = '';
+
+            htmlCode += this.ToggleControl('Auto', 'AUTO OPTIONS');
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', false, '', autoCollectMAInstructions);
+            htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
+            htmlCode += '</div>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" +
+                this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" +
+                this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" +
+                this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" +
+                this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" +
+                this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += '</div>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
+            htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
+                this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += "</div>";
+            htmlCode += "<hr/></div>";
+            return htmlCode;
+        } catch (err) {
+            utility.error("ERROR in AddAutoOptionsMenu: " + err);
+            return '';
+        }
+    },
+
+    AddOtherOptionsMenu: function () {
+        try {
+            // Other controls
+            var timeInstructions = "Use 24 hour format for displayed times.",
+                titleInstructions0 = "Set the title bar.",
+                titleInstructions1 = "Add the current action.",
+                titleInstructions2 = "Add the player name.",
+                hideAdsInstructions = "Hides the sidebar adverts.",
+                hideAdsIframeInstructions = "Hide the FaceBook Iframe adverts",
+                hideFBChatInstructions = "Hide the FaceBook Chat",
+                newsSummaryInstructions = "Enable or disable the news summary on the index page.",
+                bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
                 styleList = [
                     'CA Skin',
                     'Original',
@@ -1350,55 +1438,19 @@ caap = {
             htmlCode += this.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, '', hideAdsIframeInstructions);
             htmlCode += this.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, '', hideFBChatInstructions);
             htmlCode += this.MakeCheckTR('Enable News Summary', 'NewsSummary', true, '', newsSummaryInstructions);
-            htmlCode += this.MakeCheckTR('Auto Collect MA', 'AutoCollectMA', false, '', autoCollectMAInstructions);
-            htmlCode += this.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" +
-                this.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" +
-                this.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" +
-                this.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" +
-                this.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" +
-                this.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Elite Army', 'AutoElite', false, 'AutoEliteControl', autoEliteInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
-            htmlCode += '<tr><td>' + this.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', '') + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Auto Return Gifts', 'AutoGift', false, 'GiftControl', giftInstructions, true);
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions) + '</table>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='width: 25%; padding-left: 10px'>Give</td><td style='text-align: right'>" +
-                this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += '</div>';
-            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-            htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
-                this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" +
                 this.MakeDropDown('DisplayStyle', styleList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (config.getItem('DisplayStyle', 'CA Skin') === 'Custom' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td style='padding-left: 10px'><b>Started</b></td><td style='text-align: right'><input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
+            htmlCode += "<tr><td style='padding-left: 10px; font-weight: bold;'>Started</td><td style='text-align: right'>" +
+                "<input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
             htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
                 this.MakeNumberForm('StyleBackgroundLight', '#FFF or #FFFFFF', '#E0C691', "size='5' style='font-size: 10px; text-align: right'", 'text') + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
                 this.MakeNumberForm('StyleOpacityLight', '0 ~ 1', 1, "size='5' style='vertical-align: middle; font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += "<tr><td style='padding-left: 10px'><b>Stoped</b></td><td style='text-align: right'><input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
+            htmlCode += "<tr><td style='padding-left: 10px; font-weight: bold;'>Stoped</td><td style='text-align: right'>" +
+                "<input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
             htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
                 this.MakeNumberForm('StyleBackgroundDark', '#FFF or #FFFFFF', '#B09060', "size='5' style='font-size: 10px; text-align: right'", 'text') + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
@@ -3061,9 +3113,9 @@ caap = {
             case "HideAdsIframe" :
                 utility.log(9, "HideAdsIframe");
                 if (e.target.checked) {
-                    $("iframe[name*='fb_iframe']:first").parent().parent().css('display', 'none');
+                    $("iframe[name*='fb_iframe']:first").parent().css('display', 'none');
                 } else {
-                    $("iframe[name*='fb_iframe']:first").parent().parent().css('display', 'block');
+                    $("iframe[name*='fb_iframe']:first").parent().css('display', 'block');
                 }
 
                 caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
@@ -3255,6 +3307,7 @@ caap = {
                     if (idName === 'WhenBattle' || idName === 'WhenMonster') {
                         caap.SetDisplay(idName + 'XStamina', (value === 'At X Stamina'));
                         caap.SetDisplay('WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay('WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
                         if (idName === 'WhenBattle') {
                             if (value === 'Never') {
                                 caap.SetDivContent('battle_mess', 'Battle off');
@@ -3643,7 +3696,7 @@ caap = {
                 */
 
                 if (config.getItem('HideAdsIframe', false)) {
-                    $("iframe[name*='fb_iframe']:first").parent().parent().css('display', 'none');
+                    $("iframe[name*='fb_iframe']:first").parent().css('display', 'none');
                 }
 
                 if ($.inArray(targetStr, caap.targetList) !== -1) {
@@ -5129,7 +5182,7 @@ caap = {
             if (whenQuest === 'Not Fortifying') {
                 var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
                 if (!maxHealthtoQuest) {
-                    this.SetDivContent('quest_mess', '<b>No valid over fortify %</b>');
+                    this.SetDivContent('quest_mess', '<span style="font-weight: bold;">No valid over fortify %</span>');
                     return false;
                 }
 
@@ -5352,7 +5405,7 @@ caap = {
                     return true;
                 }
             } else if (questGeneral && questGeneral !== general.GetCurrent()) {
-                if (general.LevelUpCheck(questGeneral)) {
+                if (general.LevelUpCheck("QuestGeneral")) {
                     if (general.Select('LevelUpGeneral')) {
                         return true;
                     }
@@ -9573,7 +9626,7 @@ caap = {
                     if (tempDiv && tempDiv.length) {
                         tempText = utility.getHTMLPredicate(tempDiv.attr("src"));
                         if (tempText !== giftImg) {
-                            utility.log(1, "images", tempText, giftImg);
+                            utility.log(2, "images", tempText, giftImg);
                             return utility.NavigateTo(giftImg);
                         }
 
@@ -10035,7 +10088,7 @@ caap = {
             }
 
             if (state.getItem(caListType.name + 'Responded', false) === true || state.getItem(fbListType.name + 'Responded', false) === true) {
-                this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
+                this.SetDivContent('idle_mess', '<span style="font-weight: bold;">Fill Army Completed</span>');
                 utility.log(1, "Fill Army Completed: no friends found");
                 window.setTimeout(function () {
                     caap.SetDivContent('idle_mess', '');
@@ -10094,7 +10147,7 @@ caap = {
                 utility.log(1, 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
                 state.setItem("ArmyCount", armyCount);
                 if (armyCount >= fillArmyList.length) {
-                    this.SetDivContent('idle_mess', '<b>Fill Army Completed</b>');
+                    this.SetDivContent('idle_mess', '<span style="font-weight: bold;">Fill Army Completed</span>');
                     window.setTimeout(function () {
                         caap.SetDivContent('idle_mess', '');
                     }, 5000);
@@ -10109,7 +10162,7 @@ caap = {
             return true;
         } catch (err) {
             utility.error("ERROR in AutoFillArmy: " + err);
-            this.SetDivContent('idle_mess', '<b>Fill Army Failed</b>');
+            this.SetDivContent('idle_mess', '<span style="font-weight: bold;">Fill Army Failed</span>');
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
             }, 5000);

@@ -9,6 +9,7 @@ echo "Done."
 
 echo -n "Joining files into _normal.user.js : "
 sed -f build/version.sed _head.js > _normal.user.js
+sed -f build/version.sed _lead.js >> _normal.user.js
 cat object_image64.js >> _normal.user.js
 cat object_utility.js >> _normal.user.js
 cat object_config.js >> _normal.user.js

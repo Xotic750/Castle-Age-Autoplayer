@@ -7,14 +7,22 @@ echo Deleting old user.js files
 del /F /Q _normal.user.js _min.user.js 2>nul
 
 echo Joining files into _normal.user.js
-type _head.js >_normal.user.js 2>nul
+bin\sed -f build\version.sed _head.js > _normal.user.js 2>nul
+bin\sed -f build\version.sed _lead.js >> _normal.user.js 2>nul
 type object_image64.js >>_normal.user.js 2>nul
+type object_utility.js >>_normal.user.js 2>nul
+type object_config.js >>_normal.user.js 2>nul
+type object_state.js >>_normal.user.js 2>nul
 type object_css.js >>_normal.user.js 2>nul
 type object_gm.js >>_normal.user.js 2>nul
 type object_html.js >>_normal.user.js 2>nul
 type object_sort.js >>_normal.user.js 2>nul
 type object_schedule.js >>_normal.user.js 2>nul
 type object_general.js >>_normal.user.js 2>nul
+type object_monster.js >>_normal.user.js 2>nul
+type object_battle.js >>_normal.user.js 2>nul
+type object_town.js >>_normal.user.js 2>nul
+type object_gifting.js >>_normal.user.js 2>nul
 type object_caap.js >>_normal.user.js 2>nul
 type _main.js >>_normal.user.js 2>nul
 
@@ -38,9 +46,9 @@ rem MINIMISED VERSION - This will fail on errors so use is advised - required fo
 rem Change path to compiler and source - obtain it from here:
 rem http://code.google.com/closure/compiler/
 
-rem echo Creating minimised version (will also show errors)
-rem copy _head.js _min.user.js >nul
-rem "C:\Program Files\Java\jre6\bin\java.exe" -jar "C:\Program Files\Compiler\compiler.jar" --js "_normal.user.js" >> "_min.user.js"
+echo Creating minimised version (will also show errors)
+copy _head.js _min.user.js >nul
+"C:\Program Files\Java\jre6\bin\java.exe" -jar "C:\Program Files\Compiler\compiler.jar" --js "_normal.user.js" >> "_min.user.js"
 
 echo Press any key to quit.
 pause>nul
