@@ -925,7 +925,7 @@ monster = {
                     // Now we use the first under max/under achievement that we found. If we didn't find any under
                     // achievement then we use the first over achievement
                     if (selectTypes[s] !== 'raid') {
-                        if (this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
+                        //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
                             strengthTarget = firstStrengthUnderMax;
                             if (!strengthTarget) {
                                 strengthTarget = firstStrengthOverAch;
@@ -936,7 +936,7 @@ monster = {
                                 energyTarget.type = 'Strengthen';
                                 utility.log(1, 'Strengthen target ', energyTarget.name);
                             }
-                        }
+                        //}
 
                         fortifyTarget = firstFortUnderMax;
                         if (!fortifyTarget) {
@@ -946,14 +946,14 @@ monster = {
                         if (fortifyTarget) {
                             energyTarget.name = fortifyTarget;
                             energyTarget.type = 'Fortify';
-                            if (this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
+                            //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
                                 utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
-                            } else {
-                                utility.log(1, 'Fortify ', energyTarget.name);
-                            }
+                            //} else {
+                            //    utility.log(1, 'Fortify ', energyTarget.name);
+                            //}
                         }
 
-                        if (this.info[monstType].alpha) {
+                        //if (this.info[monstType].alpha) {
                             stunTarget = firstStunUnderMax;
                             if (!stunTarget) {
                                 stunTarget = firstStunOverAch;
@@ -964,7 +964,7 @@ monster = {
                                 energyTarget.type = 'Stun';
                                 utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
                             }
-                        }
+                        //}
 
                         state.setItem('targetFromfortify', energyTarget);
                         utility.log(1, 'Energy target', energyTarget);

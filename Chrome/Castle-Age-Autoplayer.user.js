@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            41
+// @dev            42
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "41",
+    devVersion  = "42",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
@@ -4049,7 +4049,7 @@ monster = {
                     // Now we use the first under max/under achievement that we found. If we didn't find any under
                     // achievement then we use the first over achievement
                     if (selectTypes[s] !== 'raid') {
-                        if (this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
+                        //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
                             strengthTarget = firstStrengthUnderMax;
                             if (!strengthTarget) {
                                 strengthTarget = firstStrengthOverAch;
@@ -4060,7 +4060,7 @@ monster = {
                                 energyTarget.type = 'Strengthen';
                                 utility.log(1, 'Strengthen target ', energyTarget.name);
                             }
-                        }
+                        //}
 
                         fortifyTarget = firstFortUnderMax;
                         if (!fortifyTarget) {
@@ -4070,14 +4070,14 @@ monster = {
                         if (fortifyTarget) {
                             energyTarget.name = fortifyTarget;
                             energyTarget.type = 'Fortify';
-                            if (this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
+                            //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
                                 utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
-                            } else {
-                                utility.log(1, 'Fortify ', energyTarget.name);
-                            }
+                            //} else {
+                            //    utility.log(1, 'Fortify ', energyTarget.name);
+                            //}
                         }
 
-                        if (this.info[monstType].alpha) {
+                        //if (this.info[monstType].alpha) {
                             stunTarget = firstStunUnderMax;
                             if (!stunTarget) {
                                 stunTarget = firstStunOverAch;
@@ -4088,7 +4088,7 @@ monster = {
                                 energyTarget.type = 'Stun';
                                 utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
                             }
-                        }
+                        //}
 
                         state.setItem('targetFromfortify', energyTarget);
                         utility.log(1, 'Energy target', energyTarget);
