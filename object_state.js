@@ -24,16 +24,10 @@ state = {
 
     load: function () {
         try {
-            if (gm.getItem('state.flags', 'default') === 'default') {
+            if (gm.getItem('state.flags', 'default') === 'default' || utility.typeOf(this.flags) !== 'object') {
                 gm.setItem('state.flags', this.flags);
             } else {
                 this.flags = gm.getItem('state.flags', this.flags);
-            }
-
-            if (utility.typeOf(this.flags) !== 'object') {
-                utility.warn("Invalid flags object! Resetting!");
-                gm.deleteItem('state.flags');
-                this.flags = {};
             }
 
             this.log(2, "state.load");

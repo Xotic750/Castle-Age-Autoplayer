@@ -86,30 +86,32 @@ utility = {
 
     NavigateTo: function (pathToPage, imageOnPage) {
         try {
-            var content   = document.getElementById('content'),
+            var content   = null,
                 pathList  = [],
                 s         = 0,
                 a         = null,
                 imageTest = '',
-                input     = null,
                 img       = null;
 
-            if (!content) {
+            content = $("#content");
+            if (!content || !content.length) {
                 this.warn('No content to Navigate to', imageOnPage, pathToPage);
                 return false;
             }
 
-            if (imageOnPage && this.CheckForImage(imageOnPage)) {
-                return false;
+            if (imageOnPage) {
+                if (this.CheckForImage(imageOnPage)) {
+                    return false;
+                }
             }
 
             pathList = pathToPage.split(",");
             for (s = pathList.length - 1; s >= 0; s -= 1) {
-                a = nHtml.FindByAttrXPath(content, 'a', "contains(@href,'/" + pathList[s] + ".php') and not(contains(@href,'" + pathList[s] + ".php?'))");
-                if (a) {
+                a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
+                if (a && a.length) {
                     this.log(1, 'Go to', pathList[s]);
                     //state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + pathList[s] + '.php');
-                    this.Click(a);
+                    this.Click(a.get(0));
                     return true;
                 }
 
@@ -118,14 +120,7 @@ utility = {
                     imageTest = imageTest + '.';
                 }
 
-                input = nHtml.FindByAttrContains(document.body, "input", "src", imageTest);
-                if (input) {
-                    this.log(2, 'Click on image', input.src.match(/[\w.]+$/));
-                    this.Click(input);
-                    return true;
-                }
-
-                img = nHtml.FindByAttrContains(document.body, "img", "src", imageTest);
+                img = this.CheckForImage(imageTest);
                 if (img) {
                     this.log(2, 'Click on image', img.src.match(/[\w.]+$/));
                     this.Click(img);

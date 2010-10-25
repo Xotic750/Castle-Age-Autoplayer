@@ -202,18 +202,16 @@ caap = {
 
             htmlCode = "<select id='caap_" + idName + "' " + ((instructions[count]) ? " title='" + instructions[count] + "' " : '') + formatParms + ">";
             htmlCode += this.defaultDropDownOption;
-            for (item in dropDownList) {
-                if (dropDownList.hasOwnProperty(item)) {
-                    if (instructions) {
-                        htmlCode += "<option value='" + dropDownList[item] +
-                            "'" + ((selectedItem === dropDownList[item]) ? " selected='selected'" : '') +
-                            ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" +
-                            dropDownList[item] + "</option>";
-                    } else {
-                        htmlCode += "<option value='" + dropDownList[item] +
-                            "'" + ((selectedItem === dropDownList[item]) ? " selected='selected'" : '') + ">" +
-                            dropDownList[item] + "</option>";
-                    }
+            for (item = 0; item < dropDownList.length; item += 1) {
+                if (instructions) {
+                    htmlCode += "<option value='" + dropDownList[item] +
+                        "'" + ((selectedItem === dropDownList[item]) ? " selected='selected'" : '') +
+                        ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" +
+                        dropDownList[item] + "</option>";
+                } else {
+                    htmlCode += "<option value='" + dropDownList[item] +
+                        "'" + ((selectedItem === dropDownList[item]) ? " selected='selected'" : '') + ">" +
+                        dropDownList[item] + "</option>";
                 }
             }
 
@@ -239,14 +237,12 @@ caap = {
             }
 
             htmlCode = " <select id='caap_" + idName + "' " + formatParms + "'><option>" + selectedItem;
-            for (item in dropDownList) {
-                if (dropDownList.hasOwnProperty(item)) {
-                    if (selectedItem !== dropDownList[item]) {
-                        if (instructions) {
-                            htmlCode += "<option value='" + dropDownList[item] + "' " + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">"  + dropDownList[item];
-                        } else {
-                            htmlCode += "<option value='" + dropDownList[item] + "'>" + dropDownList[item];
-                        }
+            for (item = 0; item < dropDownList.length; item += 1) {
+                if (selectedItem !== dropDownList[item]) {
+                    if (instructions) {
+                        htmlCode += "<option value='" + dropDownList[item] + "' " + ((instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">"  + dropDownList[item];
+                    } else {
+                        htmlCode += "<option value='" + dropDownList[item] + "'>" + dropDownList[item];
                     }
                 }
             }
@@ -565,15 +561,13 @@ caap = {
         try {
             $("#caap_" + idName + " option").remove();
             $("#caap_" + idName).append(this.defaultDropDownOption);
-            for (var item in dropList) {
-                if (dropList.hasOwnProperty(item)) {
-                    if (item === '0' && !option) {
-                        config.setItem(idName, dropList[item]);
-                        utility.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
-                    }
-
-                    $("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
+            for (var item = 0; item < dropList.length; item += 1) {
+                if (item === 0 && !option) {
+                    config.setItem(idName, dropList[item]);
+                    utility.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                 }
+
+                $("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
             }
 
             if (option) {
@@ -702,10 +696,8 @@ caap = {
                 htmlCode = '',
                 banner = '';
 
-            for (divID in this.divList) {
-                if (this.divList.hasOwnProperty(divID)) {
-                    caapDiv += "<div id='caap_" + this.divList[divID] + "'></div>";
-                }
+            for (divID = 0; divID < this.divList.length; divID += 1) {
+                caapDiv += "<div id='caap_" + this.divList[divID] + "'></div>";
             }
 
             caapDiv += "</div>";
@@ -879,7 +871,7 @@ caap = {
         try {
             var XBattleInstructions = "Start battling if stamina is above this points",
                 XMinBattleInstructions = "Don't battle if stamina is below this points",
-                safeHealthInstructions = "Wait until health is 12 instead of 10, prevents you killing yourself but leaves you unhidden for upto 10 minutes",
+                safeHealthInstructions = "Wait until health is 13 instead of 10, prevents you killing yourself but leaves you unhidden for upto 15 minutes",
                 userIdInstructions = "User IDs(not user name).  Click with the " +
                     "right mouse button on the link to the users profile & copy link." +
                     "  Then paste it here and remove everything but the last numbers." +
@@ -1015,7 +1007,8 @@ caap = {
                 demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Set 'Battle When' to 'No Monster'",
                 powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
                 powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
-                powerfortifyMaxInstructions = "Use maximum power fortify globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
+                powerfortifyMaxInstructions = "Use maximum power fortify globally. Only do normal fortify attacks if maximum power fortify not possible. " +
+                    "Also includes other energy attacks, Strengthen, Deflect and Cripple. NOTE: Setting a high forty% can waste energy and no safety on other types.",
                 dosiegeInstructions = "Turns on or off automatic siege assist for all monsters only.",
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
@@ -1086,10 +1079,8 @@ caap = {
             htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
             htmlCode += this.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            for (demiPtItem in demiPtList) {
-                if (demiPtList.hasOwnProperty(demiPtItem)) {
-                    htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
-                }
+            for (demiPtItem = 0; demiPtItem < demiPtList.length; demiPtItem += 1) {
+                htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
             }
 
             htmlCode += "</table>";
@@ -1100,6 +1091,8 @@ caap = {
             htmlCode += "<tr><td style='padding-left: 10px'>Quest If % Over</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td>No Attack If % Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, '', '') + '</table>';
             htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
             htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
             htmlCode += "</div>";
@@ -1175,6 +1168,7 @@ caap = {
                     "(Warning: May cause you not to gain influence if wrong general is equipped.)",
                 LevelUpGenInstructions9 = "Ignore Banking until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
+                LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
                 dropDownItem = 0,
                 htmlCode = '';
 
@@ -1182,11 +1176,9 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', true, '', ignoreGeneralImage) + "</table>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            for (dropDownItem in general.StandardList) {
-                if (general.StandardList.hasOwnProperty(dropDownItem)) {
-                    htmlCode += '<tr><td>' + general.StandardList[dropDownItem] + "</td><td style='text-align: right'>" +
-                        this.MakeDropDown(general.StandardList[dropDownItem] + 'General', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-                }
+            for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
+                htmlCode += '<tr><td>' + general.StandardList[dropDownItem] + "</td><td style='text-align: right'>" +
+                    this.MakeDropDown(general.StandardList[dropDownItem] + 'General', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
             }
 
             htmlCode += "<tr><td>Buy</td><td style='text-align: right'>" + this.MakeDropDown('BuyGeneral', general.BuyList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
@@ -1196,17 +1188,18 @@ caap = {
             htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + this.MakeDropDown('LevelUpGeneral', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
             htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Exp To Use LevelUp Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-            htmlCode += this.MakeCheckTR("Level Up Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
-            htmlCode += this.MakeCheckTR("Level Up Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
-            htmlCode += this.MakeCheckTR("Level Up Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
-            htmlCode += this.MakeCheckTR("Level Up Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions8);
-            htmlCode += this.MakeCheckTR("Don't Bank After Level Up", 'NoBankAfterLvl', true, '', LevelUpGenInstructions9);
-            htmlCode += this.MakeCheckTR("Don't Income After Level Up", 'NoIncomeAfterLvl', true, '', LevelUpGenInstructions10);
+            htmlCode += "<tr><td>&nbsp;&nbsp;&nbsp;Exp To Use Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions8);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Don't Bank After", 'NoBankAfterLvl', true, '', LevelUpGenInstructions9);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Don't Income After", 'NoIncomeAfterLvl', true, '', LevelUpGenInstructions10);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, '', LevelUpGenInstructions11);
             htmlCode += "</table></div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, '', reverseGenInstructions) + "</table>";
@@ -1296,16 +1289,25 @@ caap = {
             // Other controls
             var giftInstructions = "Automatically receive and send return gifts.",
                 giftQueueUniqueInstructions = "When enabled only unique user's gifts will be queued, otherwise all received gifts will be queued.",
+                giftCollectOnlyInstructions = "Only collect gifts, do not queue and do not return.",
+                giftCollectAndQueueInstructions = "When used with Collect Only it will collect and queue gifts but not return.",
+                giftReturnOnlyOneInstructions = "Only return 1 gift to a person in 24 hours even if you received many from that person.",
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Gifting', 'GIFTING OPTIONS');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Auto Gifting', 'AutoGift', false, 'GiftControl', giftInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions) + '</table>';
+            htmlCode += this.MakeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions);
+            htmlCode += this.MakeCheckTR('Collect Only', 'CollectOnly', false, 'CollectOnly_Adv', giftCollectOnlyInstructions, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;And Queue', 'CollectAndQueue', false, '', giftCollectAndQueueInstructions) + '</table>';
+            htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%'>Give</td><td style='text-align: right'>" +
                 this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions) + '</table>';
             htmlCode += '</div>';
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -1395,7 +1397,6 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
                 this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-            htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
@@ -1729,8 +1730,8 @@ caap = {
                 monsterList              = [],
                 monsterName              = '',
                 monstType                = '',
-                energyRequire            = 0,
-                nodeNum                  = 0,
+                //energyRequire            = 0,
+                //nodeNum                  = 0,
                 color                    = '',
                 value                    = 0,
                 headers                  = [],
@@ -1781,7 +1782,7 @@ caap = {
             if (state.getItem("MonsterDashUpdate", true)) {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
-                values  = ['name', 'damage', 'life', 'fortify', 'strength', 'timeLeft', 't2k', 'phase', 'link'];
+                values  = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'];
                 for (pp = 0; pp < headers.length; pp += 1) {
                     width = '';
                     if (headers[pp] === 'Name') {
@@ -1796,30 +1797,32 @@ caap = {
                 utility.log(9, "monsterList", monsterList);
                 monster.records.forEach(function (monsterObj) {
                     utility.log(9, "monsterObj", monsterObj);
-                    monsterName = monsterObj.name;
-                    monstType = monsterObj.type;
+                    //monsterName = monsterObj.name;
+                    //monstType = monsterObj.type;
+                    /*
                     energyRequire = 10;
                     nodeNum = 0;
-                    if (monster.info[monstType]) {
-                        if (!caap.InLevelUpMode() && config.getItem('PowerFortifyMax') && monster.info[monstType].staLvl) {
-                            for (nodeNum = monster.info[monstType].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max > monster.info[monstType].staLvl[nodeNum]) {
+                    if (monster.info[monsterObj.type]) {
+                        if (!caap.InLevelUpMode() && config.getItem('PowerFortifyMax') && monster.info[monsterObj.type].staLvl) {
+                            for (nodeNum = monster.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                if (caap.stats.stamina.max > monster.info[monsterObj.type].staLvl[nodeNum]) {
                                     break;
                                 }
                             }
                         }
 
-                        if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax') && monster.info[monstType].nrgMax) {
-                            energyRequire = monster.info[monstType].nrgMax[nodeNum];
+                        if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax') && monster.info[monsterObj.type].nrgMax) {
+                            energyRequire = monster.info[monsterObj.type].nrgMax[nodeNum];
                         }
                     }
+                    */
 
-                    utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
+                    //utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
                     color = '';
                     html += "<tr>";
-                    if (monsterName === state.getItem('targetFromfortify', '')) {
+                    if (monsterObj.name === state.getItem('targetFromfortify', {}).name) {
                         color = 'blue';
-                    } else if (monsterName === state.getItem('targetFromraid', '') || monsterName === state.getItem('targetFrombattle_monster', '')) {
+                    } else if (monsterObj.name === state.getItem('targetFromraid', '') || monsterObj.name === state.getItem('targetFrombattle_monster', '')) {
                         color = 'green';
                     } else {
                         color = monsterObj.color;
@@ -1838,10 +1841,10 @@ caap = {
                     if (monsterObjLink) {
                         visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
                         utility.log(9, "visitMonsterLink", visitMonsterLink);
-                        visitMonsterInstructions = "Clicking this link will take you to " + monsterName;
+                        visitMonsterInstructions = "Clicking this link will take you to " + monsterObj.name;
                         data = {
-                            text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterName + '" rlink="' + visitMonsterLink[1] +
-                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterName + '</span>',
+                            text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj.name + '" rlink="' + visitMonsterLink[1] +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj.name + '</span>',
                             color : color,
                             id    : '',
                             title : ''
@@ -1849,7 +1852,7 @@ caap = {
 
                         html += caap.makeTd(data);
                     } else {
-                        html += caap.makeTd({text: monsterName, color: color, id: '', title: ''});
+                        html += caap.makeTd({text: monsterObj.name, color: color, id: '', title: ''});
                     }
 
                     values.forEach(function (displayItem) {
@@ -1871,8 +1874,8 @@ caap = {
                                     if (achLevel) {
                                         title = "User Set Monster Achievement: " + caap.makeCommaValue(achLevel);
                                     } else if (config.getItem('AchievementMode', false)) {
-                                        if (monster.info[monstType]) {
-                                            title = "Default Monster Achievement: " + caap.makeCommaValue(monster.info[monstType].ach);
+                                        if (monster.info[monsterObj.type]) {
+                                            title = "Default Monster Achievement: " + caap.makeCommaValue(monster.info[monsterObj.type].ach);
                                         }
                                     } else {
                                         title = "Achievement Mode Disabled";
@@ -1883,9 +1886,14 @@ caap = {
                                     }
 
                                     break;
-                                case 'timeLeft' :
-                                    if (monster.info[monstType]) {
-                                        title = "Total Monster Duration: " + monster.info[monstType].duration + " hours";
+                                case 'time' :
+                                    if (value && value.length === 3) {
+                                        value = value[0] + ":" + value[1];
+                                        if (monster.info[monsterObj.type]) {
+                                            title = "Total Monster Duration: " + monster.info[monsterObj.type].duration + " hours";
+                                        }
+                                    } else {
+                                        value = '';
                                     }
 
                                     break;
@@ -1895,6 +1903,10 @@ caap = {
                                     break;
                                 case 'life' :
                                     value = value.toFixed(2);
+                                    title = "Percentage of monster life remaining: " + value + "%";
+                                    break;
+                                case 'phase' :
+                                    value = value + "/" + monster.info[monsterObj.type].siege + " need " + monsterObj.miss;
                                     title = "Percentage of monster life remaining: " + value + "%";
                                     break;
                                 case 'fortify' :
@@ -3302,7 +3314,7 @@ caap = {
                 utility.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 config.setItem(idName, value);
                 e.target.title = title;
-                if (idName === 'WhenQuest' || idName === 'WhenBattle' || idName === 'WhenMonster' || idName === 'LevelUpGeneral') {
+                if (idName === 'WhenQuest' || idName === 'WhenBattle' || idName === 'WhenMonster') {
                     caap.SetDisplay(idName + 'Hide', (value !== 'Never'));
                     if (idName === 'WhenBattle' || idName === 'WhenMonster') {
                         caap.SetDisplay(idName + 'XStamina', (value === 'At X Stamina'));
@@ -3371,6 +3383,9 @@ caap = {
                         caap.SetDisplay('UserIdsSub', false);
                         caap.SetDisplay('RaidSub', false);
                     }
+                } else if (idName === 'LevelUpGeneral') {
+                    caap.SetDisplay(idName + 'Hide', (value !== 'Use Current'));
+                    utility.log(1, "HIDE", idName, value);
                 } else if (/Attribute?/.test(idName)) {
                     state.setItem("statsMatch", true);
                 } else if (idName === 'DisplayStyle') {
@@ -3689,7 +3704,7 @@ caap = {
                 // Uncomment this to see the id of domNodes that are inserted
 
                 /*
-                if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/)) {
+                if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/i) && !event.target.id.match(/ticker/i) && !event.target.id.match(/caap/i)) {
                     caap.SetDivContent('debug2_mess', targetStr);
                     alert(event.target.id);
                 }
@@ -3707,6 +3722,12 @@ caap = {
                     window.setTimeout(function () {
                         caap.CheckResults();
                     }, 100);
+                }
+
+                if ((targetStr === "battle" || targetStr === "raid") && battle.flagResult) {
+                    utility.log(1, "Checking Battle Results");
+                    battle.checkResults();
+                    battle.flagResult = false;
                 }
 
                 // Income timer
@@ -4279,7 +4300,7 @@ caap = {
     },
 
     LoadStats: function () {
-        if (gm.getItem('stats.record', 'default') === 'default') {
+        if (gm.getItem('stats.record', 'default') === 'default' || utility.typeOf(gm.getItem('stats.record', 'default')) !== 'object') {
             gm.setItem('stats.record', this.stats);
         } else {
             this.stats = gm.getItem('stats.record', this.stats);
@@ -4982,7 +5003,13 @@ caap = {
                     name = $(this).attr("class").replace("banner_", '');
                     if (name && typeof caap.stats.character[name] === 'object') {
                         //caap.stats.character[name].name = name.ucFirst();
-                        caap.stats.character[name].percent = utility.NumberOnly($(this).find("img[src*='progress']").css("width"));
+                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                        if ($().jquery === "1.4.3") {
+                            caap.stats.character[name].percent = utility.NumberOnly($(this).find("img[src*='progress']").attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
+                        } else {
+                            caap.stats.character[name].percent = utility.NumberOnly($(this).find("img[src*='progress']").css("width"));
+                        }
+
                         caap.stats.character[name].level = utility.NumberOnly($(this).children().eq(2).text());
                     } else {
                         utility.warn("Problem character class name", name);
@@ -5036,7 +5063,8 @@ caap = {
             next : 'Land of Earth',
             area : '',
             list : '',
-            boss : 'Heart of Fire'
+            boss : 'Heart of Fire',
+            orb  : 'Orb of Gildamesh'
         },
         'Land of Earth' : {
             clas : 'quests_stage_2',
@@ -5044,7 +5072,8 @@ caap = {
             next : 'Land of Mist',
             area : '',
             list : '',
-            boss : 'Gift of Earth'
+            boss : 'Gift of Earth',
+            orb  : 'Colossal Orb'
         },
         'Land of Mist' : {
             clas : 'quests_stage_3',
@@ -5052,7 +5081,8 @@ caap = {
             next : 'Land of Water',
             area : '',
             list : '',
-            boss : 'Eye of the Storm'
+            boss : 'Eye of the Storm',
+            orb  : 'Sylvanas Orb'
         },
         'Land of Water' : {
             clas : 'quests_stage_4',
@@ -5060,7 +5090,8 @@ caap = {
             next : 'Demon Realm',
             area : '',
             list : '',
-            boss : 'A Look into the Darkness'
+            boss : 'A Look into the Darkness',
+            orb  : 'Orb of Mephistopheles'
         },
         'Demon Realm' : {
             clas : 'quests_stage_5',
@@ -5068,7 +5099,8 @@ caap = {
             next : 'Undead Realm',
             area : '',
             list : '',
-            boss : 'The Rift'
+            boss : 'The Rift',
+            orb  : 'Orb of Keira'
         },
         'Undead Realm' : {
             clas : 'quests_stage_6',
@@ -5076,7 +5108,8 @@ caap = {
             next : 'Underworld',
             area : '',
             list : '',
-            boss : 'Undead Embrace'
+            boss : 'Undead Embrace',
+            orb  : 'Lotus Orb'
         },
         'Underworld' : {
             clas : 'quests_stage_7',
@@ -5084,7 +5117,8 @@ caap = {
             next : 'Kingdom of Heaven',
             area : '',
             list : '',
-            boss : 'Confrontation'
+            boss : 'Confrontation',
+            orb  : 'Orb of Skaar Deathrune'
         },
         'Kingdom of Heaven' : {
             clas : 'quests_stage_8',
@@ -5092,7 +5126,8 @@ caap = {
             next : 'Ivory City',
             area : '',
             list : '',
-            boss : 'Archangels Wrath'
+            boss : 'Archangels Wrath',
+            orb  : 'Orb of Azriel'
         },
         'Ivory City' : {
             clas : 'quests_stage_9',
@@ -5100,7 +5135,8 @@ caap = {
             next : 'Earth II',
             area : '',
             list : '',
-            boss : 'Entrance to the Throne'
+            boss : 'Entrance to the Throne',
+            orb  : 'Orb of Alpha Mephistopheles'
         },
         'Earth II' : {
             clas : 'quests_stage_10',
@@ -5108,7 +5144,8 @@ caap = {
             next : 'Ambrosia',
             area : 'Demi Quests',
             list : 'demiQuestList',
-            boss : "Lion's Rebellion"
+            boss : "Lion's Rebellion",
+            orb  : 'Orb of Aurelius'
         },
         'Ambrosia' : {
             clas : 'symbolquests_stage_1',
@@ -5179,34 +5216,45 @@ caap = {
                 return false;
             }
 
-            if (whenQuest === 'Not Fortifying') {
-                var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
-                if (!maxHealthtoQuest) {
-                    this.SetDivContent('quest_mess', '<span style="font-weight: bold;">No valid over fortify %</span>');
-                    return false;
-                }
-
-                var fortMon = state.getItem('targetFromfortify', '');
-                if (fortMon) {
-                    this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon + " health exceeds " + config.getItem('MaxToFortify', 0) + '%');
-                    return false;
-                }
-
-                var targetFrombattle_monster = state.getItem('targetFrombattle_monster', '');
-                if (!targetFrombattle_monster) {
-                    var currentMonster = monster.getItem(targetFrombattle_monster);
-                    var targetFort = currentMonster.fortify;
-                    if (!targetFort) {
-                        if (targetFort < maxHealthtoQuest) {
-                            this.SetDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
+            if (whenQuest === 'Not Fortifying' || (config.getItem('PrioritiseMonsterAfterLvl', false) && state.getItem('KeepLevelUpGeneral', false))) {
+                var fortMon = state.getItem('targetFromfortify', {});
+                if (utility.typeOf(fortMon) === 'object' && fortMon.name && fortMon.type) {
+                    switch (fortMon.type) {
+                    case "Fortify":
+                        var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
+                        if (!maxHealthtoQuest) {
+                            this.SetDivContent('quest_mess', '<span style="font-weight: bold;">No valid over fortify %</span>');
                             return false;
                         }
+
+                        this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon.name + " health exceeds " + config.getItem('MaxToFortify', 0) + '%');
+                        var targetFrombattle_monster = state.getItem('targetFrombattle_monster', '');
+                        if (!targetFrombattle_monster) {
+                            var currentMonster = monster.getItem(targetFrombattle_monster);
+                            if (!currentMonster.fortify) {
+                                if (currentMonster.fortify < maxHealthtoQuest) {
+                                    this.SetDivContent('quest_mess', 'No questing until fortify target ' + targetFrombattle_monster + ' health exceeds ' + maxHealthtoQuest + '%');
+                                    return false;
+                                }
+                            }
+                        }
+
+                        break;
+                    case "Strengthen":
+                        this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon.name + " at full strength.");
+                        break;
+                    case "Stun":
+                        this.SetDivContent('quest_mess', 'No questing until attack target ' + fortMon.name + " stunned.");
+                        break;
+                    default:
                     }
+
+                    return false;
                 }
             }
 
             if (!state.getItem('AutoQuest', this.newAutoQuest()).name) {
-                if (config.getItem('WhyQuest', 'Never') === 'Manual') {
+                if (config.getItem('WhyQuest', 'Manual') === 'Manual') {
                     this.SetDivContent('quest_mess', 'Pick quest manually.');
                     return false;
                 }
@@ -5214,6 +5262,12 @@ caap = {
                 this.SetDivContent('quest_mess', 'Searching for quest.');
                 utility.log(1, "Searching for quest");
             } else {
+                if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && config.getItem('WhyQuest', 'Manual') !== 'Manual') {
+                    if (this.CheckMagic()) {
+                        return true;
+                    }
+                }
+
                 var energyCheck = this.CheckEnergy(state.getItem('AutoQuest', this.newAutoQuest()).energy, whenQuest, 'quest_mess');
                 if (!energyCheck) {
                     return false;
@@ -5428,6 +5482,9 @@ caap = {
                 state.setItem('ReleaseControl', true);
                 utility.Click(autoQuestDivs.click, 10000);
                 this.ShowAutoQuest();
+                if (autoQuestDivs.orbCheck) {
+                    schedule.setItem("magic", 0);
+                }
                 return true;
             } else {
                 utility.warn('Can not click auto quest', autoQuestName);
@@ -5487,7 +5544,7 @@ caap = {
 
             for (qn in this.QuestAreaInfo) {
                 if (this.QuestAreaInfo.hasOwnProperty(qn)) {
-                    if (this.QuestAreaInfo.boss && this.QuestAreaInfo.boss === name) {
+                    if (this.QuestAreaInfo[qn].boss && this.QuestAreaInfo[qn].boss === name) {
                         found = true;
                         break;
                     }
@@ -5547,20 +5604,20 @@ caap = {
                 return false;
             }
 
-            var haveOrb = false;
-            if ($(div).find("input[src*='alchemy_summon']").length) {
-                haveOrb = true;
-                if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual') {
-                    state.setItem('AutoQuest', this.newAutoQuest());
-                }
+            var haveOrb = town.haveOrb(this.QuestAreaInfo[config.getItem('QuestSubArea', 'Land of Fire')].orb);
+            utility.log(1, "info/have", this.QuestAreaInfo[config.getItem('QuestSubArea', 'Land of Fire')], haveOrb);
+            if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual' && haveOrb) {
+                state.setItem('AutoQuest', this.newAutoQuest());
             }
 
             var autoQuestDivs = {
-                'click' : undefined,
-                'tr'    : undefined,
-                'genDiv': undefined
+                click    : undefined,
+                tr       : undefined,
+                genDiv   : undefined,
+                orbCheck : false
             };
 
+            $("div[class='autoquest']").remove();
             for (s = 0; s < ss.snapshotLength; s += 1) {
                 div = ss.snapshotItem(s);
                 this.questName = this.GetQuestName(div);
@@ -5679,11 +5736,10 @@ caap = {
                 this.LabelQuests(div, energy, reward, experience, click);
                 utility.log(9, "QuestSubArea", config.getItem('QuestSubArea', 'Atlantis'));
                 if (this.CheckCurrentQuestArea(config.getItem('QuestSubArea', 'Atlantis'))) {
-                    if (config.getItem('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual') {
-                        if (!haveOrb) {
-                            this.updateAutoQuest('name', this.questName);
-                            pickQuestTF = true;
-                        }
+                    if (config.getItem('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual' && !haveOrb) {
+                        this.updateAutoQuest('name', this.questName);
+                        pickQuestTF = true;
+                        autoQuestDivs.orbCheck = true;
                     }
 
                     switch (whyQuest) {
@@ -5741,9 +5797,9 @@ caap = {
                         state.setItem('AutoQuest', tempAutoQuest);
                         utility.log(2, "CheckResults_quests", state.getItem('AutoQuest', this.newAutoQuest()));
                         this.ShowAutoQuest();
-                        autoQuestDivs.click  = click;
-                        autoQuestDivs.tr     = div;
-                        autoQuestDivs.genDiv = genDiv;
+                        autoQuestDivs.click    = click;
+                        autoQuestDivs.tr       = div;
+                        autoQuestDivs.genDiv   = genDiv;
                     }
                 }
             }
@@ -5947,16 +6003,6 @@ caap = {
         }
     },
 
-    AddLabelListener: function (element, type, listener, usecapture) {
-        try {
-            element.addEventListener(type, this[listener], usecapture);
-            return true;
-        } catch (err) {
-            utility.error("ERROR in AddLabelListener: " + err);
-            return false;
-        }
-    },
-
     LabelListener: function (e) {
         try {
             var sps = e.target.getElementsByTagName('span'),
@@ -6006,6 +6052,7 @@ caap = {
             utility.log(1, 'Setting QuestSubArea to', config.getItem('QuestSubArea', 'Land Of Fire'));
             caap.SelectDropOption('QuestSubArea', config.getItem('QuestSubArea', 'Land Of Fire'));
             caap.ShowAutoQuest();
+            caap.CheckResults_quests();
             return true;
         } catch (err) {
             utility.error("ERROR in LabelListener: " + err);
@@ -6042,7 +6089,7 @@ caap = {
             quest_energyObj.innerHTML = energy;
             quest_energyObj.style.display = 'none';
             setAutoQuest.appendChild(quest_energyObj);
-            this.AddLabelListener(setAutoQuest, "click", "LabelListener", false);
+            setAutoQuest.addEventListener("click", this.LabelListener, false);
 
             div.appendChild(setAutoQuest);
         }
@@ -6408,531 +6455,6 @@ caap = {
         return false;
     },
 
-    /////////////////////////////////////////////////////////////////////
-    //                          BATTLING PLAYERS
-    /////////////////////////////////////////////////////////////////////
-
-    CheckBattleResults: function () {
-        try {
-            var battleRecord = {},
-                tempTime     = new Date(2009, 0, 1).getTime(),
-                chainBP      = 0,
-                chainGold    = 0,
-                maxChains    = 0,
-                result       = {
-                    userId     : 0,
-                    userName   : '',
-                    battleType : '',
-                    points     : 0,
-                    gold       : 0,
-                    win        : false
-                };
-
-            if (battle.deadCheck() !== false) {
-                return true;
-            }
-
-            result = battle.getResult();
-            if (!result) {
-                return true;
-            }
-
-            battleRecord = battle.getItem(result.userId);
-            if (result.win) {
-                utility.log(1, "We Defeated ", result.userName);
-                //Test if we should chain this guy
-                state.setItem("BattleChainId", 0);
-                tempTime = battleRecord.chainTime ? battleRecord.chainTime : new Date(2009, 0, 1).getTime();
-                chainBP = config.getItem('ChainBP', '');
-                chainGold = config.getItem('ChainGold', '');
-                if (schedule.since(tempTime, 86400) && ((utility.isNum(chainBP) && chainBP >= 0) || (utility.isNum(chainGold) && chainGold >= 0))) {
-                    if (utility.isNum(chainBP) && chainBP >= 0) {
-                        if (result.points >= chainBP) {
-                            state.setItem("BattleChainId", result.userId);
-                            utility.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
-                        } else {
-                            battleRecord.ignoreTime = new Date().getTime();
-                        }
-                    }
-
-                    if (utility.isNum(chainGold) && chainGold >= 0) {
-                        if (result.gold >= chainGold) {
-                            state.setItem("BattleChainId", result.userId);
-                            utility.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
-                        } else {
-                            battleRecord.ignoreTime = new Date().getTime();
-                        }
-                    }
-                }
-
-                battleRecord.chainCount = battleRecord.chainCount ? battleRecord.chainCount += 1 : 1;
-                maxChains = config.getItem('MaxChains', 4);
-                if (!utility.isNum(maxChains) || maxChains < 0) {
-                    maxChains = 4;
-                }
-
-                if (battleRecord.chainCount >= maxChains) {
-                    utility.log(1, "Lets give this guy a break. Chained", battleRecord.chainCount);
-                    battleRecord.chainTime = new Date().getTime();
-                    battleRecord.chainCount = 0;
-                }
-            } else {
-                utility.log(1, "We Were Defeated By ", result.userName);
-                battleRecord.chainCount = 0;
-                battleRecord.chainTime = new Date(2009, 0, 1).getTime();
-            }
-
-            battle.setItem(battleRecord);
-            this.SetCheckResultsFunction('');
-            return true;
-        } catch (err) {
-            utility.error("ERROR in CheckBattleResults: " + err);
-            return false;
-        }
-    },
-
-    BattleUserId: function (userid) {
-        try {
-            if (battle.hashCheck(userid)) {
-                return true;
-            }
-
-            var battleButton = null,
-                form = null,
-                inp = null;
-
-            battleButton = utility.CheckForImage(this.battles.Freshmeat[config.getItem('BattleType', 'Invade')]);
-            if (battleButton) {
-                form = $(battleButton).parent().parent();
-                if (form && form.length) {
-                    inp = form.find("input[name='target_id']");
-                    if (inp && inp.length) {
-                        inp.attr("value", userid);
-                        state.setItem("lastBattleID", userid);
-                        this.ClickBattleButton(battleButton);
-                        state.setItem("notSafeCount", 0);
-                        return true;
-                    } else {
-                        utility.warn("target_id not found in battleForm");
-                    }
-                } else {
-                    utility.warn("form not found in battleButton");
-                }
-            } else {
-                utility.warn("battleButton not found");
-            }
-
-            return false;
-        } catch (err) {
-            utility.error("ERROR in BattleUserId: " + err);
-            return false;
-        }
-    },
-
-    ClickBattleButton: function (battleButton) {
-        state.setItem('ReleaseControl', true);
-        this.SetCheckResultsFunction('CheckBattleResults');
-        utility.Click(battleButton);
-    },
-
-    battles: {
-        Raid : {
-            Invade   : 'raid_attack_button.gif',
-            Duel     : 'raid_attack_button2.gif',
-            regex1   : new RegExp('Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
-            refresh  : 'raid',
-            image    : 'tab_raid_on.gif'
-        },
-        Freshmeat : {
-            Invade   : 'battle_01.gif',
-            Duel     : 'battle_02.gif',
-            War      : 'war_button_duel.gif',
-            regex1   : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            regex2   : new RegExp('(.+)    \\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-            warLevel : true,
-            refresh  : 'battle_on.gif',
-            image    : 'battle_on.gif'
-        }
-    },
-
-    BattleFreshmeat: function (type) {
-        try {
-            var invadeOrDuel = config.getItem('BattleType', 'Invade'),
-                target       = "//input[contains(@src,'" + this.battles[type][invadeOrDuel] + "')]",
-                ss           = document.evaluate(target, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-
-            utility.log(1, 'target ', target);
-            if (ss.snapshotLength <= 0) {
-                utility.warn('Not on battlepage');
-                return false;
-            }
-
-            var plusOneSafe     = false,
-                safeTargets     = [],
-                count           = 0,
-                chainId         = '',
-                chainAttack     = false,
-                inp             = null,
-                txt             = '',
-                levelm          = '',
-                minRank         = 0,
-                maxLevel        = 0,
-                ARBase          = 0,
-                ARMax           = 0,
-                ARMin           = 0,
-                levelMultiplier = 0,
-                armyRatio       = 0,
-                tempRecord      = {},
-                battleRecord    = {},
-                tempTime        = new Date(2009, 0, 1).getTime();
-
-            chainId = state.getItem('BattleChainId', 0);
-            state.setItem('BattleChainId', '');
-            // Lets get our Freshmeat user settings
-            minRank = config.getItem("FreshMeatMinRank", 99);
-            utility.log(2, "FreshMeatMinRank", minRank);
-            if (!utility.isNum(minRank)) {
-                if (minRank !== '') {
-                    utility.warn("FreshMeatMinRank is NaN, using default", 99);
-                }
-
-                minRank = 99;
-            }
-
-            maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
-            utility.log(2, "FreshMeatMaxLevel", maxLevel);
-            if (!utility.isNum(maxLevel)) {
-                maxLevel = 99999;
-                utility.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
-            }
-
-            ARBase = config.getItem("FreshMeatARBase", 0.5);
-            utility.log(2, "FreshMeatARBase", ARBase);
-            if (!utility.isNum(ARBase)) {
-                ARBase = 0.5;
-                utility.warn("FreshMeatARBase is NaN, using default", ARBase);
-            }
-
-            ARMax = gm.getItem("FreshMeatARMax", 99999, hiddenVar);
-            utility.log(2, "FreshMeatARMax", ARMax);
-            if (!utility.isNum(ARMax)) {
-                ARMax = 99999;
-                utility.warn("FreshMeatARMax is NaN, using default", ARMax);
-            }
-
-            ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
-            utility.log(2, "FreshMeatARMin", ARMin);
-            if (!utility.isNum(ARMin)) {
-                ARMin = 0;
-                utility.warn("FreshMeatARMin is NaN, using default", ARMin);
-            }
-
-            for (var s = 0; s < ss.snapshotLength; s += 1) {
-                tempTime = new Date(2009, 0, 1).getTime();
-                tempRecord = {};
-                tempRecord.button = ss.snapshotItem(s);
-                var tr = tempRecord.button;
-
-                if (!tr) {
-                    utility.warn('No tr parent of button?');
-                    continue;
-                }
-
-                levelm   = '';
-                txt = '';
-                if (type === 'Raid') {
-                    tr = tr.parentNode.parentNode.parentNode.parentNode.parentNode;
-                    txt = tr.childNodes[3].childNodes[3].textContent;
-                    levelm = this.battles.Raid.regex1.exec(txt);
-                    if (!levelm) {
-                        utility.warn("Can't match Raid regex in ", txt);
-                        continue;
-                    }
-
-                    tempRecord.rankNum = parseInt(levelm[1], 10);
-                    tempRecord.rankStr = battle.battleRankTable[tempRecord.rankNum];
-                    tempRecord.levelNum = parseInt(levelm[3], 10);
-                    tempRecord.armyNum = parseInt(levelm[5], 10);
-                } else {
-                    while (tr.tagName.toLowerCase() !== "tr") {
-                        tr = tr.parentNode;
-                    }
-
-                    tempRecord.deityNum = utility.NumberOnly(utility.CheckForImage('symbol_', tr).src.match(/\d+\.jpg/i)) - 1;
-                    tempRecord.deityStr = this.demiTable[tempRecord.deityNum];
-                    // If looking for demi points, and already full, continue
-                    if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                        utility.log(9, "Demi Points First", tempRecord.deityNum, tempRecord.deityStr, this.demi[tempRecord.deityStr], config.getItem('DemiPoint' + tempRecord.deityNum, true));
-                        if (this.demi[tempRecord.deityStr].daily.dif <= 0 || !config.getItem('DemiPoint' + tempRecord.deityNum, true)) {
-                            utility.log(1, "Daily Demi Points done for", tempRecord.deityStr);
-                            continue;
-                        }
-                    }
-
-                    txt = $.trim(nHtml.GetText(tr));
-                    if (!txt.length) {
-                        utility.warn("Can't find txt in tr");
-                        continue;
-                    }
-
-                    if (this.battles.Freshmeat.warLevel) {
-                        levelm = this.battles.Freshmeat.regex1.exec(txt);
-                        if (!levelm) {
-                            levelm = this.battles.Freshmeat.regex2.exec(txt);
-                            this.battles.Freshmeat.warLevel = false;
-                        }
-                    } else {
-                        levelm = this.battles.Freshmeat.regex2.exec(txt);
-                        if (!levelm) {
-                            levelm = this.battles.Freshmeat.regex1.exec(txt);
-                            this.battles.Freshmeat.warLevel = true;
-                        }
-                    }
-
-                    if (!levelm) {
-                        utility.warn("Can't match Freshmeat regex in ", txt);
-                        continue;
-                    }
-
-                    tempRecord.nameStr = levelm[1];
-                    tempRecord.levelNum = parseInt(levelm[2], 10);
-                    tempRecord.rankStr = levelm[3];
-                    tempRecord.rankNum = parseInt(levelm[4], 10);
-                    if (this.battles.Freshmeat.warLevel) {
-                        tempRecord.warRankStr = levelm[5];
-                        tempRecord.warRankNum = parseInt(levelm[6], 10);
-                    }
-
-                    if (this.battles.Freshmeat.warLevel) {
-                        tempRecord.armyNum = parseInt(levelm[7], 10);
-                    } else {
-                        tempRecord.armyNum = parseInt(levelm[5], 10);
-                    }
-                }
-
-                inp = nHtml.FindByAttrXPath(tr, "input", "@name='target_id'");
-                if (!inp) {
-                    utility.warn("Could not find 'target_id' input");
-                    continue;
-                }
-
-                tempRecord.userId = parseInt(inp.value, 10);
-                if (battle.hashCheck(tempRecord.userId)) {
-                    continue;
-                }
-
-                levelMultiplier = this.stats.level / tempRecord.levelNum;
-                armyRatio = ARBase * levelMultiplier;
-                armyRatio = Math.min(armyRatio, ARMax);
-                armyRatio = Math.max(armyRatio, ARMin);
-                if (armyRatio <= 0) {
-                    utility.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
-                    continue;
-                }
-
-                utility.log(2, "Army Ratio: " + armyRatio + " Level: " + tempRecord.levelNum + " Rank: " + tempRecord.rankNum + " Army: " + tempRecord.armyNum);
-                if (tempRecord.levelNum - this.stats.level > maxLevel) {
-                    utility.log(2, "Greater than maxLevel", maxLevel);
-                    continue;
-                }
-
-                if (config.getItem("BattleType", 'Invade') === "War" && this.battles.Freshmeat.warLevel) {
-                    if (this.stats.rank.war && (this.stats.rank.war - tempRecord.warRankNum > minRank)) {
-                        utility.log(2, "Greater than minRank", minRank);
-                        continue;
-                    }
-                } else {
-                    if (this.stats.rank.battle && (this.stats.rank.battle - tempRecord.rankNum > minRank)) {
-                        utility.log(2, "Greater than minRank", minRank);
-                        continue;
-                    }
-                }
-
-                // if we know our army size, and this one is larger than armyRatio, don't battle
-                if (this.stats.army.capped && (tempRecord.armyNum > (this.stats.army.capped * armyRatio))) {
-                    utility.log(2, "Greater than armyRatio", armyRatio);
-                    continue;
-                }
-
-                if (config.getItem("BattleType", 'Invade') === "War" && this.battles.Freshmeat.warLevel) {
-                    utility.log(1, "ID: " + utility.rpad(tempRecord.userId.toString(), " ", 15) +
-                                " Level: " + utility.rpad(tempRecord.levelNum.toString(), " ", 4) +
-                                " War Rank: " + utility.rpad(tempRecord.warRankNum.toString(), " ", 2) +
-                                " Army: " + tempRecord.armyNum);
-                } else {
-                    utility.log(1, "ID: " + utility.rpad(tempRecord.userId.toString(), " ", 15) +
-                                " Level: " + utility.rpad(tempRecord.levelNum.toString(), " ", 4) +
-                                " Battle Rank: " + utility.rpad(tempRecord.rankNum.toString(), " ", 2) +
-                                " Army: " + tempRecord.armyNum);
-                }
-
-                // don't battle people we lost to in the last week
-                battleRecord = battle.getItem(tempRecord.userId);
-                if (!config.getItem("IgnoreBattleLoss", false)) {
-                    switch (config.getItem("BattleType", 'Invade')) {
-                    case 'Invade' :
-                        tempTime = battleRecord.invadeLostTime  ? battleRecord.invadeLostTime : new Date(2009, 0, 1).getTime();
-                        break;
-                    case 'Duel' :
-                        tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : new Date(2009, 0, 1).getTime();
-                        break;
-                    case 'War' :
-                        tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : new Date(2009, 0, 1).getTime();
-                        break;
-                    default :
-                        utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
-                    }
-
-                    if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                        utility.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.userId);
-                        continue;
-                    }
-                }
-
-                // don't battle people that were dead or hiding in the last hour
-                tempTime = battleRecord.deadTime ? battleRecord.deadTime : new Date(2009, 0, 1).getTime();
-                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 3600)) {
-                    utility.log(1, "User was dead in the last hour: ", tempRecord.userId);
-                    continue;
-                }
-
-                // don't battle people we've already chained to max in the last 2 days
-                tempTime = battleRecord.chainTime ? battleRecord.chainTime : new Date(2009, 0, 1).getTime();
-                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 86400)) {
-                    utility.log(1, "We chained user within 2 days: ", tempRecord.userId);
-                    continue;
-                }
-
-                // don't battle people that didn't meet chain gold or chain points in the last week
-                tempTime = battleRecord.ignoreTime ? battleRecord.ignoreTime : new Date(2009, 0, 1).getTime();
-                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                    utility.log(1, "User didn't meet chain requirements this week: ", tempRecord.userId);
-                    continue;
-                }
-
-                tempRecord.score = (type === 'Raid' ? 0 : tempRecord.rankNum) - (tempRecord.armyNum / levelMultiplier / this.stats.army.capped);
-                if (tempRecord.userId === chainId) {
-                    chainAttack = true;
-                }
-
-                tempRecord.targetNumber = s + 1;
-                utility.log(2, "tempRecord/levelm", tempRecord, levelm);
-                safeTargets[count] = tempRecord;
-                count += 1;
-                if (s === 0 && type === 'Raid') {
-                    plusOneSafe = true;
-                }
-
-                for (var x = 0; x < count; x += 1) {
-                    for (var y = 0 ; y < x ; y += 1) {
-                        if (safeTargets[y].score < safeTargets[y + 1].score) {
-                            tempRecord = safeTargets[y];
-                            safeTargets[y] = safeTargets[y + 1];
-                            safeTargets[y + 1] = tempRecord;
-                        }
-                    }
-                }
-            }
-
-            if (count > 0) {
-                var anyButton = null,
-                    form      = null;
-
-                if (chainAttack) {
-                    anyButton = ss.snapshotItem(0);
-                    form = anyButton.parentNode.parentNode;
-                    inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
-                    if (inp) {
-                        inp.value = chainId;
-                        utility.log(1, "Chain attacking: ", chainId);
-                        this.ClickBattleButton(anyButton);
-                        state.setItem("lastBattleID", chainId);
-                        this.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                        state.setItem("notSafeCount", 0);
-                        return true;
-                    }
-
-                    utility.warn("Could not find 'target_id' input");
-                } else if (config.getItem('PlusOneKills', false) && type === 'Raid') {
-                    if (plusOneSafe) {
-                        anyButton = ss.snapshotItem(0);
-                        form = anyButton.parentNode.parentNode;
-                        inp = nHtml.FindByAttrXPath(form, "input", "@name='target_id'");
-                        if (inp) {
-                            var firstId = parseInt(inp.value, 10);
-                            inp.value = '200000000000001';
-                            utility.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
-                            this.ClickBattleButton(anyButton);
-                            state.setItem("lastBattleID", firstId);
-                            this.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                            state.setItem("notSafeCount", 0);
-                            return true;
-                        }
-
-                        utility.warn("Could not find 'target_id' input");
-                    } else {
-                        utility.log(1, "Not safe for +1 kill.");
-                    }
-                } else {
-                    for (var z = 0; z < count; z += 1) {
-                        if (!state.getItem("lastBattleID", 0) && state.getItem("lastBattleID", 0) === safeTargets[z].id && z < count - 1) {
-                            continue;
-                        }
-
-                        var bestButton = safeTargets[z].button;
-                        if (bestButton !== null || bestButton !== undefined) {
-                            utility.log(1, 'Found Target score: ' + safeTargets[z].score.toFixed(2) + ' id: ' + safeTargets[z].userId + ' Number: ' + safeTargets[z].targetNumber);
-                            this.ClickBattleButton(bestButton);
-                            delete safeTargets[z].score;
-                            delete safeTargets[z].targetNumber;
-                            delete safeTargets[z].button;
-                            state.setItem("lastBattleID", safeTargets[z].userId);
-                            safeTargets[z].aliveTime = new Date().getTime();
-                            battleRecord = battle.getItem(safeTargets[z].userId);
-                            $.extend(true, battleRecord, safeTargets[z]);
-                            utility.log(1, "battleRecord", battleRecord);
-                            battle.setItem(battleRecord);
-                            this.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
-                            state.setItem("notSafeCount", 0);
-                            return true;
-                        }
-
-                        utility.warn('Attack button is null');
-                    }
-                }
-            }
-
-            state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
-            // add a schedule here for 5 mins or so
-            if (state.getItem("notSafeCount", 0) > 100) {
-                this.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
-                utility.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
-                state.setItem("notSafeCount", 0);
-                return false;
-            }
-
-            this.SetDivContent('battle_mess', 'No targets matching criteria');
-            utility.log(1, 'No safe targets: ', state.getItem("notSafeCount", 0));
-
-            if (type === 'Raid') {
-                var engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
-                if (state.getItem("page", '') === 'raid' && engageButton) {
-                    utility.Click(engageButton);
-                } else {
-                    schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
-                    utility.NavigateTo(this.battlePage + ',raid');
-                }
-            } else {
-                utility.NavigateTo(this.battlePage + ',battle_on.gif');
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in BattleFreshmeat: " + err);
-            return utility.ClickAjax('raid.php');
-        }
-    },
-
     CheckKeep: function () {
         try {
             if (!schedule.check("keep")) {
@@ -7102,6 +6624,48 @@ caap = {
         }
     },
 
+    /////////////////////////////////////////////////////////////////////
+    //                          BATTLING PLAYERS
+    /////////////////////////////////////////////////////////////////////
+
+    BattleUserId: function (userid) {
+        try {
+            if (battle.hashCheck(userid)) {
+                return true;
+            }
+
+            var battleButton = null,
+                form = null,
+                inp = null;
+
+            battleButton = utility.CheckForImage(battle.battles.Freshmeat[config.getItem('BattleType', 'Invade')]);
+            if (battleButton) {
+                form = $(battleButton).parent().parent();
+                if (form && form.length) {
+                    inp = form.find("input[name='target_id']");
+                    if (inp && inp.length) {
+                        inp.attr("value", userid);
+                        state.setItem("lastBattleID", userid);
+                        battle.click(battleButton);
+                        state.setItem("notSafeCount", 0);
+                        return true;
+                    } else {
+                        utility.warn("target_id not found in battleForm");
+                    }
+                } else {
+                    utility.warn("form not found in battleButton");
+                }
+            } else {
+                utility.warn("battleButton not found");
+            }
+
+            return false;
+        } catch (err) {
+            utility.error("ERROR in BattleUserId: " + err);
+            return false;
+        }
+    },
+
     battleWarnLevel: true,
 
     Battle: function (mode) {
@@ -7163,7 +6727,7 @@ caap = {
                     return false;
                 }
 
-                if (state.getItem('DemiPointsDone', true)) {
+                if (battle.selectedDemisDone(true)) {
                     return false;
                 }
 
@@ -7180,12 +6744,12 @@ caap = {
                 return false;
             }
 
-            if (config.getItem("waitSafeHealth", false) && this.stats.health.num < 12) {
-                utility.log(9, 'Unsafe. Health is less than 12: ', this.stats.health.num);
+            if (config.getItem("waitSafeHealth", false) && this.stats.health.num < 13) {
+                utility.log(9, 'Unsafe. Health is less than 13: ', this.stats.health.num);
                 return false;
             }
 
-            target = this.GetCurrentBattleTarget(mode);
+            target = battle.getTarget(mode);
             utility.log(9, 'Mode/Target', mode, target);
             if (!target) {
                 utility.log(1, 'No valid battle target');
@@ -7250,7 +6814,7 @@ caap = {
                 if (button && battleChainId) {
                     this.SetDivContent('battle_mess', 'Chain Attack In Progress');
                     utility.log(1, 'Chaining Target', battleChainId);
-                    this.ClickBattleButton(button);
+                    battle.click(button);
                     state.setItem("BattleChainId", 0);
                     return true;
                 }
@@ -7303,14 +6867,14 @@ caap = {
 
                 // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                 if (targetType === "Userid List") {
-                    if (this.BattleFreshmeat('Raid')) {
+                    if (battle.freshmeat('Raid')) {
                         if ($("span[class*='result_body']").length) {
-                            this.NextBattleTarget();
+                            battle.nextTarget();
                         }
 
                         if (state.getItem("notSafeCount", 0) > 10) {
                             state.setItem("notSafeCount", 0);
-                            this.NextBattleTarget();
+                            battle.nextTarget();
                         }
 
                         return true;
@@ -7320,7 +6884,7 @@ caap = {
                     return false;
                 }
 
-                return this.BattleFreshmeat('Raid');
+                return battle.freshmeat('Raid');
             case 'freshmeat' :
                 if (utility.NavigateTo(this.battlePage, 'battle_on.gif')) {
                     return true;
@@ -7329,14 +6893,14 @@ caap = {
                 this.SetDivContent('battle_mess', 'Battling ' + target);
                 // The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                 if (targetType === "Userid List") {
-                    if (this.BattleFreshmeat('Freshmeat')) {
+                    if (battle.freshmeat('Freshmeat')) {
                         if ($("span[class*='result_body']").length) {
-                            this.NextBattleTarget();
+                            battle.nextTarget();
                         }
 
                         if (state.getItem("notSafeCount", 0) > 10) {
                             state.setItem("notSafeCount", 0);
-                            this.NextBattleTarget();
+                            battle.nextTarget();
                         }
 
                         return true;
@@ -7346,7 +6910,7 @@ caap = {
                     return false;
                 }
 
-                return this.BattleFreshmeat('Freshmeat');
+                return battle.freshmeat('Freshmeat');
             default:
                 if (!config.getItem("IgnoreBattleLoss", false)) {
                     battleRecord = battle.getItem(target);
@@ -7366,7 +6930,7 @@ caap = {
 
                     if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
                         utility.log(1, 'Avoiding Losing Target', target);
-                        this.NextBattleTarget();
+                        battle.nextTarget();
                         return true;
                     }
                 }
@@ -7377,7 +6941,7 @@ caap = {
 
                 state.setItem('BattleChainId', 0);
                 if (this.BattleUserId(target)) {
-                    this.NextBattleTarget();
+                    battle.nextTarget();
                     return true;
                 }
 
@@ -7386,80 +6950,6 @@ caap = {
             }
         } catch (err) {
             utility.error("ERROR in Battle: " + err);
-            return false;
-        }
-    },
-
-    NextBattleTarget: function () {
-        state.setItem('BattleTargetUpto', state.getItem('BattleTargetUpto', 0) + 1);
-    },
-
-    GetCurrentBattleTarget: function (mode) {
-        try {
-            var target     = '',
-                targets    = [],
-                battleUpto = '',
-                targetType = '',
-                targetRaid = '';
-
-            targetType = config.getItem('TargetType', 'Freshmeat');
-            targetRaid = state.getItem('targetFromraid', '');
-            if (mode === 'DemiPoints') {
-                if (targetRaid && targetType === 'Raid') {
-                    return 'Raid';
-                }
-
-                return 'Freshmeat';
-            }
-
-            if (targetType === 'Raid') {
-                if (targetRaid) {
-                    return 'Raid';
-                }
-
-                this.SetDivContent('battle_mess', 'No Raid To Attack');
-                return 'NoRaid';
-            }
-
-            if (targetType === 'Freshmeat') {
-                return 'Freshmeat';
-            }
-
-            target = state.getItem('BattleChainId', 0);
-            if (target) {
-                return target;
-            }
-
-            targets = utility.TextToArray(config.getItem('BattleTargets', ''));
-            if (!targets.length) {
-                return false;
-            }
-
-            battleUpto = state.getItem('BattleTargetUpto', 0);
-            if (battleUpto > targets.length - 1) {
-                battleUpto = 0;
-                state.setItem('BattleTargetUpto', 0);
-            }
-
-            if (!targets[battleUpto]) {
-                this.NextBattleTarget();
-                return false;
-            }
-
-            this.SetDivContent('battle_mess', 'Battling User ' + battleUpto + '/' + targets.length + ' ' + targets[battleUpto]);
-            if ((!utility.isNum(targets[battleUpto]) ? targets[battleUpto].toLowerCase() : targets[battleUpto]) === 'raid') {
-                if (targetRaid) {
-                    return 'Raid';
-                }
-
-                this.SetDivContent('battle_mess', 'No Raid To Attack');
-                this.NextBattleTarget();
-                return false;
-            }
-
-            return targets[battleUpto];
-        } catch (err) {
-            utility.error("ERROR in GetCurrentBattleTarget: " + err);
             return false;
         }
     },
@@ -7491,67 +6981,72 @@ caap = {
 
     CheckResults_fightList: function () {
         try {
-            utility.log(9, "CheckResults_fightList - get all buttons to check monsterObjectList");
-            // get all buttons to check monsterObjectList
-            var ss = document.evaluate(".//img[contains(@src,'dragon_list_btn_') or contains(@src,'mp_button_summon_')]", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength === 0) {
+            var buttonsDiv            = null,
+                page                  = '',
+                pageUserCheck         = '',
+                monsterReviewed       = {},
+                startCount            = 0,
+                it                    = 0,
+                url                   = '',
+                delList               = [],
+                siege                 = '',
+                engageButtonName      = '',
+                monsterName           = '',
+                monsterRow            = null,
+                monsterFull           = '',
+                summonDiv             = null,
+                tempText              = '';
 
-                utility.warn("No monster buttons found");
+            // get all buttons to check monsterObjectList
+            summonDiv = $("img[src*='mp_button_summon_']");
+            buttonsDiv = $("img[src*='dragon_list_btn_']");
+            if ((!summonDiv || !summonDiv.length) && (!buttonsDiv || !buttonsDiv.length)) {
+                utility.warn("No buttons found!");
                 return false;
             }
 
-            var page                  = state.getItem('page', 'battle_monster'),
-                firstMonsterButtonDiv = utility.CheckForImage('dragon_list_btn_');
-
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
-                    firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                var pageUserCheck = state.getItem('pageUserCheck', '');
-                if (pageUserCheck) {
-                    utility.log(1, "On another player's keep.", pageUserCheck);
-                    return false;
-                }
-            }
-
-            if (page === 'battle_monster' && ss.snapshotLength === 1) {
+            page = state.getItem('page', 'battle_monster');
+            if (page === 'battle_monster' && (!buttonsDiv || !buttonsDiv.length)) {
                 utility.log(1, "No monsters to review");
                 state.setItem('reviewDone', true);
                 return true;
             }
 
-            var startCount = 0;
-            if (page === 'battle_monster') {
-                startCount = 1;
+            tempText = buttonsDiv.eq(0).parent().attr("href");
+            if (state.getItem('pageUserCheck', '') && tempText && !(tempText.match('user=' + this.stats.FBID) || tempText.match(/alchemy\.php/))) {
+                utility.log(1, "On another player's keep.", state.getItem('pageUserCheck', ''));
+                return false;
             }
 
-            utility.log(9, "startCount", startCount);
             // Review monsters and find attack and fortify button
-            var monsterReviewed = {};
-            for (var s = startCount; s < ss.snapshotLength; s += 1) {
-                var engageButtonName = ss.snapshotItem(s).src.match(/dragon_list_btn_\d/i)[0],
-                    monsterRow       = ss.snapshotItem(s).parentNode.parentNode.parentNode.parentNode,
-                    monsterFull      = $.trim(nHtml.GetText(monsterRow)),
-                    monsterName      = $.trim(monsterFull.replace('Completed!', '').replace(/Fled!/i, ''));
-
+            for (it = 0; it < buttonsDiv.length; it += 1) {
                 // Make links for easy clickin'
-                var url = ss.snapshotItem(s).parentNode.href;
+                url = buttonsDiv.eq(it).parent().attr("href");
                 if (!(url && url.match(/user=/) && (url.match(/mpool=/) || url.match(/raid\.php/)))) {
                     continue;
                 }
 
-                utility.log(5, "monster", monsterName);
+                monsterRow = buttonsDiv.eq(it).parents().eq(3);
+                monsterFull = $.trim(monsterRow.text());
+                monsterName = $.trim(monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, ''));
                 monsterReviewed = monster.getItem(monsterName);
+                if (monsterReviewed.type === '') {
+                    monsterReviewed.type = monster.type(monsterName);
+                }
+
                 monsterReviewed.page = page;
+                engageButtonName = buttonsDiv.eq(it).attr("src").match(/dragon_list_btn_\d/i)[0];
                 switch (engageButtonName) {
                 case 'dragon_list_btn_2' :
                     monsterReviewed.status = 'Collect Reward';
                     monsterReviewed.color = 'grey';
                     break;
                 case 'dragon_list_btn_3' :
-                    monster.engageButtons[monsterName] = ss.snapshotItem(s);
+                    monster.engageButtons[monsterName] = buttonsDiv.eq(it).get(0);
                     break;
                 case 'dragon_list_btn_4' :
                     if (page === 'raid' && !(/!/.test(monsterFull))) {
-                        monster.engageButtons[monsterName] = ss.snapshotItem(s);
+                        monster.engageButtons[monsterName] = buttonsDiv.eq(it).get(0);
                         break;
                     }
 
@@ -7566,26 +7061,15 @@ caap = {
                 default :
                 }
 
-                var mpool     = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : ''),
-                    monstType = monster.type(monsterName),
-                    siege     = '';
-
-                if (monstType === 'Siege') {
+                monsterReviewed.userId = url.match(/user=\d+/i)[0].split('=')[1];
+                monsterReviewed.mpool = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : '');
+                if (monster.info[monsterReviewed.type] && monster.info[monsterReviewed.type].siege) {
                     siege = "&action=doObjective";
-                } else {
-                    var boss = monster.info[monstType];
-                    siege = (boss && boss.siege) ? "&action=doObjective" : '';
                 }
 
-                var link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?casuser=" +
-                            url.match(/user=\d+/i)[0].split('=')[1] + mpool + siege + "'>Link</a>";
-
-                monsterReviewed.link = link;
+                monsterReviewed.link = "<a href='http://apps.facebook.com/castle_age/" + page + ".php?casuser=" + monsterReviewed.userId + monsterReviewed.mpool + siege + "'>Link</a>";
                 monster.setItem(monsterReviewed);
             }
-
-            var it = 0,
-                delList = [];
 
             for (it = 0; it < monster.records.length; it += 1) {
                 if (monster.records[it].page === '') {
@@ -7611,8 +7095,6 @@ caap = {
             var missRegEx         = null,
                 currentMonster    = {},
                 time              = [],
-                currentPhase      = 0,
-                miss              = '',
                 tempDiv           = null,
                 tempText          = '',
                 tempArr           = [],
@@ -7682,11 +7164,11 @@ caap = {
             }
 
             if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
-                utility.log(2, "monster name found");
-                tempText = tempText.replace(new RegExp(".+'s "), 'Your ');
+                utility.log(1, "monster name found", tempText);
+                tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
 
-            utility.log(2, "monster name", tempText);
+            utility.log(1, "monster name", tempText);
             currentMonster = monster.getItem(tempText);
             if (currentMonster.type === '') {
                 currentMonster.type = monster.type(currentMonster.name);
@@ -7734,7 +7216,12 @@ caap = {
                 case 'bar_dispel.gif' :
                     tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster.fortify = 100 - parseFloat(tempDiv.parent().css('width'));
+                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                        if ($().jquery === "1.4.3") {
+                            currentMonster.fortify = 100 - parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
+                        } else {
+                            currentMonster.fortify = 100 - parseFloat(tempDiv.parent().css('width'));
+                        }
                     } else {
                         utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
@@ -7743,11 +7230,22 @@ caap = {
                 case 'seamonster_ship_health.jpg' :
                     tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
+                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                        if ($().jquery === "1.4.3") {
+                            currentMonster.fortify = parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
+                        } else {
+                            currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
+                        }
+
                         if (monster.info[currentMonster.type].repair_img) {
                             tempDiv = $("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
                             if (tempDiv && tempDiv.length) {
-                                currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().css('width'))));
+                                // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                                if ($().jquery === "1.4.3") {
+                                    currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1])));
+                                } else {
+                                    currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().css('width'))));
+                                }
                             } else {
                                 utility.warn("Unable to find repair bar", monster.info[currentMonster.type].repair_img);
                             }
@@ -7760,8 +7258,14 @@ caap = {
                 case 'nm_green.jpg' :
                     tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
-                        currentMonster.strength = parseFloat(tempDiv.parent().parent().css('width'));
+                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                        if ($().jquery === "1.4.3") {
+                            currentMonster.fortify = parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
+                            currentMonster.strength = parseFloat(tempDiv.parent().parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
+                        } else {
+                            currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
+                            currentMonster.strength = parseFloat(tempDiv.parent().parent().css('width'));
+                        }
                     } else {
                         utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
@@ -7825,10 +7329,16 @@ caap = {
 
             monsterDiv = $("img[src*='" + monstHealthImg + "']");
             if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
-                currentMonster.timeLeft = time[0] + ":" + time[1];
+                currentMonster.time = time;
+                //currentMonster.timeLeft = time[0] + ":" + time[1];
                 if (monsterDiv && monsterDiv.length) {
                     utility.log(2, "Found monster health div.");
-                    currentMonster.life = parseFloat(monsterDiv.parent().css("width"));
+                    // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                    if ($().jquery === "1.4.3") {
+                        currentMonster.life = parseFloat(monsterDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
+                    } else {
+                        currentMonster.life = parseFloat(monsterDiv.parent().css("width"));
+                    }
                 } else {
                     utility.warn("Could not find monster health div.");
                 }
@@ -7874,7 +7384,13 @@ caap = {
 
                             tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
                             if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.css('width');
+                                // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
+                                if ($().jquery === "1.4.3") {
+                                    tempText = tempDiv.attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1];
+                                } else {
+                                    tempText = tempDiv.css('width');
+                                }
+
                                 utility.log(2, "tempText", tempText);
                                 if (tempText) {
                                     currentMonster.stun = utility.NumberOnly(tempText);
@@ -7883,8 +7399,23 @@ caap = {
                                     utility.warn("Can't get stun bar width");
                                 }
                             } else {
-                                if (currentMonster.strength !== 100) {
-                                    utility.warn("Can't get stun bar");
+                                tempArr = currentMonster.tip.split(" ");
+                                if (tempArr && tempArr.length) {
+                                    tempText = tempArr[tempArr.length - 1].toLowerCase();
+                                    tempArr = ["strengthen", "heal"];
+                                    if (tempText && tempArr.indexOf(tempText) >= 0) {
+                                        if (tempText === tempArr[0]) {
+                                            currentMonster.stun = currentMonster.strength;
+                                        } else if (tempText === tempArr[1]) {
+                                            currentMonster.stun = currentMonster.health;
+                                        } else {
+                                            utility.warn("Expected strengthen or heal to match!", tempText);
+                                        }
+                                    } else {
+                                        utility.warn("Expected strengthen or heal from tip!", tempText);
+                                    }
+                                } else {
+                                    utility.warn("Can't get stun bar and unexpected tip!", currentMonster.tip);
                                 }
                             }
 
@@ -7904,8 +7435,10 @@ caap = {
                                             utility.warn("Type does match list!", tempText);
                                         }
                                     } else {
-                                        utility.warn("Unable to get type from tip!", currentMonster.tip);
+                                        utility.warn("Unable to get type from tip!", currentMonster);
                                     }
+                                } else {
+                                    utility.log(1, "Tip does not match class or stun maxed", currentMonster);
                                 }
                             } else {
                                 utility.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
@@ -7921,12 +7454,12 @@ caap = {
                 if (monster.info[currentMonster.type] && monster.info[currentMonster.type].siege) {
                     missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monster.info[currentMonster.type].alpha) {
-                        miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
                         tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
-                        miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
                     } else {
-                        miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }
 
                     if (currentMonster.type.indexOf('Raid') >= 0) {
@@ -7938,16 +7471,14 @@ caap = {
                         }
                     }
 
-                    currentPhase = Math.min(totalCount, monster.info[currentMonster.type].siege);
-                    currentMonster.phase = Math.min(currentPhase, monster.info[currentMonster.type].siege) + "/" + monster.info[currentMonster.type].siege + " need " + (isNaN(miss) ? 0 : miss);
+                    currentMonster.phase = Math.min(totalCount, monster.info[currentMonster.type].siege);
+                    if (isNaN(currentMonster.miss)) {
+                        currentMonster.miss = 0;
+                    }
                 }
 
                 if (monster.info[currentMonster.type]) {
-                    if (isNaN(miss)) {
-                        miss = 0;
-                    }
-
-                    currentMonster.t2k = monster.t2kCalc(monster.info[currentMonster.type], time, currentMonster.life, currentPhase, miss);
+                    currentMonster.t2k = monster.t2kCalc(currentMonster);
                 }
             } else {
                 utility.log(1, 'Monster is dead or fled');
@@ -7969,8 +7500,15 @@ caap = {
 
                 maxDamage = monster.parseCondition('max', currentMonster.conditions);
                 maxToFortify = (monster.parseCondition('f%', currentMonster.conditions) !== false) ? monster.parseCondition('f%', currentMonster.conditions) : config.getItem('MaxToFortify', 0);
-                isTarget = (currentMonster.name === state.getItem('targetFromraid', '') || currentMonster.name === state.getItem('targetFrombattle_monster', '') || currentMonster.name === state.getItem('targetFromfortify', ''));
-                if (currentMonster.name === state.getItem('targetFromfortify', '') && currentMonster.fortify > maxToFortify) {
+                if (currentMonster.name === state.getItem('targetFromfortify', {}).name && state.getItem('targetFromfortify', {}).type === 'Fortify' && currentMonster.fortify > maxToFortify) {
+                    state.setItem('resetselectMonster', true);
+                }
+
+                if (currentMonster.name === state.getItem('targetFromfortify', {}).name && state.getItem('targetFromfortify', {}).type === 'Strengthen' && currentMonster.strength >= 100) {
+                    state.setItem('resetselectMonster', true);
+                }
+
+                if (currentMonster.name === state.getItem('targetFromfortify', {}).name && state.getItem('targetFromfortify', {}).type === 'Stun' && !currentMonster.stunDo) {
                     state.setItem('resetselectMonster', true);
                 }
 
@@ -8052,6 +7590,7 @@ caap = {
 
                 // End of Keep On Budget (KOB) code Part 1 -- required variables
 
+                isTarget = (currentMonster.name === state.getItem('targetFromraid', '') || currentMonster.name === state.getItem('targetFrombattle_monster', '') || currentMonster.name === state.getItem('targetFromfortify', {}).name);
                 if (maxDamage && currentMonster.damage >= maxDamage) {
                     currentMonster.color = 'red';
                     currentMonster.over = 'max';
@@ -8095,7 +7634,6 @@ caap = {
                         state.setItem('resetselectMonster', true);
                         utility.log(1, 'This monster no longer a target due to kob');
                     }
-
                 } else {
                     if (!KOBmax && !KOBminFort && !KOBach) {
                         //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
@@ -8139,9 +7677,10 @@ caap = {
             the monsterOl completely. Otherwise it will be our index into how far we are into
             reviewing monsterOl.
             \-------------------------------------------------------------------------------------*/
-            var counter = state.getItem('monsterReviewCounter', -3),
-                link    = '',
-                tempTime = new Date().getTime();
+            var counter  = state.getItem('monsterReviewCounter', -3),
+                link     = '',
+                tempTime = 0,
+                isSiege  = false;
 
             if (counter === -3) {
                 state.setItem('monsterReviewCounter', counter += 1);
@@ -8204,7 +7743,8 @@ caap = {
                     monster.records[counter].life = -1;
                     monster.records[counter].fortify = -1;
                     monster.records[counter].strength = -1;
-                    monster.records[counter].timeLeft = '';
+                    //monster.records[counter].timeLeft = '';
+                    monster.records[counter].timeLeft = [];
                     monster.records[counter].t2k = -1;
                     monster.records[counter].phase = '';
                 }
@@ -8229,9 +7769,11 @@ caap = {
                     If the autocollect token was specified then we set the link to do auto collect. If
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
-                    if ((((monster.records[counter].conditions) && (/:ac\b/.test(monster.records[counter].conditions))) ||
-                            (monster.records[counter].type.match(/Raid/) && config.getItem('raidCollectReward', false)) ||
-                            (!monster.records[counter].type.match(/Raid/) && config.getItem('monsterCollectReward', false))) && monster.records[counter].status === 'Collect Reward') {
+                    isSiege = monster.records[counter].type.match(/Raid/) || monster.records[counter].type === 'Siege';
+                    utility.log(1, "monster.records[counter]", monster.records[counter]);
+                    if (((monster.records[counter].conditions && /:ac\b/.test(monster.records[counter].conditions)) ||
+                            (isSiege && config.getItem('raidCollectReward', false)) ||
+                            (!isSiege && config.getItem('monsterCollectReward', false))) && monster.records[counter].status === 'Collect Reward') {
 
                         if (general.Select('CollectGeneral')) {
                             return true;
@@ -8248,10 +7790,11 @@ caap = {
 
                         link = link.replace('&action=doObjective', '');
                         state.setItem('CollectedRewards', true);
-                    } else if (((monster.records[counter].conditions) && (monster.records[counter].conditions.match(':!s'))) ||
-                               (!config.getItem('raidDoSiege', true) && monster.records[counter].type.match(/Raid/)) ||
-                               (!config.getItem('monsterDoSiege', true) && !monster.records[counter].type.match(/Raid/) && monster.info[monster.records[counter].type].siege) ||
+                    } else if ((monster.records[counter].conditions && monster.records[counter].conditions.match(':!s')) ||
+                               (!config.getItem('raidDoSiege', true) && isSiege) ||
+                               (!config.getItem('monsterDoSiege', true) && !isSiege && monster.info[monster.records[counter].type].siege) ||
                                this.stats.stamina.num === 0) {
+                        utility.log(1, "Do not siege");
                         link = link.replace('&action=doObjective', '');
                     }
                     /*-------------------------------------------------------------------------------------\
@@ -8259,8 +7802,7 @@ caap = {
                     \-------------------------------------------------------------------------------------*/
                     utility.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter].name);
                     state.setItem('ReleaseControl', true);
-                    link = link.replace('http://apps.facebook.com/castle_age/', '');
-                    link = link.replace('?', '?twt2&');
+                    link = link.replace('http://apps.facebook.com/castle_age/', '').replace('?', '?twt2&');
                     utility.log(9, "Link", link);
                     utility.ClickAjax(link);
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
@@ -8326,13 +7868,21 @@ caap = {
                 }
             }
 
-            var fightMode = '';
-            // Check to see if we should fortify, attack monster, or battle raid
-            var monsterName = state.getItem('targetFromfortify', '');
-            var monstType = monster.type(monsterName);
-            var nodeNum = 0;
-            var energyRequire = 10;
-            var currentMonster = monster.getItem(monsterName);
+            var fightMode        = '',
+                monsterName      = state.getItem('targetFromfortify', {}).name,
+                monstType        = monster.type(monsterName),
+                nodeNum          = 0,
+                energyRequire    = 10,
+                currentMonster   = monster.getItem(monsterName),
+                imageTest        = '',
+                attackButton     = null,
+                singleButtonList = [],
+                buttonList       = [],
+                tacticsValue     = 0,
+                useTactics       = false,
+                attackMess       = '',
+                it               = 0,
+                buttonHref       = '';
 
             if (monstType) {
                 if (!this.InLevelUpMode() && config.getItem('PowerFortifyMax', false) && monster.info[monstType].staLvl) {
@@ -8343,22 +7893,25 @@ caap = {
                     }
                 }
 
-                if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax', false)) {
+                if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax) {
                     energyRequire = monster.info[monstType].nrgMax[nodeNum];
                 }
             }
 
-            utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
-            if (config.getItem('FortifyGeneral', 'Use Current') === 'Orc King') {
+            utility.log(3, "Energy Required/Node", energyRequire, nodeNum);
+            switch (config.getItem('FortifyGeneral', 'Use Current')) {
+            case 'Orc King':
                 energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
                 utility.log(2, 'Monsters Fortify:Orc King', energyRequire);
-            }
-
-            if (config.getItem('FortifyGeneral', 'Use Current') === 'Barbarus') {
+                break;
+            case 'Barbarus':
                 energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
                 utility.log(2, 'Monsters Fortify:Barbarus', energyRequire);
+                break;
+            default:
             }
 
+            // Check to see if we should fortify or attack monster
             if (monsterName && this.CheckEnergy(energyRequire, gm.getItem('WhenFortify', 'Energy Available', hiddenVar), 'fortify_mess')) {
                 fightMode = 'Fortify';
             } else {
@@ -8379,7 +7932,7 @@ caap = {
             }
 
             // Check if on engage monster page
-            var imageTest = 'dragon_title_owner';
+            imageTest = 'dragon_title_owner';
             if (monstType && monster.info[monstType].alpha) {
                 imageTest = 'nm_top';
             }
@@ -8389,8 +7942,7 @@ caap = {
                     return true;
                 }
 
-                var attackButton = null;
-                var singleButtonList = [
+                singleButtonList = [
                     'button_nm_p_attack.gif',
                     'attack_monster_button.jpg',
                     'event_attack1.gif',
@@ -8398,7 +7950,7 @@ caap = {
                     'event_attack2.gif',
                     'attack_monster_button2.jpg'
                 ];
-                var buttonList = [];
+
                 // Find the attack or fortify button
                 if (fightMode === 'Fortify') {
                     buttonList = [
@@ -8413,40 +7965,27 @@ caap = {
                         buttonList.unshift("button_nm_s_");
                     }
 
-                    utility.log(1, "monster/button list", currentMonster, buttonList);
+                    utility.log(2, "monster/button list", currentMonster, buttonList);
                 } else if (state.getItem('MonsterStaminaReq', 1) === 1) {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
                 } else {
-                    var monsterConditions = currentMonster.conditions,
-                        tacticsValue      = 0,
-                        partyHealth       = 0,
-                        useTactics        = false;
-
-                    if (config.getItem('UseTactics', false) && this.stats.level >= 50) {
+                    if (currentMonster.conditions && currentMonster.conditions.match(/:tac/i) && this.stats.level >= 50) {
+                        useTactics = true;
+                        tacticsValue = monster.parseCondition("tac%", currentMonster.conditions);
+                    } else if (config.getItem('UseTactics', false) && this.stats.level >= 50) {
                         useTactics = true;
                         tacticsValue = config.getItem('TacticsThreshold', false);
                     }
 
-                    if (monsterConditions && monsterConditions.match(/:tac/i) && this.stats.level >= 50) {
-                        useTactics = true;
-                        tacticsValue = monster.parseCondition("tac%", monsterConditions);
-                    }
-
-                    if (useTactics) {
-                        partyHealth = currentMonster.fortify;
-                    }
-
-                    if (tacticsValue !== false && partyHealth < tacticsValue) {
-                        utility.log(1, "Party health is below threshold value", partyHealth, tacticsValue);
+                    if (tacticsValue !== false && currentMonster.fortify && currentMonster.fortify < tacticsValue) {
+                        utility.log(1, "Party health is below threshold value", currentMonster.fortify, tacticsValue);
                         useTactics = false;
                     }
 
                     if (useTactics && utility.CheckForImage('nm_button_tactics.gif')) {
                         utility.log(1, "Attacking monster using tactics buttons");
-                        buttonList = [
-                            'nm_button_tactics.gif'
-                        ].concat(singleButtonList);
+                        buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
                     } else {
                         utility.log(1, "Attacking monster using regular buttons");
                         // power attack or if not seamonster power attack or if not regular attack -
@@ -8475,17 +8014,14 @@ caap = {
                     }
                 }
 
-                for (var i in buttonList) {
-                    if (buttonList.hasOwnProperty(i)) {
-                        attackButton = utility.CheckForImage(buttonList[i], null, null, nodeNum);
-                        if (attackButton) {
-                            break;
-                        }
+                for (it = 0; it < buttonList.length; it += 1) {
+                    attackButton = utility.CheckForImage(buttonList[it], null, null, nodeNum);
+                    if (attackButton) {
+                        break;
                     }
                 }
 
                 if (attackButton) {
-                    var attackMess = '';
                     if (fightMode === 'Fortify') {
                         attackMess = 'Fortifying ' + monsterName;
                     } else {
@@ -8505,9 +8041,14 @@ caap = {
             }
 
             ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
-
             if (utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                 return true;
+            }
+
+            buttonHref = $("img[src*='dragon_list_btn_']:first").parent().attr("href");
+            if (state.getItem('pageUserCheck', '') && (!buttonHref || !buttonHref.match('user=' + this.stats.FBID) || !buttonHref.match(/alchemy\.php/))) {
+                utility.log(1, "On another player's keep.", state.getItem('pageUserCheck', ''));
+                return utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
             }
 
             if (config.getItem('clearCompleteMonsters', false) && monster.completeButton.battle_monster.button && monster.completeButton.battle_monster.name) {
@@ -8519,20 +8060,9 @@ caap = {
                 return true;
             }
 
-            var firstMonsterButtonDiv = utility.CheckForImage('dragon_list_btn_');
-            if ((firstMonsterButtonDiv) && !(firstMonsterButtonDiv.parentNode.href.match('user=' + this.stats.FBID) ||
-                    firstMonsterButtonDiv.parentNode.href.match(/alchemy\.php/))) {
-                var pageUserCheck = state.getItem('pageUserCheck', '');
-                if (pageUserCheck) {
-                    utility.log(1, "On another player's keep.", pageUserCheck);
-                    return utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
-                }
-            }
-
-            var engageButton = monster.engageButtons[monsterName];
-            if (engageButton) {
+            if (monster.engageButtons[monsterName]) {
                 this.SetDivContent('monster_mess', 'Opening ' + monsterName);
-                utility.Click(engageButton);
+                utility.Click(monster.engageButtons[monsterName]);
                 return true;
             } else {
                 schedule.setItem('NotargetFrombattle_monster', 60);
@@ -8678,7 +8208,11 @@ caap = {
 
     DemiPoints: function () {
         try {
-            if (!config.getItem('DemiPointsFirst', false) || config.getItem('WhenMonster', 'Never') === 'Never' || this.stats.level < 9) {
+            if (this.stats.level < 9) {
+                return false;
+            }
+
+            if (!config.getItem('DemiPointsFirst', false) || config.getItem('WhenMonster', 'Never') === 'Never') {
                 return false;
             }
 
@@ -8689,19 +8223,8 @@ caap = {
                 }
             }
 
-            var demiPower      = '',
-                demiPointsDone = true;
-
-            for (demiPower in this.demi) {
-                if (this.demi.hasOwnProperty(demiPower)) {
-                    if (this.demi[demiPower].daily.dif > 0) {
-                        demiPointsDone = false;
-                        break;
-                    }
-                }
-            }
-
-            utility.log(5, 'DemiPointsDone', demiPower, demiPointsDone);
+            var demiPointsDone = battle.selectedDemisDone();
+            utility.log(5, 'DemiPointsDone', demiPointsDone);
             state.setItem("DemiPointsDone", demiPointsDone);
             if (!demiPointsDone) {
                 return this.Battle('DemiPoints');
@@ -8749,16 +8272,17 @@ caap = {
         }
     },
 
-    CheckStamina: function (battleOrBattle, attackMinStamina) {
+    CheckStamina: function (battleOrMonster, attackMinStamina) {
         try {
-            utility.log(9, "CheckStamina", battleOrBattle, attackMinStamina);
+            utility.log(9, "CheckStamina", battleOrMonster, attackMinStamina);
             if (!attackMinStamina) {
                 attackMinStamina = 1;
             }
 
-            var when           = config.getItem('When' + battleOrBattle, 'Never'),
+            var when           = config.getItem('When' + battleOrMonster, 'Never'),
                 maxIdleStamina = 0,
-                theGeneral     = '';
+                theGeneral     = '',
+                staminaMF      = '';
 
             if (when === 'Never') {
                 return false;
@@ -8774,7 +8298,7 @@ caap = {
                 return false;
             }
 
-            if (config.getItem("waitSafeHealth", false) && this.stats.health.num < 12) {
+            if (battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false) && this.stats.health.num < 13) {
                 this.SetDivContent('battle_mess', "Unsafe. Need spare health to fight: " + this.stats.health.num + "/12");
                 return false;
             }
@@ -8785,7 +8309,7 @@ caap = {
                     return true;
                 }
 
-                var staminaMF = battleOrBattle + 'Stamina';
+                staminaMF = battleOrMonster + 'Stamina';
                 if (state.getItem('BurnMode_' + staminaMF, false) || this.stats.stamina.num >= config.getItem('X' + staminaMF, 1)) {
                     if (this.stats.stamina.num < attackMinStamina || this.stats.stamina.num <= config.getItem('XMin' + staminaMF, 0)) {
                         state.setItem('BurnMode_' + staminaMF, false);
@@ -8849,63 +8373,69 @@ caap = {
     other stamina uses).
     \-------------------------------------------------------------------------------------*/
     NeedToHide: function () {
-        if (config.getItem('WhenMonster', 'Never') === 'Never') {
-            utility.log(1, 'Stay Hidden Mode: Monster battle not enabled');
-            return true;
-        }
+        try {
+            if (config.getItem('WhenMonster', 'Never') === 'Never') {
+                utility.log(1, 'Stay Hidden Mode: Monster battle not enabled');
+                return true;
+            }
 
-        if (!state.getItem('targetFrombattle_monster', '')) {
-            utility.log(1, 'Stay Hidden Mode: No monster to battle');
-            return true;
-        }
-    /*-------------------------------------------------------------------------------------\
-    The riskConstant helps us determine how much we stay in hiding and how much we are willing
-    to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to
-    stay in hiding. The higher the risk constant, the more we attempt to use our stamina for
-    non-hiding activities.  The below matrix shows the default riskConstant of 1.7
+            if (!state.getItem('targetFrombattle_monster', '')) {
+                utility.log(1, 'Stay Hidden Mode: No monster to battle');
+                return true;
+            }
+        /*-------------------------------------------------------------------------------------\
+        The riskConstant helps us determine how much we stay in hiding and how much we are willing
+        to risk coming out of hiding.  The lower the riskConstant, the more we spend stamina to
+        stay in hiding. The higher the risk constant, the more we attempt to use our stamina for
+        non-hiding activities.  The below matrix shows the default riskConstant of 1.7
 
-                S   T   A   M   I   N   A
-                1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
-        H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
-        E   11  -   -   +   +   +   +   +   +   +
-        A   12  -   -   +   +   +   +   +   +   +
-        L   13  -   -   +   +   +   +   +   +   +
-        T   14  -   -   -   +   +   +   +   +   +
-        H   15  -   -   -   +   +   +   +   +   +
-            16  -   -   -   -   +   +   +   +   +
-            17  -   -   -   -   -   +   +   +   +
-            18  -   -   -   -   -   +   +   +   +
+                    S   T   A   M   I   N   A
+                    1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
+            H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
+            E   11  -   -   +   +   +   +   +   +   +
+            A   12  -   -   +   +   +   +   +   +   +
+            L   13  -   -   +   +   +   +   +   +   +
+            T   14  -   -   -   +   +   +   +   +   +
+            H   15  -   -   -   +   +   +   +   +   +
+                16  -   -   -   -   +   +   +   +   +
+                17  -   -   -   -   -   +   +   +   +
+                18  -   -   -   -   -   +   +   +   +
 
-    Setting our riskConstant down to 1 will result in us spending out stamina to hide much
-    more often:
+        Setting our riskConstant down to 1 will result in us spending out stamina to hide much
+        more often:
 
-                S   T   A   M   I   N   A
-                1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
-        H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
-        E   11  -   -   +   +   +   +   +   +   +
-        A   12  -   -   -   +   +   +   +   +   +
-        L   13  -   -   -   -   +   +   +   +   +
-        T   14  -   -   -   -   -   +   +   +   +
-        H   15  -   -   -   -   -   -   +   +   +
-            16  -   -   -   -   -   -   -   +   +
-            17  -   -   -   -   -   -   -   -   +
-            18  -   -   -   -   -   -   -   -   -
+                    S   T   A   M   I   N   A
+                    1   2   3   4   5   6   7   8   9        -  Indicates we use stamina to hide
+            H   10  -   -   +   +   +   +   +   +   +        +  Indicates we use stamina as requested
+            E   11  -   -   +   +   +   +   +   +   +
+            A   12  -   -   -   +   +   +   +   +   +
+            L   13  -   -   -   -   +   +   +   +   +
+            T   14  -   -   -   -   -   +   +   +   +
+            H   15  -   -   -   -   -   -   +   +   +
+                16  -   -   -   -   -   -   -   +   +
+                17  -   -   -   -   -   -   -   -   +
+                18  -   -   -   -   -   -   -   -   -
 
-    \-------------------------------------------------------------------------------------*/
-        var riskConstant = gm.getItem('HidingRiskConstant', 1.7, hiddenVar);
-    /*-------------------------------------------------------------------------------------\
-    The formula for determining if we should hide goes something like this:
+        \-------------------------------------------------------------------------------------*/
+            var riskConstant = gm.getItem('HidingRiskConstant', 1.7, hiddenVar);
+        /*-------------------------------------------------------------------------------------\
+        The formula for determining if we should hide goes something like this:
 
-        If  (health - (estimated dmg from next attacks) puts us below 10)  AND
-            (current stamina will be at least 5 using staminatime/healthtime ratio)
-        Then stamina can be used/saved for normal process
-        Else stamina is used for us to hide
+            If  (health - (estimated dmg from next attacks) puts us below 10)  AND
+                (current stamina will be at least 5 using staminatime/healthtime ratio)
+            Then stamina can be used/saved for normal process
+            Else stamina is used for us to hide
 
-    \-------------------------------------------------------------------------------------*/
-        if ((this.stats.health.num - ((this.stats.stamina.num - 1) * riskConstant) < 10) && (this.stats.stamina.num * (5 / 3) >= 5)) {
-            return false;
-        } else {
-            return true;
+        \-------------------------------------------------------------------------------------*/
+            //if ((this.stats.health.num - ((this.stats.stamina.num - 1) * riskConstant) < 10) && (this.stats.stamina.num * (5 / 3) >= 5)) {
+            if ((this.stats.health.num - ((this.stats.stamina.num - 1) * riskConstant) < 10) && ((this.stats.stamina.num + gm.getItem('HideStaminaRisk', 1, hiddenVar)) >= state.getItem('MonsterStaminaReq', 1))) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (err) {
+            utility.error("ERROR in NeedToHide: " + err);
+            return undefined;
         }
     },
 
@@ -9099,9 +8629,14 @@ caap = {
                 return false;
             }
 
-            var maxInCash = config.getItem('MaxInCash', -1),
-                minInCash = config.getItem('MinInCash', 0);
+            var maxInCash     = -1,
+                minInCash     = 0,
+                depositButton = null,
+                numberInput   = null,
+                deposit       = 0;
 
+            maxInCash = config.getItem('MaxInCash', -1);
+            minInCash = config.getItem('MinInCash', 0);
             if (!maxInCash || maxInCash < 0 || this.stats.gold.cash <= minInCash || this.stats.gold.cash < maxInCash || this.stats.gold.cash < 10) {
                 return false;
             }
@@ -9110,23 +8645,22 @@ caap = {
                 return true;
             }
 
-            var depositButton = utility.CheckForImage('btn_stash.gif');
-            if (!depositButton) {
+            depositButton = $("input[src*='btn_stash.gif']");
+            if (!depositButton || !depositButton.length) {
                 // Cannot find the link
                 return utility.NavigateTo('keep');
             }
 
-            var depositForm = depositButton.form;
-            var numberInput = nHtml.FindByAttrXPath(depositForm, 'input', "@type='' or @type='text'");
-            if (numberInput) {
-                numberInput.value = parseInt(numberInput.value, 10) - minInCash;
-            } else {
+            numberInput = $("input[name='stash_gold']");
+            if (!numberInput || !numberInput.length) {
                 utility.warn('Cannot find box to put in number for bank deposit.');
                 return false;
             }
 
-            utility.log(1, 'Depositing into bank');
-            utility.Click(depositButton);
+            deposit = parseInt(numberInput.attr("value"), 10) - minInCash;
+            numberInput.attr("value", deposit);
+            utility.log(1, 'Depositing into bank:', deposit);
+            utility.Click(depositButton.get(0));
             return true;
         } catch (err) {
             utility.error("ERROR in Bank: " + err);
@@ -9140,29 +8674,31 @@ caap = {
                 return false;
             }
 
-            var retrieveButton = utility.CheckForImage('btn_retrieve.gif');
-            if (!retrieveButton) {
+            var retrieveButton = null,
+                numberInput    = null,
+                minInStore     = 0;
+
+            retrieveButton = $("input[src*='btn_retrieve.gif']");
+            if (!retrieveButton || !retrieveButton.length) {
                 // Cannot find the link
                 return utility.NavigateTo('keep');
             }
 
-            var minInStore = config.getItem('minInStore', 0);
+            minInStore = config.getItem('minInStore', 0);
             if (!(minInStore || minInStore <= this.stats.gold.bank - num)) {
                 return false;
             }
 
-            var retrieveForm = retrieveButton.form;
-            var numberInput = nHtml.FindByAttrXPath(retrieveForm, 'input', "@type='' or @type='text'");
-            if (numberInput) {
-                numberInput.value = num;
-            } else {
+            numberInput = $("input[name='get_gold']");
+            if (!numberInput || !numberInput.length) {
                 utility.warn('Cannot find box to put in number for bank retrieve.');
                 return false;
             }
 
-            utility.log(1, 'Retrieving from bank: ', num);
+            numberInput.attr("value", num);
+            utility.log(1, 'Retrieving from bank:', num);
             state.setItem('storeRetrieve', '');
-            utility.Click(retrieveButton);
+            utility.Click(retrieveButton.get(0));
             return true;
         } catch (err) {
             utility.error("ERROR in RetrieveFromBank: " + err);
@@ -9181,27 +8717,31 @@ caap = {
 
             this.SetDivContent('heal_mess', '');
             minToHeal = config.getItem('MinToHeal', 0);
-            if (!minToHeal) {
+            if (minToHeal === "" || minToHeal < 0 || !utility.isNum(minToHeal)) {
                 return false;
             }
 
             minStamToHeal = config.getItem('MinStamToHeal', 0);
-            if (minStamToHeal === "") {
+            if (minStamToHeal === "" || minStamToHeal < 0 || !utility.isNum(minStamToHeal)) {
                 minStamToHeal = 0;
             }
 
-            if (!this.stats.health) {
+            if (!this.stats.health || utility.isEmpty(this.stats.health) || utility.isEmpty(this.stats.healthT)) {
+                return false;
+            }
+
+            if (!this.stats.stamina || utility.isEmpty(this.stats.stamina) || utility.isEmpty(this.stats.staminaT)) {
                 return false;
             }
 
             if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                if ((this.InLevelUpMode() || this.stats.stamina.num >= this.stats.stamina.max) && this.stats.health.num < 10) {
+                if ((this.InLevelUpMode() || this.stats.stamina.num >= this.stats.staminaT.max) && this.stats.health.num < 10) {
                     utility.log(1, 'Heal');
                     return utility.NavigateTo('keep,heal_button.gif');
                 }
             }
 
-            if (this.stats.health.num >= this.stats.health.max || this.stats.health.num >= minToHeal) {
+            if (this.stats.health.num >= this.stats.healthT.max || this.stats.health.num >= minToHeal) {
                 return false;
             }
 
@@ -9560,7 +9100,6 @@ caap = {
     CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
         gifting.queue.sent();
-
         gifting.collected();
     },
 
@@ -9596,8 +9135,7 @@ caap = {
                 return collecting;
             }
 
-
-            if (gifting.queue.collectOnly()) {
+            if (config.getItem("CollectOnly", false)) {
                 return false;
             }
 
@@ -9616,6 +9154,7 @@ caap = {
 
             giftChoice = gifting.queue.chooseGift();
             if (gifting.queue.length() && giftChoice) {
+                //if (utility.NavigateTo('army,gift,gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
                 if (utility.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                     return true;
                 }
@@ -9631,7 +9170,7 @@ caap = {
                             return utility.NavigateTo(giftImg);
                         }
 
-                        utility.log(1, "Gift selected");
+                        utility.log(1, "Gift selected", giftChoice, giftImg);
                     }
                 } else {
                     utility.log(1, "Unknown gift, using first", giftChoice, giftImg);
@@ -10712,6 +10251,12 @@ caap = {
     },
 
     MainLoop: function () {
+        var button = null,
+            caapDisabled = false,
+            noWindowLoad = 0,
+            actionsListCopy = [],
+            action = 0;
+
         utility.waitMilliSecs = 5000;
         // assorted errors...
         if (this.ErrorCheck()) {
@@ -10725,21 +10270,20 @@ caap = {
         }
 
         //We don't need to send out any notifications
-        var button = $("a[class*='undo_link']");
+        button = $("a[class*='undo_link']");
         if (button && button.length) {
             utility.Click(button.get(0));
             utility.log(1, 'Undoing notification');
         }
 
-        var caapDisabled = config.getItem('Disabled', false);
+        caapDisabled = config.getItem('Disabled', false);
         if (caapDisabled) {
             this.WaitMainLoop();
             return;
         }
 
         if (!this.pageLoadOK) {
-            var noWindowLoad = state.getItem('NoWindowLoad', 0);
-
+            noWindowLoad = state.getItem('NoWindowLoad', 0);
             if (noWindowLoad === 0) {
                 schedule.setItem('NoWindowLoadTimer', Math.min(Math.pow(2, noWindowLoad - 1) * 15, 3600));
                 state.setItem('NoWindowLoad', 1);
@@ -10784,8 +10328,7 @@ caap = {
         }
 
         this.MakeActionsList();
-        var actionsListCopy = this.actionsList.slice();
-
+        actionsListCopy = this.actionsList.slice();
         utility.log(9, "Action List", actionsListCopy);
         if (state.getItem('ReleaseControl', false)) {
             state.setItem('ReleaseControl', false);
@@ -10794,13 +10337,11 @@ caap = {
         }
 
         utility.log(9, 'Action List2', actionsListCopy);
-        for (var action in actionsListCopy) {
-            if (actionsListCopy.hasOwnProperty(action)) {
-                utility.log(8, 'Action', actionsListCopy[action]);
-                if (this[actionsListCopy[action]]()) {
-                    this.CheckLastAction(actionsListCopy[action]);
-                    break;
-                }
+        for (action = 0; action < actionsListCopy.length; action += 1) {
+            utility.log(8, 'Action', actionsListCopy[action]);
+            if (this[actionsListCopy[action]]()) {
+                this.CheckLastAction(actionsListCopy[action]);
+                break;
             }
         }
 

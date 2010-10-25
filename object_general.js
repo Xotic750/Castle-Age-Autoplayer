@@ -101,10 +101,10 @@ general = {
 
     load: function () {
         try {
-            this.records = gm.getItem('general.records', 'default');
-            if (this.records === 'default') {
-                this.records = [];
+            if (gm.getItem('general.records', 'default') === 'default' || !$.isArray(gm.getItem('general.records', 'default'))) {
                 gm.setItem('general.records', this.records);
+            } else {
+                this.records = gm.getItem('general.records', this.records);
             }
 
             this.copy2sortable();
@@ -512,15 +512,19 @@ general = {
                 use = false,
                 keepGeneral = false;
 
+            generalType = $.trim(whichGeneral.replace(/General/i, ''));
             if ((caap.stats.staminaT.num > caap.stats.stamina.max || caap.stats.energyT.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
-                utility.log(1, "Keep Level Up General");
-                keepGeneral = true;
+                if (config.getItem(generalType + 'LevelUpGeneral', false)) {
+                    utility.log(1, "Keep Level Up General");
+                    keepGeneral = true;
+                } else {
+                    utility.warn("User opted out of keep level up general for", generalType);
+                }
             } else if (state.getItem('KeepLevelUpGeneral', false)) {
                 utility.log(1, "Clearing Keep Level Up General flag");
                 state.setItem('KeepLevelUpGeneral', false);
             }
 
-            generalType = $.trim(whichGeneral.replace(/General/i, ''));
             if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (this.StandardList.indexOf(generalType) >= 0 || generalType === 'Quest')) {
                 if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats.exp.dif && caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
                     use = true;

@@ -61,10 +61,10 @@ town = {
                 throw "Invalid type value!";
             }
 
-            this[type] = gm.getItem(type + '.records', 'default');
-            if (this[type] === 'default') {
-                this[type] = [];
+            if (gm.getItem(type + '.records', 'default') === 'default' || !$.isArray(gm.getItem(type + '.records', 'default'))) {
                 gm.setItem(type + '.records', this[type]);
+            } else {
+                this[type] = gm.getItem(type + '.records', this[type]);
             }
 
             this[type + 'Sortable'] = [];
@@ -173,6 +173,32 @@ town = {
         } catch (err) {
             utility.error("ERROR in town.GetItems: " + err);
             return false;
+        }
+    },
+
+    haveOrb: function (name) {
+        try {
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name!";
+            }
+
+            var it     = 0,
+                haveIt = false;
+
+            for (it = 0; it < this.magic.length; it += 1) {
+                if (this.magic[it].name === name) {
+                    if (this.magic[it].owned) {
+                        haveIt = true;
+                    }
+
+                    break;
+                }
+            }
+
+            return haveIt;
+        } catch (err) {
+            utility.error("ERROR in town.haveOrb: " + err);
+            return undefined;
         }
     }
 };

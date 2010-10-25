@@ -24,16 +24,10 @@ schedule = {
 
     load: function () {
         try {
-            if (gm.getItem('schedule.timers', 'default') === 'default') {
+            if (gm.getItem('schedule.timers', 'default') === 'default' || utility.typeOf(gm.getItem('schedule.timers', 'default')) !== 'object') {
                 gm.setItem('schedule.timers', this.timers);
             } else {
                 this.timers = gm.getItem('schedule.timers', this.timers);
-            }
-
-            if (utility.typeOf(this.timers) !== 'object') {
-                utility.warn("Invalid timers object! Resetting!");
-                gm.deleteItem('schedule.timers');
-                this.timers = {};
             }
 
             this.log(2, "schedule.load");

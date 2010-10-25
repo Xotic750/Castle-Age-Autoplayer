@@ -74,6 +74,15 @@ gm = {
             return jsonObj;
         } catch (error) {
             utility.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
+            if (error.match(/Invalid JSON/)) {
+                if (value !== undefined && value !== null) {
+                    this.setItem(name, value);
+                    return value;
+                } else {
+                    this.deleteItem(name);
+                }
+            }
+
             return undefined;
         }
     },

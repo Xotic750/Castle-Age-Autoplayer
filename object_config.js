@@ -24,16 +24,10 @@ config = {
 
     load: function () {
         try {
-            if (gm.getItem('config.options', 'default') === 'default') {
+            if (gm.getItem('config.options', 'default') === 'default' || utility.typeOf(gm.getItem('config.options', 'default')) !== 'object') {
                 gm.setItem('config.options', this.options);
             } else {
                 this.options = gm.getItem('config.options', this.options);
-            }
-
-            if (utility.typeOf(this.options) !== 'object') {
-                utility.warn("Invalid options object! Resetting!");
-                gm.deleteItem('config.options');
-                this.options = {};
             }
 
             this.log(2, "config.load");

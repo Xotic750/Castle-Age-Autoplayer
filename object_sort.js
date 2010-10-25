@@ -243,5 +243,20 @@ sort = {
         }
 
         return 0;
+    },
+
+    score : function (a, b) {
+        var A = a.score,
+            B = b.score;
+
+        if (A > B) {
+            return -1;
+        }
+
+        if (A < B) {
+            return 1;
+        }
+
+        return 0;
     }
 };

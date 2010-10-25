@@ -34,10 +34,10 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            this[type].records = gm.getItem("gifting." + type, 'default');
-            if (this[type].records === 'default') {
-                this[type].records = [];
+            if (gm.getItem("gifting." + type, 'default') === 'default' || !$.isArray(gm.getItem("gifting." + type, 'default'))) {
                 gm.setItem("gifting." + type, this[type].records);
+            } else {
+                this[type].records = gm.getItem("gifting." + type, this[type].records);
             }
 
             this.log(type, 2, "gifting.load " + type);
@@ -98,7 +98,7 @@ gifting = {
                 result = false;
             }
 
-            //this.queue.fix();
+            this.queue.fix();
             return result;
         } catch (err) {
             utility.error("ERROR in gifting.init: " + err);
@@ -309,7 +309,7 @@ gifting = {
             var giftEntry = this.getCurrent();
             if (!utility.isEmpty(giftEntry)) {
                 if (force || utility.CheckForImage("gift_yes.gif")) {
-                    if (!gifting.queue.collectOnly()) {
+                    if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                         this.queue.setItem(giftEntry);
                     }
 
@@ -396,7 +396,7 @@ gifting = {
     },
 
     gifts: {
-        options: ['Same Gift As Received', 'Random Gift', 'Collect Only'],
+        options: ['Same Gift As Received', 'Random Gift'],
 
         records: [],
 
@@ -605,7 +605,7 @@ gifting = {
                     gifting.save("queue");
                 }
 
-                return this.save;
+                return save;
             } catch (err) {
                 utility.error("ERROR in gifting.queue.fix: " + err);
                 return undefined;
@@ -683,15 +683,6 @@ gifting = {
             }
         },
 
-        collectOnly: function () {
-            try {
-                return (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[2] ? false : true);
-            } catch (err) {
-                utility.error("ERROR in gifting.queue.collectOnly: " + err);
-                return undefined;
-            }
-        },
-
         randomImg: '',
 
         chooseGift: function () {
@@ -743,14 +734,17 @@ gifting = {
 
         chooseFriend: function (howmany) {
             try {
-                var it       = 0,
-                    tempGift = '',
-                    tempText = '',
-                    unselDiv = null,
-                    selDiv   = null,
-                    first    = true,
-                    count    = 0,
-                    same     = true;
+                var it            = 0,
+                    tempGift      = '',
+                    tempText      = '',
+                    unselListDiv  = null,
+                    selListDiv    = null,
+                    unselDiv      = null,
+                    selDiv        = null,
+                    first         = true,
+                    count         = 0,
+                    same          = true,
+                    returnOnlyOne = config.getItem("ReturnOnlyOne", false);
 
                 if (!utility.isNum(howmany) || howmany < 1) {
                     throw "Invalid howmany! (" + howmany + ")";
@@ -760,6 +754,8 @@ gifting = {
                     same = false;
                 }
 
+                unselListDiv = $("div[class='unselected_list']");
+                selListDiv = $("div[class='selected_list']");
                 for (it = 0; it < this.records.length; it += 1) {
                     this.records[it].chosen = false;
 
@@ -775,17 +771,25 @@ gifting = {
                         continue;
                     }
 
+                    if (returnOnlyOne) {
+                        if (gifting.history.checkSentOnce(this.records[it].userId)) {
+                            utility.log(1, "Sent Today: ", this.records[it].userId);
+                            this.records[it].last = new Date().getTime();
+                            continue;
+                        }
+                    }
+
                     if (first) {
                         tempGift = this.records[it].gift;
                         first = false;
                     }
 
                     if (this.records[it].gift === tempGift || !same) {
-                        unselDiv = $("div[class='unselected_list'] input[value='" + this.records[it].userId + "']");
+                        unselDiv = unselListDiv.find("input[value='" + this.records[it].userId + "']:first");
                         if (unselDiv && unselDiv.length) {
                             if (!/none/.test(unselDiv.parent().attr("style"))) {
                                 utility.Click(unselDiv.get(0));
-                                selDiv = $("div[class='selected_list'] input[value='" + this.records[it].userId + "']").parent();
+                                selDiv = selListDiv.find("input[value='" + this.records[it].userId + "']:first").parent();
                                 if (selDiv && selDiv.length) {
                                     if (!/none/.test(selDiv.attr("style"))) {
                                         utility.log(1, "User Chosen: ", this.records[it].userId, this.records[it]);
@@ -842,6 +846,7 @@ gifting = {
 
                                 utility.log(1, 'Confirmed gifts sent out.');
                                 sentok = true;
+                                gifting.save("queue");
                             } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                 utility.log(1, 'Exceeded daily gift limit.');
                                 schedule.setItem("MaxGiftsExceeded", 10800, 300);
@@ -869,10 +874,12 @@ gifting = {
 
         record: function () {
             this.data = {
-                userId   : 0,
-                name     : '',
-                sent     : 0,
-                received : 0
+                userId       : 0,
+                name         : '',
+                sent         : 0,
+                lastSent     : 0,
+                received     : 0,
+                lastReceived : 0
             };
         },
 
@@ -898,6 +905,7 @@ gifting = {
                         }
 
                         this.records[it].received += 1;
+                        this.records[it].lastReceived = new Date().getTime();
                         success = true;
                         break;
                     }
@@ -910,6 +918,7 @@ gifting = {
                     newRecord.userId = record.userId;
                     newRecord.name = record.name;
                     newRecord.received = 1;
+                    newRecord.lastReceived = new Date().getTime();
                     this.records.push(newRecord);
                     utility.log(1, "Added gifting.history record", newRecord, this.records);
                 }
@@ -944,6 +953,7 @@ gifting = {
                         }
 
                         this.records[it].sent += 1;
+                        this.records[it].lastSent = new Date().getTime();
                         success = true;
                         break;
                     }
@@ -956,6 +966,7 @@ gifting = {
                     newRecord.userId = record.userId;
                     newRecord.name = record.name;
                     newRecord.sent = 1;
+                    newRecord.lastSent = new Date().getTime();
                     this.records.push(newRecord);
                     utility.log(1, "Added gifting.history record", newRecord, this.records);
                 }
@@ -965,6 +976,32 @@ gifting = {
             } catch (err) {
                 utility.error("ERROR in gifting.history.sent: " + err, record);
                 return false;
+            }
+        },
+
+        checkSentOnce: function (userId) {
+            try {
+                if (!utility.isNum(userId) || userId < 1) {
+                    utility.warn("userId", userId);
+                    throw "Invalid identifying userId!";
+                }
+
+                var it       = 0,
+                    sentOnce = false;
+
+                for (it = 0; it < this.records.length; it += 1) {
+                    if (this.records[it].userId !== userId) {
+                        continue;
+                    }
+
+                    sentOnce = !schedule.since(this.records[it].lastSent || 0, 86400);
+                    break;
+                }
+
+                return sentOnce;
+            } catch (err) {
+                utility.error("ERROR in gifting.history.checkSentOnce: " + err, userId);
+                return undefined;
             }
         },
 

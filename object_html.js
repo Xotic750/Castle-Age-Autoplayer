@@ -101,23 +101,5 @@ nHtml = {
         }
 
         return txt;
-    },
-
-    getX: function (path, parent, type) {
-        var evaluate = null;
-        switch (type) {
-        case this.xpath.string :
-            evaluate = document.evaluate(path, parent, null, type, null).stringValue;
-            break;
-        case this.xpath.first :
-            evaluate = document.evaluate(path, parent, null, type, null).singleNodeValue;
-            break;
-        case this.xpath.unordered :
-            evaluate = document.evaluate(path, parent, null, type, null);
-            break;
-        default :
-        }
-
-        return evaluate;
     }
 };
