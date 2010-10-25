@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            42
+// @dev            43
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "42",
+    devVersion  = "43",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
@@ -15461,17 +15461,19 @@ caap = {
             schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
         }
 
-        var listHref = $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
-            .find('a[text="Ignore"]');
-        for (var i = 0; i < listHref.length; i += 1) {
-            var link = "<br /><a title='This link can be used to collect the " +
-                "gift when it has been lost on Facebook. !!If you accept a gift " +
-                "in this manner then it will leave an orphan request on Facebook!!' " +
-                "href='" + listHref[i].href.replace('ignore', 'acpt') + "'>Lost Accept</a>";
-            $(link).insertAfter(
-                $('div[style="padding: 0pt 0pt 10px 0px; overflow: hidden; float: left; width: 240px; height: 50px;"]')
-                .find('a[href=' + listHref[i].href + ']')
-            );
+        var listHref = null,
+            i        = 0,
+            link     = '';
+
+        listHref = $("a[href*='army.php?act=ignore']");
+        if (listHref && listHref.length) {
+            listHref.each(function () {
+                link = "<br /><a title='This link can be used to collect the " +
+                    "gift when it has been lost on Facebook. !!If you accept a gift " +
+                    "in this manner then it will leave an orphan request on Facebook!!' " +
+                    "href='" + $(this).attr("href").replace('ignore', 'acpt') + "'>Lost Accept</a>";
+                $(link).insertAfter($(this));
+            });
         }
     },
 
