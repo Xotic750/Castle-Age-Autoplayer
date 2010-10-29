@@ -730,7 +730,7 @@ gifting = {
 
                     if (filterGift && filterGiftLen) {
                         filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
                                 utility.log(1, "chooseGift Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
@@ -842,7 +842,7 @@ gifting = {
 
                     if (filterGift && filterGiftLen) {
                         filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
                                 utility.log(1, "chooseFriend Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
@@ -980,7 +980,7 @@ gifting = {
 
                     if (filterGift && filterGiftLen) {
                         filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
                                 utility.log(1, "chooseFriend2 Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
@@ -1058,7 +1058,7 @@ gifting = {
                             }
                         });
                     } else {
-                        utility.log(1, "Selected ids not found:", id, searchStr);
+                        utility.log(1, "Selected ids not found:", searchStr);
                         $.merge(pendingList, clickedList);
                     }
                 }

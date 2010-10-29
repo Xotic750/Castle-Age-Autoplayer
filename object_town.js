@@ -188,6 +188,7 @@ town = {
 
             for (it = 0, len = this.magic.length; it < len; it += 1) {
                 if (this.magic[it].name === name) {
+                    utility.log(1, "haveOrb", this.magic[it]);
                     if (this.magic[it].owned) {
                         haveIt = true;
                     }

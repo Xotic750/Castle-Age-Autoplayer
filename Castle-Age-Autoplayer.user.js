@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            44
+// @dev            45
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "44",
+    devVersion  = "45",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
@@ -5607,6 +5607,7 @@ town = {
 
             for (it = 0, len = this.magic.length; it < len; it += 1) {
                 if (this.magic[it].name === name) {
+                    utility.log(1, "haveOrb", this.magic[it]);
                     if (this.magic[it].owned) {
                         haveIt = true;
                     }
@@ -6354,7 +6355,7 @@ gifting = {
 
                     if (filterGift && filterGiftLen) {
                         filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
                                 utility.log(1, "chooseGift Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
@@ -6466,7 +6467,7 @@ gifting = {
 
                     if (filterGift && filterGiftLen) {
                         filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
                                 utility.log(1, "chooseFriend Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
@@ -6604,7 +6605,7 @@ gifting = {
 
                     if (filterGift && filterGiftLen) {
                         filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
                                 utility.log(1, "chooseFriend2 Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
@@ -6682,7 +6683,7 @@ gifting = {
                             }
                         });
                     } else {
-                        utility.log(1, "Selected ids not found:", id, searchStr);
+                        utility.log(1, "Selected ids not found:", searchStr);
                         $.merge(pendingList, clickedList);
                     }
                 }
@@ -9599,7 +9600,7 @@ caap = {
                     }
 
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    for (pp = 0, len1 = headers.length; pp < len; pp += 1) {
+                    for (pp = 0, len1 = headers.length; pp < len1; pp += 1) {
                         header = {
                             text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                             color : 'blue',
@@ -10701,7 +10702,7 @@ caap = {
 
                 // Health
                 if (targetStr === "health_current_value") {
-                    health = parseInt($(event.target).text(), 10)
+                    health = parseInt($(event.target).text(), 10);
                     utility.log(9, "health_current_value", health);
                     if (utility.isNum(health)) {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats.health.max);
@@ -11271,7 +11272,9 @@ caap = {
                 armyArray      = [],
                 pointsArray    = [],
                 xS             = 0,
-                xE             = 0;
+                xE             = 0,
+                ststbDiv       = null,
+                bntpDiv        = null;
 
             utility.log(1, "Getting Gold, Energy, Health, Stamina and Experience");
             ststbDiv = $("#app46755028429_main_ststb");
@@ -12200,12 +12203,6 @@ caap = {
                 this.SetDivContent('quest_mess', 'Searching for quest.');
                 utility.log(1, "Searching for quest");
             } else {
-                if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && config.getItem('WhyQuest', 'Manual') !== 'Manual') {
-                    if (this.CheckMagic()) {
-                        return true;
-                    }
-                }
-
                 var energyCheck = this.CheckEnergy(state.getItem('AutoQuest', this.newAutoQuest()).energy, whenQuest, 'quest_mess');
                 if (!energyCheck) {
                     return false;
@@ -12230,6 +12227,12 @@ caap = {
                 if (this.stats.level > 7) {
                     var subQArea = config.getItem('QuestSubArea', 'Land of Fire');
                     var landPic = this.QuestAreaInfo[subQArea].base;
+                    if (landPic === 'tab_heaven' || config.getItem('GetOrbs', false) && config.getItem('WhyQuest', 'Manual') !== 'Manual') {
+                        if (this.CheckMagic()) {
+                            return true;
+                        }
+                    }
+
                     if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2') {
                         imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                     } else if (landPic === 'tab_heaven') {
@@ -12542,9 +12545,24 @@ caap = {
                 return false;
             }
 
-            var haveOrb = town.haveOrb(this.QuestAreaInfo[config.getItem('QuestSubArea', 'Land of Fire')].orb);
-            utility.log(1, "info/have", this.QuestAreaInfo[config.getItem('QuestSubArea', 'Land of Fire')], haveOrb);
-            if (this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual' && haveOrb) {
+            var haveOrb      = false,
+                isTheArea    = false,
+                questSubArea = '';
+
+            questSubArea = config.getItem('QuestSubArea', 'Land of Fire');
+            isTheArea = this.CheckCurrentQuestArea(questSubArea);
+            utility.log(1, "isTheArea", questSubArea, isTheArea);
+            if (isTheArea) {
+                if ($("input[alt='Perform Alchemy']").length) {
+                    haveOrb = true;
+                } else {
+                    haveOrb = town.haveOrb(this.QuestAreaInfo[questSubArea].orb);
+                }
+
+                utility.log(1, "Have Orb for", questSubArea, haveOrb);
+            }
+
+            if (isTheArea && this.isBossQuest(state.getItem('AutoQuest', this.newAutoQuest()).name) && config.getItem('GetOrbs', false) && whyQuest !== 'Manual' && haveOrb) {
                 state.setItem('AutoQuest', this.newAutoQuest());
             }
 
@@ -12672,8 +12690,8 @@ caap = {
                 }
 
                 this.LabelQuests(div, energy, reward, experience, click);
-                utility.log(9, "QuestSubArea", config.getItem('QuestSubArea', 'Atlantis'));
-                if (this.CheckCurrentQuestArea(config.getItem('QuestSubArea', 'Atlantis'))) {
+                utility.log(9, "QuestSubArea", questSubArea);
+                if (isTheArea) {
                     if (config.getItem('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual' && !haveOrb) {
                         this.updateAutoQuest('name', this.questName);
                         pickQuestTF = true;
@@ -12723,7 +12741,7 @@ caap = {
                     }
 
                     utility.log(5, "Setting AutoQuest?", state.getItem('AutoQuest', this.newAutoQuest()), this.questName);
-                    if (state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
+                    if (isTheArea && state.getItem('AutoQuest', this.newAutoQuest()).name === this.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / energy;
                         utility.log(1, "Setting AutoQuest", this.questName);
@@ -12751,13 +12769,12 @@ caap = {
 
                 //if not find quest, probably you already maxed the subarea, try another area
                 if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && config.getItem('switchQuestArea', true)) {
-                    var QuestSubArea = config.getItem('QuestSubArea', 'Land Of Fire');
-                    utility.log(9, "QuestSubArea", QuestSubArea);
-                    if (QuestSubArea && this.QuestAreaInfo[QuestSubArea] && this.QuestAreaInfo[QuestSubArea].next) {
-                        config.setItem('QuestSubArea', this.QuestAreaInfo[QuestSubArea].next);
-                        if (this.QuestAreaInfo[QuestSubArea].area && this.QuestAreaInfo[QuestSubArea].list) {
-                            config.setItem('QuestArea', this.QuestAreaInfo[QuestSubArea].area);
-                            this.ChangeDropDownList('QuestSubArea', this[this.QuestAreaInfo[QuestSubArea].list]);
+                    utility.log(9, "QuestSubArea", questSubArea);
+                    if (questSubArea && this.QuestAreaInfo[questSubArea] && this.QuestAreaInfo[questSubArea].next) {
+                        questSubArea = config.setItem('QuestSubArea', this.QuestAreaInfo[questSubArea].next);
+                        if (this.QuestAreaInfo[questSubArea].area && this.QuestAreaInfo[questSubArea].list) {
+                            config.setItem('QuestArea', this.QuestAreaInfo[questSubArea].area);
+                            this.ChangeDropDownList('QuestSubArea', this[this.QuestAreaInfo[questSubArea].list]);
                         }
                     } else {
                         utility.log(1, "Setting questing to manual");
@@ -12766,7 +12783,7 @@ caap = {
 
                     utility.log(1, "UpdateQuestGUI: Setting drop down menus");
                     this.SelectDropOption('QuestArea', config.getItem('QuestArea', 'Quest'));
-                    this.SelectDropOption('QuestSubArea', config.getItem('QuestSubArea', 'Land Of Fire'));
+                    this.SelectDropOption('QuestSubArea', questSubArea);
                     return false;
                 }
 
@@ -12810,7 +12827,7 @@ caap = {
                     found = true;
                 }
             } else if (QuestSubArea && this.QuestAreaInfo[QuestSubArea]) {
-                if ($("div[class*='" + this.QuestAreaInfo[QuestSubArea].clas + "']").length) {
+                if ($("div[class='" + this.QuestAreaInfo[QuestSubArea].clas + "']").length) {
                     found = true;
                 }
             }
