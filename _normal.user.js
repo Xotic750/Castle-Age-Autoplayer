@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            43
+// @dev            44
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "43",
+    devVersion  = "44",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
@@ -80,562 +80,659 @@ String.prototype.regex = function (r) {
 /////////////////////////////////////////////////////////////////////
 
 image64 = {
-    header :    "iVBORw0KGgoAAAANSUhEUgAAAK8AAAAuCAYAAABefkkIAAAACXBIWXMAAAsTAAALEwEAmpwYAAA" +
-                "AIGNIUk0AAIcbAACL/wAA/lUAAIJ8AAB9MwAA680AADo7AAAjQeoHuS0AAEBfSURBVHja7L13tC" +
-                "TXdd77O6GqOt84d+5kTMIgDDIBEARIgBQDCGZCIi3KJGXJlCVaVraCn2VRyfaTLNnSkywqS6TE8" +
-                "JgjxASCAJFzGGCAweSZO+Hm7q506oT3RzWGoABJ9Hqyn/2MWutO6HW7uvrUPufs/e3v+0qEEHjh" +
-                "eOH4X/HQP/XrH/q2F5TSPPX0Ezz5zc8QRWtpr19PPlxY50S0xa4uvASqNuBAhOCs0kkybIxvvNO" +
-                "H7IB0Zn7zlktQjYYsbOoFAgQIIVk6eYx0ZRHnAQJaCZARBIPP+8iki9QNvPeAxYdAohLaU+so01" +
-                "X6y8dRcQsdtWivXY/JCqSOyJdOQPD0Np5NcAEkSCmIZcLyqQO4YoXu5CxlllLmOUlnjOHiKaTUB" +
-                "OkRQlBfpIQg8KG+PlFfOgKIo4jxdRsxecry6cNI1SGECik1+ICzBSG4+jRBIAGZ9KjKFYKvCD6i" +
-                "1ekxvmELociZP7YfD0gR8MEjhEQIQQgOJXR9I6Qm+IBUARCEYGm2uzTHJvnqx//k772pb33vr9T" +
-                "3Usq/83csIRrOH/tnrgpruus2/5ci5ClCPO/vtkZjIYXAFDn9uaN47wio0TgFhHBAwAcJQiGwCA" +
-                "UIhRYCIUGqmNktW6BynDq2H+8FSBAoAJyzuODRQuGwSKGRUhG8Q4oAQqHiiOkN2/jAf3ofWil15" +
-                "iK99wihkErRmt4GQV41WDr6g9t2bL3+oosvXrNl44a4lUgajRZBgneBvDDsffpAev99Dx2dO7zv" +
-                "swvzR/+wMT55qCpyQSAIIfC2Iu/3EULVcf/C8d/1SHRMZUsGq0sI+TwBKQS2KM4+a8vmX203WzM" +
-                "PP/7UkWR84oM2XcI/z04cxidRWv3Pt/IeO3qwjnrvmFkzjRAJWX95FmHfe+755/zkP3vn93Q2b1" +
-                "jD3Xfdy2N7n+Dogf3EnQ75MGdqaoILLryA7/+e17d/4Sd+6JxPff6r5/zpn33wxqWFkz+opf6GQ" +
-                "CDwmCLlhezkf9zRaLRIQgNjckxVjnaXbwtHynx4/Q2vuHZm7fo1PPTgg/+UovVJm2YpPM+NGp/4" +
-                "nzNtWFg4AUBlPe1WxOKp49tX5g79wU/+1I++6vve8ir++kMf5dfe90scOzaHjlunlNJ71p618xW" +
-                "D5fmTBw8evPXmm2/b/Gd/9oErvvttb5U/92PvYd++fds/84Wvv7yzbss3CEC2ihUCxwvR+z/q8N" +
-                "4hhKLV7FIWKeFvBa+3dmJivPc91119Od1uwlmbN7z02MnF17TG137SltWzY5ykk6C1xoeA/DvSi" +
-                "v/Pgnd86iyEUFRVyf79B2ZDsfLH//aXfuHlr3vZ5fzcL7yPz3/ub4ibjXRq9qzPJr01/1UIUUXK" +
-                "39Vqdx8yaXh7pyubujnxir/64Ed/9OTpxevLvCAWXIBZFUo2ghMK5z3eBcDjnQcCLgiE9hAczjm" +
-                "wDoTHBw94nAsE+cyACbyzYD1SObwLBBfwMuC8h+AJIdSfIUCEev1wvn79mVwueI/3Hu8soc57QM" +
-                "o6s5UBvCD4b+W89Q4bCFqfyY2dtQThCaH+EcHjnIVg68QwyHqaOo93FcE7gocQQn0OIXCuIgBBh" +
-                "DPXV+e8nlGZcOY99TcRde7837B9heBIkhZJFGOq6szqGwi4yr7k4itfdEkcCTRw9UuubH7045++" +
-                "Ufnq88sn+mY0CARgZtc6hFTIEBAIhJB4Z7HOEfDPynnr++aDAuEROKQHhK/HXwVioZBCEUR9Dyp" +
-                "XlxpylEpa6/Ah1OOLw8uAlA7vPVoEhLAIrRCizuW1jjroOIJiIIvVxX/1zne9/eWvf/mLed+//w" +
-                "3+5ktfpzM2+WSrt+Zfq97E55VIgslWL1WRxg1K1V5zFq1uLz99+OkvJHFyx+3fvOt9rVbrezq93" +
-                "tNx1ERGTVHlp36k3e1eGTwVwWN9iAQBKUUQUnuB8z5ueBk3hdBaBR9kwAUfiHGhX5X5r4dgX9fu" +
-                "Tr5caO2lUMKlSw188DhcI9EWEGZ5rkcQLhCElcJUQrpYBUGzvWRL82sQrmm0Gm8U0tMdn7RCSIL" +
-                "wCCk9gRCEQDxTsIWAEASB8EKJWISQVkX+67jqVZ2xieukalUhOCmk9MIH730Cz0ySAAKJjJrCVS" +
-                "KE4INAIaOkUZXFbwdbremMT74doY3Eaz8KVgQ2hKCU0FaEEILURQgIpUKbgAIfVBQlhPAY8JvfS" +
-                "QALIeh017CyfAI5yn29V3Tbze87b9um+H3/8Xd57z9/N9decSlfuOmrNxQmv7K3qXvbmQkfAsFk" +
-                "FDZ75oxYW753fHr6+7SOSx8EQoRRMVcvNEKq0XvrvTZAXcBGQlSli4p0+Ks435qYnPkZpRMTRAg" +
-                "CiZAC78EHP1qwPEJK8ALvPVIEhFZUxjbLbPW3gI/rl165lc/ffCeuyndu237Wu9/+xu/ic1/4Ij" +
-                "fd9HWSZnKyPb32PZEeuw0Zk6+cIuufFO3O2QSTB6WF2Lj7paG7dhv9U4eWh6unf9xXxe8KHc9v3" +
-                "H1VGCyeUMNT+3/21/7PX98y0Y6x1oEIowRCoJVGIqi8H42NhyBBghKS3/ydP+Khe27//OTM+h/6" +
-                "lV9736WzU12sNQTqlSqJE6JIQgDrHVpI8tLgvAOhSOKY3/q9P+Hur9/y1fHZmXf8yi/929evWzt" +
-                "JEIJEq3pkg0PICCEkITgCYbQKQmkqkqTBf3n/X3Drl79429jUmmt+/Vd/+Z2bZ6fIM4PQ0GjGSK" +
-                "moCkPlLSGAD/VXgYCQ9XX+/p9/iFu/+pWPN9udt/7iL/3iu7dvnCHNC6SUNJMIoVQdLH6EdEiJM" +
-                "RVV5RBK0EgS/ugDH+XB+x644zsN3hACUZyggaoqEYDJzQW7L7noVVma8qWbvsiFl1zCja+6mt3n" +
-                "nTt+z72PvEmPxbdZLASPHQ7xCwMqX+FqmAiPuOZnf/bnX3Ll7rNJiwwCxEmMEhFpPmC1P8A7T9K" +
-                "IGev1SKIGpTPEKuavPvFZvvLFz1wldeLf++M//pIXX3QuWV4gAB9qdAE8CIkcbUFaaQj1xGu1m7" +
-                "z/Lz/EnfffexaAnupITj71AErKK1/7ju+e9abkc1/6GpWp7NjaDT+jW53bgvEIX+FsBiZTwVck3" +
-                "UlXDpfDwqE9JO1xps86l3a2nmNP3L4/ZH18ZbCVQUZxtma8xURbYSo32gUFjTjmvgcewjh4yeUX" +
-                "UZQGKSTgiaKIqqywWVpIJZ1SOp2d7LJ+somxEVJq4jjikcce56Yv3czKcECn1WXj+lled/2rmBy" +
-                "fhBDw3mEGKwS8Fah8ZmKM7Rsm+PLXbuOzN32FRMd1xqDkKFWog7Yyhl3n7ubd3/tWGlpQZX2ESo" +
-                "z3IVs71WPjTI/SGI6fOM1f/OmHWVia5/U3vI5dO7cQKU233SL4gAsBpSRSCGzaxztnfQjlzHiTt" +
-                "eNNiqZgfmmZD330bzh9Ym40pQU+1O9923ffyCUXnIuvKqSSmLSPNWX+35IXCiHoTmwgW14FLQh+" +
-                "4V3nn7Nt+u577kZHSfaN2+5Ur7h8d/KSKy/knnvve6PK3e8mjfhItnQKn/ZRcUyz08WWBbbIsMg" +
-                "SZ/F2SLCGVhKz/+m9/M3XbuHgoSN4qZFSIoInbiRc+5IXc/UVL6LRTOgvncRHshRSBmEtlCnClv" +
-                "QHGf/3pz7HwQNPE0cxSIkPHuscb3nTW/mua67AlAXCBoaL8wgpIgBdmoqiNIx125dt2bROHT5ym" +
-                "H1PHULGzVt0Y+zDrqpQQmCdpzu1jkTrQXAu2LLAIzl9+DGkbEJTE6uYSDVIB6c5cN+XsVifRIla" +
-                "XekTKoWt7JkBTbXmI5/4LHlocP7ZOymrlBDqbVdpTWUMAU+sW15pbVeHfVq6oqwczUaD2++4m9/" +
-                "47d/h8pdez5VXX8H02Bi33HEXTx48zvk7qD8rBCobYLSqrgwHLC5KHth7mBdf8yq2bJhBKsXHPv" +
-                "NFHnnwIX7+F36Glo7IK8PNt93NwWMnWDfZxlpH0uyMa6VMf5CytCTJioJOs8lSanng4f386I9u4" +
-                "9jcSZK4wcxkVeOgPiCVQgqBsxVaxyihWO2nLK0sk+UFrWaLrIQHHjnIT/70j7G0vIJEorQAGbO0" +
-                "OE8IASkVzpoz+d4/FLDPrLwhBHQUYX2Byc22DWvXvEUIy94nnnRTMxv+7dHDhy+55+G979y9YyM" +
-                "bN87uPDK38BqZ+T+u8gwh6zxcKkk81sNWJQpFWeYM+kNsCNx88y188KOfZP3WHdz43e+g0+lA8L" +
-                "RaCfc8+Cgf/OQXQDV52YvOp7IOKSKEhLIs6A9TsqKg1WwwMbWWOx54mJ/+iX+Ocw5jKtqtFr1Ww" +
-                "vLKKs5ZjK2ovKXMcwmgl5YWX9mI4x+ZmJl9UbOZsLy8QpQ0aevmucIVH4mkAhG8xAUBNm53pzvd" +
-                "jnA+vMg68VGtBcJZ603lPYWIpAyt3iQhhD42/FrwsizyDO1rRKPeRmP279vPkaOnsMQ88tRBdm6" +
-                "cJCtLhJBESlOWJUIGVKSkkjIxRcFw6PEBvDN88Su3MHvWbn76h9/B3iefZvuWSc4963WkxrC0vI" +
-                "JWEu8DIVikqtc0U5Qsrw649sWXsnHtNMGWxElCIiqa7TY7Nq4hER4kdBtXEyrLoD/AWYOOoo5Sk" +
-                "SuKjDQVZGVJSCoayjO5ZoqGhmwwgA6kKVhX525SSST1ShrrCB1pjClJ04yiKOsVPxS0x7pcdfFO" +
-                "9u8/QKPZZmaqS5aV9PtDpFQoLfA28J0U/M65rhBivZSyAwQhJa3xLmb51FvOO3vHtkce2cPKSv9" +
-                "Aq21PO+fFrXffz87Na7hk97k8ffBLPxwrtaC0NgSJlFKEgNMquk2qaOgDlFVFVVXcec+9/MWHP8" +
-                "4lL34Z//IHvhdMxqEjx0HGTEQxr3vZZZy1bi3NRpN+f4B1ps7vEVhjyIdDsrIAbymyVaJIs2nNB" +
-                "MP+ErbVZuP0BJkp6Q9W6kLPVrgaSREAup9nNjjjTZZVeZrRlA4B6LjZllJu8t7pQFACMoLPELSt" +
-                "cwQfegouds6vEnDKSR+EFwhs0huTJstOUpbKK6fyokRUFdbV2a5rNfjGnfdwyVUv5cihQ9x8611" +
-                "suPGV5FkOBJSOqEqD9XX1HfChKAyZtFgfaCQRcaNNemqO+x56BBE8CwtLVM4i6tqXSElssPjg6m" +
-                "JFQF7k5ENHKwqcPn0Sj6DViDHG4Aksr/aJQ0HloZtogisYpgHrHECOQBd5yXAIhTH4ymKqiuAFw" +
-                "/6AssgRMiLVDjsKNKUkglAPuhZIIShLQ572SQsL3mJKiwdWVlboD/pYB7iCyroznTIpwQWHUP/w" +
-                "ynv8wAOXNFq9n1mzbvsFzrlG8C4oFVXr153Vunj3LnGgkzA7u2mnbqi/soUhSRJWVlfYsWU9G9d" +
-                "vuLQ/zP5ca2mFlG0hRbCmmi9XV15DYC9C4KqKhcUFbv7m3azZvI13fc8bWDh+GGNKhmmGVCVLqx" +
-                "63aJkdbxKEZ2V1maqyZyafMRVpNiQ3pt4hKwfBk2cZRVZSUbG45LA+nGmsuEjjKoeuVyN0CPaWf" +
-                "DB/y5Kv/tPKSv+nGxMaUxXYSv5x1Bn7OZlEZMNlvLVBxzEmW72sKjv3VaZ6LG71riuLdIgPCCGR" +
-                "QJACISuE83jvBEJERZGBqPABoihi7shRnj54gp/48bdy2zcDX7/1Po5ddQkTLYHxIIWpA2p0Xo+" +
-                "gLAsy7zAuYArN1VdczP7Dc/zpX3yE6667mjXjbbIsJSCRUlDKiOBHaYqMESiKsmSYVhhTQ1UKsC" +
-                "bCuopYJeRZSmlzvAtkok5fpJQE76nKdCmJenFZ5AyGhqqqMKXCVQahJIPhgGE6JEiJCqruVkqJV" +
-                "qqGvpxFSkEURZRlyTCz5EVJcGWdUgjJE3v3MTd3hNXMsmv7JiZ7HUIALTVCBJytvjP8M/CkTYd/" +
-                "cHzvA+ujbtc12mN+dWn+ey++cPf1ex59mLvvvZ/e2DhKKobZEO8tq0sLXHnRuayd6jE/f+ogrcZ" +
-                "/NSupE1I6lSSu2R07FRaXsAisNczNneD0wjJXXH0t/fk5FuYXiJKIfj9DRTHSFgRA65QQAkopnH" +
-                "V12iMkpirJ0oysLCmynLLMEEJz130PkfbnWR4WnLdzBxtnpnEhEEUSo2OsqxBSBAAtvUNHHXyQ1" +
-                "aGjx9gwsY3NGzfx2OP7pq1NQ7M3U29bsaJcXcTZQuvOGBazWg5XhkgJosZBpQBkhJcWWxqsLVVD" +
-                "tMnzgmG+TL9f0Gg2eOixx6hc4Lavf4XDRw9TDPvc+cCjnLt1LaYwdHotYq1HYDvgPVmWI7QhBJi" +
-                "fz8ktvO767+Lu+x7mS1/6OseOHuW8s7fRSBqMdxOkUnhrCWGEaohAZXKGwKnTyxTWIaQk0posq4" +
-                "DAwSNzeJPjQ73arZnq0dDqGRRCCCl9WWZkQpAXhqVhRloYCI79h48xd3KR9rAklgEvYHq8SzPWh" +
-                "BCw1bd2gNLkZMNAf1hyPDdkpaUsMz7xxZuxpmBpcRUZNVk7kZFEERNjLQgBa2s05Ds4ThH8TdZb" +
-                "Ws02caND0hy+fMuGNdx+2zc5dHQua7YGJxu9iW3lYOWzcadTDPfuf9vOrZvYtXUDjz+1fzxudr7" +
-                "h4als8TQNLfEuwmBBaCpTsZj2kVGEc44DR06QZTlaa/pZThQnZJnk1Pwyg+EKOm5yztYthKpGm5" +
-                "CCqqpIs5Q0L0kLQ1YGgnc8uu8psJ7TS4v0pmZqGE5LJrottCjx5pk0EPRgWNKd3kzAfX3Pnn3/6" +
-                "oIds+1zzt7Ck08euDSK21PG5ovKCHZc8iKOH3iChYN7pfOeumnuZLC5D2oCrSqElHWjQAZ8cPiq" +
-                "Dp6yzKmKEpU0MFXFwaOLbDxrKydWCsZmzuIs2+SJpw6wfctG4kTgPORZBtYihUJJQWlyMAUhCJS" +
-                "CbhQzEyvWvvoqvn5Xj0efeAIRN7n6op2URYEfAfs60jSaTXQSUeYlurK0Wwm9SCFQRJEiSRQImB" +
-                "rvImyEH21VripJjSd40DICKSgKg7IVpnKMt2uoTgjJ1HiXbNCn3W7SjCQuBFxlGJo6r60JR/WeW" +
-                "RYlqbVYa5kc66KloNnq8C/e9TZOnDjB6X7GxjUTCFfgnScbZqNmjuU763FJhFb0JtYSN9r0Vxcv" +
-                "3rhu7Q395QVOLy4xsWbDRxrt1leFVO/vdnq/76X4cjZc6e05cPj63VtmmZmaOGsxK9/caLd/48g" +
-                "DDyKJWXf2i4gIBAJlaegkCiUllcmY6M6SKJBagK+I4pjJbkJ/kHL3/QfZtXs3vU4b40pQAgiYqi" +
-                "JNPdZbxjttIuEQWnLj9ddTpKvMDwqmx9uIyuC9JU9TtFIYbwgj7Ezf8cg+9EQHb8pvHD9x9JZ7H" +
-                "93/ugt3rOO8C869aM+eff+60Rv/+RAsSaPJ7he/mrvmj1spZRBgpRABnVB5X+eaPlykVPWrHvHX" +
-                "SaP9UV/kSAlFVhJMTiOBvQf2YQPccO2lHD96hMnJSfZ3Yr745ds5fuIk29d1sFmgrMo631F19Wz" +
-                "yAu8zvBPISCBCShrAVYYLtq1jYqzNHXfex7bZCSbaCQ5fb1Pe0W61XKPVWq2sITcFla+7VkqAij" +
-                "RVniMkpIM+vhzU3TcCUtZ/B+/QkUJLJcsyRxQlxnmqIqfMMqSSDFdXWV1dxjtHpRyhptPVoH3wO" +
-                "FfVW2YIVGVJVpVUtsJXFSYfIoTgxNxRjh45zPjUNPnKPJWtasB/BD15585MgL/vOP+Sy1nq9ylM" +
-                "hXCOSPDmzbPTM/v3PYnUzVPdsfHf8CJsqorct8a7obIFQobfPnj46LWbpjrNzeummd+z/y0h0h9" +
-                "O1p911OQpwRmUSghCkpuCVuKYmprgqX37WTfWpBN5HJLBMEc3DVQKYTOEVkyOT5L1l3GVG42pxJ" +
-                "iSLAdnPcZY8myIUpJTJ4+xtHCKZnuMlAxrHEKOmHpa4aw9QzbSUbUCFQh86Zvhdx9+9OFrE5F3r" +
-                "ti9GWvtj+0/MHcIxB+ayoTZyVkm1521mqd9IwW5wwQdj4OxuqrMq7ds2fDrk9NjFz/8wINNIeQn" +
-                "kMEFAWWZY/McU5bseeowuy64kuVTxzg2N0eWZfR0YKzX5vF9B1nT2470gbwydWdlVICVxmBtgXc" +
-                "BMzTEWpPEDSoXyMuUqaatE3mZUBQ5zjuc81TW4hVBKOHK0uBsVkNyI0gpsgopIWnElNbg8gwf6t" +
-                "VUSEYBA1EUI5USpjR4m2Kdx0pJGKUY1lq8rSEyh8daS+UckY4IwRKcR0oFUmBKQ/BDXACv3KipI" +
-                "vHe4fGUhUFJjw2esqqItSKEgHPuO0IbfuDtb+KvvnwzD+8/RDLMZjvd5pusyThxap5Gu/s5CE/m" +
-                "w+VztUqEs2kpbE4ziW4ZDMovHZ1bfPP0WEy3FV1qXP7iqTW7jq6uFMi2JhQ5QQiq0lD4kp2bNnL" +
-                "Xo09yx0OPc/H29Ux22/WCYT1BB4psQKgMaTok1QrrLEpIEFBZS5lVWO+IbIxzvp7woz9tVWFlPY" +
-                "ZFURBHMVopXGWRYZTzxvG3KIpStb5cLqz+0p13PvC+s3eu7+7etr4ZRxt/Z9/+A9cd2HPvH2Vpe" +
-                "vOgvyyUECWEKARmhZaXtLR+w+ZNm9525aW7pu765h0UZSXiJMKPGLFFWRDKgsMnTpAVgp0bplmY" +
-                "P4KzVb0NJ4H1Mz2e2DfH4XWTzI5pKutrJlpNCqWoDBQpsdLs2XeAkyeX2Tg7SbOZYBwcOXSY9We" +
-                "dx9R4k7njJ0h0ow7G4AkiCBdQVVniqmLE2RVIJShMoMhThOyRrvQRrsSP4ByEILi6zZk0YhojZM" +
-                "IUQ4IHIwJpPsS4Bk/te5qTp+bodHtQlSwsr7LhrO2sm2hTliU2OFD1Z+bW4EwOXuK0ocwznIV9T" +
-                "x/g5NxxOt0VhCs4vbjC2o1b2by2hy2LGnP9DnBe6x3BOHw2oDTFNds3rT1/bu4oxjOY7o5/qFhe" +
-                "wfsCms2AoyqLCBnpSsjsL48vLF0/lkw0Jrut+PDC8js67bFPC2OquNmhrAx4j7UVw3xILCSX797" +
-                "FU0dPcveeg0y3BQ2tSdo99g+WOXZqHtGbYnJinCKbx9kKF0BIjasqSltQOkusCrJsiKssjz7+JK" +
-                "sLJ4lbHWSoWFpcYnbLTravn6AyBc55vJQeQBOpb2sn4vxvS53M7dl37I9OLJzublk/G19x8c63L" +
-                "6fFaxdPPP6VSHniZk9VJrp8TXv6Y2vXzZy7dXZqimrA17/0OQ4cW6bRmJpTUlgbKgVgXcVgeYXj" +
-                "S5ZNZ+8iHS4zHA4QQuNxZFlOuxkxvW6WpdTSjgXCFxAcUtSroKsMviyxlKxdu4725GbyPGMxTbH" +
-                "Bsf3iq7jivG2cOvY0VWEIuv5cQiCSOmgpK+MsmHI0KQSxhYV+RtyepNseZyktacuSOj2VSEE90/" +
-                "HESUwcxxhb4YuSEASDNKPZGmes0+PQyT7WN0hXK6rS0uyuY/3sLIP5o7ggcM6NAq9ePYqiJADpq" +
-                "iFKusz0uhw4tkxwMWm/wFuLbEyzedMmssVjNRHGu1E38B9uU/gsE35xcff0ujU/t36qHX310ZPE" +
-                "rd7tOorucThAGEcIKEKj1QQZUVX2kf4gPbaUNnbMTrVZHhbXl7b8gWa38ZGgZF8mSXB5gbMOYw3" +
-                "OOZQquHj7OnK/kcXVAcPBKqbyqO4Ml559EWetX4tZXWQhrSe8QCBDwAVHYeqxXq4qGp0eO2c3kV" +
-                "YGOTZNkIqysvQ2jHP2ju3ki3ME7wneI1RdsunFJ/Z+ez/cGKa37PwIKjlyaqn4VwtL+97SjHQyO" +
-                "T7Vm52auLHZHkfJGB9UWwR/Tbp8jDv3PcjJ00tUoYFUzSWB+QQyRgQvJCGqihIXKnafs4lWs0l/" +
-                "YY6yLFBSUw4LnK3oNJpcc+EmhFQU+YB0pcBZD3ghQJdFTpUOAIWWgnWtJslkG+QEURSBs+x//L6" +
-                "6OaB0ve3YqmarBQQhdKqywGVDgpegBCWeJFZcvGszcRxhypLBIK9RjlFa4aoK7zxSKHzw0uQF5b" +
-                "A/4uFIzt+2llazQQiToy09EKREAEunjlDmWc1Acw6tJCCkyXN8OsCHenXftX2WdqsJYdTGd6HOc" +
-                "0VgcPowaZ5CCDhvv6OV13hzmfPmx+K48bbpbjfZ9+RjBKJCwu2DhcVcSoH3QXlvtJI9j/RUZpWq" +
-                "KM9Fqw0n5lcI2RKxajaKUvxOFfx7lRl8XzDFY0KJOM8y8uFSjdtLYGEerTXj7R5rZiaIkgiJxBZ" +
-                "L7Lt/H6WzaKkpqxKlEoSQOktTisEiNgSkkqwf75E0FIIONR9HEo3y+5OHn6TIM7SUGFMg4m6d89" +
-                "o8f05rMQRHubJyR3dq6g5k4xVl6d5+YrF/3eHjJ9aAmggugLCEoEFqJ3SyqJKJFS3crSA/UFbmN" +
-                "oUg7kx6F8TTd9z94FlVtkJgH95bpIpHnxNqAoZSNSGjpnQhRjffR+1Goz0WPJy49/49lOkiUkaj" +
-                "XeKZzX3EfxQSpWpZSv2dRzc5apC0xpeFVK377n+UcrjEiPkymq3PfC4IJZBKo5Qc0SgVwluI2zS" +
-                "7nQhkdf9Dj1CuLoHWIOpCIhDq9GJEzaypi3VgSq3AB0TUQre6WuuoePDhPRTDRYQaSX68G3XaxN" +
-                "+Cwmo6v9S6porGLVQSt/6h4J2eGPeJVlWRD/ft3fuUqky+MWq0v45U30R6ZZ3zPshHdPA/7Sq/N" +
-                "8+WKQcLtMZnyfPB3cOB2+CLcqcgJ2p1EhXHTed91er2IMijT+7bj0mX62pEylEjCZw/WjNLfU1j" +
-                "RNQ4NyMJkWy0aI03E62jI/v2H6BYXSRI6vGXo5b+KGmTKIQQ9SKiFUgFvgIVMzW9pm4P/22ZiOA" +
-                "Z7qsbEdq4GSlu1o1kprtm3eRgceliAm0pVelx41JFi77icW+yZaLoSF5ZTFWi0SSttofwfS53b1" +
-                "ATU9ux5SaExAeE8xVSaF/rkwT+TKYpQAYPQsVRZHRn7PHgq5/zqftqMrGjV5nBbiXECDMSQYiaV" +
-                "CpQ7szl13BqEAKllFyMosaTcdL6haGXt3Rnpy6uXNkh4IMInqAQoobOlZL+maaEEKN5IBFCiEqo" +
-                "5J44ad0shNjXmd54YTUctHSkg9RSeBd8qCeDDN4LUznpsFIgpfPWeuu8EsIgwmM6Tu6qQni02Rw" +
-                "7x1qznuCtrEmxoubFinBmBvpQExMFQQihhQhWEG7/h4K33Wo+lMTRD1uTic7slrHpdneLLctl4d" +
-                "zx063EmpDTPrl4WArxx8FX9I8fpzIFjc7El7Wzt3Qn10yURbE7H6yGqNHynV537/LK6lEdNdFR/" +
-                "CvOVp9p9CYuI9gNlcmdqLVy9V4koNFq15RqCd556UIQUgihhRLpYOFjUqnH43bnsUa39yJTmU1K" +
-                "CmetJUkaAilCqEdD2LL0SmrhKhOiRAsZx75Mh6fjZutrAOLic895TvBOb9lOv79Kd2oSoSVFUaG" +
-                "aMetmz+bkkf1UZUbQLbwdkiiFEF2qsk+IG5SmojIlWjfp9GaQAoLJiJodqHKIapGlKQbEjRa2KE" +
-                "Y80+rMDK0XTUXc6qCaLYK3hDwnafbI+qdH/HFxZmWqf198GymlzhUEUdKqK9WoSZYP6Yx1cZUF5" +
-                "0BCGBWEUtTbF0JisgGEgBrNAK0jkBFx0sRWJUmnxfD0HIlOEEpQVQ7daqN0jPeWyjicr1BRA2st" +
-                "/cWTxEmXEEqiRgdrCpRuUJYpOIcaYZ/gz3Sg6ukXzhDrhQwIpZAIPvnB978gFwGkqyq+/cfW+WJ" +
-                "VopttvHffKuYQaBXTXnv22VFj/JUzO69u8J3Ke0INcBPCGZGfH239f997/t7/f2cf/NzreNb2/q" +
-                "1/e4IP/+BnBF9zbp85c3hWsfvt5/3b5/J//3W9cPy3y4C6M+uf8+Km3VeiGk3WbNzKob33cOTJR" +
-                "0gSfWbQIyXeG7eSd5s8fSNw2wvD+HcfebYo8mJJ5XbF9VozL0TsP2bwvuxdP/GclUlpPdIqObZf" +
-                "eA3BC+ZPHgTvCcnYxk2za173smuuGv/DP/vA9/99wXvLZ/7w/xeD9I73/NRzXksz85Jcue8OIeR" +
-                "lkTtjToUo0iRxLKTWZINcW+eORLF4OFGdRxvtiWEI306s+eJH/uiFCPx/E7zPAxHirP029GHXZS" +
-                "9j5vQOlo8dpjL5K158+UU73nj9tXzyU5959UrUPNcOlp74306hG/zWbGX53Y1Wp/PGN9wQn7NzG" +
-                "3OnToev33qnmzt+Qm/YvJ6zz95unXXFI488/tDK0uJ/bvY6n3wh5P4Rc16eyc2e/fOsUK4ZURVj" +
-                "07OsppXotjtvvfrFl9HScMnFF2y0Vf6m/x0Hrttu/PXBuz6169Ajt/3IICuGr7z2xTjrs4duvem" +
-                "JxSOPP3TwqT0H7rz1ln3n7NrR/I+/8rPXXHjpRR88tufen3oh5P4xg/cfaNWcWWmco8yHF55z7q" +
-                "5rDh89zvziCte+5AriSL4p7v1P6krx3/m45sYfX5ject7XDh04sDRIhywtLkUXvOyGC5PxDV/Qn" +
-                "TW3HNv32Bv+5E/+/Pa8MPzMe3+wdel1r/vFR27645e/EHb/SGnDf/jhG7/thXf/zH+uo1oqVpdP" +
-                "+nQwXwPRSCKl33TBrm1Tf/iHf8ab3vwWXnfdlWxYO3v58dOL1zW37fxU7i0NIWlXhqQ/4A3f/6M" +
-                "IpViem/+9S6647AfGOmPeOiuEHBkWeE8QZ8AgpJAiBB9CCCgd88gjj3H6xNwbpmcm33/xpZdtdi" +
-                "N5ghAi4Gtjg1pn9cw8EyIEF6QUZHmlHrj//ptMkX/svAvO+/MNGzd5UxohpRxBAR6oMdUQ/AgsC" +
-                "xB8iHTC/kOH9NEjR//61s/95Xs+9Me/fWZ8rv+eH4KlZbwz4DPaEzPWemfSQU4IgQ/83r/n2te+" +
-                "QygVNy9/7b/cv7x46Pc/d9OXr/ypH/nB5LWvum78gVtv+qFHv/D+rwO85NUn3rF+47r/et7uC3R" +
-                "VGiGkCAIRQvB150OO/B5qpjQhuKCkZmmlrx9+6OE/wLtjF1128b+fmpx2VWWErEnaocapa0168D" +
-                "X6GoIP4NE64Ym9e9Xxw0fe3JsY+7UXXf6i3cETgghCIPzIA+PMuIoRgBmCC0IITOXkfffdf0+Zp" +
-                "r+989ydHz1r67ZQX7sMghDCs4wv/va1RzrhyLHj+skn9v54EqnLLrvyinc1Gk3vvRNCiprMUisQ" +
-                "Rs0aUd+X4MLhg3vve0b6LpP4P3zk93/rs/rvRqk8rdY4vrLU5Jp0bN3M1FvwnoP793P73fdy/bU" +
-                "v4vLLLlCHP/2V1yqlPmWO7yMAzXaHEDfOYK7OFsl73/29zZ2b1lJWBq0VlXO1LATwoZaIR6omtV" +
-                "fWoZXix37+V9n32HFx6WUXd3/1Z97TKnKDlAHnfG3IpiKsNzgXiLRGCUXlKlpJg/se3svdt9/Sz" +
-                "Por6o03XN980ytfTJrmIDxaRzjnGWY5BOh2mgghqawheEG33ebXf/dPOPjU49nfHpcydGqYS7YR" +
-                "KoBdghBEXuQYZ0d4TA2nHT36FL12cs/BQ0dWl5dXZiYnxkJ3YubclUOsQ3Ai7S+q8y94de+Xf/I" +
-                "HRZYWVM4Qx0mtBCkNla2I4qgex9F97bU7fO4rt3LXbTc3pJD6+//JjY0rLtxRfzc8fgQZK6kwlU" +
-                "FqOerc1X4Ssdb861/+TR5/8C65Y9f29r/7yX/RCtYgR04ARWme1cEUSC1JVIRxFZGMePrwMe676" +
-                "/b2YOWkeOXL39N611tfRX+QIgjESc0Os9bivB/RSDUheKz19Lptfu9PP8z9d9wcNdZtavzUj7y7" +
-                "uXasRVYUJElSG6I4jw8OrSIQYK0lAIOBefmzpO+Tz1+wPQu31EmDWHcosgyCePV552y/eM/jj6M" +
-                "azf0HDh7qP/rkwUsu2X02n73pq68LQe4YW7vlabO6UDulfHvjo+wPBux5apXb7nqQQ0dOsHnjLJ" +
-                "dddC69bov55T7tOOauBx5lYbnPNZdfxLbN6yiyLCgpbVU5s7TU5+SpE3z4019mds0kcRxx4tQig" +
-                "zRjy4ZZBIGTCyu89YZr2bh2hlMn5wjWeymkSQcpS4vLrA5WiSPJI3sP8dBjT5NoxVJ/QLPZ4Jor" +
-                "LmLnWevIi4p0kNBfXiQEMXzOuLh8xNON8UESiAjek2bZtwpdjxBSysHyKXwubKexoRqkQ4qsCN6" +
-                "5GGhTU5VNVRi7tNSPllcW2HfwGPc+/ATDQcY5O8+i12uza/sW2o2kdpIJgbw1YPH0SUTASSnM6u" +
-                "qA+VPzDLLhmXJFK8nHPvs1tmzZyBWXnIOz7ownipKSdDBASWmDD+bkqVPcctudPLp3P0kSc8Gur" +
-                "Vyyeycrgwzn4eixOe55+Almpie54RVXsbi4jLfOSSFNlmasrqxy5PgcDz5xgCf3H2NqvEuv02Jx" +
-                "uc94r8vc6SWuveJ8tm9ZRzbss7y4iJTKETDLy6uUg2XufWgPj+w9gBCCdTOTrAxSnHe8/ruuYWa" +
-                "qR2ks7Wbz2dL36nlzXin1yM2x7vvrlsbQV0kk3t7rtnn44YdDkjR/dbC0+P7b7rqfiU6HbVs2rs" +
-                "+y5ddVRU69X9XWSmGEXkipq2GWsmaiTbfb5HOf/wrdVpO1kz2yYUY2LJme7KKkoD8YsHXTWvKio" +
-                "LZCTWzA+6JIOXT4GN5aLr1gF5ect5P7H3qUx/Y+zQXn7uRFF+6C4Nl/8AhFkVOaAq0VUkXG2JIs" +
-                "G2BtxSe+cAsf+Mhnuejcbbzm5Zfz4ssuZOvGtfz2H3yQW+94AO8saZbivSWSz+OMWPSh6OPKVYQ" +
-                "vkMLivQ95ltXk8Tp6ZUCoVqsBcPbU1MSErwxHjh/3g6UTK8AigFCRcd75LBtQFAXbNs0wN3eKO+" +
-                "56gLO3bqDbbpGlOcMsJcsysjwnyzKqyhApHaTUVWFyhtmQNMvI8gxbluw/dIyPffpLPHXgGFVpS" +
-                "NOsfn+WU6TZCKtPrPfBOVdx4XlbOXbsOJ//wlcZ63bQSjEYZEghiGPNY3ue4oJdZ9FpJqRpipIC" +
-                "reLKWstgsEqiBVvWr+Fr37iX1UHKZbu3smX9NBecs5mxTszj+w7VGsQsw7oKpbRXQlRZNoTg2LV" +
-                "9I9+8/V6OHZ/jqsvO56JztnHfA3v4N7/2f/HU/mNURUl/mNIfDp+RvtvnXXmXF46f32i239TqTq" +
-                "7xwemk0fK9iXWNLbMTL03iiKjZrcZajR/03k8uLq3QT4dctHsXTz19+N/oKHqpbDZjpFBSimBN+" +
-                "VeBcB9AkRcMVoc0I02r1aTZ0AzTAelwSFnk9PsD4lgzOdYjz1OyrKDOJmQIzjMcDlESrrvqIhpa" +
-                "oLWgmSTIyhNHkkYiufbKC8nynP5wSF7kCKkQCCpjKMuShx7dy4c/dhM/8M43s2n9FKsrK+TZkAv" +
-                "O2ca+A2fz/g98gv/jx/8Z69ZO4ZxHPtv/9VlQIohahk2g9HVnbphmVCOTOuucjqEpEDu11j978X" +
-                "lnt04sLIU77ry7GJx48p7mmu3LU9suJU+HeFuRpUOyYYrWina7wdhEByU86WCAVpLg5Jl1RnhLW" +
-                "VUIqUGEYIqiDtw0rb3Ymg2+fsf9VJVlzxNPsvySC850NIUQyJEXA6r2vR0OB0RK8n03Xs9/+J2/" +
-                "4Mu33sXG2ddSZClSCe55YA9veu3L2Dg7xWp/laLIa5KMlKGqSrJhRn84QHhLs9UgiRRaBCIJkRR" +
-                "cev5WTs2v0F8dkCQRtrLEcQeEJMtzBsJgraPVadFpt2jHmolOk9e/6qX8wZ98mK/eejdve8N1CG" +
-                "ufLX0Pzxu8w1MHx4tm91KTD7Yh0QREZcy2nVftboViyGuuuypuNBsvzbKMqjQcOXyEdVM9pqbGZ" +
-                "1aHwxcJKU8LaAQQ0oVJCA0hVFzmhmGakudFnUMXOUWWUxQFVWUoi4KqrP8eDlOKoiAEG9AqDgHV" +
-                "7w9pNSJCEKwOhiSxrk3zgifPcqoyEEcSrZr0+6uURTnyjFZJZRxpOuRr37yfZqvB9k1rWVpaxlm" +
-                "LMYZ+v8/5OzbxhS/dyi13PMB33/BSrDXfYik9u/Hyxb/i2hv+6fqk2fwVqVRSmbLnnJ9NhwOiSO" +
-                "nrXv3muUbSqRSl7nYaN19+6aUbms2Yj33mb8Rj93yjOb3jxTs6M1v/wAvxJZHnifNBDIcZw7wWW" +
-                "7qqwvlAmmUYY7DGUCDxIy4rwWKKAlQQoJKyrMiGfbK8QinBqflFTp9a5A03XMdNX7qNJ/YdYsfW" +
-                "9ZRlrZiWUtRaOCEjkDpLc0wxZGaqx2tecRWf+cItnHf2ZjatXcNDjz5FfzjkwrMvZ2FxmSSJ6uA" +
-                "FhFCJqxz9dEia5xhTT9yqMhR5vTusrg6oKsO66R79QZ+WbVA5g0oaSkgdF3lB6gI21Du1s5ZBlp" +
-                "IVGaY0tfOODKTDFKH1s6Xv8nmDV0XRnc7k9y2dOKBmtp1fVUW5MdJ8LR8sb/3rT36m9jrojFHmQ" +
-                "4MUfufZ5zTe/KqrmZ0eZ2l19WtS8LNlf1CKKHbtsZ5TSrlBP5dlOaQ/sOR5DlIwf+o0CY5+VpBb" +
-                "AS7n1OnTlJVlOBhSlmXNo5VK+ODEMB1QpEMGwyFFURIrSWlKKgfH5+ZqupyU9DptOs0mZVbUxm9" +
-                "KSWsLFhYWOXDoOGO9NieOHasFks6zPKjAluRFTiNJOHRsjuXllRGXWDzHCfu6N70ToYStsuGJqN" +
-                "nSWicTPnibphlaCbtm7bqpvDCxjiNm1q7lyLFT3PKNb7ojj91xpDGx8c6JrReteFP2XJ4HKZX03" +
-                "onBcEA2HLKYZ/QHQ5yxHD58lP7QkGYZGofSik6nTbCWoixqx3CENGXGcCgZpDllmnH3o/toNSQb" +
-                "Z7qoSHPr3Q+SSIeII1pJUjP4rEdqKULwIk0HmCJlfj5n67pxZmYm+dQXv8H1L30Rd9zzGC+5dBf" +
-                "Hjh8naTToNJu1ilsKpJKytIbhcEiapiwsLkOA+flFHn18H/OrGQeOz1OVBefumKURN/HWYo3FmY" +
-                "zQjEWRp6gqkBUF3lakwyEHDxxgaTXjK7c9yOR4j3WTXeYXF+i028+WvovnDd7gnBdSl53JjeAVZ" +
-                "Z7uOP/cbbMHD+7HCV022+2/TMbXvFUkjT/UUeOmU8v9j59YXJrduXkdT+w/fE1zbKJpiv7iwuHH" +
-                "YMs5xHECSviiKEmHjiIvEQiMkBip8EJhvcM4cChclZNlKWVRjrwPRPD4kKUpeTqkMA6L+hbzSgS" +
-                "MD6ggCU5Q5gV4V6uNkQglfGUMg8GAIisY77WphCIAVjq8qDDOI3WMijVZVrDa79dCP/Fc9swtn/" +
-                "kg173hnaeL4covGmtod8c3EOJX5Gk6fmp+0Txx3833dyc3TAul9L57vnibGfYLm68+DHw5mdxyp" +
-                "CxqCZAUIJT4J9bVu0KWDqmcqL10BTip8EJinQcl8U5Q1IpFTGlqPrSUvjQjE5SyYiUzzM0v84pr" +
-                "LqWVxGzbup69Tx3h4t27mOxJcp8iAiMtnAoeH9I0xRRD8tKDjnnNdVfw8c/fwie/eBsvuux81s5" +
-                "MMzQOQcnQO4oR/1tI6U1lSIcDsjzHBOqaJTUcPtVnmJecWlxl3ZoJbBUoXEqwhqoyte+CJBRFTh" +
-                "AGYwNCaRZWBnz59kd57ImDnHvONm68/mp8EGRZiZTy2dL35w/e5tgUSdIganQxlSGK1Vsnuknzr" +
-                "seO0Z6Yvqk3NvWbpcmv6/Wmj1vhbs/T1T/au//wv7tw+wamxro7Bmn+Kh/48/7KEdJ0AYB1O19G" +
-                "WZakIicr6gJeBUPiK8pg0K4kDjGRcLUV0nBAaSzWe5RUiEBdcAxTkAEtFHqECYngiXyGFJqAI8s" +
-                "CttJkRQFSoKSitJYiy2g0Y0pjkL6eQMI7pM9QQeMdBOdItMTk2ciN8rnHdd/zozV+IiWOgHMlhJ" +
-                "bMsozgfPzYE09ed/Urb/zjVm/aLB178l/afJVkbD0T570CqRVCt2qvW2/OPG8hzVLSYUocK+RIg" +
-                "Bh5g/I52ocaNgqePA84qylNbYulhcaUhmxQ4YPn6LETeGtZmF/AWUcSKcrKMHf8GJOtTaS5HVmJ" +
-                "1kJIGQR5nlMM03oslWLdRMLWzWs5cPgU29b1wJbE2NG4Ksq6KEcpRXCOdJiSlznCepwPTI83OW/" +
-                "TOCcWVtg6s56icjiTYazHxhprbG1QIxRFXlD5gkCdEk1NdXnJRds5OneauROnsMU2klhhCkcu/L" +
-                "Ol7/55g3fbzl0sLC9TWYO1+a6ZqYnXrC4uMsxM6E1P/pF15aq3RVN1Ok4ricn8B+ZOzL9n68zYu" +
-                "vXTPfnEwbk3xu3eR3u7rsl0JJFKoZ3UxpSkrs7hpJYM+yn9doNhXpCVlv5AMRgOCcHXM7msCN4H" +
-                "qZQKAZlnKdnIdd4DkZZ4V5tQDwcpElkT2oPAJhpT1NaZSkbaVoaykqyZ7HLk+AIrKyvEKqJyjjT" +
-                "NaSeapX5GWVrWTHUpypLKWIQUzy3YtMInbZqdkiipsWznHXmWUTl7pqYTKg7rLn4jZvk0nemzhF" +
-                "NVw4eQByeQUY0VK2N08EHkWUqeZxgjqUpD8I7BYMgwK5DBo5Ss/RKspdduYsoSKYQQUumqNAyFp" +
-                "TKW/Yfn2DQ7QTZMMc4y3m2yZnqMR548zOaZcYIE4cO3ilGBzPOMIqsfu+ChrhsERFrV6Yn3uFD3" +
-                "kWyiyfKihrmljpy1ZFlKUeZUpsZHTVmyOuzTTzOme21aGlZXB4QAzWaEcQYplZRCqrIsEFXtqBO" +
-                "8w1mHwnPVhVv5/C0P89XbH+baK3bhbM1rfpb0PTwvVPbOG2+gOzVBXyoqU1090WltPXb0KFEc3x" +
-                "spdVveX2p4TyNUVemNpZG09hfGfurY6WUmuk2U5GWxjnZ3Qo+WmGC8uQYdRZjSMEyHSBxJFLOwN" +
-                "KAqC/K8xBQlrqxN8JqRpMxzijwjBFd7v0rI8pw8zyiKAlMUtbFI3WWjLErKIscUJaYoKPK81sgp" +
-                "QdLQWOvIhilbN0xinefA4dN4azBFjikN3hiePnyCdjNiy5oxBoM+3lWo5ynYrPUEoWl3eyRxhJK" +
-                "1+fEwTfEjnFegAtL5eGwtU9uvIPgKlw09pvg2Lm+S1HMjyzLyPMcUxci1PVCZelxMWRJcxYn5ZY" +
-                "4eX6h9gE2BjBRJoilsRVXkHDo+j5aCrbMTrJ1oMtNrMt1rcPamNcwvDDh+erE2tytzgndESYSSi" +
-                "jwvyL5tXEvs6HsUuaEs6+uqxzXDmBwtIWnUjZ4sq4twU5Z1k6SqMEVBVZYYU+JdycHjSyyvDjB5" +
-                "jq8qdKSIY01RGLL8meKc0Uo+pB0rdp+9gX2HT7Bn3zGCK+trzLJnpO/PzypzzkKeUy2c7E51u2/" +
-                "TGOaXlmhMbvi0s27oiqIn4ybWGm+sRKoYKD99amH5+7uz462JTnNyYVi+bWpd6x5rAiiBEgmlNZ" +
-                "giRQrBtk2T7D9yislejFa1ifKTR1LyrGTr7BiDNMVWtjYpThK0iiiK+gaPJCf4PGDMqDJPa5gpj" +
-                "Jbl2EmKojZuTpJmvTUPc7oNycXnrOPx/XNEWjDWjjFlweOHhhw9scil52wAbxhkNXwDwj6HnzuQ" +
-                "xNJB259JK1wIoSjyMzcd4YMQWvh8hTwsM2Kvl3/7XI1mEyUhzzPyLKPUimFekBeW00urmKrCeYt" +
-                "Zsjx5eJ7zt86Q50OKqiJSikazQXAVK/mQPfuPs3ntOHk2xHhqLzVracQC7xwPP3WMK8/bhJCByl" +
-                "mSJCGKNWWRf2tcPRgjGBYlprJk2QARGmceJxBbQV6Utb9yozFKZTJKYyiMx3ro54bF5WFtuCcCC" +
-                "33DUr9gqjtOlqWYqiKOIhpJgq0KyizDWiiNJS1K+mlte7ppps1wOMm9jxxC4dl+1uyzpe/PH7yV" +
-                "C7OuMpdq5961a9vG1yydOIonWVTwDVsVSC1sPXMbtNoNqsKQV4nPjfODrGCm1yAz9j2F8QbEJwj" +
-                "uuBo9r8xXjiBg16YJWg3FwWOLNJsx1nq0luzcPFY/48E6rKvbglLVRh3e1XZHMkgq51lazZmd7i" +
-                "GAxdWUyV6ClBCCpHLyjJGHeMZeyNUKkc1ru7QSzYmFVRb7CmdrS/orzltPq5nULjMCfG0r/5y0N" +
-                "1KesWaB+JaSoiFD6BhTEGqrHYRUhTdFKNJTiGCJ22uJogZBwLNng1S1w7uv6u/bH2b0WjGtJGJ+" +
-                "eYAQgkFmKI1lutekldRycG8tSFnnzAEWlob0WjGVc6xmOYnWSCBWkvlBxtlbZwA4tTxguhufgcz" +
-                "kKP99Zly99yz2Db1mTHvDJMurOUpCpOresdESX9UuPkrXwkucpSgrFvoV22ZbKAUnl3N8EORLOX" +
-                "llmZ2IwTuMF89I15Gq5j6UpmJxpWDLunGkEpxc7DPeiVFCct62aZJIs7Casikvni19f36oLIq4m" +
-                "OB+Syt9zqMPP8RwZRnVnLwzHw7npXOIWlN4MDh/umLIcHiaEKKLMq06jz51GlukRK1ez6rGL4hQ" +
-                "taX3n6fVax45dJBi+SRhNGuUFMQ+UKxalJR4ITk0nB89w0BgvcEaLeN2ovLhoPXEE3OU2QAxcqm" +
-                "RIhCPtLvL84Gl099qIigpGAxzlOxqpUR8Ym4Ot3oCP1ISKSGIAJO70cPtJMcOL9Z2/KJ+/FY2sE" +
-                "jZeM74TDRzdE3h2SqkuEqjXtZK5JSpKrRw4lU3fPe9zfa4dyZ/ZOXYntooTh1Gxg2i5jjt9btg9" +
-                "BgDKUTcX13WT5xcpDLlqMAUaAFu+K2HqSgJwQueenoBJQXL/Ryte0rhk6OHD2FWT9JUCtvvc2T1" +
-                "GbOWOj2RQtAYjflgcZWV04Yql0StriryvPXk3qfIh6tnxlWIgEagpWC47BksfWtctRQM0xwlOko" +
-                "pGc2fPs384ATW+1F9UROB8meVuhJYHgqWTgoknn7fEDfHlXeu+fTT+8lXTiO0JEESXGDp5BKLo2" +
-                "VBCEEiaxTp1Lx+RvoeRNxNnzd4Z6amHkli9QuD5YXxzvj0zmRi3ZRAfJo4OZk1QSwNliLEK60xW" +
-                "Zb1CQI6zdZXB/3F749b45cEoouN877VTk6GkHzIe38wafc2HZ8/dXVlovWIILVSSK1CsD44r4Vz" +
-                "TgTvha/ZXsIjgxJaKq2zVrt30jr/xaPLxWsJ0TiSEGkVhJD102OcEyF44dxIEeedkEoFKZKo0Yx" +
-                "WW73JR+aXlx4pM7UjEGKpZIi0JgSCs06MZNrCeyueUZpJoYJWiVBKpc9deR3eS4CX2qr6S6BYWi" +
-                "7S+SWPUjokzc4OF8z4YOmwGx7fMwasPvv965rjxN0p8I7u2jWPDof9m4er7jJQLSGFj6JolFvXT" +
-                "0kK3gvvfV2MeoRUyiuRRI04WWn0Ju48sXh6ryn05kDQSumgI0WwBOut8N4RnBc+uBFlRwYlFEop" +
-                "22x35gPy00cW8tcHH7UQEEUqCCmFr7y33ongkd65WsXoHSgptEhU0owOtnuTjy2uLN9UpGIHyFh" +
-                "IKaJI1w9lsk4670TwPtTX7mpptVBeyUS1k+aJqNH+7LFTJ7dbF80ggnhWTAhb2+MSvA8+OMCr4y" +
-                "sH5Uj6XkxNrzn5dygp1JyCT3sBzfHJKNZxO9gyHxahXGlFdFezEFk3gEC2ME9VlugN4ZFEy0dan" +
-                "c7HqyIb9064ZquVVbnpWx+IdPRn45MzH1dxvKFcnQ9R3HCeELwXQjebUgDGVMI5i5SRNM6Q91ec" +
-                "1o3MWnu01Wq9e3bjtilTDqZFVXkVRcFaJ6ROhE4i4ZzDVJXwzskoaYnB6oLDBemFOEEIy93O+OV" +
-                "Ts+s3ZEun25GOHFJIV4Wgm01Zq38t1lpVC9A1g+XTldYNi+D4cxQUXiKUxOTph5++4xNPB2dm27" +
-                "PbXdIekytH93jvtYzbk7JcOXr6+fLcE/f89Zl/H4Z7r377z76qu2V6U5kudaUPldQaa51XcSOoS" +
-                "Etrragqq7x36LgVBiunrAhKhcBRIB0bn75YJ411+cqpOIoaARFwTgTdbAohkVVppfW126b1PqSr" +
-                "iyHSjbKy9nCn0713ZsNZv+Rs0fZ5FnQcB+9cCDIWuhEL752ojAvOVSKKW2I4WPK+sgIhhyH4vNM" +
-                "ee/3k2vWdfPl0rKQKUkls5dGNlpBaiqqqQmUdhCCkikV/6aRXKgnW2WWtlZ+YWf8JqUXH9JdEFD" +
-                "fwoX78a9RqCEIIprTC+kpolQhPX8g4NmU6rOJmKz+jlHjheOH4X/H4fwYAYkF2Qd5yP1IAAAAAS" +
-                "UVORK5CYII=",
+    header:         "iVBORw0KGgoAAAANSUhEUgAAAK8AAAAuCAYAAABefkkIAAAACXBIWXMAAAsTAAALEwEAmpwYAAA" +
+                    "AIGNIUk0AAIcbAACL/wAA/lUAAIJ8AAB9MwAA680AADo7AAAjQeoHuS0AAEBfSURBVHja7L13tC" +
+                    "TXdd77O6GqOt84d+5kTMIgDDIBEARIgBQDCGZCIi3KJGXJlCVaVraCn2VRyfaTLNnSkywqS6TE8" +
+                    "JgjxASCAJFzGGCAweSZO+Hm7q506oT3RzWGoABJ9Hqyn/2MWutO6HW7uvrUPufs/e3v+0qEEHjh" +
+                    "eOH4X/HQP/XrH/q2F5TSPPX0Ezz5zc8QRWtpr19PPlxY50S0xa4uvASqNuBAhOCs0kkybIxvvNO" +
+                    "H7IB0Zn7zlktQjYYsbOoFAgQIIVk6eYx0ZRHnAQJaCZARBIPP+8iki9QNvPeAxYdAohLaU+so01" +
+                    "X6y8dRcQsdtWivXY/JCqSOyJdOQPD0Np5NcAEkSCmIZcLyqQO4YoXu5CxlllLmOUlnjOHiKaTUB" +
+                    "OkRQlBfpIQg8KG+PlFfOgKIo4jxdRsxecry6cNI1SGECik1+ICzBSG4+jRBIAGZ9KjKFYKvCD6i" +
+                    "1ekxvmELociZP7YfD0gR8MEjhEQIQQgOJXR9I6Qm+IBUARCEYGm2uzTHJvnqx//k772pb33vr9T" +
+                    "3Usq/83csIRrOH/tnrgpruus2/5ci5ClCPO/vtkZjIYXAFDn9uaN47wio0TgFhHBAwAcJQiGwCA" +
+                    "UIhRYCIUGqmNktW6BynDq2H+8FSBAoAJyzuODRQuGwSKGRUhG8Q4oAQqHiiOkN2/jAf3ofWil15" +
+                    "iK99wihkErRmt4GQV41WDr6g9t2bL3+oosvXrNl44a4lUgajRZBgneBvDDsffpAev99Dx2dO7zv" +
+                    "swvzR/+wMT55qCpyQSAIIfC2Iu/3EULVcf/C8d/1SHRMZUsGq0sI+TwBKQS2KM4+a8vmX203WzM" +
+                    "PP/7UkWR84oM2XcI/z04cxidRWv3Pt/IeO3qwjnrvmFkzjRAJWX95FmHfe+755/zkP3vn93Q2b1" +
+                    "jD3Xfdy2N7n+Dogf3EnQ75MGdqaoILLryA7/+e17d/4Sd+6JxPff6r5/zpn33wxqWFkz+opf6GQ" +
+                    "CDwmCLlhezkf9zRaLRIQgNjckxVjnaXbwtHynx4/Q2vuHZm7fo1PPTgg/+UovVJm2YpPM+NGp/4" +
+                    "nzNtWFg4AUBlPe1WxOKp49tX5g79wU/+1I++6vve8ir++kMf5dfe90scOzaHjlunlNJ71p618xW" +
+                    "D5fmTBw8evPXmm2/b/Gd/9oErvvttb5U/92PvYd++fds/84Wvv7yzbss3CEC2ihUCxwvR+z/q8N" +
+                    "4hhKLV7FIWKeFvBa+3dmJivPc91119Od1uwlmbN7z02MnF17TG137SltWzY5ykk6C1xoeA/DvSi" +
+                    "v/Pgnd86iyEUFRVyf79B2ZDsfLH//aXfuHlr3vZ5fzcL7yPz3/ub4ibjXRq9qzPJr01/1UIUUXK" +
+                    "39Vqdx8yaXh7pyubujnxir/64Ed/9OTpxevLvCAWXIBZFUo2ghMK5z3eBcDjnQcCLgiE9hAczjm" +
+                    "wDoTHBw94nAsE+cyACbyzYD1SObwLBBfwMuC8h+AJIdSfIUCEev1wvn79mVwueI/3Hu8soc57QM" +
+                    "o6s5UBvCD4b+W89Q4bCFqfyY2dtQThCaH+EcHjnIVg68QwyHqaOo93FcE7gocQQn0OIXCuIgBBh" +
+                    "DPXV+e8nlGZcOY99TcRde7837B9heBIkhZJFGOq6szqGwi4yr7k4itfdEkcCTRw9UuubH7045++" +
+                    "Ufnq88sn+mY0CARgZtc6hFTIEBAIhJB4Z7HOEfDPynnr++aDAuEROKQHhK/HXwVioZBCEUR9Dyp" +
+                    "XlxpylEpa6/Ah1OOLw8uAlA7vPVoEhLAIrRCizuW1jjroOIJiIIvVxX/1zne9/eWvf/mLed+//w" +
+                    "3+5ktfpzM2+WSrt+Zfq97E55VIgslWL1WRxg1K1V5zFq1uLz99+OkvJHFyx+3fvOt9rVbrezq93" +
+                    "tNx1ERGTVHlp36k3e1eGTwVwWN9iAQBKUUQUnuB8z5ueBk3hdBaBR9kwAUfiHGhX5X5r4dgX9fu" +
+                    "Tr5caO2lUMKlSw188DhcI9EWEGZ5rkcQLhCElcJUQrpYBUGzvWRL82sQrmm0Gm8U0tMdn7RCSIL" +
+                    "wCCk9gRCEQDxTsIWAEASB8EKJWISQVkX+67jqVZ2xieukalUhOCmk9MIH730Cz0ySAAKJjJrCVS" +
+                    "KE4INAIaOkUZXFbwdbremMT74doY3Eaz8KVgQ2hKCU0FaEEILURQgIpUKbgAIfVBQlhPAY8JvfS" +
+                    "QALIeh017CyfAI5yn29V3Tbze87b9um+H3/8Xd57z9/N9decSlfuOmrNxQmv7K3qXvbmQkfAsFk" +
+                    "FDZ75oxYW753fHr6+7SOSx8EQoRRMVcvNEKq0XvrvTZAXcBGQlSli4p0+Ks435qYnPkZpRMTRAg" +
+                    "CiZAC78EHP1qwPEJK8ALvPVIEhFZUxjbLbPW3gI/rl165lc/ffCeuyndu237Wu9/+xu/ic1/4Ij" +
+                    "fd9HWSZnKyPb32PZEeuw0Zk6+cIuufFO3O2QSTB6WF2Lj7paG7dhv9U4eWh6unf9xXxe8KHc9v3" +
+                    "H1VGCyeUMNT+3/21/7PX98y0Y6x1oEIowRCoJVGIqi8H42NhyBBghKS3/ydP+Khe27//OTM+h/6" +
+                    "lV9736WzU12sNQTqlSqJE6JIQgDrHVpI8tLgvAOhSOKY3/q9P+Hur9/y1fHZmXf8yi/929evWzt" +
+                    "JEIJEq3pkg0PICCEkITgCYbQKQmkqkqTBf3n/X3Drl79429jUmmt+/Vd/+Z2bZ6fIM4PQ0GjGSK" +
+                    "moCkPlLSGAD/VXgYCQ9XX+/p9/iFu/+pWPN9udt/7iL/3iu7dvnCHNC6SUNJMIoVQdLH6EdEiJM" +
+                    "RVV5RBK0EgS/ugDH+XB+x644zsN3hACUZyggaoqEYDJzQW7L7noVVma8qWbvsiFl1zCja+6mt3n" +
+                    "nTt+z72PvEmPxbdZLASPHQ7xCwMqX+FqmAiPuOZnf/bnX3Ll7rNJiwwCxEmMEhFpPmC1P8A7T9K" +
+                    "IGev1SKIGpTPEKuavPvFZvvLFz1wldeLf++M//pIXX3QuWV4gAB9qdAE8CIkcbUFaaQj1xGu1m7" +
+                    "z/Lz/EnfffexaAnupITj71AErKK1/7ju+e9abkc1/6GpWp7NjaDT+jW53bgvEIX+FsBiZTwVck3" +
+                    "UlXDpfDwqE9JO1xps86l3a2nmNP3L4/ZH18ZbCVQUZxtma8xURbYSo32gUFjTjmvgcewjh4yeUX" +
+                    "UZQGKSTgiaKIqqywWVpIJZ1SOp2d7LJ+somxEVJq4jjikcce56Yv3czKcECn1WXj+lled/2rmBy" +
+                    "fhBDw3mEGKwS8Fah8ZmKM7Rsm+PLXbuOzN32FRMd1xqDkKFWog7Yyhl3n7ubd3/tWGlpQZX2ESo" +
+                    "z3IVs71WPjTI/SGI6fOM1f/OmHWVia5/U3vI5dO7cQKU233SL4gAsBpSRSCGzaxztnfQjlzHiTt" +
+                    "eNNiqZgfmmZD330bzh9Ym40pQU+1O9923ffyCUXnIuvKqSSmLSPNWX+35IXCiHoTmwgW14FLQh+" +
+                    "4V3nn7Nt+u577kZHSfaN2+5Ur7h8d/KSKy/knnvve6PK3e8mjfhItnQKn/ZRcUyz08WWBbbIsMg" +
+                    "SZ/F2SLCGVhKz/+m9/M3XbuHgoSN4qZFSIoInbiRc+5IXc/UVL6LRTOgvncRHshRSBmEtlCnClv" +
+                    "QHGf/3pz7HwQNPE0cxSIkPHuscb3nTW/mua67AlAXCBoaL8wgpIgBdmoqiNIx125dt2bROHT5ym" +
+                    "H1PHULGzVt0Y+zDrqpQQmCdpzu1jkTrQXAu2LLAIzl9+DGkbEJTE6uYSDVIB6c5cN+XsVifRIla" +
+                    "XekTKoWt7JkBTbXmI5/4LHlocP7ZOymrlBDqbVdpTWUMAU+sW15pbVeHfVq6oqwczUaD2++4m9/" +
+                    "47d/h8pdez5VXX8H02Bi33HEXTx48zvk7qD8rBCobYLSqrgwHLC5KHth7mBdf8yq2bJhBKsXHPv" +
+                    "NFHnnwIX7+F36Glo7IK8PNt93NwWMnWDfZxlpH0uyMa6VMf5CytCTJioJOs8lSanng4f386I9u4" +
+                    "9jcSZK4wcxkVeOgPiCVQgqBsxVaxyihWO2nLK0sk+UFrWaLrIQHHjnIT/70j7G0vIJEorQAGbO0" +
+                    "OE8IASkVzpoz+d4/FLDPrLwhBHQUYX2Byc22DWvXvEUIy94nnnRTMxv+7dHDhy+55+G979y9YyM" +
+                    "bN87uPDK38BqZ+T+u8gwh6zxcKkk81sNWJQpFWeYM+kNsCNx88y188KOfZP3WHdz43e+g0+lA8L" +
+                    "RaCfc8+Cgf/OQXQDV52YvOp7IOKSKEhLIs6A9TsqKg1WwwMbWWOx54mJ/+iX+Ocw5jKtqtFr1Ww" +
+                    "vLKKs5ZjK2ovKXMcwmgl5YWX9mI4x+ZmJl9UbOZsLy8QpQ0aevmucIVH4mkAhG8xAUBNm53pzvd" +
+                    "jnA+vMg68VGtBcJZ603lPYWIpAyt3iQhhD42/FrwsizyDO1rRKPeRmP279vPkaOnsMQ88tRBdm6" +
+                    "cJCtLhJBESlOWJUIGVKSkkjIxRcFw6PEBvDN88Su3MHvWbn76h9/B3iefZvuWSc4963WkxrC0vI" +
+                    "JWEu8DIVikqtc0U5Qsrw649sWXsnHtNMGWxElCIiqa7TY7Nq4hER4kdBtXEyrLoD/AWYOOoo5Sk" +
+                    "SuKjDQVZGVJSCoayjO5ZoqGhmwwgA6kKVhX525SSST1ShrrCB1pjClJ04yiKOsVPxS0x7pcdfFO" +
+                    "9u8/QKPZZmaqS5aV9PtDpFQoLfA28J0U/M65rhBivZSyAwQhJa3xLmb51FvOO3vHtkce2cPKSv9" +
+                    "Aq21PO+fFrXffz87Na7hk97k8ffBLPxwrtaC0NgSJlFKEgNMquk2qaOgDlFVFVVXcec+9/MWHP8" +
+                    "4lL34Z//IHvhdMxqEjx0HGTEQxr3vZZZy1bi3NRpN+f4B1ps7vEVhjyIdDsrIAbymyVaJIs2nNB" +
+                    "MP+ErbVZuP0BJkp6Q9W6kLPVrgaSREAup9nNjjjTZZVeZrRlA4B6LjZllJu8t7pQFACMoLPELSt" +
+                    "cwQfegouds6vEnDKSR+EFwhs0huTJstOUpbKK6fyokRUFdbV2a5rNfjGnfdwyVUv5cihQ9x8611" +
+                    "suPGV5FkOBJSOqEqD9XX1HfChKAyZtFgfaCQRcaNNemqO+x56BBE8CwtLVM4i6tqXSElssPjg6m" +
+                    "JFQF7k5ENHKwqcPn0Sj6DViDHG4Aksr/aJQ0HloZtogisYpgHrHECOQBd5yXAIhTH4ymKqiuAFw" +
+                    "/6AssgRMiLVDjsKNKUkglAPuhZIIShLQ572SQsL3mJKiwdWVlboD/pYB7iCyroznTIpwQWHUP/w" +
+                    "ynv8wAOXNFq9n1mzbvsFzrlG8C4oFVXr153Vunj3LnGgkzA7u2mnbqi/soUhSRJWVlfYsWU9G9d" +
+                    "vuLQ/zP5ca2mFlG0hRbCmmi9XV15DYC9C4KqKhcUFbv7m3azZvI13fc8bWDh+GGNKhmmGVCVLqx" +
+                    "63aJkdbxKEZ2V1maqyZyafMRVpNiQ3pt4hKwfBk2cZRVZSUbG45LA+nGmsuEjjKoeuVyN0CPaWf" +
+                    "DB/y5Kv/tPKSv+nGxMaUxXYSv5x1Bn7OZlEZMNlvLVBxzEmW72sKjv3VaZ6LG71riuLdIgPCCGR" +
+                    "QJACISuE83jvBEJERZGBqPABoihi7shRnj54gp/48bdy2zcDX7/1Po5ddQkTLYHxIIWpA2p0Xo+" +
+                    "gLAsy7zAuYArN1VdczP7Dc/zpX3yE6667mjXjbbIsJSCRUlDKiOBHaYqMESiKsmSYVhhTQ1UKsC" +
+                    "bCuopYJeRZSmlzvAtkok5fpJQE76nKdCmJenFZ5AyGhqqqMKXCVQahJIPhgGE6JEiJCqruVkqJV" +
+                    "qqGvpxFSkEURZRlyTCz5EVJcGWdUgjJE3v3MTd3hNXMsmv7JiZ7HUIALTVCBJytvjP8M/CkTYd/" +
+                    "cHzvA+ujbtc12mN+dWn+ey++cPf1ex59mLvvvZ/e2DhKKobZEO8tq0sLXHnRuayd6jE/f+ogrcZ" +
+                    "/NSupE1I6lSSu2R07FRaXsAisNczNneD0wjJXXH0t/fk5FuYXiJKIfj9DRTHSFgRA65QQAkopnH" +
+                    "V12iMkpirJ0oysLCmynLLMEEJz130PkfbnWR4WnLdzBxtnpnEhEEUSo2OsqxBSBAAtvUNHHXyQ1" +
+                    "aGjx9gwsY3NGzfx2OP7pq1NQ7M3U29bsaJcXcTZQuvOGBazWg5XhkgJosZBpQBkhJcWWxqsLVVD" +
+                    "tMnzgmG+TL9f0Gg2eOixx6hc4Lavf4XDRw9TDPvc+cCjnLt1LaYwdHotYq1HYDvgPVmWI7QhBJi" +
+                    "fz8ktvO767+Lu+x7mS1/6OseOHuW8s7fRSBqMdxOkUnhrCWGEaohAZXKGwKnTyxTWIaQk0posq4" +
+                    "DAwSNzeJPjQ73arZnq0dDqGRRCCCl9WWZkQpAXhqVhRloYCI79h48xd3KR9rAklgEvYHq8SzPWh" +
+                    "BCw1bd2gNLkZMNAf1hyPDdkpaUsMz7xxZuxpmBpcRUZNVk7kZFEERNjLQgBa2s05Ds4ThH8TdZb" +
+                    "Ws02caND0hy+fMuGNdx+2zc5dHQua7YGJxu9iW3lYOWzcadTDPfuf9vOrZvYtXUDjz+1fzxudr7" +
+                    "h4als8TQNLfEuwmBBaCpTsZj2kVGEc44DR06QZTlaa/pZThQnZJnk1Pwyg+EKOm5yztYthKpGm5" +
+                    "CCqqpIs5Q0L0kLQ1YGgnc8uu8psJ7TS4v0pmZqGE5LJrottCjx5pk0EPRgWNKd3kzAfX3Pnn3/6" +
+                    "oIds+1zzt7Ck08euDSK21PG5ovKCHZc8iKOH3iChYN7pfOeumnuZLC5D2oCrSqElHWjQAZ8cPiq" +
+                    "Dp6yzKmKEpU0MFXFwaOLbDxrKydWCsZmzuIs2+SJpw6wfctG4kTgPORZBtYihUJJQWlyMAUhCJS" +
+                    "CbhQzEyvWvvoqvn5Xj0efeAIRN7n6op2URYEfAfs60jSaTXQSUeYlurK0Wwm9SCFQRJEiSRQImB" +
+                    "rvImyEH21VripJjSd40DICKSgKg7IVpnKMt2uoTgjJ1HiXbNCn3W7SjCQuBFxlGJo6r60JR/WeW" +
+                    "RYlqbVYa5kc66KloNnq8C/e9TZOnDjB6X7GxjUTCFfgnScbZqNmjuU763FJhFb0JtYSN9r0Vxcv" +
+                    "3rhu7Q395QVOLy4xsWbDRxrt1leFVO/vdnq/76X4cjZc6e05cPj63VtmmZmaOGsxK9/caLd/48g" +
+                    "DDyKJWXf2i4gIBAJlaegkCiUllcmY6M6SKJBagK+I4pjJbkJ/kHL3/QfZtXs3vU4b40pQAgiYqi" +
+                    "JNPdZbxjttIuEQWnLj9ddTpKvMDwqmx9uIyuC9JU9TtFIYbwgj7Ezf8cg+9EQHb8pvHD9x9JZ7H" +
+                    "93/ugt3rOO8C869aM+eff+60Rv/+RAsSaPJ7he/mrvmj1spZRBgpRABnVB5X+eaPlykVPWrHvHX" +
+                    "SaP9UV/kSAlFVhJMTiOBvQf2YQPccO2lHD96hMnJSfZ3Yr745ds5fuIk29d1sFmgrMo631F19Wz" +
+                    "yAu8zvBPISCBCShrAVYYLtq1jYqzNHXfex7bZCSbaCQ5fb1Pe0W61XKPVWq2sITcFla+7VkqAij" +
+                    "RVniMkpIM+vhzU3TcCUtZ/B+/QkUJLJcsyRxQlxnmqIqfMMqSSDFdXWV1dxjtHpRyhptPVoH3wO" +
+                    "FfVW2YIVGVJVpVUtsJXFSYfIoTgxNxRjh45zPjUNPnKPJWtasB/BD15585MgL/vOP+Sy1nq9ylM" +
+                    "hXCOSPDmzbPTM/v3PYnUzVPdsfHf8CJsqorct8a7obIFQobfPnj46LWbpjrNzeummd+z/y0h0h9" +
+                    "O1p911OQpwRmUSghCkpuCVuKYmprgqX37WTfWpBN5HJLBMEc3DVQKYTOEVkyOT5L1l3GVG42pxJ" +
+                    "iSLAdnPcZY8myIUpJTJ4+xtHCKZnuMlAxrHEKOmHpa4aw9QzbSUbUCFQh86Zvhdx9+9OFrE5F3r" +
+                    "ti9GWvtj+0/MHcIxB+ayoTZyVkm1521mqd9IwW5wwQdj4OxuqrMq7ds2fDrk9NjFz/8wINNIeQn" +
+                    "kMEFAWWZY/McU5bseeowuy64kuVTxzg2N0eWZfR0YKzX5vF9B1nT2470gbwydWdlVICVxmBtgXc" +
+                    "BMzTEWpPEDSoXyMuUqaatE3mZUBQ5zjuc81TW4hVBKOHK0uBsVkNyI0gpsgopIWnElNbg8gwf6t" +
+                    "VUSEYBA1EUI5USpjR4m2Kdx0pJGKUY1lq8rSEyh8daS+UckY4IwRKcR0oFUmBKQ/BDXACv3KipI" +
+                    "vHe4fGUhUFJjw2esqqItSKEgHPuO0IbfuDtb+KvvnwzD+8/RDLMZjvd5pusyThxap5Gu/s5CE/m" +
+                    "w+VztUqEs2kpbE4ziW4ZDMovHZ1bfPP0WEy3FV1qXP7iqTW7jq6uFMi2JhQ5QQiq0lD4kp2bNnL" +
+                    "Xo09yx0OPc/H29Ux22/WCYT1BB4psQKgMaTok1QrrLEpIEFBZS5lVWO+IbIxzvp7woz9tVWFlPY" +
+                    "ZFURBHMVopXGWRYZTzxvG3KIpStb5cLqz+0p13PvC+s3eu7+7etr4ZRxt/Z9/+A9cd2HPvH2Vpe" +
+                    "vOgvyyUECWEKARmhZaXtLR+w+ZNm9525aW7pu765h0UZSXiJMKPGLFFWRDKgsMnTpAVgp0bplmY" +
+                    "P4KzVb0NJ4H1Mz2e2DfH4XWTzI5pKutrJlpNCqWoDBQpsdLs2XeAkyeX2Tg7SbOZYBwcOXSY9We" +
+                    "dx9R4k7njJ0h0ow7G4AkiCBdQVVniqmLE2RVIJShMoMhThOyRrvQRrsSP4ByEILi6zZk0YhojZM" +
+                    "IUQ4IHIwJpPsS4Bk/te5qTp+bodHtQlSwsr7LhrO2sm2hTliU2OFD1Z+bW4EwOXuK0ocwznIV9T" +
+                    "x/g5NxxOt0VhCs4vbjC2o1b2by2hy2LGnP9DnBe6x3BOHw2oDTFNds3rT1/bu4oxjOY7o5/qFhe" +
+                    "wfsCms2AoyqLCBnpSsjsL48vLF0/lkw0Jrut+PDC8js67bFPC2OquNmhrAx4j7UVw3xILCSX797" +
+                    "FU0dPcveeg0y3BQ2tSdo99g+WOXZqHtGbYnJinCKbx9kKF0BIjasqSltQOkusCrJsiKssjz7+JK" +
+                    "sLJ4lbHWSoWFpcYnbLTravn6AyBc55vJQeQBOpb2sn4vxvS53M7dl37I9OLJzublk/G19x8c63L" +
+                    "6fFaxdPPP6VSHniZk9VJrp8TXv6Y2vXzZy7dXZqimrA17/0OQ4cW6bRmJpTUlgbKgVgXcVgeYXj" +
+                    "S5ZNZ+8iHS4zHA4QQuNxZFlOuxkxvW6WpdTSjgXCFxAcUtSroKsMviyxlKxdu4725GbyPGMxTbH" +
+                    "Bsf3iq7jivG2cOvY0VWEIuv5cQiCSOmgpK+MsmHI0KQSxhYV+RtyepNseZyktacuSOj2VSEE90/" +
+                    "HESUwcxxhb4YuSEASDNKPZGmes0+PQyT7WN0hXK6rS0uyuY/3sLIP5o7ggcM6NAq9ePYqiJADpq" +
+                    "iFKusz0uhw4tkxwMWm/wFuLbEyzedMmssVjNRHGu1E38B9uU/gsE35xcff0ujU/t36qHX310ZPE" +
+                    "rd7tOorucThAGEcIKEKj1QQZUVX2kf4gPbaUNnbMTrVZHhbXl7b8gWa38ZGgZF8mSXB5gbMOYw3" +
+                    "OOZQquHj7OnK/kcXVAcPBKqbyqO4Ml559EWetX4tZXWQhrSe8QCBDwAVHYeqxXq4qGp0eO2c3kV" +
+                    "YGOTZNkIqysvQ2jHP2ju3ki3ME7wneI1RdsunFJ/Z+ez/cGKa37PwIKjlyaqn4VwtL+97SjHQyO" +
+                    "T7Vm52auLHZHkfJGB9UWwR/Tbp8jDv3PcjJ00tUoYFUzSWB+QQyRgQvJCGqihIXKnafs4lWs0l/" +
+                    "YY6yLFBSUw4LnK3oNJpcc+EmhFQU+YB0pcBZD3ghQJdFTpUOAIWWgnWtJslkG+QEURSBs+x//L6" +
+                    "6OaB0ve3YqmarBQQhdKqywGVDgpegBCWeJFZcvGszcRxhypLBIK9RjlFa4aoK7zxSKHzw0uQF5b" +
+                    "A/4uFIzt+2llazQQiToy09EKREAEunjlDmWc1Acw6tJCCkyXN8OsCHenXftX2WdqsJYdTGd6HOc" +
+                    "0VgcPowaZ5CCDhvv6OV13hzmfPmx+K48bbpbjfZ9+RjBKJCwu2DhcVcSoH3QXlvtJI9j/RUZpWq" +
+                    "KM9Fqw0n5lcI2RKxajaKUvxOFfx7lRl8XzDFY0KJOM8y8uFSjdtLYGEerTXj7R5rZiaIkgiJxBZ" +
+                    "L7Lt/H6WzaKkpqxKlEoSQOktTisEiNgSkkqwf75E0FIIONR9HEo3y+5OHn6TIM7SUGFMg4m6d89" +
+                    "o8f05rMQRHubJyR3dq6g5k4xVl6d5+YrF/3eHjJ9aAmggugLCEoEFqJ3SyqJKJFS3crSA/UFbmN" +
+                    "oUg7kx6F8TTd9z94FlVtkJgH95bpIpHnxNqAoZSNSGjpnQhRjffR+1Goz0WPJy49/49lOkiUkaj" +
+                    "XeKZzX3EfxQSpWpZSv2dRzc5apC0xpeFVK377n+UcrjEiPkymq3PfC4IJZBKo5Qc0SgVwluI2zS" +
+                    "7nQhkdf9Dj1CuLoHWIOpCIhDq9GJEzaypi3VgSq3AB0TUQre6WuuoePDhPRTDRYQaSX68G3XaxN" +
+                    "+Cwmo6v9S6porGLVQSt/6h4J2eGPeJVlWRD/ft3fuUqky+MWq0v45U30R6ZZ3zPshHdPA/7Sq/N" +
+                    "8+WKQcLtMZnyfPB3cOB2+CLcqcgJ2p1EhXHTed91er2IMijT+7bj0mX62pEylEjCZw/WjNLfU1j" +
+                    "RNQ4NyMJkWy0aI03E62jI/v2H6BYXSRI6vGXo5b+KGmTKIQQ9SKiFUgFvgIVMzW9pm4P/22ZiOA" +
+                    "Z7qsbEdq4GSlu1o1kprtm3eRgceliAm0pVelx41JFi77icW+yZaLoSF5ZTFWi0SSttofwfS53b1" +
+                    "ATU9ux5SaExAeE8xVSaF/rkwT+TKYpQAYPQsVRZHRn7PHgq5/zqftqMrGjV5nBbiXECDMSQYiaV" +
+                    "CpQ7szl13BqEAKllFyMosaTcdL6haGXt3Rnpy6uXNkh4IMInqAQoobOlZL+maaEEKN5IBFCiEqo" +
+                    "5J44ad0shNjXmd54YTUctHSkg9RSeBd8qCeDDN4LUznpsFIgpfPWeuu8EsIgwmM6Tu6qQni02Rw" +
+                    "7x1qznuCtrEmxoubFinBmBvpQExMFQQihhQhWEG7/h4K33Wo+lMTRD1uTic7slrHpdneLLctl4d" +
+                    "zx063EmpDTPrl4WArxx8FX9I8fpzIFjc7El7Wzt3Qn10yURbE7H6yGqNHynV537/LK6lEdNdFR/" +
+                    "CvOVp9p9CYuI9gNlcmdqLVy9V4koNFq15RqCd556UIQUgihhRLpYOFjUqnH43bnsUa39yJTmU1K" +
+                    "CmetJUkaAilCqEdD2LL0SmrhKhOiRAsZx75Mh6fjZutrAOLic895TvBOb9lOv79Kd2oSoSVFUaG" +
+                    "aMetmz+bkkf1UZUbQLbwdkiiFEF2qsk+IG5SmojIlWjfp9GaQAoLJiJodqHKIapGlKQbEjRa2KE" +
+                    "Y80+rMDK0XTUXc6qCaLYK3hDwnafbI+qdH/HFxZmWqf198GymlzhUEUdKqK9WoSZYP6Yx1cZUF5" +
+                    "0BCGBWEUtTbF0JisgGEgBrNAK0jkBFx0sRWJUmnxfD0HIlOEEpQVQ7daqN0jPeWyjicr1BRA2st" +
+                    "/cWTxEmXEEqiRgdrCpRuUJYpOIcaYZ/gz3Sg6ukXzhDrhQwIpZAIPvnB978gFwGkqyq+/cfW+WJ" +
+                    "VopttvHffKuYQaBXTXnv22VFj/JUzO69u8J3Ke0INcBPCGZGfH239f997/t7/f2cf/NzreNb2/q" +
+                    "1/e4IP/+BnBF9zbp85c3hWsfvt5/3b5/J//3W9cPy3y4C6M+uf8+Km3VeiGk3WbNzKob33cOTJR" +
+                    "0gSfWbQIyXeG7eSd5s8fSNw2wvD+HcfebYo8mJJ5XbF9VozL0TsP2bwvuxdP/GclUlpPdIqObZf" +
+                    "eA3BC+ZPHgTvCcnYxk2za173smuuGv/DP/vA9/99wXvLZ/7w/xeD9I73/NRzXksz85Jcue8OIeR" +
+                    "lkTtjToUo0iRxLKTWZINcW+eORLF4OFGdRxvtiWEI306s+eJH/uiFCPx/E7zPAxHirP029GHXZS" +
+                    "9j5vQOlo8dpjL5K158+UU73nj9tXzyU5959UrUPNcOlp74306hG/zWbGX53Y1Wp/PGN9wQn7NzG" +
+                    "3OnToev33qnmzt+Qm/YvJ6zz95unXXFI488/tDK0uJ/bvY6n3wh5P4Rc16eyc2e/fOsUK4ZURVj" +
+                    "07OsppXotjtvvfrFl9HScMnFF2y0Vf6m/x0Hrttu/PXBuz6169Ajt/3IICuGr7z2xTjrs4duvem" +
+                    "JxSOPP3TwqT0H7rz1ln3n7NrR/I+/8rPXXHjpRR88tufen3oh5P4xg/cfaNWcWWmco8yHF55z7q" +
+                    "5rDh89zvziCte+5AriSL4p7v1P6krx3/m45sYfX5ject7XDh04sDRIhywtLkUXvOyGC5PxDV/Qn" +
+                    "TW3HNv32Bv+5E/+/Pa8MPzMe3+wdel1r/vFR27645e/EHb/SGnDf/jhG7/thXf/zH+uo1oqVpdP" +
+                    "+nQwXwPRSCKl33TBrm1Tf/iHf8ab3vwWXnfdlWxYO3v58dOL1zW37fxU7i0NIWlXhqQ/4A3f/6M" +
+                    "IpViem/+9S6647AfGOmPeOiuEHBkWeE8QZ8AgpJAiBB9CCCgd88gjj3H6xNwbpmcm33/xpZdtdi" +
+                    "N5ghAi4Gtjg1pn9cw8EyIEF6QUZHmlHrj//ptMkX/svAvO+/MNGzd5UxohpRxBAR6oMdUQ/AgsC" +
+                    "xB8iHTC/kOH9NEjR//61s/95Xs+9Me/fWZ8rv+eH4KlZbwz4DPaEzPWemfSQU4IgQ/83r/n2te+" +
+                    "QygVNy9/7b/cv7x46Pc/d9OXr/ypH/nB5LWvum78gVtv+qFHv/D+rwO85NUn3rF+47r/et7uC3R" +
+                    "VGiGkCAIRQvB150OO/B5qpjQhuKCkZmmlrx9+6OE/wLtjF1128b+fmpx2VWWErEnaocapa0168D" +
+                    "X6GoIP4NE64Ym9e9Xxw0fe3JsY+7UXXf6i3cETgghCIPzIA+PMuIoRgBmCC0IITOXkfffdf0+Zp" +
+                    "r+989ydHz1r67ZQX7sMghDCs4wv/va1RzrhyLHj+skn9v54EqnLLrvyinc1Gk3vvRNCiprMUisQ" +
+                    "Rs0aUd+X4MLhg3vve0b6LpP4P3zk93/rs/rvRqk8rdY4vrLU5Jp0bN3M1FvwnoP793P73fdy/bU" +
+                    "v4vLLLlCHP/2V1yqlPmWO7yMAzXaHEDfOYK7OFsl73/29zZ2b1lJWBq0VlXO1LATwoZaIR6omtV" +
+                    "fWoZXix37+V9n32HFx6WUXd3/1Z97TKnKDlAHnfG3IpiKsNzgXiLRGCUXlKlpJg/se3svdt9/Sz" +
+                    "Por6o03XN980ytfTJrmIDxaRzjnGWY5BOh2mgghqawheEG33ebXf/dPOPjU49nfHpcydGqYS7YR" +
+                    "KoBdghBEXuQYZ0d4TA2nHT36FL12cs/BQ0dWl5dXZiYnxkJ3YubclUOsQ3Ai7S+q8y94de+Xf/I" +
+                    "HRZYWVM4Qx0mtBCkNla2I4qgex9F97bU7fO4rt3LXbTc3pJD6+//JjY0rLtxRfzc8fgQZK6kwlU" +
+                    "FqOerc1X4Ssdb861/+TR5/8C65Y9f29r/7yX/RCtYgR04ARWme1cEUSC1JVIRxFZGMePrwMe676" +
+                    "/b2YOWkeOXL39N611tfRX+QIgjESc0Os9bivB/RSDUheKz19Lptfu9PP8z9d9wcNdZtavzUj7y7" +
+                    "uXasRVYUJElSG6I4jw8OrSIQYK0lAIOBefmzpO+Tz1+wPQu31EmDWHcosgyCePV552y/eM/jj6M" +
+                    "azf0HDh7qP/rkwUsu2X02n73pq68LQe4YW7vlabO6UDulfHvjo+wPBux5apXb7nqQQ0dOsHnjLJ" +
+                    "dddC69bov55T7tOOauBx5lYbnPNZdfxLbN6yiyLCgpbVU5s7TU5+SpE3z4019mds0kcRxx4tQig" +
+                    "zRjy4ZZBIGTCyu89YZr2bh2hlMn5wjWeymkSQcpS4vLrA5WiSPJI3sP8dBjT5NoxVJ/QLPZ4Jor" +
+                    "LmLnWevIi4p0kNBfXiQEMXzOuLh8xNON8UESiAjek2bZtwpdjxBSysHyKXwubKexoRqkQ4qsCN6" +
+                    "5GGhTU5VNVRi7tNSPllcW2HfwGPc+/ATDQcY5O8+i12uza/sW2o2kdpIJgbw1YPH0SUTASSnM6u" +
+                    "qA+VPzDLLhmXJFK8nHPvs1tmzZyBWXnIOz7ownipKSdDBASWmDD+bkqVPcctudPLp3P0kSc8Gur" +
+                    "Vyyeycrgwzn4eixOe55+Almpie54RVXsbi4jLfOSSFNlmasrqxy5PgcDz5xgCf3H2NqvEuv02Jx" +
+                    "uc94r8vc6SWuveJ8tm9ZRzbss7y4iJTKETDLy6uUg2XufWgPj+w9gBCCdTOTrAxSnHe8/ruuYWa" +
+                    "qR2ks7Wbz2dL36nlzXin1yM2x7vvrlsbQV0kk3t7rtnn44YdDkjR/dbC0+P7b7rqfiU6HbVs2rs" +
+                    "+y5ddVRU69X9XWSmGEXkipq2GWsmaiTbfb5HOf/wrdVpO1kz2yYUY2LJme7KKkoD8YsHXTWvKio" +
+                    "LZCTWzA+6JIOXT4GN5aLr1gF5ect5P7H3qUx/Y+zQXn7uRFF+6C4Nl/8AhFkVOaAq0VUkXG2JIs" +
+                    "G2BtxSe+cAsf+Mhnuejcbbzm5Zfz4ssuZOvGtfz2H3yQW+94AO8saZbivSWSz+OMWPSh6OPKVYQ" +
+                    "vkMLivQ95ltXk8Tp6ZUCoVqsBcPbU1MSErwxHjh/3g6UTK8AigFCRcd75LBtQFAXbNs0wN3eKO+" +
+                    "56gLO3bqDbbpGlOcMsJcsysjwnyzKqyhApHaTUVWFyhtmQNMvI8gxbluw/dIyPffpLPHXgGFVpS" +
+                    "NOsfn+WU6TZCKtPrPfBOVdx4XlbOXbsOJ//wlcZ63bQSjEYZEghiGPNY3ue4oJdZ9FpJqRpipIC" +
+                    "reLKWstgsEqiBVvWr+Fr37iX1UHKZbu3smX9NBecs5mxTszj+w7VGsQsw7oKpbRXQlRZNoTg2LV" +
+                    "9I9+8/V6OHZ/jqsvO56JztnHfA3v4N7/2f/HU/mNURUl/mNIfDp+RvtvnXXmXF46f32i239TqTq" +
+                    "7xwemk0fK9iXWNLbMTL03iiKjZrcZajR/03k8uLq3QT4dctHsXTz19+N/oKHqpbDZjpFBSimBN+" +
+                    "VeBcB9AkRcMVoc0I02r1aTZ0AzTAelwSFnk9PsD4lgzOdYjz1OyrKDOJmQIzjMcDlESrrvqIhpa" +
+                    "oLWgmSTIyhNHkkYiufbKC8nynP5wSF7kCKkQCCpjKMuShx7dy4c/dhM/8M43s2n9FKsrK+TZkAv" +
+                    "O2ca+A2fz/g98gv/jx/8Z69ZO4ZxHPtv/9VlQIohahk2g9HVnbphmVCOTOuucjqEpEDu11j978X" +
+                    "lnt04sLIU77ry7GJx48p7mmu3LU9suJU+HeFuRpUOyYYrWina7wdhEByU86WCAVpLg5Jl1RnhLW" +
+                    "VUIqUGEYIqiDtw0rb3Ymg2+fsf9VJVlzxNPsvySC850NIUQyJEXA6r2vR0OB0RK8n03Xs9/+J2/" +
+                    "4Mu33sXG2ddSZClSCe55YA9veu3L2Dg7xWp/laLIa5KMlKGqSrJhRn84QHhLs9UgiRRaBCIJkRR" +
+                    "cev5WTs2v0F8dkCQRtrLEcQeEJMtzBsJgraPVadFpt2jHmolOk9e/6qX8wZ98mK/eejdve8N1CG" +
+                    "ufLX0Pzxu8w1MHx4tm91KTD7Yh0QREZcy2nVftboViyGuuuypuNBsvzbKMqjQcOXyEdVM9pqbGZ" +
+                    "1aHwxcJKU8LaAQQ0oVJCA0hVFzmhmGakudFnUMXOUWWUxQFVWUoi4KqrP8eDlOKoiAEG9AqDgHV" +
+                    "7w9pNSJCEKwOhiSxrk3zgifPcqoyEEcSrZr0+6uURTnyjFZJZRxpOuRr37yfZqvB9k1rWVpaxlm" +
+                    "LMYZ+v8/5OzbxhS/dyi13PMB33/BSrDXfYik9u/Hyxb/i2hv+6fqk2fwVqVRSmbLnnJ9NhwOiSO" +
+                    "nrXv3muUbSqRSl7nYaN19+6aUbms2Yj33mb8Rj93yjOb3jxTs6M1v/wAvxJZHnifNBDIcZw7wWW" +
+                    "7qqwvlAmmUYY7DGUCDxIy4rwWKKAlQQoJKyrMiGfbK8QinBqflFTp9a5A03XMdNX7qNJ/YdYsfW" +
+                    "9ZRlrZiWUtRaOCEjkDpLc0wxZGaqx2tecRWf+cItnHf2ZjatXcNDjz5FfzjkwrMvZ2FxmSSJ6uA" +
+                    "FhFCJqxz9dEia5xhTT9yqMhR5vTusrg6oKsO66R79QZ+WbVA5g0oaSkgdF3lB6gI21Du1s5ZBlp" +
+                    "IVGaY0tfOODKTDFKH1s6Xv8nmDV0XRnc7k9y2dOKBmtp1fVUW5MdJ8LR8sb/3rT36m9jrojFHmQ" +
+                    "4MUfufZ5zTe/KqrmZ0eZ2l19WtS8LNlf1CKKHbtsZ5TSrlBP5dlOaQ/sOR5DlIwf+o0CY5+VpBb" +
+                    "AS7n1OnTlJVlOBhSlmXNo5VK+ODEMB1QpEMGwyFFURIrSWlKKgfH5+ZqupyU9DptOs0mZVbUxm9" +
+                    "KSWsLFhYWOXDoOGO9NieOHasFks6zPKjAluRFTiNJOHRsjuXllRGXWDzHCfu6N70ToYStsuGJqN" +
+                    "nSWicTPnibphlaCbtm7bqpvDCxjiNm1q7lyLFT3PKNb7ojj91xpDGx8c6JrReteFP2XJ4HKZX03" +
+                    "onBcEA2HLKYZ/QHQ5yxHD58lP7QkGYZGofSik6nTbCWoixqx3CENGXGcCgZpDllmnH3o/toNSQb" +
+                    "Z7qoSHPr3Q+SSIeII1pJUjP4rEdqKULwIk0HmCJlfj5n67pxZmYm+dQXv8H1L30Rd9zzGC+5dBf" +
+                    "Hjh8naTToNJu1ilsKpJKytIbhcEiapiwsLkOA+flFHn18H/OrGQeOz1OVBefumKURN/HWYo3FmY" +
+                    "zQjEWRp6gqkBUF3lakwyEHDxxgaTXjK7c9yOR4j3WTXeYXF+i028+WvovnDd7gnBdSl53JjeAVZ" +
+                    "Z7uOP/cbbMHD+7HCV022+2/TMbXvFUkjT/UUeOmU8v9j59YXJrduXkdT+w/fE1zbKJpiv7iwuHH" +
+                    "YMs5xHECSviiKEmHjiIvEQiMkBip8EJhvcM4cChclZNlKWVRjrwPRPD4kKUpeTqkMA6L+hbzSgS" +
+                    "MD6ggCU5Q5gV4V6uNkQglfGUMg8GAIisY77WphCIAVjq8qDDOI3WMijVZVrDa79dCP/Fc9swtn/" +
+                    "kg173hnaeL4covGmtod8c3EOJX5Gk6fmp+0Txx3833dyc3TAul9L57vnibGfYLm68+DHw5mdxyp" +
+                    "CxqCZAUIJT4J9bVu0KWDqmcqL10BTip8EJinQcl8U5Q1IpFTGlqPrSUvjQjE5SyYiUzzM0v84pr" +
+                    "LqWVxGzbup69Tx3h4t27mOxJcp8iAiMtnAoeH9I0xRRD8tKDjnnNdVfw8c/fwie/eBsvuux81s5" +
+                    "MMzQOQcnQO4oR/1tI6U1lSIcDsjzHBOqaJTUcPtVnmJecWlxl3ZoJbBUoXEqwhqoyte+CJBRFTh" +
+                    "AGYwNCaRZWBnz59kd57ImDnHvONm68/mp8EGRZiZTy2dL35w/e5tgUSdIganQxlSGK1Vsnuknzr" +
+                    "seO0Z6Yvqk3NvWbpcmv6/Wmj1vhbs/T1T/au//wv7tw+wamxro7Bmn+Kh/48/7KEdJ0AYB1O19G" +
+                    "WZakIicr6gJeBUPiK8pg0K4kDjGRcLUV0nBAaSzWe5RUiEBdcAxTkAEtFHqECYngiXyGFJqAI8s" +
+                    "CttJkRQFSoKSitJYiy2g0Y0pjkL6eQMI7pM9QQeMdBOdItMTk2ciN8rnHdd/zozV+IiWOgHMlhJ" +
+                    "bMsozgfPzYE09ed/Urb/zjVm/aLB178l/afJVkbD0T570CqRVCt2qvW2/OPG8hzVLSYUocK+RIg" +
+                    "Bh5g/I52ocaNgqePA84qylNbYulhcaUhmxQ4YPn6LETeGtZmF/AWUcSKcrKMHf8GJOtTaS5HVmJ" +
+                    "1kJIGQR5nlMM03oslWLdRMLWzWs5cPgU29b1wJbE2NG4Ksq6KEcpRXCOdJiSlznCepwPTI83OW/" +
+                    "TOCcWVtg6s56icjiTYazHxhprbG1QIxRFXlD5gkCdEk1NdXnJRds5OneauROnsMU2klhhCkcu/L" +
+                    "Ol7/55g3fbzl0sLC9TWYO1+a6ZqYnXrC4uMsxM6E1P/pF15aq3RVN1Ok4ricn8B+ZOzL9n68zYu" +
+                    "vXTPfnEwbk3xu3eR3u7rsl0JJFKoZ3UxpSkrs7hpJYM+yn9doNhXpCVlv5AMRgOCcHXM7msCN4H" +
+                    "qZQKAZlnKdnIdd4DkZZ4V5tQDwcpElkT2oPAJhpT1NaZSkbaVoaykqyZ7HLk+AIrKyvEKqJyjjT" +
+                    "NaSeapX5GWVrWTHUpypLKWIQUzy3YtMInbZqdkiipsWznHXmWUTl7pqYTKg7rLn4jZvk0nemzhF" +
+                    "NVw4eQByeQUY0VK2N08EHkWUqeZxgjqUpD8I7BYMgwK5DBo5Ss/RKspdduYsoSKYQQUumqNAyFp" +
+                    "TKW/Yfn2DQ7QTZMMc4y3m2yZnqMR548zOaZcYIE4cO3ilGBzPOMIqsfu+ChrhsERFrV6Yn3uFD3" +
+                    "kWyiyfKihrmljpy1ZFlKUeZUpsZHTVmyOuzTTzOme21aGlZXB4QAzWaEcQYplZRCqrIsEFXtqBO" +
+                    "8w1mHwnPVhVv5/C0P89XbH+baK3bhbM1rfpb0PTwvVPbOG2+gOzVBXyoqU1090WltPXb0KFEc3x" +
+                    "spdVveX2p4TyNUVemNpZG09hfGfurY6WUmuk2U5GWxjnZ3Qo+WmGC8uQYdRZjSMEyHSBxJFLOwN" +
+                    "KAqC/K8xBQlrqxN8JqRpMxzijwjBFd7v0rI8pw8zyiKAlMUtbFI3WWjLErKIscUJaYoKPK81sgp" +
+                    "QdLQWOvIhilbN0xinefA4dN4azBFjikN3hiePnyCdjNiy5oxBoM+3lWo5ynYrPUEoWl3eyRxhJK" +
+                    "1+fEwTfEjnFegAtL5eGwtU9uvIPgKlw09pvg2Lm+S1HMjyzLyPMcUxci1PVCZelxMWRJcxYn5ZY" +
+                    "4eX6h9gE2BjBRJoilsRVXkHDo+j5aCrbMTrJ1oMtNrMt1rcPamNcwvDDh+erE2tytzgndESYSSi" +
+                    "jwvyL5tXEvs6HsUuaEs6+uqxzXDmBwtIWnUjZ4sq4twU5Z1k6SqMEVBVZYYU+JdycHjSyyvDjB5" +
+                    "jq8qdKSIY01RGLL8meKc0Uo+pB0rdp+9gX2HT7Bn3zGCK+trzLJnpO/PzypzzkKeUy2c7E51u2/" +
+                    "TGOaXlmhMbvi0s27oiqIn4ybWGm+sRKoYKD99amH5+7uz462JTnNyYVi+bWpd6x5rAiiBEgmlNZ" +
+                    "giRQrBtk2T7D9yislejFa1ifKTR1LyrGTr7BiDNMVWtjYpThK0iiiK+gaPJCf4PGDMqDJPa5gpj" +
+                    "Jbl2EmKojZuTpJmvTUPc7oNycXnrOPx/XNEWjDWjjFlweOHhhw9scil52wAbxhkNXwDwj6HnzuQ" +
+                    "xNJB259JK1wIoSjyMzcd4YMQWvh8hTwsM2Kvl3/7XI1mEyUhzzPyLKPUimFekBeW00urmKrCeYt" +
+                    "Zsjx5eJ7zt86Q50OKqiJSikazQXAVK/mQPfuPs3ntOHk2xHhqLzVracQC7xwPP3WMK8/bhJCByl" +
+                    "mSJCGKNWWRf2tcPRgjGBYlprJk2QARGmceJxBbQV6Utb9yozFKZTJKYyiMx3ro54bF5WFtuCcCC" +
+                    "33DUr9gqjtOlqWYqiKOIhpJgq0KyizDWiiNJS1K+mlte7ppps1wOMm9jxxC4dl+1uyzpe/PH7yV" +
+                    "C7OuMpdq5961a9vG1yydOIonWVTwDVsVSC1sPXMbtNoNqsKQV4nPjfODrGCm1yAz9j2F8QbEJwj" +
+                    "uuBo9r8xXjiBg16YJWg3FwWOLNJsx1nq0luzcPFY/48E6rKvbglLVRh3e1XZHMkgq51lazZmd7i" +
+                    "GAxdWUyV6ClBCCpHLyjJGHeMZeyNUKkc1ru7QSzYmFVRb7CmdrS/orzltPq5nULjMCfG0r/5y0N" +
+                    "1KesWaB+JaSoiFD6BhTEGqrHYRUhTdFKNJTiGCJ22uJogZBwLNng1S1w7uv6u/bH2b0WjGtJGJ+" +
+                    "eYAQgkFmKI1lutekldRycG8tSFnnzAEWlob0WjGVc6xmOYnWSCBWkvlBxtlbZwA4tTxguhufgcz" +
+                    "kKP99Zly99yz2Db1mTHvDJMurOUpCpOresdESX9UuPkrXwkucpSgrFvoV22ZbKAUnl3N8EORLOX" +
+                    "llmZ2IwTuMF89I15Gq5j6UpmJxpWDLunGkEpxc7DPeiVFCct62aZJIs7Casikvni19f36oLIq4m" +
+                    "OB+Syt9zqMPP8RwZRnVnLwzHw7npXOIWlN4MDh/umLIcHiaEKKLMq06jz51GlukRK1ez6rGL4hQ" +
+                    "taX3n6fVax45dJBi+SRhNGuUFMQ+UKxalJR4ITk0nB89w0BgvcEaLeN2ovLhoPXEE3OU2QAxcqm" +
+                    "RIhCPtLvL84Gl099qIigpGAxzlOxqpUR8Ym4Ot3oCP1ISKSGIAJO70cPtJMcOL9Z2/KJ+/FY2sE" +
+                    "jZeM74TDRzdE3h2SqkuEqjXtZK5JSpKrRw4lU3fPe9zfa4dyZ/ZOXYntooTh1Gxg2i5jjt9btg9" +
+                    "BgDKUTcX13WT5xcpDLlqMAUaAFu+K2HqSgJwQueenoBJQXL/Ryte0rhk6OHD2FWT9JUCtvvc2T1" +
+                    "GbOWOj2RQtAYjflgcZWV04Yql0StriryvPXk3qfIh6tnxlWIgEagpWC47BksfWtctRQM0xwlOko" +
+                    "pGc2fPs384ATW+1F9UROB8meVuhJYHgqWTgoknn7fEDfHlXeu+fTT+8lXTiO0JEESXGDp5BKLo2" +
+                    "VBCEEiaxTp1Lx+RvoeRNxNnzd4Z6amHkli9QuD5YXxzvj0zmRi3ZRAfJo4OZk1QSwNliLEK60xW" +
+                    "Zb1CQI6zdZXB/3F749b45cEoouN877VTk6GkHzIe38wafc2HZ8/dXVlovWIILVSSK1CsD44r4Vz" +
+                    "TgTvha/ZXsIjgxJaKq2zVrt30jr/xaPLxWsJ0TiSEGkVhJD102OcEyF44dxIEeedkEoFKZKo0Yx" +
+                    "WW73JR+aXlx4pM7UjEGKpZIi0JgSCs06MZNrCeyueUZpJoYJWiVBKpc9deR3eS4CX2qr6S6BYWi" +
+                    "7S+SWPUjokzc4OF8z4YOmwGx7fMwasPvv965rjxN0p8I7u2jWPDof9m4er7jJQLSGFj6JolFvXT" +
+                    "0kK3gvvfV2MeoRUyiuRRI04WWn0Ju48sXh6ryn05kDQSumgI0WwBOut8N4RnBc+uBFlRwYlFEop" +
+                    "22x35gPy00cW8tcHH7UQEEUqCCmFr7y33ongkd65WsXoHSgptEhU0owOtnuTjy2uLN9UpGIHyFh" +
+                    "IKaJI1w9lsk4670TwPtTX7mpptVBeyUS1k+aJqNH+7LFTJ7dbF80ggnhWTAhb2+MSvA8+OMCr4y" +
+                    "sH5Uj6XkxNrzn5dygp1JyCT3sBzfHJKNZxO9gyHxahXGlFdFezEFk3gEC2ME9VlugN4ZFEy0dan" +
+                    "c7HqyIb9064ZquVVbnpWx+IdPRn45MzH1dxvKFcnQ9R3HCeELwXQjebUgDGVMI5i5SRNM6Q91ec" +
+                    "1o3MWnu01Wq9e3bjtilTDqZFVXkVRcFaJ6ROhE4i4ZzDVJXwzskoaYnB6oLDBemFOEEIy93O+OV" +
+                    "Ts+s3ZEun25GOHFJIV4Wgm01Zq38t1lpVC9A1g+XTldYNi+D4cxQUXiKUxOTph5++4xNPB2dm27" +
+                    "PbXdIekytH93jvtYzbk7JcOXr6+fLcE/f89Zl/H4Z7r377z76qu2V6U5kudaUPldQaa51XcSOoS" +
+                    "Etrragqq7x36LgVBiunrAhKhcBRIB0bn75YJ411+cqpOIoaARFwTgTdbAohkVVppfW126b1PqSr" +
+                    "iyHSjbKy9nCn0713ZsNZv+Rs0fZ5FnQcB+9cCDIWuhEL752ojAvOVSKKW2I4WPK+sgIhhyH4vNM" +
+                    "ee/3k2vWdfPl0rKQKUkls5dGNlpBaiqqqQmUdhCCkikV/6aRXKgnW2WWtlZ+YWf8JqUXH9JdEFD" +
+                    "fwoX78a9RqCEIIprTC+kpolQhPX8g4NmU6rOJmKz+jlHjheOH4X/H4fwYAYkF2Qd5yP1IAAAAAS" +
+                    "UVORK5CYII=",
 
-    marker :    "iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAK3RFWHRDcmVhdGlvbiBUaW1lAHZ" +
-                "yIDE0IGp1bCAyMDA2IDEzOjMxOjIzICswMTAwHvJDZwAAAAd0SU1FB9YHDgsgJYiZ4bUAAAAJcE" +
-                "hZcwAALiIAAC4iAari3ZIAAAAEZ0FNQQAAsY8L/GEFAAAB5ElEQVR42q2Tz0sqURTH72Qq4mASS" +
-                "AoSIfSDdCEI8qJFLXSjLYSQNoGLINrI8/0ZD9q0KnDlKkIMebmP9xZRCEEiLQLBiMiNJDYq/Zg5" +
-                "73vpCkM6CdGBD3Pn3OvXe77nDGPfENKwJBHx/CxYAtNAAVfgXJKk7khVCCyCP6ALVKAJXkEdbIN" +
-                "xw5tgM4HHPphSFEUql8usXq8zWZZZKBRiPp+PH3sBx2Br4FbiBg+aplGxWKRgMPiMH1+YTKZDq9" +
-                "V64na7G+l0mprNJo7RG/g94IEoQSsUCuRyue6QToIJYAJWMA/Bo2QySZ1Ohws9gZBeZI570Gq1y" +
-                "O/395BKGJg+ZbFYznK5HAmf9vQiKW5iqVQim832Fyn5E+83Y7EYieAdY2Nig7dRqtVqrNfr3YiW" +
-                "GsVltVrtr2f0IrwEZrfbGeqWhQ9GMeFwOPprRS9SAWo4HGZOp/MH1l4DAS6+HolE+u9Xek9kcK+" +
-                "qKqVSKUL/s0hPDhFY83g8j5VKhcQg7nxs80/w0mg0KB6Pa2az+RTpDbDA3sd/lwvk8/l+Z7iS/F" +
-                "HEAor8H9rtNmWzWYpGo+T1eikQCFAmkyFxAy7AJ255aMHYcIID8d1oNBi8hGuwwkYFDq0CPlG3Y" +
-                "sTb4B/4BRwjBb4S/wGzT16tu5THiAAAAABJRU5ErkJggg==",
+    marker:         "iVBORw0KGgoAAAANSUhEUgAAABEAAAARCAYAAAA7bUf6AAAAK3RFWHRDcmVhdGlvbiBUaW1lAHZ" +
+                    "yIDE0IGp1bCAyMDA2IDEzOjMxOjIzICswMTAwHvJDZwAAAAd0SU1FB9YHDgsgJYiZ4bUAAAAJcE" +
+                    "hZcwAALiIAAC4iAari3ZIAAAAEZ0FNQQAAsY8L/GEFAAAB5ElEQVR42q2Tz0sqURTH72Qq4mASS" +
+                    "AoSIfSDdCEI8qJFLXSjLYSQNoGLINrI8/0ZD9q0KnDlKkIMebmP9xZRCEEiLQLBiMiNJDYq/Zg5" +
+                    "73vpCkM6CdGBD3Pn3OvXe77nDGPfENKwJBHx/CxYAtNAAVfgXJKk7khVCCyCP6ALVKAJXkEdbIN" +
+                    "xw5tgM4HHPphSFEUql8usXq8zWZZZKBRiPp+PH3sBx2Br4FbiBg+aplGxWKRgMPiMH1+YTKZDq9" +
+                    "V64na7G+l0mprNJo7RG/g94IEoQSsUCuRyue6QToIJYAJWMA/Bo2QySZ1Ohws9gZBeZI570Gq1y" +
+                    "O/395BKGJg+ZbFYznK5HAmf9vQiKW5iqVQim832Fyn5E+83Y7EYieAdY2Nig7dRqtVqrNfr3YiW" +
+                    "GsVltVrtr2f0IrwEZrfbGeqWhQ9GMeFwOPprRS9SAWo4HGZOp/MH1l4DAS6+HolE+u9Xek9kcK+" +
+                    "qKqVSKUL/s0hPDhFY83g8j5VKhcQg7nxs80/w0mg0KB6Pa2az+RTpDbDA3sd/lwvk8/l+Z7iS/F" +
+                    "HEAor8H9rtNmWzWYpGo+T1eikQCFAmkyFxAy7AJ255aMHYcIID8d1oNBi8hGuwwkYFDq0CPlG3Y" +
+                    "sTb4B/4BRwjBb4S/wGzT16tu5THiAAAAABJRU5ErkJggg==",
 
-    mask :      "iVBORw0KGgoAAAANSUhEUgAAAGUAAABlCAYAAABUfC3PAAAAB3RJTUUH1gcOCDMLN+YTsQAAB5h" +
-                "JREFUeNrtXdtS5DoMbKkG/v+Lj/cJCgbb6pbkZDjFVFHLxjepWzc7mQD8fV7uY3/6/ClxUg77vx" +
-                "BqLzTXHePtxfpfDkR33yv7XEbIXQKdaLt63vF0vRVHOwjwrv1K0jrHXLFGu5K7PnZw/QyIY9Juh" +
-                "2SR5rUGYKvCsXNW1u7qc8m1x4FEnwHgJGgnyT2i110C2mHln8MTo+fL6HMn+K8CQtRmTxVXZACz" +
-                "sZJMqgVllbVkfwRzKOCOjUyDnNeKxkeNV0i5QqCr16iMt8CAVkZhC6+zXaJXNkV20e8meE0XAaw" +
-                "cLPnOyvA4sE+worcxfTtCY8YT7AC5ppCCjgUKSnauWQHZDhhfmRQjhGXAVIFXCcq0zWQcmz4qUZ" +
-                "bpk9k8mhC6WoRMzJuZ3xa/o3HNFCmVo/yTwL3C3Cfl/PavNVl8l6KWCD2/+d9p21dPWe1Y0bXYi" +
-                "4zNGMpJmbekMEcNDFFXgxj1NaLYsESkOEbWipTnY4cRKFglS0m6Rs7xdcMWXYvasvqk5ngEhKi7" +
-                "WiYEsJZbUXAmjwfXTnhD6pqyeRwFgLqtSSUm8kqFSCOKEqsYWXT2xZbLqidABHpVJXqShKzx7Pq" +
-                "rxkmREuUJVhglpLEbOYWsCCCfkDrLJx6QXwHeMuHLgqPpAe0GmSq8JUOBJyy5IiMKvy/nYcOXEW" +
-                "dZVmjLtLNk7ios35A6854MWer/w0SffQhBATirSAYYhgQjiah6/nKOzOYxKont4mu2yAV3yQTRs" +
-                "IwlJQt+VBicIIQpCjy4ZqIX0vkho5cavlZAg7TijGKZtsp4Fyz8hEF9klJ9Jjg6H1NJtAZSPADI" +
-                "C+SpZElErY5ZmMoJDcn4CkAypLByZjwjlP8RVE2DKAKYHIIDhPhTxZRNrFVSukIvneh3lqAcXUR" +
-                "KQCAOTR7kB8EvkXziwQlmU4hGq0Qxd1R/vq5jDWtJD04McrPInGupIa0KGLNOBtQjhD8IcFQvQh" +
-                "JwNMzR8eNJ8p8JWhHmk3EpTzHSE6rAYqPAKqH7BBRfKHyalIohfOrw2JTDzD5DCWNV0rCI4UqIY" +
-                "az3FHH0fA/BIwB+lw4hjrN7oGjX3WnJfogQZ/B4TLxk9Rh/dCOJ9azo9iube3wXAhYgzOJ+1SM6" +
-                "vcyjkpgpgS1RVVUSOBO6VuRWwMuQlyb8QZSrI7npO1U9uVCOejI0McQ6kbTVOeXN4whOjpWbXOz" +
-                "9+53wECq0CkGzkOei9btC9CNRGTH33tXi4ORxiCfDkieveSEnUaQwXwg1wlOUe+1OHvHsknZHjG" +
-                "f+j4VXeYXYSCEnYy6rgCfBU6xxpwsa54vkczKETXPKY8NsViArAOUNYcQDME7o2REmP/cpb4sJv" +
-                "lo2kmA5WdmolY4TyTmqeCr5pMtApwXKjpTTCRAiMI78fsKJE2EWUE+W0yzZFCkoWsauxMyUlpkS" +
-                "tusYxQtyA8Ixy5sIrrKYB9WSQz+f6iYSjZEAwpq+I+WdqBTQbBWO2jlRdfzqrKxr71KS6cNTKqe" +
-                "a3cfdK4NwoX/3Ka8367fLZ9PwhSZQO4+7M0fvSBDWCXZW3hF5CqNodFSSBQHE+iiQdtdtZTB3Ht" +
-                "8ueOLjlNIZUnARKVb1lOx9afv7absP9PluGIaUqApTLRPEMXsnEHcQwDwXsH3u622SCLEhpbRgc" +
-                "XwHCVUjU7+Ooeaw8ZxTIFYRaHiwQX3CEIm+uMDLup7SnCb6TgXQDACjZDdRmeeinZQXK1LekyGg" +
-                "42sJp772gBuNCcHt6Mj4Pz0Fm8NICMKh4OJVUpD0mm6PRHHt8XGTqwokkmOZUIKCQWTGYnFQquK" +
-                "ALJarkhgE2CiEEzSFIlSUPxAmO0jZHrNAUCirMIiKqnvtjF5ekAObR3RnL0/4kei7Xpcxq0YYUi" +
-                "DKUCUuY+mefEKU9aLl0T2IMIYmN0bB/SEAXvH+jjZ2vWn4QtKaVCWxKRM71gRRWKjzKg8n+uYZu" +
-                "F3bD09BwZI7x1aB73zTEIr6qbJNS+LsQgD/Tq2Ol6Qp45AIfx2GFnnM0lPeEwIpArAvaasAgaIO" +
-                "yhgmBJaurcKXnVxUaLtCHpYIu0jGoeQUFACsEpBp6zQSRW4g90rdo6TgwFzd8172ivREn5AUFBb" +
-                "qBkYNQezYjAwn9R+zRJ+ZGA0gd1lq57wVg8wawNRTugHtAoPNIR3EP3/PcwgGUcUCz/sUkEp3kY" +
-                "IDxtBNvhoxqrJ9C18ZpRlLi8buXH7VfyQUH2KYVoGPchD9NwS+ekrGarqsr9uKM+2jGBa7xnx6S" +
-                "pdiHe27hJn5ixW76536KDLsjGBKCkRXXQHHgMiu29Hvt/z+I3xdBUTX+JUB7Lxr92eumLf9gQyB" +
-                "I6n/t7OvaCDjitgkWKWNIQWFsWzbHWuMZ1Ii5aMKZtdXGYsCAVWgVePceeLIzD8jpcN6hiD4B2H" +
-                "PIScLWAdpp8Ywfab7FHaynWVnBe5U9oQeFZnZa2OW6NUYPogck1EKLzIHG1LbZF55SkWo3zzmFe" +
-                "Tbekpl4ivaT43dATyuwOXr5rEifFTasvPvwt5oIPnufkzfEZES5Q9mwUGWoSDWYOWoAnfnOCp8X" +
-                "SnQyfmsYey4QN+x2qe84sduMIY7PsMA/Ie/z0t9/gHKOXPlZc81WwAAAABJRU5ErkJggg==",
+    mask:           "iVBORw0KGgoAAAANSUhEUgAAAGUAAABlCAYAAABUfC3PAAAAB3RJTUUH1gcOCDMLN+YTsQAAB5h" +
+                    "JREFUeNrtXdtS5DoMbKkG/v+Lj/cJCgbb6pbkZDjFVFHLxjepWzc7mQD8fV7uY3/6/ClxUg77vx" +
+                    "BqLzTXHePtxfpfDkR33yv7XEbIXQKdaLt63vF0vRVHOwjwrv1K0jrHXLFGu5K7PnZw/QyIY9Juh" +
+                    "2SR5rUGYKvCsXNW1u7qc8m1x4FEnwHgJGgnyT2i110C2mHln8MTo+fL6HMn+K8CQtRmTxVXZACz" +
+                    "sZJMqgVllbVkfwRzKOCOjUyDnNeKxkeNV0i5QqCr16iMt8CAVkZhC6+zXaJXNkV20e8meE0XAaw" +
+                    "cLPnOyvA4sE+worcxfTtCY8YT7AC5ppCCjgUKSnauWQHZDhhfmRQjhGXAVIFXCcq0zWQcmz4qUZ" +
+                    "bpk9k8mhC6WoRMzJuZ3xa/o3HNFCmVo/yTwL3C3Cfl/PavNVl8l6KWCD2/+d9p21dPWe1Y0bXYi" +
+                    "4zNGMpJmbekMEcNDFFXgxj1NaLYsESkOEbWipTnY4cRKFglS0m6Rs7xdcMWXYvasvqk5ngEhKi7" +
+                    "WiYEsJZbUXAmjwfXTnhD6pqyeRwFgLqtSSUm8kqFSCOKEqsYWXT2xZbLqidABHpVJXqShKzx7Pq" +
+                    "rxkmREuUJVhglpLEbOYWsCCCfkDrLJx6QXwHeMuHLgqPpAe0GmSq8JUOBJyy5IiMKvy/nYcOXEW" +
+                    "dZVmjLtLNk7ios35A6854MWer/w0SffQhBATirSAYYhgQjiah6/nKOzOYxKont4mu2yAV3yQTRs" +
+                    "IwlJQt+VBicIIQpCjy4ZqIX0vkho5cavlZAg7TijGKZtsp4Fyz8hEF9klJ9Jjg6H1NJtAZSPADI" +
+                    "C+SpZElErY5ZmMoJDcn4CkAypLByZjwjlP8RVE2DKAKYHIIDhPhTxZRNrFVSukIvneh3lqAcXUR" +
+                    "KQCAOTR7kB8EvkXziwQlmU4hGq0Qxd1R/vq5jDWtJD04McrPInGupIa0KGLNOBtQjhD8IcFQvQh" +
+                    "JwNMzR8eNJ8p8JWhHmk3EpTzHSE6rAYqPAKqH7BBRfKHyalIohfOrw2JTDzD5DCWNV0rCI4UqIY" +
+                    "az3FHH0fA/BIwB+lw4hjrN7oGjX3WnJfogQZ/B4TLxk9Rh/dCOJ9azo9iube3wXAhYgzOJ+1SM6" +
+                    "vcyjkpgpgS1RVVUSOBO6VuRWwMuQlyb8QZSrI7npO1U9uVCOejI0McQ6kbTVOeXN4whOjpWbXOz" +
+                    "9+53wECq0CkGzkOei9btC9CNRGTH33tXi4ORxiCfDkieveSEnUaQwXwg1wlOUe+1OHvHsknZHjG" +
+                    "f+j4VXeYXYSCEnYy6rgCfBU6xxpwsa54vkczKETXPKY8NsViArAOUNYcQDME7o2REmP/cpb4sJv" +
+                    "lo2kmA5WdmolY4TyTmqeCr5pMtApwXKjpTTCRAiMI78fsKJE2EWUE+W0yzZFCkoWsauxMyUlpkS" +
+                    "tusYxQtyA8Ixy5sIrrKYB9WSQz+f6iYSjZEAwpq+I+WdqBTQbBWO2jlRdfzqrKxr71KS6cNTKqe" +
+                    "a3cfdK4NwoX/3Ka8367fLZ9PwhSZQO4+7M0fvSBDWCXZW3hF5CqNodFSSBQHE+iiQdtdtZTB3Ht" +
+                    "8ueOLjlNIZUnARKVb1lOx9afv7absP9PluGIaUqApTLRPEMXsnEHcQwDwXsH3u622SCLEhpbRgc" +
+                    "XwHCVUjU7+Ooeaw8ZxTIFYRaHiwQX3CEIm+uMDLup7SnCb6TgXQDACjZDdRmeeinZQXK1LekyGg" +
+                    "42sJp772gBuNCcHt6Mj4Pz0Fm8NICMKh4OJVUpD0mm6PRHHt8XGTqwokkmOZUIKCQWTGYnFQquK" +
+                    "ALJarkhgE2CiEEzSFIlSUPxAmO0jZHrNAUCirMIiKqnvtjF5ekAObR3RnL0/4kei7Xpcxq0YYUi" +
+                    "DKUCUuY+mefEKU9aLl0T2IMIYmN0bB/SEAXvH+jjZ2vWn4QtKaVCWxKRM71gRRWKjzKg8n+uYZu" +
+                    "F3bD09BwZI7x1aB73zTEIr6qbJNS+LsQgD/Tq2Ol6Qp45AIfx2GFnnM0lPeEwIpArAvaasAgaIO" +
+                    "yhgmBJaurcKXnVxUaLtCHpYIu0jGoeQUFACsEpBp6zQSRW4g90rdo6TgwFzd8172ivREn5AUFBb" +
+                    "qBkYNQezYjAwn9R+zRJ+ZGA0gd1lq57wVg8wawNRTugHtAoPNIR3EP3/PcwgGUcUCz/sUkEp3kY" +
+                    "IDxtBNvhoxqrJ9C18ZpRlLi8buXH7VfyQUH2KYVoGPchD9NwS+ekrGarqsr9uKM+2jGBa7xnx6S" +
+                    "pdiHe27hJn5ixW76536KDLsjGBKCkRXXQHHgMiu29Hvt/z+I3xdBUTX+JUB7Lxr92eumLf9gQyB" +
+                    "I6n/t7OvaCDjitgkWKWNIQWFsWzbHWuMZ1Ii5aMKZtdXGYsCAVWgVePceeLIzD8jpcN6hiD4B2H" +
+                    "PIScLWAdpp8Ywfab7FHaynWVnBe5U9oQeFZnZa2OW6NUYPogck1EKLzIHG1LbZF55SkWo3zzmFe" +
+                    "Tbekpl4ivaT43dATyuwOXr5rEifFTasvPvwt5oIPnufkzfEZES5Q9mwUGWoSDWYOWoAnfnOCp8X" +
+                    "SnQyfmsYey4QN+x2qe84sduMIY7PsMA/Ie/z0t9/gHKOXPlZc81WwAAAABJRU5ErkJggg==",
 
-    wheel :     "iVBORw0KGgoAAAANSUhEUgAAAMMAAADDCAYAAAA/f6WqAAAAB3RJTUUH1gcOCDIojJpTggAALYl" +
-                "JREFUeNrtnXmYHUW58H9V1WdmMtlDQtijSSDKorLovRAWAwqyiBJugoCK6CfqRdSLityLkIsiF9" +
-                "SIyqIsRhZBlu+TK0JEQBBFUEAEZQ9LgkCABBPIJJnMdFd9f5wzM2d6qrqr+/SZmUy6nqef06e6z" +
-                "9Ld76/epd6qgrKUpSxlKUtZylKWspSlLGVxF1HeguKLAQmTp0JlOuitQU+BaHJ105NBj4JoDEQK" +
-                "olYwoxAmQtKBxKBYi6ITxWokK1GsQPI6ilcQLEWxjBfpFGDKu13CMBwEXsA2bTB+BzA7Qbgz6B0" +
-                "hmgl6GugxEAG6tkX0va/fr70XBhQgqb72bLb3kgjFy0ieQ/EUiscQPErAo/yNlaL6pWUpYWia8C" +
-                "v4l21BzwYzG6K9IHo7mBarcPcTfG0BwROGNED67xsUy5E8gOSPBNyD5mH+VGqREoaGhX+/KSD3h" +
-                "+j9EL231uILt+AnaYACYcgCiKADxZ+R3IHgNlp4jFvpKuEoYUgBYL8A2mYB80AfDGZXiCp+gu8C" +
-                "wXY8AYaigHABInkJyW+R3Mga7uBu1pZglDDUAJinIJoOZh5ER0L0LjDSLsjaQ9BThN5VlwZDEUD" +
-                "0hwIkK1DcguQ61vN7cTPrShg2Sef3Q+Nh1GGgPwF6X9CV/K2/zghCThgaAUWmOuXLEPwcxZW8wB" +
-                "JxN2EJw4g3g6btCOLTEM0DPdXd6usMTnAW08hxrB4Gl3AH/YR3YF3Pq+08l3YIYucJulH8HskiW" +
-                "rlJXERHCcOIguC4NmjbB6KTQB8EumWgIOuMwp0Vjoww2IAIKN6UkgM0RP37JUguJeBKfshrI923" +
-                "ECMbghPaITgMzMmg31ONBLkEX3uaP41C4DgnDkMQa8HjMKiCwZBOvwIUKxFcTsAFLOQfI7UfQ4x" +
-                "MCL48GsLDgK+A3qNP2NNMH90kCNLMJgcMPj6ELxg2gQ88YOj/ugrJIgQX0MYL4syRBYUYWRCc1A" +
-                "ptBwFngN7dHQnKA4GPo5xUlwJLEgxZBD5wCH1WcylZW6xCcAkB3xdn8koJw7CCYIGEaCcwZ4I+H" +
-                "LRyh0V9Wn2dQ6C1p4lUAAxJgGQxpdIiTK7XvnOXYvgGa7heLGTtxi5HcuMH4VtTQJ4N8o8gjwCh" +
-                "qozXb5KBdSQcc21g/245NO2K628Iy99JuwwRuwyfWyh4CwGL2IxbzDnsba5HlTAMkUlk+NZc0Pe" +
-                "A+BrIsenSkf50/QBwSdww1Pu+ly499utva/9z9kNwGy/wPfNttihhGDQIEIZzt4dtLgd5Pcgdsk" +
-                "GQZ8Mi/Hm+owmCPRSbDRbJKARfoMI95gfMNwtoK2Form/QBucdD8EfQH4EpHILv3S85tEOvsJdM" +
-                "BhZv6Z5gu7WEvE2SDEDyTVswU/NhWxbwtAUEH6wDUy+FOSlIKfadLW/VpANCn+jrX9B5lWjFl6W" +
-                "WyQTXgfWKeAjVLjL/ITDzAKCEoZCIJinDD/+AAR3gvgoSJluFskM2sH2HUU1szmBSPu478/JDIK" +
-                "fdgvTbqe0tkkzENzAWznHXMTEEoaGQLi4HQ78Ksj/C2p71x3P1pTZzofGfQhvqTZAN9AJrK1tbw" +
-                "JravvrgK5azNX9dUWYSdIRQUozh4SHU913bhuSLzOGX5irmDXc4w3DFISfbgFiIURHV9MojKW/Q" +
-                "JPcsZanL8GzX8C5hRFE6yFcD3otRMsgeh7ClyH8J4SrIHoD9Bro6qyez3qgQkArCoVkDAHjUYwn" +
-                "YBIBUwiYRsAMFJuhaEPRTkCFAJHYv5Clv6K+r0KSrWNOpuz3ZMbC51DcJuZbYC9hsIFwza6gL4N" +
-                "oN7fw+/QupwHQQCdZddMQroNoNURPQPgg6Ceg+3nQS+GZ5YJiH7qZzngqbIdkOhVmongHinejmE" +
-                "rAWAIquTvusiT3JeUyJQPSAfw3a7hQHE9nCYM7WiRh54MgvAz0VunCn0cz5Emr6N0MhJ0QrYDof" +
-                "tB3QfgIrH9M8MjqIbtv+xHQxUwUO6PYE8X+KKahGEeAStQasgEgkjTDQK1QX6cRXIThdHEEq0sY" +
-                "BoDwYAWWfRKib4MZlw5AxEDTqdG0bBcA0TqIXoDoFtC/gbV/EdyzatiamPsRUOHtVJhNhblI3oV" +
-                "iEgHKy4RKy4LtEe7AA4Iks0lwM4bPig/yUglDLwg3tYM+tbZV0k2jpHyjJCiSxigPgKATwuerAE" +
-                "S3QHS/4OaNblikAcFcZqI4AMlcAnZHMYGgFgBNM5V8/Qfbe5noP/TUP4Tgo+JAntjkYTDcNQY6z" +
-                "gZ9YnXscSMQZMlGtYKgQa+E6G4Ir4aOOwU3rWGEFAOSY9iJVo5EMg/FTBQtmf0IHxCUFwg9GmIJ" +
-                "AUeJ9/LXTRYGw+3jofs8MJ/oP/CmZzMeplIaCF7aIaqZQdfChqsEVz3BCC/mWMYxhkNRnIDi3QS" +
-                "0o2qRKVfqt8wAhy8Q9ZEmwTHsx31DNaJODB0It04C9SPQ8/3MoiwOs7dmiEA/B9Fl0HWV4JLlbG" +
-                "LFzKOFrZiD4osE7ItktNOx9knz9neibdtyJB9nL347FECIoQHh9vGgLqmCYAoEwXuEmga9DKJFs" +
-                "P4ywUWvsIkXcwIVJvF+JCfXIlLtmUFQHjCkA/EaAUeKPbhnxMNg+NM46Dof9Mft5lBen8ErgmQg" +
-                "ehX05dB5keB7/6As/Z/PSbQynkNp4atIdkfV9Vv4hliTzKN0cwkEL6GYL3bj3hELg+E3o2H098C" +
-                "cMBAA4wGAacA8CteCvhHEtwVn/L0U+5Rn9TXGM4GPIjkZyVt7e7obgcEHhD4gliGZK97JQyMOhm" +
-                "o/QvhNMKf0OcvGA4asKRgDHGZd7RXWC6Dzl4Izw1LUMzy3bzMDxQICjkTRnjjnUp6+BjsIPftP0" +
-                "8LBYhbPjRgYqj3LH/wcmO+DDuwANAKDE4Q3wFwF684RfP2lUrRzPr+LqbCBuSjOQPE2VK2PwqdH" +
-                "Oq926APiHhRzxQ6s2OhhqE7l+JcPgrgazJhk08jk1AoDHGYN0eNVLfT6bwRnlusVFPEsz2crWvg" +
-                "GAcegGOXVz5A9olSVStUPiJ8zhk+LLZs76cAgwPD4bhAthmiqn5/gA0RSx1vYCdENoE8TnFg6yM" +
-                "3QEq18FMkCJNv19k34RpOy+A19GsIgOJdlnC7mNG8OWNFcEJ6dCht+DXpXf7PIBwhnROk10N+As" +
-                "ZcK5neVotvEZ3s576CFHxKwNxLlBUNWEPqbSxsQfIptuUaI5vRBiOaB8GA7jF0E+qg+4faFISsQ" +
-                "kQH9GIRfEHzirlJUBwmIq5lMC2ehOA5FW2KOUh4QBg4tXYnkELEVDzTjemRzQDASJn4J5Dz7lam" +
-                "MdyHxPA3yTlAfLkEY3CKOZSUv80UkZyB5I5ew26fHt4OkmIzgJ+bV5kxH06Rhny8cAPK06nhlm1" +
-                "clPO6KV1MSgrwO5NGCo58txXMIgPgiG/grCxGchOTV1MemUh6zcoLQE87dBcV3jaFl2JtJhqVbg" +
-                "rwLzCy3aZSlw81pGnXXcopOEczvKMVyGJhNt3EIkh+j2DZRoPOYSf3NpYiAzzCORUXmMMliQTAV" +
-                "qJwLalZygFmQX59KQG4AdR50fbkEYRhpiQNZjORjSJ5FYgqNLPUXJYXgf1jDTsPYTHrtGFBHu+c" +
-                "OSRsB4nVX1oH4FnScLpi/vhTBYQbE/tyN4WgUj6NiQLh6q33Npv7t6RQCLjCG0cPOTDL8cxroe6" +
-                "tjl02CWZQUUTIpppHeANHZIM4WzCnTKoazyXQ/uyK4DslMJKKBHuiBnXD9X79Che8VEW4VxYBgA" +
-                "lh9OZhj7RAYTxCiBP8h6gJzLrx8Vk8fgjGm7FkeIgXgPCBE7zHzAO8h4OcopjtGuKXHVUTKvmAV" +
-                "itlCND5stCAY3vww6BuAYKDwpznNPs6zCUFfDOu+IpjTO72IMaZrOFz/EP32UH7eCwYA8zD7U+F" +
-                "qJFvk6ltwOdK1VyPACBZLmCsEG4ZUGAxvbAbqPjDb24U/i3awwRLpaup15/GCvfuNRzbGrB3Eax" +
-                "cFnCMG+f8U9d+8/3scBgDzGEehuATFuLpVRf1iKo75XI3oe9WgNRzfKrhyyGAwGAFd3wR9mlsT2" +
-                "LSEC4q4mRSZ6voL+kjBbgOyFo0xqxoQNNEEYRVDCEqzrj9TnRUGEDzDSQjO7ddT7asZ7NogLllL" +
-                "u+A940T+7NYGYejcEeR91XmOkkwjHy1h1Q7PAIcKdnza+vvGrMhwTWIQIRGD9Ps+5zb7+0TMTJL" +
-                "2Z0XAUhYScGJvLpMtUzVhlu8ebaCFs4n9zhj4Wl5nWuQHwQTA9aCPSIYgyTxKNJlWgT5G8LZbnf" +
-                "/BmJcyPsyGH3ZOYRMb0ffn+S6RBgOAWck4urgBwfv7RZg8zCPTZxINkKq6/Y4QZk8S/G1QYejGH" +
-                "CzhJoEJql+SVytY07i7QP8nzDgvqYfRGLM06cEU8XBzfGeW80WD/6VZv5P7s0kwAJgXmEkri1Fs" +
-                "7wVB7dvi2iDBAP/VJDhCiOxz3IqcWqHSBXdK2Lsn3bz6ZYb8TrSp9xOuh67jBDskRgeMMUsyCE8" +
-                "RIOQVHFHQ8WYJtiiqLg0GAPMah1LhWiRjXH5CzEFOBaFOokIFcyaJ7LNr5IKhE3OogZskyP5T9Z" +
-                "ve1+waofczS2D9+wQzXki9qcY8nvGBNyqAIid8RQleoYLr8epzLDsMBsEazkVwci21YgAIBn8QL" +
-                "FAsngqHZ9UOIo9WWAt3ippWsK9lUa8pMmmItaCPFWzxS6//YswjOYRBDJJgFfm5Is91fdanEUl6" +
-                "9YYBwKxiAi3cgmLPHv/B5SBnAaFWFxrYf2vBH7LIdua1tt6EA4G96gEwdSBU90Vd0pOqQVF/po6" +
-                "9CqqhYnE5XPirTK5L9pasaIHJKrB5fyuPgMbPNY738f363zEpdfWf92+FJ7LarOVkJL9GMdFYTK" +
-                "KsENTVBxr+0xj+KAS6KZrBYNQquF3AHJ8lhWXMfErWCtHTEOwnGOM9u50x5r6M2iDPa14zwxe0P" +
-                "N8lMv5n399Nq3Mdr3egMy2MbgxnaTjVgGoEBEtdGMLsGYL7m6IZVsBeAvZ1aYX6OtnvmKgBIeu0" +
-                "RD+tsAHU1wXtWad57M7Q0mcRwqyCluXz3oLlccz3901KnU+jaSz31hQQmfyuhkM07OobezR+YAT" +
-                "AfxjDMb79Dt4wLMBIAyebatcIWACoh8JlOonavug7y4BcDC035orwNi6kaQLrC1bS7+eBQWT8ft" +
-                "t7E9tPOm6DxniYTA0VIVjdaTjDwPUaRukcELhMJgMffgpmAU8WaiYtx+xk4CEBLVmWDXavvdnrZ" +
-                "P8T5P4C8UhmZ96YW5uh6nEvKisyAiRShDftu/N+n0i5bt/PCs//Vu9Aq+zPEdUB1xo4Uldbx8Tw" +
-                "qQcEvceBC94mOKlQzRDCcS4Q4k2MTNAUfa8CAVohFuUBIaYZsgp9ViH0FTAfOLK+9xXGrIIsPZz" +
-                "jNIe5kKxfIYjWGM6MYH8NkzxCp17mUm37yNOG03YQvFkIDC9h2rvhWN81to0HJLXXVzfADxq4j9" +
-                "05W/9mtqJ5W9ws/62+Tub8j9oRZRIpPoMrgtQQGGMFj64wXGPgRBPTDnm0Qt02eT0cAVyR9h+8Y" +
-                "sKdVQdnqyyrISettRlVNY0O4ZLRiBcbhCFtCxPeh3Vbt2PftnUn1MUuc0Bd5FnnM0OCsfVaWupM" +
-                "hjrXhuUVhzOdq2j4voaVPstP+ixNWXdxn1xg0mU9lWaDEc/AzQIOyboAfXK4lZcE7DYW8Vrem2e" +
-                "M+VmDtrpPnSiotZc5fzvtPJnhs83aeq8tj8/QzwoxLNTwHz3awaYRyKYZalY+79xN8HhDZtKTsK" +
-                "WAA7LecekwnUxfJ+MVExsAoVa6ChTWLALo+9n649rzvKy32uQUXhP7vUb6pgrzH9bDjyvwSQMTs" +
-                "oRUiYFC/+OBgY8AZzRkJkUwV0OrzzKBOkF9xepWGbikgHvXnWNLM3fClM/4mlKhxUxy1UU5N98p" +
-                "yxOTwVLMpbgJFD9WqKk0U7Akgv8XgklamNhncYLYNv96g8qtGQxGPArzohzOsnBrBiPguimIZQX" +
-                "AEGYMS+Zp/X1b86Tv0I46mxbQHorWdcttXUDxvlBivyFjTrUcaMoPiDzFHehCx5ILuEDDRzSMzu" +
-                "EwD6C49vkdtoJdgQdzwfAIvEXAnjQgMZantl7CTwu6b90Z4+CNCr/M4A+k1aWZTtKjnZEOgdcOv" +
-                "0J71NmAMI4IeVNMpbfAI0/CHzUcaHJA4NgEcFRuGCI4TEDFN/aX9LTqDNS/bE1h63R1eQiqLxTS" +
-                "47hO+WzSucIhpGk2vchwjsvfMAxMLtYJmiEOhImBEBd+U6R2EALzqOEKA3M0VBqBIGbXfcgYTnG" +
-                "lZyTAYISBg4yj6ZUWMGwSEXtaoYFFAqEL1AxZW+8iIi8yQ4svE0wXFxw6BRjpMImwdO2kQU0KEM" +
-                "LiI8TrmjHlzk0hvGxgWh4AtCUWbGDGHbA98HQmGB6EURHs49IEJqWu3siseyKvATcWeMO6M9jwP" +
-                "nUyIxB4tPARfhkrLnPIODSCsfgCBnvOpIx1ssXNJCyaAIcTLYrWBLays6DjL4ZrIjiVujBr1s6Q" +
-                "2DGp4f2ZYeiCvYBxcS3gep8ERt3+r3dAvFHgPQubHGOXnsddLbm27MuYA+0j+PH38dBo/HbLmBY" +
-                "wlscU1xRxhU6d7yoHwzyymOk3aviSgVG+ppAjtFoPyYHAhZlgiOB9OLSASdEIWJ4w0CXgfwu+X1" +
-                "2DJPhJpk7asA6RAIF2QCUTQLAlBUsGZs9Lh2kUb8fiZpELgDgEJmYuFQ7GUnhoK3gW2NnDH3Bpg" +
-                "/j+fosNrYdYZt8LXP5CBPvkyTwz7qZ6JVD0yjrdBdr5WTSCfbRr8nHtcaxeqHVCJ5kruiMtoU8b" +
-                "FDJmHtnqfGWsaZphviD6g+EXGnbq6ZHGw0ewmUx1x8dreBfwZy8YfgPtGnbzScK33X2Hl7p4d8T" +
-                "aYQCDSGjls9S5nF9bK+8KXwrHvq7TDjZzxWYyxf2GtDoXEMbS2rvqbB1yhZYQfmXgq9TGOvjAQL" +
-                "p22NsbBgF7aGhzAeBrMtVHkTTc0YTGo5viHN1GWn7XexcIwmLX21p9bdEA2qEdbEJvYvuqTm6wd" +
-                "NTVD04nBqgLCNFkLfFwBK8Ab9X+plCaQz0bWBj/IVc6xt6+XeEJ3d/1+QbrgN81CQafbFVbmoUt" +
-                "/SIpJSNL+kVaykZStmpIcpqGLRlYk57x6lp02zXs2KfjtynaoL7MEYQh3OFzM9Lq627WXrYs1sC" +
-                "hmt5ta/mT6lL8i0dnI14dIs2Q1fzx0R6S9AF9OsEk0rFzjeO4TQu4Wn1jCY/aepJtDaC0aAzfKG" +
-                "bTp/XX8DsDx9fGNXs50ZCYXLX5DJgGPJ8CgxEadrGZRXFV4vIbLHD8sUn3qSgYpKf5IzPAIRMAS" +
-                "1q+Ly26Y1KO9dQpiwAnJWbGv98XjKZrhxDuN9XIYeDjJJMCRrWTm11SYVgMY7urOUkDhD5tigTH" +
-                "FBKhhD81EYYsznCaRiAmnHgKc2Spiwusy4GWFqfZJuz1Ah73H+LPXaaYwRY3sZ+fEAfL1gs9KCA" +
-                "AHA7P/gKWAzOSWn0PjVD/fhfgpkQYumFHXXcT07SCSIFBQOf6hOSogmDI6+SKlNbbt+X3eXUtyJ" +
-                "TU0tvMJOlwklXsNa01t2mGJCjSvqdpUAiBud5wXxyGJMHXjj9WV79zqs/QBbu4Jh8yDhhSzKkXD" +
-                "od/DLKZJGksWlSE8MsEPyIu7PHlOXQCLEmmT1aNYNMOtkiWtsDBYJpLEdwr4JiehjpN8E1CzLd2" +
-                "MekwGNhe4zcHYhIMddri73X9JUMBQ5L5k0X4XX6AzZySHr6By0ewQSBJnxVFZdQEceWuU4AwGeS" +
-                "t8GLgqbAaYWvJoQUG/LkQZi4wyDPrpp8MLM7KdNdIDiyhA+k4Vvu8MSSPOx0EMylJ+NPMpEY1RB" +
-                "oItgVeXVDUH7OdB96ZzE67P2lGwqwTBBStGZ6Oqs/bG4YUWtu2hq2AF50waJhuPIWfBGh07zX4z" +
-                "WaWs3Q5hNRX+Mkh8FkiQ2mtv80kskWNkjrS6h+FItuQTNss0EkAJGmKppaPwUs/gVVQXQTdVz3p" +
-                "hJsgYXoiDBFMT1oYIGl+QYs5FZpY+KoJmsFX+H3Mn0Yd4qSl+RTJS3271rGJawRXNoJ0+JQueUl" +
-                "acUg6zCWRYno1rwhMZFgCbJOh9U/09HUVht9bYfgpZoKGcSIh3ECC1rDMQBUKeKGJtygkexKdzO" +
-                "EwZzWFbFBoS51J0BhJGkHG4LBFler3SXhUrnTzeJdRnghV0Z1vzxmYYzyFPUkl1gh/i9OB7obNl" +
-                "aNHsSeYnhGGtR9vTs9zWj9DHi2RxfxpxDeIw5CkGWy+gcrQ+vtGkbAIvw8Ag6ohwioM/Xq9jR0a" +
-                "LxvRwBQnDBo2czUhUcpdtMFgmhdSTfIZfNIlmgmDzFCXpBHix5VFOxiHlqjvc3A5uq7Hlzbm2qS" +
-                "Ee5vZ8r0o+oIJia2+cUel6vc3S4Jhiklu6Z130mZKGXi9yTB0F+An5DGRfPyEtDqfTVn6FOJ1Pm" +
-                "aRSdEMPhDYhH9Qi4FV2gMGl3awhNDcmiGEKfEBtFlAIBaSYOhgyGMa5QmRpqxl3/BmUuqUBYI0c" +
-                "8k42jkXCPFxGTLFRGvmw14t6uTcpAh82p/SSTAIGOPzJcLjeA2mfzbfjMzkM8iMmsKnTnn6DMpy" +
-                "XFmO+8IQd55VgqaoN5mIWb1xS9g2e0fS4J9BC7GGsEp6wpCmHWplTJJmaBd+Qu7llQ0CDF0ZQqZ" +
-                "JHWl5o0eupDtf/yAeMq2HQqXAYNMIqgEHuh4KYemDiHcADnrnWxesrtRk3PeHUhr3dicMUW0xEt" +
-                "edynqlBlYPIzMpr/BnjRjZWvk0bRDV7RuH8yxjEOAAIwkSm0kU1WkL11iMLDO0NLO8GTb4OzEbs" +
-                "tUJgwEV75ExBf3wRghDI0BozwhRvIdZxLSFzVwyjqhSHJKefeVW3APg0HVQRHV19Vt8xr1B8xnW" +
-                "gWmluNFEJnZv4tGksUX2kWhYOwxgaDSvKClalOQfiDqhttW5IDEOAJKiS1giTGmCqiymURIIrmG" +
-                "gg1baYW036AK/MtFnKKwIiv3X1t8Q1WkqjTHC0cq6Jgo3jtbYNnAm3hoL0meOiMcZXIm9NoESOb" +
-                "p00pa50ikhU+FpGhEDgsEGImrid8d9ho4Cv1tSS6rayMugjPMti5eZNNrkG6vhKmuSzKRQDAXuZ" +
-                "SmLR+kEERT0XcISfY3D0FWUM1w7f0L5CMtSYBnXXR3Mn1lVO2zPDUkwrDN+Qp56Tm2bVD6/shQY" +
-                "LZkga2aSaACCumPrUn2GRoCIeYQlDGUprIQwUYIUHoIO9lXfY7La4YQhhBW+wWPjAYOwZMGWpSw" +
-                "NRDImRHUwJAFhG3IQ1xgGVjhhMLAi/gU6Iwyx8aglDGUprGiYSCyaJNyC7mM2rUjyGV7Pkh/uMc" +
-                "Ru2/IRlqWo0gXbKA8YpKf/EB9iIGM+w2tR3fq78Vlssy5MHMLoT2Gmlo+xLAVphukhiLwLZlvqV" +
-                "jhh+AFitYY3fRahTlsgvbYFErYrH2NZCnKgp4f5hH7Ae1PdX5qoUSJ4rj4RxWf6b9vc6rX9IIS3" +
-                "lo+xLAV4z6Jngrs0INJAqJua/jmnz0DfCbu6/ACT7DDH/QcFvK18kmVptHwAtg5hou/M8Lb38c4" +
-                "65QNDmmOcYWo/AexYPsqyNFoE7BBCRVqE3DXLQdLMkEDnLHg5EYYIluTQAE5IDOwCRjRxvtWybB" +
-                "JWErM0BMYTBkHyFKkCnqmfZ9XlM/zdZmuZDL5DbNvusDLEWpbGI0l7hSDzLGOlLT5DCI/Gf8M28" +
-                "fDjom4kU5oWSBsIq6EtgD1o7sx6ZRnhznMEe9q0QNos8HFtIfrkcgAMAzTD1bBGw1JfLZAUau2J" +
-                "KEXwr+UTLUvesi/MDGHLyDOSpD00h4G/p2oGEEZj/m5is3H7agTHvIezy0dalrwlgncLaPFYO3C" +
-                "ABnDUmdACg3T8+AO2tVKT1lpN6X/Yef+yJ7os+WF4r65aGF5ZETZZjdW9djss84KhG+7J28XtOK" +
-                "9dwHvLx1qWHP5CEMH7fHqeM6QN3YsYmINqhWEtPKih00VXGomWLdDwvvLJliVr2RXeFcEWEf5aw" +
-                "OXL1smndSlmKwy3w7oIHtIeP5ghxHrIOzCjy8dbliwlhA9G0JY3Mc8GRwj3eMNQdaL5g2/Sk6c3" +
-                "P3k0zCkfb1kymEhKw9zIkqmqM8hkTDu88Qo8nAEGCOGOPFohwZxq0fDh8gmXxbfsALtpmOHrC6T" +
-                "JaO393c+I/hMBpMKwEu4Na+ncOoXKDI7LwbtjxpePuSw+RcMRcRMpTdZ0SuPcDbe5fs8Jw19gvY" +
-                "Y/pNlfaZGlWBRg8xCOKB9zWdLKFMOYCI6JEgbzJDXEDi2hu+D2zDCAMBH8JgsAOj36FETwKTCyf" +
-                "NxlSSqtcHgEW2VxmD3k89m/1RJRM8IAGm7W0K09QlgZPP3dZsFu5eMuS4LjLDQcF0El7xBPW8Mc" +
-                "wi8R7klfEmH4AywN4b5GQqqWPzVKw/HlEy+L00SCd4YwO0tOXJK5VNuMgeuSfjfFXBFGww05+hS" +
-                "SHBsRwVFvwUwrH3tZbCWEz2to90nP9oGkduzpR+GvDcAAG+AXEWxw+QRpuUsOWidqOKF87GWJl7" +
-                "GG7Q0cmda3kLUhDuF6RPKM9qkw/BWWR/Bbn8hRBnNKRnDcVMzm5eMvS393gc9GMD7J1HbJXEJiX" +
-                "mjg2rTf9ojqCKPhp0k/6mO3Weq2BP69fPxl6Y0gGWaE8DENIq1T1wWItoNy7zPwZAEwwKuwOISX" +
-                "fbSDT1Jf7ZjUcMIkzDalGJSl5it8ScPkLAN1fML7ISyyZanmgmE5Yp2Gq3WCNvDJUbJc2FQNXyz" +
-                "FoCwYdtaxTra0ccyefWAr18KNPn9B+v9XroigK01FaT8I6n2HT7Zj3llKwyYNggKxwMDEPONmUh" +
-                "roa/8peLNQGJ6AJzQsTnJefHunLZGlBWCCUio21aIOBnUoKEHNntGe1oUmscOtsxsu9P0XGdIih" +
-                "I5gYQRRXtPIEXUSGg5RZc7SpqoVJkDlG6BG1a8KbGpQRBmgsIDxv6/DU02AAZ6D+wz83icnJCkc" +
-                "ZoGj1cBZYLYopWNTK2O/AuodVQjiW34oNITdcF5S+kVDMICIumGhri547kWo9gREw0wEXy+T+DY" +
-                "lrTD2X0D9OyhVD8DANePFgImw00x0Dbe/CQ9m+TuZBe8luE3DvQlEeneU9E4PLgCFRPEJWvhgKS" +
-                "WbAgjjJ0Dr90BN6A9B0tYfioSGOOyC//EJpzYEA4juLjgnimmHtE4Q2zFDrCFQjEbxHdpMuabDy" +
-                "PYTBIz6L1D/Ul2izaUVlONV9E536rBEbuuEe7P+rVwmyco67ZBmFrmAQFiuu7rNpMK3wbSWUjNS" +
-                "y9aHgPpcn3kkGQiESgGiCoVF3sKoqhWiQYEBRHcEZ2sIPXNDel+NsFxb/2sXKI5gIp+vnV2WEaU" +
-                "VtpkJwXmgxgzUADIHEH1Q1GRscQj35flruZ3VVXB7BL/yBaFXG7iut399CwGnMYWDSukZSSDMHA" +
-                "ejLoRg5sBWUGY0ldQALWGgw8DpebRCQzCACDV8vX4NOBcIA7SBdJpI9dtEAs5nK7NDKUUjwk8II" +
-                "PgmyAP6/ATpEGwfEGzniB9hmUN1EGCADngihPNdDnSvg5x0HQp3IxEwg4DL2MJMKaVpY3eYdzkR" +
-                "1Akglbt1lwnvU02lpWC+k6VfoVAYQJgNcF4ES5wmkXQArxLuRX//YTaj+RGzzNhSqjbWsut8kN8" +
-                "A1ebWCK79JEHq/R4NagGi/1K2gwwDgHhdwyk9znSiNvABYOB9kUg+BJzDNNNWCtbGphXesz+o70" +
-                "MwLtlOTmo1U0Ott0LndQ1LckFXHACXIzi2F2TXqxwQCPAAH5B0ITmXiLN4XHSVUrYxgPCv7wHxc" +
-                "9DTk3NLezbj2K9/b2L7ehVEsxEdTzT6dwtKfRAhcBqSl1Odf5ViMrn8CEULklNo49Qyw3VjAGHf" +
-                "XaHyM1Bvdbf8MqN2sGkJvgUdTxYixYXegIo5DsllCIIBrb5oSCvUb+tQnMMazi01xHAF4YB3g74" +
-                "czNtBC/dQMJOiHVzaovf1blhxKIK1ww8GTIVWfoLiY06hrzebVAoc7kDDBiQ/IOK/+ZNYX0rfcA" +
-                "LhA/uB/gmY6RAJP/PIx1SKgxCtAPZHvPpoUX+9+B7edrMlkruQzLICIHNuAzVlN4pL0XyNu0VHK" +
-                "YXDAYRDDwF+DHpbv6kj8voMOoLoM7B8USOh1Cb5DHVlnViO5CQk65w97Ao/MzKpj0JSQXICLVzC" +
-                "B8p+iKGFAImZ+zGoLAK1rZ8vkGYPi6Rj18Lyq4oEoTmaoXp3JJM4Fck3kUjvaJJKMKHc7zWKu9B" +
-                "8hlvFs6VkDrpZ1ArjvwD6NIjGJw/Vr2/lXT6DTvIRAP13iA5ELHul6EtpYiKcaWdzfoLkI4l+gf" +
-                "BsQJL7JgySxwj4Ar8Qd5USOlggHD0Z1FkQHgemLXlmrSjFUfYymVZCeAji+QeacTnNzQrd3ExF8" +
-                "WsUu2aKIPmAYDefXkPyDeBSbigjTc0F4VPvgOiHoPeGSPkBkAWIATBsAP0peOqaos2jwYEBYEuz" +
-                "GwGLUUzNBYMrf8vdMdmJ4gYqnMbl4h+l1BYNwQkV4KNgFkC0XTV0GnkKvy8QA+oMROfCE6cjCJt" +
-                "1ac0fb7ycvwInIOjI5E8lgZD8mTYkx2JYzPHm4HJMdZEgnLgVVH4E6kKQ06rZp42qea8OqGuhcl" +
-                "YzQRgczdDjUM/gc0i+j6x1yCkPLZElodFuOr1BwFUYzuFi8VIpzY1ogzFzITod9NtBS/c8FT7h1" +
-                "DTtUP8+ugfMXMTDK5p9mYM4ksxUmMU3UZyCROTqgfaBYWDqh0bxBJIFPMIvuVuEpXRneWxfmQFq" +
-                "AegjIWpPXrfJd1pqb4f5adAHIx58bjAudXCHVU41o5nMQhSfyeQ7pCU7puVBVffXIrkRwXf4rvh" +
-                "bKeVpEHxtPLR+FPTJEL21rzc5bUFknxU80mDQgFkGG+Yi/vLQYF3y4I8xnmnGMZrzkXy8KTAkga" +
-                "EwKF5FcgVwId8qHeyBEPygFToOheiroHcHXUmd8N1r33iYT72pFi9CdBTivnsH89KHZsD97mY8c" +
-                "AmS+Q050T6v9jEjmoBlKBbRymWcIl4pIbi4Ah3vh+hkiPasmkQ+k/7oHBoicXsNuo9E/PGewb4F" +
-                "Qzf7xI5mEmP4ESoBCIV/eobKAEPfFqF4DsllGH7G18TLmx4EC1pg8hzQXwS9L0Sjk9dj8lkZPC8" +
-                "I0XKIPga/u7NZfQnDE4YeDdHK91Ac3+tUZ8tPyqYVJBBYz4kI+AeKa5FcyYniiZEPwcXjQR4K0Q" +
-                "mg96g5xyLdJEozl9I63FwdbdEyMMcgbrt3qG7J0M9LtJ8Zg+FsJCfWhnjm8x3ShtbWw+AaVBSgk" +
-                "byO4ncEXI3mTv6PWDOCtICE7XcCcySE80HPgKjFb7W+PP5CUii1X27SEgiPQtz616G8PcNjkq7d" +
-                "TTvjORXJqSgqDadlpDvS/evsgHQS8DyKW2jhFlq5n8PFuo0PAAT8aiZ0HwDhXAh3Bz0BIpm+IJS" +
-                "Pv5AlH8m6PQTRsYibnxzqWzV8Zqzb3VSYxCeRfJuAcdbsVd/UjCwgpG8GxToULxBwCxVuw/Agh4" +
-                "lVwxeAuwII3w7de4M+AqJ3gZ4EofJbB8d3xbQsZpJthFt0M2z4LOKWYdEhOsymbzSSgzkIyWUot" +
-                "vLWCD490kEKIGlb0AtGJ4oVVHgAyV0EPIzgcfYZQjjMXQGMnQnrdwG9J0RzQE+DaFwVgKzLimfR" +
-                "CLk62zToi8B8HXHDG8NF+obnXKaHm10RXIZit960DZXDf0gPsbocahsItjpd0xpvEPAEAQ8geBL" +
-                "Jc7SzlO1ZjhBRsYL/7HhgO+icDnp7CN8B+t0Qbg7hWIgq/QU1xHsxYnyXFvTRDM76DogWwMsXIe" +
-                "7uHE5iN3wn9j3EbMEoFqI4ul+kKW9vdJpjbRN86YAhSAQmQtFJhXW1Xu9lKJ6nhZeR/JOAVSjeo" +
-                "MIaJJ0ERFRYD90VoLWaDt01ttqqMx7CSRBOgXAaRDMg2gx0G4TtNcEX/YU6JB8MWcOoefoVomXQ" +
-                "/Tnovg1xQzTcRG54z3J9mGlnNCchOR3F6NwzEPoAoRJ8i8BTawQJwFToW5kpIKyFc6PauRFSi5p" +
-                "TK6A7AK2qYEQJQu1zLKtfkBY9ytvrHP2u6h9c/dRwFbfhnd58s1iH5rso/g3BEufEAj4Tl9XXxe" +
-                "tdm8859ZuruRH93guggqANwWgEo4FxwFhgNNAOoqWGTsIX2Y75bDLjcdeNTdvvPb8TxELonDucQ" +
-                "Rj+MADcICJ+Jm5Fsz+CnyHQqc8r6bnLjLLhC4DrOwtX2PEfLwqSLDcnDYLeumdBzoOnTkVcs2q4" +
-                "i9rGM/DlavEihk8j+TSCV1PHhAjPBi1N0PPIkI+si0aAiJ+T96JkxgtMaoX6HYuqM1hEcxAX3oy" +
-                "4e6NIm9+4RoFdITq5lJ8C+yC4FkHopamFBxBpWiSTICfIrMj6wSwfEgVtPjfK2co8A+IYWH084k" +
-                "cbVVbwRjgkUhguFktQfALDUcDTTm2Q10zOoiFkgq8hizCZ6h+Va8ur2ijoJklArgfxQzD7IBZej" +
-                "7iic2OTrI13fPD5YgMXiF8QsTdwLoI1drO1yT7C8G44CtYYTrV7N5gD4ZmTEd/daNPhN/7B8ueL" +
-                "FYzmv4DZtZFsUaYGrSi/YVgIfpKN53uhMov2WArmk9BxKOJb9wzHvoOR08+QtZxkWpnAgQScgWS" +
-                "P1MxWnzEPPkl+efKeBnwuS85QWkeZz3FXz7JXZ9oqiC6B6DzEaa+OFPEZmUvLftmMZhKHIvkqkj" +
-                "1S0zTyJPVlzW+SRcGgyZdg10iaRVQHgV4E0fnQ8Q/EmXokic3IXmd5gWlnFIdR4WQk70HV0jp8Y" +
-                "ZAFgWFLEvSGIQ0Cn9Zfe9QlQrASwsthwwUjEYJNA4Y+KNqYyD4oTkJyUG0VIP90jaxp4ElawAmU" +
-                "T1pEoxAknWeFYQmYS2HdlfDF1xDCjGQx2TRg6IMiYHN2pMKngXkETE1cilfGWnJJtoFCSblNMg0" +
-                "G3YAfkPZdtvN684i6Qd9dNYc6foX4/Caz9sWmBUNvMYLzGM84DiPgEyj27R1h55vlakv/lp5aIB" +
-                "WGNBB8tUgmv2AZRD8HcSU8uQRx5iY32domCkNdud4oupmOZB6KI1G8C4nM5UNk9SlkVhiS6vOkY" +
-                "EcrILoFzHVQ+T3i8HWbsiiUMNSXu0zASmZR4d+QHFwbXFTJPAVNnjqpG2z5faZ7jAD9IoR3grkR" +
-                "1t4B89aOdF+ghKFhS8pIbmIKo9gfwfuRzEExDYXIPGCoKTB4j0/ugOjPYG6H7ttg1WMwv3so5iU" +
-                "qYRhJ5tQUtqXCbCSzUeyF5O0oWgoBIhEG7esgG9DLQd8P0b1g7oHoYdizs2z9SxiaqTkES2llFb" +
-                "NQ7ETAzkh2RDKzpkHGZAJEag8N0HssAv0yRM+Bfgq6HwPzKISPwo0rR2o/QAnDxmpiLWMqMJ1Wt" +
-                "gamoJiMYjKSyQSMQjIGhULQhqINpaPqYHltIFoLUSdEq6sdXtEK0K9D9AqYpRAtQ2xXrn9dlrKU" +
-                "pSxlKUtZylKWwSj/HyHl/ePsagXCAAAAAElFTkSuQmCC"
+    wheel:          "iVBORw0KGgoAAAANSUhEUgAAAMMAAADDCAYAAAA/f6WqAAAAB3RJTUUH1gcOCDIojJpTggAALYl" +
+                    "JREFUeNrtnXmYHUW58H9V1WdmMtlDQtijSSDKorLovRAWAwqyiBJugoCK6CfqRdSLityLkIsiF9" +
+                    "SIyqIsRhZBlu+TK0JEQBBFUEAEZQ9LgkCABBPIJJnMdFd9f5wzM2d6qrqr+/SZmUy6nqef06e6z" +
+                    "9Ld76/epd6qgrKUpSxlKUtZylKWspSlLGVxF1HeguKLAQmTp0JlOuitQU+BaHJ105NBj4JoDEQK" +
+                    "olYwoxAmQtKBxKBYi6ITxWokK1GsQPI6ilcQLEWxjBfpFGDKu13CMBwEXsA2bTB+BzA7Qbgz6B0" +
+                    "hmgl6GugxEAG6tkX0va/fr70XBhQgqb72bLb3kgjFy0ieQ/EUiscQPErAo/yNlaL6pWUpYWia8C" +
+                    "v4l21BzwYzG6K9IHo7mBarcPcTfG0BwROGNED67xsUy5E8gOSPBNyD5mH+VGqREoaGhX+/KSD3h" +
+                    "+j9EL231uILt+AnaYACYcgCiKADxZ+R3IHgNlp4jFvpKuEoYUgBYL8A2mYB80AfDGZXiCp+gu8C" +
+                    "wXY8AYaigHABInkJyW+R3Mga7uBu1pZglDDUAJinIJoOZh5ER0L0LjDSLsjaQ9BThN5VlwZDEUD" +
+                    "0hwIkK1DcguQ61vN7cTPrShg2Sef3Q+Nh1GGgPwF6X9CV/K2/zghCThgaAUWmOuXLEPwcxZW8wB" +
+                    "JxN2EJw4g3g6btCOLTEM0DPdXd6usMTnAW08hxrB4Gl3AH/YR3YF3Pq+08l3YIYucJulH8HskiW" +
+                    "rlJXERHCcOIguC4NmjbB6KTQB8EumWgIOuMwp0Vjoww2IAIKN6UkgM0RP37JUguJeBKfshrI923" +
+                    "ECMbghPaITgMzMmg31ONBLkEX3uaP41C4DgnDkMQa8HjMKiCwZBOvwIUKxFcTsAFLOQfI7UfQ4x" +
+                    "MCL48GsLDgK+A3qNP2NNMH90kCNLMJgcMPj6ELxg2gQ88YOj/ugrJIgQX0MYL4syRBYUYWRCc1A" +
+                    "ptBwFngN7dHQnKA4GPo5xUlwJLEgxZBD5wCH1WcylZW6xCcAkB3xdn8koJw7CCYIGEaCcwZ4I+H" +
+                    "LRyh0V9Wn2dQ6C1p4lUAAxJgGQxpdIiTK7XvnOXYvgGa7heLGTtxi5HcuMH4VtTQJ4N8o8gjwCh" +
+                    "qozXb5KBdSQcc21g/245NO2K628Iy99JuwwRuwyfWyh4CwGL2IxbzDnsba5HlTAMkUlk+NZc0Pe" +
+                    "A+BrIsenSkf50/QBwSdww1Pu+ly499utva/9z9kNwGy/wPfNttihhGDQIEIZzt4dtLgd5Pcgdsk" +
+                    "GQZ8Mi/Hm+owmCPRSbDRbJKARfoMI95gfMNwtoK2Form/QBucdD8EfQH4EpHILv3S85tEOvsJdM" +
+                    "BhZv6Z5gu7WEvE2SDEDyTVswU/NhWxbwtAUEH6wDUy+FOSlIKfadLW/VpANCn+jrX9B5lWjFl6W" +
+                    "WyQTXgfWKeAjVLjL/ITDzAKCEoZCIJinDD/+AAR3gvgoSJluFskM2sH2HUU1szmBSPu478/JDIK" +
+                    "fdgvTbqe0tkkzENzAWznHXMTEEoaGQLi4HQ78Ksj/C2p71x3P1pTZzofGfQhvqTZAN9AJrK1tbw" +
+                    "JravvrgK5azNX9dUWYSdIRQUozh4SHU913bhuSLzOGX5irmDXc4w3DFISfbgFiIURHV9MojKW/Q" +
+                    "JPcsZanL8GzX8C5hRFE6yFcD3otRMsgeh7ClyH8J4SrIHoD9Bro6qyez3qgQkArCoVkDAHjUYwn" +
+                    "YBIBUwiYRsAMFJuhaEPRTkCFAJHYv5Clv6K+r0KSrWNOpuz3ZMbC51DcJuZbYC9hsIFwza6gL4N" +
+                    "oN7fw+/QupwHQQCdZddMQroNoNURPQPgg6Ceg+3nQS+GZ5YJiH7qZzngqbIdkOhVmongHinejmE" +
+                    "rAWAIquTvusiT3JeUyJQPSAfw3a7hQHE9nCYM7WiRh54MgvAz0VunCn0cz5Emr6N0MhJ0QrYDof" +
+                    "tB3QfgIrH9M8MjqIbtv+xHQxUwUO6PYE8X+KKahGEeAStQasgEgkjTDQK1QX6cRXIThdHEEq0sY" +
+                    "BoDwYAWWfRKib4MZlw5AxEDTqdG0bBcA0TqIXoDoFtC/gbV/EdyzatiamPsRUOHtVJhNhblI3oV" +
+                    "iEgHKy4RKy4LtEe7AA4Iks0lwM4bPig/yUglDLwg3tYM+tbZV0k2jpHyjJCiSxigPgKATwuerAE" +
+                    "S3QHS/4OaNblikAcFcZqI4AMlcAnZHMYGgFgBNM5V8/Qfbe5noP/TUP4Tgo+JAntjkYTDcNQY6z" +
+                    "gZ9YnXscSMQZMlGtYKgQa+E6G4Ir4aOOwU3rWGEFAOSY9iJVo5EMg/FTBQtmf0IHxCUFwg9GmIJ" +
+                    "AUeJ9/LXTRYGw+3jofs8MJ/oP/CmZzMeplIaCF7aIaqZQdfChqsEVz3BCC/mWMYxhkNRnIDi3QS" +
+                    "0o2qRKVfqt8wAhy8Q9ZEmwTHsx31DNaJODB0It04C9SPQ8/3MoiwOs7dmiEA/B9Fl0HWV4JLlbG" +
+                    "LFzKOFrZiD4osE7ItktNOx9knz9neibdtyJB9nL347FECIoQHh9vGgLqmCYAoEwXuEmga9DKJFs" +
+                    "P4ywUWvsIkXcwIVJvF+JCfXIlLtmUFQHjCkA/EaAUeKPbhnxMNg+NM46Dof9Mft5lBen8ErgmQg" +
+                    "ehX05dB5keB7/6As/Z/PSbQynkNp4atIdkfV9Vv4hliTzKN0cwkEL6GYL3bj3hELg+E3o2H098C" +
+                    "cMBAA4wGAacA8CteCvhHEtwVn/L0U+5Rn9TXGM4GPIjkZyVt7e7obgcEHhD4gliGZK97JQyMOhm" +
+                    "o/QvhNMKf0OcvGA4asKRgDHGZd7RXWC6Dzl4Izw1LUMzy3bzMDxQICjkTRnjjnUp6+BjsIPftP0" +
+                    "8LBYhbPjRgYqj3LH/wcmO+DDuwANAKDE4Q3wFwF684RfP2lUrRzPr+LqbCBuSjOQPE2VK2PwqdH" +
+                    "Oq926APiHhRzxQ6s2OhhqE7l+JcPgrgazJhk08jk1AoDHGYN0eNVLfT6bwRnlusVFPEsz2crWvg" +
+                    "GAcegGOXVz5A9olSVStUPiJ8zhk+LLZs76cAgwPD4bhAthmiqn5/gA0RSx1vYCdENoE8TnFg6yM" +
+                    "3QEq18FMkCJNv19k34RpOy+A19GsIgOJdlnC7mNG8OWNFcEJ6dCht+DXpXf7PIBwhnROk10N+As" +
+                    "ZcK5neVotvEZ3s576CFHxKwNxLlBUNWEPqbSxsQfIptuUaI5vRBiOaB8GA7jF0E+qg+4faFISsQ" +
+                    "kQH9GIRfEHzirlJUBwmIq5lMC2ehOA5FW2KOUh4QBg4tXYnkELEVDzTjemRzQDASJn4J5Dz7lam" +
+                    "MdyHxPA3yTlAfLkEY3CKOZSUv80UkZyB5I5ew26fHt4OkmIzgJ+bV5kxH06Rhny8cAPK06nhlm1" +
+                    "clPO6KV1MSgrwO5NGCo58txXMIgPgiG/grCxGchOTV1MemUh6zcoLQE87dBcV3jaFl2JtJhqVbg" +
+                    "rwLzCy3aZSlw81pGnXXcopOEczvKMVyGJhNt3EIkh+j2DZRoPOYSf3NpYiAzzCORUXmMMliQTAV" +
+                    "qJwLalZygFmQX59KQG4AdR50fbkEYRhpiQNZjORjSJ5FYgqNLPUXJYXgf1jDTsPYTHrtGFBHu+c" +
+                    "OSRsB4nVX1oH4FnScLpi/vhTBYQbE/tyN4WgUj6NiQLh6q33Npv7t6RQCLjCG0cPOTDL8cxroe6" +
+                    "tjl02CWZQUUTIpppHeANHZIM4WzCnTKoazyXQ/uyK4DslMJKKBHuiBnXD9X79Che8VEW4VxYBgA" +
+                    "lh9OZhj7RAYTxCiBP8h6gJzLrx8Vk8fgjGm7FkeIgXgPCBE7zHzAO8h4OcopjtGuKXHVUTKvmAV" +
+                    "itlCND5stCAY3vww6BuAYKDwpznNPs6zCUFfDOu+IpjTO72IMaZrOFz/EP32UH7eCwYA8zD7U+F" +
+                    "qJFvk6ltwOdK1VyPACBZLmCsEG4ZUGAxvbAbqPjDb24U/i3awwRLpaup15/GCvfuNRzbGrB3Eax" +
+                    "cFnCMG+f8U9d+8/3scBgDzGEehuATFuLpVRf1iKo75XI3oe9WgNRzfKrhyyGAwGAFd3wR9mlsT2" +
+                    "LSEC4q4mRSZ6voL+kjBbgOyFo0xqxoQNNEEYRVDCEqzrj9TnRUGEDzDSQjO7ddT7asZ7NogLllL" +
+                    "u+A940T+7NYGYejcEeR91XmOkkwjHy1h1Q7PAIcKdnza+vvGrMhwTWIQIRGD9Ps+5zb7+0TMTJL" +
+                    "2Z0XAUhYScGJvLpMtUzVhlu8ebaCFs4n9zhj4Wl5nWuQHwQTA9aCPSIYgyTxKNJlWgT5G8LZbnf" +
+                    "/BmJcyPsyGH3ZOYRMb0ffn+S6RBgOAWck4urgBwfv7RZg8zCPTZxINkKq6/Y4QZk8S/G1QYejGH" +
+                    "CzhJoEJql+SVytY07i7QP8nzDgvqYfRGLM06cEU8XBzfGeW80WD/6VZv5P7s0kwAJgXmEkri1Fs" +
+                    "7wVB7dvi2iDBAP/VJDhCiOxz3IqcWqHSBXdK2Lsn3bz6ZYb8TrSp9xOuh67jBDskRgeMMUsyCE8" +
+                    "RIOQVHFHQ8WYJtiiqLg0GAPMah1LhWiRjXH5CzEFOBaFOokIFcyaJ7LNr5IKhE3OogZskyP5T9Z" +
+                    "ve1+waofczS2D9+wQzXki9qcY8nvGBNyqAIid8RQleoYLr8epzLDsMBsEazkVwci21YgAIBn8QL" +
+                    "FAsngqHZ9UOIo9WWAt3ippWsK9lUa8pMmmItaCPFWzxS6//YswjOYRBDJJgFfm5Is91fdanEUl6" +
+                    "9YYBwKxiAi3cgmLPHv/B5SBnAaFWFxrYf2vBH7LIdua1tt6EA4G96gEwdSBU90Vd0pOqQVF/po6" +
+                    "9CqqhYnE5XPirTK5L9pasaIHJKrB5fyuPgMbPNY738f363zEpdfWf92+FJ7LarOVkJL9GMdFYTK" +
+                    "KsENTVBxr+0xj+KAS6KZrBYNQquF3AHJ8lhWXMfErWCtHTEOwnGOM9u50x5r6M2iDPa14zwxe0P" +
+                    "N8lMv5n399Nq3Mdr3egMy2MbgxnaTjVgGoEBEtdGMLsGYL7m6IZVsBeAvZ1aYX6OtnvmKgBIeu0" +
+                    "RD+tsAHU1wXtWad57M7Q0mcRwqyCluXz3oLlccz3901KnU+jaSz31hQQmfyuhkM07OobezR+YAT" +
+                    "AfxjDMb79Dt4wLMBIAyebatcIWACoh8JlOonavug7y4BcDC035orwNi6kaQLrC1bS7+eBQWT8ft" +
+                    "t7E9tPOm6DxniYTA0VIVjdaTjDwPUaRukcELhMJgMffgpmAU8WaiYtx+xk4CEBLVmWDXavvdnrZ" +
+                    "P8T5P4C8UhmZ96YW5uh6nEvKisyAiRShDftu/N+n0i5bt/PCs//Vu9Aq+zPEdUB1xo4Uldbx8Tw" +
+                    "qQcEvceBC94mOKlQzRDCcS4Q4k2MTNAUfa8CAVohFuUBIaYZsgp9ViH0FTAfOLK+9xXGrIIsPZz" +
+                    "jNIe5kKxfIYjWGM6MYH8NkzxCp17mUm37yNOG03YQvFkIDC9h2rvhWN81to0HJLXXVzfADxq4j9" +
+                    "05W/9mtqJ5W9ws/62+Tub8j9oRZRIpPoMrgtQQGGMFj64wXGPgRBPTDnm0Qt02eT0cAVyR9h+8Y" +
+                    "sKdVQdnqyyrISettRlVNY0O4ZLRiBcbhCFtCxPeh3Vbt2PftnUn1MUuc0Bd5FnnM0OCsfVaWupM" +
+                    "hjrXhuUVhzOdq2j4voaVPstP+ixNWXdxn1xg0mU9lWaDEc/AzQIOyboAfXK4lZcE7DYW8Vrem2e" +
+                    "M+VmDtrpPnSiotZc5fzvtPJnhs83aeq8tj8/QzwoxLNTwHz3awaYRyKYZalY+79xN8HhDZtKTsK" +
+                    "WAA7LecekwnUxfJ+MVExsAoVa6ChTWLALo+9n649rzvKy32uQUXhP7vUb6pgrzH9bDjyvwSQMTs" +
+                    "oRUiYFC/+OBgY8AZzRkJkUwV0OrzzKBOkF9xepWGbikgHvXnWNLM3fClM/4mlKhxUxy1UU5N98p" +
+                    "yxOTwVLMpbgJFD9WqKk0U7Akgv8XgklamNhncYLYNv96g8qtGQxGPArzohzOsnBrBiPguimIZQX" +
+                    "AEGYMS+Zp/X1b86Tv0I46mxbQHorWdcttXUDxvlBivyFjTrUcaMoPiDzFHehCx5ILuEDDRzSMzu" +
+                    "EwD6C49vkdtoJdgQdzwfAIvEXAnjQgMZantl7CTwu6b90Z4+CNCr/M4A+k1aWZTtKjnZEOgdcOv" +
+                    "0J71NmAMI4IeVNMpbfAI0/CHzUcaHJA4NgEcFRuGCI4TEDFN/aX9LTqDNS/bE1h63R1eQiqLxTS" +
+                    "47hO+WzSucIhpGk2vchwjsvfMAxMLtYJmiEOhImBEBd+U6R2EALzqOEKA3M0VBqBIGbXfcgYTnG" +
+                    "lZyTAYISBg4yj6ZUWMGwSEXtaoYFFAqEL1AxZW+8iIi8yQ4svE0wXFxw6BRjpMImwdO2kQU0KEM" +
+                    "LiI8TrmjHlzk0hvGxgWh4AtCUWbGDGHbA98HQmGB6EURHs49IEJqWu3siseyKvATcWeMO6M9jwP" +
+                    "nUyIxB4tPARfhkrLnPIODSCsfgCBnvOpIx1ssXNJCyaAIcTLYrWBLays6DjL4ZrIjiVujBr1s6Q" +
+                    "2DGp4f2ZYeiCvYBxcS3gep8ERt3+r3dAvFHgPQubHGOXnsddLbm27MuYA+0j+PH38dBo/HbLmBY" +
+                    "wlscU1xRxhU6d7yoHwzyymOk3aviSgVG+ppAjtFoPyYHAhZlgiOB9OLSASdEIWJ4w0CXgfwu+X1" +
+                    "2DJPhJpk7asA6RAIF2QCUTQLAlBUsGZs9Lh2kUb8fiZpELgDgEJmYuFQ7GUnhoK3gW2NnDH3Bpg" +
+                    "/j+fosNrYdYZt8LXP5CBPvkyTwz7qZ6JVD0yjrdBdr5WTSCfbRr8nHtcaxeqHVCJ5kruiMtoU8b" +
+                    "FDJmHtnqfGWsaZphviD6g+EXGnbq6ZHGw0ewmUx1x8dreBfwZy8YfgPtGnbzScK33X2Hl7p4d8T" +
+                    "aYQCDSGjls9S5nF9bK+8KXwrHvq7TDjZzxWYyxf2GtDoXEMbS2rvqbB1yhZYQfmXgq9TGOvjAQL" +
+                    "p22NsbBgF7aGhzAeBrMtVHkTTc0YTGo5viHN1GWn7XexcIwmLX21p9bdEA2qEdbEJvYvuqTm6wd" +
+                    "NTVD04nBqgLCNFkLfFwBK8Ab9X+plCaQz0bWBj/IVc6xt6+XeEJ3d/1+QbrgN81CQafbFVbmoUt" +
+                    "/SIpJSNL+kVaykZStmpIcpqGLRlYk57x6lp02zXs2KfjtynaoL7MEYQh3OFzM9Lq627WXrYs1sC" +
+                    "hmt5ta/mT6lL8i0dnI14dIs2Q1fzx0R6S9AF9OsEk0rFzjeO4TQu4Wn1jCY/aepJtDaC0aAzfKG" +
+                    "bTp/XX8DsDx9fGNXs50ZCYXLX5DJgGPJ8CgxEadrGZRXFV4vIbLHD8sUn3qSgYpKf5IzPAIRMAS" +
+                    "1q+Ly26Y1KO9dQpiwAnJWbGv98XjKZrhxDuN9XIYeDjJJMCRrWTm11SYVgMY7urOUkDhD5tigTH" +
+                    "FBKhhD81EYYsznCaRiAmnHgKc2Spiwusy4GWFqfZJuz1Ah73H+LPXaaYwRY3sZ+fEAfL1gs9KCA" +
+                    "AHA7P/gKWAzOSWn0PjVD/fhfgpkQYumFHXXcT07SCSIFBQOf6hOSogmDI6+SKlNbbt+X3eXUtyJ" +
+                    "TU0tvMJOlwklXsNa01t2mGJCjSvqdpUAiBud5wXxyGJMHXjj9WV79zqs/QBbu4Jh8yDhhSzKkXD" +
+                    "od/DLKZJGksWlSE8MsEPyIu7PHlOXQCLEmmT1aNYNMOtkiWtsDBYJpLEdwr4JiehjpN8E1CzLd2" +
+                    "MekwGNhe4zcHYhIMddri73X9JUMBQ5L5k0X4XX6AzZySHr6By0ewQSBJnxVFZdQEceWuU4AwGeS" +
+                    "t8GLgqbAaYWvJoQUG/LkQZi4wyDPrpp8MLM7KdNdIDiyhA+k4Vvu8MSSPOx0EMylJ+NPMpEY1RB" +
+                    "oItgVeXVDUH7OdB96ZzE67P2lGwqwTBBStGZ6Oqs/bG4YUWtu2hq2AF50waJhuPIWfBGh07zX4z" +
+                    "WaWs3Q5hNRX+Mkh8FkiQ2mtv80kskWNkjrS6h+FItuQTNss0EkAJGmKppaPwUs/gVVQXQTdVz3p" +
+                    "hJsgYXoiDBFMT1oYIGl+QYs5FZpY+KoJmsFX+H3Mn0Yd4qSl+RTJS3271rGJawRXNoJ0+JQueUl" +
+                    "acUg6zCWRYno1rwhMZFgCbJOh9U/09HUVht9bYfgpZoKGcSIh3ECC1rDMQBUKeKGJtygkexKdzO" +
+                    "EwZzWFbFBoS51J0BhJGkHG4LBFler3SXhUrnTzeJdRnghV0Z1vzxmYYzyFPUkl1gh/i9OB7obNl" +
+                    "aNHsSeYnhGGtR9vTs9zWj9DHi2RxfxpxDeIw5CkGWy+gcrQ+vtGkbAIvw8Ag6ohwioM/Xq9jR0a" +
+                    "LxvRwBQnDBo2czUhUcpdtMFgmhdSTfIZfNIlmgmDzFCXpBHix5VFOxiHlqjvc3A5uq7Hlzbm2qS" +
+                    "Ee5vZ8r0o+oIJia2+cUel6vc3S4Jhiklu6Z130mZKGXi9yTB0F+An5DGRfPyEtDqfTVn6FOJ1Pm" +
+                    "aRSdEMPhDYhH9Qi4FV2gMGl3awhNDcmiGEKfEBtFlAIBaSYOhgyGMa5QmRpqxl3/BmUuqUBYI0c" +
+                    "8k42jkXCPFxGTLFRGvmw14t6uTcpAh82p/SSTAIGOPzJcLjeA2mfzbfjMzkM8iMmsKnTnn6DMpy" +
+                    "XFmO+8IQd55VgqaoN5mIWb1xS9g2e0fS4J9BC7GGsEp6wpCmHWplTJJmaBd+Qu7llQ0CDF0ZQqZ" +
+                    "JHWl5o0eupDtf/yAeMq2HQqXAYNMIqgEHuh4KYemDiHcADnrnWxesrtRk3PeHUhr3dicMUW0xEt" +
+                    "edynqlBlYPIzMpr/BnjRjZWvk0bRDV7RuH8yxjEOAAIwkSm0kU1WkL11iMLDO0NLO8GTb4OzEbs" +
+                    "tUJgwEV75ExBf3wRghDI0BozwhRvIdZxLSFzVwyjqhSHJKefeVW3APg0HVQRHV19Vt8xr1B8xnW" +
+                    "gWmluNFEJnZv4tGksUX2kWhYOwxgaDSvKClalOQfiDqhttW5IDEOAJKiS1giTGmCqiymURIIrmG" +
+                    "gg1baYW036AK/MtFnKKwIiv3X1t8Q1WkqjTHC0cq6Jgo3jtbYNnAm3hoL0meOiMcZXIm9NoESOb" +
+                    "p00pa50ikhU+FpGhEDgsEGImrid8d9ho4Cv1tSS6rayMugjPMti5eZNNrkG6vhKmuSzKRQDAXuZ" +
+                    "SmLR+kEERT0XcISfY3D0FWUM1w7f0L5CMtSYBnXXR3Mn1lVO2zPDUkwrDN+Qp56Tm2bVD6/shQY" +
+                    "LZkga2aSaACCumPrUn2GRoCIeYQlDGUprIQwUYIUHoIO9lXfY7La4YQhhBW+wWPjAYOwZMGWpSw" +
+                    "NRDImRHUwJAFhG3IQ1xgGVjhhMLAi/gU6Iwyx8aglDGUprGiYSCyaJNyC7mM2rUjyGV7Pkh/uMc" +
+                    "Ru2/IRlqWo0gXbKA8YpKf/EB9iIGM+w2tR3fq78Vlssy5MHMLoT2Gmlo+xLAVphukhiLwLZlvqV" +
+                    "jhh+AFitYY3fRahTlsgvbYFErYrH2NZCnKgp4f5hH7Ae1PdX5qoUSJ4rj4RxWf6b9vc6rX9IIS3" +
+                    "lo+xLAV4z6Jngrs0INJAqJua/jmnz0DfCbu6/ACT7DDH/QcFvK18kmVptHwAtg5hou/M8Lb38c4" +
+                    "65QNDmmOcYWo/AexYPsqyNFoE7BBCRVqE3DXLQdLMkEDnLHg5EYYIluTQAE5IDOwCRjRxvtWybB" +
+                    "JWErM0BMYTBkHyFKkCnqmfZ9XlM/zdZmuZDL5DbNvusDLEWpbGI0l7hSDzLGOlLT5DCI/Gf8M28" +
+                    "fDjom4kU5oWSBsIq6EtgD1o7sx6ZRnhznMEe9q0QNos8HFtIfrkcgAMAzTD1bBGw1JfLZAUau2J" +
+                    "KEXwr+UTLUvesi/MDGHLyDOSpD00h4G/p2oGEEZj/m5is3H7agTHvIezy0dalrwlgncLaPFYO3C" +
+                    "ABnDUmdACg3T8+AO2tVKT1lpN6X/Yef+yJ7os+WF4r65aGF5ZETZZjdW9djss84KhG+7J28XtOK" +
+                    "9dwHvLx1qWHP5CEMH7fHqeM6QN3YsYmINqhWEtPKih00VXGomWLdDwvvLJliVr2RXeFcEWEf5aw" +
+                    "OXL1smndSlmKwy3w7oIHtIeP5ghxHrIOzCjy8dbliwlhA9G0JY3Mc8GRwj3eMNQdaL5g2/Sk6c3" +
+                    "P3k0zCkfb1kymEhKw9zIkqmqM8hkTDu88Qo8nAEGCOGOPFohwZxq0fDh8gmXxbfsALtpmOHrC6T" +
+                    "JaO393c+I/hMBpMKwEu4Na+ncOoXKDI7LwbtjxpePuSw+RcMRcRMpTdZ0SuPcDbe5fs8Jw19gvY" +
+                    "Y/pNlfaZGlWBRg8xCOKB9zWdLKFMOYCI6JEgbzJDXEDi2hu+D2zDCAMBH8JgsAOj36FETwKTCyf" +
+                    "NxlSSqtcHgEW2VxmD3k89m/1RJRM8IAGm7W0K09QlgZPP3dZsFu5eMuS4LjLDQcF0El7xBPW8Mc" +
+                    "wi8R7klfEmH4AywN4b5GQqqWPzVKw/HlEy+L00SCd4YwO0tOXJK5VNuMgeuSfjfFXBFGww05+hS" +
+                    "SHBsRwVFvwUwrH3tZbCWEz2to90nP9oGkduzpR+GvDcAAG+AXEWxw+QRpuUsOWidqOKF87GWJl7" +
+                    "GG7Q0cmda3kLUhDuF6RPKM9qkw/BWWR/Bbn8hRBnNKRnDcVMzm5eMvS393gc9GMD7J1HbJXEJiX" +
+                    "mjg2rTf9ojqCKPhp0k/6mO3Weq2BP69fPxl6Y0gGWaE8DENIq1T1wWItoNy7zPwZAEwwKuwOISX" +
+                    "fbSDT1Jf7ZjUcMIkzDalGJSl5it8ScPkLAN1fML7ISyyZanmgmE5Yp2Gq3WCNvDJUbJc2FQNXyz" +
+                    "FoCwYdtaxTra0ccyefWAr18KNPn9B+v9XroigK01FaT8I6n2HT7Zj3llKwyYNggKxwMDEPONmUh" +
+                    "roa/8peLNQGJ6AJzQsTnJefHunLZGlBWCCUio21aIOBnUoKEHNntGe1oUmscOtsxsu9P0XGdIih" +
+                    "I5gYQRRXtPIEXUSGg5RZc7SpqoVJkDlG6BG1a8KbGpQRBmgsIDxv6/DU02AAZ6D+wz83icnJCkc" +
+                    "ZoGj1cBZYLYopWNTK2O/AuodVQjiW34oNITdcF5S+kVDMICIumGhri547kWo9gREw0wEXy+T+DY" +
+                    "lrTD2X0D9OyhVD8DANePFgImw00x0Dbe/CQ9m+TuZBe8luE3DvQlEeneU9E4PLgCFRPEJWvhgKS" +
+                    "WbAgjjJ0Dr90BN6A9B0tYfioSGOOyC//EJpzYEA4juLjgnimmHtE4Q2zFDrCFQjEbxHdpMuabDy" +
+                    "PYTBIz6L1D/Ul2izaUVlONV9E536rBEbuuEe7P+rVwmyco67ZBmFrmAQFiuu7rNpMK3wbSWUjNS" +
+                    "y9aHgPpcn3kkGQiESgGiCoVF3sKoqhWiQYEBRHcEZ2sIPXNDel+NsFxb/2sXKI5gIp+vnV2WEaU" +
+                    "VtpkJwXmgxgzUADIHEH1Q1GRscQj35flruZ3VVXB7BL/yBaFXG7iut399CwGnMYWDSukZSSDMHA" +
+                    "ejLoRg5sBWUGY0ldQALWGgw8DpebRCQzCACDV8vX4NOBcIA7SBdJpI9dtEAs5nK7NDKUUjwk8II" +
+                    "PgmyAP6/ATpEGwfEGzniB9hmUN1EGCADngihPNdDnSvg5x0HQp3IxEwg4DL2MJMKaVpY3eYdzkR" +
+                    "1Akglbt1lwnvU02lpWC+k6VfoVAYQJgNcF4ES5wmkXQArxLuRX//YTaj+RGzzNhSqjbWsut8kN8" +
+                    "A1ebWCK79JEHq/R4NagGi/1K2gwwDgHhdwyk9znSiNvABYOB9kUg+BJzDNNNWCtbGphXesz+o70" +
+                    "MwLtlOTmo1U0Ott0LndQ1LckFXHACXIzi2F2TXqxwQCPAAH5B0ITmXiLN4XHSVUrYxgPCv7wHxc" +
+                    "9DTk3NLezbj2K9/b2L7ehVEsxEdTzT6dwtKfRAhcBqSl1Odf5ViMrn8CEULklNo49Qyw3VjAGHf" +
+                    "XaHyM1Bvdbf8MqN2sGkJvgUdTxYixYXegIo5DsllCIIBrb5oSCvUb+tQnMMazi01xHAF4YB3g74" +
+                    "czNtBC/dQMJOiHVzaovf1blhxKIK1ww8GTIVWfoLiY06hrzebVAoc7kDDBiQ/IOK/+ZNYX0rfcA" +
+                    "LhA/uB/gmY6RAJP/PIx1SKgxCtAPZHvPpoUX+9+B7edrMlkruQzLICIHNuAzVlN4pL0XyNu0VHK" +
+                    "YXDAYRDDwF+DHpbv6kj8voMOoLoM7B8USOh1Cb5DHVlnViO5CQk65w97Ao/MzKpj0JSQXICLVzC" +
+                    "B8p+iKGFAImZ+zGoLAK1rZ8vkGYPi6Rj18Lyq4oEoTmaoXp3JJM4Fck3kUjvaJJKMKHc7zWKu9B" +
+                    "8hlvFs6VkDrpZ1ArjvwD6NIjGJw/Vr2/lXT6DTvIRAP13iA5ELHul6EtpYiKcaWdzfoLkI4l+gf" +
+                    "BsQJL7JgySxwj4Ar8Qd5USOlggHD0Z1FkQHgemLXlmrSjFUfYymVZCeAji+QeacTnNzQrd3ExF8" +
+                    "WsUu2aKIPmAYDefXkPyDeBSbigjTc0F4VPvgOiHoPeGSPkBkAWIATBsAP0peOqaos2jwYEBYEuz" +
+                    "GwGLUUzNBYMrf8vdMdmJ4gYqnMbl4h+l1BYNwQkV4KNgFkC0XTV0GnkKvy8QA+oMROfCE6cjCJt" +
+                    "1ac0fb7ycvwInIOjI5E8lgZD8mTYkx2JYzPHm4HJMdZEgnLgVVH4E6kKQ06rZp42qea8OqGuhcl" +
+                    "YzQRgczdDjUM/gc0i+j6x1yCkPLZElodFuOr1BwFUYzuFi8VIpzY1ogzFzITod9NtBS/c8FT7h1" +
+                    "DTtUP8+ugfMXMTDK5p9mYM4ksxUmMU3UZyCROTqgfaBYWDqh0bxBJIFPMIvuVuEpXRneWxfmQFq" +
+                    "AegjIWpPXrfJd1pqb4f5adAHIx58bjAudXCHVU41o5nMQhSfyeQ7pCU7puVBVffXIrkRwXf4rvh" +
+                    "bKeVpEHxtPLR+FPTJEL21rzc5bUFknxU80mDQgFkGG+Yi/vLQYF3y4I8xnmnGMZrzkXy8KTAkga" +
+                    "EwKF5FcgVwId8qHeyBEPygFToOheiroHcHXUmd8N1r33iYT72pFi9CdBTivnsH89KHZsD97mY8c" +
+                    "AmS+Q050T6v9jEjmoBlKBbRymWcIl4pIbi4Ah3vh+hkiPasmkQ+k/7oHBoicXsNuo9E/PGewb4F" +
+                    "Qzf7xI5mEmP4ESoBCIV/eobKAEPfFqF4DsllGH7G18TLmx4EC1pg8hzQXwS9L0Sjk9dj8lkZPC8" +
+                    "I0XKIPga/u7NZfQnDE4YeDdHK91Ac3+tUZ8tPyqYVJBBYz4kI+AeKa5FcyYniiZEPwcXjQR4K0Q" +
+                    "mg96g5xyLdJEozl9I63FwdbdEyMMcgbrt3qG7J0M9LtJ8Zg+FsJCfWhnjm8x3ShtbWw+AaVBSgk" +
+                    "byO4ncEXI3mTv6PWDOCtICE7XcCcySE80HPgKjFb7W+PP5CUii1X27SEgiPQtz616G8PcNjkq7d" +
+                    "TTvjORXJqSgqDadlpDvS/evsgHQS8DyKW2jhFlq5n8PFuo0PAAT8aiZ0HwDhXAh3Bz0BIpm+IJS" +
+                    "Pv5AlH8m6PQTRsYibnxzqWzV8Zqzb3VSYxCeRfJuAcdbsVd/UjCwgpG8GxToULxBwCxVuw/Agh4" +
+                    "lVwxeAuwII3w7de4M+AqJ3gZ4EofJbB8d3xbQsZpJthFt0M2z4LOKWYdEhOsymbzSSgzkIyWUot" +
+                    "vLWCD490kEKIGlb0AtGJ4oVVHgAyV0EPIzgcfYZQjjMXQGMnQnrdwG9J0RzQE+DaFwVgKzLimfR" +
+                    "CLk62zToi8B8HXHDG8NF+obnXKaHm10RXIZit960DZXDf0gPsbocahsItjpd0xpvEPAEAQ8geBL" +
+                    "Jc7SzlO1ZjhBRsYL/7HhgO+icDnp7CN8B+t0Qbg7hWIgq/QU1xHsxYnyXFvTRDM76DogWwMsXIe" +
+                    "7uHE5iN3wn9j3EbMEoFqI4ul+kKW9vdJpjbRN86YAhSAQmQtFJhXW1Xu9lKJ6nhZeR/JOAVSjeo" +
+                    "MIaJJ0ERFRYD90VoLWaDt01ttqqMx7CSRBOgXAaRDMg2gx0G4TtNcEX/YU6JB8MWcOoefoVomXQ" +
+                    "/Tnovg1xQzTcRG54z3J9mGlnNCchOR3F6NwzEPoAoRJ8i8BTawQJwFToW5kpIKyFc6PauRFSi5p" +
+                    "TK6A7AK2qYEQJQu1zLKtfkBY9ytvrHP2u6h9c/dRwFbfhnd58s1iH5rso/g3BEufEAj4Tl9XXxe" +
+                    "tdm8859ZuruRH93guggqANwWgEo4FxwFhgNNAOoqWGTsIX2Y75bDLjcdeNTdvvPb8TxELonDucQ" +
+                    "Rj+MADcICJ+Jm5Fsz+CnyHQqc8r6bnLjLLhC4DrOwtX2PEfLwqSLDcnDYLeumdBzoOnTkVcs2q4" +
+                    "i9rGM/DlavEihk8j+TSCV1PHhAjPBi1N0PPIkI+si0aAiJ+T96JkxgtMaoX6HYuqM1hEcxAX3oy" +
+                    "4e6NIm9+4RoFdITq5lJ8C+yC4FkHopamFBxBpWiSTICfIrMj6wSwfEgVtPjfK2co8A+IYWH084k" +
+                    "cbVVbwRjgkUhguFktQfALDUcDTTm2Q10zOoiFkgq8hizCZ6h+Va8ur2ijoJklArgfxQzD7IBZej" +
+                    "7iic2OTrI13fPD5YgMXiF8QsTdwLoI1drO1yT7C8G44CtYYTrV7N5gD4ZmTEd/daNPhN/7B8ueL" +
+                    "FYzmv4DZtZFsUaYGrSi/YVgIfpKN53uhMov2WArmk9BxKOJb9wzHvoOR08+QtZxkWpnAgQScgWS" +
+                    "P1MxWnzEPPkl+efKeBnwuS85QWkeZz3FXz7JXZ9oqiC6B6DzEaa+OFPEZmUvLftmMZhKHIvkqkj" +
+                    "1S0zTyJPVlzW+SRcGgyZdg10iaRVQHgV4E0fnQ8Q/EmXokic3IXmd5gWlnFIdR4WQk70HV0jp8Y" +
+                    "ZAFgWFLEvSGIQ0Cn9Zfe9QlQrASwsthwwUjEYJNA4Y+KNqYyD4oTkJyUG0VIP90jaxp4ElawAmU" +
+                    "T1pEoxAknWeFYQmYS2HdlfDF1xDCjGQx2TRg6IMiYHN2pMKngXkETE1cilfGWnJJtoFCSblNMg0" +
+                    "G3YAfkPZdtvN684i6Qd9dNYc6foX4/Caz9sWmBUNvMYLzGM84DiPgEyj27R1h55vlakv/lp5aIB" +
+                    "WGNBB8tUgmv2AZRD8HcSU8uQRx5iY32domCkNdud4oupmOZB6KI1G8C4nM5UNk9SlkVhiS6vOkY" +
+                    "EcrILoFzHVQ+T3i8HWbsiiUMNSXu0zASmZR4d+QHFwbXFTJPAVNnjqpG2z5faZ7jAD9IoR3grkR" +
+                    "1t4B89aOdF+ghKFhS8pIbmIKo9gfwfuRzEExDYXIPGCoKTB4j0/ugOjPYG6H7ttg1WMwv3so5iU" +
+                    "qYRhJ5tQUtqXCbCSzUeyF5O0oWgoBIhEG7esgG9DLQd8P0b1g7oHoYdizs2z9SxiaqTkES2llFb" +
+                    "NQ7ETAzkh2RDKzpkHGZAJEag8N0HssAv0yRM+Bfgq6HwPzKISPwo0rR2o/QAnDxmpiLWMqMJ1Wt" +
+                    "gamoJiMYjKSyQSMQjIGhULQhqINpaPqYHltIFoLUSdEq6sdXtEK0K9D9AqYpRAtQ2xXrn9dlrKU" +
+                    "pSxlKUtZylKWwSj/HyHl/ePsagXCAAAAAElFTkSuQmCC",
+
+    Ambrosia:       "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+                    "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
+                    "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
+                    "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIQAAQADAQAAAAAAAAAA" +
+                    "AAAAAAgFBgcJAQEBAQAAAAAAAAAAAAAAAAAGBwUQAAEEAQMCBAQHAAAAAAAAAAIBAwQFBhESBxM" +
+                    "IACExCXEjFBZBUYEiMhUYEQABAgMFBwEJAAAAAAAAAAABEQIAAwQxQVESBfAhYYHBEwYikaGx0e" +
+                    "EyQiMU/9oADAMBAAIRAxEAPwDmv2BdhuJ8oYbZ9yXcRauVnE8Ga1V1rGiuP2VlKNehEjtuIQKSj" +
+                    "8xwzEgbb0XQiJNmxomlirnS5btwcQpwC7zBzyjW36dSTp8oZnsY4taSmZwBIC4G+EbcUPt45C9I" +
+                    "4pzfAr3Ha2OZ1p5PW3y2zjDrZK0Ug62fHRhQ3Ju2t7SRPRdfCSt8TdLLmscHISACEsOOPKDekeY" +
+                    "f0yJU57cudjXFDYSATyXjBwyP2x52J99uPdu0/IIw8Q5THk30LKjfkDXLSxa1+7KaJISuq0saKZ" +
+                    "I2pIe4Sb3aojijnUiTA1LSiXrhDltcDKL1sCrwjY+OLn729uHDX8KLqMYdcynsgYY8ya+uiR47E" +
+                    "oxTz2g7GJlS9EX4+FXjE1oel7mhOV22EEvKJLnDfvAJXnt74jcx5Hhcg4+w/OKJCyaPMluN18Jo" +
+                    "hOQ3KGMoqKCiqZK4JqpEuqr5J+SOaiszENeircMdr4m+laN/C89vM5pa0KSqZV9gQhAIunPVVe2" +
+                    "2e8GdvcRVPmerxe+CVDRfnip0l1YpAX8eoLL4N7PXU9PE+dVSxXib+Jf0ResU+XTzDQOZfl6gp0" +
+                    "gn+3pcd5mO5bYTO22n+4cYUpCWsN+TFiQ0aRNX1dcslbY6W3Tf1EUPgvn4OUjpgHpCjayE1e2Uf" +
+                    "vKQj7LmHlSwmRoXFnEmOQuYPr4SwZVNb4sMj+wGSKtJFVq1lj+400Xptaaa66J436mZW9v9jX5e" +
+                    "NnP6wcp5VD3PQ9q8Afl8IKE+d3l/7Hg29vCe/wBKdZw6qqMz6nU3H1AA0P8Alpv1VXN2v6J4Pud" +
+                    "M7gJG+EzWyu0QD6Y//9k=",
+
+    Malekus:        "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+                    "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
+                    "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
+                    "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQADAAAAAAAAAAAA" +
+                    "AAAAAAgFBgkBAAIDAQEAAAAAAAAAAAAAAAMEAgUGCAcQAAIBAgUCBAUFAAAAAAAAAAIDAQQFERI" +
+                    "TBggAByExQSJRMkIUFVIjZBYXEQACAQIFAgQFBQAAAAAAAAABAhESAwAhMQQFQRNRYYEicbEyFA" +
+                    "bwoWIjM//aAAwDAQACEQMRAD8Ax8438d29wjdu3dD2qsYMzE0gmoFYMJ0KEEm1Qte6UHkEigREZ" +
+                    "IsfbE0fIcglgVXJW2CAzAaE+PgvQkdT0x6V+Ifh1/lXO32YS5vWtm5btOYqVTogOT3SJZUYgFBP" +
+                    "uJACRsvFzsjv3bNSior7tZ6dITjcbgduuNMJeQ6lGqioiwmfDBTRKPSZ6LuxttraN92pUdQT6Rr" +
+                    "M9BnOEfx61zXO79OK2lvvXnJHbZFAEfVVkO2FzqaVpjUHBzruIO+rZyIoez00tQR3NTqmKSXMGA" +
+                    "Wigi7SzUn3SiaaIdE4Z8mMYZ46gN45slipqC1RAqI+ExVHSdY+GD3PxvajlF263rRtG6bTNW3aW" +
+                    "4Mge5TV2SxBDxNAbwqKC4m2zb28OOz3JcoTtLkXOsUbAURU50aLXmGTmMZXU0RjMfFgfrjGQvLa" +
+                    "sXKwDBMg9ZMgddQchGemFbexvbzlNt9u7IXS2VdRmlCBS2qwEZDU0ikAnFjud/RtSoXCCL7EDJt" +
+                    "MFVEQxjYnT/eGZGBMZjwzeXr7sMcptbBsOl26pNoFqEJ/ygwS2RyHrRoJGeOgOc5teV2252WzvL" +
+                    "b37JaG63KIAd8GQsEswwILQCR7fuACzUkBTEdx91VNbyK7f0tO2B3zT2+sQ0dSIYTEWq7VRozep" +
+                    "5K9SMPPPiHnGHW1ZgdwCOimfUiPkccyWbbJx1xWBl7qBRGpRXqy8q1Hrgz8Tbh35s28qR3au3Kv" +
+                    "NIy6iu3076impZXcp8c9K24RpxMBhq5wJWXDUj5eg7hUa4sEB8tRI8p89YzB1jDvGXdym1cMjNY" +
+                    "NU0mGAyrIifZ9NYZSmkw0HCY333B5CtRWJqNg20N1gp8vMLntVZlgM6mmxVVUCRT/AB1Ac/TMT0" +
+                    "ZjfIg0geOZ/Yx88JWk49HDI152kQoVVMzlDAuZnSFnwwTKur71/wC00l2u1LR/277QnWu1uJf4/" +
+                    "wDH6ZyalHJ6eXT1ImYZnz4+Op0qq2OwVU+3qf10iOkR5Yttxf5D7+3cuW/7M6FkzMmQDNXcqmc+" +
+                    "53P5QMf/2Q==",
+
+    Corvintheus:    "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+                    "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
+                    "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
+                    "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIIAAQEBAAAAAAAAAAAA" +
+                    "AAAAAAgHCQEBAQEBAQAAAAAAAAAAAAAABgUHAAEQAAAGAQQCAQMFAAAAAAAAAAECAwQFBhESFQc" +
+                    "IExQAISJCMTJDFwkRAAIBAgQEAgkFAQAAAAAAAAECERIDACExQVFxBAVhIoGRoTJCghMjFLHB0W" +
+                    "JyBv/aAAwDAQACEQMRAD8AzJ6k9Y4NoyjbjdEkH3Is4VOWab22NJR9fjnay6UaIRah0038pImbK" +
+                    "KoJOR9VFsBVVCqisQqZrunXMtp7izRbgGDBZiQIDfConMjOZAiM7fbeiF66ttjBYEyRIUAEzGUk" +
+                    "xkCQNJ1yc/Kf+fPaCj8Zq2nmKaO64y0kK9jJlnVJ2Oik1FCoFM4im0LGlImJjgBhjXRFUw+pDDj" +
+                    "PwB03/UIbp+2sf1Zww+ZiQ/JlUHDBux2bgCI7hjAlghUk8VEFB4hnIwIbB0WbxPaev16Cr/u1aW" +
+                    "fPYWbpyk46RjYuWaxm8IrbvoO6Ug3LUSvkjYK6MgRdvq86XmNpyNdJbp2YBxBDRqvGNKhmDtMGI" +
+                    "MYAmiBdA8u4nQ8J4e3UbTi9cIPYKTbxHJrUFHVfjUqBc1SMkvIopBs61C1V0oQgCAmTZyVeetFM" +
+                    "ftNgPzDMbrrVfbr1uCWVmmP91A8oIPLFbtrR1tsggVLAnIe4VieM5DacLLsNz7ykXiezueUeWIu" +
+                    "d6vyDCYLxc2iW5d7n3E4r5kkpEchpJEBlMpvp+oasGDHzMbHRWiyhLbfUMBtx8vEvr4csK+nN9b" +
+                    "pLMKUk55RB+LgF08ecYIk7aXZX7FBY5k7i+eQ0MxQNgFnMhA123ykggXIhlVu2srFAxQyOtYpMZ" +
+                    "yAbTd83VoB8KNPzFY9dJ9WM9TKyxO7CPRM/qMHfo3Y+0FdYxbKp1t3ZeOJCWlkau4hpJpFzca9K" +
+                    "1SNLrx6r9JwmaPFHwg/I7bKMjfYBxTVEhw8uJVemy1NwATlII2q0z1jMHmMscphPuCUnLYg7x++" +
+                    "UenFxczYtJh+9r8bNS1z1a9pjWdGgTisQfvIwlAnp9IFDH/JrHicTY0AQcYgdvNs9S30BbFwznL" +
+                    "EDjQCFHOlvZhF3H8n8Vfr1G2I2UE5eWsgltPdqGDZcrl2B/vqoXq9VGI2ba3i9JpKztbatt8rsj" +
+                    "tBB0m99rc/a85jmM4973cfzaC/Ltq0lLojNXUKmjzVZRlGmm1NPhOD7s0hmApjIbR/PpmfHH//Z",
+
+    Aurora:         "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+                    "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
+                    "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
+                    "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAIUAAQEAAAAAAAAAAAAA" +
+                    "AAAAAAgJAQACAgMAAAAAAAAAAAAAAAAEBgEDBQcIEAABBAEEAgECBwAAAAAAAAADAQIEBQYREhM" +
+                    "HFAgAMhUxIkJjFhcJEQACAQIEAwUFCQEAAAAAAAABAhESAwAhMQRBYQVRsSJSE/BxwdFCgZGh4f" +
+                    "EyYhQVBv/aAAwDAQACEQMRAD8AlB6l+qd/2bJNdtiksLgYfvEhxI6zh1sIpnjitHCK8Y5M6VxuI" +
+                    "Nhl4hhTe5pFe1rVjqPVrNpgL9z0rc0z5miSJ+kDidZykRmJf3ABhmhZj3n4YSOG+tNH2/HPhzbW" +
+                    "8iSxo8T0vQ01rXhc38qoesZWQVG1FTRfHKN7f0rr8I3O32O2tf2HahfPUeOmcmqeAznsxLJbQVT" +
+                    "HOT7HBnsfT3IYHs5XdUQa5TOnzT082mfOmDgxZQQeaOSkvjWS+tKDSSxdqHUbSC15Gciir1pDtj" +
+                    "ca4AoAYPTqsxNPmGYIiJgxBjELufASW4TPKezt/XDA/wAsJCZDdBHjUmMMzn1VhOSWJxmkqT4/X" +
+                    "0vI1jCCVeCfTHjKuujXqmv1Jqt/9jt7b9FveoGLWnY5EAyWMEyDkQ4J5YD3yg2GnVSe/wCRxQCw" +
+                    "h+tcrL+wca6zHHh91QYsCTey5bHFjkcQGg3I1j2aoxdqG2qi7tNV1+aFf/UTabS5uyx2rM1ABg6" +
+                    "58Dmc6ZnKYywun1giF/2GY9u7E0Mwz+2me0+NWEcoG9gjdHiOaqKgiz4NfkdocCN13KogXEYKs1" +
+                    "3akRn1Jp86du9LtMibMA0LYZT5oakDlJpPKRhsNkGLY0Cn8Y+WDF6c2Ps3VZTXh6XrJ9uSTPmso" +
+                    "34/KSHaxZCMGs0kV5RkasZW8SSUOJ8dV2I7a/a5COqpt2W4bjAAJ46hKFP56c4ghveMWbhUJaSB" +
+                    "lnOkc/hxwprjK/cYtrbgxnHLB3ao48tbv+ONx+BcFCip5SOlBubZUVXablFDRyr+G1dPgO7ey21" +
+                    "tC8thbMrQSaln6KRC/Z4tNcpxU8FBVSFyjiOUCB34Gdzc9x/3DUZDkNRF+6eOYlBQEMfh4+cqGG" +
+                    "MrTc/mc/IrlUvk+R+5tT5mbVpaXRGauoVNHiqyjKNNOFNPKcEKgggEzOZ4z935Rj//2Q==",
+
+    Azeron:         "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+                    "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
+                    "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
+                    "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAA" +
+                    "AAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQ" +
+                    "xIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+" +
+                    "kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba" +
+                    "7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5" +
+                    "xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXD" +
+                    "oNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTp" +
+                    "tRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUf" +
+                    "H5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYY" +
+                    "ZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGq" +
+                    "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z"
 };
 
 ////////////////////////////////////////////////////////////////////
@@ -827,6 +924,7 @@ utility = {
         }
     },
 
+    /*
     typeOf: function (obj) {
         try {
             var s = typeof obj;
@@ -872,15 +970,6 @@ utility = {
         }
     },
 
-    isNum: function (value) {
-        try {
-            return (!isNaN(value) && typeof value === 'number');
-        } catch (err) {
-            this.error("ERROR in utility.isNum: " + err);
-            return undefined;
-        }
-    },
-
     isInt: function (value) {
         try {
             var y = parseInt(value, 10);
@@ -891,6 +980,16 @@ utility = {
             return value === y && value.toString() === y.toString();
         } catch (err) {
             this.error("ERROR in utility.isInt: " + err);
+            return undefined;
+        }
+    },
+    */
+
+    isNum: function (value) {
+        try {
+            return $.type(value) === 'number';
+        } catch (err) {
+            this.error("ERROR in utility.isNum: " + err);
             return undefined;
         }
     },
@@ -1020,13 +1119,14 @@ utility = {
         try {
             var theArray  = [],
                 tempArray = [],
-                it        = 0;
+                it        = 0,
+                len       = 0;
 
             if (typeof text === 'string' && text !== '') {
                 text = text.replace(/,/g, '\n').replace(/ /g, '');
                 tempArray = text.split('\n');
                 if (tempArray && tempArray.length) {
-                    for (it = 0; it < tempArray.length; it += 1) {
+                    for (it = 0, len = tempArray.length; it < len; it += 1) {
                         if (tempArray[it] !== '') {
                             theArray.push(isNaN(tempArray[it]) ? tempArray[it] : parseFloat(tempArray[it]));
                         }
@@ -1255,7 +1355,7 @@ config = {
 
     load: function () {
         try {
-            if (gm.getItem('config.options', 'default') === 'default' || utility.typeOf(gm.getItem('config.options', 'default')) !== 'object') {
+            if (gm.getItem('config.options', 'default') === 'default' || !$.isPlainObject(gm.getItem('config.options', 'default'))) {
                 gm.setItem('config.options', this.options);
             } else {
                 this.options = gm.getItem('config.options', this.options);
@@ -1366,7 +1466,7 @@ state = {
 
     load: function () {
         try {
-            if (gm.getItem('state.flags', 'default') === 'default' || utility.typeOf(this.flags) !== 'object') {
+            if (gm.getItem('state.flags', 'default') === 'default' || !$.isPlainObject(this.flags)) {
                 gm.setItem('state.flags', this.flags);
             } else {
                 this.flags = gm.getItem('state.flags', this.flags);
@@ -1639,10 +1739,11 @@ gm = {
                 localStorage.clear();
             } else {
                 var storageKeys = [],
-                    key         = 0;
+                    key         = 0,
+                    len         = 0;
 
                 storageKeys = GM_listValues();
-                for (key = 0; key < storageKeys.length; key += 1) {
+                for (key = 0, len = storageKeys.length; key < len; key += 1) {
                     if (storageKeys[key].match(new RegExp(this.namespace + "." + caap.stats.FBID))) {
                         GM_deleteValue(storageKeys[key]);
                     }
@@ -1654,8 +1755,9 @@ gm = {
             utility.error("ERROR in gm.clear: " + error, arguments.callee.caller);
             return false;
         }
-    },
+    }
 
+    /*
     length: function (name) {
         try {
             if (typeof name !== 'string' || name === '') {
@@ -1801,6 +1903,7 @@ gm = {
             return undefined;
         }
     }
+    */
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -2195,7 +2298,7 @@ schedule = {
 
     load: function () {
         try {
-            if (gm.getItem('schedule.timers', 'default') === 'default' || utility.typeOf(gm.getItem('schedule.timers', 'default')) !== 'object') {
+            if (gm.getItem('schedule.timers', 'default') === 'default' || !$.isPlainObject(gm.getItem('schedule.timers', 'default'))) {
                 gm.setItem('schedule.timers', this.timers);
             } else {
                 this.timers = gm.getItem('schedule.timers', this.timers);
@@ -2255,7 +2358,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 throw "Invalid or non-existant timer! " + name;
             }
 
@@ -2272,7 +2375,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
             }
 
@@ -2291,7 +2394,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
@@ -2316,7 +2419,7 @@ schedule = {
                     throw "Invalid identifying name! (" + name_or_number + ")";
                 }
 
-                if (utility.typeOf(this.timers[name_or_number]) !== 'object') {
+                if (!$.isPlainObject(this.timers[name_or_number])) {
                     if (utility.logLevel > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
@@ -2387,7 +2490,7 @@ schedule = {
                 throw "Invalid identifying name!";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
@@ -2538,15 +2641,18 @@ general = {
 
     find: function (general) {
         try {
-            var it = 0;
+            var it    = 0,
+                len   = 0,
+                found = false;
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === general) {
+                    found = true;
                     break;
                 }
             }
 
-            if (it >= this.records.length) {
+            if (!found) {
                 utility.warn("Unable to find 'General' record");
                 return false;
             }
@@ -2561,9 +2667,10 @@ general = {
     GetNames: function () {
         try {
             var it    = 0,
+                len   = 0,
                 names = [];
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 names.push(this.records[it].name);
             }
 
@@ -2667,9 +2774,10 @@ general = {
     GetLevelUpNames: function () {
         try {
             var it    = 0,
+                len   = 0,
                 names = [];
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].lvl < 4) {
                     names.push(this.records[it].name);
                 }
@@ -2696,7 +2804,7 @@ general = {
         'Idle',
         'Monster',
         'Fortify',
-        'Battle',
+        'Invade',
         'Duel',
         'War',
         'SubQuest'
@@ -2788,7 +2896,8 @@ general = {
                         def       = 0,
                         special   = '',
                         container = $(this),
-                        it        = 0;
+                        it        = 0,
+                        len       = 0;
 
                     tempObj = container.find(".general_name_div3");
                     if (tempObj && tempObj.length) {
@@ -2827,7 +2936,7 @@ general = {
                     }
 
                     if (name && img && level && utility.isNum(atk) && utility.isNum(def) && special) {
-                        for (it = 0; it < general.records.length; it += 1) {
+                        for (it = 0, len = general.records.length; it < len; it += 1) {
                             if (general.records[it].name === name) {
                                 newGeneral.data = general.records[it];
                                 break;
@@ -2880,12 +2989,13 @@ general = {
 
     UpdateDropDowns: function () {
         try {
+            var it  = 0,
+                len = 0;
+
             this.BuildlLists();
             utility.log(1, "Updating 'General' Drop Down Lists");
-            for (var generalType in this.StandardList) {
-                if (this.StandardList.hasOwnProperty(generalType)) {
-                    caap.ChangeDropDownList(this.StandardList[generalType] + 'General', this.List, config.getItem(this.StandardList[generalType] + 'General', 'Use Current'));
-                }
+            for (it = 0, len = this.StandardList.length; it < len; it += 1) {
+                caap.ChangeDropDownList(this.StandardList[it] + 'General', this.List, config.getItem(this.StandardList[it] + 'General', 'Use Current'));
             }
 
             caap.ChangeDropDownList('BuyGeneral', this.BuyList, config.getItem('BuyGeneral', 'Use Current'));
@@ -2915,7 +3025,7 @@ general = {
     LevelUpCheck: function (whichGeneral) {
         try {
             var generalType = '',
-                use = false,
+                use         = false,
                 keepGeneral = false;
 
             generalType = $.trim(whichGeneral.replace(/General/i, ''));
@@ -3012,6 +3122,7 @@ general = {
         try {
             var generalName  = '',
                 it           = 0,
+                len          = 0,
                 generalDiv   = null,
                 tempObj      = null,
                 success      = false;
@@ -3022,7 +3133,7 @@ general = {
             }
 
             utility.log(1, "Equipped 'General'", generalName);
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === generalName) {
                     break;
                 }
@@ -3082,9 +3193,10 @@ general = {
 
             var generalImage = '',
                 it           = 0,
+                len          = 0,
                 theGeneral   = '';
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (schedule.since(this.records[it].last, gm.getItem("GeneralLastReviewed", 24, hiddenVar) * 3600)) {
                     break;
                 }
@@ -3617,6 +3729,7 @@ monster = {
     getItem: function (name) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false,
                 newRecord = null;
 
@@ -3629,7 +3742,7 @@ monster = {
                 return '';
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === name) {
                     success = true;
                     break;
@@ -3653,7 +3766,7 @@ monster = {
 
     setItem: function (record) {
         try {
-            if (!record || utility.typeOf(record) !== 'object') {
+            if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -3663,9 +3776,10 @@ monster = {
             }
 
             var it      = 0,
+                len     = 0,
                 success = false;
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === record.name) {
                     success = true;
                     break;
@@ -3691,6 +3805,7 @@ monster = {
     deleteItem: function (name) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false;
 
             if (typeof name !== 'string' || name === '') {
@@ -3698,7 +3813,7 @@ monster = {
                 throw "Invalid identifying name!";
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === name) {
                     success = true;
                     break;
@@ -3848,6 +3963,10 @@ monster = {
                     any            : []
                 },
                 it                    = 0,
+                len                   = 0,
+                len1                  = 0,
+                len2                  = 0,
+                len3                  = 0,
                 s                     = 0,
                 selectTypes           = [],
                 maxToFortify          = 0,
@@ -3876,7 +3995,7 @@ monster = {
                 attackOrderList       = [];
 
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].type === '') {
                     this.records[it].type = this.type(this.records[it].name);
                 }
@@ -3884,9 +4003,8 @@ monster = {
                 if (this.info[this.records[it].type] && this.info[this.records[it].type].alpha) {
                     if (this.records[it].damage !== -1 && this.records[it].color !== 'grey' && schedule.since(this.records[it].stunTime, 0)) {
                         utility.log(1, "Review monster due to class timer", this.records[it].name);
-                        this.records[it].review = 0;
-                        schedule.setItem("monsterReview", 0);
-                        state.setItem('monsterReviewCounter', -3);
+                        this.records[it].review = -1;
+                        this.flagReview();
                     }
                 }
 
@@ -3914,240 +4032,226 @@ monster = {
             utility.log(3, 'records/monsterList/selectTypes', this.records, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
-            for (s in selectTypes) {
-                if (selectTypes.hasOwnProperty(s)) {
-                    if (!monsterList[selectTypes[s]].length) {
+            for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
+                if (!monsterList[selectTypes[s]].length) {
+                    continue;
+                }
+
+                firstOverAch          = '';
+                firstUnderMax         = '';
+                firstFortOverAch      = '';
+                firstFortUnderMax     = '';
+                firstStunOverAch      = '';
+                firstStunUnderMax     = '';
+                firstStrengthOverAch  = '';
+                firstStrengthUnderMax = '';
+                strengthTarget        = '';
+                fortifyTarget         = '';
+                stunTarget            = '';
+                energyTarget          = {
+                    name : '',
+                    type : ''
+                };
+
+                // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
+                if (selectTypes[s] === 'any') {
+                    attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
+                    $.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
+                } else {
+                    attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
+                }
+
+                utility.log(9, 'attackOrderList', attackOrderList);
+                // Next we step through the users list getting the name and conditions
+                for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
+                    if (!($.trim(attackOrderList[p]))) {
                         continue;
                     }
 
-                    firstOverAch          = '';
-                    firstUnderMax         = '';
-                    firstFortOverAch      = '';
-                    firstFortUnderMax     = '';
-                    firstStunOverAch      = '';
-                    firstStunUnderMax     = '';
-                    firstStrengthOverAch  = '';
-                    firstStrengthUnderMax = '';
-                    strengthTarget        = '';
-                    fortifyTarget         = '';
-                    stunTarget            = '';
-                    energyTarget          = {
-                        name : '',
-                        type : ''
-                    };
+                    monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
+                    // Now we try to match the users name agains our list of monsters
+                    for (m = 0, len3 = monsterList[selectTypes[s]].length; m < len3; m += 1) {
+                        if (!monsterList[selectTypes[s]][m]) {
+                            continue;
+                        }
 
-                    // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-                    if (selectTypes[s] === 'any') {
-                        attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
-                        $.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
-                    } else {
-                        attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
-                    }
+                        monsterObj = this.getItem(monsterList[selectTypes[s]][m]);
+                        // If we set conditions on this monster already then we do not reprocess
+                        if (monsterObj.conditions !== 'none') {
+                            continue;
+                        }
 
-                    utility.log(9, 'attackOrderList', attackOrderList);
-                    // Next we step through the users list getting the name and conditions
-                    for (p in attackOrderList) {
-                        if (attackOrderList.hasOwnProperty(p)) {
-                            if (!($.trim(attackOrderList[p]))) {
-                                continue;
+                        // If this monster does not match, skip to next one
+                        // Or if this monster is dead, skip to next one
+                        // Or if this monster is not the correct type, skip to next one
+                        if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
+                            continue;
+                        }
+
+                        //Monster is a match so we set the conditions
+                        monsterObj.conditions = monsterConditions;
+                        this.setItem(monsterObj);
+                        // If it's complete or collect rewards, no need to process further
+                        if (monsterObj.color === 'grey') {
+                            continue;
+                        }
+
+                        utility.log(3, 'Current monster being checked', monsterObj);
+                        // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
+                        // these to see if this is the monster we should select
+                        if (!firstUnderMax && monsterObj.color !== 'purple') {
+                            if (monsterObj.over === 'ach') {
+                                if (!firstOverAch) {
+                                    firstOverAch = monsterList[selectTypes[s]][m];
+                                    utility.log(3, 'firstOverAch', firstOverAch);
+                                }
+                            } else if (monsterObj.over !== 'max') {
+                                firstUnderMax = monsterList[selectTypes[s]][m];
+                                utility.log(3, 'firstUnderMax', firstUnderMax);
+                            }
+                        }
+
+                        monstType = this.type(monsterList[selectTypes[s]][m]);
+                        if (monstType && this.info[monstType]) {
+                            if (!this.info[monstType].alpha || (this.info[monstType].alpha && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
+                                maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
+                                if (this.info[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
+                                    if (monsterObj.over === 'ach') {
+                                        if (!firstFortOverAch) {
+                                            firstFortOverAch = monsterList[selectTypes[s]][m];
+                                            utility.log(3, 'firstFortOverAch', firstFortOverAch);
+                                        }
+                                    } else if (monsterObj.over !== 'max') {
+                                        firstFortUnderMax = monsterList[selectTypes[s]][m];
+                                        utility.log(3, 'firstFortUnderMax', firstFortUnderMax);
+                                    }
+                                }
                             }
 
-                            monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
-                            // Now we try to match the users name agains our list of monsters
-                            for (m in monsterList[selectTypes[s]]) {
-                                if (monsterList[selectTypes[s]].hasOwnProperty(m)) {
-                                    if (!monsterList[selectTypes[s]][m]) {
-                                        continue;
-                                    }
-
-                                    monsterObj = this.getItem(monsterList[selectTypes[s]][m]);
-                                    // If we set conditions on this monster already then we do not reprocess
-                                    if (monsterObj.conditions !== 'none') {
-                                        continue;
-                                    }
-
-                                    // If this monster does not match, skip to next one
-                                    // Or if this monster is dead, skip to next one
-                                    // Or if this monster is not the correct type, skip to next one
-                                    if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
-                                        continue;
-                                    }
-
-                                    //Monster is a match so we set the conditions
-                                    monsterObj.conditions = monsterConditions;
-                                    this.setItem(monsterObj);
-                                    // If it's complete or collect rewards, no need to process further
-                                    if (monsterObj.color === 'grey') {
-                                        continue;
-                                    }
-
-                                    utility.log(3, 'Current monster being checked', monsterObj);
-                                    // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                                    // these to see if this is the monster we should select
-                                    if (!firstUnderMax && monsterObj.color !== 'purple') {
+                            if (this.info[monstType].alpha) {
+                                if (config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
+                                    if (!firstStrengthUnderMax && monsterObj.strength < 100) {
                                         if (monsterObj.over === 'ach') {
-                                            if (!firstOverAch) {
-                                                firstOverAch = monsterList[selectTypes[s]][m];
-                                                utility.log(3, 'firstOverAch', firstOverAch);
+                                            if (!firstStrengthOverAch) {
+                                                firstStrengthOverAch = monsterList[selectTypes[s]][m];
+                                                utility.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
                                             }
                                         } else if (monsterObj.over !== 'max') {
-                                            firstUnderMax = monsterList[selectTypes[s]][m];
-                                            utility.log(3, 'firstUnderMax', firstUnderMax);
+                                            firstStrengthUnderMax = monsterList[selectTypes[s]][m];
+                                            utility.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
                                         }
                                     }
+                                }
 
-                                    monstType = this.type(monsterList[selectTypes[s]][m]);
-                                    if (monstType && this.info[monstType]) {
-                                        if (!this.info[monstType].alpha || (this.info[monstType].alpha && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
-                                            maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
-                                            if (this.info[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
-                                                if (monsterObj.over === 'ach') {
-                                                    if (!firstFortOverAch) {
-                                                        firstFortOverAch = monsterList[selectTypes[s]][m];
-                                                        utility.log(3, 'firstFortOverAch', firstFortOverAch);
-                                                    }
-                                                } else if (monsterObj.over !== 'max') {
-                                                    firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                                    utility.log(3, 'firstFortUnderMax', firstFortUnderMax);
-                                                }
-                                            }
+                                if (!firstStunUnderMax && monsterObj.stunDo) {
+                                    if (monsterObj.over === 'ach') {
+                                        if (!firstStunOverAch) {
+                                            firstStunOverAch = monsterList[selectTypes[s]][m];
+                                            utility.log(3, 'firstStunOverAch', firstStunOverAch);
                                         }
-
-                                        if (this.info[monstType].alpha) {
-                                            if (config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                                                if (!firstStrengthUnderMax && monsterObj.strength < 100) {
-                                                    if (monsterObj.over === 'ach') {
-                                                        if (!firstStrengthOverAch) {
-                                                            firstStrengthOverAch = monsterList[selectTypes[s]][m];
-                                                            utility.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
-                                                        }
-                                                    } else if (monsterObj.over !== 'max') {
-                                                        firstStrengthUnderMax = monsterList[selectTypes[s]][m];
-                                                        utility.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
-                                                    }
-                                                }
-                                            }
-
-                                            if (!firstStunUnderMax && monsterObj.stunDo) {
-                                                if (monsterObj.over === 'ach') {
-                                                    if (!firstStunOverAch) {
-                                                        firstStunOverAch = monsterList[selectTypes[s]][m];
-                                                        utility.log(3, 'firstStunOverAch', firstStunOverAch);
-                                                    }
-                                                } else if (monsterObj.over !== 'max') {
-                                                    firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                                    utility.log(3, 'firstStunUnderMax', firstStunUnderMax);
-                                                }
-                                            }
-                                        }
+                                    } else if (monsterObj.over !== 'max') {
+                                        firstStunUnderMax = monsterList[selectTypes[s]][m];
+                                        utility.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                     }
                                 }
                             }
                         }
                     }
+                }
 
-                    // Now we use the first under max/under achievement that we found. If we didn't find any under
-                    // achievement then we use the first over achievement
-                    if (selectTypes[s] !== 'raid') {
-                        //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                            strengthTarget = firstStrengthUnderMax;
-                            if (!strengthTarget) {
-                                strengthTarget = firstStrengthOverAch;
-                            }
-
-                            if (strengthTarget) {
-                                energyTarget.name = strengthTarget;
-                                energyTarget.type = 'Strengthen';
-                                utility.log(1, 'Strengthen target ', energyTarget.name);
-                            }
-                        //}
-
-                        fortifyTarget = firstFortUnderMax;
-                        if (!fortifyTarget) {
-                            fortifyTarget = firstFortOverAch;
-                        }
-
-                        if (fortifyTarget) {
-                            energyTarget.name = fortifyTarget;
-                            energyTarget.type = 'Fortify';
-                            //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                                utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
-                            //} else {
-                            //    utility.log(1, 'Fortify ', energyTarget.name);
-                            //}
-                        }
-
-                        //if (this.info[monstType].alpha) {
-                            stunTarget = firstStunUnderMax;
-                            if (!stunTarget) {
-                                stunTarget = firstStunOverAch;
-                            }
-
-                            if (stunTarget) {
-                                energyTarget.name = stunTarget;
-                                energyTarget.type = 'Stun';
-                                utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
-                            }
-                        //}
-
-                        state.setItem('targetFromfortify', energyTarget);
-                        utility.log(1, 'Energy target', energyTarget);
+                // Now we use the first under max/under achievement that we found. If we didn't find any under
+                // achievement then we use the first over achievement
+                if (selectTypes[s] !== 'raid') {
+                    strengthTarget = firstStrengthUnderMax;
+                    if (!strengthTarget) {
+                        strengthTarget = firstStrengthOverAch;
                     }
 
-                    monsterName = firstUnderMax;
-                    if (!monsterName) {
-                        monsterName = firstOverAch;
+                    if (strengthTarget) {
+                        energyTarget.name = strengthTarget;
+                        energyTarget.type = 'Strengthen';
+                        utility.log(1, 'Strengthen target ', energyTarget.name);
                     }
 
-                    // If we've got a monster for this selection type then we set the GM variables for the name
-                    // and stamina requirements
-                    if (monsterName) {
-                        monsterObj = this.getItem(monsterName);
-                        state.setItem('targetFrom' + monsterObj.page, monsterName);
-                        if (monsterObj.page === 'battle_monster') {
-                            nodeNum = 0;
-                            if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staLvl) {
-                                for (nodeNum = this.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                    if (caap.stats.stamina.max >= this.info[monsterObj.type].staLvl[nodeNum]) {
-                                        break;
-                                    }
+                    fortifyTarget = firstFortUnderMax;
+                    if (!fortifyTarget) {
+                        fortifyTarget = firstFortOverAch;
+                    }
+
+                    if (fortifyTarget) {
+                        energyTarget.name = fortifyTarget;
+                        energyTarget.type = 'Fortify';
+                        utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
+                    }
+
+                    stunTarget = firstStunUnderMax;
+                    if (!stunTarget) {
+                        stunTarget = firstStunOverAch;
+                    }
+
+                    if (stunTarget) {
+                        energyTarget.name = stunTarget;
+                        energyTarget.type = 'Stun';
+                        utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
+                    }
+
+                    state.setItem('targetFromfortify', energyTarget);
+                    utility.log(1, 'Energy target', energyTarget);
+                }
+
+                monsterName = firstUnderMax;
+                if (!monsterName) {
+                    monsterName = firstOverAch;
+                }
+
+                // If we've got a monster for this selection type then we set the GM variables for the name
+                // and stamina requirements
+                if (monsterName) {
+                    monsterObj = this.getItem(monsterName);
+                    state.setItem('targetFrom' + monsterObj.page, monsterName);
+                    if (monsterObj.page === 'battle_monster') {
+                        nodeNum = 0;
+                        if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staLvl) {
+                            for (nodeNum = this.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                if (caap.stats.stamina.max >= this.info[monsterObj.type].staLvl[nodeNum]) {
+                                    break;
                                 }
                             }
+                        }
 
-                            if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staMax[nodeNum]);
-                            } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
-                                state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staUse);
-                            } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
-                                state.setItem('MonsterStaminaReq', 5);
-                            } else if (monsterObj.conditions.match(/:sa/i)) {
-                                state.setItem('MonsterStaminaReq', 1);
-                            } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
-                                state.setItem('MonsterStaminaReq', 5);
-                            } else {
-                                state.setItem('MonsterStaminaReq', 1);
-                            }
-
-                            switch (config.getItem('MonsterGeneral', 'Use Current')) {
-                            case 'Orc King':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
-                                utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            case 'Barbarus':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
-                                utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            default:
-                            }
+                        if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                            state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staMax[nodeNum]);
+                        } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
+                            state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staUse);
+                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
+                            state.setItem('MonsterStaminaReq', 5);
+                        } else if (monsterObj.conditions.match(/:sa/i)) {
+                            state.setItem('MonsterStaminaReq', 1);
+                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
+                            state.setItem('MonsterStaminaReq', 5);
                         } else {
-                            // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
-                            if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj.conditions.match(/:pa/i)) {
-                                state.setItem('RaidStaminaReq', 5);
-                            } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
-                                state.setItem('RaidStaminaReq', this.info[monsterObj.type].staUse);
-                            } else {
-                                state.setItem('RaidStaminaReq', 1);
-                            }
+                            state.setItem('MonsterStaminaReq', 1);
+                        }
+
+                        switch (config.getItem('MonsterGeneral', 'Use Current')) {
+                        case 'Orc King':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
+                            utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        case 'Barbarus':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
+                            utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        default:
+                        }
+                    } else {
+                        // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
+                        if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj.conditions.match(/:pa/i)) {
+                            state.setItem('RaidStaminaReq', 5);
+                        } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
+                            state.setItem('RaidStaminaReq', this.info[monsterObj.type].staUse);
+                        } else {
+                            state.setItem('RaidStaminaReq', 1);
                         }
                     }
                 }
@@ -4348,6 +4452,7 @@ battle = {
     getItem: function (userId) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false,
                 newRecord = null;
 
@@ -4356,7 +4461,7 @@ battle = {
                 throw "Invalid identifying userId!";
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].userId === userId) {
                     success = true;
                     break;
@@ -4380,7 +4485,7 @@ battle = {
 
     setItem: function (record) {
         try {
-            if (!record || utility.typeOf(record) !== 'object') {
+            if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -4390,9 +4495,10 @@ battle = {
             }
 
             var it      = 0,
+                len     = 0,
                 success = false;
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].userId === record.userId) {
                     success = true;
                     break;
@@ -4418,6 +4524,7 @@ battle = {
     deleteItem: function (userId) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false;
 
             if (!utility.isNum(userId) || userId < 1) {
@@ -4425,7 +4532,7 @@ battle = {
                 throw "Invalid identifying userId!";
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].userId === userId) {
                     success = true;
                     break;
@@ -4473,7 +4580,8 @@ battle = {
 
     getResult: function () {
         try {
-            var resultsDiv    = null,
+            var wrapperDiv    = null,
+                resultsDiv    = null,
                 tempDiv       = null,
                 tempText      = '',
                 tempArr       = [],
@@ -4489,13 +4597,14 @@ battle = {
                     hiding     : false
                 };
 
-            if ($("#app46755028429_results_main_wrapper img[src*='battle_victory.gif']").length) {
+            wrapperDiv = $("#app46755028429_results_main_wrapper");
+            if (wrapperDiv.find("img[src*='battle_victory.gif']").length) {
                 warWinLoseImg = 'war_win_left.jpg';
                 result.win = true;
-            } else if ($("#app46755028429_results_main_wrapper img[src*='battle_defeat.gif']").length) {
+            } else if (wrapperDiv.find("img[src*='battle_defeat.gif']").length) {
                 warWinLoseImg = 'war_lose_left.jpg';
             } else {
-                resultsDiv = $("#app46755028429_results_main_wrapper span[class='result_body']");
+                resultsDiv = wrapperDiv.find("span[class='result_body']");
                 if (resultsDiv && resultsDiv.length) {
                     tempText = $.trim(resultsDiv.text());
                     if (tempText && tempText.match(/Your opponent is hiding, please try again/)) {
@@ -4510,9 +4619,9 @@ battle = {
                 }
             }
 
-            if ($("#app46755028429_results_main_wrapper img[src*='war_button_war_council.gif']").length) {
+            if (wrapperDiv.find("img[src*='war_button_war_council.gif']").length) {
                 result.battleType = 'War';
-                resultsDiv = $("#app46755028429_results_main_wrapper div[class='result']");
+                resultsDiv = wrapperDiv.find("div[class='result']");
                 if (resultsDiv && resultsDiv.length) {
                     tempDiv = resultsDiv.find("img[src*='war_rank_small_icon']:first");
                     if (tempDiv && tempDiv.length) {
@@ -4568,20 +4677,20 @@ battle = {
                     throw "Unable to get userId!";
                 }
             } else {
-                if ($("#app46755028429_results_main_wrapper input[src*='battle_invade_again.gif']").length) {
+                if (wrapperDiv.find("input[src*='battle_invade_again.gif']").length) {
                     result.battleType = 'Invade';
-                } else if ($("#app46755028429_results_main_wrapper input[src*='battle_duel_again.gif']").length) {
+                } else if (wrapperDiv.find("input[src*='battle_duel_again.gif']").length) {
                     result.battleType = 'Duel';
                 } else {
-                    if ($("#app46755028429_results_main_wrapper img[src*='icon_weapon.gif']").length) {
+                    if (wrapperDiv.find("img[src*='icon_weapon.gif']").length) {
                         result.battleType = 'Duel';
-                    } else if ($("#app46755028429_results_main_wrapper div[class='full_invade_results']").length) {
+                    } else if (wrapperDiv.find("div[class='full_invade_results']").length) {
                         result.battleType = 'Invade';
                     }
                 }
 
                 if (result.battleType) {
-                    resultsDiv = $("#app46755028429_results_main_wrapper div[class='result']");
+                    resultsDiv = wrapperDiv.find("div[class='result']");
                     if (resultsDiv && resultsDiv.length) {
                         tempDiv = resultsDiv.find("img[src*='battle_rank_small_icon']:first");
                         if (tempDiv && tempDiv.length) {
@@ -4703,7 +4812,7 @@ battle = {
                 battleRecord = {},
                 dead         = false;
 
-            resultsDiv = $("div[class='results']");
+            resultsDiv = $("#app46755028429_app_body div[class='results']");
             if (resultsDiv && resultsDiv.length) {
                 resultsText = $.trim(resultsDiv.text());
                 if (resultsText) {
@@ -4959,6 +5068,7 @@ battle = {
                 battleRecord    = {},
                 tempTime        = 0,
                 it              = 0,
+                len             = 0,
                 tr              = null,
                 form            = null,
                 firstId         = '',
@@ -4966,7 +5076,7 @@ battle = {
                 engageButton    = null;
 
             utility.log(2, 'target img', this.battles[type][config.getItem('BattleType', 'Invade')]);
-            inputDiv = $("input[src*='" + this.battles[type][config.getItem('BattleType', 'Invade')] + "']");
+            inputDiv = $("#app46755028429_app_body input[src*='" + this.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
                 utility.warn('Not on battlepage');
                 return false;
@@ -5013,11 +5123,11 @@ battle = {
                 utility.warn("FreshMeatARMin is NaN, using default", ARMin);
             }
 
-            for (it = 0; it < inputDiv.length; it += 1) {
+            for (it = 0, len = inputDiv.length; it < len; it += 1) {
                 tr = null;
                 levelm = [];
                 txt = '';
-                tempTime = new Date(2009, 0, 1).getTime();
+                tempTime = -1;
                 tempRecord = {};
                 tempRecord.button = inputDiv.eq(it);
                 if (type === 'Raid') {
@@ -5249,7 +5359,7 @@ battle = {
                     }
                 } else {
                     lastBattleID = state.getItem("lastBattleID", 0);
-                    for (it = 0; it < safeTargets.length; it += 1) {
+                    for (it = 0, len = safeTargets.length; it < len; it += 1) {
                         if (!lastBattleID && lastBattleID === safeTargets[it].id) {
                             continue;
                         }
@@ -5419,7 +5529,7 @@ town = {
 
             this[type] = [];
             this[type + 'Sortable'] = [];
-            rowDiv = $("td[class*='eq_buy_row']");
+            rowDiv = $("#app46755028429_app_body td[class*='eq_buy_row']");
             if (rowDiv && rowDiv.length) {
                 rowDiv.each(function (index) {
                     current = new town.record();
@@ -5492,9 +5602,10 @@ town = {
             }
 
             var it     = 0,
+                len    = 0,
                 haveIt = false;
 
-            for (it = 0; it < this.magic.length; it += 1) {
+            for (it = 0, len = this.magic.length; it < len; it += 1) {
                 if (this.magic[it].name === name) {
                     if (this.magic[it].owned) {
                         haveIt = true;
@@ -5646,7 +5757,7 @@ gifting = {
                 utility.warn("No gift messages found!");
             }
 
-            return !utility.isEmpty(gm.setItem("GiftEntry", current));
+            return !$.isEmptyObject(gm.setItem("GiftEntry", current));
         } catch (err) {
             utility.error("ERROR in gifting.accept: " + err);
             return undefined;
@@ -5664,7 +5775,7 @@ gifting = {
 
     setCurrent: function (record) {
         try {
-            if (!record || utility.typeOf(record) !== 'object') {
+            if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -5691,11 +5802,11 @@ gifting = {
 
     collecting: function () {
         try {
-            if (!utility.isEmpty(this.getCurrent()) && this.getCurrent().checked) {
+            if (!$.isEmptyObject(this.getCurrent()) && this.getCurrent().checked) {
                 this.collected(true);
             }
 
-            if (utility.isEmpty(this.getCurrent()) && state.getItem('HaveGift', false)) {
+            if ($.isEmptyObject(this.getCurrent()) && state.getItem('HaveGift', false)) {
                 if (utility.NavigateTo('army', 'invite_on.gif')) {
                     return true;
                 }
@@ -5735,7 +5846,7 @@ gifting = {
             }
 
             giftEntry = this.getCurrent();
-            if (utility.isEmpty(giftEntry)) {
+            if ($.isEmptyObject(giftEntry)) {
                 return false;
             }
 
@@ -5820,7 +5931,7 @@ gifting = {
     collected: function (force) {
         try {
             var giftEntry = this.getCurrent();
-            if (!utility.isEmpty(giftEntry)) {
+            if (!$.isEmptyObject(giftEntry)) {
                 if (force || utility.CheckForImage("gift_yes.gif")) {
                     if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                         this.queue.setItem(giftEntry);
@@ -6097,7 +6208,7 @@ gifting = {
                 found   : false,
                 chosen  : false,
                 sent    : false,
-                last    : new Date(2009, 0, 1).getTime()
+                last    : 0
             };
         },
 
@@ -6127,7 +6238,7 @@ gifting = {
 
         setItem: function (record) {
             try {
-                if (!record || utility.typeOf(record) !== 'object') {
+                if (!record || !$.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -6137,11 +6248,12 @@ gifting = {
                 }
 
                 var it      = 0,
+                    len     = 0,
                     found   = false,
                     updated = false;
 
                 if (config.getItem("UniqueGiftQueue", true)) {
-                    for (it = 0; it < this.records.length; it += 1) {
+                    for (it = 0, len = this.records.length; it < len; it += 1) {
                         if (this.records[it].userId === record.userId) {
                             if (this.records[it].name !== record.name) {
                                 this.records[it].name = record.name;
@@ -6200,18 +6312,59 @@ gifting = {
 
         chooseGift: function () {
             try {
-                var it = 0,
-                    gift = '',
-                    choice = '';
+                var it             = 0,
+                    it1            = 0,
+                    len            = 0,
+                    gift           = '',
+                    choice         = '',
+                    filterId       = false,
+                    filterIdList   = [],
+                    filterIdLen    = 0,
+                    filterGift     = false,
+                    filterGiftList = [],
+                    filterGiftLen  = 0,
+                    filterGiftCont = false;
+
+                filterId = config.getItem("FilterReturnId", false);
+                if (filterId) {
+                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdLen = filterIdList.length;
+                }
+
+                filterGift = config.getItem("FilterReturnGift", false);
+                if (filterGift) {
+                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftLen = filterGiftList.length;
+                }
 
                 choice = config.getItem("GiftChoice", gifting.gifts.options[0]);
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (!schedule.since(this.records[it].last || 0, 43200)) {
                         continue;
                     }
 
                     if (this.records[it].sent) {
                         continue;
+                    }
+
+                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(1, "chooseGift Filter Id", this.records[it].userId);
+                        continue;
+                    }
+
+                    if (filterGift && filterGiftLen) {
+                        filterGiftCont = false;
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
+                                utility.log(1, "chooseGift Filter Gift", this.records[it].gift);
+                                filterGiftCont = true;
+                                break;
+                            }
+                        }
+
+                        if (filterGiftCont) {
+                            continue;
+                        }
                     }
 
                     switch (choice) {
@@ -6247,29 +6400,51 @@ gifting = {
 
         chooseFriend: function (howmany) {
             try {
-                var it            = 0,
-                    tempGift      = '',
-                    tempText      = '',
-                    unselListDiv  = null,
-                    selListDiv    = null,
-                    unselDiv      = null,
-                    selDiv        = null,
-                    first         = true,
-                    count         = 0,
-                    same          = true,
-                    returnOnlyOne = config.getItem("ReturnOnlyOne", false);
+                var it             = 0,
+                    it1            = 0,
+                    len            = 0,
+                    tempGift       = '',
+                    tempText       = '',
+                    unselListDiv   = null,
+                    selListDiv     = null,
+                    unselDiv       = null,
+                    selDiv         = null,
+                    first          = true,
+                    count          = 0,
+                    same           = true,
+                    returnOnlyOne  = false,
+                    filterId       = false,
+                    filterIdList   = [],
+                    filterIdLen    = 0,
+                    filterGift     = false,
+                    filterGiftList = [],
+                    filterGiftLen  = 0,
+                    filterGiftCont = false;
 
                 if (!utility.isNum(howmany) || howmany < 1) {
                     throw "Invalid howmany! (" + howmany + ")";
+                }
+
+                returnOnlyOne = config.getItem("ReturnOnlyOne", false);
+                filterId = config.getItem("FilterReturnId", false);
+                if (filterId) {
+                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdLen = filterIdList.length;
+                }
+
+                filterGift = config.getItem("FilterReturnGift", false);
+                if (filterGift) {
+                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftLen = filterGiftList.length;
                 }
 
                 if (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[0]) {
                     same = false;
                 }
 
-                unselListDiv = $("div[class='unselected_list']");
-                selListDiv = $("div[class='selected_list']");
-                for (it = 0; it < this.records.length; it += 1) {
+                unselListDiv = $("#app46755028429_app_body div[class='unselected_list']");
+                selListDiv = $("#app46755028429_app_body div[class='selected_list']");
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     this.records[it].chosen = false;
 
                     if (count >= howmany) {
@@ -6282,6 +6457,26 @@ gifting = {
 
                     if (this.records[it].sent) {
                         continue;
+                    }
+
+                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(1, "chooseFriend Filter Id", this.records[it].userId);
+                        continue;
+                    }
+
+                    if (filterGift && filterGiftLen) {
+                        filterGiftCont = false;
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
+                                utility.log(1, "chooseFriend Filter Gift", this.records[it].gift);
+                                filterGiftCont = true;
+                                break;
+                            }
+                        }
+
+                        if (filterGiftCont) {
+                            continue;
+                        }
                     }
 
                     if (returnOnlyOne) {
@@ -6332,6 +6527,183 @@ gifting = {
                 return count;
             } catch (err) {
                 utility.error("ERROR in gifting.queue.chooseFriend: " + err);
+                return undefined;
+            }
+        },
+
+        chooseFriend2: function (howmany) {
+            try {
+                var it             = 0,
+                    it1            = 0,
+                    len            = 0,
+                    tempGift       = '',
+                    tempText       = '',
+                    unselListDiv   = null,
+                    selListDiv     = null,
+                    unselDiv       = null,
+                    selDiv         = null,
+                    first          = true,
+                    same           = true,
+                    returnOnlyOne  = false,
+                    filterId       = false,
+                    filterIdList   = [],
+                    filterIdLen    = 0,
+                    filterGift     = false,
+                    filterGiftList = [],
+                    filterGiftLen  = 0,
+                    filterGiftCont = false,
+                    giftingList    = [],
+                    searchStr      = '',
+                    clickedList    = [],
+                    pendingList    = [],
+                    chosenList     = [],
+                    tempList       = [];
+
+                if (!utility.isNum(howmany) || howmany < 1) {
+                    throw "Invalid howmany! (" + howmany + ")";
+                }
+
+                returnOnlyOne = config.getItem("ReturnOnlyOne", false);
+                filterId = config.getItem("FilterReturnId", false);
+                if (filterId) {
+                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdLen = filterIdList.length;
+                }
+
+                filterGift = config.getItem("FilterReturnGift", false);
+                if (filterGift) {
+                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftLen = filterGiftList.length;
+                }
+
+                if (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[0]) {
+                    same = false;
+                }
+
+                unselListDiv = $("#app46755028429_app_body div[class='unselected_list']");
+                selListDiv = $("#app46755028429_app_body div[class='selected_list']");
+                for (it = 0, len = this.records.length; it < len; it += 1) {
+                    this.records[it].chosen = false;
+
+                    if (giftingList.length >= howmany) {
+                        continue;
+                    }
+
+                    if (!schedule.since(this.records[it].last || 0, 3600)) {
+                        continue;
+                    }
+
+                    if (this.records[it].sent) {
+                        continue;
+                    }
+
+                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(1, "chooseFriend2 Filter Id", this.records[it].userId);
+                        continue;
+                    }
+
+                    if (filterGift && filterGiftLen) {
+                        filterGiftCont = false;
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
+                                utility.log(1, "chooseFriend2 Filter Gift", this.records[it].gift);
+                                filterGiftCont = true;
+                                break;
+                            }
+                        }
+
+                        if (filterGiftCont) {
+                            continue;
+                        }
+                    }
+
+                    if (returnOnlyOne) {
+                        if (gifting.history.checkSentOnce(this.records[it].userId)) {
+                            utility.log(1, "Sent Today: ", this.records[it].userId);
+                            this.records[it].last = new Date().getTime();
+                            continue;
+                        }
+                    }
+
+                    if (first) {
+                        tempGift = this.records[it].gift;
+                        first = false;
+                    }
+
+                    if (this.records[it].gift === tempGift || !same) {
+                        giftingList.push(this.records[it].userId);
+                    }
+                }
+
+                for (it = 0, len = giftingList.length; it < len; it += 1) {
+                    searchStr += "input[value='" + giftingList[it] + "']";
+                    if (it >= 0 && it <= len - 1) {
+                        searchStr += ",";
+                    }
+                }
+
+                unselDiv = unselListDiv.find(searchStr);
+                if (unselDiv && unselDiv.length) {
+                    unselDiv.each(function () {
+                        var id = parseInt($(this).attr("value"), 10);
+                        if (!/none/.test($(this).parent().attr("style"))) {
+                            caap.waitingForDomLoad = false;
+                            utility.Click($(this).get(0));
+                            utility.log(1, "Id clicked:", id);
+                            clickedList.push(id);
+                        } else {
+                            utility.log(1, "Id not found, perhaps gift pending:", id);
+                            pendingList.push(id);
+                        }
+                    });
+                } else {
+                    utility.log(1, "Ids not found:", giftingList, searchStr);
+                    $.merge(pendingList, giftingList);
+                }
+
+                if (clickedList && clickedList.length) {
+                    for (it = 0, len = clickedList.length; it < len; it += 1) {
+                        searchStr += "input[value='" + clickedList[it] + "']";
+                        if (it >= 0 && it <= len - 1) {
+                            searchStr += ",";
+                        }
+                    }
+
+                    selDiv = selListDiv.find(searchStr);
+                    if (selDiv && selDiv.length) {
+                        selDiv.each(function () {
+                            var id = parseInt($(this).attr("value"), 10);
+                            if (!/none/.test($(this).parent().attr("style"))) {
+                                utility.log(1, "User Chosen:", id);
+                                chosenList.push(id);
+                            } else {
+                                utility.log(1, "Selected id is none:", id);
+                                pendingList.push(id);
+                            }
+                        });
+                    } else {
+                        utility.log(1, "Selected ids not found:", id, searchStr);
+                        $.merge(pendingList, clickedList);
+                    }
+                }
+
+                utility.log(2, "chosenList/pendingList", chosenList, pendingList);
+                for (it = 0, len = this.records.length; it < len; it += 1) {
+                    if (chosenList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(2, "chosen", this.records[it].userId);
+                        this.records[it].chosen = true;
+                        this.records[it].last = new Date().getTime();
+                    } else if (pendingList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(2, "pending", this.records[it].userId);
+                        this.records[it].last = new Date().getTime();
+                    }
+                }
+
+                caap.waitingForDomLoad = false;
+                gifting.save("queue");
+                return chosenList.length;
+            } catch (err) {
+                utility.error("ERROR in gifting.queue.chooseFriend2: " + err);
                 return undefined;
             }
         },
@@ -6398,7 +6770,7 @@ gifting = {
 
         received: function (record) {
             try {
-                if (!record || utility.typeOf(record) !== 'object') {
+                if (!record || !$.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -6408,10 +6780,11 @@ gifting = {
                 }
 
                 var it        = 0,
+                    len       = 0,
                     success   = false,
                     newRecord = {};
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].userId === record.userId) {
                         if (this.records[it].name !== record.name) {
                             this.records[it].name = record.name;
@@ -6446,7 +6819,7 @@ gifting = {
 
         sent: function (record) {
             try {
-                if (!record || utility.typeOf(record) !== 'object') {
+                if (!record || !$.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -6456,10 +6829,11 @@ gifting = {
                 }
 
                 var it        = 0,
+                    len       = 0,
                     success   = false,
                     newRecord = {};
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].userId === record.userId) {
                         if (this.records[it].name !== record.name) {
                             this.records[it].name = record.name;
@@ -6500,9 +6874,10 @@ gifting = {
                 }
 
                 var it       = 0,
+                    len      = 0,
                     sentOnce = false;
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].userId !== userId) {
                         continue;
                     }
@@ -6916,7 +7291,7 @@ caap = {
 
     SaveBoxText: function (idName) {
         try {
-            var boxText = $("#caap_" + idName).val();
+            var boxText = this.caapDivObject.find("#caap_" + idName).val();
             if (typeof boxText !== 'string') {
                 throw "Value of the textarea id='caap_" + idName + "' is not a string: " + boxText;
             }
@@ -6941,33 +7316,11 @@ caap = {
                 document.title = DocumentTitle + this.documentTitle;
             }
 
-            $('#caap_' + idName).html(mess);
+            this.caapDivObject.find('#caap_' + idName).html(mess);
         } catch (err) {
             utility.error("ERROR in SetDivContent: " + err);
         }
     },
-
-    questWhenList: [
-        'Energy Available',
-        'At Max Energy',
-        'At X Energy',
-        'Not Fortifying',
-        'Never'
-    ],
-
-    questWhenInst: [
-        'Energy Available - will quest whenever you have enough energy.',
-        'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
-        'At X Energy - allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
-        'Not Fortifying - will quest only when your fortify settings are matched.',
-        'Never - disables questing.'
-    ],
-
-    questAreaList: [
-        'Quest',
-        'Demi Quests',
-        'Atlantis'
-    ],
 
     landQuestList: [
         'Land of Fire',
@@ -6994,18 +7347,10 @@ caap = {
         'Atlantis'
     ],
 
-    questForList: [
-        'Advancement',
-        'Max Influence',
-        'Max Gold',
-        'Max Experience',
-        'Manual'
-    ],
-
     SelectDropOption: function (idName, value) {
         try {
-            $("#caap_" + idName + " option").removeAttr('selected');
-            $("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
+            this.caapDivObject.find("#caap_" + idName + " option").removeAttr('selected');
+            this.caapDivObject.find("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
             return true;
         } catch (err) {
             utility.error("ERROR in SelectDropOption: " + err);
@@ -7049,8 +7394,8 @@ caap = {
 
     ShowAutoQuest: function () {
         try {
-            $("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', this.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")");
-            $("#stopAutoQuest").css('display', 'block');
+            this.caapDivObject.find("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', this.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")");
+            this.caapDivObject.find("#stopAutoQuest").css('display', 'block');
             return true;
         } catch (err) {
             utility.error("ERROR in ShowAutoQuest: " + err);
@@ -7060,8 +7405,8 @@ caap = {
 
     ClearAutoQuest: function () {
         try {
-            $("#stopAutoQuest").text("");
-            $("#stopAutoQuest").css('display', 'none');
+            this.caapDivObject.find("#stopAutoQuest").text("");
+            this.caapDivObject.find("#stopAutoQuest").css('display', 'none');
             return true;
         } catch (err) {
             utility.error("ERROR in ClearAutoQuest: " + err);
@@ -7089,21 +7434,21 @@ caap = {
 
     ChangeDropDownList: function (idName, dropList, option) {
         try {
-            $("#caap_" + idName + " option").remove();
-            $("#caap_" + idName).append(this.defaultDropDownOption);
+            this.caapDivObject.find("#caap_" + idName + " option").remove();
+            this.caapDivObject.find("#caap_" + idName).append(this.defaultDropDownOption);
             for (var item = 0; item < dropList.length; item += 1) {
                 if (item === 0 && !option) {
                     config.setItem(idName, dropList[item]);
                     utility.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                 }
 
-                $("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
+                this.caapDivObject.find("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
             }
 
             if (option) {
-                $("#caap_" + idName + " option[value='" + option + "']").attr('selected', 'selected');
+                this.caapDivObject.find("#caap_" + idName + " option[value='" + option + "']").attr('selected', 'selected');
             } else {
-                $("#caap_" + idName + " option:eq(1)").attr('selected', 'selected');
+                this.caapDivObject.find("#caap_" + idName + " option:eq(1)").attr('selected', 'selected');
             }
 
             return true;
@@ -7112,24 +7457,6 @@ caap = {
             return false;
         }
     },
-
-    divList: [
-        'banner',
-        'activity_mess',
-        'idle_mess',
-        'quest_mess',
-        'battle_mess',
-        'monster_mess',
-        'fortify_mess',
-        'heal_mess',
-        'demipoint_mess',
-        'demibless_mess',
-        'level_mess',
-        'exp_mess',
-        'debug1_mess',
-        'debug2_mess',
-        'control'
-    ],
 
     controlXY: {
         selector : '.UIStandardFrame_Content',
@@ -7224,10 +7551,27 @@ caap = {
                     y: 0
                 },
                 htmlCode = '',
-                banner = '';
+                banner = '',
+                divList = [
+                    'banner',
+                    'activity_mess',
+                    'idle_mess',
+                    'quest_mess',
+                    'battle_mess',
+                    'monster_mess',
+                    'fortify_mess',
+                    'heal_mess',
+                    'demipoint_mess',
+                    'demibless_mess',
+                    'level_mess',
+                    'exp_mess',
+                    'debug1_mess',
+                    'debug2_mess',
+                    'control'
+                ];
 
-            for (divID = 0; divID < this.divList.length; divID += 1) {
-                caapDiv += "<div id='caap_" + this.divList[divID] + "'></div>";
+            for (divID = 0; divID < divList.length; divID += 1) {
+                caapDiv += "<div id='caap_" + divList[divID] + "'></div>";
             }
 
             caapDiv += "</div>";
@@ -7347,12 +7691,46 @@ caap = {
             var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.",
                 XQuestInstructions = "Start questing when energy is at or above this value.",
                 XMinQuestInstructions = "Stop quest when energy is at or below this value.",
+                questForList = [
+                    'Advancement',
+                    'Max Influence',
+                    'Max Gold',
+                    'Max Experience',
+                    'Manual'
+                ],
+                questForListInstructions = [
+                    'Advancement performs all the main quests in a sub quest area but not the secondary quests.',
+                    'Max Influence performs all the main and secondary quests in a sub quest area.',
+                    'Max Gold performs the quest in the specific area that yields the highest gold.',
+                    'Max Experience performs the quest in the specific area that yields the highest experience.',
+                    'Manual performs the specific quest that you have chosen.'
+                ],
+                questAreaList = [
+                    'Quest',
+                    'Demi Quests',
+                    'Atlantis'
+                ],
+                questWhenList = [
+                    'Energy Available',
+                    'At Max Energy',
+                    'At X Energy',
+                    'Not Fortifying',
+                    'Never'
+                ],
+                questWhenInst = [
+                    'Energy Available - will quest whenever you have enough energy.',
+                    'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
+                    'At X Energy - allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
+                    'Not Fortifying - will quest only when your fortify settings are matched.',
+                    'Never - disables questing.'
+                ],
+                stopInstructions = "This will stop and remove the chosen quest and set questing to manual.",
                 autoQuestName = state.getItem('AutoQuest', this.newAutoQuest()).name,
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Quests', 'QUEST');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
+            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', questWhenList, questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'At X Energy' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -7361,32 +7739,31 @@ caap = {
                 this.MakeNumberForm('XMinQuestEnergy', XMinQuestInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', this.questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-            switch (config.getItem('QuestArea', this.questAreaList[0])) {
+            htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>&nbsp;&nbsp;&nbsp;Sub Area</td><td style='text-align: right; width: 60%'>";
+            switch (config.getItem('QuestArea', questAreaList[0])) {
             case 'Quest' :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
-                    this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'");
                 break;
             case 'Demi Quests' :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
-                    this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'");
                 break;
             default :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
-                    this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'");
                 break;
             }
 
-            htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', this.questForList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += '</td></tr>';
+            htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', questForList, questForListInstructions, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', true, '', 'Allows switching quest area after Advancement or Max Influence');
             htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
             htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
             htmlCode += "</div>";
             if (autoQuestName) {
-                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")" + "</a>";
+                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;' title='" + stopInstructions + "'>Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")" + "</a>";
             } else {
-                htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;'></a>";
+                htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;' title='" + stopInstructions + "'></a>";
             }
 
             htmlCode += "<hr/></div>";
@@ -7468,6 +7845,8 @@ caap = {
                 ],
                 dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all raids only.",
                 collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.",
+                observeDemiFirstInstructions = "If you are setting Get demi Points First and No Attack If % Under in Monster then enabling this option " +
+                    "will cause Demi Points Only to observe the Demi Points requested in the case where No Attack If % Under is triggered.",
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Battling', 'BATTLE');
@@ -7481,6 +7860,10 @@ caap = {
             htmlCode += "<tr><td>Start Battles When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
                 this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "</div>";
+            htmlCode += "<div id='caap_WhenBattleDemiOnly' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Demi Points Only' ? 'none' : 'block') + "'>";
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, '', observeDemiFirstInstructions) + '</table>';
             htmlCode += "</div>";
             htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -7543,6 +7926,7 @@ caap = {
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
+                strengthenTo100Instructions = "Don't wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
                 mbattleList = [
                     'Stamina Available',
                     'At Max Stamina',
@@ -7564,13 +7948,6 @@ caap = {
                     'Corvintheus',
                     'Aurora',
                     'Azeron'
-                ],
-                demiPtList = [
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg" height="15" width="14"/>'
                 ],
                 demiPtItem = 0,
                 htmlCode = '';
@@ -7609,10 +7986,13 @@ caap = {
             htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
             htmlCode += this.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            for (demiPtItem = 0; demiPtItem < demiPtList.length; demiPtItem += 1) {
-                htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
+            htmlCode += "<span style='white-space: nowrap;'>";
+            for (demiPtItem = 0; demiPtItem < demiPoint.length; demiPtItem += 1) {
+                htmlCode += "<span title='" + demiPoint[demiPtItem] + "'><img alt='" + demiPoint[demiPtItem] + "' src='data:image/jpg;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>" +
+                    this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', '') + "</span>";
             }
 
+            htmlCode += "</span>";
             htmlCode += "</table>";
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -7622,7 +8002,7 @@ caap = {
                 this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td>No Attack If % Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, '', '') + '</table>';
+            htmlCode += this.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, '', strengthenTo100Instructions) + '</table>';
             htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
             htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
             htmlCode += "</div>";
@@ -7690,7 +8070,7 @@ caap = {
                 LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.",
                 LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.",
                 LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.",
-                LevelUpGenInstructions4 = "Use the Level Up General for Battle mode.",
+                LevelUpGenInstructions4 = "Use the Level Up General for Invade mode.",
                 LevelUpGenInstructions5 = "Use the Level Up General for Duel mode.",
                 LevelUpGenInstructions6 = "Use the Level Up General for War mode.",
                 LevelUpGenInstructions7 = "Use the Level Up General for doing sub-quests.",
@@ -7722,7 +8102,7 @@ caap = {
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
-            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Invades", 'InvadeLevelUpGeneral', true, '', LevelUpGenInstructions4);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
@@ -7768,7 +8148,7 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Spend All Possible", 'StatSpendAll', false, '', statSpendAllInstructions);
             htmlCode += this.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, '', statImmedInstructions);
-            htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
+            htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
             htmlCode += "<div id='caap_Status_Normal' style='display: " + (config.getItem('AutoStatAdv', false) ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
@@ -7837,7 +8217,19 @@ caap = {
             htmlCode += "<tr><td style='width: 25%'>Give</td><td style='text-align: right'>" +
                 this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions) + '</table>';
+            htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions);
+
+            htmlCode += this.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', '', true) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', '') + '</td></tr></table>';
+            htmlCode += '</div>';
+
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', '', true) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', '') + '</td></tr></table>';
+            htmlCode += '</div>';
+
             htmlCode += '</div>';
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -7898,8 +8290,16 @@ caap = {
                     'Energy',
                     'Attack',
                     'Defense',
-                    'Stamina',
-                    'Health'
+                    'Health',
+                    'Stamina'
+                ],
+                autoBlessListInstructions = [
+                    'None disables the auto bless feature.',
+                    'Energy performs an automatic daily blessing with Ambrosia.',
+                    'Attack performs an automatic daily blessing with Malekus.',
+                    'Defense performs an automatic daily blessing with Corvintheus.',
+                    'Health performs an automatic daily blessing with Aurora.',
+                    'Stamina performs an automatic daily blessing with Azeron.'
                 ],
                 htmlCode = '';
 
@@ -7926,7 +8326,7 @@ caap = {
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
-                this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+                this.MakeDropDown('AutoBless', autoBlessList, autoBlessListInstructions, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
@@ -8161,12 +8561,12 @@ caap = {
             }).appendTo(document.body);
 
             this.caapTopObject = $('#caap_top');
-            $("#caap_refreshMonsters").button();
-            $("#caap_clearTargets").button();
-            $("#caap_clearBattle").button();
-            $("#caap_clearGifting").button();
-            $("#caap_clearGiftQueue").button();
-            $("#caap_liveFeed").button();
+            this.caapTopObject.find("#caap_refreshMonsters").button();
+            this.caapTopObject.find("#caap_clearTargets").button();
+            this.caapTopObject.find("#caap_clearBattle").button();
+            this.caapTopObject.find("#caap_clearGifting").button();
+            this.caapTopObject.find("#caap_clearGiftQueue").button();
+            this.caapTopObject.find("#caap_liveFeed").button();
 
             return true;
         } catch (err) {
@@ -8258,10 +8658,6 @@ caap = {
         try {
             var html                     = '',
                 monsterList              = [],
-                monsterName              = '',
-                monstType                = '',
-                //energyRequire            = 0,
-                //nodeNum                  = 0,
                 color                    = '',
                 value                    = 0,
                 headers                  = [],
@@ -8288,17 +8684,20 @@ caap = {
                 titleCol                 = 'black',
                 valueCol                 = 'red',
                 it                       = 0,
+                len                      = 0,
+                len1                     = 0,
+                len2                     = 0,
                 str                      = '',
                 header                   = {text: '', color: '', id: '', title: '', width: ''},
                 data                     = {text: '', color: '', id: '', title: ''},
                 width                    = '',
                 handler;
 
-            if ($('#caap_top').length === 0) {
+            if (this.caapTopObject.length === 0) {
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!force && !utility.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
+            if (!force && !utility.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html()) {
                 if (this.UpdateDashboardWaitLog) {
                     utility.log(2, "Dashboard update is waiting on oneMinuteUpdate");
                     this.UpdateDashboardWaitLog = false;
@@ -8313,7 +8712,7 @@ caap = {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
                 values  = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     width = '';
                     if (headers[pp] === 'Name') {
                         width = '30%';
@@ -8327,27 +8726,6 @@ caap = {
                 utility.log(9, "monsterList", monsterList);
                 monster.records.forEach(function (monsterObj) {
                     utility.log(9, "monsterObj", monsterObj);
-                    //monsterName = monsterObj.name;
-                    //monstType = monsterObj.type;
-                    /*
-                    energyRequire = 10;
-                    nodeNum = 0;
-                    if (monster.info[monsterObj.type]) {
-                        if (!caap.InLevelUpMode() && config.getItem('PowerFortifyMax') && monster.info[monsterObj.type].staLvl) {
-                            for (nodeNum = monster.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max > monster.info[monsterObj.type].staLvl[nodeNum]) {
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax') && monster.info[monsterObj.type].nrgMax) {
-                            energyRequire = monster.info[monsterObj.type].nrgMax[nodeNum];
-                        }
-                    }
-                    */
-
-                    //utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
                     color = '';
                     html += "<tr>";
                     if (monsterObj.name === state.getItem('targetFromfortify', {}).name) {
@@ -8473,9 +8851,9 @@ caap = {
                     if (monsterObjLink) {
                         removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
                         utility.log(9, "removeLink", removeLink);
-                        removeLinkInstructions = "Clicking this link will remove " + monsterName + " from both CA and CAAP!";
+                        removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from both CA and CAAP!";
                         data = {
-                            text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterName + '" rlink="' + removeLink[1] +
+                            text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" rlink="' + removeLink[1] +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -8492,7 +8870,7 @@ caap = {
                 });
 
                 html += '</table>';
-                $("#caap_infoMonster").html(html);
+                this.caapTopObject.find("#caap_infoMonster").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -8501,9 +8879,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
                             visitMonsterLink.mname = e.target.attributes[i].nodeValue;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
@@ -8516,7 +8895,7 @@ caap = {
                     utility.ClickAjax(visitMonsterLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_monster_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_monster_']").unbind('click', handler).click(handler);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -8526,9 +8905,10 @@ caap = {
                         arlink    : ''
                     },
                     i = 0,
+                    len = 0,
                     resp = false;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
                             monsterRemove.mname = e.target.attributes[i].nodeValue;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
@@ -8551,7 +8931,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_remove_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_remove_']").unbind('click', handler).click(handler);
                 state.setItem("MonsterDashUpdate", false);
             }
 
@@ -8568,7 +8948,7 @@ caap = {
                 }
 
                 html += '</tr>';
-                for (i = 0; i < this.ReconRecordArray.length; i += 1) {
+                for (i = 0, len = this.ReconRecordArray.length; i < len; i += 1) {
                     html += "<tr>";
                     for (pp = 0; pp < values.length; pp += 1) {
                         if (/userID/.test(values[pp])) {
@@ -8604,7 +8984,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_infoTargets1").html(html);
+                this.caapTopObject.find("#caap_infoTargets1").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -8612,9 +8992,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -8625,7 +9006,7 @@ caap = {
                     utility.ClickAjax(visitUserIdLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
                 state.setItem("ReconDashUpdate", false);
             }
 
@@ -8642,9 +9023,9 @@ caap = {
                 }
 
                 html += '</tr>';
-                for (i = 0; i < battle.records.length; i += 1) {
+                for (i = 0, len = battle.records.length; i < len; i += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (/userId/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
                             userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + battle.records[i][values[pp]];
@@ -8670,17 +9051,18 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_infoBattle").html(html);
+                this.caapTopObject.find("#caap_infoBattle").html(html);
 
-                $("#caap_top span[id*='caap_battle_']").click(function (e) {
+                this.caapTopObject.find("span[id*='caap_battle_']").click(function (e) {
                     utility.log(9, "Clicked", e.target.id);
                     var visitUserIdLink = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -8701,7 +9083,7 @@ caap = {
             if (state.getItem("UserDashUpdate", true)) {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['Name', 'Value', 'Name', 'Value'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
 
@@ -9091,7 +9473,6 @@ caap = {
                 html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                 html += '</tr>';
 
-
                 html += "<tr>";
                 html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
                 html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
@@ -9117,7 +9498,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_userStats").html(html);
+                this.caapTopObject.find("#caap_userStats").html(html);
                 state.setItem("UserDashUpdate", false);
             }
 
@@ -9130,7 +9511,7 @@ caap = {
                 headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
                 values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
                 $.merge(generalValues, values);
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     header = {
                         text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                         color : 'blue',
@@ -9153,9 +9534,9 @@ caap = {
                 }
 
                 html += '</tr>';
-                for (it = 0; it < general.recordsSortable.length; it += 1) {
+                for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len; pp += 1) {
                         str = '';
                         if (isNaN(general.recordsSortable[it][values[pp]])) {
                             if (general.recordsSortable[it][values[pp]]) {
@@ -9182,7 +9563,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_generalsStats").html(html);
+                this.caapTopObject.find("#caap_generalsStats").html(html);
 
                 handler = function (e) {
                     var clicked = '';
@@ -9199,7 +9580,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_generalsStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_generalsStats_']").unbind('click', handler).click(handler);
                 state.setItem("GeneralsDashUpdate", false);
             }
 
@@ -9212,13 +9593,13 @@ caap = {
                 headers = ['Name', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
                 values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
                 $.merge(townValues, values);
-                for (i = 0; i < town.types.length; i += 1) {
+                for (i = 0, len = town.types.length; i < len; i += 1) {
                     if (!state.getItem(town.types[i].ucFirst() + "DashUpdate", true)) {
                         continue;
                     }
 
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    for (pp = 0; pp < headers.length; pp += 1) {
+                    for (pp = 0, len1 = headers.length; pp < len; pp += 1) {
                         header = {
                             text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                             color : 'blue',
@@ -9231,9 +9612,9 @@ caap = {
                     }
 
                     html += '</tr>';
-                    for (it = 0; it < town[town.types[i] + "Sortable"].length; it += 1) {
+                    for (it = 0, len1 = town[town.types[i] + "Sortable"].length; it < len1; it += 1) {
                         html += "<tr>";
-                        for (pp = 0; pp < values.length; pp += 1) {
+                        for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
                             str = '';
                             if (isNaN(town[town.types[i] + "Sortable"][it][values[pp]])) {
                                 if (town[town.types[i] + "Sortable"][it][values[pp]]) {
@@ -9263,7 +9644,7 @@ caap = {
                     }
 
                     html += '</table>';
-                    $("#caap_" + town.types[i] + "Stats").html(html);
+                    this.caapTopObject.find("#caap_" + town.types[i] + "Stats").html(html);
                 }
 
                 handler = function (e) {
@@ -9281,7 +9662,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_soldiersStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_soldiersStats_']").unbind('click', handler).click(handler);
                 state.setItem("SoldiersDashUpdate", false);
 
                 handler = function (e) {
@@ -9299,7 +9680,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_itemStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_itemStats_']").unbind('click', handler).click(handler);
                 state.setItem("ItemDashUpdate", false);
 
                 handler = function (e) {
@@ -9317,7 +9698,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_magicStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_magicStats_']").unbind('click', handler).click(handler);
                 state.setItem("MagicDashUpdate", false);
             }
 
@@ -9329,14 +9710,14 @@ caap = {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['UserId', 'Name', 'Received', 'Sent'];
                 values  = ['userId', 'name', 'received', 'sent'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
 
                 html += '</tr>';
-                for (i = 0; i < gifting.history.records.length; i += 1) {
+                for (i = 0, len = gifting.history.records.length; i < len; i += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (/userId/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + gifting.history.records[i][values[pp]];
                             userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + gifting.history.records[i][values[pp]];
@@ -9358,7 +9739,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_giftStats").html(html);
+                this.caapTopObject.find("#caap_giftStats").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -9366,9 +9747,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -9379,7 +9761,7 @@ caap = {
                     utility.ClickAjax(visitUserIdLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
                 state.setItem("GiftHistoryDashUpdate", false);
             }
 
@@ -9391,14 +9773,14 @@ caap = {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'];
                 values  = ['userId', 'name', 'gift', 'found'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
 
                 html += '</tr>';
-                for (i = 0; i < gifting.queue.records.length; i += 1) {
+                for (i = 0, len = gifting.queue.records.length; i < len; i += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (/userId/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + gifting.queue.records[i][values[pp]];
                             userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + gifting.queue.records[i][values[pp]];
@@ -9431,7 +9813,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_giftQueue").html(html);
+                this.caapTopObject.find("#caap_giftQueue").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -9439,9 +9821,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -9452,15 +9835,16 @@ caap = {
                     utility.ClickAjax(visitUserIdLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
                     var index = -1,
                         i = 0,
+                        len = 0,
                         resp = false;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'id') {
                             index = parseInt(e.target.attributes[i].nodeValue.replace("caap_removeq_", ""), 10);
                         }
@@ -9474,7 +9858,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_removeq_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_removeq_']").unbind('click', handler).click(handler);
                 state.setItem("GiftQueueDashUpdate", false);
             }
 
@@ -9491,56 +9875,56 @@ caap = {
     dbDisplayListener: function (e) {
         var value = e.target.options[e.target.selectedIndex].value;
         config.setItem('DBDisplay', value);
-        caap.SetDisplay('infoMonster', false);
-        caap.SetDisplay('infoTargets1', false);
-        caap.SetDisplay('infoBattle', false);
-        caap.SetDisplay('userStats', false);
-        caap.SetDisplay('generalsStats', false);
-        caap.SetDisplay('soldiersStats', false);
-        caap.SetDisplay('itemStats', false);
-        caap.SetDisplay('magicStats', false);
-        caap.SetDisplay('giftStats', false);
-        caap.SetDisplay('giftQueue', false);
-        caap.SetDisplay('buttonMonster', false);
-        caap.SetDisplay('buttonTargets', false);
-        caap.SetDisplay('buttonBattle', false);
-        caap.SetDisplay('buttonGifting', false);
-        caap.SetDisplay('buttonGiftQueue', false);
+        caap.SetDisplay("caapTopObject", 'infoMonster', false);
+        caap.SetDisplay("caapTopObject", 'infoTargets1', false);
+        caap.SetDisplay("caapTopObject", 'infoBattle', false);
+        caap.SetDisplay("caapTopObject", 'userStats', false);
+        caap.SetDisplay("caapTopObject", 'generalsStats', false);
+        caap.SetDisplay("caapTopObject", 'soldiersStats', false);
+        caap.SetDisplay("caapTopObject", 'itemStats', false);
+        caap.SetDisplay("caapTopObject", 'magicStats', false);
+        caap.SetDisplay("caapTopObject", 'giftStats', false);
+        caap.SetDisplay("caapTopObject", 'giftQueue', false);
+        caap.SetDisplay("caapTopObject", 'buttonMonster', false);
+        caap.SetDisplay("caapTopObject", 'buttonTargets', false);
+        caap.SetDisplay("caapTopObject", 'buttonBattle', false);
+        caap.SetDisplay("caapTopObject", 'buttonGifting', false);
+        caap.SetDisplay("caapTopObject", 'buttonGiftQueue', false);
         switch (value) {
         case "Target List" :
-            caap.SetDisplay('infoTargets1', true);
-            caap.SetDisplay('buttonTargets', true);
+            caap.SetDisplay("caapTopObject", 'infoTargets1', true);
+            caap.SetDisplay("caapTopObject", 'buttonTargets', true);
             break;
         case "Battle Stats" :
-            caap.SetDisplay('infoBattle', true);
-            caap.SetDisplay('buttonBattle', true);
+            caap.SetDisplay("caapTopObject", 'infoBattle', true);
+            caap.SetDisplay("caapTopObject", 'buttonBattle', true);
             break;
         case "User Stats" :
-            caap.SetDisplay('userStats', true);
+            caap.SetDisplay("caapTopObject", 'userStats', true);
             break;
         case "Generals Stats" :
-            caap.SetDisplay('generalsStats', true);
+            caap.SetDisplay("caapTopObject", 'generalsStats', true);
             break;
         case "Soldier Stats" :
-            caap.SetDisplay('soldiersStats', true);
+            caap.SetDisplay("caapTopObject", 'soldiersStats', true);
             break;
         case "Item Stats" :
-            caap.SetDisplay('itemStats', true);
+            caap.SetDisplay("caapTopObject", 'itemStats', true);
             break;
         case "Magic Stats" :
-            caap.SetDisplay('magicStats', true);
+            caap.SetDisplay("caapTopObject", 'magicStats', true);
             break;
         case "Gifting Stats" :
-            caap.SetDisplay('giftStats', true);
-            caap.SetDisplay('buttonGifting', true);
+            caap.SetDisplay("caapTopObject", 'giftStats', true);
+            caap.SetDisplay("caapTopObject", 'buttonGifting', true);
             break;
         case "Gift Queue" :
-            caap.SetDisplay('giftQueue', true);
-            caap.SetDisplay('buttonGiftQueue', true);
+            caap.SetDisplay("caapTopObject", 'giftQueue', true);
+            caap.SetDisplay("caapTopObject", 'buttonGiftQueue', true);
             break;
         case "Monster" :
-            caap.SetDisplay('infoMonster', true);
-            caap.SetDisplay('buttonMonster', true);
+            caap.SetDisplay("caapTopObject", 'infoMonster', true);
+            caap.SetDisplay("caapTopObject", 'buttonMonster', true);
             break;
         default :
         }
@@ -9578,17 +9962,17 @@ caap = {
     AddDBListener: function () {
         try {
             utility.log(1, "Adding listeners for caap_top");
-            if (!$('#caap_DBDisplay').length) {
+            if (!caap.caapTopObject.find('#caap_DBDisplay').length) {
                 caap.ReloadCastleAge();
             }
 
-            $('#caap_DBDisplay').change(this.dbDisplayListener);
-            $('#caap_refreshMonsters').click(this.refreshMonstersListener);
-            $('#caap_liveFeed').click(this.liveFeedButtonListener);
-            $('#caap_clearTargets').click(this.clearTargetsButtonListener);
-            $('#caap_clearBattle').click(this.clearBattleButtonListener);
-            $('#caap_clearGifting').click(this.clearGiftingButtonListener);
-            $('#caap_clearGiftQueue').click(this.clearGiftQueueButtonListener);
+            caap.caapTopObject.find('#caap_DBDisplay').change(this.dbDisplayListener);
+            caap.caapTopObject.find('#caap_refreshMonsters').click(this.refreshMonstersListener);
+            caap.caapTopObject.find('#caap_liveFeed').click(this.liveFeedButtonListener);
+            caap.caapTopObject.find('#caap_clearTargets').click(this.clearTargetsButtonListener);
+            caap.caapTopObject.find('#caap_clearBattle').click(this.clearBattleButtonListener);
+            caap.caapTopObject.find('#caap_clearGifting').click(this.clearGiftingButtonListener);
+            caap.caapTopObject.find('#caap_clearGiftQueue').click(this.clearGiftQueueButtonListener);
             utility.log(8, "Listeners added for caap_top");
             return true;
         } catch (err) {
@@ -9602,12 +9986,17 @@ caap = {
     // Watch for changes and update the controls
     /////////////////////////////////////////////////////////////////////
 
-    SetDisplay: function (idName, setting) {
+    SetDisplay: function (area, idName, setting) {
         try {
+            if (!this[area]) {
+                utility.warn("area", area);
+                throw "No such area!";
+            }
+
             if (setting === true) {
-                $('#caap_' + idName).css('display', 'block');
+                this[area].find('#caap_' + idName).css('display', 'block');
             } else {
-                $('#caap_' + idName).css('display', 'none');
+                this[area].find('#caap_' + idName).css('display', 'none');
             }
 
             return true;
@@ -9627,18 +10016,18 @@ caap = {
             utility.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
             config.setItem(idName, e.target.checked);
             if (e.target.className) {
-                caap.SetDisplay(e.target.className, e.target.checked);
+                caap.SetDisplay("caapDivObject", e.target.className, e.target.checked);
             }
 
             switch (idName) {
             case "AutoStatAdv" :
                 utility.log(9, "AutoStatAdv");
                 if (e.target.checked) {
-                    caap.SetDisplay('Status_Normal', false);
-                    caap.SetDisplay('Status_Adv', true);
+                    caap.SetDisplay("caapDivObject", 'Status_Normal', false);
+                    caap.SetDisplay("caapDivObject", 'Status_Adv', true);
                 } else {
-                    caap.SetDisplay('Status_Normal', true);
-                    caap.SetDisplay('Status_Adv', false);
+                    caap.SetDisplay("caapDivObject", 'Status_Normal', true);
+                    caap.SetDisplay("caapDivObject", 'Status_Adv', false);
                 }
 
                 state.setItem("statsMatch", true);
@@ -9681,9 +10070,9 @@ caap = {
             case "BannerDisplay" :
                 utility.log(9, "BannerDisplay");
                 if (e.target.checked) {
-                    $('#caap_BannerHide').css('display', 'block');
+                    caap.caapDivObject.find('#caap_BannerHide').css('display', 'block');
                 } else {
-                    $('#caap_BannerHide').css('display', 'none');
+                    caap.caapDivObject.find('#caap_BannerHide').css('display', 'none');
                 }
 
                 break;
@@ -9700,7 +10089,7 @@ caap = {
                 utility.log(9, idName);
                 if (e.target.checked) {
                     if (config.getItem('SetTitleAction', false)) {
-                        d = $('#caap_activity_mess').html();
+                        d = caap.caapDivObject.find('#caap_activity_mess').html();
                         if (d) {
                             DocumentTitle += d.replace("Activity: ", '') + " - ";
                         }
@@ -9719,7 +10108,8 @@ caap = {
             case "unlockMenu" :
                 utility.log(9, "unlockMenu");
                 if (e.target.checked) {
-                    $(":input[id^='caap_']").attr({disabled: true});
+                    caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: true});
+                    caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: true});
                     caap.caapDivObject.css('cursor', 'move').draggable({
                         stop: function () {
                             caap.SaveControlXY();
@@ -9734,7 +10124,8 @@ caap = {
                 } else {
                     caap.caapDivObject.css('cursor', '').draggable("destroy");
                     caap.caapTopObject.css('cursor', '').draggable("destroy");
-                    $(":input[id^='caap_']").attr({disabled: false});
+                    caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: false});
+                    caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: false});
                 }
 
                 break;
@@ -9845,11 +10236,12 @@ caap = {
                 config.setItem(idName, value);
                 e.target.title = title;
                 if (idName === 'WhenQuest' || idName === 'WhenBattle' || idName === 'WhenMonster') {
-                    caap.SetDisplay(idName + 'Hide', (value !== 'Never'));
+                    caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Never'));
                     if (idName === 'WhenBattle' || idName === 'WhenMonster') {
-                        caap.SetDisplay(idName + 'XStamina', (value === 'At X Stamina'));
-                        caap.SetDisplay('WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
-                        caap.SetDisplay('WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay("caapDivObject", idName + 'XStamina', (value === 'At X Stamina'));
+                        caap.SetDisplay("caapDivObject", 'WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay("caapDivObject", 'WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay("caapDivObject", 'WhenBattleDemiOnly', (config.getItem('WhenBattle', 'Never') === 'Demi Points Only'));
                         if (idName === 'WhenBattle') {
                             if (value === 'Never') {
                                 caap.SetDivContent('battle_mess', 'Battle off');
@@ -9866,7 +10258,7 @@ caap = {
                     }
 
                     if (idName === 'WhenQuest') {
-                        caap.SetDisplay(idName + 'XEnergy', (value === 'At X Energy'));
+                        caap.SetDisplay("caapDivObject", idName + 'XEnergy', (value === 'At X Energy'));
                     }
                 } else if (idName === 'QuestArea' || idName === 'QuestSubArea' || idName === 'WhyQuest') {
                     state.setItem('AutoQuest', caap.newAutoQuest());
@@ -9874,15 +10266,15 @@ caap = {
                     if (idName === 'QuestArea') {
                         switch (value) {
                         case "Quest" :
-                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                             caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
                             break;
                         case "Demi Quests" :
-                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                             caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
                             break;
                         case "Atlantis" :
-                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                             caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                             break;
                         default :
@@ -9894,32 +10286,32 @@ caap = {
                     state.getItem('BattleChainId', 0);
                     switch (value) {
                     case "Freshmeat" :
-                        caap.SetDisplay('FreshmeatSub', true);
-                        caap.SetDisplay('UserIdsSub', false);
-                        caap.SetDisplay('RaidSub', false);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', false);
                         break;
                     case "Userid List" :
-                        caap.SetDisplay('FreshmeatSub', false);
-                        caap.SetDisplay('UserIdsSub', true);
-                        caap.SetDisplay('RaidSub', false);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', false);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', true);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', false);
                         break;
                     case "Raid" :
-                        caap.SetDisplay('FreshmeatSub', true);
-                        caap.SetDisplay('UserIdsSub', false);
-                        caap.SetDisplay('RaidSub', true);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', true);
                         break;
                     default :
-                        caap.SetDisplay('FreshmeatSub', true);
-                        caap.SetDisplay('UserIdsSub', false);
-                        caap.SetDisplay('RaidSub', false);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', false);
                     }
                 } else if (idName === 'LevelUpGeneral') {
-                    caap.SetDisplay(idName + 'Hide', (value !== 'Use Current'));
+                    caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Use Current'));
                     utility.log(1, "HIDE", idName, value);
                 } else if (/Attribute?/.test(idName)) {
                     state.setItem("statsMatch", true);
                 } else if (idName === 'DisplayStyle') {
-                    caap.SetDisplay(idName + 'Hide', (value === 'Custom'));
+                    caap.SetDisplay("caapDivObject", idName + 'Hide', (value === 'Custom'));
                     switch (value) {
                     case "CA Skin" :
                         config.setItem("StyleBackgroundLight", "#E0C691");
@@ -9967,8 +10359,9 @@ caap = {
 
     TextAreaListener: function (e) {
         try {
-            var idName = e.target.id.replace(/caap_/i, '');
-            var value = e.target.value;
+            var idName = e.target.id.replace(/caap_/i, ''),
+                value = e.target.value;
+
             utility.log(1, 'Change: setting "' + idName + '" to ', value);
             if (idName === 'orderbattle_monster' || idName === 'orderraid') {
                 monster.flagFullReview();
@@ -9985,39 +10378,39 @@ caap = {
     },
 
     PauseListener: function (e) {
-        $('#caap_div').css({
+        caap.caapDivObject.css({
             'background': config.getItem('StyleBackgroundDark', '#fee'),
             'opacity': '1',
             'z-index': '3'
         });
 
-        $('#caap_top').css({
+        caap.caapTopObject.css({
             'background': config.getItem('StyleBackgroundDark', '#fee'),
             'opacity': '1'
         });
 
-        $('#caapPaused').css('display', 'block');
+        caap.caapDivObject.find('#caapPaused').css('display', 'block');
         state.setItem('caapPause', 'block');
     },
 
     RestartListener: function (e) {
-        $('#caapPaused').css('display', 'none');
-        $('#caap_div').css({
+        caap.caapDivObject.find('#caapPaused').css('display', 'none');
+        caap.caapDivObject.css({
             'background': config.getItem('StyleBackgroundLight', '#efe'),
             'opacity': config.getItem('StyleOpacityLight', 1),
             'z-index': state.getItem('caap_div_zIndex', '2'),
             'cursor': ''
         });
 
-        $('#caap_top').css({
+        caap.caapTopObject.css({
             'background': config.getItem('StyleBackgroundLight', '#efe'),
             'opacity': config.getItem('StyleOpacityLight', 1),
             'z-index': state.getItem('caap_top_zIndex', '1'),
             'cursor': ''
         });
 
-        $(":input[id*='caap_']").attr({disabled: false});
-        $('#unlockMenu').attr('checked', false);
+        caap.caapDivObject.find(":input[id*='caap_']").attr({disabled: false});
+        caap.caapDivObject.find('#unlockMenu').attr('checked', false);
         state.setItem('caapPause', 'none');
         state.setItem('ReleaseControl', true);
         state.setItem('resetselectMonster', true);
@@ -10025,12 +10418,15 @@ caap = {
     },
 
     ResetMenuLocationListener: function (e) {
+        var caap_divXY = {},
+            caap_topXY = {};
+
         state.deleteItem('caap_div_menuLeft');
         state.deleteItem('caap_div_menuTop');
         state.deleteItem('caap_div_zIndex');
         caap.controlXY.x = '';
         caap.controlXY.y = $(caap.controlXY.selector).offset().top;
-        var caap_divXY = caap.GetControlXY(true);
+        caap_divXY = caap.GetControlXY(true);
         caap.caapDivObject.css({
             'cursor' : '',
             'z-index' : '2',
@@ -10043,7 +10439,7 @@ caap = {
         state.deleteItem('caap_top_zIndex');
         caap.dashboardXY.x = '';
         caap.dashboardXY.y = $(caap.dashboardXY.selector).offset().top - 10;
-        var caap_topXY = caap.GetDashboardXY(true);
+        caap_topXY = caap.GetDashboardXY(true);
         caap.caapTopObject.css({
             'cursor' : '',
             'z-index' : '1',
@@ -10051,7 +10447,8 @@ caap = {
             'left' : caap_topXY.x + 'px'
         });
 
-        $(":input[id^='caap_']").attr({disabled: false});
+        caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: false});
+        caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: false});
     },
 
     FoldingBlockListener: function (e) {
@@ -10119,9 +10516,10 @@ caap = {
 
     windowResizeListener: function (e) {
         if (window.location.href.indexOf('castle_age')) {
-            var caap_divXY = caap.GetControlXY();
+            var caap_divXY = caap.GetControlXY(),
+                caap_topXY = caap.GetDashboardXY();
+
             caap.caapDivObject.css('left', caap_divXY.x + 'px');
-            var caap_topXY = caap.GetDashboardXY();
             caap.caapTopObject.css('left', caap_topXY.x + 'px');
         }
     },
@@ -10164,19 +10562,22 @@ caap = {
 
     AddListeners: function () {
         try {
+            var caapDiv         = null,
+                globalContainer = null;
+
             utility.log(1, "Adding listeners for caap_div");
-            if ($('#caap_div').length === 0) {
+            if (this.caapDivObject.length === 0) {
                 throw "Unable to find div for caap_div";
             }
 
-            $('#caap_div input:checkbox[id^="caap_"]').change(this.CheckBoxListener);
-            $('#caap_div input[data-subtype="text"]').change(this.TextBoxListener);
-            $('#caap_div input[data-subtype="number"]').change(this.NumberBoxListener);
-            $('#unlockMenu').change(this.CheckBoxListener);
-            $('#caap_div select[id^="caap_"]').change(this.DropBoxListener);
-            $('#caap_div textarea[id^="caap_"]').change(this.TextAreaListener);
-            $('#caap_div a[id^="caap_Switch"]').click(this.FoldingBlockListener);
-            $('#caap_FillArmy').click(function (e) {
+            this.caapDivObject.find('input:checkbox[id^="caap_"]').change(this.CheckBoxListener);
+            this.caapDivObject.find('input[data-subtype="text"]').change(this.TextBoxListener);
+            this.caapDivObject.find('input[data-subtype="number"]').change(this.NumberBoxListener);
+            this.caapDivObject.find('#unlockMenu').change(this.CheckBoxListener);
+            this.caapDivObject.find('select[id^="caap_"]').change(this.DropBoxListener);
+            this.caapDivObject.find('textarea[id^="caap_"]').change(this.TextAreaListener);
+            this.caapDivObject.find('a[id^="caap_Switch"]').click(this.FoldingBlockListener);
+            this.caapDivObject.find('#caap_FillArmy').click(function (e) {
                 state.setItem("FillArmy", true);
                 state.setItem("ArmyCount", 0);
                 state.setItem('FillArmyList', []);
@@ -10185,7 +10586,7 @@ caap = {
 
             });
 
-            $('#caap_StartedColorSelect').click(function (e) {
+            this.caapDivObject.find('#caap_StartedColorSelect').click(function (e) {
                 var display = 'none';
                 if ($('#caap_ColorSelectorDiv1').css('display') === 'none') {
                     display = 'block';
@@ -10194,7 +10595,7 @@ caap = {
                 $('#caap_ColorSelectorDiv1').css('display', display);
             });
 
-            $('#caap_StopedColorSelect').click(function (e) {
+            this.caapDivObject.find('#caap_StopedColorSelect').click(function (e) {
                 var display = 'none';
                 if ($('#caap_ColorSelectorDiv2').css('display') === 'none') {
                     display = 'block';
@@ -10203,8 +10604,8 @@ caap = {
                 $('#caap_ColorSelectorDiv2').css('display', display);
             });
 
-            $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
-            $('#caap_resetElite').click(function (e) {
+            this.caapDivObject.find('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
+            this.caapDivObject.find('#caap_resetElite').click(function (e) {
                 schedule.setItem('AutoEliteGetList', 0);
                 schedule.setItem('AutoEliteReqNext', 0);
                 state.setItem('AutoEliteEnd', '');
@@ -10214,25 +10615,36 @@ caap = {
                 }
             });
 
-            $('#caapRestart').click(this.RestartListener);
-            $('#caap_control').mousedown(this.PauseListener);
-            $('#stopAutoQuest').click(function (e) {
+            this.caapDivObject.find('#caapRestart').click(this.RestartListener);
+            this.caapDivObject.find('#caap_control').mousedown(this.PauseListener);
+            this.caapDivObject.find('#stopAutoQuest').click(function (e) {
                 utility.log(1, 'Change: setting stopAutoQuest and go to Manual');
                 caap.ManualAutoQuest();
             });
 
-            if ($('#app46755028429_globalContainer').length === 0) {
+            globalContainer = $('#app46755028429_globalContainer');
+            if (globalContainer.length === 0) {
                 throw 'Global Container not found';
             }
 
             // Fires when CAAP navigates to new location
-            $('#app46755028429_globalContainer').find('a').bind('click', this.whatClickedURLListener);
-            $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").bind('click', this.whatFriendBox);
+            globalContainer.find('a').bind('click', this.whatClickedURLListener);
+            globalContainer.find("div[id*='app46755028429_friend_box_']").bind('click', this.whatFriendBox);
 
-            $('#app46755028429_globalContainer').bind('DOMNodeInserted', function (event) {
-                var targetStr = event.target.id.replace('app46755028429_', '');
+            globalContainer.bind('DOMNodeInserted', function (event) {
+                var targetStr = event.target.id.replace('app46755028429_', ''),
+                    payTimer  = null,
+                    energy    = 0,
+                    tempE     = null,
+                    tempET    = null,
+                    health    = 0,
+                    tempH     = null,
+                    tempHT    = null,
+                    stamina   = 0,
+                    tempS     = null,
+                    tempST    = null;
+
                 // Uncomment this to see the id of domNodes that are inserted
-
                 /*
                 if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/i) && !event.target.id.match(/ticker/i) && !event.target.id.match(/caap/i)) {
                     caap.SetDivContent('debug2_mess', targetStr);
@@ -10247,8 +10659,8 @@ caap = {
                 if ($.inArray(targetStr, caap.targetList) !== -1) {
                     utility.log(9, "Refreshing DOM Listeners", event.target.id);
                     caap.waitingForDomLoad = false;
-                    $('#app46755028429_globalContainer').find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
-                    $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
+                    globalContainer.find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                    globalContainer.find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
                     window.setTimeout(function () {
                         caap.CheckResults();
                     }, 100);
@@ -10262,7 +10674,7 @@ caap = {
 
                 // Income timer
                 if (targetStr === "gold_time_value") {
-                    var payTimer = $(event.target).text().match(/([0-9]+):([0-9]+)/);
+                    payTimer = $(event.target).text().match(/([0-9]+):([0-9]+)/);
                     utility.log(10, "gold_time_value", payTimer);
                     if (payTimer && payTimer.length === 3) {
                         caap.stats.gold.payTime.ticker = payTimer[0];
@@ -10273,10 +10685,7 @@ caap = {
 
                 // Energy
                 if (targetStr === "energy_current_value") {
-                    var energy = parseInt($(event.target).text(), 10),
-                        tempE  = null,
-                        tempET = null;
-
+                    energy = parseInt($(event.target).text(), 10);
                     utility.log(9, "energy_current_value", energy);
                     if (utility.isNum(energy)) {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats.energy.max);
@@ -10292,10 +10701,7 @@ caap = {
 
                 // Health
                 if (targetStr === "health_current_value") {
-                    var health = parseInt($(event.target).text(), 10),
-                        tempH  = null,
-                        tempHT = null;
-
+                    health = parseInt($(event.target).text(), 10)
                     utility.log(9, "health_current_value", health);
                     if (utility.isNum(health)) {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats.health.max);
@@ -10311,10 +10717,7 @@ caap = {
 
                 // Stamina
                 if (targetStr === "stamina_current_value") {
-                    var stamina = parseInt($(event.target).text(), 10),
-                        tempS   = null,
-                        tempST  = null;
-
+                    stamina = parseInt($(event.target).text(), 10);
                     utility.log(9, "stamina_current_value", stamina);
                     if (utility.isNum(stamina)) {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats.stamina.max);
@@ -10335,7 +10738,6 @@ caap = {
             });
 
             $(window).unbind('resize', this.windowResizeListener).bind('resize', this.windowResizeListener);
-
             utility.log(8, "Listeners added for caap_div");
             return true;
         } catch (err) {
@@ -10343,7 +10745,6 @@ caap = {
             return false;
         }
     },
-
 
     /////////////////////////////////////////////////////////////////////
     //                          CHECK RESULTS
@@ -10467,7 +10868,7 @@ caap = {
                 return false;
             }
 
-            enlDiv = $("#caap_enl");
+            enlDiv = expDiv.find("#caap_enl");
             if (enlDiv.length) {
                 utility.log(8, "Experience to Next Level already displayed. Updating.");
                 enlDiv.html(this.stats.exp.dif);
@@ -10493,7 +10894,6 @@ caap = {
             }
 
             this.pageLoadOK = this.GetStats();
-
             this.AddExpDisplay();
             this.SetDivContent('level_mess', 'Expected next level: ' + schedule.FormatTime(new Date(this.stats.indicators.enl)));
             if ((config.getItem('DemiPointsFirst', false) && config.getItem('WhenMonster', 'Never') !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
@@ -10532,7 +10932,9 @@ caap = {
             }
 
             var page = 'None',
-                sigImage = '';
+                sigImage = '',
+                appBodyDiv = $("#app46755028429_app_body");
+
             if (pageUrl.match(new RegExp("\/[^\/]+.php", "i"))) {
                 page = pageUrl.match(new RegExp("\/[^\/]+.php", "i"))[0].replace('/', '').replace('.php', '');
                 utility.log(9, "Page match", page);
@@ -10545,14 +10947,14 @@ caap = {
                     sigImage = this.pageList[page].signaturePic;
                 }
 
-                if ($("img[src*='" + sigImage + "']").length) {
+                if (appBodyDiv.find("img[src*='" + sigImage + "']").length) {
                     state.setItem('page', page);
                     utility.log(9, "Page set value", page);
                 }
 
                 if (this.pageList[page].subpages) {
                     this.pageList[page].subpages.forEach(function (subpage) {
-                        if ($("img[src*='" + caap.pageList[subpage].signaturePic + "']").length) {
+                        if (appBodyDiv.find("img[src*='" + caap.pageList[subpage].signaturePic + "']").length) {
                             page = state.setItem('page', subpage);
                             utility.log(9, "Page pubpage", page);
                         }
@@ -10560,7 +10962,7 @@ caap = {
                 }
             }
 
-            var resultsDiv = $("span[class*='result_body']"),
+            var resultsDiv = appBodyDiv.find("#app46755028429_results_main_wrapper span[class*='result_body']"),
                 resultsText = '';
 
             if (resultsDiv && resultsDiv.length) {
@@ -10623,7 +11025,7 @@ caap = {
                 html = "<span title='Equipped Attack Power Index' style='font-size: 12px; font-weight: normal;'>EAPI:" + currentGeneral.eapi.toFixed(2) +
                        "</span> <span title='Equipped Defense Power Index' style='font-size: 12px; font-weight: normal;'>EDPI:" + currentGeneral.edpi.toFixed(2) +
                        "</span> <span title='Equipped Mean Power Index' style='font-size: 12px; font-weight: normal;'>EMPI:" + currentGeneral.empi.toFixed(2) + "</span>";
-                $("#app46755028429_general_name_div_int").append(html);
+                $("#app46755028429_app_body #app46755028429_general_name_div_int").append(html);
             }
 
             schedule.setItem("generals", gm.getItem("CheckGenerals", 24, hiddenVar) * 3600, 300);
@@ -10830,7 +11232,7 @@ caap = {
     },
 
     LoadStats: function () {
-        if (gm.getItem('stats.record', 'default') === 'default' || utility.typeOf(gm.getItem('stats.record', 'default')) !== 'object') {
+        if (gm.getItem('stats.record', 'default') === 'default' || !$.isPlainObject(gm.getItem('stats.record', 'default'))) {
             gm.setItem('stats.record', this.stats);
         } else {
             this.stats = gm.getItem('stats.record', this.stats);
@@ -10845,6 +11247,10 @@ caap = {
         utility.log(2, "Stats", this.stats);
         state.setItem("UserDashUpdate", true);
     },
+
+    ststbDiv: $("#app46755028429_main_ststb"),
+
+    bntpDiv: $("#app46755028429_main_bntp"),
 
     GetStats: function () {
         try {
@@ -10867,9 +11273,11 @@ caap = {
                 xS             = 0,
                 xE             = 0;
 
-            utility.log(8, "Getting Gold, Energy, Health, Stamina and Experience");
+            utility.log(1, "Getting Gold, Energy, Health, Stamina and Experience");
+            ststbDiv = $("#app46755028429_main_ststb");
+            bntpDiv = $("#app46755028429_main_bntp");
             // gold
-            cashDiv = $("#app46755028429_gold_current_value");
+            cashDiv = ststbDiv.find("#app46755028429_gold_current_value");
             if (cashDiv.length) {
                 utility.log(8, 'Getting current cash value');
                 temp = utility.NumberOnly(cashDiv.text());
@@ -10886,7 +11294,7 @@ caap = {
             }
 
             // energy
-            energyDiv = $("#app46755028429_st_2_2");
+            energyDiv = ststbDiv.find("#app46755028429_st_2_2");
             if (energyDiv.length) {
                 utility.log(8, 'Getting current energy levels');
                 tempT = this.GetStatusNumbers(energyDiv.text());
@@ -10904,7 +11312,7 @@ caap = {
             }
 
             // health
-            healthDiv = $("#app46755028429_st_2_3");
+            healthDiv = ststbDiv.find("#app46755028429_st_2_3");
             if (healthDiv.length) {
                 utility.log(8, 'Getting current health levels');
                 tempT = this.GetStatusNumbers(healthDiv.text());
@@ -10922,7 +11330,7 @@ caap = {
             }
 
             // stamina
-            staminaDiv = $("#app46755028429_st_2_4");
+            staminaDiv = ststbDiv.find("#app46755028429_st_2_4");
             if (staminaDiv.length) {
                 utility.log(8, 'Getting current stamina values');
                 tempT = this.GetStatusNumbers(staminaDiv.text());
@@ -10940,7 +11348,7 @@ caap = {
             }
 
             // experience
-            expDiv = $("#app46755028429_st_2_5");
+            expDiv = ststbDiv.find("#app46755028429_st_2_5");
             if (expDiv.length) {
                 utility.log(8, 'Getting current experience values');
                 temp = this.GetStatusNumbers(expDiv.text());
@@ -10956,7 +11364,7 @@ caap = {
             }
 
             // level
-            levelDiv = $("#app46755028429_st_5");
+            levelDiv = ststbDiv.find("#app46755028429_st_5");
             if (levelDiv.length) {
                 levelArray = levelDiv.text().match(/Level: ([0-9]+)!/);
                 if (levelArray && levelArray.length === 2) {
@@ -10978,7 +11386,7 @@ caap = {
             }
 
             // army
-            armyDiv = $("#app46755028429_main_bntp a[href*='army.php']");
+            armyDiv = bntpDiv.find("a[href*='army.php']");
             if (armyDiv.length) {
                 armyArray = armyDiv.text().match(/My Army \(([0-9]+)\)/);
                 if (armyArray && armyArray.length === 2) {
@@ -11001,7 +11409,7 @@ caap = {
             }
 
             // upgrade points
-            pointsDiv = $("#app46755028429_main_bntp a[href*='keep.php']");
+            pointsDiv = bntpDiv.find("a[href*='keep.php']");
             if (pointsDiv.length) {
                 pointsArray = pointsDiv.text().match(/My Stats \(\+([0-9]+)\)/);
                 if (pointsArray && pointsArray.length === 2) {
@@ -11531,7 +11939,7 @@ caap = {
             if (classDiv && classDiv.length === 6) {
                 classDiv.each(function (index) {
                     name = $(this).attr("class").replace("banner_", '');
-                    if (name && typeof caap.stats.character[name] === 'object') {
+                    if (name && $.isPlainObject(caap.stats.character[name])) {
                         //caap.stats.character[name].name = name.ucFirst();
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -11748,7 +12156,7 @@ caap = {
 
             if (whenQuest === 'Not Fortifying' || (config.getItem('PrioritiseMonsterAfterLvl', false) && state.getItem('KeepLevelUpGeneral', false))) {
                 var fortMon = state.getItem('targetFromfortify', {});
-                if (utility.typeOf(fortMon) === 'object' && fortMon.name && fortMon.type) {
+                if ($.isPlainObject(fortMon) && fortMon.name && fortMon.type) {
                     switch (fortMon.type) {
                     case "Fortify":
                         var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
@@ -13257,7 +13665,7 @@ caap = {
                     return false;
                 }
 
-                if (battle.selectedDemisDone(true)) {
+                if (battle.selectedDemisDone(true) || (config.getItem("DemiPointsFirst", false) && whenMonster !== 'Never' && config.getItem("observeDemiFirst", false) && state.getItem('DemiPointsDone', false))) {
                     return false;
                 }
 
@@ -13296,7 +13704,7 @@ caap = {
             battletype = config.getItem('BattleType', 'Invade');
             switch (battletype) {
             case 'Invade' :
-                useGeneral = 'BattleGeneral';
+                useGeneral = 'InvadeGeneral';
                 staminaReq = 1;
                 chainImg = 'battle_invade_again.gif';
                 if (general.LevelUpCheck(useGeneral)) {
@@ -13513,7 +13921,6 @@ caap = {
         try {
             var buttonsDiv            = null,
                 page                  = '',
-                pageUserCheck         = '',
                 monsterReviewed       = {},
                 startCount            = 0,
                 it                    = 0,
@@ -13650,9 +14057,11 @@ caap = {
                 damageDiv         = null,
                 chatDiv           = null,
                 chatArr           = [],
-                chatHtml          = '';
+                chatHtml          = '',
+                appBodyDiv        = null;
 
-            chatDiv = $("#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
+            appBodyDiv = $("#app46755028429_app_body");
+            chatDiv = appBodyDiv.find("#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
             if (chatDiv && chatDiv.length) {
                 chatDiv.each(function () {
                     chatHtml = $.trim($(this).html());
@@ -13673,14 +14082,14 @@ caap = {
                 });
             }
 
-            monsterDiv = $("div[style*='dragon_title_owner']");
+            monsterDiv = appBodyDiv.find("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
                 tempText = $.trim(monsterDiv.children(":eq(2)").text());
             } else {
-                monsterDiv = $("div[style*='nm_top']");
+                monsterDiv = appBodyDiv.find("div[style*='nm_top']");
                 if (monsterDiv && monsterDiv.length) {
                     tempText = $.trim(monsterDiv.children(":eq(0)").children(":eq(0)").text());
-                    tempDiv = $("div[style*='nm_bars']");
+                    tempDiv = appBodyDiv.find("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
                         tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
                     } else {
@@ -13693,7 +14102,7 @@ caap = {
                 }
             }
 
-            if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
+            if (monsterDiv && monsterDiv.length && monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
                 utility.log(1, "monster name found", tempText);
                 tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
@@ -13705,7 +14114,7 @@ caap = {
             }
 
             if (currentMonster.type === 'Siege') {
-                tempDiv = $("div[style*='raid_back']");
+                tempDiv = appBodyDiv.find("div[style*='raid_back']");
                 if (tempDiv && tempDiv.length) {
                     if (tempDiv.find("img[src*='raid_1_large.jpg']").length) {
                         currentMonster.type = 'Raid I';
@@ -13725,7 +14134,7 @@ caap = {
             currentMonster.review = new Date().getTime();
             state.setItem('monsterRepeatCount', 0);
             // Extract info
-            tempDiv = $("#app46755028429_monsterTicker");
+            tempDiv = appBodyDiv.find("#app46755028429_monsterTicker");
             if (tempDiv && tempDiv.length) {
                 utility.log(2, "Monster ticker found.");
                 time = tempDiv.text().split(":");
@@ -13744,7 +14153,7 @@ caap = {
 
                 switch (monster.info[currentMonster.type].defense_img) {
                 case 'bar_dispel.gif' :
-                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
+                    tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -13758,7 +14167,7 @@ caap = {
 
                     break;
                 case 'seamonster_ship_health.jpg' :
-                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
+                    tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -13768,7 +14177,7 @@ caap = {
                         }
 
                         if (monster.info[currentMonster.type].repair_img) {
-                            tempDiv = $("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
+                            tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
                             if (tempDiv && tempDiv.length) {
                                 // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                                 if ($().jquery === "1.4.3") {
@@ -13786,7 +14195,7 @@ caap = {
 
                     break;
                 case 'nm_green.jpg' :
-                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
+                    tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -13807,7 +14216,7 @@ caap = {
             }
 
             // Get damage done to monster
-            damageDiv = $("td[class='dragonContainer'] td[valign='top'] a[href*='user=" + this.stats.FBID + "']");
+            damageDiv = appBodyDiv.find("#app46755028429_action_logs td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + this.stats.FBID + "']:first");
             if (damageDiv && damageDiv.length) {
                 if (monster.info[currentMonster.type] && monster.info[currentMonster.type].defense) {
                     tempArr = $.trim(damageDiv.parent().parent().siblings(":last").text()).match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def"));
@@ -13838,7 +14247,7 @@ caap = {
                 counter = state.getItem('monsterReviewCounter', -3);
                 if (counter >= 0 && monster.records[counter] && monster.records[counter].name === currentMonster.name && ($("a[href*='&action=collectReward']").length || $("input[alt*='Collect Reward']").length)) {
                     utility.log(1, 'Collecting Reward');
-                    currentMonster.review = 1;
+                    currentMonster.review = -1;
                     state.setItem('monsterReviewCounter', counter -= 1);
                     currentMonster.status = 'Collect Reward';
                     if (currentMonster.name.indexOf('Siege') >= 0) {
@@ -13857,7 +14266,7 @@ caap = {
                 monstHealthImg = 'monster_health_background.jpg';
             }
 
-            monsterDiv = $("img[src*='" + monstHealthImg + "']");
+            monsterDiv = appBodyDiv.find("img[src*='" + monstHealthImg + "']");
             if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
                 currentMonster.time = time;
                 //currentMonster.timeLeft = time[0] + ":" + time[1];
@@ -13883,7 +14292,7 @@ caap = {
 
                 if (damageDiv && damageDiv.length && monster.info[currentMonster.type] && monster.info[currentMonster.type].alpha) {
                     // Character type stuff
-                    monsterDiv = $("div[style*='nm_bottom']");
+                    monsterDiv = appBodyDiv.find("div[style*='nm_bottom']");
                     if (monsterDiv && monsterDiv.length) {
                         tempText = $.trim(monsterDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
                         if (tempText) {
@@ -13984,12 +14393,12 @@ caap = {
                 if (monster.info[currentMonster.type] && monster.info[currentMonster.type].siege) {
                     missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monster.info[currentMonster.type].alpha) {
-                        currentMonster.miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim(appBodyDiv.find("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
-                        tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
+                        tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
                         currentMonster.miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
                     } else {
-                        currentMonster.miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim(appBodyDiv.find("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }
 
                     if (currentMonster.type.indexOf('Raid') >= 0) {
@@ -13997,7 +14406,7 @@ caap = {
                     } else {
                         totalCount = 1;
                         for (ind = 0; ind < monster.info[currentMonster.type].siege_img.length; ind += 1) {
-                            totalCount += $("img[src*=" + monster.info[currentMonster.type].siege_img[ind] + "]").size();
+                            totalCount += appBodyDiv.find("img[src*=" + monster.info[currentMonster.type].siege_img[ind] + "]").size();
                         }
                     }
 
@@ -14273,13 +14682,14 @@ caap = {
                     monster.records[counter].life = -1;
                     monster.records[counter].fortify = -1;
                     monster.records[counter].strength = -1;
-                    //monster.records[counter].timeLeft = '';
-                    monster.records[counter].timeLeft = [];
+                    monster.records[counter].time = [];
                     monster.records[counter].t2k = -1;
                     monster.records[counter].phase = '';
+                    monster.save();
                 }
 
-                tempTime = monster.records[counter].review ? monster.records[counter].review : new Date(2009, 0, 1).getTime();
+                tempTime = monster.records[counter].review ? monster.records[counter].review : -1;
+                utility.log(1, "review", monster.records[counter], !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60));
                 if (monster.records[counter].status === 'Complete' || !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
                     state.setItem('monsterReviewCounter', counter += 1);
                     state.setItem('monsterRepeatCount', 0);
@@ -14829,7 +15239,7 @@ caap = {
             }
 
             if (battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false) && this.stats.health.num < 13) {
-                this.SetDivContent('battle_mess', "Unsafe. Need spare health to fight: " + this.stats.health.num + "/12");
+                this.SetDivContent('battle_mess', "Unsafe. Need spare health to fight: " + this.stats.health.num + "/13");
                 return false;
             }
 
@@ -15256,11 +15666,11 @@ caap = {
                 minStamToHeal = 0;
             }
 
-            if (!this.stats.health || utility.isEmpty(this.stats.health) || utility.isEmpty(this.stats.healthT)) {
+            if (!this.stats.health || $.isEmptyObject(this.stats.health) || $.isEmptyObject(this.stats.healthT)) {
                 return false;
             }
 
-            if (!this.stats.stamina || utility.isEmpty(this.stats.stamina) || utility.isEmpty(this.stats.staminaT)) {
+            if (!this.stats.stamina || $.isEmptyObject(this.stats.stamina) || $.isEmptyObject(this.stats.staminaT)) {
                 return false;
             }
 
@@ -15449,24 +15859,18 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     CheckResults_army: function (resultsText) {
-        if (config.getItem('AutoGift', false)) {
-            if ($("a[href*='reqs.php#confirm_46755028429_0']").length) {
+        var listHref = null,
+            link     = '',
+            autoGift = false;
+
+        autoGift = config.getItem('AutoGift', false);
+        listHref = $("#app46755028429_app_body div[class='messages'] a[href*='army.php?act=ignore']");
+        if (listHref && listHref.length) {
+            if (autoGift) {
                 utility.log(1, 'We have a gift waiting!');
                 state.setItem('HaveGift', true);
-            } else {
-                utility.log(1, 'No gifts waiting.');
-                state.setItem('HaveGift', false);
             }
 
-            schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
-        }
-
-        var listHref = null,
-            i        = 0,
-            link     = '';
-
-        listHref = $("a[href*='army.php?act=ignore']");
-        if (listHref && listHref.length) {
             listHref.each(function () {
                 link = "<br /><a title='This link can be used to collect the " +
                     "gift when it has been lost on Facebook. !!If you accept a gift " +
@@ -15474,6 +15878,15 @@ caap = {
                     "href='" + $(this).attr("href").replace('ignore', 'acpt') + "'>Lost Accept</a>";
                 $(link).insertAfter($(this));
             });
+        } else {
+            if (autoGift) {
+                utility.log(1, 'No gifts waiting.');
+                state.setItem('HaveGift', false);
+            }
+        }
+
+        if (autoGift) {
+            schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
         }
     },
 
@@ -15494,7 +15907,7 @@ caap = {
 
         list.sort(sortfunc);
         for (i = 0; i < list.length; i += 1) {
-            if (deep && typeof obj[list[i]] === 'object') {
+            if (deep && $.isPlainObject(obj[list[i]])) {
                 output[list[i]] = this.SortObject(obj[list[i]], sortfunc, deep);
             } else {
                 output[list[i]] = obj[list[i]];
@@ -15708,7 +16121,7 @@ caap = {
                     utility.log(1, "Unknown gift, using first", giftChoice, giftImg);
                 }
 
-                if (gifting.queue.chooseFriend(5)) {
+                if (gifting.queue.chooseFriend2(5)) {
                     tempDiv = $("form[id*='req_form_'] input[name='send']");
                     if (tempDiv && tempDiv.length) {
                         utility.Click(tempDiv.get(0));
@@ -15723,7 +16136,7 @@ caap = {
                 }
             }
 
-            if (utility.isEmpty(gifting.getCurrent())) {
+            if ($.isEmptyObject(gifting.getCurrent())) {
                 return false;
             }
 
@@ -16918,8 +17331,8 @@ caap = {
 
 utility.log(1, "Starting CAAP ... waiting page load");
 utility.setTimeout(function () {
-        utility.error('DOM onload timeout!!! Releading ...', window.location.href);
-        window.location.href = window.location.href;
+        utility.error('DOM onload timeout!!! Reloading ...', window.location.href);
+        window.location.reload();
     }, 180000);
 
 /////////////////////////////////////////////////////////////////////

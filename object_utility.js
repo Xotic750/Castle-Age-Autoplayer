@@ -188,6 +188,7 @@ utility = {
         }
     },
 
+    /*
     typeOf: function (obj) {
         try {
             var s = typeof obj;
@@ -233,15 +234,6 @@ utility = {
         }
     },
 
-    isNum: function (value) {
-        try {
-            return (!isNaN(value) && typeof value === 'number');
-        } catch (err) {
-            this.error("ERROR in utility.isNum: " + err);
-            return undefined;
-        }
-    },
-
     isInt: function (value) {
         try {
             var y = parseInt(value, 10);
@@ -252,6 +244,16 @@ utility = {
             return value === y && value.toString() === y.toString();
         } catch (err) {
             this.error("ERROR in utility.isInt: " + err);
+            return undefined;
+        }
+    },
+    */
+
+    isNum: function (value) {
+        try {
+            return $.type(value) === 'number';
+        } catch (err) {
+            this.error("ERROR in utility.isNum: " + err);
             return undefined;
         }
     },
@@ -381,13 +383,14 @@ utility = {
         try {
             var theArray  = [],
                 tempArray = [],
-                it        = 0;
+                it        = 0,
+                len       = 0;
 
             if (typeof text === 'string' && text !== '') {
                 text = text.replace(/,/g, '\n').replace(/ /g, '');
                 tempArray = text.split('\n');
                 if (tempArray && tempArray.length) {
-                    for (it = 0; it < tempArray.length; it += 1) {
+                    for (it = 0, len = tempArray.length; it < len; it += 1) {
                         if (tempArray[it] !== '') {
                             theArray.push(isNaN(tempArray[it]) ? tempArray[it] : parseFloat(tempArray[it]));
                         }

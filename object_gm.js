@@ -112,10 +112,11 @@ gm = {
                 localStorage.clear();
             } else {
                 var storageKeys = [],
-                    key         = 0;
+                    key         = 0,
+                    len         = 0;
 
                 storageKeys = GM_listValues();
-                for (key = 0; key < storageKeys.length; key += 1) {
+                for (key = 0, len = storageKeys.length; key < len; key += 1) {
                     if (storageKeys[key].match(new RegExp(this.namespace + "." + caap.stats.FBID))) {
                         GM_deleteValue(storageKeys[key]);
                     }
@@ -127,8 +128,9 @@ gm = {
             utility.error("ERROR in gm.clear: " + error, arguments.callee.caller);
             return false;
         }
-    },
+    }
 
+    /*
     length: function (name) {
         try {
             if (typeof name !== 'string' || name === '') {
@@ -274,4 +276,5 @@ gm = {
             return undefined;
         }
     }
+    */
 };

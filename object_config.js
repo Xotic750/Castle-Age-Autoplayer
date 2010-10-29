@@ -24,7 +24,7 @@ config = {
 
     load: function () {
         try {
-            if (gm.getItem('config.options', 'default') === 'default' || utility.typeOf(gm.getItem('config.options', 'default')) !== 'object') {
+            if (gm.getItem('config.options', 'default') === 'default' || !$.isPlainObject(gm.getItem('config.options', 'default'))) {
                 gm.setItem('config.options', this.options);
             } else {
                 this.options = gm.getItem('config.options', this.options);

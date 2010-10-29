@@ -110,7 +110,7 @@ town = {
 
             this[type] = [];
             this[type + 'Sortable'] = [];
-            rowDiv = $("td[class*='eq_buy_row']");
+            rowDiv = $("#app46755028429_app_body td[class*='eq_buy_row']");
             if (rowDiv && rowDiv.length) {
                 rowDiv.each(function (index) {
                     current = new town.record();
@@ -183,9 +183,10 @@ town = {
             }
 
             var it     = 0,
+                len    = 0,
                 haveIt = false;
 
-            for (it = 0; it < this.magic.length; it += 1) {
+            for (it = 0, len = this.magic.length; it < len; it += 1) {
                 if (this.magic[it].name === name) {
                     if (this.magic[it].owned) {
                         haveIt = true;

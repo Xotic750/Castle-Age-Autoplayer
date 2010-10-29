@@ -132,15 +132,18 @@ general = {
 
     find: function (general) {
         try {
-            var it = 0;
+            var it    = 0,
+                len   = 0,
+                found = false;
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === general) {
+                    found = true;
                     break;
                 }
             }
 
-            if (it >= this.records.length) {
+            if (!found) {
                 utility.warn("Unable to find 'General' record");
                 return false;
             }
@@ -155,9 +158,10 @@ general = {
     GetNames: function () {
         try {
             var it    = 0,
+                len   = 0,
                 names = [];
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 names.push(this.records[it].name);
             }
 
@@ -261,9 +265,10 @@ general = {
     GetLevelUpNames: function () {
         try {
             var it    = 0,
+                len   = 0,
                 names = [];
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].lvl < 4) {
                     names.push(this.records[it].name);
                 }
@@ -290,7 +295,7 @@ general = {
         'Idle',
         'Monster',
         'Fortify',
-        'Battle',
+        'Invade',
         'Duel',
         'War',
         'SubQuest'
@@ -382,7 +387,8 @@ general = {
                         def       = 0,
                         special   = '',
                         container = $(this),
-                        it        = 0;
+                        it        = 0,
+                        len       = 0;
 
                     tempObj = container.find(".general_name_div3");
                     if (tempObj && tempObj.length) {
@@ -421,7 +427,7 @@ general = {
                     }
 
                     if (name && img && level && utility.isNum(atk) && utility.isNum(def) && special) {
-                        for (it = 0; it < general.records.length; it += 1) {
+                        for (it = 0, len = general.records.length; it < len; it += 1) {
                             if (general.records[it].name === name) {
                                 newGeneral.data = general.records[it];
                                 break;
@@ -474,12 +480,13 @@ general = {
 
     UpdateDropDowns: function () {
         try {
+            var it  = 0,
+                len = 0;
+
             this.BuildlLists();
             utility.log(1, "Updating 'General' Drop Down Lists");
-            for (var generalType in this.StandardList) {
-                if (this.StandardList.hasOwnProperty(generalType)) {
-                    caap.ChangeDropDownList(this.StandardList[generalType] + 'General', this.List, config.getItem(this.StandardList[generalType] + 'General', 'Use Current'));
-                }
+            for (it = 0, len = this.StandardList.length; it < len; it += 1) {
+                caap.ChangeDropDownList(this.StandardList[it] + 'General', this.List, config.getItem(this.StandardList[it] + 'General', 'Use Current'));
             }
 
             caap.ChangeDropDownList('BuyGeneral', this.BuyList, config.getItem('BuyGeneral', 'Use Current'));
@@ -509,7 +516,7 @@ general = {
     LevelUpCheck: function (whichGeneral) {
         try {
             var generalType = '',
-                use = false,
+                use         = false,
                 keepGeneral = false;
 
             generalType = $.trim(whichGeneral.replace(/General/i, ''));
@@ -606,6 +613,7 @@ general = {
         try {
             var generalName  = '',
                 it           = 0,
+                len          = 0,
                 generalDiv   = null,
                 tempObj      = null,
                 success      = false;
@@ -616,7 +624,7 @@ general = {
             }
 
             utility.log(1, "Equipped 'General'", generalName);
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === generalName) {
                     break;
                 }
@@ -676,9 +684,10 @@ general = {
 
             var generalImage = '',
                 it           = 0,
+                len          = 0,
                 theGeneral   = '';
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (schedule.since(this.records[it].last, gm.getItem("GeneralLastReviewed", 24, hiddenVar) * 3600)) {
                     break;
                 }

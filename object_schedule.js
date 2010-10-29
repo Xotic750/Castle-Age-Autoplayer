@@ -24,7 +24,7 @@ schedule = {
 
     load: function () {
         try {
-            if (gm.getItem('schedule.timers', 'default') === 'default' || utility.typeOf(gm.getItem('schedule.timers', 'default')) !== 'object') {
+            if (gm.getItem('schedule.timers', 'default') === 'default' || !$.isPlainObject(gm.getItem('schedule.timers', 'default'))) {
                 gm.setItem('schedule.timers', this.timers);
             } else {
                 this.timers = gm.getItem('schedule.timers', this.timers);
@@ -84,7 +84,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 throw "Invalid or non-existant timer! " + name;
             }
 
@@ -101,7 +101,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
             }
 
@@ -120,7 +120,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
@@ -145,7 +145,7 @@ schedule = {
                     throw "Invalid identifying name! (" + name_or_number + ")";
                 }
 
-                if (utility.typeOf(this.timers[name_or_number]) !== 'object') {
+                if (!$.isPlainObject(this.timers[name_or_number])) {
                     if (utility.logLevel > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
@@ -216,7 +216,7 @@ schedule = {
                 throw "Invalid identifying name!";
             }
 
-            if (utility.typeOf(this.timers[name]) !== 'object') {
+            if (!$.isPlainObject(this.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }

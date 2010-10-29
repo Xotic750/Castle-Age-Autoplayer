@@ -141,6 +141,7 @@ battle = {
     getItem: function (userId) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false,
                 newRecord = null;
 
@@ -149,7 +150,7 @@ battle = {
                 throw "Invalid identifying userId!";
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].userId === userId) {
                     success = true;
                     break;
@@ -173,7 +174,7 @@ battle = {
 
     setItem: function (record) {
         try {
-            if (!record || utility.typeOf(record) !== 'object') {
+            if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -183,9 +184,10 @@ battle = {
             }
 
             var it      = 0,
+                len     = 0,
                 success = false;
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].userId === record.userId) {
                     success = true;
                     break;
@@ -211,6 +213,7 @@ battle = {
     deleteItem: function (userId) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false;
 
             if (!utility.isNum(userId) || userId < 1) {
@@ -218,7 +221,7 @@ battle = {
                 throw "Invalid identifying userId!";
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].userId === userId) {
                     success = true;
                     break;
@@ -266,7 +269,8 @@ battle = {
 
     getResult: function () {
         try {
-            var resultsDiv    = null,
+            var wrapperDiv    = null,
+                resultsDiv    = null,
                 tempDiv       = null,
                 tempText      = '',
                 tempArr       = [],
@@ -282,13 +286,14 @@ battle = {
                     hiding     : false
                 };
 
-            if ($("#app46755028429_results_main_wrapper img[src*='battle_victory.gif']").length) {
+            wrapperDiv = $("#app46755028429_results_main_wrapper");
+            if (wrapperDiv.find("img[src*='battle_victory.gif']").length) {
                 warWinLoseImg = 'war_win_left.jpg';
                 result.win = true;
-            } else if ($("#app46755028429_results_main_wrapper img[src*='battle_defeat.gif']").length) {
+            } else if (wrapperDiv.find("img[src*='battle_defeat.gif']").length) {
                 warWinLoseImg = 'war_lose_left.jpg';
             } else {
-                resultsDiv = $("#app46755028429_results_main_wrapper span[class='result_body']");
+                resultsDiv = wrapperDiv.find("span[class='result_body']");
                 if (resultsDiv && resultsDiv.length) {
                     tempText = $.trim(resultsDiv.text());
                     if (tempText && tempText.match(/Your opponent is hiding, please try again/)) {
@@ -303,9 +308,9 @@ battle = {
                 }
             }
 
-            if ($("#app46755028429_results_main_wrapper img[src*='war_button_war_council.gif']").length) {
+            if (wrapperDiv.find("img[src*='war_button_war_council.gif']").length) {
                 result.battleType = 'War';
-                resultsDiv = $("#app46755028429_results_main_wrapper div[class='result']");
+                resultsDiv = wrapperDiv.find("div[class='result']");
                 if (resultsDiv && resultsDiv.length) {
                     tempDiv = resultsDiv.find("img[src*='war_rank_small_icon']:first");
                     if (tempDiv && tempDiv.length) {
@@ -361,20 +366,20 @@ battle = {
                     throw "Unable to get userId!";
                 }
             } else {
-                if ($("#app46755028429_results_main_wrapper input[src*='battle_invade_again.gif']").length) {
+                if (wrapperDiv.find("input[src*='battle_invade_again.gif']").length) {
                     result.battleType = 'Invade';
-                } else if ($("#app46755028429_results_main_wrapper input[src*='battle_duel_again.gif']").length) {
+                } else if (wrapperDiv.find("input[src*='battle_duel_again.gif']").length) {
                     result.battleType = 'Duel';
                 } else {
-                    if ($("#app46755028429_results_main_wrapper img[src*='icon_weapon.gif']").length) {
+                    if (wrapperDiv.find("img[src*='icon_weapon.gif']").length) {
                         result.battleType = 'Duel';
-                    } else if ($("#app46755028429_results_main_wrapper div[class='full_invade_results']").length) {
+                    } else if (wrapperDiv.find("div[class='full_invade_results']").length) {
                         result.battleType = 'Invade';
                     }
                 }
 
                 if (result.battleType) {
-                    resultsDiv = $("#app46755028429_results_main_wrapper div[class='result']");
+                    resultsDiv = wrapperDiv.find("div[class='result']");
                     if (resultsDiv && resultsDiv.length) {
                         tempDiv = resultsDiv.find("img[src*='battle_rank_small_icon']:first");
                         if (tempDiv && tempDiv.length) {
@@ -496,7 +501,7 @@ battle = {
                 battleRecord = {},
                 dead         = false;
 
-            resultsDiv = $("div[class='results']");
+            resultsDiv = $("#app46755028429_app_body div[class='results']");
             if (resultsDiv && resultsDiv.length) {
                 resultsText = $.trim(resultsDiv.text());
                 if (resultsText) {
@@ -752,6 +757,7 @@ battle = {
                 battleRecord    = {},
                 tempTime        = 0,
                 it              = 0,
+                len             = 0,
                 tr              = null,
                 form            = null,
                 firstId         = '',
@@ -759,7 +765,7 @@ battle = {
                 engageButton    = null;
 
             utility.log(2, 'target img', this.battles[type][config.getItem('BattleType', 'Invade')]);
-            inputDiv = $("input[src*='" + this.battles[type][config.getItem('BattleType', 'Invade')] + "']");
+            inputDiv = $("#app46755028429_app_body input[src*='" + this.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
                 utility.warn('Not on battlepage');
                 return false;
@@ -806,11 +812,11 @@ battle = {
                 utility.warn("FreshMeatARMin is NaN, using default", ARMin);
             }
 
-            for (it = 0; it < inputDiv.length; it += 1) {
+            for (it = 0, len = inputDiv.length; it < len; it += 1) {
                 tr = null;
                 levelm = [];
                 txt = '';
-                tempTime = new Date(2009, 0, 1).getTime();
+                tempTime = -1;
                 tempRecord = {};
                 tempRecord.button = inputDiv.eq(it);
                 if (type === 'Raid') {
@@ -1042,7 +1048,7 @@ battle = {
                     }
                 } else {
                     lastBattleID = state.getItem("lastBattleID", 0);
-                    for (it = 0; it < safeTargets.length; it += 1) {
+                    for (it = 0, len = safeTargets.length; it < len; it += 1) {
                         if (!lastBattleID && lastBattleID === safeTargets[it].id) {
                             continue;
                         }

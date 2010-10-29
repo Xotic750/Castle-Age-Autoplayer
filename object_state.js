@@ -24,7 +24,7 @@ state = {
 
     load: function () {
         try {
-            if (gm.getItem('state.flags', 'default') === 'default' || utility.typeOf(this.flags) !== 'object') {
+            if (gm.getItem('state.flags', 'default') === 'default' || !$.isPlainObject(this.flags)) {
                 gm.setItem('state.flags', this.flags);
             } else {
                 this.flags = gm.getItem('state.flags', this.flags);

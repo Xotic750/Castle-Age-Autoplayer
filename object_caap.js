@@ -386,7 +386,7 @@ caap = {
 
     SaveBoxText: function (idName) {
         try {
-            var boxText = $("#caap_" + idName).val();
+            var boxText = this.caapDivObject.find("#caap_" + idName).val();
             if (typeof boxText !== 'string') {
                 throw "Value of the textarea id='caap_" + idName + "' is not a string: " + boxText;
             }
@@ -411,33 +411,11 @@ caap = {
                 document.title = DocumentTitle + this.documentTitle;
             }
 
-            $('#caap_' + idName).html(mess);
+            this.caapDivObject.find('#caap_' + idName).html(mess);
         } catch (err) {
             utility.error("ERROR in SetDivContent: " + err);
         }
     },
-
-    questWhenList: [
-        'Energy Available',
-        'At Max Energy',
-        'At X Energy',
-        'Not Fortifying',
-        'Never'
-    ],
-
-    questWhenInst: [
-        'Energy Available - will quest whenever you have enough energy.',
-        'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
-        'At X Energy - allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
-        'Not Fortifying - will quest only when your fortify settings are matched.',
-        'Never - disables questing.'
-    ],
-
-    questAreaList: [
-        'Quest',
-        'Demi Quests',
-        'Atlantis'
-    ],
 
     landQuestList: [
         'Land of Fire',
@@ -464,18 +442,10 @@ caap = {
         'Atlantis'
     ],
 
-    questForList: [
-        'Advancement',
-        'Max Influence',
-        'Max Gold',
-        'Max Experience',
-        'Manual'
-    ],
-
     SelectDropOption: function (idName, value) {
         try {
-            $("#caap_" + idName + " option").removeAttr('selected');
-            $("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
+            this.caapDivObject.find("#caap_" + idName + " option").removeAttr('selected');
+            this.caapDivObject.find("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
             return true;
         } catch (err) {
             utility.error("ERROR in SelectDropOption: " + err);
@@ -519,8 +489,8 @@ caap = {
 
     ShowAutoQuest: function () {
         try {
-            $("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', this.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")");
-            $("#stopAutoQuest").css('display', 'block');
+            this.caapDivObject.find("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', this.newAutoQuest()).name + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")");
+            this.caapDivObject.find("#stopAutoQuest").css('display', 'block');
             return true;
         } catch (err) {
             utility.error("ERROR in ShowAutoQuest: " + err);
@@ -530,8 +500,8 @@ caap = {
 
     ClearAutoQuest: function () {
         try {
-            $("#stopAutoQuest").text("");
-            $("#stopAutoQuest").css('display', 'none');
+            this.caapDivObject.find("#stopAutoQuest").text("");
+            this.caapDivObject.find("#stopAutoQuest").css('display', 'none');
             return true;
         } catch (err) {
             utility.error("ERROR in ClearAutoQuest: " + err);
@@ -559,21 +529,21 @@ caap = {
 
     ChangeDropDownList: function (idName, dropList, option) {
         try {
-            $("#caap_" + idName + " option").remove();
-            $("#caap_" + idName).append(this.defaultDropDownOption);
+            this.caapDivObject.find("#caap_" + idName + " option").remove();
+            this.caapDivObject.find("#caap_" + idName).append(this.defaultDropDownOption);
             for (var item = 0; item < dropList.length; item += 1) {
                 if (item === 0 && !option) {
                     config.setItem(idName, dropList[item]);
                     utility.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                 }
 
-                $("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
+                this.caapDivObject.find("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
             }
 
             if (option) {
-                $("#caap_" + idName + " option[value='" + option + "']").attr('selected', 'selected');
+                this.caapDivObject.find("#caap_" + idName + " option[value='" + option + "']").attr('selected', 'selected');
             } else {
-                $("#caap_" + idName + " option:eq(1)").attr('selected', 'selected');
+                this.caapDivObject.find("#caap_" + idName + " option:eq(1)").attr('selected', 'selected');
             }
 
             return true;
@@ -582,24 +552,6 @@ caap = {
             return false;
         }
     },
-
-    divList: [
-        'banner',
-        'activity_mess',
-        'idle_mess',
-        'quest_mess',
-        'battle_mess',
-        'monster_mess',
-        'fortify_mess',
-        'heal_mess',
-        'demipoint_mess',
-        'demibless_mess',
-        'level_mess',
-        'exp_mess',
-        'debug1_mess',
-        'debug2_mess',
-        'control'
-    ],
 
     controlXY: {
         selector : '.UIStandardFrame_Content',
@@ -694,10 +646,27 @@ caap = {
                     y: 0
                 },
                 htmlCode = '',
-                banner = '';
+                banner = '',
+                divList = [
+                    'banner',
+                    'activity_mess',
+                    'idle_mess',
+                    'quest_mess',
+                    'battle_mess',
+                    'monster_mess',
+                    'fortify_mess',
+                    'heal_mess',
+                    'demipoint_mess',
+                    'demibless_mess',
+                    'level_mess',
+                    'exp_mess',
+                    'debug1_mess',
+                    'debug2_mess',
+                    'control'
+                ];
 
-            for (divID = 0; divID < this.divList.length; divID += 1) {
-                caapDiv += "<div id='caap_" + this.divList[divID] + "'></div>";
+            for (divID = 0; divID < divList.length; divID += 1) {
+                caapDiv += "<div id='caap_" + divList[divID] + "'></div>";
             }
 
             caapDiv += "</div>";
@@ -817,12 +786,46 @@ caap = {
             var forceSubGen = "Always do a quest with the Subquest General you selected under the Generals section. NOTE: This will keep the script from automatically switching to the required general for experience of primary quests.",
                 XQuestInstructions = "Start questing when energy is at or above this value.",
                 XMinQuestInstructions = "Stop quest when energy is at or below this value.",
+                questForList = [
+                    'Advancement',
+                    'Max Influence',
+                    'Max Gold',
+                    'Max Experience',
+                    'Manual'
+                ],
+                questForListInstructions = [
+                    'Advancement performs all the main quests in a sub quest area but not the secondary quests.',
+                    'Max Influence performs all the main and secondary quests in a sub quest area.',
+                    'Max Gold performs the quest in the specific area that yields the highest gold.',
+                    'Max Experience performs the quest in the specific area that yields the highest experience.',
+                    'Manual performs the specific quest that you have chosen.'
+                ],
+                questAreaList = [
+                    'Quest',
+                    'Demi Quests',
+                    'Atlantis'
+                ],
+                questWhenList = [
+                    'Energy Available',
+                    'At Max Energy',
+                    'At X Energy',
+                    'Not Fortifying',
+                    'Never'
+                ],
+                questWhenInst = [
+                    'Energy Available - will quest whenever you have enough energy.',
+                    'At Max Energy - will quest when energy is at max and will burn down all energy when able to level up.',
+                    'At X Energy - allows you to set maximum and minimum energy values to start and stop questing. Will burn down all energy when able to level up.',
+                    'Not Fortifying - will quest only when your fortify settings are matched.',
+                    'Never - disables questing.'
+                ],
+                stopInstructions = "This will stop and remove the chosen quest and set questing to manual.",
                 autoQuestName = state.getItem('AutoQuest', this.newAutoQuest()).name,
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Quests', 'QUEST');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', this.questWhenList, this.questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
+            htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhenQuest', questWhenList, questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'At X Energy' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -831,32 +834,31 @@ caap = {
                 this.MakeNumberForm('XMinQuestEnergy', XMinQuestInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', this.questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-            switch (config.getItem('QuestArea', this.questAreaList[0])) {
+            htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('QuestArea', questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+            htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>&nbsp;&nbsp;&nbsp;Sub Area</td><td style='text-align: right; width: 60%'>";
+            switch (config.getItem('QuestArea', questAreaList[0])) {
             case 'Quest' :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
-                    this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += this.MakeDropDown('QuestSubArea', this.landQuestList, '', "style='font-size: 10px; width: 100%'");
                 break;
             case 'Demi Quests' :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
-                    this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += this.MakeDropDown('QuestSubArea', this.demiQuestList, '', "style='font-size: 10px; width: 100%'");
                 break;
             default :
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>Sub Area</td><td style='text-align: right; width: 60%'>" +
-                    this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
+                htmlCode += this.MakeDropDown('QuestSubArea', this.atlantisQuestList, '', "style='font-size: 10px; width: 100%'");
                 break;
             }
 
-            htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', this.questForList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+            htmlCode += '</td></tr>';
+            htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + this.MakeDropDown('WhyQuest', questForList, questForListInstructions, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Switch Quest Area", 'switchQuestArea', true, '', 'Allows switching quest area after Advancement or Max Influence');
             htmlCode += this.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
             htmlCode += this.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
             htmlCode += "</div>";
             if (autoQuestName) {
-                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;'>Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")" + "</a>";
+                htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;' title='" + stopInstructions + "'>Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', this.newAutoQuest()).energy + ")" + "</a>";
             } else {
-                htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;'></a>";
+                htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;' title='" + stopInstructions + "'></a>";
             }
 
             htmlCode += "<hr/></div>";
@@ -938,6 +940,8 @@ caap = {
                 ],
                 dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all raids only.",
                 collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.",
+                observeDemiFirstInstructions = "If you are setting Get demi Points First and No Attack If % Under in Monster then enabling this option " +
+                    "will cause Demi Points Only to observe the Demi Points requested in the case where No Attack If % Under is triggered.",
                 htmlCode = '';
 
             htmlCode += this.ToggleControl('Battling', 'BATTLE');
@@ -951,6 +955,10 @@ caap = {
             htmlCode += "<tr><td>Start Battles When Stamina</td><td style='text-align: right'>" + this.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
                 this.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "</div>";
+            htmlCode += "<div id='caap_WhenBattleDemiOnly' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Demi Points Only' ? 'none' : 'block') + "'>";
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, '', observeDemiFirstInstructions) + '</table>';
             htmlCode += "</div>";
             htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1013,6 +1021,7 @@ caap = {
                 useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
                 useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
                 collectRewardInstructions = "Automatically collect monster rewards.",
+                strengthenTo100Instructions = "Don't wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
                 mbattleList = [
                     'Stamina Available',
                     'At Max Stamina',
@@ -1034,13 +1043,6 @@ caap = {
                     'Corvintheus',
                     'Aurora',
                     'Azeron'
-                ],
-                demiPtList = [
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_1.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_2.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_3.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_4.jpg" height="15" width="14"/>',
-                    '<img src="http://image2.castleagegame.com/graphics/symbol_tiny_5.jpg" height="15" width="14"/>'
                 ],
                 demiPtItem = 0,
                 htmlCode = '';
@@ -1079,10 +1081,13 @@ caap = {
             htmlCode += this.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
             htmlCode += this.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            for (demiPtItem = 0; demiPtItem < demiPtList.length; demiPtItem += 1) {
-                htmlCode += demiPtList[demiPtItem] + this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', demiPoint[demiPtItem]);
+            htmlCode += "<span style='white-space: nowrap;'>";
+            for (demiPtItem = 0; demiPtItem < demiPoint.length; demiPtItem += 1) {
+                htmlCode += "<span title='" + demiPoint[demiPtItem] + "'><img alt='" + demiPoint[demiPtItem] + "' src='data:image/jpg;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>" +
+                    this.MakeCheckBox('DemiPoint' + demiPtItem, true, '', '') + "</span>";
             }
 
+            htmlCode += "</span>";
             htmlCode += "</table>";
             htmlCode += "</div>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
@@ -1092,7 +1097,7 @@ caap = {
                 this.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += "<tr><td>No Attack If % Under</td><td style='text-align: right'>" + this.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, '', '') + '</table>';
+            htmlCode += this.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, '', strengthenTo100Instructions) + '</table>';
             htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
             htmlCode += this.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
             htmlCode += "</div>";
@@ -1160,7 +1165,7 @@ caap = {
                 LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.",
                 LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.",
                 LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.",
-                LevelUpGenInstructions4 = "Use the Level Up General for Battle mode.",
+                LevelUpGenInstructions4 = "Use the Level Up General for Invade mode.",
                 LevelUpGenInstructions5 = "Use the Level Up General for Duel mode.",
                 LevelUpGenInstructions6 = "Use the Level Up General for War mode.",
                 LevelUpGenInstructions7 = "Use the Level Up General for doing sub-quests.",
@@ -1192,7 +1197,7 @@ caap = {
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
-            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Battles", 'BattleLevelUpGeneral', true, '', LevelUpGenInstructions4);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Invades", 'InvadeLevelUpGeneral', true, '', LevelUpGenInstructions4);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
@@ -1238,7 +1243,7 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Spend All Possible", 'StatSpendAll', false, '', statSpendAllInstructions);
             htmlCode += this.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, '', statImmedInstructions);
-            htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank'><font color='red'>?</font></a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
+            htmlCode += this.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
             htmlCode += "<div id='caap_Status_Normal' style='display: " + (config.getItem('AutoStatAdv', false) ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
@@ -1307,7 +1312,19 @@ caap = {
             htmlCode += "<tr><td style='width: 25%'>Give</td><td style='text-align: right'>" +
                 this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions) + '</table>';
+            htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions);
+
+            htmlCode += this.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', '', true) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', '') + '</td></tr></table>';
+            htmlCode += '</div>';
+
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', '', true) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', '') + '</td></tr></table>';
+            htmlCode += '</div>';
+
             htmlCode += '</div>';
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -1368,8 +1385,16 @@ caap = {
                     'Energy',
                     'Attack',
                     'Defense',
-                    'Stamina',
-                    'Health'
+                    'Health',
+                    'Stamina'
+                ],
+                autoBlessListInstructions = [
+                    'None disables the auto bless feature.',
+                    'Energy performs an automatic daily blessing with Ambrosia.',
+                    'Attack performs an automatic daily blessing with Malekus.',
+                    'Defense performs an automatic daily blessing with Corvintheus.',
+                    'Health performs an automatic daily blessing with Aurora.',
+                    'Stamina performs an automatic daily blessing with Azeron.'
                 ],
                 htmlCode = '';
 
@@ -1396,7 +1421,7 @@ caap = {
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
             htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
-                this.MakeDropDown('AutoBless', autoBlessList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
+                this.MakeDropDown('AutoBless', autoBlessList, autoBlessListInstructions, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
@@ -1631,12 +1656,12 @@ caap = {
             }).appendTo(document.body);
 
             this.caapTopObject = $('#caap_top');
-            $("#caap_refreshMonsters").button();
-            $("#caap_clearTargets").button();
-            $("#caap_clearBattle").button();
-            $("#caap_clearGifting").button();
-            $("#caap_clearGiftQueue").button();
-            $("#caap_liveFeed").button();
+            this.caapTopObject.find("#caap_refreshMonsters").button();
+            this.caapTopObject.find("#caap_clearTargets").button();
+            this.caapTopObject.find("#caap_clearBattle").button();
+            this.caapTopObject.find("#caap_clearGifting").button();
+            this.caapTopObject.find("#caap_clearGiftQueue").button();
+            this.caapTopObject.find("#caap_liveFeed").button();
 
             return true;
         } catch (err) {
@@ -1728,10 +1753,6 @@ caap = {
         try {
             var html                     = '',
                 monsterList              = [],
-                monsterName              = '',
-                monstType                = '',
-                //energyRequire            = 0,
-                //nodeNum                  = 0,
                 color                    = '',
                 value                    = 0,
                 headers                  = [],
@@ -1758,17 +1779,20 @@ caap = {
                 titleCol                 = 'black',
                 valueCol                 = 'red',
                 it                       = 0,
+                len                      = 0,
+                len1                     = 0,
+                len2                     = 0,
                 str                      = '',
                 header                   = {text: '', color: '', id: '', title: '', width: ''},
                 data                     = {text: '', color: '', id: '', title: ''},
                 width                    = '',
                 handler;
 
-            if ($('#caap_top').length === 0) {
+            if (this.caapTopObject.length === 0) {
                 throw "We are missing the Dashboard div!";
             }
 
-            if (!force && !utility.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html() && $('#caap_infoMonster').html()) {
+            if (!force && !utility.oneMinuteUpdate('dashboard') && $('#caap_infoMonster').html()) {
                 if (this.UpdateDashboardWaitLog) {
                     utility.log(2, "Dashboard update is waiting on oneMinuteUpdate");
                     this.UpdateDashboardWaitLog = false;
@@ -1783,7 +1807,7 @@ caap = {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
                 values  = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     width = '';
                     if (headers[pp] === 'Name') {
                         width = '30%';
@@ -1797,27 +1821,6 @@ caap = {
                 utility.log(9, "monsterList", monsterList);
                 monster.records.forEach(function (monsterObj) {
                     utility.log(9, "monsterObj", monsterObj);
-                    //monsterName = monsterObj.name;
-                    //monstType = monsterObj.type;
-                    /*
-                    energyRequire = 10;
-                    nodeNum = 0;
-                    if (monster.info[monsterObj.type]) {
-                        if (!caap.InLevelUpMode() && config.getItem('PowerFortifyMax') && monster.info[monsterObj.type].staLvl) {
-                            for (nodeNum = monster.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max > monster.info[monsterObj.type].staLvl[nodeNum]) {
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax') && monster.info[monsterObj.type].nrgMax) {
-                            energyRequire = monster.info[monsterObj.type].nrgMax[nodeNum];
-                        }
-                    }
-                    */
-
-                    //utility.log(9, "Energy Required/Node", energyRequire, nodeNum);
                     color = '';
                     html += "<tr>";
                     if (monsterObj.name === state.getItem('targetFromfortify', {}).name) {
@@ -1943,9 +1946,9 @@ caap = {
                     if (monsterObjLink) {
                         removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").match(new RegExp("'(http:.+)'"));
                         utility.log(9, "removeLink", removeLink);
-                        removeLinkInstructions = "Clicking this link will remove " + monsterName + " from both CA and CAAP!";
+                        removeLinkInstructions = "Clicking this link will remove " + monsterObj.name + " from both CA and CAAP!";
                         data = {
-                            text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterName + '" rlink="' + removeLink[1] +
+                            text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj.name + '" rlink="' + removeLink[1] +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -1962,7 +1965,7 @@ caap = {
                 });
 
                 html += '</table>';
-                $("#caap_infoMonster").html(html);
+                this.caapTopObject.find("#caap_infoMonster").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -1971,9 +1974,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
                             visitMonsterLink.mname = e.target.attributes[i].nodeValue;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
@@ -1986,7 +1990,7 @@ caap = {
                     utility.ClickAjax(visitMonsterLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_monster_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_monster_']").unbind('click', handler).click(handler);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -1996,9 +2000,10 @@ caap = {
                         arlink    : ''
                     },
                     i = 0,
+                    len = 0,
                     resp = false;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'mname') {
                             monsterRemove.mname = e.target.attributes[i].nodeValue;
                         } else if (e.target.attributes[i].nodeName === 'rlink') {
@@ -2021,7 +2026,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_remove_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_remove_']").unbind('click', handler).click(handler);
                 state.setItem("MonsterDashUpdate", false);
             }
 
@@ -2038,7 +2043,7 @@ caap = {
                 }
 
                 html += '</tr>';
-                for (i = 0; i < this.ReconRecordArray.length; i += 1) {
+                for (i = 0, len = this.ReconRecordArray.length; i < len; i += 1) {
                     html += "<tr>";
                     for (pp = 0; pp < values.length; pp += 1) {
                         if (/userID/.test(values[pp])) {
@@ -2074,7 +2079,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_infoTargets1").html(html);
+                this.caapTopObject.find("#caap_infoTargets1").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -2082,9 +2087,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -2095,7 +2101,7 @@ caap = {
                     utility.ClickAjax(visitUserIdLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
                 state.setItem("ReconDashUpdate", false);
             }
 
@@ -2112,9 +2118,9 @@ caap = {
                 }
 
                 html += '</tr>';
-                for (i = 0; i < battle.records.length; i += 1) {
+                for (i = 0, len = battle.records.length; i < len; i += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (/userId/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
                             userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + battle.records[i][values[pp]];
@@ -2140,17 +2146,18 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_infoBattle").html(html);
+                this.caapTopObject.find("#caap_infoBattle").html(html);
 
-                $("#caap_top span[id*='caap_battle_']").click(function (e) {
+                this.caapTopObject.find("span[id*='caap_battle_']").click(function (e) {
                     utility.log(9, "Clicked", e.target.id);
                     var visitUserIdLink = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -2171,7 +2178,7 @@ caap = {
             if (state.getItem("UserDashUpdate", true)) {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['Name', 'Value', 'Name', 'Value'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
 
@@ -2561,7 +2568,6 @@ caap = {
                 html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                 html += '</tr>';
 
-
                 html += "<tr>";
                 html += this.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
                 html += this.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
@@ -2587,7 +2593,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_userStats").html(html);
+                this.caapTopObject.find("#caap_userStats").html(html);
                 state.setItem("UserDashUpdate", false);
             }
 
@@ -2600,7 +2606,7 @@ caap = {
                 headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
                 values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
                 $.merge(generalValues, values);
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     header = {
                         text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                         color : 'blue',
@@ -2623,9 +2629,9 @@ caap = {
                 }
 
                 html += '</tr>';
-                for (it = 0; it < general.recordsSortable.length; it += 1) {
+                for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len; pp += 1) {
                         str = '';
                         if (isNaN(general.recordsSortable[it][values[pp]])) {
                             if (general.recordsSortable[it][values[pp]]) {
@@ -2652,7 +2658,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_generalsStats").html(html);
+                this.caapTopObject.find("#caap_generalsStats").html(html);
 
                 handler = function (e) {
                     var clicked = '';
@@ -2669,7 +2675,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_generalsStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_generalsStats_']").unbind('click', handler).click(handler);
                 state.setItem("GeneralsDashUpdate", false);
             }
 
@@ -2682,13 +2688,13 @@ caap = {
                 headers = ['Name', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
                 values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
                 $.merge(townValues, values);
-                for (i = 0; i < town.types.length; i += 1) {
+                for (i = 0, len = town.types.length; i < len; i += 1) {
                     if (!state.getItem(town.types[i].ucFirst() + "DashUpdate", true)) {
                         continue;
                     }
 
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    for (pp = 0; pp < headers.length; pp += 1) {
+                    for (pp = 0, len1 = headers.length; pp < len; pp += 1) {
                         header = {
                             text  : '<span id="caap_' + town.types[i] + 'Stats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                             color : 'blue',
@@ -2701,9 +2707,9 @@ caap = {
                     }
 
                     html += '</tr>';
-                    for (it = 0; it < town[town.types[i] + "Sortable"].length; it += 1) {
+                    for (it = 0, len1 = town[town.types[i] + "Sortable"].length; it < len1; it += 1) {
                         html += "<tr>";
-                        for (pp = 0; pp < values.length; pp += 1) {
+                        for (pp = 0, len2 = values.length; pp < len2; pp += 1) {
                             str = '';
                             if (isNaN(town[town.types[i] + "Sortable"][it][values[pp]])) {
                                 if (town[town.types[i] + "Sortable"][it][values[pp]]) {
@@ -2733,7 +2739,7 @@ caap = {
                     }
 
                     html += '</table>';
-                    $("#caap_" + town.types[i] + "Stats").html(html);
+                    this.caapTopObject.find("#caap_" + town.types[i] + "Stats").html(html);
                 }
 
                 handler = function (e) {
@@ -2751,7 +2757,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_soldiersStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_soldiersStats_']").unbind('click', handler).click(handler);
                 state.setItem("SoldiersDashUpdate", false);
 
                 handler = function (e) {
@@ -2769,7 +2775,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_itemStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_itemStats_']").unbind('click', handler).click(handler);
                 state.setItem("ItemDashUpdate", false);
 
                 handler = function (e) {
@@ -2787,7 +2793,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_magicStats_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_magicStats_']").unbind('click', handler).click(handler);
                 state.setItem("MagicDashUpdate", false);
             }
 
@@ -2799,14 +2805,14 @@ caap = {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['UserId', 'Name', 'Received', 'Sent'];
                 values  = ['userId', 'name', 'received', 'sent'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
 
                 html += '</tr>';
-                for (i = 0; i < gifting.history.records.length; i += 1) {
+                for (i = 0, len = gifting.history.records.length; i < len; i += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (/userId/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + gifting.history.records[i][values[pp]];
                             userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + gifting.history.records[i][values[pp]];
@@ -2828,7 +2834,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_giftStats").html(html);
+                this.caapTopObject.find("#caap_giftStats").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -2836,9 +2842,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -2849,7 +2856,7 @@ caap = {
                     utility.ClickAjax(visitUserIdLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
                 state.setItem("GiftHistoryDashUpdate", false);
             }
 
@@ -2861,14 +2868,14 @@ caap = {
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                 headers = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'];
                 values  = ['userId', 'name', 'gift', 'found'];
-                for (pp = 0; pp < headers.length; pp += 1) {
+                for (pp = 0, len = headers.length; pp < len; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
 
                 html += '</tr>';
-                for (i = 0; i < gifting.queue.records.length; i += 1) {
+                for (i = 0, len = gifting.queue.records.length; i < len; i += 1) {
                     html += "<tr>";
-                    for (pp = 0; pp < values.length; pp += 1) {
+                    for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                         if (/userId/.test(values[pp])) {
                             userIdLinkInstructions = "Clicking this link will take you to the user keep of " + gifting.queue.records[i][values[pp]];
                             userIdLink = "http://apps.facebook.com/castle_age/keep.php?casuser=" + gifting.queue.records[i][values[pp]];
@@ -2901,7 +2908,7 @@ caap = {
                 }
 
                 html += '</table>';
-                $("#caap_giftQueue").html(html);
+                this.caapTopObject.find("#caap_giftQueue").html(html);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
@@ -2909,9 +2916,10 @@ caap = {
                         rlink     : '',
                         arlink    : ''
                     },
-                    i = 0;
+                    i = 0,
+                    len = 0;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'rlink') {
                             visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
                             visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://apps.facebook.com/castle_age/", "");
@@ -2922,15 +2930,16 @@ caap = {
                     utility.ClickAjax(visitUserIdLink.arlink);
                 };
 
-                $("#caap_top span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
 
                 handler = function (e) {
                     utility.log(9, "Clicked", e.target.id);
                     var index = -1,
                         i = 0,
+                        len = 0,
                         resp = false;
 
-                    for (i = 0; i < e.target.attributes.length; i += 1) {
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                         if (e.target.attributes[i].nodeName === 'id') {
                             index = parseInt(e.target.attributes[i].nodeValue.replace("caap_removeq_", ""), 10);
                         }
@@ -2944,7 +2953,7 @@ caap = {
                     }
                 };
 
-                $("#caap_top span[id*='caap_removeq_']").unbind('click', handler).click(handler);
+                this.caapTopObject.find("span[id*='caap_removeq_']").unbind('click', handler).click(handler);
                 state.setItem("GiftQueueDashUpdate", false);
             }
 
@@ -2961,56 +2970,56 @@ caap = {
     dbDisplayListener: function (e) {
         var value = e.target.options[e.target.selectedIndex].value;
         config.setItem('DBDisplay', value);
-        caap.SetDisplay('infoMonster', false);
-        caap.SetDisplay('infoTargets1', false);
-        caap.SetDisplay('infoBattle', false);
-        caap.SetDisplay('userStats', false);
-        caap.SetDisplay('generalsStats', false);
-        caap.SetDisplay('soldiersStats', false);
-        caap.SetDisplay('itemStats', false);
-        caap.SetDisplay('magicStats', false);
-        caap.SetDisplay('giftStats', false);
-        caap.SetDisplay('giftQueue', false);
-        caap.SetDisplay('buttonMonster', false);
-        caap.SetDisplay('buttonTargets', false);
-        caap.SetDisplay('buttonBattle', false);
-        caap.SetDisplay('buttonGifting', false);
-        caap.SetDisplay('buttonGiftQueue', false);
+        caap.SetDisplay("caapTopObject", 'infoMonster', false);
+        caap.SetDisplay("caapTopObject", 'infoTargets1', false);
+        caap.SetDisplay("caapTopObject", 'infoBattle', false);
+        caap.SetDisplay("caapTopObject", 'userStats', false);
+        caap.SetDisplay("caapTopObject", 'generalsStats', false);
+        caap.SetDisplay("caapTopObject", 'soldiersStats', false);
+        caap.SetDisplay("caapTopObject", 'itemStats', false);
+        caap.SetDisplay("caapTopObject", 'magicStats', false);
+        caap.SetDisplay("caapTopObject", 'giftStats', false);
+        caap.SetDisplay("caapTopObject", 'giftQueue', false);
+        caap.SetDisplay("caapTopObject", 'buttonMonster', false);
+        caap.SetDisplay("caapTopObject", 'buttonTargets', false);
+        caap.SetDisplay("caapTopObject", 'buttonBattle', false);
+        caap.SetDisplay("caapTopObject", 'buttonGifting', false);
+        caap.SetDisplay("caapTopObject", 'buttonGiftQueue', false);
         switch (value) {
         case "Target List" :
-            caap.SetDisplay('infoTargets1', true);
-            caap.SetDisplay('buttonTargets', true);
+            caap.SetDisplay("caapTopObject", 'infoTargets1', true);
+            caap.SetDisplay("caapTopObject", 'buttonTargets', true);
             break;
         case "Battle Stats" :
-            caap.SetDisplay('infoBattle', true);
-            caap.SetDisplay('buttonBattle', true);
+            caap.SetDisplay("caapTopObject", 'infoBattle', true);
+            caap.SetDisplay("caapTopObject", 'buttonBattle', true);
             break;
         case "User Stats" :
-            caap.SetDisplay('userStats', true);
+            caap.SetDisplay("caapTopObject", 'userStats', true);
             break;
         case "Generals Stats" :
-            caap.SetDisplay('generalsStats', true);
+            caap.SetDisplay("caapTopObject", 'generalsStats', true);
             break;
         case "Soldier Stats" :
-            caap.SetDisplay('soldiersStats', true);
+            caap.SetDisplay("caapTopObject", 'soldiersStats', true);
             break;
         case "Item Stats" :
-            caap.SetDisplay('itemStats', true);
+            caap.SetDisplay("caapTopObject", 'itemStats', true);
             break;
         case "Magic Stats" :
-            caap.SetDisplay('magicStats', true);
+            caap.SetDisplay("caapTopObject", 'magicStats', true);
             break;
         case "Gifting Stats" :
-            caap.SetDisplay('giftStats', true);
-            caap.SetDisplay('buttonGifting', true);
+            caap.SetDisplay("caapTopObject", 'giftStats', true);
+            caap.SetDisplay("caapTopObject", 'buttonGifting', true);
             break;
         case "Gift Queue" :
-            caap.SetDisplay('giftQueue', true);
-            caap.SetDisplay('buttonGiftQueue', true);
+            caap.SetDisplay("caapTopObject", 'giftQueue', true);
+            caap.SetDisplay("caapTopObject", 'buttonGiftQueue', true);
             break;
         case "Monster" :
-            caap.SetDisplay('infoMonster', true);
-            caap.SetDisplay('buttonMonster', true);
+            caap.SetDisplay("caapTopObject", 'infoMonster', true);
+            caap.SetDisplay("caapTopObject", 'buttonMonster', true);
             break;
         default :
         }
@@ -3048,17 +3057,17 @@ caap = {
     AddDBListener: function () {
         try {
             utility.log(1, "Adding listeners for caap_top");
-            if (!$('#caap_DBDisplay').length) {
+            if (!caap.caapTopObject.find('#caap_DBDisplay').length) {
                 caap.ReloadCastleAge();
             }
 
-            $('#caap_DBDisplay').change(this.dbDisplayListener);
-            $('#caap_refreshMonsters').click(this.refreshMonstersListener);
-            $('#caap_liveFeed').click(this.liveFeedButtonListener);
-            $('#caap_clearTargets').click(this.clearTargetsButtonListener);
-            $('#caap_clearBattle').click(this.clearBattleButtonListener);
-            $('#caap_clearGifting').click(this.clearGiftingButtonListener);
-            $('#caap_clearGiftQueue').click(this.clearGiftQueueButtonListener);
+            caap.caapTopObject.find('#caap_DBDisplay').change(this.dbDisplayListener);
+            caap.caapTopObject.find('#caap_refreshMonsters').click(this.refreshMonstersListener);
+            caap.caapTopObject.find('#caap_liveFeed').click(this.liveFeedButtonListener);
+            caap.caapTopObject.find('#caap_clearTargets').click(this.clearTargetsButtonListener);
+            caap.caapTopObject.find('#caap_clearBattle').click(this.clearBattleButtonListener);
+            caap.caapTopObject.find('#caap_clearGifting').click(this.clearGiftingButtonListener);
+            caap.caapTopObject.find('#caap_clearGiftQueue').click(this.clearGiftQueueButtonListener);
             utility.log(8, "Listeners added for caap_top");
             return true;
         } catch (err) {
@@ -3072,12 +3081,17 @@ caap = {
     // Watch for changes and update the controls
     /////////////////////////////////////////////////////////////////////
 
-    SetDisplay: function (idName, setting) {
+    SetDisplay: function (area, idName, setting) {
         try {
+            if (!this[area]) {
+                utility.warn("area", area);
+                throw "No such area!";
+            }
+
             if (setting === true) {
-                $('#caap_' + idName).css('display', 'block');
+                this[area].find('#caap_' + idName).css('display', 'block');
             } else {
-                $('#caap_' + idName).css('display', 'none');
+                this[area].find('#caap_' + idName).css('display', 'none');
             }
 
             return true;
@@ -3097,18 +3111,18 @@ caap = {
             utility.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
             config.setItem(idName, e.target.checked);
             if (e.target.className) {
-                caap.SetDisplay(e.target.className, e.target.checked);
+                caap.SetDisplay("caapDivObject", e.target.className, e.target.checked);
             }
 
             switch (idName) {
             case "AutoStatAdv" :
                 utility.log(9, "AutoStatAdv");
                 if (e.target.checked) {
-                    caap.SetDisplay('Status_Normal', false);
-                    caap.SetDisplay('Status_Adv', true);
+                    caap.SetDisplay("caapDivObject", 'Status_Normal', false);
+                    caap.SetDisplay("caapDivObject", 'Status_Adv', true);
                 } else {
-                    caap.SetDisplay('Status_Normal', true);
-                    caap.SetDisplay('Status_Adv', false);
+                    caap.SetDisplay("caapDivObject", 'Status_Normal', true);
+                    caap.SetDisplay("caapDivObject", 'Status_Adv', false);
                 }
 
                 state.setItem("statsMatch", true);
@@ -3151,9 +3165,9 @@ caap = {
             case "BannerDisplay" :
                 utility.log(9, "BannerDisplay");
                 if (e.target.checked) {
-                    $('#caap_BannerHide').css('display', 'block');
+                    caap.caapDivObject.find('#caap_BannerHide').css('display', 'block');
                 } else {
-                    $('#caap_BannerHide').css('display', 'none');
+                    caap.caapDivObject.find('#caap_BannerHide').css('display', 'none');
                 }
 
                 break;
@@ -3170,7 +3184,7 @@ caap = {
                 utility.log(9, idName);
                 if (e.target.checked) {
                     if (config.getItem('SetTitleAction', false)) {
-                        d = $('#caap_activity_mess').html();
+                        d = caap.caapDivObject.find('#caap_activity_mess').html();
                         if (d) {
                             DocumentTitle += d.replace("Activity: ", '') + " - ";
                         }
@@ -3189,7 +3203,8 @@ caap = {
             case "unlockMenu" :
                 utility.log(9, "unlockMenu");
                 if (e.target.checked) {
-                    $(":input[id^='caap_']").attr({disabled: true});
+                    caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: true});
+                    caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: true});
                     caap.caapDivObject.css('cursor', 'move').draggable({
                         stop: function () {
                             caap.SaveControlXY();
@@ -3204,7 +3219,8 @@ caap = {
                 } else {
                     caap.caapDivObject.css('cursor', '').draggable("destroy");
                     caap.caapTopObject.css('cursor', '').draggable("destroy");
-                    $(":input[id^='caap_']").attr({disabled: false});
+                    caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: false});
+                    caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: false});
                 }
 
                 break;
@@ -3315,11 +3331,12 @@ caap = {
                 config.setItem(idName, value);
                 e.target.title = title;
                 if (idName === 'WhenQuest' || idName === 'WhenBattle' || idName === 'WhenMonster') {
-                    caap.SetDisplay(idName + 'Hide', (value !== 'Never'));
+                    caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Never'));
                     if (idName === 'WhenBattle' || idName === 'WhenMonster') {
-                        caap.SetDisplay(idName + 'XStamina', (value === 'At X Stamina'));
-                        caap.SetDisplay('WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
-                        caap.SetDisplay('WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay("caapDivObject", idName + 'XStamina', (value === 'At X Stamina'));
+                        caap.SetDisplay("caapDivObject", 'WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay("caapDivObject", 'WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
+                        caap.SetDisplay("caapDivObject", 'WhenBattleDemiOnly', (config.getItem('WhenBattle', 'Never') === 'Demi Points Only'));
                         if (idName === 'WhenBattle') {
                             if (value === 'Never') {
                                 caap.SetDivContent('battle_mess', 'Battle off');
@@ -3336,7 +3353,7 @@ caap = {
                     }
 
                     if (idName === 'WhenQuest') {
-                        caap.SetDisplay(idName + 'XEnergy', (value === 'At X Energy'));
+                        caap.SetDisplay("caapDivObject", idName + 'XEnergy', (value === 'At X Energy'));
                     }
                 } else if (idName === 'QuestArea' || idName === 'QuestSubArea' || idName === 'WhyQuest') {
                     state.setItem('AutoQuest', caap.newAutoQuest());
@@ -3344,15 +3361,15 @@ caap = {
                     if (idName === 'QuestArea') {
                         switch (value) {
                         case "Quest" :
-                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                             caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
                             break;
                         case "Demi Quests" :
-                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                             caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
                             break;
                         case "Atlantis" :
-                            $("#trQuestSubArea").css('display', 'table-row');
+                            caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                             caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                             break;
                         default :
@@ -3364,32 +3381,32 @@ caap = {
                     state.getItem('BattleChainId', 0);
                     switch (value) {
                     case "Freshmeat" :
-                        caap.SetDisplay('FreshmeatSub', true);
-                        caap.SetDisplay('UserIdsSub', false);
-                        caap.SetDisplay('RaidSub', false);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', false);
                         break;
                     case "Userid List" :
-                        caap.SetDisplay('FreshmeatSub', false);
-                        caap.SetDisplay('UserIdsSub', true);
-                        caap.SetDisplay('RaidSub', false);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', false);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', true);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', false);
                         break;
                     case "Raid" :
-                        caap.SetDisplay('FreshmeatSub', true);
-                        caap.SetDisplay('UserIdsSub', false);
-                        caap.SetDisplay('RaidSub', true);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', true);
                         break;
                     default :
-                        caap.SetDisplay('FreshmeatSub', true);
-                        caap.SetDisplay('UserIdsSub', false);
-                        caap.SetDisplay('RaidSub', false);
+                        caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
+                        caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
+                        caap.SetDisplay("caapDivObject", 'RaidSub', false);
                     }
                 } else if (idName === 'LevelUpGeneral') {
-                    caap.SetDisplay(idName + 'Hide', (value !== 'Use Current'));
+                    caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Use Current'));
                     utility.log(1, "HIDE", idName, value);
                 } else if (/Attribute?/.test(idName)) {
                     state.setItem("statsMatch", true);
                 } else if (idName === 'DisplayStyle') {
-                    caap.SetDisplay(idName + 'Hide', (value === 'Custom'));
+                    caap.SetDisplay("caapDivObject", idName + 'Hide', (value === 'Custom'));
                     switch (value) {
                     case "CA Skin" :
                         config.setItem("StyleBackgroundLight", "#E0C691");
@@ -3437,8 +3454,9 @@ caap = {
 
     TextAreaListener: function (e) {
         try {
-            var idName = e.target.id.replace(/caap_/i, '');
-            var value = e.target.value;
+            var idName = e.target.id.replace(/caap_/i, ''),
+                value = e.target.value;
+
             utility.log(1, 'Change: setting "' + idName + '" to ', value);
             if (idName === 'orderbattle_monster' || idName === 'orderraid') {
                 monster.flagFullReview();
@@ -3455,39 +3473,39 @@ caap = {
     },
 
     PauseListener: function (e) {
-        $('#caap_div').css({
+        caap.caapDivObject.css({
             'background': config.getItem('StyleBackgroundDark', '#fee'),
             'opacity': '1',
             'z-index': '3'
         });
 
-        $('#caap_top').css({
+        caap.caapTopObject.css({
             'background': config.getItem('StyleBackgroundDark', '#fee'),
             'opacity': '1'
         });
 
-        $('#caapPaused').css('display', 'block');
+        caap.caapDivObject.find('#caapPaused').css('display', 'block');
         state.setItem('caapPause', 'block');
     },
 
     RestartListener: function (e) {
-        $('#caapPaused').css('display', 'none');
-        $('#caap_div').css({
+        caap.caapDivObject.find('#caapPaused').css('display', 'none');
+        caap.caapDivObject.css({
             'background': config.getItem('StyleBackgroundLight', '#efe'),
             'opacity': config.getItem('StyleOpacityLight', 1),
             'z-index': state.getItem('caap_div_zIndex', '2'),
             'cursor': ''
         });
 
-        $('#caap_top').css({
+        caap.caapTopObject.css({
             'background': config.getItem('StyleBackgroundLight', '#efe'),
             'opacity': config.getItem('StyleOpacityLight', 1),
             'z-index': state.getItem('caap_top_zIndex', '1'),
             'cursor': ''
         });
 
-        $(":input[id*='caap_']").attr({disabled: false});
-        $('#unlockMenu').attr('checked', false);
+        caap.caapDivObject.find(":input[id*='caap_']").attr({disabled: false});
+        caap.caapDivObject.find('#unlockMenu').attr('checked', false);
         state.setItem('caapPause', 'none');
         state.setItem('ReleaseControl', true);
         state.setItem('resetselectMonster', true);
@@ -3495,12 +3513,15 @@ caap = {
     },
 
     ResetMenuLocationListener: function (e) {
+        var caap_divXY = {},
+            caap_topXY = {};
+
         state.deleteItem('caap_div_menuLeft');
         state.deleteItem('caap_div_menuTop');
         state.deleteItem('caap_div_zIndex');
         caap.controlXY.x = '';
         caap.controlXY.y = $(caap.controlXY.selector).offset().top;
-        var caap_divXY = caap.GetControlXY(true);
+        caap_divXY = caap.GetControlXY(true);
         caap.caapDivObject.css({
             'cursor' : '',
             'z-index' : '2',
@@ -3513,7 +3534,7 @@ caap = {
         state.deleteItem('caap_top_zIndex');
         caap.dashboardXY.x = '';
         caap.dashboardXY.y = $(caap.dashboardXY.selector).offset().top - 10;
-        var caap_topXY = caap.GetDashboardXY(true);
+        caap_topXY = caap.GetDashboardXY(true);
         caap.caapTopObject.css({
             'cursor' : '',
             'z-index' : '1',
@@ -3521,7 +3542,8 @@ caap = {
             'left' : caap_topXY.x + 'px'
         });
 
-        $(":input[id^='caap_']").attr({disabled: false});
+        caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: false});
+        caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: false});
     },
 
     FoldingBlockListener: function (e) {
@@ -3589,9 +3611,10 @@ caap = {
 
     windowResizeListener: function (e) {
         if (window.location.href.indexOf('castle_age')) {
-            var caap_divXY = caap.GetControlXY();
+            var caap_divXY = caap.GetControlXY(),
+                caap_topXY = caap.GetDashboardXY();
+
             caap.caapDivObject.css('left', caap_divXY.x + 'px');
-            var caap_topXY = caap.GetDashboardXY();
             caap.caapTopObject.css('left', caap_topXY.x + 'px');
         }
     },
@@ -3634,19 +3657,22 @@ caap = {
 
     AddListeners: function () {
         try {
+            var caapDiv         = null,
+                globalContainer = null;
+
             utility.log(1, "Adding listeners for caap_div");
-            if ($('#caap_div').length === 0) {
+            if (this.caapDivObject.length === 0) {
                 throw "Unable to find div for caap_div";
             }
 
-            $('#caap_div input:checkbox[id^="caap_"]').change(this.CheckBoxListener);
-            $('#caap_div input[data-subtype="text"]').change(this.TextBoxListener);
-            $('#caap_div input[data-subtype="number"]').change(this.NumberBoxListener);
-            $('#unlockMenu').change(this.CheckBoxListener);
-            $('#caap_div select[id^="caap_"]').change(this.DropBoxListener);
-            $('#caap_div textarea[id^="caap_"]').change(this.TextAreaListener);
-            $('#caap_div a[id^="caap_Switch"]').click(this.FoldingBlockListener);
-            $('#caap_FillArmy').click(function (e) {
+            this.caapDivObject.find('input:checkbox[id^="caap_"]').change(this.CheckBoxListener);
+            this.caapDivObject.find('input[data-subtype="text"]').change(this.TextBoxListener);
+            this.caapDivObject.find('input[data-subtype="number"]').change(this.NumberBoxListener);
+            this.caapDivObject.find('#unlockMenu').change(this.CheckBoxListener);
+            this.caapDivObject.find('select[id^="caap_"]').change(this.DropBoxListener);
+            this.caapDivObject.find('textarea[id^="caap_"]').change(this.TextAreaListener);
+            this.caapDivObject.find('a[id^="caap_Switch"]').click(this.FoldingBlockListener);
+            this.caapDivObject.find('#caap_FillArmy').click(function (e) {
                 state.setItem("FillArmy", true);
                 state.setItem("ArmyCount", 0);
                 state.setItem('FillArmyList', []);
@@ -3655,7 +3681,7 @@ caap = {
 
             });
 
-            $('#caap_StartedColorSelect').click(function (e) {
+            this.caapDivObject.find('#caap_StartedColorSelect').click(function (e) {
                 var display = 'none';
                 if ($('#caap_ColorSelectorDiv1').css('display') === 'none') {
                     display = 'block';
@@ -3664,7 +3690,7 @@ caap = {
                 $('#caap_ColorSelectorDiv1').css('display', display);
             });
 
-            $('#caap_StopedColorSelect').click(function (e) {
+            this.caapDivObject.find('#caap_StopedColorSelect').click(function (e) {
                 var display = 'none';
                 if ($('#caap_ColorSelectorDiv2').css('display') === 'none') {
                     display = 'block';
@@ -3673,8 +3699,8 @@ caap = {
                 $('#caap_ColorSelectorDiv2').css('display', display);
             });
 
-            $('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
-            $('#caap_resetElite').click(function (e) {
+            this.caapDivObject.find('#caap_ResetMenuLocation').click(this.ResetMenuLocationListener);
+            this.caapDivObject.find('#caap_resetElite').click(function (e) {
                 schedule.setItem('AutoEliteGetList', 0);
                 schedule.setItem('AutoEliteReqNext', 0);
                 state.setItem('AutoEliteEnd', '');
@@ -3684,25 +3710,36 @@ caap = {
                 }
             });
 
-            $('#caapRestart').click(this.RestartListener);
-            $('#caap_control').mousedown(this.PauseListener);
-            $('#stopAutoQuest').click(function (e) {
+            this.caapDivObject.find('#caapRestart').click(this.RestartListener);
+            this.caapDivObject.find('#caap_control').mousedown(this.PauseListener);
+            this.caapDivObject.find('#stopAutoQuest').click(function (e) {
                 utility.log(1, 'Change: setting stopAutoQuest and go to Manual');
                 caap.ManualAutoQuest();
             });
 
-            if ($('#app46755028429_globalContainer').length === 0) {
+            globalContainer = $('#app46755028429_globalContainer');
+            if (globalContainer.length === 0) {
                 throw 'Global Container not found';
             }
 
             // Fires when CAAP navigates to new location
-            $('#app46755028429_globalContainer').find('a').bind('click', this.whatClickedURLListener);
-            $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").bind('click', this.whatFriendBox);
+            globalContainer.find('a').bind('click', this.whatClickedURLListener);
+            globalContainer.find("div[id*='app46755028429_friend_box_']").bind('click', this.whatFriendBox);
 
-            $('#app46755028429_globalContainer').bind('DOMNodeInserted', function (event) {
-                var targetStr = event.target.id.replace('app46755028429_', '');
+            globalContainer.bind('DOMNodeInserted', function (event) {
+                var targetStr = event.target.id.replace('app46755028429_', ''),
+                    payTimer  = null,
+                    energy    = 0,
+                    tempE     = null,
+                    tempET    = null,
+                    health    = 0,
+                    tempH     = null,
+                    tempHT    = null,
+                    stamina   = 0,
+                    tempS     = null,
+                    tempST    = null;
+
                 // Uncomment this to see the id of domNodes that are inserted
-
                 /*
                 if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/i) && !event.target.id.match(/ticker/i) && !event.target.id.match(/caap/i)) {
                     caap.SetDivContent('debug2_mess', targetStr);
@@ -3717,8 +3754,8 @@ caap = {
                 if ($.inArray(targetStr, caap.targetList) !== -1) {
                     utility.log(9, "Refreshing DOM Listeners", event.target.id);
                     caap.waitingForDomLoad = false;
-                    $('#app46755028429_globalContainer').find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
-                    $('#app46755028429_globalContainer').find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
+                    globalContainer.find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                    globalContainer.find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
                     window.setTimeout(function () {
                         caap.CheckResults();
                     }, 100);
@@ -3732,7 +3769,7 @@ caap = {
 
                 // Income timer
                 if (targetStr === "gold_time_value") {
-                    var payTimer = $(event.target).text().match(/([0-9]+):([0-9]+)/);
+                    payTimer = $(event.target).text().match(/([0-9]+):([0-9]+)/);
                     utility.log(10, "gold_time_value", payTimer);
                     if (payTimer && payTimer.length === 3) {
                         caap.stats.gold.payTime.ticker = payTimer[0];
@@ -3743,10 +3780,7 @@ caap = {
 
                 // Energy
                 if (targetStr === "energy_current_value") {
-                    var energy = parseInt($(event.target).text(), 10),
-                        tempE  = null,
-                        tempET = null;
-
+                    energy = parseInt($(event.target).text(), 10);
                     utility.log(9, "energy_current_value", energy);
                     if (utility.isNum(energy)) {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats.energy.max);
@@ -3762,10 +3796,7 @@ caap = {
 
                 // Health
                 if (targetStr === "health_current_value") {
-                    var health = parseInt($(event.target).text(), 10),
-                        tempH  = null,
-                        tempHT = null;
-
+                    health = parseInt($(event.target).text(), 10)
                     utility.log(9, "health_current_value", health);
                     if (utility.isNum(health)) {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats.health.max);
@@ -3781,10 +3812,7 @@ caap = {
 
                 // Stamina
                 if (targetStr === "stamina_current_value") {
-                    var stamina = parseInt($(event.target).text(), 10),
-                        tempS   = null,
-                        tempST  = null;
-
+                    stamina = parseInt($(event.target).text(), 10);
                     utility.log(9, "stamina_current_value", stamina);
                     if (utility.isNum(stamina)) {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats.stamina.max);
@@ -3805,7 +3833,6 @@ caap = {
             });
 
             $(window).unbind('resize', this.windowResizeListener).bind('resize', this.windowResizeListener);
-
             utility.log(8, "Listeners added for caap_div");
             return true;
         } catch (err) {
@@ -3813,7 +3840,6 @@ caap = {
             return false;
         }
     },
-
 
     /////////////////////////////////////////////////////////////////////
     //                          CHECK RESULTS
@@ -3937,7 +3963,7 @@ caap = {
                 return false;
             }
 
-            enlDiv = $("#caap_enl");
+            enlDiv = expDiv.find("#caap_enl");
             if (enlDiv.length) {
                 utility.log(8, "Experience to Next Level already displayed. Updating.");
                 enlDiv.html(this.stats.exp.dif);
@@ -3963,7 +3989,6 @@ caap = {
             }
 
             this.pageLoadOK = this.GetStats();
-
             this.AddExpDisplay();
             this.SetDivContent('level_mess', 'Expected next level: ' + schedule.FormatTime(new Date(this.stats.indicators.enl)));
             if ((config.getItem('DemiPointsFirst', false) && config.getItem('WhenMonster', 'Never') !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
@@ -4002,7 +4027,9 @@ caap = {
             }
 
             var page = 'None',
-                sigImage = '';
+                sigImage = '',
+                appBodyDiv = $("#app46755028429_app_body");
+
             if (pageUrl.match(new RegExp("\/[^\/]+.php", "i"))) {
                 page = pageUrl.match(new RegExp("\/[^\/]+.php", "i"))[0].replace('/', '').replace('.php', '');
                 utility.log(9, "Page match", page);
@@ -4015,14 +4042,14 @@ caap = {
                     sigImage = this.pageList[page].signaturePic;
                 }
 
-                if ($("img[src*='" + sigImage + "']").length) {
+                if (appBodyDiv.find("img[src*='" + sigImage + "']").length) {
                     state.setItem('page', page);
                     utility.log(9, "Page set value", page);
                 }
 
                 if (this.pageList[page].subpages) {
                     this.pageList[page].subpages.forEach(function (subpage) {
-                        if ($("img[src*='" + caap.pageList[subpage].signaturePic + "']").length) {
+                        if (appBodyDiv.find("img[src*='" + caap.pageList[subpage].signaturePic + "']").length) {
                             page = state.setItem('page', subpage);
                             utility.log(9, "Page pubpage", page);
                         }
@@ -4030,7 +4057,7 @@ caap = {
                 }
             }
 
-            var resultsDiv = $("span[class*='result_body']"),
+            var resultsDiv = appBodyDiv.find("#app46755028429_results_main_wrapper span[class*='result_body']"),
                 resultsText = '';
 
             if (resultsDiv && resultsDiv.length) {
@@ -4093,7 +4120,7 @@ caap = {
                 html = "<span title='Equipped Attack Power Index' style='font-size: 12px; font-weight: normal;'>EAPI:" + currentGeneral.eapi.toFixed(2) +
                        "</span> <span title='Equipped Defense Power Index' style='font-size: 12px; font-weight: normal;'>EDPI:" + currentGeneral.edpi.toFixed(2) +
                        "</span> <span title='Equipped Mean Power Index' style='font-size: 12px; font-weight: normal;'>EMPI:" + currentGeneral.empi.toFixed(2) + "</span>";
-                $("#app46755028429_general_name_div_int").append(html);
+                $("#app46755028429_app_body #app46755028429_general_name_div_int").append(html);
             }
 
             schedule.setItem("generals", gm.getItem("CheckGenerals", 24, hiddenVar) * 3600, 300);
@@ -4300,7 +4327,7 @@ caap = {
     },
 
     LoadStats: function () {
-        if (gm.getItem('stats.record', 'default') === 'default' || utility.typeOf(gm.getItem('stats.record', 'default')) !== 'object') {
+        if (gm.getItem('stats.record', 'default') === 'default' || !$.isPlainObject(gm.getItem('stats.record', 'default'))) {
             gm.setItem('stats.record', this.stats);
         } else {
             this.stats = gm.getItem('stats.record', this.stats);
@@ -4315,6 +4342,10 @@ caap = {
         utility.log(2, "Stats", this.stats);
         state.setItem("UserDashUpdate", true);
     },
+
+    ststbDiv: $("#app46755028429_main_ststb"),
+
+    bntpDiv: $("#app46755028429_main_bntp"),
 
     GetStats: function () {
         try {
@@ -4337,9 +4368,11 @@ caap = {
                 xS             = 0,
                 xE             = 0;
 
-            utility.log(8, "Getting Gold, Energy, Health, Stamina and Experience");
+            utility.log(1, "Getting Gold, Energy, Health, Stamina and Experience");
+            ststbDiv = $("#app46755028429_main_ststb");
+            bntpDiv = $("#app46755028429_main_bntp");
             // gold
-            cashDiv = $("#app46755028429_gold_current_value");
+            cashDiv = ststbDiv.find("#app46755028429_gold_current_value");
             if (cashDiv.length) {
                 utility.log(8, 'Getting current cash value');
                 temp = utility.NumberOnly(cashDiv.text());
@@ -4356,7 +4389,7 @@ caap = {
             }
 
             // energy
-            energyDiv = $("#app46755028429_st_2_2");
+            energyDiv = ststbDiv.find("#app46755028429_st_2_2");
             if (energyDiv.length) {
                 utility.log(8, 'Getting current energy levels');
                 tempT = this.GetStatusNumbers(energyDiv.text());
@@ -4374,7 +4407,7 @@ caap = {
             }
 
             // health
-            healthDiv = $("#app46755028429_st_2_3");
+            healthDiv = ststbDiv.find("#app46755028429_st_2_3");
             if (healthDiv.length) {
                 utility.log(8, 'Getting current health levels');
                 tempT = this.GetStatusNumbers(healthDiv.text());
@@ -4392,7 +4425,7 @@ caap = {
             }
 
             // stamina
-            staminaDiv = $("#app46755028429_st_2_4");
+            staminaDiv = ststbDiv.find("#app46755028429_st_2_4");
             if (staminaDiv.length) {
                 utility.log(8, 'Getting current stamina values');
                 tempT = this.GetStatusNumbers(staminaDiv.text());
@@ -4410,7 +4443,7 @@ caap = {
             }
 
             // experience
-            expDiv = $("#app46755028429_st_2_5");
+            expDiv = ststbDiv.find("#app46755028429_st_2_5");
             if (expDiv.length) {
                 utility.log(8, 'Getting current experience values');
                 temp = this.GetStatusNumbers(expDiv.text());
@@ -4426,7 +4459,7 @@ caap = {
             }
 
             // level
-            levelDiv = $("#app46755028429_st_5");
+            levelDiv = ststbDiv.find("#app46755028429_st_5");
             if (levelDiv.length) {
                 levelArray = levelDiv.text().match(/Level: ([0-9]+)!/);
                 if (levelArray && levelArray.length === 2) {
@@ -4448,7 +4481,7 @@ caap = {
             }
 
             // army
-            armyDiv = $("#app46755028429_main_bntp a[href*='army.php']");
+            armyDiv = bntpDiv.find("a[href*='army.php']");
             if (armyDiv.length) {
                 armyArray = armyDiv.text().match(/My Army \(([0-9]+)\)/);
                 if (armyArray && armyArray.length === 2) {
@@ -4471,7 +4504,7 @@ caap = {
             }
 
             // upgrade points
-            pointsDiv = $("#app46755028429_main_bntp a[href*='keep.php']");
+            pointsDiv = bntpDiv.find("a[href*='keep.php']");
             if (pointsDiv.length) {
                 pointsArray = pointsDiv.text().match(/My Stats \(\+([0-9]+)\)/);
                 if (pointsArray && pointsArray.length === 2) {
@@ -5001,7 +5034,7 @@ caap = {
             if (classDiv && classDiv.length === 6) {
                 classDiv.each(function (index) {
                     name = $(this).attr("class").replace("banner_", '');
-                    if (name && typeof caap.stats.character[name] === 'object') {
+                    if (name && $.isPlainObject(caap.stats.character[name])) {
                         //caap.stats.character[name].name = name.ucFirst();
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -5218,7 +5251,7 @@ caap = {
 
             if (whenQuest === 'Not Fortifying' || (config.getItem('PrioritiseMonsterAfterLvl', false) && state.getItem('KeepLevelUpGeneral', false))) {
                 var fortMon = state.getItem('targetFromfortify', {});
-                if (utility.typeOf(fortMon) === 'object' && fortMon.name && fortMon.type) {
+                if ($.isPlainObject(fortMon) && fortMon.name && fortMon.type) {
                     switch (fortMon.type) {
                     case "Fortify":
                         var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
@@ -6727,7 +6760,7 @@ caap = {
                     return false;
                 }
 
-                if (battle.selectedDemisDone(true)) {
+                if (battle.selectedDemisDone(true) || (config.getItem("DemiPointsFirst", false) && whenMonster !== 'Never' && config.getItem("observeDemiFirst", false) && state.getItem('DemiPointsDone', false))) {
                     return false;
                 }
 
@@ -6766,7 +6799,7 @@ caap = {
             battletype = config.getItem('BattleType', 'Invade');
             switch (battletype) {
             case 'Invade' :
-                useGeneral = 'BattleGeneral';
+                useGeneral = 'InvadeGeneral';
                 staminaReq = 1;
                 chainImg = 'battle_invade_again.gif';
                 if (general.LevelUpCheck(useGeneral)) {
@@ -6983,7 +7016,6 @@ caap = {
         try {
             var buttonsDiv            = null,
                 page                  = '',
-                pageUserCheck         = '',
                 monsterReviewed       = {},
                 startCount            = 0,
                 it                    = 0,
@@ -7120,9 +7152,11 @@ caap = {
                 damageDiv         = null,
                 chatDiv           = null,
                 chatArr           = [],
-                chatHtml          = '';
+                chatHtml          = '',
+                appBodyDiv        = null;
 
-            chatDiv = $("#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
+            appBodyDiv = $("#app46755028429_app_body");
+            chatDiv = appBodyDiv.find("#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
             if (chatDiv && chatDiv.length) {
                 chatDiv.each(function () {
                     chatHtml = $.trim($(this).html());
@@ -7143,14 +7177,14 @@ caap = {
                 });
             }
 
-            monsterDiv = $("div[style*='dragon_title_owner']");
+            monsterDiv = appBodyDiv.find("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
                 tempText = $.trim(monsterDiv.children(":eq(2)").text());
             } else {
-                monsterDiv = $("div[style*='nm_top']");
+                monsterDiv = appBodyDiv.find("div[style*='nm_top']");
                 if (monsterDiv && monsterDiv.length) {
                     tempText = $.trim(monsterDiv.children(":eq(0)").children(":eq(0)").text());
-                    tempDiv = $("div[style*='nm_bars']");
+                    tempDiv = appBodyDiv.find("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
                         tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
                     } else {
@@ -7163,7 +7197,7 @@ caap = {
                 }
             }
 
-            if (monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
+            if (monsterDiv && monsterDiv.length && monsterDiv.find("img[uid='" + this.stats.FBID + "']").length) {
                 utility.log(1, "monster name found", tempText);
                 tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
@@ -7175,7 +7209,7 @@ caap = {
             }
 
             if (currentMonster.type === 'Siege') {
-                tempDiv = $("div[style*='raid_back']");
+                tempDiv = appBodyDiv.find("div[style*='raid_back']");
                 if (tempDiv && tempDiv.length) {
                     if (tempDiv.find("img[src*='raid_1_large.jpg']").length) {
                         currentMonster.type = 'Raid I';
@@ -7195,7 +7229,7 @@ caap = {
             currentMonster.review = new Date().getTime();
             state.setItem('monsterRepeatCount', 0);
             // Extract info
-            tempDiv = $("#app46755028429_monsterTicker");
+            tempDiv = appBodyDiv.find("#app46755028429_monsterTicker");
             if (tempDiv && tempDiv.length) {
                 utility.log(2, "Monster ticker found.");
                 time = tempDiv.text().split(":");
@@ -7214,7 +7248,7 @@ caap = {
 
                 switch (monster.info[currentMonster.type].defense_img) {
                 case 'bar_dispel.gif' :
-                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
+                    tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -7228,7 +7262,7 @@ caap = {
 
                     break;
                 case 'seamonster_ship_health.jpg' :
-                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
+                    tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -7238,7 +7272,7 @@ caap = {
                         }
 
                         if (monster.info[currentMonster.type].repair_img) {
-                            tempDiv = $("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
+                            tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
                             if (tempDiv && tempDiv.length) {
                                 // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                                 if ($().jquery === "1.4.3") {
@@ -7256,7 +7290,7 @@ caap = {
 
                     break;
                 case 'nm_green.jpg' :
-                    tempDiv = $("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
+                    tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
                         // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
                         if ($().jquery === "1.4.3") {
@@ -7277,7 +7311,7 @@ caap = {
             }
 
             // Get damage done to monster
-            damageDiv = $("td[class='dragonContainer'] td[valign='top'] a[href*='user=" + this.stats.FBID + "']");
+            damageDiv = appBodyDiv.find("#app46755028429_action_logs td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + this.stats.FBID + "']:first");
             if (damageDiv && damageDiv.length) {
                 if (monster.info[currentMonster.type] && monster.info[currentMonster.type].defense) {
                     tempArr = $.trim(damageDiv.parent().parent().siblings(":last").text()).match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def"));
@@ -7308,7 +7342,7 @@ caap = {
                 counter = state.getItem('monsterReviewCounter', -3);
                 if (counter >= 0 && monster.records[counter] && monster.records[counter].name === currentMonster.name && ($("a[href*='&action=collectReward']").length || $("input[alt*='Collect Reward']").length)) {
                     utility.log(1, 'Collecting Reward');
-                    currentMonster.review = 1;
+                    currentMonster.review = -1;
                     state.setItem('monsterReviewCounter', counter -= 1);
                     currentMonster.status = 'Collect Reward';
                     if (currentMonster.name.indexOf('Siege') >= 0) {
@@ -7327,7 +7361,7 @@ caap = {
                 monstHealthImg = 'monster_health_background.jpg';
             }
 
-            monsterDiv = $("img[src*='" + monstHealthImg + "']");
+            monsterDiv = appBodyDiv.find("img[src*='" + monstHealthImg + "']");
             if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
                 currentMonster.time = time;
                 //currentMonster.timeLeft = time[0] + ":" + time[1];
@@ -7353,7 +7387,7 @@ caap = {
 
                 if (damageDiv && damageDiv.length && monster.info[currentMonster.type] && monster.info[currentMonster.type].alpha) {
                     // Character type stuff
-                    monsterDiv = $("div[style*='nm_bottom']");
+                    monsterDiv = appBodyDiv.find("div[style*='nm_bottom']");
                     if (monsterDiv && monsterDiv.length) {
                         tempText = $.trim(monsterDiv.children().eq(0).children().text()).replace(new RegExp("[\\s\\s]+", 'g'), ' ');
                         if (tempText) {
@@ -7454,12 +7488,12 @@ caap = {
                 if (monster.info[currentMonster.type] && monster.info[currentMonster.type].siege) {
                     missRegEx = new RegExp(".*Need (\\d+) more.*");
                     if (monster.info[currentMonster.type].alpha) {
-                        currentMonster.miss = $.trim($("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim(appBodyDiv.find("div[style*='nm_bottom']").children(":last").children(":last").children(":last").children(":last").text()).replace(missRegEx, "$1");
                     } else if (currentMonster.type.indexOf('Raid') >= 0) {
-                        tempDiv = $("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
+                        tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].siege_img + "']");
                         currentMonster.miss = $.trim(tempDiv.parent().parent().text()).replace(missRegEx, "$1");
                     } else {
-                        currentMonster.miss = $.trim($("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
+                        currentMonster.miss = $.trim(appBodyDiv.find("#app46755028429_action_logs").prev().children().eq(3).children().eq(2).children().eq(1).text()).replace(missRegEx, "$1");
                     }
 
                     if (currentMonster.type.indexOf('Raid') >= 0) {
@@ -7467,7 +7501,7 @@ caap = {
                     } else {
                         totalCount = 1;
                         for (ind = 0; ind < monster.info[currentMonster.type].siege_img.length; ind += 1) {
-                            totalCount += $("img[src*=" + monster.info[currentMonster.type].siege_img[ind] + "]").size();
+                            totalCount += appBodyDiv.find("img[src*=" + monster.info[currentMonster.type].siege_img[ind] + "]").size();
                         }
                     }
 
@@ -7743,13 +7777,14 @@ caap = {
                     monster.records[counter].life = -1;
                     monster.records[counter].fortify = -1;
                     monster.records[counter].strength = -1;
-                    //monster.records[counter].timeLeft = '';
-                    monster.records[counter].timeLeft = [];
+                    monster.records[counter].time = [];
                     monster.records[counter].t2k = -1;
                     monster.records[counter].phase = '';
+                    monster.save();
                 }
 
-                tempTime = monster.records[counter].review ? monster.records[counter].review : new Date(2009, 0, 1).getTime();
+                tempTime = monster.records[counter].review ? monster.records[counter].review : -1;
+                utility.log(1, "review", monster.records[counter], !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60));
                 if (monster.records[counter].status === 'Complete' || !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
                     state.setItem('monsterReviewCounter', counter += 1);
                     state.setItem('monsterRepeatCount', 0);
@@ -8299,7 +8334,7 @@ caap = {
             }
 
             if (battleOrMonster === "Battle" && config.getItem("waitSafeHealth", false) && this.stats.health.num < 13) {
-                this.SetDivContent('battle_mess', "Unsafe. Need spare health to fight: " + this.stats.health.num + "/12");
+                this.SetDivContent('battle_mess', "Unsafe. Need spare health to fight: " + this.stats.health.num + "/13");
                 return false;
             }
 
@@ -8726,11 +8761,11 @@ caap = {
                 minStamToHeal = 0;
             }
 
-            if (!this.stats.health || utility.isEmpty(this.stats.health) || utility.isEmpty(this.stats.healthT)) {
+            if (!this.stats.health || $.isEmptyObject(this.stats.health) || $.isEmptyObject(this.stats.healthT)) {
                 return false;
             }
 
-            if (!this.stats.stamina || utility.isEmpty(this.stats.stamina) || utility.isEmpty(this.stats.staminaT)) {
+            if (!this.stats.stamina || $.isEmptyObject(this.stats.stamina) || $.isEmptyObject(this.stats.staminaT)) {
                 return false;
             }
 
@@ -8919,24 +8954,18 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     CheckResults_army: function (resultsText) {
-        if (config.getItem('AutoGift', false)) {
-            if ($("a[href*='reqs.php#confirm_46755028429_0']").length) {
+        var listHref = null,
+            link     = '',
+            autoGift = false;
+
+        autoGift = config.getItem('AutoGift', false);
+        listHref = $("#app46755028429_app_body div[class='messages'] a[href*='army.php?act=ignore']");
+        if (listHref && listHref.length) {
+            if (autoGift) {
                 utility.log(1, 'We have a gift waiting!');
                 state.setItem('HaveGift', true);
-            } else {
-                utility.log(1, 'No gifts waiting.');
-                state.setItem('HaveGift', false);
             }
 
-            schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
-        }
-
-        var listHref = null,
-            i        = 0,
-            link     = '';
-
-        listHref = $("a[href*='army.php?act=ignore']");
-        if (listHref && listHref.length) {
             listHref.each(function () {
                 link = "<br /><a title='This link can be used to collect the " +
                     "gift when it has been lost on Facebook. !!If you accept a gift " +
@@ -8944,6 +8973,15 @@ caap = {
                     "href='" + $(this).attr("href").replace('ignore', 'acpt') + "'>Lost Accept</a>";
                 $(link).insertAfter($(this));
             });
+        } else {
+            if (autoGift) {
+                utility.log(1, 'No gifts waiting.');
+                state.setItem('HaveGift', false);
+            }
+        }
+
+        if (autoGift) {
+            schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
         }
     },
 
@@ -8964,7 +9002,7 @@ caap = {
 
         list.sort(sortfunc);
         for (i = 0; i < list.length; i += 1) {
-            if (deep && typeof obj[list[i]] === 'object') {
+            if (deep && $.isPlainObject(obj[list[i]])) {
                 output[list[i]] = this.SortObject(obj[list[i]], sortfunc, deep);
             } else {
                 output[list[i]] = obj[list[i]];
@@ -9178,7 +9216,7 @@ caap = {
                     utility.log(1, "Unknown gift, using first", giftChoice, giftImg);
                 }
 
-                if (gifting.queue.chooseFriend(5)) {
+                if (gifting.queue.chooseFriend2(5)) {
                     tempDiv = $("form[id*='req_form_'] input[name='send']");
                     if (tempDiv && tempDiv.length) {
                         utility.Click(tempDiv.get(0));
@@ -9193,7 +9231,7 @@ caap = {
                 }
             }
 
-            if (utility.isEmpty(gifting.getCurrent())) {
+            if ($.isEmptyObject(gifting.getCurrent())) {
                 return false;
             }
 

@@ -493,6 +493,7 @@ monster = {
     getItem: function (name) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false,
                 newRecord = null;
 
@@ -505,7 +506,7 @@ monster = {
                 return '';
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === name) {
                     success = true;
                     break;
@@ -529,7 +530,7 @@ monster = {
 
     setItem: function (record) {
         try {
-            if (!record || utility.typeOf(record) !== 'object') {
+            if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -539,9 +540,10 @@ monster = {
             }
 
             var it      = 0,
+                len     = 0,
                 success = false;
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === record.name) {
                     success = true;
                     break;
@@ -567,6 +569,7 @@ monster = {
     deleteItem: function (name) {
         try {
             var it        = 0,
+                len       = 0,
                 success   = false;
 
             if (typeof name !== 'string' || name === '') {
@@ -574,7 +577,7 @@ monster = {
                 throw "Invalid identifying name!";
             }
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].name === name) {
                     success = true;
                     break;
@@ -724,6 +727,10 @@ monster = {
                     any            : []
                 },
                 it                    = 0,
+                len                   = 0,
+                len1                  = 0,
+                len2                  = 0,
+                len3                  = 0,
                 s                     = 0,
                 selectTypes           = [],
                 maxToFortify          = 0,
@@ -752,7 +759,7 @@ monster = {
                 attackOrderList       = [];
 
 
-            for (it = 0; it < this.records.length; it += 1) {
+            for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].type === '') {
                     this.records[it].type = this.type(this.records[it].name);
                 }
@@ -760,9 +767,8 @@ monster = {
                 if (this.info[this.records[it].type] && this.info[this.records[it].type].alpha) {
                     if (this.records[it].damage !== -1 && this.records[it].color !== 'grey' && schedule.since(this.records[it].stunTime, 0)) {
                         utility.log(1, "Review monster due to class timer", this.records[it].name);
-                        this.records[it].review = 0;
-                        schedule.setItem("monsterReview", 0);
-                        state.setItem('monsterReviewCounter', -3);
+                        this.records[it].review = -1;
+                        this.flagReview();
                     }
                 }
 
@@ -790,240 +796,226 @@ monster = {
             utility.log(3, 'records/monsterList/selectTypes', this.records, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
-            for (s in selectTypes) {
-                if (selectTypes.hasOwnProperty(s)) {
-                    if (!monsterList[selectTypes[s]].length) {
+            for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
+                if (!monsterList[selectTypes[s]].length) {
+                    continue;
+                }
+
+                firstOverAch          = '';
+                firstUnderMax         = '';
+                firstFortOverAch      = '';
+                firstFortUnderMax     = '';
+                firstStunOverAch      = '';
+                firstStunUnderMax     = '';
+                firstStrengthOverAch  = '';
+                firstStrengthUnderMax = '';
+                strengthTarget        = '';
+                fortifyTarget         = '';
+                stunTarget            = '';
+                energyTarget          = {
+                    name : '',
+                    type : ''
+                };
+
+                // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
+                if (selectTypes[s] === 'any') {
+                    attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
+                    $.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
+                } else {
+                    attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
+                }
+
+                utility.log(9, 'attackOrderList', attackOrderList);
+                // Next we step through the users list getting the name and conditions
+                for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
+                    if (!($.trim(attackOrderList[p]))) {
                         continue;
                     }
 
-                    firstOverAch          = '';
-                    firstUnderMax         = '';
-                    firstFortOverAch      = '';
-                    firstFortUnderMax     = '';
-                    firstStunOverAch      = '';
-                    firstStunUnderMax     = '';
-                    firstStrengthOverAch  = '';
-                    firstStrengthUnderMax = '';
-                    strengthTarget        = '';
-                    fortifyTarget         = '';
-                    stunTarget            = '';
-                    energyTarget          = {
-                        name : '',
-                        type : ''
-                    };
+                    monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
+                    // Now we try to match the users name agains our list of monsters
+                    for (m = 0, len3 = monsterList[selectTypes[s]].length; m < len3; m += 1) {
+                        if (!monsterList[selectTypes[s]][m]) {
+                            continue;
+                        }
 
-                    // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
-                    if (selectTypes[s] === 'any') {
-                        attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
-                        $.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
-                    } else {
-                        attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
-                    }
+                        monsterObj = this.getItem(monsterList[selectTypes[s]][m]);
+                        // If we set conditions on this monster already then we do not reprocess
+                        if (monsterObj.conditions !== 'none') {
+                            continue;
+                        }
 
-                    utility.log(9, 'attackOrderList', attackOrderList);
-                    // Next we step through the users list getting the name and conditions
-                    for (p in attackOrderList) {
-                        if (attackOrderList.hasOwnProperty(p)) {
-                            if (!($.trim(attackOrderList[p]))) {
-                                continue;
+                        // If this monster does not match, skip to next one
+                        // Or if this monster is dead, skip to next one
+                        // Or if this monster is not the correct type, skip to next one
+                        if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
+                            continue;
+                        }
+
+                        //Monster is a match so we set the conditions
+                        monsterObj.conditions = monsterConditions;
+                        this.setItem(monsterObj);
+                        // If it's complete or collect rewards, no need to process further
+                        if (monsterObj.color === 'grey') {
+                            continue;
+                        }
+
+                        utility.log(3, 'Current monster being checked', monsterObj);
+                        // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
+                        // these to see if this is the monster we should select
+                        if (!firstUnderMax && monsterObj.color !== 'purple') {
+                            if (monsterObj.over === 'ach') {
+                                if (!firstOverAch) {
+                                    firstOverAch = monsterList[selectTypes[s]][m];
+                                    utility.log(3, 'firstOverAch', firstOverAch);
+                                }
+                            } else if (monsterObj.over !== 'max') {
+                                firstUnderMax = monsterList[selectTypes[s]][m];
+                                utility.log(3, 'firstUnderMax', firstUnderMax);
+                            }
+                        }
+
+                        monstType = this.type(monsterList[selectTypes[s]][m]);
+                        if (monstType && this.info[monstType]) {
+                            if (!this.info[monstType].alpha || (this.info[monstType].alpha && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
+                                maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
+                                if (this.info[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
+                                    if (monsterObj.over === 'ach') {
+                                        if (!firstFortOverAch) {
+                                            firstFortOverAch = monsterList[selectTypes[s]][m];
+                                            utility.log(3, 'firstFortOverAch', firstFortOverAch);
+                                        }
+                                    } else if (monsterObj.over !== 'max') {
+                                        firstFortUnderMax = monsterList[selectTypes[s]][m];
+                                        utility.log(3, 'firstFortUnderMax', firstFortUnderMax);
+                                    }
+                                }
                             }
 
-                            monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
-                            // Now we try to match the users name agains our list of monsters
-                            for (m in monsterList[selectTypes[s]]) {
-                                if (monsterList[selectTypes[s]].hasOwnProperty(m)) {
-                                    if (!monsterList[selectTypes[s]][m]) {
-                                        continue;
-                                    }
-
-                                    monsterObj = this.getItem(monsterList[selectTypes[s]][m]);
-                                    // If we set conditions on this monster already then we do not reprocess
-                                    if (monsterObj.conditions !== 'none') {
-                                        continue;
-                                    }
-
-                                    // If this monster does not match, skip to next one
-                                    // Or if this monster is dead, skip to next one
-                                    // Or if this monster is not the correct type, skip to next one
-                                    if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
-                                        continue;
-                                    }
-
-                                    //Monster is a match so we set the conditions
-                                    monsterObj.conditions = monsterConditions;
-                                    this.setItem(monsterObj);
-                                    // If it's complete or collect rewards, no need to process further
-                                    if (monsterObj.color === 'grey') {
-                                        continue;
-                                    }
-
-                                    utility.log(3, 'Current monster being checked', monsterObj);
-                                    // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
-                                    // these to see if this is the monster we should select
-                                    if (!firstUnderMax && monsterObj.color !== 'purple') {
+                            if (this.info[monstType].alpha) {
+                                if (config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
+                                    if (!firstStrengthUnderMax && monsterObj.strength < 100) {
                                         if (monsterObj.over === 'ach') {
-                                            if (!firstOverAch) {
-                                                firstOverAch = monsterList[selectTypes[s]][m];
-                                                utility.log(3, 'firstOverAch', firstOverAch);
+                                            if (!firstStrengthOverAch) {
+                                                firstStrengthOverAch = monsterList[selectTypes[s]][m];
+                                                utility.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
                                             }
                                         } else if (monsterObj.over !== 'max') {
-                                            firstUnderMax = monsterList[selectTypes[s]][m];
-                                            utility.log(3, 'firstUnderMax', firstUnderMax);
+                                            firstStrengthUnderMax = monsterList[selectTypes[s]][m];
+                                            utility.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
                                         }
                                     }
+                                }
 
-                                    monstType = this.type(monsterList[selectTypes[s]][m]);
-                                    if (monstType && this.info[monstType]) {
-                                        if (!this.info[monstType].alpha || (this.info[monstType].alpha && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
-                                            maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
-                                            if (this.info[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
-                                                if (monsterObj.over === 'ach') {
-                                                    if (!firstFortOverAch) {
-                                                        firstFortOverAch = monsterList[selectTypes[s]][m];
-                                                        utility.log(3, 'firstFortOverAch', firstFortOverAch);
-                                                    }
-                                                } else if (monsterObj.over !== 'max') {
-                                                    firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                                    utility.log(3, 'firstFortUnderMax', firstFortUnderMax);
-                                                }
-                                            }
+                                if (!firstStunUnderMax && monsterObj.stunDo) {
+                                    if (monsterObj.over === 'ach') {
+                                        if (!firstStunOverAch) {
+                                            firstStunOverAch = monsterList[selectTypes[s]][m];
+                                            utility.log(3, 'firstStunOverAch', firstStunOverAch);
                                         }
-
-                                        if (this.info[monstType].alpha) {
-                                            if (config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                                                if (!firstStrengthUnderMax && monsterObj.strength < 100) {
-                                                    if (monsterObj.over === 'ach') {
-                                                        if (!firstStrengthOverAch) {
-                                                            firstStrengthOverAch = monsterList[selectTypes[s]][m];
-                                                            utility.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
-                                                        }
-                                                    } else if (monsterObj.over !== 'max') {
-                                                        firstStrengthUnderMax = monsterList[selectTypes[s]][m];
-                                                        utility.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
-                                                    }
-                                                }
-                                            }
-
-                                            if (!firstStunUnderMax && monsterObj.stunDo) {
-                                                if (monsterObj.over === 'ach') {
-                                                    if (!firstStunOverAch) {
-                                                        firstStunOverAch = monsterList[selectTypes[s]][m];
-                                                        utility.log(3, 'firstStunOverAch', firstStunOverAch);
-                                                    }
-                                                } else if (monsterObj.over !== 'max') {
-                                                    firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                                    utility.log(3, 'firstStunUnderMax', firstStunUnderMax);
-                                                }
-                                            }
-                                        }
+                                    } else if (monsterObj.over !== 'max') {
+                                        firstStunUnderMax = monsterList[selectTypes[s]][m];
+                                        utility.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                     }
                                 }
                             }
                         }
                     }
+                }
 
-                    // Now we use the first under max/under achievement that we found. If we didn't find any under
-                    // achievement then we use the first over achievement
-                    if (selectTypes[s] !== 'raid') {
-                        //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                            strengthTarget = firstStrengthUnderMax;
-                            if (!strengthTarget) {
-                                strengthTarget = firstStrengthOverAch;
-                            }
-
-                            if (strengthTarget) {
-                                energyTarget.name = strengthTarget;
-                                energyTarget.type = 'Strengthen';
-                                utility.log(1, 'Strengthen target ', energyTarget.name);
-                            }
-                        //}
-
-                        fortifyTarget = firstFortUnderMax;
-                        if (!fortifyTarget) {
-                            fortifyTarget = firstFortOverAch;
-                        }
-
-                        if (fortifyTarget) {
-                            energyTarget.name = fortifyTarget;
-                            energyTarget.type = 'Fortify';
-                            //if (this.info[monstType] && this.info[monstType].alpha && config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                                utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
-                            //} else {
-                            //    utility.log(1, 'Fortify ', energyTarget.name);
-                            //}
-                        }
-
-                        //if (this.info[monstType].alpha) {
-                            stunTarget = firstStunUnderMax;
-                            if (!stunTarget) {
-                                stunTarget = firstStunOverAch;
-                            }
-
-                            if (stunTarget) {
-                                energyTarget.name = stunTarget;
-                                energyTarget.type = 'Stun';
-                                utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
-                            }
-                        //}
-
-                        state.setItem('targetFromfortify', energyTarget);
-                        utility.log(1, 'Energy target', energyTarget);
+                // Now we use the first under max/under achievement that we found. If we didn't find any under
+                // achievement then we use the first over achievement
+                if (selectTypes[s] !== 'raid') {
+                    strengthTarget = firstStrengthUnderMax;
+                    if (!strengthTarget) {
+                        strengthTarget = firstStrengthOverAch;
                     }
 
-                    monsterName = firstUnderMax;
-                    if (!monsterName) {
-                        monsterName = firstOverAch;
+                    if (strengthTarget) {
+                        energyTarget.name = strengthTarget;
+                        energyTarget.type = 'Strengthen';
+                        utility.log(1, 'Strengthen target ', energyTarget.name);
                     }
 
-                    // If we've got a monster for this selection type then we set the GM variables for the name
-                    // and stamina requirements
-                    if (monsterName) {
-                        monsterObj = this.getItem(monsterName);
-                        state.setItem('targetFrom' + monsterObj.page, monsterName);
-                        if (monsterObj.page === 'battle_monster') {
-                            nodeNum = 0;
-                            if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staLvl) {
-                                for (nodeNum = this.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                    if (caap.stats.stamina.max >= this.info[monsterObj.type].staLvl[nodeNum]) {
-                                        break;
-                                    }
+                    fortifyTarget = firstFortUnderMax;
+                    if (!fortifyTarget) {
+                        fortifyTarget = firstFortOverAch;
+                    }
+
+                    if (fortifyTarget) {
+                        energyTarget.name = fortifyTarget;
+                        energyTarget.type = 'Fortify';
+                        utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
+                    }
+
+                    stunTarget = firstStunUnderMax;
+                    if (!stunTarget) {
+                        stunTarget = firstStunOverAch;
+                    }
+
+                    if (stunTarget) {
+                        energyTarget.name = stunTarget;
+                        energyTarget.type = 'Stun';
+                        utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
+                    }
+
+                    state.setItem('targetFromfortify', energyTarget);
+                    utility.log(1, 'Energy target', energyTarget);
+                }
+
+                monsterName = firstUnderMax;
+                if (!monsterName) {
+                    monsterName = firstOverAch;
+                }
+
+                // If we've got a monster for this selection type then we set the GM variables for the name
+                // and stamina requirements
+                if (monsterName) {
+                    monsterObj = this.getItem(monsterName);
+                    state.setItem('targetFrom' + monsterObj.page, monsterName);
+                    if (monsterObj.page === 'battle_monster') {
+                        nodeNum = 0;
+                        if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staLvl) {
+                            for (nodeNum = this.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                if (caap.stats.stamina.max >= this.info[monsterObj.type].staLvl[nodeNum]) {
+                                    break;
                                 }
                             }
+                        }
 
-                            if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staMax[nodeNum]);
-                            } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
-                                state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staUse);
-                            } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
-                                state.setItem('MonsterStaminaReq', 5);
-                            } else if (monsterObj.conditions.match(/:sa/i)) {
-                                state.setItem('MonsterStaminaReq', 1);
-                            } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
-                                state.setItem('MonsterStaminaReq', 5);
-                            } else {
-                                state.setItem('MonsterStaminaReq', 1);
-                            }
-
-                            switch (config.getItem('MonsterGeneral', 'Use Current')) {
-                            case 'Orc King':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
-                                utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            case 'Barbarus':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
-                                utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
-                                break;
-                            default:
-                            }
+                        if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                            state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staMax[nodeNum]);
+                        } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
+                            state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staUse);
+                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
+                            state.setItem('MonsterStaminaReq', 5);
+                        } else if (monsterObj.conditions.match(/:sa/i)) {
+                            state.setItem('MonsterStaminaReq', 1);
+                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
+                            state.setItem('MonsterStaminaReq', 5);
                         } else {
-                            // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
-                            if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj.conditions.match(/:pa/i)) {
-                                state.setItem('RaidStaminaReq', 5);
-                            } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
-                                state.setItem('RaidStaminaReq', this.info[monsterObj.type].staUse);
-                            } else {
-                                state.setItem('RaidStaminaReq', 1);
-                            }
+                            state.setItem('MonsterStaminaReq', 1);
+                        }
+
+                        switch (config.getItem('MonsterGeneral', 'Use Current')) {
+                        case 'Orc King':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
+                            utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        case 'Barbarus':
+                            state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
+                            utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
+                            break;
+                        default:
+                        }
+                    } else {
+                        // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
+                        if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj.conditions.match(/:pa/i)) {
+                            state.setItem('RaidStaminaReq', 5);
+                        } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
+                            state.setItem('RaidStaminaReq', this.info[monsterObj.type].staUse);
+                        } else {
+                            state.setItem('RaidStaminaReq', 1);
                         }
                     }
                 }

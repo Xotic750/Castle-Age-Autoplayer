@@ -5,8 +5,8 @@
 
 utility.log(1, "Starting CAAP ... waiting page load");
 utility.setTimeout(function () {
-        utility.error('DOM onload timeout!!! Releading ...', window.location.href);
-        window.location.href = window.location.href;
+        utility.error('DOM onload timeout!!! Reloading ...', window.location.href);
+        window.location.reload();
     }, 180000);
 
 /////////////////////////////////////////////////////////////////////

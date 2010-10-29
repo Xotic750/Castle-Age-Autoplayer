@@ -133,7 +133,7 @@ gifting = {
                 utility.warn("No gift messages found!");
             }
 
-            return !utility.isEmpty(gm.setItem("GiftEntry", current));
+            return !$.isEmptyObject(gm.setItem("GiftEntry", current));
         } catch (err) {
             utility.error("ERROR in gifting.accept: " + err);
             return undefined;
@@ -151,7 +151,7 @@ gifting = {
 
     setCurrent: function (record) {
         try {
-            if (!record || utility.typeOf(record) !== 'object') {
+            if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -178,11 +178,11 @@ gifting = {
 
     collecting: function () {
         try {
-            if (!utility.isEmpty(this.getCurrent()) && this.getCurrent().checked) {
+            if (!$.isEmptyObject(this.getCurrent()) && this.getCurrent().checked) {
                 this.collected(true);
             }
 
-            if (utility.isEmpty(this.getCurrent()) && state.getItem('HaveGift', false)) {
+            if ($.isEmptyObject(this.getCurrent()) && state.getItem('HaveGift', false)) {
                 if (utility.NavigateTo('army', 'invite_on.gif')) {
                     return true;
                 }
@@ -222,7 +222,7 @@ gifting = {
             }
 
             giftEntry = this.getCurrent();
-            if (utility.isEmpty(giftEntry)) {
+            if ($.isEmptyObject(giftEntry)) {
                 return false;
             }
 
@@ -307,7 +307,7 @@ gifting = {
     collected: function (force) {
         try {
             var giftEntry = this.getCurrent();
-            if (!utility.isEmpty(giftEntry)) {
+            if (!$.isEmptyObject(giftEntry)) {
                 if (force || utility.CheckForImage("gift_yes.gif")) {
                     if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                         this.queue.setItem(giftEntry);
@@ -584,7 +584,7 @@ gifting = {
                 found   : false,
                 chosen  : false,
                 sent    : false,
-                last    : new Date(2009, 0, 1).getTime()
+                last    : 0
             };
         },
 
@@ -614,7 +614,7 @@ gifting = {
 
         setItem: function (record) {
             try {
-                if (!record || utility.typeOf(record) !== 'object') {
+                if (!record || !$.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -624,11 +624,12 @@ gifting = {
                 }
 
                 var it      = 0,
+                    len     = 0,
                     found   = false,
                     updated = false;
 
                 if (config.getItem("UniqueGiftQueue", true)) {
-                    for (it = 0; it < this.records.length; it += 1) {
+                    for (it = 0, len = this.records.length; it < len; it += 1) {
                         if (this.records[it].userId === record.userId) {
                             if (this.records[it].name !== record.name) {
                                 this.records[it].name = record.name;
@@ -687,18 +688,59 @@ gifting = {
 
         chooseGift: function () {
             try {
-                var it = 0,
-                    gift = '',
-                    choice = '';
+                var it             = 0,
+                    it1            = 0,
+                    len            = 0,
+                    gift           = '',
+                    choice         = '',
+                    filterId       = false,
+                    filterIdList   = [],
+                    filterIdLen    = 0,
+                    filterGift     = false,
+                    filterGiftList = [],
+                    filterGiftLen  = 0,
+                    filterGiftCont = false;
+
+                filterId = config.getItem("FilterReturnId", false);
+                if (filterId) {
+                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdLen = filterIdList.length;
+                }
+
+                filterGift = config.getItem("FilterReturnGift", false);
+                if (filterGift) {
+                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftLen = filterGiftList.length;
+                }
 
                 choice = config.getItem("GiftChoice", gifting.gifts.options[0]);
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (!schedule.since(this.records[it].last || 0, 43200)) {
                         continue;
                     }
 
                     if (this.records[it].sent) {
                         continue;
+                    }
+
+                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(1, "chooseGift Filter Id", this.records[it].userId);
+                        continue;
+                    }
+
+                    if (filterGift && filterGiftLen) {
+                        filterGiftCont = false;
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
+                                utility.log(1, "chooseGift Filter Gift", this.records[it].gift);
+                                filterGiftCont = true;
+                                break;
+                            }
+                        }
+
+                        if (filterGiftCont) {
+                            continue;
+                        }
                     }
 
                     switch (choice) {
@@ -734,29 +776,51 @@ gifting = {
 
         chooseFriend: function (howmany) {
             try {
-                var it            = 0,
-                    tempGift      = '',
-                    tempText      = '',
-                    unselListDiv  = null,
-                    selListDiv    = null,
-                    unselDiv      = null,
-                    selDiv        = null,
-                    first         = true,
-                    count         = 0,
-                    same          = true,
-                    returnOnlyOne = config.getItem("ReturnOnlyOne", false);
+                var it             = 0,
+                    it1            = 0,
+                    len            = 0,
+                    tempGift       = '',
+                    tempText       = '',
+                    unselListDiv   = null,
+                    selListDiv     = null,
+                    unselDiv       = null,
+                    selDiv         = null,
+                    first          = true,
+                    count          = 0,
+                    same           = true,
+                    returnOnlyOne  = false,
+                    filterId       = false,
+                    filterIdList   = [],
+                    filterIdLen    = 0,
+                    filterGift     = false,
+                    filterGiftList = [],
+                    filterGiftLen  = 0,
+                    filterGiftCont = false;
 
                 if (!utility.isNum(howmany) || howmany < 1) {
                     throw "Invalid howmany! (" + howmany + ")";
+                }
+
+                returnOnlyOne = config.getItem("ReturnOnlyOne", false);
+                filterId = config.getItem("FilterReturnId", false);
+                if (filterId) {
+                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdLen = filterIdList.length;
+                }
+
+                filterGift = config.getItem("FilterReturnGift", false);
+                if (filterGift) {
+                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftLen = filterGiftList.length;
                 }
 
                 if (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[0]) {
                     same = false;
                 }
 
-                unselListDiv = $("div[class='unselected_list']");
-                selListDiv = $("div[class='selected_list']");
-                for (it = 0; it < this.records.length; it += 1) {
+                unselListDiv = $("#app46755028429_app_body div[class='unselected_list']");
+                selListDiv = $("#app46755028429_app_body div[class='selected_list']");
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     this.records[it].chosen = false;
 
                     if (count >= howmany) {
@@ -769,6 +833,26 @@ gifting = {
 
                     if (this.records[it].sent) {
                         continue;
+                    }
+
+                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(1, "chooseFriend Filter Id", this.records[it].userId);
+                        continue;
+                    }
+
+                    if (filterGift && filterGiftLen) {
+                        filterGiftCont = false;
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
+                                utility.log(1, "chooseFriend Filter Gift", this.records[it].gift);
+                                filterGiftCont = true;
+                                break;
+                            }
+                        }
+
+                        if (filterGiftCont) {
+                            continue;
+                        }
                     }
 
                     if (returnOnlyOne) {
@@ -819,6 +903,183 @@ gifting = {
                 return count;
             } catch (err) {
                 utility.error("ERROR in gifting.queue.chooseFriend: " + err);
+                return undefined;
+            }
+        },
+
+        chooseFriend2: function (howmany) {
+            try {
+                var it             = 0,
+                    it1            = 0,
+                    len            = 0,
+                    tempGift       = '',
+                    tempText       = '',
+                    unselListDiv   = null,
+                    selListDiv     = null,
+                    unselDiv       = null,
+                    selDiv         = null,
+                    first          = true,
+                    same           = true,
+                    returnOnlyOne  = false,
+                    filterId       = false,
+                    filterIdList   = [],
+                    filterIdLen    = 0,
+                    filterGift     = false,
+                    filterGiftList = [],
+                    filterGiftLen  = 0,
+                    filterGiftCont = false,
+                    giftingList    = [],
+                    searchStr      = '',
+                    clickedList    = [],
+                    pendingList    = [],
+                    chosenList     = [],
+                    tempList       = [];
+
+                if (!utility.isNum(howmany) || howmany < 1) {
+                    throw "Invalid howmany! (" + howmany + ")";
+                }
+
+                returnOnlyOne = config.getItem("ReturnOnlyOne", false);
+                filterId = config.getItem("FilterReturnId", false);
+                if (filterId) {
+                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdLen = filterIdList.length;
+                }
+
+                filterGift = config.getItem("FilterReturnGift", false);
+                if (filterGift) {
+                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftLen = filterGiftList.length;
+                }
+
+                if (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[0]) {
+                    same = false;
+                }
+
+                unselListDiv = $("#app46755028429_app_body div[class='unselected_list']");
+                selListDiv = $("#app46755028429_app_body div[class='selected_list']");
+                for (it = 0, len = this.records.length; it < len; it += 1) {
+                    this.records[it].chosen = false;
+
+                    if (giftingList.length >= howmany) {
+                        continue;
+                    }
+
+                    if (!schedule.since(this.records[it].last || 0, 3600)) {
+                        continue;
+                    }
+
+                    if (this.records[it].sent) {
+                        continue;
+                    }
+
+                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(1, "chooseFriend2 Filter Id", this.records[it].userId);
+                        continue;
+                    }
+
+                    if (filterGift && filterGiftLen) {
+                        filterGiftCont = false;
+                        for (it1 = 0; it1 < filterGiftLen; it1 += 1){
+                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
+                                utility.log(1, "chooseFriend2 Filter Gift", this.records[it].gift);
+                                filterGiftCont = true;
+                                break;
+                            }
+                        }
+
+                        if (filterGiftCont) {
+                            continue;
+                        }
+                    }
+
+                    if (returnOnlyOne) {
+                        if (gifting.history.checkSentOnce(this.records[it].userId)) {
+                            utility.log(1, "Sent Today: ", this.records[it].userId);
+                            this.records[it].last = new Date().getTime();
+                            continue;
+                        }
+                    }
+
+                    if (first) {
+                        tempGift = this.records[it].gift;
+                        first = false;
+                    }
+
+                    if (this.records[it].gift === tempGift || !same) {
+                        giftingList.push(this.records[it].userId);
+                    }
+                }
+
+                for (it = 0, len = giftingList.length; it < len; it += 1) {
+                    searchStr += "input[value='" + giftingList[it] + "']";
+                    if (it >= 0 && it <= len - 1) {
+                        searchStr += ",";
+                    }
+                }
+
+                unselDiv = unselListDiv.find(searchStr);
+                if (unselDiv && unselDiv.length) {
+                    unselDiv.each(function () {
+                        var id = parseInt($(this).attr("value"), 10);
+                        if (!/none/.test($(this).parent().attr("style"))) {
+                            caap.waitingForDomLoad = false;
+                            utility.Click($(this).get(0));
+                            utility.log(1, "Id clicked:", id);
+                            clickedList.push(id);
+                        } else {
+                            utility.log(1, "Id not found, perhaps gift pending:", id);
+                            pendingList.push(id);
+                        }
+                    });
+                } else {
+                    utility.log(1, "Ids not found:", giftingList, searchStr);
+                    $.merge(pendingList, giftingList);
+                }
+
+                if (clickedList && clickedList.length) {
+                    for (it = 0, len = clickedList.length; it < len; it += 1) {
+                        searchStr += "input[value='" + clickedList[it] + "']";
+                        if (it >= 0 && it <= len - 1) {
+                            searchStr += ",";
+                        }
+                    }
+
+                    selDiv = selListDiv.find(searchStr);
+                    if (selDiv && selDiv.length) {
+                        selDiv.each(function () {
+                            var id = parseInt($(this).attr("value"), 10);
+                            if (!/none/.test($(this).parent().attr("style"))) {
+                                utility.log(1, "User Chosen:", id);
+                                chosenList.push(id);
+                            } else {
+                                utility.log(1, "Selected id is none:", id);
+                                pendingList.push(id);
+                            }
+                        });
+                    } else {
+                        utility.log(1, "Selected ids not found:", id, searchStr);
+                        $.merge(pendingList, clickedList);
+                    }
+                }
+
+                utility.log(2, "chosenList/pendingList", chosenList, pendingList);
+                for (it = 0, len = this.records.length; it < len; it += 1) {
+                    if (chosenList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(2, "chosen", this.records[it].userId);
+                        this.records[it].chosen = true;
+                        this.records[it].last = new Date().getTime();
+                    } else if (pendingList.indexOf(this.records[it].userId) >= 0) {
+                        utility.log(2, "pending", this.records[it].userId);
+                        this.records[it].last = new Date().getTime();
+                    }
+                }
+
+                caap.waitingForDomLoad = false;
+                gifting.save("queue");
+                return chosenList.length;
+            } catch (err) {
+                utility.error("ERROR in gifting.queue.chooseFriend2: " + err);
                 return undefined;
             }
         },
@@ -885,7 +1146,7 @@ gifting = {
 
         received: function (record) {
             try {
-                if (!record || utility.typeOf(record) !== 'object') {
+                if (!record || !$.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -895,10 +1156,11 @@ gifting = {
                 }
 
                 var it        = 0,
+                    len       = 0,
                     success   = false,
                     newRecord = {};
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].userId === record.userId) {
                         if (this.records[it].name !== record.name) {
                             this.records[it].name = record.name;
@@ -933,7 +1195,7 @@ gifting = {
 
         sent: function (record) {
             try {
-                if (!record || utility.typeOf(record) !== 'object') {
+                if (!record || !$.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -943,10 +1205,11 @@ gifting = {
                 }
 
                 var it        = 0,
+                    len       = 0,
                     success   = false,
                     newRecord = {};
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].userId === record.userId) {
                         if (this.records[it].name !== record.name) {
                             this.records[it].name = record.name;
@@ -987,9 +1250,10 @@ gifting = {
                 }
 
                 var it       = 0,
+                    len      = 0,
                     sentOnce = false;
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].userId !== userId) {
                         continue;
                     }
