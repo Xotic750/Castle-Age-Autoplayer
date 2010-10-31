@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.23.51
-// @dev            45
+// @dev            46
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion = "140.23.51",
-    devVersion  = "45",
+    devVersion  = "46",
     hiddenVar   = true,
     image64     = {},
     utility     = {},
