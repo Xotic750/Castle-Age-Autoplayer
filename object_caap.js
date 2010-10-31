@@ -9982,7 +9982,8 @@ caap = {
                                     reconARBase     = config.getItem('ReconPlayerARBase', 999),
                                     levelMultiplier = 0,
                                     armyRatio       = 0,
-                                    goodTarget      = true;
+                                    goodTarget      = true,
+                                    len             = 0;
 
                                 if ($tempObj.length) {
                                     tempArray = $tempObj.find("a:first").attr("href").match(/user=([0-9]+)/);
@@ -9990,7 +9991,7 @@ caap = {
                                         UserRecord.data.userID = parseInt(tempArray[1], 10);
                                     }
 
-                                    for (i = 0; i < caap.ReconRecordArray.length; i += 1) {
+                                    for (i = 0, len = caap.ReconRecordArray.length; i < len; i += 1) {
                                         if (caap.ReconRecordArray[i].userID === UserRecord.data.userID) {
                                             UserRecord.data = caap.ReconRecordArray[i];
                                             caap.ReconRecordArray.splice(i, 1);
@@ -10006,17 +10007,17 @@ caap = {
 
                                     txt = $.trim($tempObj.text());
                                     if (txt.length) {
-                                        if (caap.battles.Freshmeat.warLevel) {
+                                        if (battle.battles.Freshmeat.warLevel) {
                                             tempArray = regex.exec(txt);
                                             if (!tempArray) {
                                                 tempArray = regex2.exec(txt);
-                                                caap.battles.Freshmeat.warLevel = false;
+                                                battle.battles.Freshmeat.warLevel = false;
                                             }
                                         } else {
                                             tempArray = regex2.exec(txt);
                                             if (!tempArray) {
                                                 tempArray = regex.exec(txt);
-                                                caap.battles.Freshmeat.warLevel = true;
+                                                battle.battles.Freshmeat.warLevel = true;
                                             }
                                         }
 
@@ -10026,7 +10027,7 @@ caap = {
                                             UserRecord.data.levelNum       = parseInt(tempArray[2], 10);
                                             UserRecord.data.rankStr        = tempArray[3];
                                             UserRecord.data.rankNum        = parseInt(tempArray[4], 10);
-                                            if (caap.battles.Freshmeat.warLevel) {
+                                            if (battle.battles.Freshmeat.warLevel) {
                                                 UserRecord.data.warRankStr = tempArray[5];
                                                 UserRecord.data.warRankNum = parseInt(tempArray[6], 10);
                                                 UserRecord.data.armyNum    = parseInt(tempArray[7], 10);
