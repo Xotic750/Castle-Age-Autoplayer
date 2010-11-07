@@ -109,7 +109,7 @@ utility = {
             for (s = pathList.length - 1; s >= 0; s -= 1) {
                 a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
                 if (a && a.length) {
-                    this.log(1, 'Go to', pathList[s]);
+                    this.log(2, 'Go to', pathList[s]);
                     //state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + pathList[s] + '.php');
                     this.Click(a.get(0));
                     return true;
@@ -122,7 +122,7 @@ utility = {
 
                 img = this.CheckForImage(imageTest);
                 if (img) {
-                    this.log(2, 'Click on image', img.src.match(/[\w.]+$/));
+                    this.log(3, 'Click on image', img.src.match(/[\w.]+$/));
                     this.Click(img);
                     return true;
                 }
@@ -285,9 +285,27 @@ utility = {
     log: function (level, text) {
         if (console.log !== undefined) {
             if (this.logLevel && !isNaN(level) && this.logLevel >= level) {
-                var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text;
+                var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
+                    tempArr = [],
+                    it      = 0,
+                    len     = 0,
+                    newArg;
+
                 if (arguments.length > 2) {
-                    console.log(message, Array.prototype.slice.call(arguments, 2));
+                    for (it = 2, len = arguments.length; it < len; it += 1) {
+                        switch ($.type(arguments[it])) {
+                        case "object":
+                        case "array":
+                            newArg = $.extend(true, {}, arguments[it]);
+                            break;
+                        default:
+                            newArg = arguments[it];
+                        }
+
+                        tempArr.push(newArg);
+                    }
+
+                    console.log(message, tempArr);
                 } else {
                     console.log(message);
                 }
@@ -297,9 +315,27 @@ utility = {
 
     warn: function (text) {
         if (console.warn !== undefined) {
-            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text;
+            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
+                    tempArr = [],
+                    it      = 0,
+                    len     = 0,
+                    newArg;
+
             if (arguments.length > 1) {
-                console.warn(message, Array.prototype.slice.call(arguments, 1));
+                for (it = 1, len = arguments.length; it < len; it += 1) {
+                    switch ($.type(arguments[it])) {
+                    case "object":
+                    case "array":
+                        newArg = $.extend(true, {}, arguments[it]);
+                        break;
+                    default:
+                        newArg = arguments[it];
+                    }
+
+                    tempArr.push(newArg);
+                }
+
+                console.warn(message, tempArr);
             } else {
                 console.warn(message);
             }
@@ -314,9 +350,27 @@ utility = {
 
     error: function (text) {
         if (console.error !== undefined) {
-            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text;
+            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
+                    tempArr = [],
+                    it      = 0,
+                    len     = 0,
+                    newArg;
+
             if (arguments.length > 1) {
-                console.error(message, Array.prototype.slice.call(arguments, 1));
+                for (it = 1, len = arguments.length; it < len; it += 1) {
+                    switch ($.type(arguments[it])) {
+                    case "object":
+                    case "array":
+                        newArg = $.extend(true, {}, arguments[it]);
+                        break;
+                    default:
+                        newArg = arguments[it];
+                    }
+
+                    tempArr.push(newArg);
+                }
+
+                console.error(message, tempArr);
             } else {
                 console.error(message);
             }
@@ -398,7 +452,7 @@ utility = {
                 }
             }
 
-            this.log(2, "theArray", theArray);
+            this.log(4, "utility.TextToArray", theArray);
             return theArray;
         } catch (err) {
             utility.error("ERROR in utility.TextToArray: " + err);

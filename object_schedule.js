@@ -7,30 +7,15 @@
 schedule = {
     timers: {},
 
-    log: function (level, text) {
-        try {
-            var snapshot = {};
-            if (utility.logLevel >= level) {
-                $.extend(snapshot, this.timers);
-                utility.log(level, text, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in schedule.log: " + err);
-            return false;
-        }
-    },
-
     load: function () {
         try {
             if (gm.getItem('schedule.timers', 'default') === 'default' || !$.isPlainObject(gm.getItem('schedule.timers', 'default'))) {
                 gm.setItem('schedule.timers', this.timers);
             } else {
-                this.timers = gm.getItem('schedule.timers', this.timers);
+                $.extend(true, this.timers, gm.getItem('schedule.timers', this.timers));
             }
 
-            this.log(2, "schedule.load");
+            utility.log(5, "schedule.load", this.timers);
             return true;
         } catch (err) {
             utility.error("ERROR in schedule.load: " + err);
@@ -41,7 +26,7 @@ schedule = {
     save: function (force) {
         try {
             gm.setItem('schedule.timers', this.timers);
-            this.log(2, "schedule.save");
+            utility.log(5, "schedule.save", this.timers);
             return true;
         } catch (err) {
             utility.error("ERROR in schedule.save: " + err);

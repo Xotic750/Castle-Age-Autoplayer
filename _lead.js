@@ -6,24 +6,25 @@
 //       Global and Object vars
 //////////////////////////////////
 
-var caapVersion = "!version!",
-    devVersion  = "!dev!",
-    hiddenVar   = true,
-    image64     = {},
-    utility     = {},
-    config      = {},
-    state       = {},
-    css         = {},
-    gm          = {},
-    nHtml       = {},
-    sort        = {},
-    schedule    = {},
-    general     = {},
-    monster     = {},
-    battle      = {},
-    town        = {},
-    gifting     = {},
-    caap        = {};
+var caapVersion   = "!version!",
+    devVersion    = "!dev!",
+    hiddenVar     = true,
+    image64       = {},
+    utility       = {},
+    config        = {},
+    state         = {},
+    css           = {},
+    gm            = {},
+    nHtml         = {},
+    sort          = {},
+    schedule      = {},
+    general       = {},
+    monster       = {},
+    guild_monster = {},
+    battle        = {},
+    town          = {},
+    gifting       = {},
+    caap          = {};
 
 ///////////////////////////
 //       Prototypes

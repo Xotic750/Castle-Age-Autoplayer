@@ -7,30 +7,15 @@
 state = {
     flags: {},
 
-    log: function (level, text) {
-        try {
-            var snapshot = {};
-            if (utility.logLevel >= level) {
-                $.extend(snapshot, this.flags);
-                utility.log(level, text, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in state.log: " + err);
-            return false;
-        }
-    },
-
     load: function () {
         try {
-            if (gm.getItem('state.flags', 'default') === 'default' || !$.isPlainObject(this.flags)) {
+            if (gm.getItem('state.flags', 'default') === 'default' || !$.isPlainObject(gm.getItem('state.flags', 'default'))) {
                 gm.setItem('state.flags', this.flags);
             } else {
-                this.flags = gm.getItem('state.flags', this.flags);
+                $.extend(true, this.flags, this.flags = gm.getItem('state.flags', this.flags));
             }
 
-            this.log(2, "state.load");
+            utility.log(5, "state.load", this.flags);
             return true;
         } catch (err) {
             utility.error("ERROR in state.load: " + err);
@@ -47,7 +32,7 @@ state = {
             }
 
             gm.setItem('state.flags', this.flags);
-            this.log(2, "state.save");
+            utility.log(5, "state.save", this.flags);
             schedule.setItem('StateSave', 1);
             return true;
         } catch (err) {

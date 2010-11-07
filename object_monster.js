@@ -383,21 +383,6 @@ monster = {
         }
     },
 
-    log: function (level, text) {
-        try {
-            var snapshot = [];
-            if (utility.logLevel >= level) {
-                $.merge(snapshot, this.records);
-                utility.log(level, text, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in monster.log: " + err);
-            return false;
-        }
-    },
-
     load: function () {
         try {
             if (gm.getItem('monster.records', 'default') === 'default' || !$.isArray(gm.getItem('monster.records', 'default'))) {
@@ -407,7 +392,7 @@ monster = {
             }
 
             state.setItem("MonsterDashUpdate", true);
-            this.log(2, "monster.load");
+            utility.log(5, "monster.load", this.records);
             return true;
         } catch (err) {
             utility.error("ERROR in monster.load: " + err);
@@ -419,7 +404,7 @@ monster = {
         try {
             gm.setItem('monster.records', this.records);
             state.setItem("MonsterDashUpdate", true);
-            this.log(2, "monster.save");
+            utility.log(5, "monster.save", this.records);
             return true;
         } catch (err) {
             utility.error("ERROR in monster.save: " + err);
@@ -468,7 +453,7 @@ monster = {
             }
 
             words = name.split(" ");
-            utility.log(2, "Words", words);
+            utility.log(3, "Words", words);
             count = words.length - 1;
             if (count >= 4) {
                 if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
@@ -495,7 +480,7 @@ monster = {
             var it        = 0,
                 len       = 0,
                 success   = false,
-                newRecord = null;
+                newRecord = {};
 
             if (typeof name !== 'string') {
                 utility.warn("name", name);
@@ -587,7 +572,7 @@ monster = {
             if (success) {
                 this.records.splice(it, 1);
                 this.save();
-                utility.log(2, "Deleted monster record", name, this.records);
+                utility.log(3, "Deleted monster record", name, this.records);
                 return true;
             } else {
                 utility.warn("Unable to delete monster record", name, this.records);
@@ -601,7 +586,8 @@ monster = {
 
     clear: function () {
         try {
-            this.records = state.setItem("monster.records", []);
+            this.records = gm.setItem("monster.records", []);
+            state.setItem("MonsterDashUpdate", true);
             return true;
         } catch (err) {
             utility.error("ERROR in monster.clear: " + err);
@@ -623,6 +609,7 @@ monster = {
                 clicksToNextSiege              = 0,
                 nextSiegeAttackPlusSiegeDamage = 0,
                 s                              = 0,
+                len                            = 0,
                 siegeImpacts                   = 0,
                 boss                           = {},
                 siegeStage                     = 0;
@@ -637,19 +624,19 @@ monster = {
 
             damageDone = (100 - record.life) / 100 * boss.hp;
             hpLeft = boss.hp - damageDone;
-            for (s = 0; s < boss.siegeClicks.length; s += 1) {
-                utility.log(9, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
+            for (s = 0, len = boss.siegeClicks.length; s < len; s += 1) {
+                utility.log(5, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
                 if (s < siegeStage || record.miss === 0) {
                     totalSiegeDamage += boss.siegeDam[s];
                     totalSiegeClicks += boss.siegeClicks[s];
                 } else if (s === siegeStage) {
                     attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
                     clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record.miss) / timeUsed;
-                    utility.log(9, 'Attack Damage Per Hour: ', attackDamPerHour);
-                    utility.log(9, 'Damage Done: ', damageDone);
-                    utility.log(9, 'Total Siege Damage: ', totalSiegeDamage);
-                    utility.log(9, 'Time Used: ', timeUsed);
-                    utility.log(9, 'Clicks Per Hour: ', clicksPerHour);
+                    utility.log(5, 'Attack Damage Per Hour: ', attackDamPerHour);
+                    utility.log(5, 'Damage Done: ', damageDone);
+                    utility.log(5, 'Total Siege Damage: ', totalSiegeDamage);
+                    utility.log(5, 'Time Used: ', timeUsed);
+                    utility.log(5, 'Clicks Per Hour: ', clicksPerHour);
                 } else if (s >= siegeStage) {
                     clicksToNextSiege = (s === siegeStage) ? record.miss : boss.siegeClicks[s];
                     nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
@@ -664,8 +651,8 @@ monster = {
             }
 
             siegeImpacts = record.life / (100 - record.life) * timeLeft;
-            utility.log(2, 'T2K based on siege: ', T2K.toFixed(2));
-            utility.log(2, 'T2K estimate without calculating siege impacts: ', siegeImpacts.toFixed(2));
+            utility.log(3, 'T2K based on siege: ', T2K.toFixed(2));
+            utility.log(3, 'T2K estimate without calculating siege impacts: ', siegeImpacts.toFixed(2));
             return T2K;
         } catch (err) {
             utility.error("ERROR in monster.t2kCalc: " + err);
@@ -707,20 +694,20 @@ monster = {
         }
     },
 
+    energyTarget: function () {
+        this.data = {
+            name : '',
+            type : ''
+        };
+    },
+
     select: function (force) {
         try {
             if (!(force || utility.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
                 return false;
             }
 
-            utility.log(1, 'Selecting monster');
-            // First we forget everything about who we already picked.
-            state.setItem('targetFrombattle_monster', '');
-            state.setItem('targetFromfortify', '');
-            state.setItem('targetFromraid', '');
-
-            // Next we get our monster objects from the reposoitory and break them into separarte lists
-            // for monster or raid.  If we are serializing then we make one list only.
+            utility.log(2, 'Selecting monster');
             var monsterList  = {
                     battle_monster : [],
                     raid           : [],
@@ -746,10 +733,7 @@ monster = {
                 strengthTarget        = '',
                 fortifyTarget         = '',
                 stunTarget            = '',
-                energyTarget          = {
-                    name : '',
-                    type : ''
-                },
+                energyTarget          = new this.energyTarget().data,
                 monsterName           = '',
                 monsterObj            = {},
                 monsterConditions     = '',
@@ -758,7 +742,13 @@ monster = {
                 m                     = 0,
                 attackOrderList       = [];
 
+            // First we forget everything about who we already picked.
+            state.setItem('targetFrombattle_monster', '');
+            state.setItem('targetFromfortify', energyTarget);
+            state.setItem('targetFromraid', '');
 
+            // Next we get our monster objects from the reposoitory and break them into separarte lists
+            // for monster or raid.  If we are serializing then we make one list only.
             for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].type === '') {
                     this.records[it].type = this.type(this.records[it].name);
@@ -766,7 +756,7 @@ monster = {
 
                 if (this.info[this.records[it].type] && this.info[this.records[it].type].alpha) {
                     if (this.records[it].damage !== -1 && this.records[it].color !== 'grey' && schedule.since(this.records[it].stunTime, 0)) {
-                        utility.log(1, "Review monster due to class timer", this.records[it].name);
+                        utility.log(2, "Review monster due to class timer", this.records[it].name);
                         this.records[it].review = -1;
                         this.flagReview();
                     }
@@ -825,7 +815,7 @@ monster = {
                     attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
                 }
 
-                utility.log(9, 'attackOrderList', attackOrderList);
+                utility.log(5, 'attackOrderList', attackOrderList);
                 // Next we step through the users list getting the name and conditions
                 for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
                     if (!($.trim(attackOrderList[p]))) {
@@ -934,7 +924,7 @@ monster = {
                     if (strengthTarget) {
                         energyTarget.name = strengthTarget;
                         energyTarget.type = 'Strengthen';
-                        utility.log(1, 'Strengthen target ', energyTarget.name);
+                        utility.log(2, 'Strengthen target ', energyTarget.name);
                     }
 
                     fortifyTarget = firstFortUnderMax;
@@ -945,7 +935,7 @@ monster = {
                     if (fortifyTarget) {
                         energyTarget.name = fortifyTarget;
                         energyTarget.type = 'Fortify';
-                        utility.log(1, 'Fortify replaces strengthen ', energyTarget.name);
+                        utility.log(2, 'Fortify replaces strengthen ', energyTarget.name);
                     }
 
                     stunTarget = firstStunUnderMax;
@@ -956,11 +946,13 @@ monster = {
                     if (stunTarget) {
                         energyTarget.name = stunTarget;
                         energyTarget.type = 'Stun';
-                        utility.log(1, 'Stun target replaces fortify ', energyTarget.name);
+                        utility.log(2, 'Stun target replaces fortify ', energyTarget.name);
                     }
 
                     state.setItem('targetFromfortify', energyTarget);
-                    utility.log(1, 'Energy target', energyTarget);
+                    if (energyTarget.name) {
+                        utility.log(1, 'Energy target', energyTarget);
+                    }
                 }
 
                 monsterName = firstUnderMax;
@@ -1057,12 +1049,12 @@ monster = {
             }
 
             if (monsterDiv.find("img[uid='" + caap.stats.FBID + "']").length) {
-                utility.log(2, "monster name found");
+                utility.log(2, "You monster found");
                 tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
 
             if (monsterName !== tempText) {
-                utility.log(1, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
+                utility.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
                 return utility.NavigateTo('keep,' + this.getItem(monsterName).page);
             }
 

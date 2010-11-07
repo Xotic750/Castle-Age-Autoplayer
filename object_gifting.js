@@ -7,26 +7,6 @@
 gifting = {
     types: ["gifts", "queue", "history"],
 
-    log: function (type, level, text) {
-        try {
-            if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to load: ", type);
-                throw "Invalid type value!";
-            }
-
-            var snapshot = {};
-            if (utility.logLevel >= level) {
-                $.extend(snapshot, this[type].records);
-                utility.log(level, text, type, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in gifting.log: " + err);
-            return false;
-        }
-    },
-
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
@@ -40,7 +20,7 @@ gifting = {
                 this[type].records = gm.getItem("gifting." + type, this[type].records);
             }
 
-            this.log(type, 2, "gifting.load " + type);
+            utility.log(5, "gifting.load", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -57,7 +37,7 @@ gifting = {
             }
 
             gm.setItem("gifting." + type, this[type].records);
-            this.log(type, 2, "gifting.save " + type);
+            utility.log(5, "gifting.save", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -113,7 +93,10 @@ gifting = {
                 tempNum   = 0,
                 current   = {};
 
-            giftDiv = $("div[class='messages']:first img:first");
+            // Some users reported an issue with the following jQuery search using jQuery 1.4.3
+            //giftDiv = $("div[class='messages']:first img:first");
+            // So I have changed the query to try and resolve the issue
+            giftDiv = $("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
             if (giftDiv && giftDiv.length) {
                 tempNum = parseInt(giftDiv.attr("uid"), 10);
                 if (tempNum > 0) {
@@ -355,7 +338,7 @@ gifting = {
                     tempText = tempDiv.parent().parent().prev().text();
                     if (tempText) {
                         if (/you have run out of requests/.test(tempText)) {
-                            utility.log(1, 'Out of requests: ', tempText);
+                            utility.log(2, 'Out of requests: ', tempText);
                             schedule.setItem("MaxGiftsExceeded", 10800, 300);
                             tryAgain = false;
                         } else {
@@ -372,7 +355,7 @@ gifting = {
                 tempText = popDiv.text();
                 if (tempText) {
                     if (/Loading/.test(tempText)) {
-                        utility.log(1, "Popup is loading ...");
+                        utility.log(2, "Popup is loading ...");
                         return true;
                     } else {
                         utility.warn('Unknown popup!', popDiv.text());
@@ -410,6 +393,7 @@ gifting = {
         getItem: function (name) {
             try {
                 var it    = 0,
+                    len   = 0,
                     gift  = false;
 
                 if (typeof name !== 'string' || name === '') {
@@ -417,14 +401,11 @@ gifting = {
                     throw "Invalid identifying name!";
                 }
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     if (this.records[it].name === name) {
+                        gift = this.records[it];
                         break;
                     }
-                }
-
-                if (it < this.records.length) {
-                    gift = this.records[it];
                 }
 
                 return gift;
@@ -437,6 +418,7 @@ gifting = {
         getImg: function (name) {
             try {
                 var it    = 0,
+                    len   = 0,
                     image = '';
 
                 if (typeof name !== 'string' || name === '') {
@@ -446,14 +428,14 @@ gifting = {
 
 
                 if (name !== 'Unknown Gift') {
-                    for (it = 0; it < this.records.length; it += 1) {
+                    for (it = 0, len = this.records.length; it < len; it += 1) {
                         if (this.records[it].name === name) {
                             image = this.records[it].image;
                             break;
                         }
                     }
 
-                    if (it >= this.records.length) {
+                    if (it >= len) {
                         utility.warn("Gift not in list! ", name);
                     }
                 }
@@ -509,7 +491,7 @@ gifting = {
 
                         if (gifting.gifts.getItem(newGift.name)) {
                             newGift.name += " #2";
-                            utility.log(1, "Gift exists, no auto return for ", newGift.name);
+                            utility.log(2, "Gift exists, no auto return for ", newGift.name);
                         }
 
                         gifting.gifts.records.push(newGift);
@@ -540,9 +522,10 @@ gifting = {
         list: function () {
             try {
                 var it       = 0,
+                    len      = 0,
                     giftList = [];
 
-                for (it = 0; it < this.records.length; it += 1) {
+                for (it = 0, len = this.records.length; it < len; it += 1) {
                     giftList.push(this.records[it].name);
                 }
 
@@ -634,7 +617,7 @@ gifting = {
                             if (this.records[it].name !== record.name) {
                                 this.records[it].name = record.name;
                                 updated = true;
-                                utility.log(1, "Updated users name", record, this.records);
+                                utility.log(2, "Updated users name", record, this.records);
                             }
 
                             found = true;
@@ -646,7 +629,7 @@ gifting = {
                 if (!found) {
                     this.records.push(record);
                     updated = true;
-                    utility.log(1, "Added gift to queue", record, this.records);
+                    utility.log(2, "Added gift to queue", record, this.records);
                 }
 
                 if (updated) {
@@ -715,7 +698,7 @@ gifting = {
 
                 choice = config.getItem("GiftChoice", gifting.gifts.options[0]);
                 for (it = 0, len = this.records.length; it < len; it += 1) {
-                    if (!schedule.since(this.records[it].last || 0, 43200)) {
+                    if (!schedule.since(this.records[it].last || 0, gm.getItem("LastGiftUserDelaySecs", 3600, hiddenVar))) {
                         continue;
                     }
 
@@ -724,7 +707,7 @@ gifting = {
                     }
 
                     if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
-                        utility.log(1, "chooseGift Filter Id", this.records[it].userId);
+                        utility.log(2, "chooseGift Filter Id", this.records[it].userId);
                         continue;
                     }
 
@@ -732,7 +715,7 @@ gifting = {
                         filterGiftCont = false;
                         for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
-                                utility.log(1, "chooseGift Filter Gift", this.records[it].gift);
+                                utility.log(2, "chooseGift Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
                                 break;
                             }
@@ -764,7 +747,7 @@ gifting = {
                 }
 
                 if (!gift) {
-                    schedule.setItem("NoGiftDelay", 1800, 300);
+                    schedule.setItem("NoGiftDelay", gm.getItem("NoGiftDelaySecs", 1800, hiddenVar), 300);
                 }
 
                 return gift;
@@ -775,139 +758,6 @@ gifting = {
         },
 
         chooseFriend: function (howmany) {
-            try {
-                var it             = 0,
-                    it1            = 0,
-                    len            = 0,
-                    tempGift       = '',
-                    tempText       = '',
-                    unselListDiv   = null,
-                    selListDiv     = null,
-                    unselDiv       = null,
-                    selDiv         = null,
-                    first          = true,
-                    count          = 0,
-                    same           = true,
-                    returnOnlyOne  = false,
-                    filterId       = false,
-                    filterIdList   = [],
-                    filterIdLen    = 0,
-                    filterGift     = false,
-                    filterGiftList = [],
-                    filterGiftLen  = 0,
-                    filterGiftCont = false;
-
-                if (!utility.isNum(howmany) || howmany < 1) {
-                    throw "Invalid howmany! (" + howmany + ")";
-                }
-
-                returnOnlyOne = config.getItem("ReturnOnlyOne", false);
-                filterId = config.getItem("FilterReturnId", false);
-                if (filterId) {
-                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
-                    filterIdLen = filterIdList.length;
-                }
-
-                filterGift = config.getItem("FilterReturnGift", false);
-                if (filterGift) {
-                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
-                    filterGiftLen = filterGiftList.length;
-                }
-
-                if (config.getItem("GiftChoice", gifting.gifts.options[0]) !== gifting.gifts.options[0]) {
-                    same = false;
-                }
-
-                unselListDiv = $("#app46755028429_app_body div[class='unselected_list']");
-                selListDiv = $("#app46755028429_app_body div[class='selected_list']");
-                for (it = 0, len = this.records.length; it < len; it += 1) {
-                    this.records[it].chosen = false;
-
-                    if (count >= howmany) {
-                        continue;
-                    }
-
-                    if (!schedule.since(this.records[it].last || 0, 3600)) {
-                        continue;
-                    }
-
-                    if (this.records[it].sent) {
-                        continue;
-                    }
-
-                    if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
-                        utility.log(1, "chooseFriend Filter Id", this.records[it].userId);
-                        continue;
-                    }
-
-                    if (filterGift && filterGiftLen) {
-                        filterGiftCont = false;
-                        for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
-                            if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
-                                utility.log(1, "chooseFriend Filter Gift", this.records[it].gift);
-                                filterGiftCont = true;
-                                break;
-                            }
-                        }
-
-                        if (filterGiftCont) {
-                            continue;
-                        }
-                    }
-
-                    if (returnOnlyOne) {
-                        if (gifting.history.checkSentOnce(this.records[it].userId)) {
-                            utility.log(1, "Sent Today: ", this.records[it].userId);
-                            this.records[it].last = new Date().getTime();
-                            continue;
-                        }
-                    }
-
-                    if (first) {
-                        tempGift = this.records[it].gift;
-                        first = false;
-                    }
-
-                    if (this.records[it].gift === tempGift || !same) {
-                        unselDiv = unselListDiv.find("input[value='" + this.records[it].userId + "']:first");
-                        if (unselDiv && unselDiv.length) {
-                            if (!/none/.test(unselDiv.parent().attr("style"))) {
-                                utility.Click(unselDiv.get(0));
-                                selDiv = selListDiv.find("input[value='" + this.records[it].userId + "']:first").parent();
-                                if (selDiv && selDiv.length) {
-                                    if (!/none/.test(selDiv.attr("style"))) {
-                                        utility.log(1, "User Chosen: ", this.records[it].userId, this.records[it]);
-                                        this.records[it].chosen = true;
-                                        count += 1;
-                                        continue;
-                                    } else {
-                                        tempText = "Selected id is none:";
-                                    }
-                                } else {
-                                    tempText = "Selected id not found:";
-                                }
-                            } else {
-                                tempText = "Unselected id is none:";
-                            }
-                        } else {
-                            tempText = "Id not found, perhaps gift pending:";
-                        }
-
-                        utility.log(1, tempText, this.records[it].userId, this.records[it]);
-                        this.records[it].last = new Date().getTime();
-                    }
-                }
-
-                caap.waitingForDomLoad = false;
-                gifting.save("queue");
-                return count;
-            } catch (err) {
-                utility.error("ERROR in gifting.queue.chooseFriend: " + err);
-                return undefined;
-            }
-        },
-
-        chooseFriend2: function (howmany) {
             try {
                 var it             = 0,
                     it1            = 0,
@@ -965,7 +815,7 @@ gifting = {
                         continue;
                     }
 
-                    if (!schedule.since(this.records[it].last || 0, 3600)) {
+                    if (!schedule.since(this.records[it].last || 0, gm.getItem("LastGiftUserDelaySecs", 3600, hiddenVar))) {
                         continue;
                     }
 
@@ -974,7 +824,7 @@ gifting = {
                     }
 
                     if (filterId && filterIdLen && filterIdList.indexOf(this.records[it].userId) >= 0) {
-                        utility.log(1, "chooseFriend2 Filter Id", this.records[it].userId);
+                        utility.log(2, "chooseFriend Filter Id", this.records[it].userId);
                         continue;
                     }
 
@@ -982,7 +832,7 @@ gifting = {
                         filterGiftCont = false;
                         for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (this.records[it].gift.indexOf(filterGiftList[it1]) >= 0) {
-                                utility.log(1, "chooseFriend2 Filter Gift", this.records[it].gift);
+                                utility.log(2, "chooseFriend Filter Gift", this.records[it].gift);
                                 filterGiftCont = true;
                                 break;
                             }
@@ -995,7 +845,7 @@ gifting = {
 
                     if (returnOnlyOne) {
                         if (gifting.history.checkSentOnce(this.records[it].userId)) {
-                            utility.log(1, "Sent Today: ", this.records[it].userId);
+                            utility.log(2, "Sent Today: ", this.records[it].userId);
                             this.records[it].last = new Date().getTime();
                             continue;
                         }
@@ -1011,75 +861,78 @@ gifting = {
                     }
                 }
 
-                for (it = 0, len = giftingList.length; it < len; it += 1) {
-                    searchStr += "input[value='" + giftingList[it] + "']";
-                    if (it >= 0 && it <= len - 1) {
-                        searchStr += ",";
-                    }
-                }
-
-                unselDiv = unselListDiv.find(searchStr);
-                if (unselDiv && unselDiv.length) {
-                    unselDiv.each(function () {
-                        var id = parseInt($(this).attr("value"), 10);
-                        if (!/none/.test($(this).parent().attr("style"))) {
-                            caap.waitingForDomLoad = false;
-                            utility.Click($(this).get(0));
-                            utility.log(1, "Id clicked:", id);
-                            clickedList.push(id);
-                        } else {
-                            utility.log(1, "Id not found, perhaps gift pending:", id);
-                            pendingList.push(id);
-                        }
-                    });
-                } else {
-                    utility.log(1, "Ids not found:", giftingList, searchStr);
-                    $.merge(pendingList, giftingList);
-                }
-
-                if (clickedList && clickedList.length) {
-                    for (it = 0, len = clickedList.length; it < len; it += 1) {
-                        searchStr += "input[value='" + clickedList[it] + "']";
-                        if (it >= 0 && it <= len - 1) {
+                if (giftingList.length) {
+                    for (it = 0, len = giftingList.length; it < len; it += 1) {
+                        searchStr += "input[value='" + giftingList[it] + "']";
+                        if (it >= 0 && it < len - 1) {
                             searchStr += ",";
                         }
                     }
 
-                    selDiv = selListDiv.find(searchStr);
-                    if (selDiv && selDiv.length) {
-                        selDiv.each(function () {
+                    unselDiv = unselListDiv.find(searchStr);
+                    if (unselDiv && unselDiv.length) {
+                        unselDiv.each(function () {
                             var id = parseInt($(this).attr("value"), 10);
                             if (!/none/.test($(this).parent().attr("style"))) {
-                                utility.log(1, "User Chosen:", id);
-                                chosenList.push(id);
+                                caap.waitingForDomLoad = false;
+                                utility.Click($(this).get(0));
+                                utility.log(2, "Id clicked:", id);
+                                clickedList.push(id);
                             } else {
-                                utility.log(1, "Selected id is none:", id);
+                                utility.log(2, "Id not found, perhaps gift pending:", id);
                                 pendingList.push(id);
                             }
                         });
                     } else {
-                        utility.log(1, "Selected ids not found:", searchStr);
-                        $.merge(pendingList, clickedList);
+                        utility.log(2, "Ids not found:", giftingList, searchStr);
+                        $.merge(pendingList, giftingList);
                     }
+
+                    if (clickedList && clickedList.length) {
+                        for (it = 0, len = clickedList.length; it < len; it += 1) {
+                            searchStr += "input[value='" + clickedList[it] + "']";
+                            if (it >= 0 && it < len - 1) {
+                                searchStr += ",";
+                            }
+                        }
+
+                        selDiv = selListDiv.find(searchStr);
+                        if (selDiv && selDiv.length) {
+                            selDiv.each(function () {
+                                var id = parseInt($(this).attr("value"), 10);
+                                if (!/none/.test($(this).parent().attr("style"))) {
+                                    utility.log(2, "User Chosen:", id);
+                                    chosenList.push(id);
+                                } else {
+                                    utility.log(2, "Selected id is none:", id);
+                                    pendingList.push(id);
+                                }
+                            });
+                        } else {
+                            utility.log(2, "Selected ids not found:", searchStr);
+                            $.merge(pendingList, clickedList);
+                        }
+                    }
+
+                    utility.log(2, "chosenList/pendingList", chosenList, pendingList);
+                    for (it = 0, len = this.records.length; it < len; it += 1) {
+                        if (chosenList.indexOf(this.records[it].userId) >= 0) {
+                            utility.log(2, "Chosen", this.records[it].userId);
+                            this.records[it].chosen = true;
+                            this.records[it].last = new Date().getTime();
+                        } else if (pendingList.indexOf(this.records[it].userId) >= 0) {
+                            utility.log(2, "Pending", this.records[it].userId);
+                            this.records[it].last = new Date().getTime();
+                        }
+                    }
+
+                    caap.waitingForDomLoad = false;
+                    gifting.save("queue");
                 }
 
-                utility.log(2, "chosenList/pendingList", chosenList, pendingList);
-                for (it = 0, len = this.records.length; it < len; it += 1) {
-                    if (chosenList.indexOf(this.records[it].userId) >= 0) {
-                        utility.log(2, "chosen", this.records[it].userId);
-                        this.records[it].chosen = true;
-                        this.records[it].last = new Date().getTime();
-                    } else if (pendingList.indexOf(this.records[it].userId) >= 0) {
-                        utility.log(2, "pending", this.records[it].userId);
-                        this.records[it].last = new Date().getTime();
-                    }
-                }
-
-                caap.waitingForDomLoad = false;
-                gifting.save("queue");
                 return chosenList.length;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.chooseFriend2: " + err);
+                utility.error("ERROR in gifting.queue.chooseFriend: " + err);
                 return undefined;
             }
         },
@@ -1110,16 +963,16 @@ gifting = {
                                 gifting.save("queue");
                             } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                 utility.log(1, 'Exceeded daily gift limit.');
-                                schedule.setItem("MaxGiftsExceeded", 10800, 300);
+                                schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
                             } else {
-                                utility.log(1, 'Result message', resultText);
+                                utility.log(2, 'Result message', resultText);
                             }
                         } else {
-                            utility.log(1, 'No result message');
+                            utility.log(2, 'No result message');
                         }
                     }
                 } else {
-                    utility.log(1, 'Not a gift create request');
+                    utility.log(2, 'Not a gift create request');
                 }
 
                 return sentok;
@@ -1174,7 +1027,7 @@ gifting = {
                 }
 
                 if (success) {
-                    utility.log(1, "Updated gifting.history record", this.records[it], this.records);
+                    utility.log(2, "Updated gifting.history record", this.records[it], this.records);
                 } else {
                     newRecord = new this.record().data;
                     newRecord.userId = record.userId;
@@ -1182,7 +1035,7 @@ gifting = {
                     newRecord.received = 1;
                     newRecord.lastReceived = new Date().getTime();
                     this.records.push(newRecord);
-                    utility.log(1, "Added gifting.history record", newRecord, this.records);
+                    utility.log(2, "Added gifting.history record", newRecord, this.records);
                 }
 
                 gifting.save("history");
@@ -1223,7 +1076,7 @@ gifting = {
                 }
 
                 if (success) {
-                    utility.log(1, "Updated gifting.history record", this.records[it], this.records);
+                    utility.log(2, "Updated gifting.history record", this.records[it], this.records);
                 } else {
                     newRecord = new this.record().data;
                     newRecord.userId = record.userId;
@@ -1231,7 +1084,7 @@ gifting = {
                     newRecord.sent = 1;
                     newRecord.lastSent = new Date().getTime();
                     this.records.push(newRecord);
-                    utility.log(1, "Added gifting.history record", newRecord, this.records);
+                    utility.log(2, "Added gifting.history record", newRecord, this.records);
                 }
 
                 gifting.save("history");
@@ -1258,7 +1111,7 @@ gifting = {
                         continue;
                     }
 
-                    sentOnce = !schedule.since(this.records[it].lastSent || 0, 86400);
+                    sentOnce = !schedule.since(this.records[it].lastSent || 0, gm.getItem("OneGiftPerPersonDelaySecs", 86400, hiddenVar));
                     break;
                 }
 

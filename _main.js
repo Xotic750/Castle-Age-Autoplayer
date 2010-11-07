@@ -54,12 +54,13 @@ $(function () {
     }
 
     config.load();
+    utility.logLevel = config.getItem('DebugLevel', utility.logLevel);
     schedule.load();
     state.load();
     caap.LoadStats();
     caap.stats.FBID = FBID;
     caap.stats.account = accountEl.text();
-    utility.logLevel = gm.getItem('DebugLevel', utility.logLevel, hiddenVar);
+    //utility.logLevel = gm.getItem('DebugLevel', utility.logLevel, hiddenVar);
     gifting.init();
     state.setItem('clickUrl', window.location.href);
     schedule.setItem('clickedOnSomething', 0);
@@ -104,7 +105,7 @@ $(function () {
         }, 200);
     }
 
-    caap.waitMilliSecs = 8000;
+    utility.waitMilliSecs = 8000;
     caap.WaitMainLoop();
     caap.ReloadOccasionally();
 });

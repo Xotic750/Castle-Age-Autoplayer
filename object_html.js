@@ -85,6 +85,7 @@ nHtml = {
     GetText: function (obj) {
         var txt   = ' ',
             o     = 0,
+            len   = 0,
             child = null;
 
         if (obj.tagName !== undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
@@ -95,7 +96,7 @@ nHtml = {
             return txt + obj.textContent;
         }
 
-        for (o = 0; o < obj.childNodes.length; o += 1) {
+        for (o = 0, len = obj.childNodes.length; o < len; o += 1) {
             child = obj.childNodes[o];
             txt += this.GetText(child);
         }

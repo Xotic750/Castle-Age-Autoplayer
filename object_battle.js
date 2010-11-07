@@ -83,21 +83,6 @@ battle = {
         12 : 'First Colonel'
     },
 
-    log: function (level, text) {
-        try {
-            var snapshot = [];
-            if (utility.logLevel >= level) {
-                $.merge(snapshot, this.records);
-                utility.log(level, text, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in battle.log: " + err);
-            return false;
-        }
-    },
-
     load: function () {
         try {
             if (gm.getItem('battle.records', 'default') === 'default' || !$.isArray(gm.getItem('battle.records', 'default'))) {
@@ -107,7 +92,7 @@ battle = {
             }
 
             state.setItem("BattleDashUpdate", true);
-            this.log(2, "battle.load");
+            utility.log(5, "battle.load", this.records);
             return true;
         } catch (err) {
             utility.error("ERROR in battle.load: " + err);
@@ -119,7 +104,7 @@ battle = {
         try {
             gm.setItem('battle.records', this.records);
             state.setItem("BattleDashUpdate", true);
-            this.log(2, "battle.save");
+            utility.log(5, "battle.save", this.records);
             return true;
         } catch (err) {
             utility.error("ERROR in battle.save: " + err);
@@ -158,12 +143,12 @@ battle = {
             }
 
             if (success) {
-                utility.log(2, "Got battle record", userId, this.records[it]);
+                utility.log(3, "Got battle record", userId, this.records[it]);
                 return this.records[it];
             } else {
                 newRecord = new this.record();
                 newRecord.data.userId = userId;
-                utility.log(2, "New battle record", userId, newRecord.data);
+                utility.log(3, "New battle record", userId, newRecord.data);
                 return newRecord.data;
             }
         } catch (err) {
@@ -196,10 +181,10 @@ battle = {
 
             if (success) {
                 this.records[it] = record;
-                utility.log(2, "Updated battle record", record, this.records);
+                utility.log(3, "Updated battle record", record, this.records);
             } else {
                 this.records.push(record);
-                utility.log(2, "Added battle record", record, this.records);
+                utility.log(3, "Added battle record", record, this.records);
             }
 
             this.save();
@@ -231,7 +216,7 @@ battle = {
             if (success) {
                 this.records.splice(it, 1);
                 this.save();
-                utility.log(2, "Deleted battle record", userId, this.records);
+                utility.log(3, "Deleted battle record", userId, this.records);
                 return true;
             } else {
                 utility.warn("Unable to delete battle record", userId, this.records);
@@ -321,7 +306,7 @@ battle = {
                             utility.warn("Unable to find war points text in", tempDiv.parent());
                         }
                     } else {
-                        utility.log(2, "Unable to find war_rank_small_icon in", resultsDiv);
+                        utility.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
                     }
 
                     tempDiv = resultsDiv.find("b[class*='gold']:first");
@@ -390,7 +375,7 @@ battle = {
                                 utility.warn("Unable to find battle points text in", tempDiv.parent());
                             }
                         } else {
-                            utility.log(2, "Unable to find battle_rank_small_icon in", resultsDiv);
+                            utility.log(3, "Unable to find battle_rank_small_icon in", resultsDiv);
                         }
 
                         tempDiv = resultsDiv.find("b[class*='gold']:first");
@@ -764,7 +749,7 @@ battle = {
                 lastBattleID    = 0,
                 engageButton    = null;
 
-            utility.log(2, 'target img', this.battles[type][config.getItem('BattleType', 'Invade')]);
+            utility.log(3, 'target img', this.battles[type][config.getItem('BattleType', 'Invade')]);
             inputDiv = $("#app46755028429_app_body input[src*='" + this.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
                 utility.warn('Not on battlepage');
@@ -775,7 +760,7 @@ battle = {
             state.setItem('BattleChainId', '');
             // Lets get our Freshmeat user settings
             minRank = config.getItem("FreshMeatMinRank", 99);
-            utility.log(2, "FreshMeatMinRank", minRank);
+            utility.log(3, "FreshMeatMinRank", minRank);
             if (!utility.isNum(minRank)) {
                 if (minRank !== '') {
                     utility.warn("FreshMeatMinRank is NaN, using default", 99);
@@ -785,28 +770,28 @@ battle = {
             }
 
             maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
-            utility.log(2, "FreshMeatMaxLevel", maxLevel);
+            utility.log(3, "FreshMeatMaxLevel", maxLevel);
             if (!utility.isNum(maxLevel)) {
                 maxLevel = 99999;
                 utility.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
             }
 
             ARBase = config.getItem("FreshMeatARBase", 0.5);
-            utility.log(2, "FreshMeatARBase", ARBase);
+            utility.log(3, "FreshMeatARBase", ARBase);
             if (!utility.isNum(ARBase)) {
                 ARBase = 0.5;
                 utility.warn("FreshMeatARBase is NaN, using default", ARBase);
             }
 
             ARMax = gm.getItem("FreshMeatARMax", 99999, hiddenVar);
-            utility.log(2, "FreshMeatARMax", ARMax);
+            utility.log(3, "FreshMeatARMax", ARMax);
             if (!utility.isNum(ARMax)) {
                 ARMax = 99999;
                 utility.warn("FreshMeatARMax is NaN, using default", ARMax);
             }
 
             ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
-            utility.log(2, "FreshMeatARMin", ARMin);
+            utility.log(3, "FreshMeatARMin", ARMin);
             if (!utility.isNum(ARMin)) {
                 ARMin = 0;
                 utility.warn("FreshMeatARMin is NaN, using default", ARMin);
@@ -828,7 +813,7 @@ battle = {
                         continue;
                     }
 
-                    tempRecord.nameStr = levelm[1];
+                    tempRecord.nameStr = $.trim(levelm[1]);
                     tempRecord.rankNum = parseInt(levelm[2], 10);
                     tempRecord.rankStr = battle.battleRankTable[tempRecord.rankNum];
                     tempRecord.levelNum = parseInt(levelm[4], 10);
@@ -841,17 +826,17 @@ battle = {
 
                     tempRecord.deityNum = utility.NumberOnly(tr.find("img[src*='symbol_']").attr("src").match(/\d+\.jpg/i)) - 1;
                     tempRecord.deityStr = caap.demiTable[tempRecord.deityNum];
-                    utility.log(2, "DemiPointsDone", state.getItem('DemiPointsDone', true));
+                    utility.log(4, "DemiPointsDone", state.getItem('DemiPointsDone', true));
                     // If looking for demi points, and already full, continue
                     if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                        utility.log(9, "Demi Points First", tempRecord.deityNum, tempRecord.deityStr, caap.demi[tempRecord.deityStr], config.getItem('DemiPoint' + tempRecord.deityNum, true));
+                        utility.log(5, "Demi Points First", tempRecord.deityNum, tempRecord.deityStr, caap.demi[tempRecord.deityStr], config.getItem('DemiPoint' + tempRecord.deityNum, true));
                         if (caap.demi[tempRecord.deityStr].daily.dif <= 0 || !config.getItem('DemiPoint' + tempRecord.deityNum, true)) {
-                            utility.log(1, "Daily Demi Points done for", tempRecord.deityStr);
+                            utility.log(2, "Daily Demi Points done for", tempRecord.deityStr);
                             continue;
                         }
                     } else if (config.getItem('WhenBattle', 'Never') === "Demi Points Only") {
                         if (caap.demi[tempRecord.deityStr].daily.dif <= 0) {
-                            utility.log(1, "Daily Demi Points done for", tempRecord.deityStr);
+                            utility.log(2, "Daily Demi Points done for", tempRecord.deityStr);
                             continue;
                         }
                     }
@@ -881,12 +866,12 @@ battle = {
                         continue;
                     }
 
-                    tempRecord.nameStr = levelm[1];
+                    tempRecord.nameStr = $.trim(levelm[1]);
                     tempRecord.levelNum = parseInt(levelm[2], 10);
-                    tempRecord.rankStr = levelm[3];
+                    tempRecord.rankStr = $.trim(levelm[3]);
                     tempRecord.rankNum = parseInt(levelm[4], 10);
                     if (this.battles.Freshmeat.warLevel) {
-                        tempRecord.warRankStr = levelm[5];
+                        tempRecord.warRankStr = $.trim(levelm[5]);
                         tempRecord.warRankNum = parseInt(levelm[6], 10);
                     }
 
@@ -1003,7 +988,7 @@ battle = {
                 }
 
                 tempRecord.targetNumber = it + 1;
-                utility.log(2, "tempRecord/levelm", tempRecord, levelm);
+                utility.log(3, "tempRecord/levelm", tempRecord, levelm);
                 safeTargets.push(tempRecord);
                 if (it === 0 && type === 'Raid') {
                     plusOneSafe = true;
@@ -1011,7 +996,7 @@ battle = {
             }
 
             safeTargets.sort(sort.score);
-            utility.log(2, "safeTargets", safeTargets);
+            utility.log(3, "safeTargets", safeTargets);
             if (safeTargets && safeTargets.length) {
                 if (chainAttack) {
                     form = inputDiv.eq(0).parent().parent();
@@ -1054,7 +1039,7 @@ battle = {
                         }
 
                         if (safeTargets[it].button !== null || safeTargets[it].button !== undefined) {
-                            utility.log(1, 'Found Target score: ' + safeTargets[it].score.toFixed(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
+                            utility.log(2, 'Found Target score: ' + safeTargets[it].score.toFixed(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
                             battle.click(safeTargets[it].button.get(0));
                             delete safeTargets[it].score;
                             delete safeTargets[it].targetNumber;
@@ -1063,7 +1048,7 @@ battle = {
                             safeTargets[it].aliveTime = new Date().getTime();
                             battleRecord = battle.getItem(safeTargets[it].userId);
                             $.extend(true, battleRecord, safeTargets[it]);
-                            utility.log(2, "battleRecord", battleRecord);
+                            utility.log(3, "battleRecord", battleRecord);
                             battle.setItem(battleRecord);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                             state.setItem("notSafeCount", 0);

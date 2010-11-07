@@ -7,30 +7,15 @@
 config = {
     options: {},
 
-    log: function (level, text) {
-        try {
-            var snapshot = {};
-            if (utility.logLevel >= level) {
-                $.extend(snapshot, this.options);
-                utility.log(level, text, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in config.log: " + err);
-            return false;
-        }
-    },
-
     load: function () {
         try {
             if (gm.getItem('config.options', 'default') === 'default' || !$.isPlainObject(gm.getItem('config.options', 'default'))) {
                 gm.setItem('config.options', this.options);
             } else {
-                this.options = gm.getItem('config.options', this.options);
+                $.extend(true, this.options, gm.getItem('config.options', this.options));
             }
 
-            this.log(2, "config.load");
+            utility.log(5, "config.load", this.options);
             return true;
         } catch (err) {
             utility.error("ERROR in config.load: " + err);
@@ -41,7 +26,7 @@ config = {
     save: function (force) {
         try {
             gm.setItem('config.options', this.options);
-            this.log(2, "config.save");
+            utility.log(5, "config.save", this.options);
             return true;
         } catch (err) {
             utility.error("ERROR in config.save: " + err);

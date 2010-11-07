@@ -34,26 +34,6 @@ town = {
 
     types: ['soldiers', 'item', 'magic'],
 
-    log: function (type, level, text) {
-        try {
-            if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to load: ", type);
-                throw "Invalid type value!";
-            }
-
-            var snapshot = {};
-            if (utility.logLevel >= level) {
-                $.extend(snapshot, this[type]);
-                utility.log(level, text, type, snapshot);
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in town.log: " + err);
-            return false;
-        }
-    },
-
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
@@ -70,7 +50,7 @@ town = {
             this[type + 'Sortable'] = [];
             $.merge(this[type + 'Sortable'], this[type]);
             state.setItem(type.ucFirst() + "DashUpdate", true);
-            this.log(type, 2, "town.load");
+            utility.log(type, 5, "town.load", type, this[type]);
             return true;
         } catch (err) {
             utility.error("ERROR in town.load: " + err);
@@ -87,7 +67,7 @@ town = {
 
             gm.setItem(type + '.records', this[type]);
             state.setItem(type.ucFirst() + "DashUpdate", true);
-            this.log(type, 2, "town.save");
+            utility.log(type, 5, "town.save", type, this[type]);
             return true;
         } catch (err) {
             utility.error("ERROR in town.save: " + err);
@@ -118,7 +98,7 @@ town = {
                     if (tempDiv && tempDiv.length === 1) {
                         current.data.name = $.trim(tempDiv.text());
                     } else {
-                        utility.warn("Unable to get '" + type + "' name!");
+                        utility.warn("Unable to get item name in", type);
                         passed = false;
                     }
 
@@ -127,7 +107,7 @@ town = {
                         if (tempDiv && tempDiv.length === 1) {
                             current.data.upkeep = utility.NumberOnly(tempDiv.text());
                         } else {
-                            utility.log(2, "No upkeep found for '" + type + "' '" + current.data.name + "'");
+                            utility.log(4, "No upkeep found for", type, current.data.name);
                         }
 
                         tempDiv = $(this).find("div[class='eq_buy_stats_int'] div");
@@ -138,14 +118,14 @@ town = {
                             current.data.dpi = (current.data.def + (current.data.atk * 0.7));
                             current.data.mpi = ((current.data.api + current.data.dpi) / 2);
                         } else {
-                            utility.warn("No atk/def found for '" + type + "' '" + current.data.name + "'");
+                            utility.warn("No atk/def found for", type, current.data.name);
                         }
 
                         tempDiv = $(this).find("div[class='eq_buy_costs_int'] strong[class='gold']");
                         if (tempDiv && tempDiv.length === 1) {
                             current.data.cost = utility.NumberOnly(tempDiv.text());
                         } else {
-                            utility.log(2, "No cost found for '" + type + "' '" + current.data.name + "'");
+                            utility.log(4, "No cost found for", type, current.data.name);
                         }
 
                         tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td:first");
@@ -153,7 +133,7 @@ town = {
                             current.data.owned = utility.NumberOnly(tempDiv.text());
                             current.data.hourly = current.data.owned * current.data.upkeep;
                         } else {
-                            utility.warn("No number owned found for '" + type + "' '" + current.data.name + "'");
+                            utility.warn("No number owned found for", type, current.data.name);
                         }
 
                         town[type].push(current.data);
@@ -165,8 +145,9 @@ town = {
             if (save) {
                 $.merge(this[type + 'Sortable'], this[type]);
                 this.save(type);
+                utility.log(2, "Got town details for", type);
             } else {
-                utility.log(1, "Nothing to save for '" + type + "'");
+                utility.log(1, "Nothing to save for", type);
             }
 
             return true;
@@ -188,7 +169,7 @@ town = {
 
             for (it = 0, len = this.magic.length; it < len; it += 1) {
                 if (this.magic[it].name === name) {
-                    utility.log(1, "haveOrb", this.magic[it]);
+                    utility.log(3, "town.haveOrb", this.magic[it]);
                     if (this.magic[it].owned) {
                         haveIt = true;
                     }
