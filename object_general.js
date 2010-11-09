@@ -280,6 +280,7 @@ general = {
         'Idle',
         'Monster',
         'Fortify',
+        'GuildMonster',
         'Invade',
         'Duel',
         'War',

@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            1
+// @dev            2
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "1",
+    devVersion    = "2",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -2800,6 +2800,7 @@ general = {
         'Idle',
         'Monster',
         'Fortify',
+        'GuildMonster',
         'Invade',
         'Duel',
         'War',
@@ -4314,11 +4315,13 @@ guild_monster = {
             ticker      : '',
             minions     : [],
             damage      : 0,
+            myStatus    : '',
             reviewed    : 0,
             state       : '',
             enemyHealth : 0,
             guildHealth : 0,
-            conditions  : ''
+            conditions  : '',
+            color       : 'black'
         };
     },
 
@@ -4568,6 +4571,7 @@ guild_monster = {
                             if (imageName) {
                                 switch (imageName) {
                                 case "dragon_list_btn_2.jpg":
+                                    currentRecord.color = "grey";
                                     if (currentRecord.state !== "Completed") {
                                         utility.log(2, "Updated state", currentRecord.state, "Collect");
                                         currentRecord.state = "Collect";
@@ -4575,6 +4579,7 @@ guild_monster = {
 
                                     break;
                                 case "dragon_list_btn_3.jpg":
+                                    currentRecord.color = "black";
                                     currentRecord.state = "Alive";
                                     break;
                                 default:
@@ -4608,6 +4613,8 @@ guild_monster = {
                         this.deleteItem(this.records[it].slot);
                     }
                 }
+
+                this.select(true);
             } else {
                 utility.log(1, "No buttons found");
                 this.clear();
@@ -4625,6 +4632,7 @@ guild_monster = {
         try {
             var gates         = null,
                 health        = null,
+                bannerDiv     = null,
                 myStatsTxt    = '',
                 myStatsArr    = [],
                 slot          = 0,
@@ -4634,7 +4642,8 @@ guild_monster = {
             //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
             //utility.log(1, "guidId", $("input[name='guild_id']:first").attr("value"));
             slot = parseInt($("input[name='slot']:first").attr("value"), 10);
-            myStatsTxt = $.trim($("#app46755028429_guild_battle_banner_section").children().eq(1).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
+            bannerDiv = $("#app46755028429_guild_battle_banner_section");
+            myStatsTxt = $.trim(bannerDiv.children().eq(1).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {
                 utility.log(3, "slot", slot);
                 currentRecord = this.getItem(slot);
@@ -4643,7 +4652,7 @@ guild_monster = {
                 currentRecord.guildHealth = 0;
                 currentRecord.enemyHealth = 0;
 
-                if (!$("#app46755028429_guild_battle_banner_section").attr("style").match(/monster_dead/)) {
+                if (!bannerDiv.attr("style").match(/monster_dead/)) {
                     currentRecord.ticker = $.trim($("#app46755028429_monsterTicker").text());
                     if (myStatsTxt) {
                         utility.log(2, "myStatsTxt", myStatsTxt);
@@ -4651,6 +4660,7 @@ guild_monster = {
                         if (myStatsArr && myStatsArr.length === 8) {
                             utility.log(2, "myStatsArr", myStatsArr);
                             currentRecord.damage = parseInt(myStatsArr[7], 10);
+                            currentRecord.myStatus = $.trim(myStatsArr[6]);
                         } else {
                             utility.warn("myStatsArr error", myStatsArr, myStatsTxt);
                         }
@@ -4725,14 +4735,24 @@ guild_monster = {
                         utility.log(1, "Monster is completed");
                         currentRecord.state = 'Completed';
                     }
+
+                    currentRecord.color = "grey";
                 }
 
                 currentRecord.reviewed = new Date().getTime();
                 utility.log(2, "currentRecord", currentRecord);
                 this.setItem(currentRecord);
             } else {
-                if (caap.stats.guild.name && myStatsTxt === caap.stats.guild.name) {
-                    utility.warn("slot error", slot);
+                if (bannerDiv.children().eq(0).text().indexOf("You do not have an on going guild monster battle. Have your Guild initiate more!") >= 0) {
+                    slot = state.getItem('guildMonsterReviewSlot', 0);
+                    if (typeof slot === 'number' && slot > 0 && slot <= 5) {
+                        utility.log(1, "monster expired", slot);
+                        this.deleteItem(slot);
+                    } else {
+                        utility.warn("monster expired slot error", slot);
+                    }
+                //} else if (caap.stats.guild.name && myStatsTxt.indexOf(caap.stats.guild.name) < 0) {
+                //    utility.warn("slot error", slot);
                 } else {
                     utility.log(1, "On another guild's monster", myStatsTxt);
                 }
@@ -4756,7 +4776,7 @@ guild_monster = {
                     continue;
                 }
 
-                if (!schedule.since(this.records[it].reviewed, 60)) {
+                if (!schedule.since(this.records[it].reviewed, 30 * 60)) {
                     continue;
                 }
 
@@ -4797,6 +4817,10 @@ guild_monster = {
 
             for (it = 0, len = this.records.length; it < len; it += 1) {
                 if (this.records[it].state !== 'Alive') {
+                    continue;
+                }
+
+                if (this.records[it].myStatus === 'Stunned') {
                     continue;
                 }
 
@@ -4844,22 +4868,41 @@ guild_monster = {
                 len1            = 0,
                 record          = {},
                 attackOrderList = [],
-                conditions      = '';
+                conditions      = '',
+                ach             = 999999,
+                max             = 999999,
+                target          = {},
+                firstOverAch    = {},
+                firstUnderMax   = {};
 
             if (!(force || utility.oneMinuteUpdate('selectGuildMonster'))) {
                 return false;
             }
 
-            state.setItem('targetGuildMonster', '');
+            attackOrderList = utility.TextToArray(config.getItem('orderGuildMonster', ''));
+            state.setItem('targetGuildMonster', {});
             for (it = this.records.length - 1; it >= 0; it -= 1) {
+                if (this.records[it].state !== 'Alive') {
+                    this.records[it].color = "grey";
+                    this.records[it].conditions = '';
+                    continue;
+                }
+
+                attackOrderList.push(this.records[it].slot.toString());
                 this.records[it].conditions = 'none';
+                this.records[it].color = "black";
             }
 
-            attackOrderList = utility.TextToArray(config.getItem('orderGuildMonster', ''));
             for (ol = 0, len1 = attackOrderList.length; ol < len1; ol += 1) {
                 conditions = $.trim(attackOrderList[ol].replace(new RegExp("^[^:]+"), '').toString());
                 for (it = 0, len = this.records.length ; it < len; it += 1) {
                     if (this.records[it].state !== 'Alive') {
+                        this.records[it].color = "grey";
+                        continue;
+                    }
+
+                    if (this.records[it].myStatus === 'Stunned') {
+                        this.records[it].color = "purple";
                         continue;
                     }
 
@@ -4871,11 +4914,52 @@ guild_monster = {
                         continue;
                     }
 
-                    this.records[it].conditions = conditions;
+                    if (conditions) {
+                        this.records[it].conditions = conditions;
+                        if (conditions && conditions.indexOf("ach") >= 0) {
+                            ach = monster.parseCondition('ach', conditions);
+                        }
+
+                        if (conditions && conditions.indexOf("max") >= 0) {
+                            max = monster.parseCondition('max', conditions);
+                        }
+                    }
+
+                    if (this.records[it].damage >= ach) {
+                        this.records[it].color = "orange";
+                        if (!firstOverAch || !$.isPlainObject(firstOverAch) || $.isEmptyObject(firstOverAch)) {
+                            if (this.records[it].damage >= max) {
+                                this.records[it].color = "red";
+                                utility.log(3, 'OverMax', this.records[it]);
+                            } else {
+                                firstOverAch = this.records[it];
+                                utility.log(3, 'firstOverAch', firstOverAch);
+                            }
+                        }
+                    } else if (this.records[it].damage < max) {
+                        firstUnderMax = this.records[it];
+                        utility.log(3, 'firstUnderMax', firstUnderMax);
+                    } else {
+                        this.records[it].color = "red";
+                        utility.log(3, 'OverMax', this.records[it]);
+                    }
                 }
             }
 
-            return true;
+            target = firstUnderMax;
+            if (!target || !$.isPlainObject(target) || $.isEmptyObject(target)) {
+                target = firstOverAch;
+            }
+
+            utility.log(3, 'target', target);
+            if (target && $.isPlainObject(target) && !$.isEmptyObject(target)) {
+                target.color = 'green';
+                this.setItem(target);
+            } else {
+                this.save();
+            }
+
+            return target;
         } catch (err) {
             utility.error("ERROR in guild_monster.select: " + err, arguments.callee.caller);
             return undefined;
@@ -8455,6 +8539,8 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, '', '');
             htmlCode += this.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, '', '') + '</table>';
+            htmlCode += "Attack Monsters in this order<br />";
+            htmlCode += this.MakeTextBox('orderGuildMonster', '', '', '');
 
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
@@ -9405,14 +9491,14 @@ caap = {
             }
 
             /*-------------------------------------------------------------------------------------\
-            Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
+            Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
             table and then build the header row.
             \-------------------------------------------------------------------------------------*/
             if (state.getItem("GuildMonsterDashUpdate", true)) {
                 utility.log(3, "GuildMonsterDashUpdate");
                 html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                headers = ['Slot', 'Name', 'Damage', 'Damage%',     'TimeLeft', 'Status'];
-                values  = ['slot', 'name', 'damage', 'enemyHealth', 'ticker',   'state'];
+                headers = ['Slot', 'Name', 'Damage', 'Damage%',     'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'];
+                values  = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus',  'ticker',   'state'];
                 for (pp = 0; pp < headers.length; pp += 1) {
                     html += this.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
                 }
@@ -9421,7 +9507,82 @@ caap = {
                 for (i = 0, len = guild_monster.records.length; i < len; i += 1) {
                     html += "<tr>";
                     for (pp = 0; pp < values.length; pp += 1) {
-                        html += caap.makeTd({text: guild_monster.records[i][values[pp]], color: 'black', id: '', title: ''});
+                        switch (values[pp]) {
+                        case 'name' :
+                            data = {
+                                text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name +
+                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId + '&slot=' + guild_monster.records[i].slot +
+                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
+                                color : guild_monster.records[i].color,
+                                id    : '',
+                                title : ''
+                            };
+
+                            html += caap.makeTd(data);
+                            break;
+                        case 'damage' :
+                            if (guild_monster.records[i][values[pp]]) {
+                                html += caap.makeTd({text: guild_monster.records[i][values[pp]], color: guild_monster.records[i].color, id: '', title: ''});
+                            } else {
+                                html += caap.makeTd({text: '', color: guild_monster.records[i].color, id: '', title: ''});
+                            }
+
+                            break;
+                        case 'enemyHealth' :
+                            if (guild_monster.records[i][values[pp]]) {
+                                data = {
+                                    text  : guild_monster.records[i][values[pp]].toFixed(2),
+                                    color : guild_monster.records[i].color,
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({text: '', color: guild_monster.records[i].color, id: '', title: ''});
+                            }
+
+                            break;
+                        case 'ticker' :
+                            if (guild_monster.records[i][values[pp]]) {
+                                data = {
+                                    text  : guild_monster.records[i][values[pp]].match(/(\d+:\d+):\d+/)[1],
+                                    color : guild_monster.records[i].color,
+                                    id    : '',
+                                    title : ''
+                                };
+
+                                html += caap.makeTd(data);
+                            } else {
+                                html += caap.makeTd({text: '', color: guild_monster.records[i].color, id: '', title: ''});
+                            }
+
+                            break;
+                        default :
+                            html += caap.makeTd({text: guild_monster.records[i][values[pp]], color: guild_monster.records[i].color, id: '', title: ''});
+                        }
+                    }
+
+                    data = {
+                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
+                        color : 'blue',
+                        id    : '',
+                        title : 'This is a siege link.'
+                    };
+
+                    html += caap.makeTd(data);
+
+                    if (guild_monster.records[i].conditions && guild_monster.records[i].conditions !== 'none') {
+                        data = {
+                            text  : '<span title="User Set Conditions: ' + guild_monster.records[i].conditions + '" class="ui-icon ui-icon-info">i</span>',
+                            color : guild_monster.records[i].color,
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+                    } else {
+                        html += caap.makeTd({text: '', color: color, id: '', title: ''});
                     }
 
                     html += '</tr>';
@@ -9429,6 +9590,30 @@ caap = {
 
                 html += '</table>';
                 this.caapTopObject.find("#caap_guildMonster").html(html);
+
+                handler = function (e) {
+                    utility.log(9, "Clicked", e.target.id);
+                    var visitMonsterLink = {
+                        mname     : '',
+                        arlink    : ''
+                    },
+                    i = 0,
+                    len = 0;
+
+                    for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                        if (e.target.attributes[i].nodeName === 'mname') {
+                            visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                        } else if (e.target.attributes[i].nodeName === 'rlink') {
+                            visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                        }
+                    }
+
+                    utility.log(9, 'visitMonsterLink', visitMonsterLink);
+                    utility.ClickAjax(visitMonsterLink.arlink);
+                };
+
+                this.caapTopObject.find("span[id*='caap_guildmonster_']").unbind('click', handler).click(handler);
+
                 state.setItem("GuildMonsterDashUpdate", false);
             }
 
@@ -14600,6 +14785,13 @@ caap = {
                 return false;
             }
 
+            if (!this.stats.guild.id) {
+                utility.log(2, "Going to keep to get Guild Id");
+                if (utility.NavigateTo('keep')) {
+                    return true;
+                }
+            }
+
             if (config.getItem('doClassicMonstersFirst', false) && config.getItem("WhenMonster", 'Never') !== 'Never') {
                 if (config.getItem("DemiPointsFirst", false) && !battle.selectedDemisDone()) {
                     return false;
@@ -14614,9 +14806,7 @@ caap = {
                 if (this.stats.staminaT.num < 1) {
                     return false;
                 }
-            }
-
-            if (when === 'At X Stamina') {
+            } else if (when === 'At X Stamina') {
                 if (this.stats.staminaT.num >= config.getItem("MaxStaminaToGMonster", 20)) {
                     state.setItem('guildMonsterBattlesBurn', true);
                 }
@@ -14628,20 +14818,22 @@ caap = {
                 if (!state.getItem('guildMonsterBattlesBurn', false)) {
                     return false;
                 }
-            }
-
-            if (when === 'At Max Stamina') {
+            } else if (when === 'At Max Stamina') {
                 if (this.stats.staminaT.num < this.stats.stamina.max || this.stats.staminaT.num < 1) {
                     return false;
                 }
             }
 
-
-            record = guild_monster.getTargetMonster();
+            //record = guild_monster.getTargetMonster();
+            record = guild_monster.select(true);
             if (record && $.isPlainObject(record) && !$.isEmptyObject(record)) {
+                if (general.Select('GuildMonsterGeneral')) {
+                    return true;
+                }
+
                 if (!guild_monster.checkPage(record)) {
                     utility.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
-                    url = "guild_battle_monster.php?twt2=" + record.name + "&guild_id=" + record.guildId + "&slot=" + record.slot;
+                    url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + "&slot=" + record.slot;
                     utility.ClickAjax(url);
                     return true;
                 }
@@ -15385,6 +15577,13 @@ caap = {
                 return false;
             }
 
+            if (!this.stats.guild.id) {
+                utility.log(2, "Going to keep to get Guild Id");
+                if (utility.NavigateTo('keep')) {
+                    return true;
+                }
+            }
+
             var record = {},
                 url    = '',
                 objective = '';
@@ -15410,7 +15609,8 @@ caap = {
                     objective = "&action=doObjective";
                 }
 
-                url = "guild_battle_monster.php?twt2=" + record.name + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
+                url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
+                state.setItem('guildMonsterReviewSlot', record.slot);
                 utility.ClickAjax(url);
                 return true;
             }
@@ -15418,6 +15618,8 @@ caap = {
             schedule.setItem("guildMonsterReview", gm.getItem('guildMonsterReviewMins', 60, hiddenVar) * 60, 300);
             state.setItem('guildMonsterBattlesRefresh', true);
             state.setItem('guildMonsterBattlesReview', false);
+            state.setItem('guildMonsterReviewSlot', 0);
+            guild_monster.select(true);
             utility.log(1, 'Done with guild monster review.');
             return false;
         } catch (err) {
@@ -17018,17 +17220,6 @@ caap = {
                 return "Fail";
             }
 
-            if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                if (config.getItem("StatSpendAll", false)) {
-                    utility.log(2, "Stamina requires 2 upgrade points: Next");
-                    return "Next";
-                } else {
-                    utility.log(2, "Stamina requires 2 upgrade points: Save");
-                    state.setItem("statsMatch", false);
-                    return "Save";
-                }
-            }
-
             switch (attribute) {
             case "energy" :
                 button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max');
@@ -17071,6 +17262,20 @@ caap = {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
                 attrAdjustNew = eval(attrAdjust);
                 logTxt = "(" + attrAdjust + ")=" + attrAdjustNew;
+            }
+
+            if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
+                if(attrAdjustNew > attrCurrent) {
+					utility.log(2, "Stamina at requirement: Next");
+					return "Next";
+                } else if (config.getItem("StatSpendAll", false)) {
+                    utility.log(2, "Stamina requires 2 upgrade points: Next");
+                    return "Next";
+                } else {
+                    utility.log(2, "Stamina requires 2 upgrade points: Save");
+                    state.setItem("statsMatch", false);
+                    return "Save";
+                }
             }
 
             if (attrAdjustNew > attrCurrent) {
@@ -17124,15 +17329,6 @@ caap = {
                     }
                 }
 
-                if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                    if (config.getItem("StatSpendAll", false)) {
-                        continue;
-                    } else {
-                        passed = false;
-                        break;
-                    }
-                }
-
                 attrValue = config.getItem('AttrValue' + n, 0);
                 attrAdjust = attrValue;
                 level = this.stats.level;
@@ -17153,6 +17349,15 @@ caap = {
                     value = this.stats[attribute];
                 } else {
                     value = this.stats[attribute].num;
+                }
+
+                if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
+                    if (config.getItem("StatSpendAll", false) || attrAdjust > value ) {
+                        continue;
+                    } else {
+                        passed = false;
+                        break;
+                    }
                 }
 
                 if (attrAdjust > value) {
