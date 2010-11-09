@@ -2130,8 +2130,8 @@ caap = {
                         case 'name' :
                             data = {
                                 text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name +
-                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId + '&slot=' + guild_monster.records[i].slot +
-                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
+                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId +
+                                        '&slot=' + guild_monster.records[i].slot + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
                                 color : guild_monster.records[i].color,
                                 id    : '',
                                 title : ''
@@ -2183,7 +2183,8 @@ caap = {
                     }
 
                     data = {
-                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
+                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') +
+                                '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
                         color : 'blue',
                         id    : '',
                         title : 'This is a siege link.'
@@ -8130,7 +8131,7 @@ caap = {
                         state.setItem('resetselectMonster', true);
                     }
                 } else if (currentMonster.damage >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster.conditions))) {
-                    currentMonster.color = 'orange';
+                    currentMonster.color = 'darkorange';
                     currentMonster.over = 'ach';
                     //used with KOB code
                     KOBach = true;
@@ -9884,7 +9885,7 @@ caap = {
             }
 
             if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                if(attrAdjustNew > attrCurrent) {
+                if (attrAdjustNew <= attrCurrent) {
 					utility.log(2, "Stamina at requirement: Next");
 					return "Next";
                 } else if (config.getItem("StatSpendAll", false)) {
@@ -9971,7 +9972,7 @@ caap = {
                 }
 
                 if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                    if (config.getItem("StatSpendAll", false) || attrAdjust > value ) {
+                    if (config.getItem("StatSpendAll", false) || attrAdjust > value) {
                         continue;
                     } else {
                         passed = false;

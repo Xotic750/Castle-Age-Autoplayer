@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            2
+// @dev            3
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "2",
+    devVersion    = "3",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -4633,11 +4633,40 @@ guild_monster = {
             var gates         = null,
                 health        = null,
                 bannerDiv     = null,
+                appBodyDiv    = null,
+                chatDiv       = null,
+                chatHtml      = '',
+                chatArr       = [],
+                tempArr       = [],
+                tempText      = '',
                 myStatsTxt    = '',
                 myStatsArr    = [],
                 slot          = 0,
                 currentRecord = {},
-                minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
+                minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)"),
+                httpRegExp    = new RegExp('.*(http:.*)');
+
+            appBodyDiv = $("#app46755028429_app_body");
+            chatDiv = appBodyDiv.find("#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+            if (chatDiv && chatDiv.length) {
+                chatDiv.each(function () {
+                    chatHtml = $.trim($(this).html());
+                    if (chatHtml) {
+                        chatArr = chatHtml.split("<br>");
+                        if (chatArr && chatArr.length === 2) {
+                            tempArr = chatArr[1].replace(/"/g, '').match(httpRegExp);
+                            if (tempArr && tempArr.length === 2 && tempArr[1]) {
+                                tempArr = tempArr[1].split(" ");
+                                if (tempArr && tempArr.length) {
+                                    tempText = "<a href='" + tempArr[0] + "'>" + tempArr[0] + "</a>";
+                                    chatHtml = chatHtml.replace(tempArr[0], tempText);
+                                    $(this).html(chatHtml);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
             //utility.log(1, "guidId", $("input[name='guild_id']:first").attr("value"));
@@ -4926,7 +4955,7 @@ guild_monster = {
                     }
 
                     if (this.records[it].damage >= ach) {
-                        this.records[it].color = "orange";
+                        this.records[it].color = "darkorange";
                         if (!firstOverAch || !$.isPlainObject(firstOverAch) || $.isEmptyObject(firstOverAch)) {
                             if (this.records[it].damage >= max) {
                                 this.records[it].color = "red";
@@ -9511,8 +9540,8 @@ caap = {
                         case 'name' :
                             data = {
                                 text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name +
-                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId + '&slot=' + guild_monster.records[i].slot +
-                                        '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
+                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId +
+                                        '&slot=' + guild_monster.records[i].slot + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
                                 color : guild_monster.records[i].color,
                                 id    : '',
                                 title : ''
@@ -9564,7 +9593,8 @@ caap = {
                     }
 
                     data = {
-                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
+                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') +
+                                '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
                         color : 'blue',
                         id    : '',
                         title : 'This is a siege link.'
@@ -15511,7 +15541,7 @@ caap = {
                         state.setItem('resetselectMonster', true);
                     }
                 } else if (currentMonster.damage >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster.conditions))) {
-                    currentMonster.color = 'orange';
+                    currentMonster.color = 'darkorange';
                     currentMonster.over = 'ach';
                     //used with KOB code
                     KOBach = true;
@@ -17265,7 +17295,7 @@ caap = {
             }
 
             if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                if(attrAdjustNew > attrCurrent) {
+                if (attrAdjustNew <= attrCurrent) {
 					utility.log(2, "Stamina at requirement: Next");
 					return "Next";
                 } else if (config.getItem("StatSpendAll", false)) {
@@ -17352,7 +17382,7 @@ caap = {
                 }
 
                 if ((attribute === 'stamina') && (this.stats.points.skill < 2)) {
-                    if (config.getItem("StatSpendAll", false) || attrAdjust > value ) {
+                    if (config.getItem("StatSpendAll", false) || attrAdjust > value) {
                         continue;
                     } else {
                         passed = false;

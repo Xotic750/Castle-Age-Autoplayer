@@ -333,11 +333,40 @@ guild_monster = {
             var gates         = null,
                 health        = null,
                 bannerDiv     = null,
+                appBodyDiv    = null,
+                chatDiv       = null,
+                chatHtml      = '',
+                chatArr       = [],
+                tempArr       = [],
+                tempText      = '',
                 myStatsTxt    = '',
                 myStatsArr    = [],
                 slot          = 0,
                 currentRecord = {},
-                minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
+                minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)"),
+                httpRegExp    = new RegExp('.*(http:.*)');
+
+            appBodyDiv = $("#app46755028429_app_body");
+            chatDiv = appBodyDiv.find("#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+            if (chatDiv && chatDiv.length) {
+                chatDiv.each(function () {
+                    chatHtml = $.trim($(this).html());
+                    if (chatHtml) {
+                        chatArr = chatHtml.split("<br>");
+                        if (chatArr && chatArr.length === 2) {
+                            tempArr = chatArr[1].replace(/"/g, '').match(httpRegExp);
+                            if (tempArr && tempArr.length === 2 && tempArr[1]) {
+                                tempArr = tempArr[1].split(" ");
+                                if (tempArr && tempArr.length) {
+                                    tempText = "<a href='" + tempArr[0] + "'>" + tempArr[0] + "</a>";
+                                    chatHtml = chatHtml.replace(tempArr[0], tempText);
+                                    $(this).html(chatHtml);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
 
             //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
             //utility.log(1, "guidId", $("input[name='guild_id']:first").attr("value"));
@@ -626,7 +655,7 @@ guild_monster = {
                     }
 
                     if (this.records[it].damage >= ach) {
-                        this.records[it].color = "orange";
+                        this.records[it].color = "darkorange";
                         if (!firstOverAch || !$.isPlainObject(firstOverAch) || $.isEmptyObject(firstOverAch)) {
                             if (this.records[it].damage >= max) {
                                 this.records[it].color = "red";
