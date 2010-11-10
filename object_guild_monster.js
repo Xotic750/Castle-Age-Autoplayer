@@ -685,12 +685,73 @@ guild_monster = {
                 target.color = 'green';
                 this.setItem(target);
             } else {
+                state.setItem('guildMonsterBattlesBurn', false);
                 this.save();
             }
 
+            state.setItem('targetGuildMonster', target);
             return target;
         } catch (err) {
             utility.error("ERROR in guild_monster.select: " + err, arguments.callee.caller);
+            return undefined;
+        }
+    },
+
+    attack2stamina: {
+        1: 1,
+        2: 5,
+        3: 10,
+        4: 20
+    },
+
+    getAttackValue: function (record) {
+        try {
+            if (!record || !$.isPlainObject(record)) {
+                throw "Not passed a record";
+            }
+
+            var attack = 0;
+            if (record.target_id === 1) {
+                if (caap.stats.staminaT.num < 5) {
+                    attack = 1;
+                } else if (caap.stats.staminaT.num < 10) {
+                    attack = 2;
+                } else if (caap.stats.staminaT.num < 20) {
+                    attack = 3;
+                } else {
+                    attack = 4;
+                }
+            } else if (record.healthNum < 100) {
+                attack = 1;
+            } else if (record.healthNum < 200) {
+                if (caap.stats.staminaT.num < 5) {
+                    attack = 1;
+                } else {
+                    attack = 2;
+                }
+            } else if (record.healthNum < 400) {
+                if (caap.stats.staminaT.num < 5) {
+                    attack = 1;
+                } else if (caap.stats.staminaT.num < 10) {
+                    attack = 2;
+                } else {
+                    attack = 3;
+                }
+            } else {
+                if (caap.stats.staminaT.num < 5) {
+                    attack = 1;
+                } else if (caap.stats.staminaT.num < 10) {
+                    attack = 2;
+                } else if (caap.stats.staminaT.num < 20) {
+                    attack = 3;
+                } else {
+                    attack = 4;
+                }
+            }
+
+            return attack;
+        } catch (err) {
+            utility.error("ERROR in guild_monster.getAttackValue: " + err, arguments.callee.caller);
             return undefined;
         }
     }

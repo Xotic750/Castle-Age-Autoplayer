@@ -1235,6 +1235,7 @@ caap = {
                 LevelUpGenInstructions9 = "Ignore Banking until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
+                LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
                 dropDownItem = 0,
                 htmlCode = '';
 
@@ -1257,6 +1258,7 @@ caap = {
             htmlCode += "<tr><td>&nbsp;&nbsp;&nbsp;Exp To Use Gen </td><td style='text-align: right'>" + this.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
+            htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, '', LevelUpGenInstructions12);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Invades", 'InvadeLevelUpGeneral', true, '', LevelUpGenInstructions4);
             htmlCode += this.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
@@ -7393,13 +7395,15 @@ caap = {
 
     GuildMonster: function () {
         try {
-            var when   = config.getItem("WhenGuildMonster", 'Never'),
-                record = {},
-                minion = {},
-                button = null,
-                form   = null,
-                key    = null,
-                url    = '';
+            var when    = config.getItem("WhenGuildMonster", 'Never'),
+                record  = {},
+                minion  = {},
+                button  = null,
+                form    = null,
+                key     = null,
+                url     = '',
+                attack  = 0,
+                stamina = 0;
 
             if (when === 'Never') {
                 return false;
@@ -7422,8 +7426,43 @@ caap = {
                 }
             }
 
-            if (when === 'Stamina Available' || this.InLevelUpMode()) {
-                if (this.stats.staminaT.num < 1) {
+            if (this.InLevelUpMode()) {
+                if (this.stats.staminaT.num < 5) {
+                    caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + 5);
+                    return false;
+                }
+            } else if (when === 'Stamina Available') {
+                stamina = state.getItem('staminaGuildMonster', 0);
+                if (this.stats.staminaT.num < stamina) {
+                    caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + stamina);
+                    return false;
+                }
+
+                state.setItem('staminaGuildMonster', 0);
+                record = state.getItem('targetGuildMonster', {});
+                if (record && $.isPlainObject(record) && !$.isEmptyObject(record)) {
+                    minion = guild_monster.getTargetMinion(record);
+                    if (minion && $.isPlainObject(minion) && !$.isEmptyObject(minion)) {
+                        if (minion.target_id === 1) {
+                            attack = 4;
+                        } else {
+                            attack = guild_monster.getAttackValue(minion);
+                        }
+
+                        if (attack) {
+                            stamina = guild_monster.attack2stamina[attack];
+                            state.setItem('staminaGuildMonster', stamina);
+                            if (this.stats.staminaT.num < stamina) {
+                                caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + stamina);
+                                return false;
+                            }
+                        } else {
+                            return false;
+                        }
+                    } else {
+                        return false;
+                    }
+                } else {
                     return false;
                 }
             } else if (when === 'At X Stamina') {
@@ -7436,15 +7475,17 @@ caap = {
                 }
 
                 if (!state.getItem('guildMonsterBattlesBurn', false)) {
+                    caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + config.getItem("MaxStaminaToGMonster", 20));
                     return false;
                 }
             } else if (when === 'At Max Stamina') {
                 if (this.stats.staminaT.num < this.stats.stamina.max || this.stats.staminaT.num < 1) {
+                    caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + this.stats.stamina.max);
                     return false;
                 }
             }
 
-            //record = guild_monster.getTargetMonster();
+            caap.SetDivContent('guild_monster_mess', '');
             record = guild_monster.select(true);
             if (record && $.isPlainObject(record) && !$.isEmptyObject(record)) {
                 if (general.Select('GuildMonsterGeneral')) {
@@ -7453,6 +7494,7 @@ caap = {
 
                 if (!guild_monster.checkPage(record)) {
                     utility.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
+                    caap.SetDivContent('guild_monster_mess', "Fighting ("  + record.slot + ") " + record.name);
                     url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + "&slot=" + record.slot;
                     utility.ClickAjax(url);
                     return true;
@@ -7461,9 +7503,15 @@ caap = {
                 minion = guild_monster.getTargetMinion(record);
                 if (minion && $.isPlainObject(minion) && !$.isEmptyObject(minion)) {
                     utility.log(2, "Fighting target_id (" + minion.target_id + ") Name: " + minion.name);
+                    caap.SetDivContent('guild_monster_mess', "Fighting (" + minion.target_id + ") " + minion.name);
                     key = $("#app46755028429_attack_key_" + minion.target_id);
                     if (key && key.length) {
-                        key.attr("value", "1");
+                        attack = guild_monster.getAttackValue(minion);
+                        if (!attack) {
+                            return false;
+                        }
+
+                        key.attr("value", attack);
                         form = key.parents("form:first");
                         if (form && form.length) {
                             utility.Click(form.find("input[src*='guild_duel_button2.gif']").get(0));
@@ -10653,26 +10701,27 @@ caap = {
     /////////////////////////////////////////////////////////////////////
 
     actionDescTable: {
-        AutoIncome        : 'Awaiting Income',
-        AutoStat          : 'Upgrade Skill Points',
-        MaxEnergyQuest    : 'At Max Energy Quest',
-        PassiveGeneral    : 'Setting Idle General',
-        Idle              : 'Idle Tasks',
-        ImmediateBanking  : 'Immediate Banking',
-        Battle            : 'Battling Players',
-        MonsterReview     : 'Review Monsters/Raids',
-        ImmediateAutoStat : 'Immediate Auto Stats',
-        AutoElite         : 'Fill Elite Guard',
-        AutoPotions       : 'Auto Potions',
-        AutoAlchemy       : 'Auto Alchemy',
-        AutoBless         : 'Auto Bless',
-        AutoGift          : 'Auto Gifting',
-        DemiPoints        : 'Demi Points First',
-        Monsters          : 'Fighting Monsters',
-        GuildMonsters     : 'Fight Guild Monsters',
-        Heal              : 'Auto Healing',
-        Bank              : 'Auto Banking',
-        Lands             : 'Land Operations'
+        AutoIncome         : 'Awaiting Income',
+        AutoStat           : 'Upgrade Skill Points',
+        MaxEnergyQuest     : 'At Max Energy Quest',
+        PassiveGeneral     : 'Setting Idle General',
+        Idle               : 'Idle Tasks',
+        ImmediateBanking   : 'Immediate Banking',
+        Battle             : 'Battling Players',
+        MonsterReview      : 'Review Monsters/Raids',
+        GuildMonsterReview : 'Review Guild Monsters',
+        ImmediateAutoStat  : 'Immediate Auto Stats',
+        AutoElite          : 'Fill Elite Guard',
+        AutoPotions        : 'Auto Potions',
+        AutoAlchemy        : 'Auto Alchemy',
+        AutoBless          : 'Auto Bless',
+        AutoGift           : 'Auto Gifting',
+        DemiPoints         : 'Demi Points First',
+        Monsters           : 'Fighting Monsters',
+        GuildMonster       : 'Fight Guild Monster',
+        Heal               : 'Auto Healing',
+        Bank               : 'Auto Banking',
+        Lands              : 'Land Operations'
     },
 
     CheckLastAction: function (thisAction) {
