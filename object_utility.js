@@ -280,6 +280,35 @@ utility = {
         }
     },
 
+    arrayDeepCopy: function (theArray) {
+        try {
+            var it = 0,
+                len = 0,
+                newArray = [],
+                tempValue = null;
+
+            for (it = 0, len = theArray.length; it < len; it += 1) {
+                switch ($.type(theArray[it])) {
+                case "object":
+                    tempValue = $.extend(true, {}, theArray[it]);
+                    break;
+                case "array":
+                    tempValue = this.arrayDeepCopy(theArray[it]);
+                    break;
+                default:
+                    tempValue = theArray[it];
+                }
+
+                newArray.push(tempValue);
+            }
+
+            return newArray;
+        } catch (err) {
+            this.error("ERROR in utility.arrayDeepCopy: " + err);
+            return undefined;
+        }
+    },
+
     logLevel: 1,
 
     log: function (level, text) {
@@ -295,8 +324,10 @@ utility = {
                     for (it = 2, len = arguments.length; it < len; it += 1) {
                         switch ($.type(arguments[it])) {
                         case "object":
-                        case "array":
                             newArg = $.extend(true, {}, arguments[it]);
+                            break;
+                        case "array":
+                            newArg = this.arrayDeepCopy(arguments[it]);
                             break;
                         default:
                             newArg = arguments[it];
@@ -325,8 +356,10 @@ utility = {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
                     switch ($.type(arguments[it])) {
                     case "object":
-                    case "array":
                         newArg = $.extend(true, {}, arguments[it]);
+                        break;
+                    case "array":
+                        newArg = this.arrayDeepCopy(arguments[it]);
                         break;
                     default:
                         newArg = arguments[it];
@@ -360,8 +393,10 @@ utility = {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
                     switch ($.type(arguments[it])) {
                     case "object":
-                    case "array":
                         newArg = $.extend(true, {}, arguments[it]);
+                        break;
+                    case "array":
+                        newArg = this.arrayDeepCopy(arguments[it]);
                         break;
                     default:
                         newArg = arguments[it];

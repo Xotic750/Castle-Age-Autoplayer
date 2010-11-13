@@ -370,7 +370,7 @@ guild_monster = {
 
             //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
             //utility.log(1, "guidId", $("input[name='guild_id']:first").attr("value"));
-            slot = parseInt($("input[name='slot']:first").attr("value"), 10);
+            slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
             myStatsTxt = $.trim(bannerDiv.children().eq(1).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {

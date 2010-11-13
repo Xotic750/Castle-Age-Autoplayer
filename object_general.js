@@ -536,9 +536,11 @@ general = {
             var generalName       = '',
                 getCurrentGeneral = '',
                 currentGeneral    = '',
-                generalImage      = '';
+                generalImage      = '',
+                levelUp           = false;
 
-            if (this.LevelUpCheck(whichGeneral)) {
+            levelUp = this.LevelUpCheck(whichGeneral);
+            if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
                 utility.log(2, 'Using level up general');
             }
@@ -548,7 +550,7 @@ general = {
                 return false;
             }
 
-            if (/under level 4/i.test(generalName)) {
+            if (!levelUp && /under level 4/i.test(generalName)) {
                 if (!this.GetLevelUpNames().length) {
                     return this.Clear(whichGeneral);
                 }

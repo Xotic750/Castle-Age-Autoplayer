@@ -3,9 +3,9 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            4
-// @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.3.min.js
-// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.5/jquery-ui.min.js
+// @dev            5
+// @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
+// @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/json2.js
 // @include        http*://apps.*facebook.com/castle_age/*
@@ -24,7 +24,7 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "4",
+    devVersion    = "5",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -1017,6 +1017,35 @@ utility = {
         }
     },
 
+    arrayDeepCopy: function (theArray) {
+        try {
+            var it = 0,
+                len = 0,
+                newArray = [],
+                tempValue = null;
+
+            for (it = 0, len = theArray.length; it < len; it += 1) {
+                switch ($.type(theArray[it])) {
+                case "object":
+                    tempValue = $.extend(true, {}, theArray[it]);
+                    break;
+                case "array":
+                    tempValue = this.arrayDeepCopy(theArray[it]);
+                    break;
+                default:
+                    tempValue = theArray[it];
+                }
+
+                newArray.push(tempValue);
+            }
+
+            return newArray;
+        } catch (err) {
+            this.error("ERROR in utility.arrayDeepCopy: " + err);
+            return undefined;
+        }
+    },
+
     logLevel: 1,
 
     log: function (level, text) {
@@ -1032,8 +1061,10 @@ utility = {
                     for (it = 2, len = arguments.length; it < len; it += 1) {
                         switch ($.type(arguments[it])) {
                         case "object":
-                        case "array":
                             newArg = $.extend(true, {}, arguments[it]);
+                            break;
+                        case "array":
+                            newArg = this.arrayDeepCopy(arguments[it]);
                             break;
                         default:
                             newArg = arguments[it];
@@ -1062,8 +1093,10 @@ utility = {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
                     switch ($.type(arguments[it])) {
                     case "object":
-                    case "array":
                         newArg = $.extend(true, {}, arguments[it]);
+                        break;
+                    case "array":
+                        newArg = this.arrayDeepCopy(arguments[it]);
                         break;
                     default:
                         newArg = arguments[it];
@@ -1097,8 +1130,10 @@ utility = {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
                     switch ($.type(arguments[it])) {
                     case "object":
-                    case "array":
                         newArg = $.extend(true, {}, arguments[it]);
+                        break;
+                    case "array":
+                        newArg = this.arrayDeepCopy(arguments[it]);
                         break;
                     default:
                         newArg = arguments[it];
@@ -3056,9 +3091,11 @@ general = {
             var generalName       = '',
                 getCurrentGeneral = '',
                 currentGeneral    = '',
-                generalImage      = '';
+                generalImage      = '',
+                levelUp           = false;
 
-            if (this.LevelUpCheck(whichGeneral)) {
+            levelUp = this.LevelUpCheck(whichGeneral);
+            if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
                 utility.log(2, 'Using level up general');
             }
@@ -3068,7 +3105,7 @@ general = {
                 return false;
             }
 
-            if (/under level 4/i.test(generalName)) {
+            if (!levelUp && /under level 4/i.test(generalName)) {
                 if (!this.GetLevelUpNames().length) {
                     return this.Clear(whichGeneral);
                 }
@@ -3576,7 +3613,7 @@ monster = {
             alpha        : true,
             duration     : 168,
             hp           : 350000000,
-            ach          : 6000000,
+            ach          : 1000000,
             siege        : 7,
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [14750000, 18500000, 21000000, 24250000, 27000000, 30000000, 35000000],
@@ -3597,7 +3634,7 @@ monster = {
             alpha        : true,
             duration     : 168,
             hp           : 350000000,
-            ach          : 20000,
+            ach          : 1000,
             siege        : 7,
             siegeClicks  : [30, 60, 90, 120, 200, 250, 300],
             siegeDam     : [15250000, 19000000, 21500000, 24750000, 27500000, 30500000, 35500000],
@@ -4670,7 +4707,7 @@ guild_monster = {
 
             //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
             //utility.log(1, "guidId", $("input[name='guild_id']:first").attr("value"));
-            slot = parseInt($("input[name='slot']:first").attr("value"), 10);
+            slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
             myStatsTxt = $.trim(bannerDiv.children().eq(1).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {
