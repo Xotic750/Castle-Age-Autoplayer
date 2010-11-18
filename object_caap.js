@@ -11122,7 +11122,7 @@ caap = {
         if (state.getItem('ReleaseControl', false)) {
             state.setItem('ReleaseControl', false);
         } else {
-            utility.log(1, "ReleaseControl to unshift LastAction");
+            utility.log(3, "ReleaseControl to unshift LastAction");
             actionsListCopy.unshift(state.getItem('LastAction', 'Idle'));
         }
 

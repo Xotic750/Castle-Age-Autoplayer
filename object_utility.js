@@ -300,7 +300,7 @@ utility = {
     logLevel: 1,
 
     log: function (level, text) {
-        if (window.console.log !== undefined) {
+        if (console.log !== undefined) {
             if (this.logLevel && !isNaN(level) && this.logLevel >= level) {
                 var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
@@ -324,16 +324,16 @@ utility = {
                         tempArr.push(newArg);
                     }
 
-                    window.console.log(message, tempArr);
+                    console.log(message, tempArr);
                 } else {
-                    window.console.log(message);
+                    console.log(message);
                 }
             }
         }
     },
 
     warn: function (text) {
-        if (window.console.warn !== undefined) {
+        if (console.warn !== undefined) {
             var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -356,9 +356,9 @@ utility = {
                     tempArr.push(newArg);
                 }
 
-                window.console.warn(message, tempArr);
+                console.warn(message, tempArr);
             } else {
-                window.console.warn(message);
+                console.warn(message);
             }
         } else {
             if (arguments.length > 1) {
@@ -370,7 +370,7 @@ utility = {
     },
 
     error: function (text) {
-        if (window.console.error !== undefined) {
+        if (console.error !== undefined) {
             var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -393,9 +393,9 @@ utility = {
                     tempArr.push(newArg);
                 }
 
-                window.console.error(message, tempArr);
+                console.error(message, tempArr);
             } else {
-                window.console.error(message);
+                console.error(message);
             }
         } else {
             if (arguments.length > 1) {

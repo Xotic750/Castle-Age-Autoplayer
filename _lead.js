@@ -6,8 +6,8 @@
 //       Global and Object vars
 //////////////////////////////////
 
-if (window.console.log !== undefined) {
-    window.console.log("CAAP Initiated");
+if (console.log !== undefined) {
+    console.log("CAAP Initiated");
 }
 
 var caapVersion   = "!version!",

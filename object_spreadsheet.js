@@ -49,7 +49,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                window.sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
 
             return value;
@@ -68,7 +68,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                jsonObj = $.parseJSON(window.sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name));
+                jsonObj = $.parseJSON(sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name));
                 if (jsonObj === undefined || jsonObj === null) {
                     if (!hidden) {
                         utility.warn("this.getItem parseJSON returned 'undefined' or 'null' for ", name);
@@ -109,7 +109,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                window.sessionStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                sessionStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
             }
 
             return true;
@@ -126,7 +126,7 @@ spreadsheet = {
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'https%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
                     success: function (msg) {
-                        utility.log(1, "msg", msg);
+                        utility.log(2, "msg", msg);
                         var x         = 0,
                             lenx      = 0,
                             y         = 0,
@@ -149,12 +149,12 @@ spreadsheet = {
                         }
 
                         spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
-                        utility.log(1, "spreadsheet.records", spreadsheet.records);
+                        utility.log(2, "spreadsheet.records", spreadsheet.records);
                     }
                 });
             } else {
                 this.records = this.getItem('spreadsheet.records', this.records);
-                utility.log(1, "spreadsheet.records", spreadsheet.records);
+                utility.log(2, "spreadsheet.records", spreadsheet.records);
             }
 
             return true;

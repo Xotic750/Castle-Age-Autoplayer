@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            6
+// @dev            7
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -23,12 +23,12 @@
 //       Global and Object vars
 //////////////////////////////////
 
-if (window.console.log !== undefined) {
-    window.console.log("CAAP Initiated");
+if (console.log !== undefined) {
+    console.log("CAAP Initiated");
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "6",
+    devVersion    = "7",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -1042,7 +1042,7 @@ utility = {
     logLevel: 1,
 
     log: function (level, text) {
-        if (window.console.log !== undefined) {
+        if (console.log !== undefined) {
             if (this.logLevel && !isNaN(level) && this.logLevel >= level) {
                 var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
@@ -1066,16 +1066,16 @@ utility = {
                         tempArr.push(newArg);
                     }
 
-                    window.console.log(message, tempArr);
+                    console.log(message, tempArr);
                 } else {
-                    window.console.log(message);
+                    console.log(message);
                 }
             }
         }
     },
 
     warn: function (text) {
-        if (window.console.warn !== undefined) {
+        if (console.warn !== undefined) {
             var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -1098,9 +1098,9 @@ utility = {
                     tempArr.push(newArg);
                 }
 
-                window.console.warn(message, tempArr);
+                console.warn(message, tempArr);
             } else {
-                window.console.warn(message);
+                console.warn(message);
             }
         } else {
             if (arguments.length > 1) {
@@ -1112,7 +1112,7 @@ utility = {
     },
 
     error: function (text) {
-        if (window.console.error !== undefined) {
+        if (console.error !== undefined) {
             var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -1135,9 +1135,9 @@ utility = {
                     tempArr.push(newArg);
                 }
 
-                window.console.error(message, tempArr);
+                console.error(message, tempArr);
             } else {
-                window.console.error(message);
+                console.error(message);
             }
         } else {
             if (arguments.length > 1) {
@@ -1709,7 +1709,7 @@ gm = {
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                window.localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             } else {
                 GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
@@ -1730,7 +1730,7 @@ gm = {
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                jsonObj = $.parseJSON(window.localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
+                jsonObj = $.parseJSON(localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
             } else {
                 jsonObj = $.parseJSON(GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name));
             }
@@ -1775,7 +1775,7 @@ gm = {
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                window.localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
+                localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
             } else {
                 GM_deleteValue(this.namespace + "." + caap.stats.FBID + "." + name);
             }
@@ -1791,18 +1791,34 @@ gm = {
         try {
             var storageKeys = [],
                 key         = 0,
-                len         = 0;
+                len         = 0,
+                done        = false,
+                nameRegExp  = new RegExp(this.namespace);
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
-                    if (window.localStorage.key(key) && window.localStorage.key(key).match(new RegExp(this.namespace))) {
-                        window.localStorage.removeItem(window.localStorage.key(key));
+                if (utility.is_firefox) {
+                    while (!done) {
+                        try {
+                            if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                                localStorage.removeItem(localStorage.key(key));
+                            }
+
+                            key += 1;
+                        } catch (e) {
+                            done = true;
+                        }
+                    }
+                } else {
+                    for (key = 0, len = localStorage.length; key < len; key += 1) {
+                        if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                            localStorage.removeItem(localStorage.key(key));
+                        }
                     }
                 }
             } else {
                 storageKeys = GM_listValues();
                 for (key = 0, len = storageKeys.length; key < len; key += 1) {
-                    if (storageKeys[key] && storageKeys[key].match(new RegExp(this.namespace))) {
+                    if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
                         GM_deleteValue(storageKeys[key]);
                     }
                 }
@@ -1819,18 +1835,34 @@ gm = {
         try {
             var storageKeys = [],
                 key         = 0,
-                len         = 0;
+                len         = 0,
+                done        = false,
+                nameRegExp  = new RegExp(this.namespace + "\\.0\\.");
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
-                    if (window.localStorage.key(key) && window.localStorage.key(key).match(new RegExp(this.namespace + "\\.0\\."))) {
-                        window.localStorage.removeItem(window.localStorage.key(key));
+                if (utility.is_firefox) {
+                    while (!done) {
+                        try {
+                            if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                                localStorage.removeItem(localStorage.key(key));
+                            }
+
+                            key += 1;
+                        } catch (e) {
+                            done = true;
+                        }
+                    }
+                } else {
+                    for (key = 0, len = localStorage.length; key < len; key += 1) {
+                        if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                            localStorage.removeItem(localStorage.key(key));
+                        }
                     }
                 }
             } else {
                 storageKeys = GM_listValues();
                 for (key = 0, len = storageKeys.length; key < len; key += 1) {
-                    if (storageKeys[key] && storageKeys[key].match(new RegExp(this.namespace + "\\.0\\."))) {
+                    if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
                         GM_deleteValue(storageKeys[key]);
                     }
                 }
@@ -1852,17 +1884,35 @@ gm = {
                     chars       = 0,
                     caapPerc    = 0,
                     totalPerc   = 0,
-                    message     = '';
+                    message     = '',
+                    done        = false,
+                    nameRegExp  = new RegExp(this.namespace + "\\.");
 
-                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
-                    chars += window.localStorage.getItem(window.localStorage.key(key)).length;
-                    if (window.localStorage.key(key).match(new RegExp(this.namespace))) {
-                        charsCaap += window.localStorage.getItem(window.localStorage.key(key)).length;
+                if (utility.is_firefox) {
+                    while (!done) {
+                        try {
+                            chars += localStorage.getItem(localStorage.key(key)).length;
+                            if (localStorage.key(key).match(nameRegExp)) {
+                                charsCaap += localStorage.getItem(localStorage.key(key)).length;
+                            }
+
+                            key += 1;
+                        } catch (e) {
+                            done = true;
+                        }
+                    }
+
+                } else {
+                    for (key = 0, len = localStorage.length; key < len; key += 1) {
+                        chars += localStorage.getItem(localStorage.key(key)).length;
+                        if (localStorage.key(key).match(nameRegExp)) {
+                            charsCaap += localStorage.getItem(localStorage.key(key)).length;
+                        }
                     }
                 }
 
                 caapPerc = parseInt(((charsCaap * 2.048 / 5242880) * 100).toFixed(0), 10);
-                utility.log(2, "CAAP localStorage used: " + caapPerc + "%");
+                utility.log(1, "CAAP localStorage used: " + caapPerc + "%");
                 totalPerc = parseInt(((chars * 2.048 / 5242880) * 100).toFixed(0), 10);
                 if (totalPerc >= 90) {
                     utility.warn("Total localStorage used: " + totalPerc + "%");
@@ -1875,10 +1925,10 @@ gm = {
                         utility.alert(message);
                     }, 5000);
                 } else {
-                    utility.log(2, "Total localStorage used: " + totalPerc + "%");
+                    utility.log(1, "Total localStorage used: " + totalPerc + "%");
                 }
             }
-            
+
             return true;
         } catch (error) {
             utility.error("ERROR in gm.used: " + error, arguments.callee.caller);
@@ -6438,7 +6488,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                window.sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
 
             return value;
@@ -6457,7 +6507,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                jsonObj = $.parseJSON(window.sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name));
+                jsonObj = $.parseJSON(sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name));
                 if (jsonObj === undefined || jsonObj === null) {
                     if (!hidden) {
                         utility.warn("this.getItem parseJSON returned 'undefined' or 'null' for ", name);
@@ -6498,7 +6548,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                window.sessionStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                sessionStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
             }
 
             return true;
@@ -6515,7 +6565,7 @@ spreadsheet = {
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'https%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
                     success: function (msg) {
-                        utility.log(1, "msg", msg);
+                        utility.log(2, "msg", msg);
                         var x         = 0,
                             lenx      = 0,
                             y         = 0,
@@ -6538,12 +6588,12 @@ spreadsheet = {
                         }
 
                         spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
-                        utility.log(1, "spreadsheet.records", spreadsheet.records);
+                        utility.log(2, "spreadsheet.records", spreadsheet.records);
                     }
                 });
             } else {
                 this.records = this.getItem('spreadsheet.records', this.records);
-                utility.log(1, "spreadsheet.records", spreadsheet.records);
+                utility.log(2, "spreadsheet.records", spreadsheet.records);
             }
 
             return true;
@@ -18911,7 +18961,7 @@ caap = {
         if (state.getItem('ReleaseControl', false)) {
             state.setItem('ReleaseControl', false);
         } else {
-            utility.log(1, "ReleaseControl to unshift LastAction");
+            utility.log(3, "ReleaseControl to unshift LastAction");
             actionsListCopy.unshift(state.getItem('LastAction', 'Idle'));
         }
 

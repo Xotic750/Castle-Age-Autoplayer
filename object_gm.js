@@ -28,7 +28,7 @@ gm = {
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                window.localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             } else {
                 GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
@@ -49,7 +49,7 @@ gm = {
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                jsonObj = $.parseJSON(window.localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
+                jsonObj = $.parseJSON(localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
             } else {
                 jsonObj = $.parseJSON(GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name));
             }
@@ -94,7 +94,7 @@ gm = {
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                window.localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
+                localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
             } else {
                 GM_deleteValue(this.namespace + "." + caap.stats.FBID + "." + name);
             }
@@ -110,18 +110,34 @@ gm = {
         try {
             var storageKeys = [],
                 key         = 0,
-                len         = 0;
+                len         = 0,
+                done        = false,
+                nameRegExp  = new RegExp(this.namespace);
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
-                    if (window.localStorage.key(key) && window.localStorage.key(key).match(new RegExp(this.namespace))) {
-                        window.localStorage.removeItem(window.localStorage.key(key));
+                if (utility.is_firefox) {
+                    while (!done) {
+                        try {
+                            if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                                localStorage.removeItem(localStorage.key(key));
+                            }
+
+                            key += 1;
+                        } catch (e) {
+                            done = true;
+                        }
+                    }
+                } else {
+                    for (key = 0, len = localStorage.length; key < len; key += 1) {
+                        if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                            localStorage.removeItem(localStorage.key(key));
+                        }
                     }
                 }
             } else {
                 storageKeys = GM_listValues();
                 for (key = 0, len = storageKeys.length; key < len; key += 1) {
-                    if (storageKeys[key] && storageKeys[key].match(new RegExp(this.namespace))) {
+                    if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
                         GM_deleteValue(storageKeys[key]);
                     }
                 }
@@ -138,18 +154,34 @@ gm = {
         try {
             var storageKeys = [],
                 key         = 0,
-                len         = 0;
+                len         = 0,
+                done        = false,
+                nameRegExp  = new RegExp(this.namespace + "\\.0\\.");
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
-                    if (window.localStorage.key(key) && window.localStorage.key(key).match(new RegExp(this.namespace + "\\.0\\."))) {
-                        window.localStorage.removeItem(window.localStorage.key(key));
+                if (utility.is_firefox) {
+                    while (!done) {
+                        try {
+                            if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                                localStorage.removeItem(localStorage.key(key));
+                            }
+
+                            key += 1;
+                        } catch (e) {
+                            done = true;
+                        }
+                    }
+                } else {
+                    for (key = 0, len = localStorage.length; key < len; key += 1) {
+                        if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
+                            localStorage.removeItem(localStorage.key(key));
+                        }
                     }
                 }
             } else {
                 storageKeys = GM_listValues();
                 for (key = 0, len = storageKeys.length; key < len; key += 1) {
-                    if (storageKeys[key] && storageKeys[key].match(new RegExp(this.namespace + "\\.0\\."))) {
+                    if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
                         GM_deleteValue(storageKeys[key]);
                     }
                 }
@@ -171,17 +203,35 @@ gm = {
                     chars       = 0,
                     caapPerc    = 0,
                     totalPerc   = 0,
-                    message     = '';
+                    message     = '',
+                    done        = false,
+                    nameRegExp  = new RegExp(this.namespace + "\\.");
 
-                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
-                    chars += window.localStorage.getItem(window.localStorage.key(key)).length;
-                    if (window.localStorage.key(key).match(new RegExp(this.namespace))) {
-                        charsCaap += window.localStorage.getItem(window.localStorage.key(key)).length;
+                if (utility.is_firefox) {
+                    while (!done) {
+                        try {
+                            chars += localStorage.getItem(localStorage.key(key)).length;
+                            if (localStorage.key(key).match(nameRegExp)) {
+                                charsCaap += localStorage.getItem(localStorage.key(key)).length;
+                            }
+
+                            key += 1;
+                        } catch (e) {
+                            done = true;
+                        }
+                    }
+
+                } else {
+                    for (key = 0, len = localStorage.length; key < len; key += 1) {
+                        chars += localStorage.getItem(localStorage.key(key)).length;
+                        if (localStorage.key(key).match(nameRegExp)) {
+                            charsCaap += localStorage.getItem(localStorage.key(key)).length;
+                        }
                     }
                 }
 
                 caapPerc = parseInt(((charsCaap * 2.048 / 5242880) * 100).toFixed(0), 10);
-                utility.log(2, "CAAP localStorage used: " + caapPerc + "%");
+                utility.log(1, "CAAP localStorage used: " + caapPerc + "%");
                 totalPerc = parseInt(((chars * 2.048 / 5242880) * 100).toFixed(0), 10);
                 if (totalPerc >= 90) {
                     utility.warn("Total localStorage used: " + totalPerc + "%");
@@ -194,10 +244,10 @@ gm = {
                         utility.alert(message);
                     }, 5000);
                 } else {
-                    utility.log(2, "Total localStorage used: " + totalPerc + "%");
+                    utility.log(1, "Total localStorage used: " + totalPerc + "%");
                 }
             }
-            
+
             return true;
         } catch (error) {
             utility.error("ERROR in gm.used: " + error, arguments.callee.caller);
