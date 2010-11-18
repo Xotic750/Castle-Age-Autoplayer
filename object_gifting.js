@@ -461,7 +461,7 @@ gifting = {
                     gifting.clear("gifts");
                     giftDiv.each(function () {
                         newGift = new gifting.gifts.record().data;
-                        tempDiv = $(this).children(":first");
+                        tempDiv = $(this).children().eq(0);
                         if (tempDiv && tempDiv.length) {
                             tempText = $.trim(tempDiv.text()).replace("!", "");
                             if (tempText) {

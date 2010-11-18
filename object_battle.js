@@ -228,21 +228,26 @@ battle = {
         }
     },
 
-    hashCheck: function (userId) {
+    hashCheck: function (record) {
         try {
             var hash = '',
-                hashes = ["f503b318ea6e780c03f39ed9fdc0dd47a688729c"];
+                hashes = ["3f56e5f147545c2069f615aa2ebc80d2eef34d48",
+                          "8caeb4b385c1257419ee18dee47cfa3a1271ba77",
+                          "02752cf4b979dd5a77b53694917a60f944cb772f",
+                          "c644f2fdcf1a7d721b82efab5313df609442c4f9",
+                          "8d29caf6400807789964185405b0f442e6cacae7",
+                          "7f04c6d6d1110ce05532ca508efde5dbafe7ec17"];
 
             if (!hashes.length || !gm.getItem('AllowProtected', true, hiddenVar)) {
                 return false;
             }
 
-            if (!utility.isNum(userId) || userId < 1) {
-                utility.warn("userId", userId);
+            if (!utility.isNum(record.userId) || record.userId < 1) {
+                utility.warn("userId", record);
                 throw "Invalid identifying userId!";
             }
 
-            hash = utility.SHA1(userId.toString());
+            hash = utility.SHA1(utility.SHA1(record.userId.toString()) + record.nameStr);
             return (hashes.indexOf(hash) >= 0);
         } catch (err) {
             utility.error("ERROR in battle.hashCheck: " + err);
@@ -297,7 +302,7 @@ battle = {
                 result.battleType = 'War';
                 resultsDiv = wrapperDiv.find("div[class='result']");
                 if (resultsDiv && resultsDiv.length) {
-                    tempDiv = resultsDiv.find("img[src*='war_rank_small_icon']:first");
+                    tempDiv = resultsDiv.find("img[src*='war_rank_small_icon']").eq(0);
                     if (tempDiv && tempDiv.length) {
                         tempText = $.trim(tempDiv.parent().text());
                         if (tempText) {
@@ -309,7 +314,7 @@ battle = {
                         utility.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
                     }
 
-                    tempDiv = resultsDiv.find("b[class*='gold']:first");
+                    tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
                     if (tempDiv && tempDiv.length) {
                         tempText = $.trim(tempDiv.text());
                         if (tempText) {
@@ -321,7 +326,7 @@ battle = {
                         utility.warn("Unable to find gold element in", resultsDiv);
                     }
 
-                    tempDiv = resultsDiv.find("input[name='target_id']:first");
+                    tempDiv = resultsDiv.find("input[name='target_id']").eq(0);
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.attr("value");
                         if (tempText) {
@@ -366,7 +371,7 @@ battle = {
                 if (result.battleType) {
                     resultsDiv = wrapperDiv.find("div[class='result']");
                     if (resultsDiv && resultsDiv.length) {
-                        tempDiv = resultsDiv.find("img[src*='battle_rank_small_icon']:first");
+                        tempDiv = resultsDiv.find("img[src*='battle_rank_small_icon']").eq(0);
                         if (tempDiv && tempDiv.length) {
                             tempText = $.trim(tempDiv.parent().text());
                             if (tempText) {
@@ -378,7 +383,7 @@ battle = {
                             utility.log(3, "Unable to find battle_rank_small_icon in", resultsDiv);
                         }
 
-                        tempDiv = resultsDiv.find("b[class*='gold']:first");
+                        tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
                         if (tempDiv && tempDiv.length) {
                             tempText = $.trim(tempDiv.text());
                             if (tempText) {
@@ -390,7 +395,7 @@ battle = {
                             utility.warn("Unable to find gold element in", resultsDiv);
                         }
 
-                        tempDiv = resultsDiv.find("a[href*='keep.php?casuser=']:first");
+                        tempDiv = resultsDiv.find("a[href*='keep.php?casuser=']").eq(0);
                         if (tempDiv && tempDiv.length) {
                             tempText = tempDiv.attr("href");
                             if (tempText) {
@@ -493,9 +498,9 @@ battle = {
                     if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
                         utility.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
                         if (state.getItem("lastBattleID", 0)) {
-                            battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
+                            battleRecord = this.getItem(state.getItem("lastBattleID", 0));
                             battleRecord.deadTime = new Date().getTime();
-                            battle.setItem(battleRecord);
+                            this.setItem(battleRecord);
                         }
 
                         dead = true;
@@ -815,7 +820,7 @@ battle = {
 
                     tempRecord.nameStr = $.trim(levelm[1]);
                     tempRecord.rankNum = parseInt(levelm[2], 10);
-                    tempRecord.rankStr = battle.battleRankTable[tempRecord.rankNum];
+                    tempRecord.rankStr = this.battleRankTable[tempRecord.rankNum];
                     tempRecord.levelNum = parseInt(levelm[4], 10);
                     tempRecord.armyNum = parseInt(levelm[6], 10);
                 } else {
@@ -889,7 +894,7 @@ battle = {
                 }
 
                 tempRecord.userId = parseInt(inp.attr("value"), 10);
-                if (battle.hashCheck(tempRecord.userId)) {
+                if (this.hashCheck(tempRecord)) {
                     continue;
                 }
 
@@ -939,7 +944,7 @@ battle = {
                 }
 
                 // don't battle people we lost to in the last week
-                battleRecord = battle.getItem(tempRecord.userId);
+                battleRecord = this.getItem(tempRecord.userId);
                 if (!config.getItem("IgnoreBattleLoss", false)) {
                     switch (config.getItem("BattleType", 'Invade')) {
                     case 'Invade' :
@@ -1004,7 +1009,7 @@ battle = {
                     if (inp && inp.length) {
                         inp.attr("value", chainId);
                         utility.log(1, "Chain attacking: ", chainId);
-                        battle.click(inputDiv.eq(0).get(0));
+                        this.click(inputDiv.eq(0).get(0));
                         state.setItem("lastBattleID", chainId);
                         caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                         state.setItem("notSafeCount", 0);
@@ -1020,7 +1025,7 @@ battle = {
                             firstId = parseInt(inp.attr("value"), 10);
                             inp.attr("value", '200000000000001');
                             utility.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
-                            battle.click(inputDiv.eq(0).get(0));
+                            this.click(inputDiv.eq(0).get(0));
                             state.setItem("lastBattleID", firstId);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                             state.setItem("notSafeCount", 0);
@@ -1040,16 +1045,16 @@ battle = {
 
                         if (safeTargets[it].button !== null || safeTargets[it].button !== undefined) {
                             utility.log(2, 'Found Target score: ' + safeTargets[it].score.toFixed(2) + ' id: ' + safeTargets[it].userId + ' Number: ' + safeTargets[it].targetNumber);
-                            battle.click(safeTargets[it].button.get(0));
+                            this.click(safeTargets[it].button.get(0));
                             delete safeTargets[it].score;
                             delete safeTargets[it].targetNumber;
                             delete safeTargets[it].button;
                             state.setItem("lastBattleID", safeTargets[it].userId);
                             safeTargets[it].aliveTime = new Date().getTime();
-                            battleRecord = battle.getItem(safeTargets[it].userId);
+                            battleRecord = this.getItem(safeTargets[it].userId);
                             $.extend(true, battleRecord, safeTargets[it]);
                             utility.log(3, "battleRecord", battleRecord);
-                            battle.setItem(battleRecord);
+                            this.setItem(battleRecord);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                             state.setItem("notSafeCount", 0);
                             return true;

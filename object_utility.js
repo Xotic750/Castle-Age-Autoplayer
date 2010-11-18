@@ -5,17 +5,19 @@
 /////////////////////////////////////////////////////////////////////
 
 utility = {
-    is_chrome           : navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
+    is_chrome               : navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
 
-    is_firefox          : navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
+    is_firefox              : navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
 
-    is_html5_storage    : ('localStorage' in window) && window.localStorage !== null,
+    is_html5_localStorage   : ('localStorage' in window) && window.localStorage !== null,
 
-    waitMilliSecs: 5000,
+    is_html5_sessionStorage : ('sessionStorage' in window) && window.sessionStorage !== null,
+
+    waitMilliSecs: 10000,
 
     VisitUrl: function (url, loadWaitTime) {
         try {
-            this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+            caap.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 10000;
             window.location.href = url;
             return true;
         } catch (err) {
@@ -35,7 +37,7 @@ utility = {
                 caap.waitingForDomLoad = true;
             }
 
-            this.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 5000;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : 10000;
             var evt = document.createEvent("MouseEvents");
             evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             /*
@@ -62,6 +64,7 @@ utility = {
                 caap.waitingForDomLoad = false;
             }
 
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : 10000;
             return this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
         } catch (err) {
             this.error("ERROR in utility.ClickAjax: " + err);
@@ -138,31 +141,16 @@ utility = {
 
     CheckForImage: function (image, webSlice, subDocument, nodeNum) {
         try {
-            var traverse   = '',
-                imageSlice = null;
-
+            var imageSlice = null;
             if (!webSlice) {
-                if (!subDocument) {
-                    webSlice = document.body;
-                } else {
-                    webSlice = subDocument.body;
-                }
+                webSlice = subDocument ? subDocument.body : window.document.body;
             }
 
-            if (nodeNum) {
-                traverse = ":eq(" + nodeNum + ")";
-            } else {
-                traverse = ":first";
+            if (!nodeNum || typeof nodeNum !== 'number') {
+                nodeNum = 0;
             }
 
-            imageSlice = $(webSlice).find("input[src*='" + image + "']" + traverse);
-            if (!imageSlice.length) {
-                imageSlice = $(webSlice).find("img[src*='" + image + "']" + traverse);
-                if (!imageSlice.length) {
-                    imageSlice = $(webSlice).find("div[style*='" + image + "']" + traverse);
-                }
-            }
-
+            imageSlice = $(webSlice).find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
             return (imageSlice.length ? imageSlice.get(0) : null);
         } catch (err) {
             this.error("ERROR in utility.CheckForImage: " + err);
@@ -264,7 +252,7 @@ utility = {
         try {
             this.alert_id += 1;
             var id = this.alert_id;
-            $('<div id="alert_' + id + '" title="Alert!"><p>' + message + '</p></div>').appendTo(document.body);
+            $('<div id="alert_' + id + '" title="Alert!"><p>' + message + '</p></div>').appendTo(window.document.body);
             $("#alert_" + id).dialog({
                 buttons: {
                     "Ok": function () {
@@ -312,7 +300,7 @@ utility = {
     logLevel: 1,
 
     log: function (level, text) {
-        if (console.log !== undefined) {
+        if (window.console.log !== undefined) {
             if (this.logLevel && !isNaN(level) && this.logLevel >= level) {
                 var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
@@ -336,16 +324,16 @@ utility = {
                         tempArr.push(newArg);
                     }
 
-                    console.log(message, tempArr);
+                    window.console.log(message, tempArr);
                 } else {
-                    console.log(message);
+                    window.console.log(message);
                 }
             }
         }
     },
 
     warn: function (text) {
-        if (console.warn !== undefined) {
+        if (window.console.warn !== undefined) {
             var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -368,9 +356,9 @@ utility = {
                     tempArr.push(newArg);
                 }
 
-                console.warn(message, tempArr);
+                window.console.warn(message, tempArr);
             } else {
-                console.warn(message);
+                window.console.warn(message);
             }
         } else {
             if (arguments.length > 1) {
@@ -382,7 +370,7 @@ utility = {
     },
 
     error: function (text) {
-        if (console.error !== undefined) {
+        if (window.console.error !== undefined) {
             var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -405,9 +393,9 @@ utility = {
                     tempArr.push(newArg);
                 }
 
-                console.error(message, tempArr);
+                window.console.error(message, tempArr);
             } else {
-                console.error(message);
+                window.console.error(message);
             }
         } else {
             if (arguments.length > 1) {
@@ -532,8 +520,7 @@ utility = {
             }
 
             function rotate_left(n, s) {
-                var t4 = (n << s) | (n >>> (32 - s));
-                return t4;
+                return (n << s) | (n >>> (32 - s));
             }
 
             function cvt_hex(val) {
@@ -551,9 +538,10 @@ utility = {
                 string = string.replace(/\r\n/g, "\n");
                 var utftext = "",
                     n = 0,
+                    l = 0,
                     c = '';
 
-                for (n = 0; n < string.length; n += 1) {
+                for (n = 0, l = string.length; n < l; n += 1) {
                     c = string.charCodeAt(n);
                     if (c < 128) {
                         utftext += String.fromCharCode(c);
@@ -584,6 +572,7 @@ utility = {
                 E = null,
                 temp = null,
                 msg_len = 0,
+                len = 0,
                 word_array = [];
 
             msg = Utf8Encode(msg);
@@ -616,7 +605,7 @@ utility = {
 
             word_array.push(msg_len >>> 29);
             word_array.push((msg_len << 3) & 0x0ffffffff);
-            for (blockstart = 0; blockstart < word_array.length; blockstart += 16) {
+            for (blockstart = 0, len = word_array.length; blockstart < len; blockstart += 16) {
                 for (i = 0; i < 16; i += 1) {
                     W[i] = word_array[blockstart + i];
                 }

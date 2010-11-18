@@ -10,11 +10,11 @@ css = {
             var href = window.location.href;
 
             if (href.indexOf('apps.facebook.com/castle_age') >= 0) {
-                if (!$('link[href*="jquery-ui-1.8.1.custom.css"').length) {
+                if (!$('link[href*="jquery-ui.css"').length) {
                     $("<link>").appendTo("head").attr({
                         rel: "stylesheet",
                         type: "text/css",
-                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.4/themes/smoothness/jquery-ui.css"
+                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/themes/smoothness/jquery-ui.css"
                     });
                 }
 

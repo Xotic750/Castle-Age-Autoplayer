@@ -27,8 +27,8 @@ gm = {
                 throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
             }
 
-            if (utility.is_html5_storage && !this.fireFoxUseGM) {
-                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+                window.localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             } else {
                 GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
             }
@@ -48,8 +48,8 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.is_html5_storage && !this.fireFoxUseGM) {
-                jsonObj = $.parseJSON(localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
+            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+                jsonObj = $.parseJSON(window.localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
             } else {
                 jsonObj = $.parseJSON(GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name));
             }
@@ -93,8 +93,8 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.is_html5_storage && !this.fireFoxUseGM) {
-                localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
+            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+                window.localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
             } else {
                 GM_deleteValue(this.namespace + "." + caap.stats.FBID + "." + name);
             }
@@ -108,16 +108,20 @@ gm = {
 
     clear: function () {
         try {
-            if (utility.is_html5_storage && !this.fireFoxUseGM) {
-                localStorage.clear();
-            } else {
-                var storageKeys = [],
-                    key         = 0,
-                    len         = 0;
+            var storageKeys = [],
+                key         = 0,
+                len         = 0;
 
+            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
+                    if (window.localStorage.key(key) && window.localStorage.key(key).match(new RegExp(this.namespace))) {
+                        window.localStorage.removeItem(window.localStorage.key(key));
+                    }
+                }
+            } else {
                 storageKeys = GM_listValues();
                 for (key = 0, len = storageKeys.length; key < len; key += 1) {
-                    if (storageKeys[key].match(new RegExp(this.namespace + "." + caap.stats.FBID))) {
+                    if (storageKeys[key] && storageKeys[key].match(new RegExp(this.namespace))) {
                         GM_deleteValue(storageKeys[key]);
                     }
                 }
@@ -126,6 +130,77 @@ gm = {
             return true;
         } catch (error) {
             utility.error("ERROR in gm.clear: " + error, arguments.callee.caller);
+            return false;
+        }
+    },
+
+    clear0: function () {
+        try {
+            var storageKeys = [],
+                key         = 0,
+                len         = 0;
+
+            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
+                    if (window.localStorage.key(key) && window.localStorage.key(key).match(new RegExp(this.namespace + "\\.0\\."))) {
+                        window.localStorage.removeItem(window.localStorage.key(key));
+                    }
+                }
+            } else {
+                storageKeys = GM_listValues();
+                for (key = 0, len = storageKeys.length; key < len; key += 1) {
+                    if (storageKeys[key] && storageKeys[key].match(new RegExp(this.namespace + "\\.0\\."))) {
+                        GM_deleteValue(storageKeys[key]);
+                    }
+                }
+            }
+
+            return true;
+        } catch (error) {
+            utility.error("ERROR in gm.clear0: " + error, arguments.callee.caller);
+            return false;
+        }
+    },
+
+    used: function () {
+        try {
+            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+                var key         = 0,
+                    len         = 0,
+                    charsCaap   = 0,
+                    chars       = 0,
+                    caapPerc    = 0,
+                    totalPerc   = 0,
+                    message     = '';
+
+                for (key = 0, len = window.localStorage.length; key < len; key += 1) {
+                    chars += window.localStorage.getItem(window.localStorage.key(key)).length;
+                    if (window.localStorage.key(key).match(new RegExp(this.namespace))) {
+                        charsCaap += window.localStorage.getItem(window.localStorage.key(key)).length;
+                    }
+                }
+
+                caapPerc = parseInt(((charsCaap * 2.048 / 5242880) * 100).toFixed(0), 10);
+                utility.log(2, "CAAP localStorage used: " + caapPerc + "%");
+                totalPerc = parseInt(((chars * 2.048 / 5242880) * 100).toFixed(0), 10);
+                if (totalPerc >= 90) {
+                    utility.warn("Total localStorage used: " + totalPerc + "%");
+                    message = "<div style='text-align: center;'>";
+                    message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
+                    message += "localStorage usage for domain: " + totalPerc + "%<br />";
+                    message += "CAAP is using: " + totalPerc + "%";
+                    message += "</div>";
+                    window.setTimeout(function () {
+                        utility.alert(message);
+                    }, 5000);
+                } else {
+                    utility.log(2, "Total localStorage used: " + totalPerc + "%");
+                }
+            }
+            
+            return true;
+        } catch (error) {
+            utility.error("ERROR in gm.used: " + error, arguments.callee.caller);
             return false;
         }
     }

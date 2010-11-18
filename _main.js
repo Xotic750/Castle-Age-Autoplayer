@@ -4,6 +4,7 @@
 /////////////////////////////////////////////////////////////////////
 
 utility.log(1, "Starting CAAP ... waiting page load");
+gm.clear0();
 utility.setTimeout(function () {
         utility.error('DOM onload timeout!!! Reloading ...', window.location.href);
         window.location.reload();
@@ -20,9 +21,16 @@ $(function () {
         tempArr       = [],
         accountEl;
 
+    function mainCaapLoop() {
+        caap.waitMilliSecs = 10000;
+        caap.WaitMainLoop();
+        caap.ReloadOccasionally();
+    }
+
     utility.log(1, 'Full page load completed');
     utility.clearTimeouts();
     if (caap.ErrorCheck()) {
+        mainCaapLoop();
         return;
     }
 
@@ -50,17 +58,17 @@ $(function () {
     if (!idOk) {
         // Force reload without retrying
         utility.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-        window.location.href = window.location.href;
+        window.history.go(0);
     }
 
     config.load();
     utility.logLevel = config.getItem('DebugLevel', utility.logLevel);
+    gm.used();
     schedule.load();
     state.load();
     caap.LoadStats();
     caap.stats.FBID = FBID;
     caap.stats.account = accountEl.text();
-    //utility.logLevel = gm.getItem('DebugLevel', utility.logLevel, hiddenVar);
     gifting.init();
     state.setItem('clickUrl', window.location.href);
     schedule.setItem('clickedOnSomething', 0);
@@ -105,9 +113,7 @@ $(function () {
         }, 200);
     }
 
-    utility.waitMilliSecs = 8000;
-    caap.WaitMainLoop();
-    caap.ReloadOccasionally();
+    mainCaapLoop();
 });
 
 // ENDOFSCRIPT

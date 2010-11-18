@@ -711,5 +711,24 @@ general = {
             utility.error("ERROR in general.GetAllStats: " + err);
             return false;
         }
+    },
+
+    owned: function (name) {
+        try {
+            var it    = 0,
+                owned = false;
+
+            for (it = this.records.length - 1; it >= 0; it -= 1) {
+                if (this.records[it].name && this.records[it].name === name) {
+                    owned = true;
+                    break;
+                }
+            }
+
+            return owned;
+        } catch (err) {
+            utility.error("ERROR in general.owned: " + err);
+            return undefined;
+        }
     }
 };

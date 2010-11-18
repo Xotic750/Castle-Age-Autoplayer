@@ -6,6 +6,10 @@
 //       Global and Object vars
 //////////////////////////////////
 
+if (window.console.log !== undefined) {
+    window.console.log("CAAP Initiated");
+}
+
 var caapVersion   = "!version!",
     devVersion    = "!dev!",
     hiddenVar     = true,
@@ -23,6 +27,7 @@ var caapVersion   = "!version!",
     guild_monster = {},
     battle        = {},
     town          = {},
+    spreadsheet   = {},
     gifting       = {},
     caap          = {};
 

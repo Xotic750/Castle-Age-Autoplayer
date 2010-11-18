@@ -17,9 +17,20 @@ town = {
 
     magicSortable: [],
 
+    itemRegex: {
+        Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator/i,
+        Shield: /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
+        Helmet: /cowl|crown|helm|horns|mask|veil|Virtue of Fortitude/i,
+        Glove: /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
+        Armor:  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
+        Amulet: /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
+    },
+
     record: function () {
         this.data = {
             name    : '',
+            image   : '',
+            type    : '',
             upkeep  : 0,
             hourly  : 0,
             atk     : 0,
@@ -75,6 +86,38 @@ town = {
         }
     },
 
+    getItemType: function (name) {
+        try {
+            var i       = '',
+                j       = 0,
+                len     = 0,
+                mlen    = 0,
+                maxlen  = 0,
+                match   = [],
+                theType = '';
+
+            for (i in town.itemRegex) {
+                if (town.itemRegex.hasOwnProperty(i)) {
+                    match = name.match(town.itemRegex[i]);
+                    if (match) {
+                        for (j = 0, len = match.length; j < len; j += 1) {
+                            mlen = match[j].length;
+                            if (mlen > maxlen) {
+                                theType = i;
+                                maxlen = mlen;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return theType;
+        } catch (err) {
+            utility.error("ERROR in town.getItemType: " + err);
+            return undefined;
+        }
+    },
+
     GetItems: function (type) {
         try {
             var rowDiv  = null,
@@ -97,12 +140,20 @@ town = {
                     tempDiv = $(this).find("div[class='eq_buy_txt_int'] strong");
                     if (tempDiv && tempDiv.length === 1) {
                         current.data.name = $.trim(tempDiv.text());
+                        current.data.type = town.getItemType(current.data.name);
                     } else {
                         utility.warn("Unable to get item name in", type);
                         passed = false;
                     }
 
                     if (passed) {
+                        tempDiv = $(this).find("img");
+                        if (tempDiv && tempDiv.length === 1) {
+                            current.data.image = utility.getHTMLPredicate(tempDiv.attr("src"));
+                        } else {
+                            utility.log(4, "No image found for", type, current.data.name);
+                        }
+
                         tempDiv = $(this).find("div[class='eq_buy_txt_int'] span[class='negative']");
                         if (tempDiv && tempDiv.length === 1) {
                             current.data.upkeep = utility.NumberOnly(tempDiv.text());
@@ -128,7 +179,7 @@ town = {
                             utility.log(4, "No cost found for", type, current.data.name);
                         }
 
-                        tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td:first");
+                        tempDiv = $(this).find("div[class='eq_buy_costs_int'] tr:last td").eq(0);
                         if (tempDiv && tempDiv.length === 1) {
                             current.data.owned = utility.NumberOnly(tempDiv.text());
                             current.data.hourly = current.data.owned * current.data.upkeep;
@@ -181,6 +232,45 @@ town = {
             return haveIt;
         } catch (err) {
             utility.error("ERROR in town.haveOrb: " + err);
+            return undefined;
+        }
+    },
+
+    getCount: function (name, image) {
+        try {
+            var it1     = 0,
+                it2     = 0,
+                type    = 0,
+                len     = 0,
+                tempIt1 = -1,
+                tempIt2 = -1,
+                owned   = 0,
+                found   = false;
+
+            for (it1 = this.types.length - 1; it1 >= 0; it1 -= 1) {
+                if (found) {
+                    break;
+                }
+
+                for (it2 = this[this.types[it1]].length - 1; it2 >= 0; it2 -= 1) {
+                    if (this[this.types[it1]][it2].name && this[this.types[it1]][it2].name === name) {
+                        tempIt1 = it1;
+                        tempIt2 = it2;
+                        if (image && this[this.types[it1]][it2].image && this[this.types[it1]][it2].image === image) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (tempIt1 > -1 && tempIt2 > -1) {
+                owned = this[this.types[tempIt1]][tempIt2].owned;
+            }
+
+            return owned;
+        } catch (err) {
+            utility.error("ERROR in town.getCount: " + err);
             return undefined;
         }
     }
