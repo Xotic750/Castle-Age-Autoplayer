@@ -11,20 +11,20 @@ spreadsheet = {
 
     record: function () {
         this.data = {
-            name         : '',
-            image        : '',
-            type         : '',
-            attack       : 0,
-            defense      : 0,
-            hero         : '',
-            recipe1      : '',
-            recipe1image : '',
-            recipe2      : '',
-            recipe2image : '',
-            recipe3      : '',
-            recipe3image : '',
-            summon       : '',
-            comment      : ''
+            name         : null,
+            image        : null,
+            type         : null,
+            attack       : null,
+            defense      : null,
+            hero         : null,
+            recipe1      : null,
+            recipe1image : null,
+            recipe2      : null,
+            recipe2image : null,
+            recipe3      : null,
+            recipe3image : null,
+            summon       : null,
+            comment      : null
         };
     },
 
@@ -127,22 +127,43 @@ spreadsheet = {
                     dataType: "json",
                     success: function (msg) {
                         utility.log(2, "msg", msg);
-                        var x         = 0,
-                            lenx      = 0,
-                            y         = 0,
-                            leny      = 0,
-                            newRecord = {};
+                        var rows       = [],
+                            row        = 0,
+                            rowsLen    = 0,
+                            column     = 0,
+                            newRecord  = {},
+                            cell       = null,
+                            headers    = {},
+                            headersLen = 0,
+                            key        = '';
 
-                        for (x in msg.query.results.row[0]) {
-                            if (msg.query.results.row[0].hasOwnProperty(x)) {
-                                spreadsheet.headers.push((msg.query.results.row[0][x]).toLowerCase());
+                        rows = msg.query.results.row;
+                        headers = rows[0];
+                        for (key in headers) {
+                            if (headers.hasOwnProperty(key)) {
+                                headersLen = spreadsheet.headers.push((headers[key]).toLowerCase());
                             }
                         }
 
-                        for (x = 1, lenx = msg.query.results.row.length; x < lenx; x += 1) {
+                        for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
                             newRecord = new spreadsheet.record().data;
-                            for (y = 0, leny = spreadsheet.headers.length; y < leny; y += 1) {
-                                newRecord[spreadsheet.headers[y]] = msg.query.results.row[x]["col" + y];
+                            for (column = 0; column < headersLen; column += 1) {
+                                cell = rows[row]["col" + column];
+                                if (cell === null || cell === undefined) {
+                                    continue;
+                                }
+
+                                if (isNaN(cell)) {
+                                    if (spreadsheet.headers[column] === "attack" || spreadsheet.headers[column] === "defense") {
+                                        utility.warn("Spreadsheet " + spreadsheet.headers[column] + " cell is NaN", cell);
+                                    }
+
+                                    cell = cell.replace(/"/g, "");
+                                } else {
+                                    cell = parseFloat(cell);
+                                }
+
+                                newRecord[spreadsheet.headers[column]] = cell;
                             }
 
                             spreadsheet.records.push(newRecord);

@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            7
+// @dev            8
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "7",
+    devVersion    = "8",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -5094,15 +5094,16 @@ battle = {
             statslossesNum  : 0,
             goldNum         : 0,
             chainCount      : 0,
-            invadeLostTime  : new Date(2009, 0, 1).getTime(),
-            duelLostTime    : new Date(2009, 0, 1).getTime(),
-            warLostTime     : new Date(2009, 0, 1).getTime(),
-            deadTime        : new Date(2009, 0, 1).getTime(),
-            chainTime       : new Date(2009, 0, 1).getTime(),
-            ignoreTime      : new Date(2009, 0, 1).getTime(),
-            aliveTime       : new Date(2009, 0, 1).getTime(),
-            attackTime      : new Date(2009, 0, 1).getTime(),
-            selectTime      : new Date(2009, 0, 1).getTime()
+            invadeLostTime  : 0,
+            duelLostTime    : 0,
+            warLostTime     : 0,
+            deadTime        : 0,
+            chainTime       : 0,
+            ignoreTime      : 0,
+            aliveTime       : 0,
+            attackTime      : 0,
+            selectTime      : 0,
+            unknownTime     : 0
         };
     },
 
@@ -5337,7 +5338,8 @@ battle = {
                     points     : 0,
                     gold       : 0,
                     win        : false,
-                    hiding     : false
+                    hiding     : false,
+                    unknown    : false
                 };
 
             wrapperDiv = $("#app46755028429_results_main_wrapper");
@@ -5355,10 +5357,14 @@ battle = {
                         utility.log(1, "Your opponent is hiding");
                         return result;
                     } else {
-                        throw "Unable to determine won, lost or hiding!";
+                        result.unknown = true;
+                        utility.warn("Unable to determine won, lost or hiding!");
+                        return result;
                     }
                 } else {
-                    throw "Unable to determine won or lost!";
+                    result.unknown = true;
+                    utility.warn("Unable to determine won or lost!");
+                    return result;
                 }
             }
 
@@ -5555,26 +5561,41 @@ battle = {
                 battleRecord = {},
                 dead         = false;
 
+            if (state.getItem("lastBattleID", 0)) {
+                battleRecord = this.getItem(state.getItem("lastBattleID", 0));
+            }
+
             resultsDiv = $("#app46755028429_app_body div[class='results']");
             if (resultsDiv && resultsDiv.length) {
                 resultsText = $.trim(resultsDiv.text());
                 if (resultsText) {
                     if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
                         utility.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
-                        if (state.getItem("lastBattleID", 0)) {
-                            battleRecord = this.getItem(state.getItem("lastBattleID", 0));
+                        if ($.isPlainObject(battleRecord) && !$.isEmptyObject(battleRecord)) {
                             battleRecord.deadTime = new Date().getTime();
-                            this.setItem(battleRecord);
                         }
 
                         dead = true;
                     }
                 } else {
-                    utility.warn("Unable to find results text in", resultsDiv);
-                    throw "Unable to determine if user is dead!";
+                    if ($.isPlainObject(battleRecord) && !$.isEmptyObject(battleRecord)) {
+                        battleRecord.unknownTime = new Date().getTime();
+                    }
+
+                    utility.warn("Unable to determine if user is dead!", resultsDiv);
+                    dead = null;
                 }
             } else {
-                throw "Unable to find any results!";
+                if ($.isPlainObject(battleRecord) && !$.isEmptyObject(battleRecord)) {
+                    battleRecord.unknownTime = new Date().getTime();
+                }
+
+                utility.warn("Unable to find any results!");
+                dead = null;
+            }
+
+            if (dead !== false && $.isPlainObject(battleRecord) && !$.isEmptyObject(battleRecord)) {
+                this.setItem(battleRecord);
             }
 
             return dead;
@@ -5601,6 +5622,7 @@ battle = {
                     hiding     : false
                 };
 
+            state.setItem("BattleChainId", 0);
             if (this.deadCheck() !== false) {
                 return true;
             }
@@ -5610,11 +5632,20 @@ battle = {
                 return true;
             }
 
+            if (result.unknown === true) {
+                if (state.getItem("lastBattleID", 0)) {
+                    battleRecord = this.getItem(state.getItem("lastBattleID", 0));
+                    battleRecord.unknownTime = new Date().getTime();
+                    this.setItem(battleRecord);
+                }
+
+                return true;
+            }
+
             battleRecord = this.getItem(result.userId);
             if (result.win) {
                 utility.log(1, "We Defeated ", result.userName);
                 //Test if we should chain this guy
-                state.setItem("BattleChainId", 0);
                 tempTime = battleRecord.chainTime ? battleRecord.chainTime : 0;
                 chainBP = config.getItem('ChainBP', '');
                 chainGold = config.getItem('ChainGold', '');
@@ -6012,13 +6043,13 @@ battle = {
                 if (!config.getItem("IgnoreBattleLoss", false)) {
                     switch (config.getItem("BattleType", 'Invade')) {
                     case 'Invade' :
-                        tempTime = battleRecord.invadeLostTime  ? battleRecord.invadeLostTime : new Date(2009, 0, 1).getTime();
+                        tempTime = battleRecord.invadeLostTime ? battleRecord.invadeLostTime : 0;
                         break;
                     case 'Duel' :
-                        tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : new Date(2009, 0, 1).getTime();
+                        tempTime = battleRecord.duelLostTime ? battleRecord.duelLostTime : 0;
                         break;
                     case 'War' :
-                        tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : new Date(2009, 0, 1).getTime();
+                        tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : 0;
                         break;
                     default :
                         utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
@@ -6030,22 +6061,29 @@ battle = {
                     }
                 }
 
+                // don't battle people that results were unknown in the last hour
+                tempTime = battleRecord.unknownTime ? battleRecord.unknownTime : 0;
+                if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 3600)) {
+                    utility.log(1, "User was battled but results unknown in the last hour: ", tempRecord.userId);
+                    continue;
+                }
+
                 // don't battle people that were dead or hiding in the last hour
-                tempTime = battleRecord.deadTime ? battleRecord.deadTime : new Date(2009, 0, 1).getTime();
+                tempTime = battleRecord.deadTime ? battleRecord.deadTime : 0;
                 if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 3600)) {
                     utility.log(1, "User was dead in the last hour: ", tempRecord.userId);
                     continue;
                 }
 
                 // don't battle people we've already chained to max in the last 2 days
-                tempTime = battleRecord.chainTime ? battleRecord.chainTime : new Date(2009, 0, 1).getTime();
+                tempTime = battleRecord.chainTime ? battleRecord.chainTime : 0;
                 if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 86400)) {
                     utility.log(1, "We chained user within 2 days: ", tempRecord.userId);
                     continue;
                 }
 
                 // don't battle people that didn't meet chain gold or chain points in the last week
-                tempTime = battleRecord.ignoreTime ? battleRecord.ignoreTime : new Date(2009, 0, 1).getTime();
+                tempTime = battleRecord.ignoreTime ? battleRecord.ignoreTime : 0;
                 if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
                     utility.log(1, "User didn't meet chain requirements this week: ", tempRecord.userId);
                     continue;
@@ -6450,20 +6488,20 @@ spreadsheet = {
 
     record: function () {
         this.data = {
-            name         : '',
-            image        : '',
-            type         : '',
-            attack       : 0,
-            defense      : 0,
-            hero         : '',
-            recipe1      : '',
-            recipe1image : '',
-            recipe2      : '',
-            recipe2image : '',
-            recipe3      : '',
-            recipe3image : '',
-            summon       : '',
-            comment      : ''
+            name         : null,
+            image        : null,
+            type         : null,
+            attack       : null,
+            defense      : null,
+            hero         : null,
+            recipe1      : null,
+            recipe1image : null,
+            recipe2      : null,
+            recipe2image : null,
+            recipe3      : null,
+            recipe3image : null,
+            summon       : null,
+            comment      : null
         };
     },
 
@@ -6566,22 +6604,43 @@ spreadsheet = {
                     dataType: "json",
                     success: function (msg) {
                         utility.log(2, "msg", msg);
-                        var x         = 0,
-                            lenx      = 0,
-                            y         = 0,
-                            leny      = 0,
-                            newRecord = {};
+                        var rows       = [],
+                            row        = 0,
+                            rowsLen    = 0,
+                            column     = 0,
+                            newRecord  = {},
+                            cell       = null,
+                            headers    = {},
+                            headersLen = 0,
+                            key        = '';
 
-                        for (x in msg.query.results.row[0]) {
-                            if (msg.query.results.row[0].hasOwnProperty(x)) {
-                                spreadsheet.headers.push((msg.query.results.row[0][x]).toLowerCase());
+                        rows = msg.query.results.row;
+                        headers = rows[0];
+                        for (key in headers) {
+                            if (headers.hasOwnProperty(key)) {
+                                headersLen = spreadsheet.headers.push((headers[key]).toLowerCase());
                             }
                         }
 
-                        for (x = 1, lenx = msg.query.results.row.length; x < lenx; x += 1) {
+                        for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
                             newRecord = new spreadsheet.record().data;
-                            for (y = 0, leny = spreadsheet.headers.length; y < leny; y += 1) {
-                                newRecord[spreadsheet.headers[y]] = msg.query.results.row[x]["col" + y];
+                            for (column = 0; column < headersLen; column += 1) {
+                                cell = rows[row]["col" + column];
+                                if (cell === null || cell === undefined) {
+                                    continue;
+                                }
+
+                                if (isNaN(cell)) {
+                                    if (spreadsheet.headers[column] === "attack" || spreadsheet.headers[column] === "defense") {
+                                        utility.warn("Spreadsheet " + spreadsheet.headers[column] + " cell is NaN", cell);
+                                    }
+
+                                    cell = cell.replace(/"/g, "");
+                                } else {
+                                    cell = parseFloat(cell);
+                                }
+
+                                newRecord[spreadsheet.headers[column]] = cell;
                             }
 
                             spreadsheet.records.push(newRecord);
