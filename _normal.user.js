@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            8
+// @dev            9
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -17,7 +17,7 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage,sessionStorage */
 
 //////////////////////////////////
 //       Global and Object vars
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "8",
+    devVersion    = "9",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -6102,7 +6102,7 @@ battle = {
                 }
             }
 
-            safeTargets.sort(sort.score);
+            safeTargets.sort(sort.by("score"));
             utility.log(3, "safeTargets", safeTargets);
             if (safeTargets && safeTargets.length) {
                 if (chainAttack) {
@@ -6600,7 +6600,7 @@ spreadsheet = {
         try {
             if (this.getItem('spreadsheet.records', 'default') === 'default' || !$.isArray(this.getItem('spreadsheet.records', 'default')) || !this.getItem('spreadsheet.records', 'default').length) {
                 $.ajax({
-                    url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'https%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
+                    url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
                     success: function (msg) {
                         utility.log(2, "msg", msg);
@@ -6677,7 +6677,12 @@ spreadsheet = {
         try {
             var it = 0,
                 tempIt = -1,
-                titleStr = '';
+                owned  = 0,
+                data   = {
+                    title   : '',
+                    opacity : false,
+                    hide    : false
+                };
 
             for (it = this.records.length - 1; it >= 0; it -= 1) {
                 if (this.records[it].name && this.records[it].name === title) {
@@ -6689,67 +6694,97 @@ spreadsheet = {
             }
 
             if (tempIt > -1) {
-                titleStr = this.records[tempIt].name + ": " + this.records[tempIt].type;
+                data.title = this.records[tempIt].name + ": " + this.records[tempIt].type;
                 if (this.records[tempIt].attack !== null && this.records[tempIt].attack !== undefined && this.records[tempIt].defense !== null && this.records[tempIt].defense !== undefined) {
-                    titleStr += ", " + this.records[tempIt].attack + "atk," + this.records[tempIt].defense + "def";
+                    data.title += ", " + this.records[tempIt].attack + "atk," + this.records[tempIt].defense + "def";
                 }
 
                 if (this.records[tempIt].hero !== null && this.records[tempIt].hero !== undefined) {
-                    titleStr += ", Hero: " + this.records[tempIt].hero;
-                    titleStr += " (Owned: " + general.owned(this.records[tempIt].hero) + ")";
+                    data.title += ", Hero: " + this.records[tempIt].hero;
+                    owned = general.owned(this.records[tempIt].hero);
+                    data.title += " (Owned: " + owned + ")";
+                    data.hide = owned ? false : true;
                 }
 
                 if (this.records[tempIt].recipe1 !== null && this.records[tempIt].recipe1 !== undefined) {
-                    titleStr += ", Recipe1: " + this.records[tempIt].recipe1;
+                    data.title += ", Recipe1: " + this.records[tempIt].recipe1;
                     if (this.records[tempIt].recipe1 === "Map of Atlantis") {
-                        titleStr += " (Owned: " + caap.stats.other.atlantis + ")";
+                        owned = caap.stats.other.atlantis;
+                        data.title += " (Owned: " + owned + ")";
+                        data.hide = owned ? false : true;
                     } else {
-                        titleStr += " (Owned: " + town.getCount(this.records[tempIt].recipe1, this.records[tempIt].recipe1image) + ")";
+                        owned = town.getCount(this.records[tempIt].recipe1, this.records[tempIt].recipe1image);
+                        data.title += " (Owned: " + owned + ")";
+                        data.hide = owned ? false : true;
                     }
                 }
 
                 if (this.records[tempIt].recipe2 !== null && this.records[tempIt].recipe2 !== undefined) {
-                    titleStr += ", Recipe2: " + this.records[tempIt].recipe2;
-                    titleStr += " (Owned: " + town.getCount(this.records[tempIt].recipe2, this.records[tempIt].recipe3image) + ")";
+                    data.title += ", Recipe2: " + this.records[tempIt].recipe2;
+                    owned = town.getCount(this.records[tempIt].recipe2, this.records[tempIt].recipe2image);
+                    data.title += " (Owned: " + owned + ")";
+                    data.hide = owned ? false : true;
                 }
 
                 if (this.records[tempIt].recipe3 !== null && this.records[tempIt].recipe3 !== undefined) {
-                    titleStr += ", Recipe3: " + this.records[tempIt].recipe3;
-                    titleStr += " (Owned: " + town.getCount(this.records[tempIt].recipe3, this.records[tempIt].recipe3image) + ")";
+                    data.title += ", Recipe3: " + this.records[tempIt].recipe3;
+                    owned = town.getCount(this.records[tempIt].recipe3, this.records[tempIt].recipe3image);
+                    data.title += " (Owned: " + owned + ")";
+                    data.hide = owned ? false : true;
                 }
 
                 if (this.records[tempIt].summon !== null && this.records[tempIt].summon !== undefined) {
-                    titleStr += ", Summon: " + this.records[tempIt].summon;
+                    data.title += ", Summon: " + this.records[tempIt].summon;
+                    data.opacity = true;
                 }
 
                 if (this.records[tempIt].comment !== null && this.records[tempIt].comment !== undefined) {
-                    titleStr += ", Comment: " + this.records[tempIt].comment;
+                    data.title += ", Comment: " + this.records[tempIt].comment;
                 }
             }
 
-            return titleStr;
+            return data;
         } catch (err) {
             utility.error("ERROR in spreadsheet.getTitle: " + err);
             return undefined;
         }
     },
 
-    doTitles: function () {
+    doTitles: function (goblin) {
         try {
             var images = $("#app46755028429_globalContainer img");
             if (images && images.length) {
                 images.each(function () {
-                    var img = $(this),
-                        title = '',
-                        image = '',
-                        newTitle = '';
+                    var img     = $(this),
+                        div     = null,
+                        title   = '',
+                        image   = '',
+                        style   = '',
+                        data    = {
+                            title   : '',
+                            opacity : false,
+                            hide    : false
+                        };
 
                     title = img.attr("title");
                     if (title) {
                         image = utility.getHTMLPredicate(img.attr("src"));
-                        newTitle = spreadsheet.getTitle(title, image);
-                        if (newTitle) {
-                            img.attr("title", newTitle);
+                        data = spreadsheet.getTitle(title, image);
+                        if (data && $.isPlainObject(data) && !$.isEmptyObject(data) && data.title) {
+                            img.attr("title", data.title);
+                            if (goblin && (data.opacity || data.hide)) {
+                                div = img.parent().parent();
+                                style = div.attr("style");
+                                if (data.opacity) {
+                                    style += " opacity: 0.3;";
+                                }
+
+                                if (data.hide) {
+                                    style += " display: none;";
+                                }
+
+                                div.attr("style", style);
+                            }
                         }
                     }
                 });
@@ -13173,7 +13208,7 @@ caap = {
 
     CheckResults_goblin_emp: function () {
         try {
-            spreadsheet.doTitles();
+            spreadsheet.doTitles(true);
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_goblin_emp: " + err);

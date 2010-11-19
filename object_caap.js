@@ -5275,7 +5275,7 @@ caap = {
 
     CheckResults_goblin_emp: function () {
         try {
-            spreadsheet.doTitles();
+            spreadsheet.doTitles(true);
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_goblin_emp: " + err);
