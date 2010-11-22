@@ -21,10 +21,6 @@ css = {
                 $("<style type='text/css'>" + this.farbtastic + "</style>").appendTo("head");
             }
 
-            if (gm.getItem("fbFilter", false, hiddenVar) && (href.indexOf('apps.facebook.com/reqs.php') >= 0 || href.indexOf('apps.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0)) {
-                $("<style type='text/css'>#contentArea div[id^='div_story_']:not([class*='46755028429']) {\ndisplay:none !important;\n}</style>").appendTo("head");
-            }
-
             return true;
         } catch (err) {
             this.error("ERROR in AddCSS: " + err);
@@ -32,36 +28,36 @@ css = {
         }
     },
 
-    farbtastic :    ".farbtastic {" +
-                    "  position: relative;" +
-                    "}" +
-                    ".farbtastic * {" +
-                    "  position: absolute;" +
-                    "  cursor: crosshair;" +
-                    "}" +
-                    ".farbtastic, .farbtastic .wheel {" +
-                    "  width: 195px;" +
-                    "  height: 195px;" +
-                    "}" +
-                    ".farbtastic .color, .farbtastic .overlay {" +
-                    "  top: 47px;" +
-                    "  left: 47px;" +
-                    "  width: 101px;" +
-                    "  height: 101px;" +
-                    "}" +
-                    ".farbtastic .wheel {" +
-                    "  background: url(data:image/png;base64," + image64.wheel + ") no-repeat;" +
-                    "  width: 195px;" +
-                    "  height: 195px;" +
-                    "}" +
-                    ".farbtastic .overlay {" +
-                    "  background: url(data:image/png;base64," + image64.mask + ") no-repeat;" +
-                    "}" +
-                    ".farbtastic .marker {" +
-                    "  width: 17px;" +
-                    "  height: 17px;" +
-                    "  margin: -8px 0 0 -8px;" +
-                    "  overflow: hidden;" +
-                    "  background: url(data:image/png;base64," + image64.marker + ") no-repeat;" +
-                    "}"
+    farbtastic: ".farbtastic {" +
+                "  position: relative;" +
+                "}" +
+                ".farbtastic * {" +
+                "  position: absolute;" +
+                "  cursor: crosshair;" +
+                "}" +
+                ".farbtastic, .farbtastic .wheel {" +
+                "  width: 195px;" +
+                "  height: 195px;" +
+                "}" +
+                ".farbtastic .color, .farbtastic .overlay {" +
+                "  top: 47px;" +
+                "  left: 47px;" +
+                "  width: 101px;" +
+                "  height: 101px;" +
+                "}" +
+                ".farbtastic .wheel {" +
+                "  background: url(data:image/png;base64," + image64.wheel + ") no-repeat;" +
+                "  width: 195px;" +
+                "  height: 195px;" +
+                "}" +
+                ".farbtastic .overlay {" +
+                "  background: url(data:image/png;base64," + image64.mask + ") no-repeat;" +
+                "}" +
+                ".farbtastic .marker {" +
+                "  width: 17px;" +
+                "  height: 17px;" +
+                "  margin: -8px 0 0 -8px;" +
+                "  overflow: hidden;" +
+                "  background: url(data:image/png;base64," + image64.marker + ") no-repeat;" +
+                "}"
 };

@@ -55,6 +55,7 @@ String.prototype.regex = function (r) {
 				a[i] = parseFloat(a[i]);
 			}
 		}
+        
 		if (a.length === 1) {
 			return a[0];
 		}

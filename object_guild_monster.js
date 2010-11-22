@@ -399,13 +399,8 @@ guild_monster = {
 
                     health = $("#app46755028429_guild_battle_health");
                     if (health && health.length) {
-                        if ($().jquery >= "1.4.3") {
-                            currentRecord.guildHealth = 100 - utility.NumberOnly(health.find("div[style*='guild_battle_bar_you.gif']").attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                            currentRecord.enemyHealth = 100 - utility.NumberOnly(health.find("div[style*='guild_battle_bar_enemy.gif']").attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                        } else {
-                            currentRecord.guildHealth = utility.NumberOnly(health.find("div[style*='guild_battle_bar_you.gif']").css("width"));
-                            currentRecord.enemyHealth = utility.NumberOnly(health.find("div[style*='guild_battle_bar_enemy.gif']").css("width"));
-                        }
+                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_you.gif']").get(0));
+                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_enemy.gif']").get(0));
                     } else {
                         utility.warn("guild_battle_health error");
                     }

@@ -22,7 +22,7 @@ $(function () {
         accountEl;
 
     function mainCaapLoop() {
-        caap.waitMilliSecs = 10000;
+        caap.waitMilliSecs = 8000;
         caap.WaitMainLoop();
         caap.ReloadOccasionally();
     }

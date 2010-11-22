@@ -54,6 +54,7 @@ gifting = {
             }
 
             this[type].records = gm.setItem("gifting." + type, []);
+            gm.setItem("GiftEntry", {});
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -176,31 +177,37 @@ gifting = {
                 }
 
                 schedule.setItem('ClickedFacebookURL', 30);
-                state.setItem('clickUrl', "http://apps.facebook.com/reqs.php#confirm_46755028429_0");
                 utility.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
                 return true;
+            }
+
+            if (!$.isEmptyObject(this.getCurrent()) && !this.getCurrent().checked) {
+                utility.log(1, "Clearing incomplete pending gift", this.getCurrent());
+                gm.setItem("GiftEntry", {});
             }
 
             return null;
         } catch (err) {
             utility.error("ERROR in gifting.collecting: " + err);
-            return false;
+            return undefined;
         }
     },
 
     collect: function () {
         try {
-            var giftEntry = false,
-                appDiv    = null,
-                inputDiv  = null,
-                userArr   = [],
-                userId    = 0,
-                giftDiv   = null,
-                giftText  = '',
-                giftArr   = [],
-                giftType  = '';
+            var giftEntry  = false,
+                appDiv     = null,
+                inputDiv   = null,
+                userArr    = [],
+                userId     = 0,
+                giftDiv    = null,
+                giftText   = '',
+                giftArr    = [],
+                giftType   = '',
+                uidRegExp  = new RegExp("uid=(\\d+)", "i"),
+                giftRegExp = new RegExp("(.*) has sent you a (.*) in Castle Age!", "i");
 
-            if (window.location.href.indexOf('apps.facebook.com/reqs.php') < 0) {
+            if (window.location.href.indexOf('apps.facebook.com/reqs.php#confirm_46755028429_0') < 0) {
                 return false;
             }
 
@@ -214,9 +221,9 @@ gifting = {
                 appDiv = $("div[id*='app_46755028429']");
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
-                        inputDiv = $(this).find("input[name*='/castle/tracker.php']");
+                        inputDiv = $(this).find("input[value='Accept and play']");
                         if (inputDiv && inputDiv.length) {
-                            userArr = inputDiv.attr("name").match(/uid%3D(\d+)/i);
+                            userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
                                 return true;
                             }
@@ -226,30 +233,32 @@ gifting = {
                                 return true;
                             }
 
-                            giftDiv = $(this).find("div[class='pts requestBody']");
+                            giftDiv = $(this).find("span[class='fb_protected_wrapper']");
                             giftText = '';
                             giftArr = [];
                             giftType = '';
                             if (giftDiv && giftDiv.length) {
                                 giftText = $.trim(giftDiv.text());
-                                giftArr = giftDiv.text().match(new RegExp("(.*) has sent you a (.*) in Castle Age!.*"));
+                                giftArr = giftDiv.text().match(giftRegExp);
                                 if (giftArr && giftArr.length === 3) {
                                     giftType = giftArr[2];
                                 }
                             } else {
-                                utility.warn("No requestBody in ", $(this));
+                                utility.warn("No fb_protected_wrapper in ", $(this));
                             }
 
                             if (giftType === '' || gifting.gifts.list().indexOf(giftType) < 0) {
                                 utility.log(1, 'Unknown gift type', giftType, gifting.gifts.list());
                                 giftType = 'Unknown Gift';
+                            } else {
+                                utility.log(1, 'gift type', giftType, gifting.gifts.list());
                             }
 
                             giftEntry.gift = giftType;
                             giftEntry.found = true;
                             giftEntry.checked = true;
                             gifting.setCurrent(giftEntry);
-                            schedule.setItem('ClickedFacebookURL', 30);
+                            schedule.setItem('ClickedFacebookURL', 35);
                             utility.Click(inputDiv.get(0));
                             return false;
                         } else {
@@ -278,8 +287,7 @@ gifting = {
                 utility.log(1, 'Unable to find gift', giftEntry);
             }
 
-            state.setItem('clickUrl', "http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + giftEntry.userId);
-            utility.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + giftEntry.userId);
+            utility.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry.userId);
             return true;
         } catch (err) {
             utility.error("ERROR in gifting.collect: " + err);

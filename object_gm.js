@@ -241,7 +241,7 @@ gm = {
                     message += "CAAP is using: " + totalPerc + "%";
                     message += "</div>";
                     window.setTimeout(function () {
-                        utility.alert(message);
+                        utility.alert(message, "LocalStorage");
                     }, 5000);
                 } else {
                     utility.log(1, "Total localStorage used: " + totalPerc + "%");

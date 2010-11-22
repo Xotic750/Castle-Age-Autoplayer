@@ -13,11 +13,24 @@ utility = {
 
     is_html5_sessionStorage : ('sessionStorage' in window) && window.sessionStorage !== null,
 
-    waitMilliSecs: 10000,
+    waitTime: 5000,
 
     VisitUrl: function (url, loadWaitTime) {
         try {
-            caap.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 10000;
+            if (!url) {
+                throw 'No url passed to VisitUrl';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(url) < 0) {
+                state.setItem('clickUrl', url);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
             window.location.href = url;
             return true;
         } catch (err) {
@@ -37,7 +50,7 @@ utility = {
                 caap.waitingForDomLoad = true;
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : 10000;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
             var evt = document.createEvent("MouseEvents");
             evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             /*
@@ -53,22 +66,51 @@ utility = {
         }
     },
 
-    ClickAjax: function (link, loadWaitTime) {
+    ClickAjaxLinkSend: function (link, loadWaitTime) {
         try {
             if (!link) {
-                throw 'No link passed to Click Ajax';
+                throw 'No link passed to ClickAjaxLinkSend';
             }
 
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
             if (state.getItem('clickUrl', '').indexOf(link) < 0) {
                 state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-                caap.waitingForDomLoad = false;
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : 10000;
-            return this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            window.location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+            return true;
         } catch (err) {
-            this.error("ERROR in utility.ClickAjax: " + err);
-            return undefined;
+            this.error("ERROR in utility.ClickAjaxLinkSend: " + err);
+            return false;
+        }
+    },
+
+    ClickGetCachedAjax: function (link, loadWaitTime) {
+        try {
+            if (!link) {
+                throw 'No link passed to ClickGetCachedAjax';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(link) < 0) {
+                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            window.location.href = "javascript:void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
+            return true;
+        } catch (err) {
+            this.error("ERROR in utility.ClickGetCachedAjax: " + err);
+            return false;
         }
     },
 
@@ -113,7 +155,6 @@ utility = {
                 a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
                 if (a && a.length) {
                     this.log(2, 'Go to', pathList[s]);
-                    //state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + pathList[s] + '.php');
                     this.Click(a.get(0));
                     return true;
                 }
@@ -248,23 +289,64 @@ utility = {
 
     alert_id: 0,
 
-    alert: function (message) {
+    alert: function (message, id) {
         try {
-            this.alert_id += 1;
-            var id = this.alert_id;
-            $('<div id="alert_' + id + '" title="Alert!"><p>' + message + '</p></div>').appendTo(window.document.body);
-            $("#alert_" + id).dialog({
-                buttons: {
-                    "Ok": function () {
-                        $(this).dialog("close");
+            var theDialog = null;
+
+            if (!id) {
+                this.alert_id += 1;
+                id = this.alert_id;
+            } else {
+                theDialog = $("#alert_" + id);
+            }
+
+            if (theDialog && theDialog.length) {
+                theDialog.html(message);
+                theDialog.dialog('open');
+            } else {
+                $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                $("#alert_" + id).dialog({
+                    buttons: {
+                        "Ok": function () {
+                            $(this).dialog("close");
+                        }
                     }
-                }
-            });
+                });
+            }
+
 
             return true;
         } catch (err) {
             this.error("ERROR in utility.alert: " + err);
             return false;
+        }
+    },
+
+    getElementWidth: function (jObject) {
+        try {
+            var widthRegExp = new RegExp("width:\\s*([\\d\\.]+)%", "i"),
+                tempArr     = [],
+                width       = 0;
+
+            if (jObject && jObject.length === 1) {
+                if ($().jquery >= "1.4.3") {
+                    tempArr = jObject.attr("style").match(widthRegExp);
+                    if (tempArr && tempArr.length === 2) {
+                        width = parseFloat(tempArr[1]);
+                    } else {
+                        this.warn("getElementWidth did not match a width", jObject);
+                    }
+                } else {
+                    width = parseFloat(jObject.css("width"));
+                }
+            } else {
+                this.warn("getElementWidth problem with jObject", jObject);
+            }
+
+            return width;
+        } catch (err) {
+            this.error("ERROR in utility.getElementWidth: " + err);
+            return undefined;
         }
     },
 

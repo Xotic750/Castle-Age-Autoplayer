@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            9
+// @dev            10
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "9",
+    devVersion    = "10",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -72,6 +72,7 @@ String.prototype.regex = function (r) {
 				a[i] = parseFloat(a[i]);
 			}
 		}
+        
 		if (a.length === 1) {
 			return a[0];
 		}
@@ -755,11 +756,24 @@ utility = {
 
     is_html5_sessionStorage : ('sessionStorage' in window) && window.sessionStorage !== null,
 
-    waitMilliSecs: 10000,
+    waitTime: 5000,
 
     VisitUrl: function (url, loadWaitTime) {
         try {
-            caap.waitMilliSecs = (loadWaitTime) ? loadWaitTime : 10000;
+            if (!url) {
+                throw 'No url passed to VisitUrl';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(url) < 0) {
+                state.setItem('clickUrl', url);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
             window.location.href = url;
             return true;
         } catch (err) {
@@ -779,7 +793,7 @@ utility = {
                 caap.waitingForDomLoad = true;
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : 10000;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
             var evt = document.createEvent("MouseEvents");
             evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             /*
@@ -795,22 +809,51 @@ utility = {
         }
     },
 
-    ClickAjax: function (link, loadWaitTime) {
+    ClickAjaxLinkSend: function (link, loadWaitTime) {
         try {
             if (!link) {
-                throw 'No link passed to Click Ajax';
+                throw 'No link passed to ClickAjaxLinkSend';
             }
 
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
             if (state.getItem('clickUrl', '').indexOf(link) < 0) {
                 state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-                caap.waitingForDomLoad = false;
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : 10000;
-            return this.VisitUrl("javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))", loadWaitTime);
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            window.location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+            return true;
         } catch (err) {
-            this.error("ERROR in utility.ClickAjax: " + err);
-            return undefined;
+            this.error("ERROR in utility.ClickAjaxLinkSend: " + err);
+            return false;
+        }
+    },
+
+    ClickGetCachedAjax: function (link, loadWaitTime) {
+        try {
+            if (!link) {
+                throw 'No link passed to ClickGetCachedAjax';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(link) < 0) {
+                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            window.location.href = "javascript:void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
+            return true;
+        } catch (err) {
+            this.error("ERROR in utility.ClickGetCachedAjax: " + err);
+            return false;
         }
     },
 
@@ -855,7 +898,6 @@ utility = {
                 a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
                 if (a && a.length) {
                     this.log(2, 'Go to', pathList[s]);
-                    //state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + pathList[s] + '.php');
                     this.Click(a.get(0));
                     return true;
                 }
@@ -990,23 +1032,64 @@ utility = {
 
     alert_id: 0,
 
-    alert: function (message) {
+    alert: function (message, id) {
         try {
-            this.alert_id += 1;
-            var id = this.alert_id;
-            $('<div id="alert_' + id + '" title="Alert!"><p>' + message + '</p></div>').appendTo(window.document.body);
-            $("#alert_" + id).dialog({
-                buttons: {
-                    "Ok": function () {
-                        $(this).dialog("close");
+            var theDialog = null;
+
+            if (!id) {
+                this.alert_id += 1;
+                id = this.alert_id;
+            } else {
+                theDialog = $("#alert_" + id);
+            }
+
+            if (theDialog && theDialog.length) {
+                theDialog.html(message);
+                theDialog.dialog('open');
+            } else {
+                $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                $("#alert_" + id).dialog({
+                    buttons: {
+                        "Ok": function () {
+                            $(this).dialog("close");
+                        }
                     }
-                }
-            });
+                });
+            }
+
 
             return true;
         } catch (err) {
             this.error("ERROR in utility.alert: " + err);
             return false;
+        }
+    },
+
+    getElementWidth: function (jObject) {
+        try {
+            var widthRegExp = new RegExp("width:\\s*([\\d\\.]+)%", "i"),
+                tempArr     = [],
+                width       = 0;
+
+            if (jObject && jObject.length === 1) {
+                if ($().jquery >= "1.4.3") {
+                    tempArr = jObject.attr("style").match(widthRegExp);
+                    if (tempArr && tempArr.length === 2) {
+                        width = parseFloat(tempArr[1]);
+                    } else {
+                        this.warn("getElementWidth did not match a width", jObject);
+                    }
+                } else {
+                    width = parseFloat(jObject.css("width"));
+                }
+            } else {
+                this.warn("getElementWidth problem with jObject", jObject);
+            }
+
+            return width;
+        } catch (err) {
+            this.error("ERROR in utility.getElementWidth: " + err);
+            return undefined;
         }
     },
 
@@ -1635,10 +1718,6 @@ css = {
                 $("<style type='text/css'>" + this.farbtastic + "</style>").appendTo("head");
             }
 
-            if (gm.getItem("fbFilter", false, hiddenVar) && (href.indexOf('apps.facebook.com/reqs.php') >= 0 || href.indexOf('apps.facebook.com/home.php') >= 0 || href.indexOf('filter=app_46755028429') >= 0)) {
-                $("<style type='text/css'>#contentArea div[id^='div_story_']:not([class*='46755028429']) {\ndisplay:none !important;\n}</style>").appendTo("head");
-            }
-
             return true;
         } catch (err) {
             this.error("ERROR in AddCSS: " + err);
@@ -1646,38 +1725,38 @@ css = {
         }
     },
 
-    farbtastic :    ".farbtastic {" +
-                    "  position: relative;" +
-                    "}" +
-                    ".farbtastic * {" +
-                    "  position: absolute;" +
-                    "  cursor: crosshair;" +
-                    "}" +
-                    ".farbtastic, .farbtastic .wheel {" +
-                    "  width: 195px;" +
-                    "  height: 195px;" +
-                    "}" +
-                    ".farbtastic .color, .farbtastic .overlay {" +
-                    "  top: 47px;" +
-                    "  left: 47px;" +
-                    "  width: 101px;" +
-                    "  height: 101px;" +
-                    "}" +
-                    ".farbtastic .wheel {" +
-                    "  background: url(data:image/png;base64," + image64.wheel + ") no-repeat;" +
-                    "  width: 195px;" +
-                    "  height: 195px;" +
-                    "}" +
-                    ".farbtastic .overlay {" +
-                    "  background: url(data:image/png;base64," + image64.mask + ") no-repeat;" +
-                    "}" +
-                    ".farbtastic .marker {" +
-                    "  width: 17px;" +
-                    "  height: 17px;" +
-                    "  margin: -8px 0 0 -8px;" +
-                    "  overflow: hidden;" +
-                    "  background: url(data:image/png;base64," + image64.marker + ") no-repeat;" +
-                    "}"
+    farbtastic: ".farbtastic {" +
+                "  position: relative;" +
+                "}" +
+                ".farbtastic * {" +
+                "  position: absolute;" +
+                "  cursor: crosshair;" +
+                "}" +
+                ".farbtastic, .farbtastic .wheel {" +
+                "  width: 195px;" +
+                "  height: 195px;" +
+                "}" +
+                ".farbtastic .color, .farbtastic .overlay {" +
+                "  top: 47px;" +
+                "  left: 47px;" +
+                "  width: 101px;" +
+                "  height: 101px;" +
+                "}" +
+                ".farbtastic .wheel {" +
+                "  background: url(data:image/png;base64," + image64.wheel + ") no-repeat;" +
+                "  width: 195px;" +
+                "  height: 195px;" +
+                "}" +
+                ".farbtastic .overlay {" +
+                "  background: url(data:image/png;base64," + image64.mask + ") no-repeat;" +
+                "}" +
+                ".farbtastic .marker {" +
+                "  width: 17px;" +
+                "  height: 17px;" +
+                "  margin: -8px 0 0 -8px;" +
+                "  overflow: hidden;" +
+                "  background: url(data:image/png;base64," + image64.marker + ") no-repeat;" +
+                "}"
 };
 
 /////////////////////////////////////////////////////////////////////
@@ -1922,7 +2001,7 @@ gm = {
                     message += "CAAP is using: " + totalPerc + "%";
                     message += "</div>";
                     window.setTimeout(function () {
-                        utility.alert(message);
+                        utility.alert(message, "LocalStorage");
                     }, 5000);
                 } else {
                     utility.log(1, "Total localStorage used: " + totalPerc + "%");
@@ -4652,13 +4731,8 @@ guild_monster = {
 
                     health = $("#app46755028429_guild_battle_health");
                     if (health && health.length) {
-                        if ($().jquery >= "1.4.3") {
-                            currentRecord.guildHealth = 100 - utility.NumberOnly(health.find("div[style*='guild_battle_bar_you.gif']").attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                            currentRecord.enemyHealth = 100 - utility.NumberOnly(health.find("div[style*='guild_battle_bar_enemy.gif']").attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                        } else {
-                            currentRecord.guildHealth = utility.NumberOnly(health.find("div[style*='guild_battle_bar_you.gif']").css("width"));
-                            currentRecord.enemyHealth = utility.NumberOnly(health.find("div[style*='guild_battle_bar_enemy.gif']").css("width"));
-                        }
+                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_you.gif']").get(0));
+                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_enemy.gif']").get(0));
                     } else {
                         utility.warn("guild_battle_health error");
                     }
@@ -6505,8 +6579,6 @@ spreadsheet = {
         };
     },
 
-    namespace: 'caap',
-
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
@@ -6598,6 +6670,10 @@ spreadsheet = {
 
     load: function () {
         try {
+            if (!config.getItem("enableTitles", true) && !config.getItem("goblinHinting", true)) {
+                return true;
+            }
+
             if (this.getItem('spreadsheet.records', 'default') === 'default' || !$.isArray(this.getItem('spreadsheet.records', 'default')) || !this.getItem('spreadsheet.records', 'default').length) {
                 $.ajax({
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
@@ -6853,6 +6929,7 @@ gifting = {
             }
 
             this[type].records = gm.setItem("gifting." + type, []);
+            gm.setItem("GiftEntry", {});
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -6975,31 +7052,37 @@ gifting = {
                 }
 
                 schedule.setItem('ClickedFacebookURL', 30);
-                state.setItem('clickUrl', "http://apps.facebook.com/reqs.php#confirm_46755028429_0");
                 utility.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
                 return true;
+            }
+
+            if (!$.isEmptyObject(this.getCurrent()) && !this.getCurrent().checked) {
+                utility.log(1, "Clearing incomplete pending gift", this.getCurrent());
+                gm.setItem("GiftEntry", {});
             }
 
             return null;
         } catch (err) {
             utility.error("ERROR in gifting.collecting: " + err);
-            return false;
+            return undefined;
         }
     },
 
     collect: function () {
         try {
-            var giftEntry = false,
-                appDiv    = null,
-                inputDiv  = null,
-                userArr   = [],
-                userId    = 0,
-                giftDiv   = null,
-                giftText  = '',
-                giftArr   = [],
-                giftType  = '';
+            var giftEntry  = false,
+                appDiv     = null,
+                inputDiv   = null,
+                userArr    = [],
+                userId     = 0,
+                giftDiv    = null,
+                giftText   = '',
+                giftArr    = [],
+                giftType   = '',
+                uidRegExp  = new RegExp("uid=(\\d+)", "i"),
+                giftRegExp = new RegExp("(.*) has sent you a (.*) in Castle Age!", "i");
 
-            if (window.location.href.indexOf('apps.facebook.com/reqs.php') < 0) {
+            if (window.location.href.indexOf('apps.facebook.com/reqs.php#confirm_46755028429_0') < 0) {
                 return false;
             }
 
@@ -7013,9 +7096,9 @@ gifting = {
                 appDiv = $("div[id*='app_46755028429']");
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
-                        inputDiv = $(this).find("input[name*='/castle/tracker.php']");
+                        inputDiv = $(this).find("input[value='Accept and play']");
                         if (inputDiv && inputDiv.length) {
-                            userArr = inputDiv.attr("name").match(/uid%3D(\d+)/i);
+                            userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
                                 return true;
                             }
@@ -7025,30 +7108,32 @@ gifting = {
                                 return true;
                             }
 
-                            giftDiv = $(this).find("div[class='pts requestBody']");
+                            giftDiv = $(this).find("span[class='fb_protected_wrapper']");
                             giftText = '';
                             giftArr = [];
                             giftType = '';
                             if (giftDiv && giftDiv.length) {
                                 giftText = $.trim(giftDiv.text());
-                                giftArr = giftDiv.text().match(new RegExp("(.*) has sent you a (.*) in Castle Age!.*"));
+                                giftArr = giftDiv.text().match(giftRegExp);
                                 if (giftArr && giftArr.length === 3) {
                                     giftType = giftArr[2];
                                 }
                             } else {
-                                utility.warn("No requestBody in ", $(this));
+                                utility.warn("No fb_protected_wrapper in ", $(this));
                             }
 
                             if (giftType === '' || gifting.gifts.list().indexOf(giftType) < 0) {
                                 utility.log(1, 'Unknown gift type', giftType, gifting.gifts.list());
                                 giftType = 'Unknown Gift';
+                            } else {
+                                utility.log(1, 'gift type', giftType, gifting.gifts.list());
                             }
 
                             giftEntry.gift = giftType;
                             giftEntry.found = true;
                             giftEntry.checked = true;
                             gifting.setCurrent(giftEntry);
-                            schedule.setItem('ClickedFacebookURL', 30);
+                            schedule.setItem('ClickedFacebookURL', 35);
                             utility.Click(inputDiv.get(0));
                             return false;
                         } else {
@@ -7077,8 +7162,7 @@ gifting = {
                 utility.log(1, 'Unable to find gift', giftEntry);
             }
 
-            state.setItem('clickUrl', "http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + giftEntry.userId);
-            utility.VisitUrl("http://apps.facebook.com/castle_age/army.php?act=acpt&uid=" + giftEntry.userId);
+            utility.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry.userId);
             return true;
         } catch (err) {
             utility.error("ERROR in gifting.collect: " + err);
@@ -8252,7 +8336,7 @@ caap = {
                 formatParms = "size='4'";
             }
 
-            return (" <input type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + config.getItem(idName) + "' />");
+            return ("<input type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + config.getItem(idName) + "' />");
         } catch (err) {
             utility.error("ERROR in MakeNumberForm: " + err);
             return '';
@@ -9455,6 +9539,8 @@ caap = {
 
             htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', '');
+            htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', '');
             htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
             htmlCode += this.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, '', timeInstructions);
             htmlCode += this.MakeCheckTR('Set Title', 'SetTitle', false, 'SetTitle_Adv', titleInstructions0, true);
@@ -10008,7 +10094,7 @@ caap = {
                     }
 
                     utility.log(9, 'visitMonsterLink', visitMonsterLink);
-                    utility.ClickAjax(visitMonsterLink.arlink);
+                    utility.ClickAjaxLinkSend(visitMonsterLink.arlink);
                 };
 
                 this.caapTopObject.find("span[id*='caap_monster_']").unbind('click', handler).click(handler);
@@ -10038,14 +10124,7 @@ caap = {
                     if (resp === true) {
                         monster.deleteItem(monsterRemove.mname);
                         caap.UpdateDashboard(true);
-                        if (state.getItem('clickUrl', '').indexOf(monsterRemove.arlink) < 0) {
-                            state.setItem('clickUrl', monsterRemove.rlink);
-                            this.waitingForDomLoad = false;
-                        }
-
-                        caap.waitMilliSecs = 10000;
-                        schedule.setItem('clickedOnSomething', 0);
-                        utility.VisitUrl("javascript:void(a46755028429_get_cached_ajax('" + monsterRemove.arlink + "', 'get_body'))");
+                        utility.ClickGetCachedAjax(monsterRemove.arlink);
                     }
                 };
 
@@ -10173,7 +10252,7 @@ caap = {
                     }
 
                     utility.log(9, 'visitMonsterLink', visitMonsterLink);
-                    utility.ClickAjax(visitMonsterLink.arlink);
+                    utility.ClickAjaxLinkSend(visitMonsterLink.arlink);
                 };
 
                 this.caapTopObject.find("span[id*='caap_guildmonster_']").unbind('click', handler).click(handler);
@@ -10249,7 +10328,7 @@ caap = {
                     }
 
                     utility.log(9, 'visitUserIdLink', visitUserIdLink);
-                    utility.ClickAjax(visitUserIdLink.arlink);
+                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
                 this.caapTopObject.find("span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
@@ -10316,7 +10395,7 @@ caap = {
                     }
 
                     utility.log(9, 'visitUserIdLink', visitUserIdLink);
-                    utility.ClickAjax(visitUserIdLink.arlink);
+                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 });
 
                 state.setItem("BattleDashUpdate", false);
@@ -11012,7 +11091,7 @@ caap = {
                     }
 
                     utility.log(9, 'visitUserIdLink', visitUserIdLink);
-                    utility.ClickAjax(visitUserIdLink.arlink);
+                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
                 this.caapTopObject.find("span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
@@ -11086,7 +11165,7 @@ caap = {
                     }
 
                     utility.log(9, 'visitUserIdLink', visitUserIdLink);
-                    utility.ClickAjax(visitUserIdLink.arlink);
+                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
                 this.caapTopObject.find("span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
@@ -11203,7 +11282,7 @@ caap = {
     },
 
     liveFeedButtonListener: function (e) {
-        utility.ClickAjax('army_news_feed.php');
+        utility.ClickAjaxLinkSend('army_news_feed.php');
     },
 
     clearTargetsButtonListener: function (e) {
@@ -11421,6 +11500,13 @@ caap = {
             case "chooseIgnoredMinions" :
                 state.setItem('staminaGuildMonster', 0);
                 break;
+            case "enableTitles" :
+            case "goblinHinting" :
+                if (e.target.checked) {
+                    spreadsheet.load();
+                }
+
+                break;
             default :
             }
 
@@ -11468,9 +11554,26 @@ caap = {
 
     NumberBoxListener: function (e) {
         try {
-            var idName = e.target.id.replace(/caap_/i, '');
+            var idName  = e.target.id.replace(/caap_/i, ''),
+                number  = null,
+                message = '';
 
-            utility.log(1, 'Change: setting "' + idName + '" to ', parseFloat(e.target.value) || '');
+            if (isNaN(e.target.value) && e.target.value !== '') {
+                message = "<div style='text-align: center;'>";
+                message += "You entered:<br /><br />";
+                message += "'" + e.target.value + "'<br /><br />";
+                message += "Please enter a number or leave blank.";
+                message += "</div>";
+                utility.alert(message, "NumberBox");
+                number = '';
+            } else {
+                number = parseFloat(e.target.value);
+                if (isNaN(number)) {
+                    number = '';
+                }
+            }
+
+            utility.log(1, 'Change: setting "' + idName + '" to ', number);
             if (/Style+/.test(idName)) {
                 switch (idName) {
                 case "StyleOpacityLight" :
@@ -11491,7 +11594,7 @@ caap = {
                 utility.logLevel = e.target.value;
             }
 
-            config.setItem(idName, parseFloat(e.target.value) || '');
+            e.target.value = config.setItem(idName, number);
             return true;
         } catch (err) {
             utility.error("ERROR in NumberBoxListener: " + err);
@@ -12821,7 +12924,7 @@ caap = {
             }
 
             if (!passed && this.stats.energy.max === 0 && this.stats.health.max === 0 && this.stats.stamina.max === 0) {
-                utility.alert("Paused as this account may have been disabled!");
+                utility.alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>", "Disabled");
                 utility.warn("Paused as this account may have been disabled!", this.stats);
                 this.PauseListener();
             }
@@ -12984,6 +13087,7 @@ caap = {
                 }
 
                 // Guild
+                /*
                 guild = $("a[href*='guild.php?guild_id=']");
                 if (guild.length) {
                     tempArr = guild.attr("href").match(/guild_id=(\d+_\d+)/);
@@ -13008,6 +13112,7 @@ caap = {
                 } else {
                     utility.warn('Using stored guild stats.');
                 }
+                */
 
                 // Stamina potions
                 staminaPotions = $("img[title='Stamina Potion']");
@@ -13101,7 +13206,10 @@ caap = {
                 }
             }
 
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_keep: " + err);
@@ -13159,7 +13267,10 @@ caap = {
 
     CheckResults_alchemy: function () {
         try {
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_alchemy: " + err);
@@ -13170,7 +13281,10 @@ caap = {
     CheckResults_soldiers: function () {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             town.GetItems("soldiers");
             schedule.setItem("soldiers", gm.getItem("CheckSoldiers", 72, hiddenVar) * 3600, 300);
             return true;
@@ -13183,7 +13297,10 @@ caap = {
     CheckResults_item: function () {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             town.GetItems("item");
             schedule.setItem("item", gm.getItem("CheckItem", 72, hiddenVar) * 3600, 300);
             return true;
@@ -13196,7 +13313,10 @@ caap = {
     CheckResults_magic: function () {
         try {
             $("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             town.GetItems("magic");
             schedule.setItem("magic", gm.getItem("CheckMagic", 72, hiddenVar) * 3600, 300);
             return true;
@@ -13208,7 +13328,10 @@ caap = {
 
     CheckResults_goblin_emp: function () {
         try {
-            spreadsheet.doTitles(true);
+            if (config.getItem("goblinHinting", true)) {
+                spreadsheet.doTitles(true);
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_goblin_emp: " + err);
@@ -13366,23 +13489,15 @@ caap = {
 
     CheckResults_view_class_progress: function () {
         try {
-            var classDiv    = null,
-                name        = '',
-                widthRegExp = new RegExp("width:\\s*([\\d\\.]+)%", "i");
+            var classDiv = null,
+                name     = '';
 
             classDiv = $("#app46755028429_choose_class_screen div[class*='banner_']");
             if (classDiv && classDiv.length === 6) {
                 classDiv.each(function (index) {
                     name = $(this).attr("class").replace("banner_", '');
                     if (name && $.isPlainObject(caap.stats.character[name])) {
-                        //caap.stats.character[name].name = name.ucFirst();
-                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                        if ($().jquery >= "1.4.3") {
-                            caap.stats.character[name].percent = utility.NumberOnly($(this).find("img[src*='progress']").attr("style").match(widthRegExp)[1]);
-                        } else {
-                            caap.stats.character[name].percent = utility.NumberOnly($(this).find("img[src*='progress']").css("width"));
-                        }
-
+                        caap.stats.character[name].percent = utility.getElementWidth($(this).find("img[src*='progress']").eq(0));
                         caap.stats.character[name].level = utility.NumberOnly($(this).children().eq(2).text());
                         utility.log(2, "Got character class record", name, caap.stats.character[name]);
                     } else {
@@ -13946,7 +14061,10 @@ caap = {
                 }
             }
 
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             var whyQuest = config.getItem('WhyQuest', 'Manual');
             if (pickQuestTF === true && whyQuest !== 'Manual') {
                 state.setItem('AutoQuest', this.newAutoQuest());
@@ -15393,7 +15511,10 @@ caap = {
     CheckResults_guild_battle_monster: function () {
         try {
             guild_monster.onMonster();
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_guild_battle_monster: " + err);
@@ -15546,7 +15667,7 @@ caap = {
                     utility.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
                     caap.SetDivContent('guild_monster_mess', "Fighting ("  + record.slot + ") " + record.name);
                     url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + "&slot=" + record.slot;
-                    utility.ClickAjax(url);
+                    utility.ClickAjaxLinkSend(url);
                     return true;
                 }
 
@@ -15724,7 +15845,10 @@ caap = {
                 appBodyDiv        = null,
                 httpRegExp        = new RegExp('.*(http:.*)');
 
-            spreadsheet.doTitles();
+            if (config.getItem("enableTitles", true)) {
+                spreadsheet.doTitles();
+            }
+
             appBodyDiv = $("#app46755028429_app_body");
             chatDiv = appBodyDiv.find("#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
             if (chatDiv && chatDiv.length) {
@@ -15820,12 +15944,7 @@ caap = {
                 case 'bar_dispel.gif' :
                     tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                        if ($().jquery >= "1.4.3") {
-                            currentMonster.fortify = 100 - parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                        } else {
-                            currentMonster.fortify = 100 - parseFloat(tempDiv.parent().css('width'));
-                        }
+                        currentMonster.fortify = 100 - utility.getElementWidth(tempDiv.parent());
                     } else {
                         utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
@@ -15834,22 +15953,11 @@ caap = {
                 case 'seamonster_ship_health.jpg' :
                     tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                        if ($().jquery >= "1.4.3") {
-                            currentMonster.fortify = parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                        } else {
-                            currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
-                        }
-
+                        currentMonster.fortify = utility.getElementWidth(tempDiv.parent());
                         if (monster.info[currentMonster.type].repair_img) {
                             tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].repair_img + "']");
                             if (tempDiv && tempDiv.length) {
-                                // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                                if ($().jquery >= "1.4.3") {
-                                    currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1])));
-                                } else {
-                                    currentMonster.fortify = currentMonster.fortify * (100 / (100 - parseFloat(tempDiv.parent().css('width'))));
-                                }
+                                currentMonster.fortify = currentMonster.fortify * (100 / (100 - utility.getElementWidth(tempDiv.parent())));
                             } else {
                                 utility.warn("Unable to find repair bar", monster.info[currentMonster.type].repair_img);
                             }
@@ -15862,14 +15970,8 @@ caap = {
                 case 'nm_green.jpg' :
                     tempDiv = appBodyDiv.find("img[src*='" + monster.info[currentMonster.type].defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                        if ($().jquery >= "1.4.3") {
-                            currentMonster.fortify = parseFloat(tempDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                            currentMonster.strength = parseFloat(tempDiv.parent().parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                        } else {
-                            currentMonster.fortify = parseFloat(tempDiv.parent().css('width'));
-                            currentMonster.strength = parseFloat(tempDiv.parent().parent().css('width'));
-                        }
+                        currentMonster.fortify = utility.getElementWidth(tempDiv.parent());
+                        currentMonster.strength = utility.getElementWidth(tempDiv.parent().parent());
                     } else {
                         utility.warn("Unable to find defense bar", monster.info[currentMonster.type].defense_img);
                     }
@@ -15937,12 +16039,7 @@ caap = {
                 currentMonster.time = time;
                 if (monsterDiv && monsterDiv.length) {
                     utility.log(4, "Found monster health div");
-                    // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                    if ($().jquery >= "1.4.3") {
-                        currentMonster.life = parseFloat(monsterDiv.parent().attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1]);
-                    } else {
-                        currentMonster.life = parseFloat(monsterDiv.parent().css("width"));
-                    }
+                    currentMonster.life = utility.getElementWidth(monsterDiv.parent());
                 } else {
                     utility.warn("Could not find monster health div.");
                 }
@@ -15988,13 +16085,7 @@ caap = {
 
                             tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
                             if (tempDiv && tempDiv.length) {
-                                // temporary fix for jQuery 1.4.3 as it's not recognising width but scrollWidth
-                                if ($().jquery >= "1.4.3") {
-                                    tempText = tempDiv.attr("style").match(new RegExp("width:\\s*([\\d\\.]+)%", "i"))[1];
-                                } else {
-                                    tempText = tempDiv.css('width');
-                                }
-
+                                tempText = utility.getElementWidth(tempDiv);
                                 utility.log(4, "Stun bar percent text", tempText);
                                 if (tempText) {
                                     currentMonster.stun = utility.NumberOnly(tempText);
@@ -16341,7 +16432,7 @@ caap = {
 
                 url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
                 state.setItem('guildMonsterReviewSlot', record.slot);
-                utility.ClickAjax(url);
+                utility.ClickAjaxLinkSend(url);
                 return true;
             }
 
@@ -16505,7 +16596,7 @@ caap = {
                     state.setItem('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '').replace('?', '?twt2&');
                     utility.log(5, "Link", link);
-                    utility.ClickAjax(link);
+                    utility.ClickAjaxLinkSend(link);
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
                     state.setItem('resetselectMonster', true);
                     return true;
@@ -17569,7 +17660,7 @@ caap = {
                 utility.log(2, 'Elite Guard has a MyEliteTodo list, shifting User ID');
                 var user = eliteList.shift();
                 utility.log(1, 'Add Elite Guard ID: ', user);
-                utility.ClickAjax('party.php?twt=jneg&jneg=true&user=' + user);
+                utility.ClickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
                 utility.log(2, 'Elite Guard sent request, saving shifted MyEliteTodo');
                 state.setItem('MyEliteTodo', eliteList);
                 schedule.setItem('AutoEliteReqNext', 7);
@@ -18973,20 +19064,20 @@ caap = {
     },
 
     MainLoop: function () {
-        var button = null,
-            caapDisabled = false,
-            noWindowLoad = 0,
+        var button          = null,
+            caapDisabled    = false,
+            noWindowLoad    = 0,
             actionsListCopy = [],
-            action = 0,
-            len = 0;
+            action          = 0,
+            len             = 0,
+            ajaxLoadIcon    = null;
 
-        //caap.waitMilliSecs = 5000;
         // assorted errors...
         if (this.ErrorCheck()) {
             return;
         }
 
-        if (window.location.href.indexOf('apps.facebook.com/reqs.php') >= 0 || window.location.href.indexOf('filter=app_46755028429') >= 0) {
+        if (window.location.href.indexOf('apps.facebook.com/reqs.php#confirm_46755028429_0') >= 0) {
             gifting.collect();
             this.WaitMainLoop();
             return;
@@ -19039,9 +19130,18 @@ caap = {
             return;
         }
 
-        if (schedule.since('clickedOnSomething', 45) && this.waitingForDomLoad) {
-            utility.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
-            this.ReloadCastleAge();
+        if (this.waitingForDomLoad) {
+            if (schedule.since('clickedOnSomething', 45)) {
+                utility.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
+                this.ReloadCastleAge();
+            }
+
+            ajaxLoadIcon = $('#app46755028429_AjaxLoadIcon');
+            if (ajaxLoadIcon && ajaxLoadIcon.length && ajaxLoadIcon.css("display") !== "none") {
+                utility.log(1, 'Waiting for page load ...');
+                this.WaitMainLoop();
+                return;
+            }
         }
 
         if (this.AutoIncome()) {
@@ -19073,14 +19173,12 @@ caap = {
 
     WaitMainLoop: function () {
         utility.log(5, 'waitMilliSecs', this.waitMilliSecs);
-        //this.waitForPageChange = true;
         utility.setTimeout(function () {
             caap.waitMilliSecs = 5000;
             if (caap.flagReload) {
                 caap.ReloadCastleAge();
             }
 
-            //caap.waitForPageChange = false;
             caap.MainLoop();
         }, this.waitMilliSecs * (1 + Math.random() * 0.2));
     },
@@ -19088,7 +19186,7 @@ caap = {
     ReloadCastleAge: function () {
         // better than reload... no prompt on forms!
         if (!config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
-            window.location.href = "http://apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0";
+            utility.VisitUrl("http://apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0");
         }
     },
 
@@ -19132,7 +19230,7 @@ $(function () {
         accountEl;
 
     function mainCaapLoop() {
-        caap.waitMilliSecs = 10000;
+        caap.waitMilliSecs = 8000;
         caap.WaitMainLoop();
         caap.ReloadOccasionally();
     }

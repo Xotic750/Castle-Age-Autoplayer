@@ -28,8 +28,6 @@ spreadsheet = {
         };
     },
 
-    namespace: 'caap',
-
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
@@ -121,6 +119,10 @@ spreadsheet = {
 
     load: function () {
         try {
+            if (!config.getItem("enableTitles", true) && !config.getItem("goblinHinting", true)) {
+                return true;
+            }
+
             if (this.getItem('spreadsheet.records', 'default') === 'default' || !$.isArray(this.getItem('spreadsheet.records', 'default')) || !this.getItem('spreadsheet.records', 'default').length) {
                 $.ajax({
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
