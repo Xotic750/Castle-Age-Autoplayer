@@ -239,6 +239,7 @@ monster = {
         // http://castleage.wikia.com/wiki/War_of_the_Red_Plains
         'Plains' : {
             alpha        : true,
+            tactics      : true,
             duration     : 168,
             hp           : 350000000,
             ach          : 10000,
@@ -362,6 +363,7 @@ monster = {
         },
         "Lion's Rebellion" : {
             alpha        : true,
+            tactics      : true,
             duration     : 168,
             hp           : 350000000,
             ach          : 1000,

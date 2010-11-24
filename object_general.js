@@ -75,8 +75,23 @@ general = {
 
     copy2sortable: function () {
         try {
+            var order = {
+                    reverse: {
+                        a: false,
+                        b: false,
+                        c: false
+                    },
+                    value: {
+                        a: '',
+                        b: '',
+                        c: ''
+                    }
+                };
+
+            $.extend(true, order, state.getItem("GeneralsSort", order));
             this.recordsSortable = [];
             $.merge(this.recordsSortable, this.records);
+            this.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
             return true;
         } catch (err) {
             utility.error("ERROR in general.copy2sortable: " + err);

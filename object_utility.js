@@ -217,7 +217,20 @@ utility = {
         }
     },
 
-    /*
+    injectScript: function (url) {
+        try {
+            var inject = document.createElement('script');
+            inject.setAttribute('type', 'application/javascript');
+            inject.src = url;
+            document.body.appendChild(inject);
+            inject = null;
+            return true;
+        } catch (err) {
+            this.error("ERROR in utility.injectScript: " + err);
+            return false;
+        }
+    },
+
     typeOf: function (obj) {
         try {
             var s = typeof obj;
@@ -276,7 +289,6 @@ utility = {
             return undefined;
         }
     },
-    */
 
     isNum: function (value) {
         try {
@@ -287,33 +299,30 @@ utility = {
         }
     },
 
+    alertDialog: {},
+
     alert_id: 0,
 
     alert: function (message, id) {
         try {
-            var theDialog = null;
-
             if (!id) {
                 this.alert_id += 1;
                 id = this.alert_id;
-            } else {
-                theDialog = $("#alert_" + id);
             }
 
-            if (theDialog && theDialog.length) {
-                theDialog.html(message);
-                theDialog.dialog('open');
-            } else {
-                $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
-                $("#alert_" + id).dialog({
+            if (!this.alertDialog[id] || !this.alertDialog[id].length) {
+                this.alertDialog[id] = $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                this.alertDialog[id].dialog({
                     buttons: {
                         "Ok": function () {
                             $(this).dialog("close");
                         }
                     }
                 });
+            } else {
+                this.alertDialog[id].html(message);
+                this.alertDialog[id].dialog("open");
             }
-
 
             return true;
         } catch (err) {
@@ -546,12 +555,12 @@ utility = {
                 len       = 0;
 
             if (typeof text === 'string' && text !== '') {
-                text = text.replace(/,/g, '\n').replace(/ /g, '');
+                text = text.replace(/,/g, '\n');
                 tempArray = text.split('\n');
                 if (tempArray && tempArray.length) {
                     for (it = 0, len = tempArray.length; it < len; it += 1) {
                         if (tempArray[it] !== '') {
-                            theArray.push(isNaN(tempArray[it]) ? tempArray[it] : parseFloat(tempArray[it]));
+                            theArray.push(isNaN(tempArray[it]) ? $.trim(tempArray[it]) : parseFloat(tempArray[it]));
                         }
                     }
                 }

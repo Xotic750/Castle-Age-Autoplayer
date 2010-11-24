@@ -1038,7 +1038,7 @@ battle = {
                 }
             }
 
-            safeTargets.sort(sort.by("score"));
+            safeTargets.sort(sort.by(true, "score"));
             utility.log(3, "safeTargets", safeTargets);
             if (safeTargets && safeTargets.length) {
                 if (chainAttack) {

@@ -45,6 +45,37 @@ town = {
 
     types: ['soldiers', 'item', 'magic'],
 
+    copy2sortable: function (type) {
+        try {
+            if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
+                utility.warn("Type passed to load: ", type);
+                throw "Invalid type value!";
+            }
+
+            var order = {
+                    reverse: {
+                        a: false,
+                        b: false,
+                        c: false
+                    },
+                    value: {
+                        a: '',
+                        b: '',
+                        c: ''
+                    }
+                };
+
+            $.extend(true, order, state.getItem(type.ucFirst() + "Sort", order));
+            this[type + 'Sortable'] = [];
+            $.merge(this[type + 'Sortable'], this[type]);
+            this[type + 'Sortable'].sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+            return true;
+        } catch (err) {
+            utility.error("ERROR in town.copy2sortable: " + err);
+            return false;
+        }
+    },
+
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
@@ -58,8 +89,7 @@ town = {
                 this[type] = gm.getItem(type + '.records', this[type]);
             }
 
-            this[type + 'Sortable'] = [];
-            $.merge(this[type + 'Sortable'], this[type]);
+            this.copy2sortable(type);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.load", type, this[type]);
             return true;
@@ -132,7 +162,6 @@ town = {
             }
 
             this[type] = [];
-            this[type + 'Sortable'] = [];
             rowDiv = $("#app46755028429_app_body td[class*='eq_buy_row']");
             if (rowDiv && rowDiv.length) {
                 rowDiv.each(function (index) {
@@ -194,8 +223,8 @@ town = {
             }
 
             if (save) {
-                $.merge(this[type + 'Sortable'], this[type]);
                 this.save(type);
+                this.copy2sortable(type);
                 utility.log(2, "Got town details for", type);
             } else {
                 utility.log(1, "Nothing to save for", type);

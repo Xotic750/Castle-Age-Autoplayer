@@ -12,7 +12,7 @@ state = {
             if (gm.getItem('state.flags', 'default') === 'default' || !$.isPlainObject(gm.getItem('state.flags', 'default'))) {
                 gm.setItem('state.flags', this.flags);
             } else {
-                $.extend(true, this.flags, this.flags = gm.getItem('state.flags', this.flags));
+                $.extend(true, this.flags, gm.getItem('state.flags', this.flags));
             }
 
             utility.log(5, "state.load", this.flags);

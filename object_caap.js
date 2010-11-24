@@ -1696,6 +1696,18 @@ caap = {
             layout += "<div id='caap_buttonGiftQueue' style='position:absolute;top:0px;left:250px;display:" +
                 (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'><input type='button' id='caap_clearGiftQueue' value='Clear Gift Queue' style='padding: 0; font-size: 9px; height: 18px' /></div>";
             /*-------------------------------------------------------------------------------------\
+             Next we put in the Advanced Sort Buttons which will only show when we have
+             selected the appropriate display
+            \-------------------------------------------------------------------------------------*/
+            layout += "<div id='caap_buttonSortGenerals' style='position:absolute;top:0px;left:250px;display:" +
+                (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'><input type='button' id='caap_sortGenerals' value='Advanced Sort' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+            layout += "<div id='caap_buttonSortSoldiers' style='position:absolute;top:0px;left:250px;display:" +
+                (config.getItem('DBDisplay', 'Monster') === 'Soldiers Stats' ? 'block' : 'none') + "'><input type='button' id='caap_sortSoldiers' value='Advanced Sort' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+            layout += "<div id='caap_buttonSortItem' style='position:absolute;top:0px;left:250px;display:" +
+                (config.getItem('DBDisplay', 'Monster') === 'Item Stats' ? 'block' : 'none') + "'><input type='button' id='caap_sortItem' value='Advanced Sort' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+            layout += "<div id='caap_buttonSortMagic' style='position:absolute;top:0px;left:250px;display:" +
+                (config.getItem('DBDisplay', 'Monster') === 'Magic Stats' ? 'block' : 'none') + "'><input type='button' id='caap_sortMagic' value='Advanced Sort' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+            /*-------------------------------------------------------------------------------------\
              Then we put in the Live Feed link since we overlay the Castle Age link.
             \-------------------------------------------------------------------------------------*/
             layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:0px;'><input id='caap_liveFeed' type='button' value='LIVE FEED! Your friends are calling.' style='padding: 0; font-size: 9px; height: 18px' /></div>";
@@ -1750,6 +1762,10 @@ caap = {
             this.caapTopObject.find("#caap_clearGifting").button();
             this.caapTopObject.find("#caap_clearGiftQueue").button();
             this.caapTopObject.find("#caap_liveFeed").button();
+            this.caapTopObject.find("#caap_sortGenerals").button();
+            this.caapTopObject.find("#caap_sortSoldiers").button();
+            this.caapTopObject.find("#caap_sortItem").button();
+            this.caapTopObject.find("#caap_sortMagic").button();
 
             return true;
         } catch (err) {
@@ -2874,7 +2890,19 @@ caap = {
                 this.caapTopObject.find("#caap_generalsStats").html(html);
 
                 handler = function (e) {
-                    var clicked = '';
+                    var clicked = '',
+                        order = {
+                            reverse: {
+                                a: false,
+                                b: false,
+                                c: false
+                            },
+                            value: {
+                                a: '',
+                                b: '',
+                                c: ''
+                            }
+                        };
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
@@ -2882,8 +2910,16 @@ caap = {
 
                     utility.log(9, "Clicked", clicked);
                     if (generalValues.indexOf(clicked) !== -1) {
-                        general.recordsSortable.sort(sort.by(clicked, sort.by('name')));
+                        order.value.a = clicked;
+                        if (clicked !== 'name') {
+                            order.reverse.a = true;
+                            order.value.b = "name";
+                        }
+
+                        general.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
+                        state.setItem("GeneralsSort", order);
                         state.setItem("GeneralsDashUpdate", true);
+                        sort.updateForm("Generals", order);
                         caap.UpdateDashboard(true);
                     }
                 };
@@ -2964,7 +3000,19 @@ caap = {
                 }
 
                 handler = function (e) {
-                    var clicked = '';
+                    var clicked = '',
+                        order = {
+                            reverse: {
+                                a: false,
+                                b: false,
+                                c: false
+                            },
+                            value: {
+                                a: '',
+                                b: '',
+                                c: ''
+                            }
+                        };
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
@@ -2972,9 +3020,17 @@ caap = {
 
                     utility.log(9, "Clicked", clicked);
                     if (townValues.indexOf(clicked) !== -1) {
-                        town.soldiersSortable.sort(sort.by(clicked, sort.by('name')));
+                        order.value.a = clicked;
+                        if (clicked !== 'name') {
+                            order.reverse.a = true;
+                            order.value.b = "name";
+                        }
+
+                        town.soldiersSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
+                        state.setItem("SoldiersSort", order);
                         state.setItem("SoldiersDashUpdate", true);
                         caap.UpdateDashboard(true);
+                        sort.updateForm("Soldiers", order);
                     }
                 };
 
@@ -2982,7 +3038,19 @@ caap = {
                 state.setItem("SoldiersDashUpdate", false);
 
                 handler = function (e) {
-                    var clicked = '';
+                    var clicked = '',
+                        order = {
+                            reverse: {
+                                a: false,
+                                b: false,
+                                c: false
+                            },
+                            value: {
+                                a: '',
+                                b: '',
+                                c: ''
+                            }
+                        };
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
@@ -2990,9 +3058,17 @@ caap = {
 
                     utility.log(9, "Clicked", clicked);
                     if (townValues.indexOf(clicked) !== -1) {
-                        town.itemSortable.sort(sort.by(clicked, sort.by('name')));
+                        order.value.a = clicked;
+                        if (clicked !== 'name') {
+                            order.reverse.a = true;
+                            order.value.b = "name";
+                        }
+
+                        town.itemSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
+                        state.setItem("ItemSort", order);
                         state.setItem("ItemDashUpdate", true);
                         caap.UpdateDashboard(true);
+                        sort.updateForm("Item", order);
                     }
                 };
 
@@ -3000,7 +3076,19 @@ caap = {
                 state.setItem("ItemDashUpdate", false);
 
                 handler = function (e) {
-                    var clicked = '';
+                    var clicked = '',
+                        order = {
+                            reverse: {
+                                a: false,
+                                b: false,
+                                c: false
+                            },
+                            value: {
+                                a: '',
+                                b: '',
+                                c: ''
+                            }
+                        };
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
@@ -3008,9 +3096,17 @@ caap = {
 
                     utility.log(9, "Clicked", clicked);
                     if (townValues.indexOf(clicked) !== -1) {
-                        town.magicSortable.sort(sort.by(clicked, sort.by('name')));
+                        order.value.a = clicked;
+                        if (clicked !== 'name') {
+                            order.reverse.a = true;
+                            order.value.b = "name";
+                        }
+
+                        town.magicSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
+                        state.setItem("MagicSort", order);
                         state.setItem("MagicDashUpdate", true);
                         caap.UpdateDashboard(true);
+                        sort.updateForm("Magic", order);
                     }
                 };
 
@@ -3208,6 +3304,10 @@ caap = {
         caap.SetDisplay("caapTopObject", 'buttonBattle', false);
         caap.SetDisplay("caapTopObject", 'buttonGifting', false);
         caap.SetDisplay("caapTopObject", 'buttonGiftQueue', false);
+        caap.SetDisplay("caapTopObject", 'buttonSortGenerals', false);
+        caap.SetDisplay("caapTopObject", 'buttonSortSoldiers', false);
+        caap.SetDisplay("caapTopObject", 'buttonSortItem', false);
+        caap.SetDisplay("caapTopObject", 'buttonSortMagic', false);
         switch (value) {
         case "Target List" :
             caap.SetDisplay("caapTopObject", 'infoTargets1', true);
@@ -3222,15 +3322,19 @@ caap = {
             break;
         case "Generals Stats" :
             caap.SetDisplay("caapTopObject", 'generalsStats', true);
+            caap.SetDisplay("caapTopObject", 'buttonSortGenerals', true);
             break;
         case "Soldier Stats" :
             caap.SetDisplay("caapTopObject", 'soldiersStats', true);
+            caap.SetDisplay("caapTopObject", 'buttonSortSoldiers', true);
             break;
         case "Item Stats" :
             caap.SetDisplay("caapTopObject", 'itemStats', true);
+            caap.SetDisplay("caapTopObject", 'buttonSortItem', true);
             break;
         case "Magic Stats" :
             caap.SetDisplay("caapTopObject", 'magicStats', true);
+            caap.SetDisplay("caapTopObject", 'buttonSortMagic', true);
             break;
         case "Gifting Stats" :
             caap.SetDisplay("caapTopObject", 'giftStats', true);
@@ -3289,6 +3393,26 @@ caap = {
         caap.UpdateDashboard(true);
     },
 
+    sortGeneralsButtonListener: function (e) {
+        var values = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
+        sort.form("Generals", values, general.recordsSortable);
+    },
+
+    sortSoldiersButtonListener: function (e) {
+        var values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
+        sort.form("Soldiers", values, town.soldiersSortable);
+    },
+
+    sortItemButtonListener: function (e) {
+        var values  = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
+        sort.form("Item", values, town.itemSortable);
+    },
+
+    sortMagicButtonListener: function (e) {
+        var values  = ['name', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
+        sort.form("Magic", values, town.magicSortable);
+    },
+
     AddDBListener: function () {
         try {
             utility.log(3, "Adding listeners for caap_top");
@@ -3304,6 +3428,10 @@ caap = {
             caap.caapTopObject.find('#caap_clearBattle').click(this.clearBattleButtonListener);
             caap.caapTopObject.find('#caap_clearGifting').click(this.clearGiftingButtonListener);
             caap.caapTopObject.find('#caap_clearGiftQueue').click(this.clearGiftQueueButtonListener);
+            caap.caapTopObject.find('#caap_sortGenerals').click(this.sortGeneralsButtonListener);
+            caap.caapTopObject.find('#caap_sortSoldiers').click(this.sortSoldiersButtonListener);
+            caap.caapTopObject.find('#caap_sortItem').click(this.sortItemButtonListener);
+            caap.caapTopObject.find('#caap_sortMagic').click(this.sortMagicButtonListener);
             utility.log(8, "Listeners added for caap_top");
             return true;
         } catch (err) {
@@ -3727,11 +3855,31 @@ caap = {
             var idName = e.target.id.replace(/caap_/i, ''),
                 value = e.target.value;
 
+            function commas() {
+                // Change the boolean from false to true to enable BoJangles patch or
+                // set the hidden variable in localStorage
+                if (gm.getItem("TextAreaCommas", false, hiddenVar)) {
+                    // This first removes leading and trailing white space and/or commas before
+                    // both removing and inserting commas where appropriate.
+                    // Handles adding a single user id as well as replacing the entire list.
+                    e.target.value = value.replace(/(^[,\s]+)|([,\s]+$)/g, "").replace(/[,\s]+/g, ",");
+                }
+            }
+
             utility.log(1, 'Change: setting "' + idName + '" to ', value);
-            if (idName === 'orderbattle_monster' || idName === 'orderraid') {
+            switch (idName) {
+            case "orderbattle_monster":
+            case "orderraid":
                 monster.flagFullReview();
-            } else if (idName === 'BattleTargets') {
-                state.getItem('BattleChainId', 0);
+                break;
+            case "BattleTargets":
+                state.setItem('BattleChainId', 0);
+                commas();
+                break;
+            case "EliteArmyList":
+                commas();
+                break;
+            default:
             }
 
             caap.SaveBoxText(idName);
@@ -4703,10 +4851,6 @@ caap = {
         utility.log(4, "Stats", this.stats);
         state.setItem("UserDashUpdate", true);
     },
-
-    ststbDiv: $("#app46755028429_main_ststb"),
-
-    bntpDiv: $("#app46755028429_main_bntp"),
 
     GetStats: function () {
         try {
@@ -7668,7 +7812,7 @@ caap = {
                         key.attr("value", attack);
                         form = key.parents("form").eq(0);
                         if (form && form.length) {
-                            utility.Click(form.find("input[src*='guild_duel_button2.gif']").get(0));
+                            utility.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
                             return true;
                         }
                     }
@@ -9788,10 +9932,10 @@ caap = {
                     if (txt.regex(/You were killed/i)) {
                         deaths += 1;
                     } else {
-                        uid = $('a:eq(0)', el).attr('href').regex(/user=([0-9]+)/i);
+                        uid = $('a', el).eq(0).attr('href').regex(/user=([0-9]+)/i);
                         user[uid] = user[uid] ||
                             {
-                                name: $('a:eq(0)', el).text(),
+                                name: $('a', el).eq(0).text(),
                                 win: 0,
                                 lose: 0
                             };
