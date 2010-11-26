@@ -7751,7 +7751,7 @@ caap = {
                 if (record && $.isPlainObject(record) && !$.isEmptyObject(record)) {
                     minion = guild_monster.getTargetMinion(record);
                     if (minion && $.isPlainObject(minion) && !$.isEmptyObject(minion)) {
-                        stamina = guild_monster.getStaminaValue(minion);
+                        stamina = guild_monster.getStaminaValue(minion, record.attacks);
                         state.setItem('staminaGuildMonster', stamina);
                         if (this.stats.staminaT.num < stamina) {
                             caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + stamina);

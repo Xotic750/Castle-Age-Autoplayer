@@ -14,6 +14,7 @@ guild_monster = {
             slot        : 0,
             ticker      : '',
             minions     : [],
+            attacks     : 1,
             damage      : 0,
             myStatus    : '',
             reviewed    : 0,
@@ -195,6 +196,8 @@ guild_monster = {
         try {
             utility.log(1, "guild_monster.clear");
             this.records = gm.setItem("guild_monster.records", []);
+            state.setItem('staminaGuildMonster', 0);
+            state.setItem('targetGuildMonster', {});
             state.setItem("GuildMonsterDashUpdate", true);
             return true;
         } catch (err) {
@@ -334,6 +337,7 @@ guild_monster = {
                 health        = null,
                 healthGuild   = null,
                 healthEnemy   = null,
+                allowedDiv    = null,
                 bannerDiv     = null,
                 appBodyDiv    = null,
                 chatDiv       = null,
@@ -397,6 +401,17 @@ guild_monster = {
                         } else {
                             utility.warn("myStatsArr error", myStatsArr, myStatsTxt);
                         }
+                    }
+
+                    allowedDiv = $("#app46755028429_allowedAttacks");
+                    if (allowedDiv && allowedDiv.length) {
+                        currentRecord.attacks = parseInt(allowedDiv.attr("value"), 10);
+                        if (currentRecord.attacks < 1 || currentRecord.attacks > 5) {
+                            currentRecord.attacks = 1;
+                            utility.warn("Invalid allowedAttacks");
+                        }
+                    } else {
+                        utility.warn("Could not find allowedAttacks");
                     }
 
                     health = $("#app46755028429_guild_battle_health");
@@ -610,6 +625,11 @@ guild_monster = {
 
             for (it = record.minions.length - 1; it >= 0; it -= 1) {
                 if (record.minions[it].status === 'Stunned') {
+                    if (specialTargets.indexOf(it) >= 0 && !isNaN(record.minions[it].healthNum)) {
+                        specialTargets.pop();
+                        utility.log(2, "Special minion stunned", it, specialTargets);
+                    }
+
                     continue;
                 }
 
@@ -772,7 +792,8 @@ guild_monster = {
         1: 1,
         2: 5,
         3: 10,
-        4: 20
+        4: 20,
+        5: 50
     },
 
     getAttackValue: function (record) {
@@ -781,16 +802,20 @@ guild_monster = {
                 throw "Not passed a record";
             }
 
-            var attack = 0;
-            if (record.target_id === 1) {
+            var attack = 0,
+                specialTargets = [1, 2, 3, 4];
+
+            if (specialTargets.indexOf(record.target_id) >= 0 && isNaN(record.healthNum)) {
                 if (caap.stats.staminaT.num < 5) {
                     attack = 1;
                 } else if (caap.stats.staminaT.num < 10) {
                     attack = 2;
                 } else if (caap.stats.staminaT.num < 20) {
                     attack = 3;
-                } else {
+                } else if (caap.stats.staminaT.num < 50) {
                     attack = 4;
+                } else {
+                    attack = 5;
                 }
             } else if (record.healthNum < 100) {
                 attack = 1;
@@ -808,7 +833,7 @@ guild_monster = {
                 } else {
                     attack = 3;
                 }
-            } else {
+            } else if (record.healthNum < 800) {
                 if (caap.stats.staminaT.num < 5) {
                     attack = 1;
                 } else if (caap.stats.staminaT.num < 10) {
@@ -818,8 +843,25 @@ guild_monster = {
                 } else {
                     attack = 4;
                 }
+            } else {
+                if (caap.stats.staminaT.num < 5) {
+                    attack = 1;
+                } else if (caap.stats.staminaT.num < 10) {
+                    attack = 2;
+                } else if (caap.stats.staminaT.num < 20) {
+                    attack = 3;
+                } else if (caap.stats.staminaT.num < 50) {
+                    attack = 4;
+                } else {
+                    attack = 5;
+                }
             }
 
+            if (attack > record.attacks) {
+                attack = record.attacks;
+            }
+
+            utility.log(2, 'getAttackValue', attack);
             return attack;
         } catch (err) {
             utility.error("ERROR in guild_monster.getAttackValue: " + err, arguments.callee.caller);
@@ -827,25 +869,36 @@ guild_monster = {
         }
     },
 
-    getStaminaValue: function (record) {
+    getStaminaValue: function (record, cap) {
         try {
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
-            var stamina = 0;
-            if (record.target_id === 1) {
-                stamina = 20;
+            var stamina = 0,
+                staminaCap = 0,
+                specialTargets = [1, 2, 3, 4];
+
+            if (specialTargets.indexOf(record.target_id) >= 0 && isNaN(record.healthNum)) {
+                stamina = 50;
             } else if (record.healthNum < 100) {
                 stamina = 1;
             } else if (record.healthNum < 200) {
                 stamina = 5;
             } else if (record.healthNum < 400) {
                 stamina = 10;
-            } else {
+            } else if (record.healthNum < 800) {
                 stamina = 20;
+            } else {
+                stamina = 50;
             }
 
+            staminaCap = this.attack2stamina[cap];
+            if (stamina > staminaCap) {
+                stamina = staminaCap;
+            }
+
+            utility.log(2, 'getStaminaValue', stamina);
             return stamina;
         } catch (err) {
             utility.error("ERROR in guild_monster.getStaminaValue: " + err, arguments.callee.caller);
