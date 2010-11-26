@@ -332,6 +332,8 @@ guild_monster = {
         try {
             var gates         = null,
                 health        = null,
+                healthGuild   = null,
+                healthEnemy   = null,
                 bannerDiv     = null,
                 appBodyDiv    = null,
                 chatDiv       = null,
@@ -399,8 +401,19 @@ guild_monster = {
 
                     health = $("#app46755028429_guild_battle_health");
                     if (health && health.length) {
-                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_you.gif']").get(0));
-                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_enemy.gif']").get(0));
+                        healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
+                        if (healthEnemy && healthEnemy.length) {
+                            currentRecord.enemyHealth = 100 - utility.getElementWidth(healthEnemy);
+                        } else {
+                            utility.warn("guild_battle_bar_enemy.gif not found");
+                        }
+
+                        healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
+                        if (healthGuild && healthGuild.length) {
+                            currentRecord.guildHealth = 100 - utility.getElementWidth(healthGuild);
+                        } else {
+                            utility.warn("guild_battle_bar_you.gif not found");
+                        }
                     } else {
                         utility.warn("guild_battle_health error");
                     }
@@ -446,6 +459,7 @@ guild_monster = {
                                         memberRecord.healthNum = parseInt(memberArr[4], 10);
                                         memberRecord.healthMax = parseInt(memberArr[5], 10);
                                         memberRecord.status = memberArr[6];
+                                        memberRecord.percent = parseFloat(((memberRecord.healthNum / memberRecord.healthMax) * 100).toFixed(2));
                                     }
 
                                     currentRecord.minions.push(memberRecord);
@@ -570,10 +584,12 @@ guild_monster = {
 
     getTargetMinion: function (record) {
         try {
-            var it        = 0,
-                alive     = 0,
-                minion    = {},
-                minHealth = 0;
+            var it             = 0,
+                alive          = 0,
+                minion         = {},
+                minHealth      = 0,
+                specialTargets = [0, 25, 50, 75],
+                firstSpecial   = 0;
 
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
@@ -589,22 +605,46 @@ guild_monster = {
                     continue;
                 }
 
-                if (minHealth && it) {
-                    if (!alive && record.minions[it].healthNum < minHealth) {
-                        alive = it;
+                if (specialTargets.indexOf(it) >= 0) {
+                    if (!isNaN(record.minions[it].healthNum)) {
+                        specialTargets.pop();
+                        utility.log(2, "Not special minion", it, specialTargets);
+                    } else if (it > 0 && !firstSpecial) {
+                        firstSpecial = it;
+                        utility.log(2, "firstSpecial minion", firstSpecial);
+                        continue;
+                    } else {
+                        utility.log(2, "Special minion", it, specialTargets);
+                        continue;
                     }
+                }
 
-                    continue;
+                if (minHealth && specialTargets.indexOf(it) < 0) {
+                    if (record.minions[it].healthNum < minHealth) {
+                        if (!alive) {
+                            alive = it;
+                            utility.log(2, "First alive", alive);
+                        }
+
+                        continue;
+                    }
                 }
 
                 minion = record.minions[it];
                 break;
             }
 
-            if (!it && alive && config.getItem('chooseIgnoredMinions', false)) {
-                minion = record.minions[alive];
+            if (it <= 0) {
+                minion = record.minions[firstSpecial];
+                utility.log(2, "Target Special", firstSpecial, record.minions[firstSpecial]);
             }
 
+            if (config.getItem('chooseIgnoredMinions', false) && alive) {
+                minion = record.minions[alive];
+                utility.log(2, "Target Alive", alive, record.minions[alive]);
+            }
+
+            utility.log(2, "Target minion", minion);
             return minion;
         } catch (err) {
             utility.error("ERROR in guild_monster.getTargetMinion: " + err, arguments.callee.caller);

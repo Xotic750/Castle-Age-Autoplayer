@@ -23,6 +23,8 @@ spreadsheet = {
             recipe2image : null,
             recipe3      : null,
             recipe3image : null,
+            recipe4      : null,
+            recipe4image : null,
             summon       : null,
             comment      : null
         };
@@ -254,6 +256,13 @@ spreadsheet = {
                 if (this.records[tempIt].recipe3 !== null && this.records[tempIt].recipe3 !== undefined) {
                     data.title += ", Recipe3: " + this.records[tempIt].recipe3;
                     owned = town.getCount(this.records[tempIt].recipe3, this.records[tempIt].recipe3image);
+                    data.title += " (Owned: " + owned + ")";
+                    data.hide = owned ? false : true;
+                }
+
+                if (this.records[tempIt].recipe4 !== null && this.records[tempIt].recipe4 !== undefined) {
+                    data.title += ", Recipe4: " + this.records[tempIt].recipe4;
+                    owned = town.getCount(this.records[tempIt].recipe4, this.records[tempIt].recipe4image);
                     data.title += " (Owned: " + owned + ")";
                     data.hide = owned ? false : true;
                 }

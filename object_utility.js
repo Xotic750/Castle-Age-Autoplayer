@@ -388,6 +388,34 @@ utility = {
         }
     },
 
+    getElementHeight: function (jObject) {
+        try {
+            var heightRegExp = new RegExp("height:\\s*([\\d\\.]+)%", "i"),
+                tempArr     = [],
+                width       = 0;
+
+            if (jObject && jObject.length === 1) {
+                if ($().jquery >= "1.4.3") {
+                    tempArr = jObject.attr("style").match(heightRegExp);
+                    if (tempArr && tempArr.length === 2) {
+                        width = parseFloat(tempArr[1]);
+                    } else {
+                        this.warn("getElementHeight did not match a width", jObject);
+                    }
+                } else {
+                    width = parseFloat(jObject.css("height"));
+                }
+            } else {
+                this.warn("getElementHeight problem with jObject", jObject);
+            }
+
+            return width;
+        } catch (err) {
+            this.error("ERROR in utility.getElementHeight: " + err);
+            return undefined;
+        }
+    },
+
     logLevel: 1,
 
     log: function (level, text) {

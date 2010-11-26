@@ -93,17 +93,7 @@ sort = {
                 this.dialog[id].dialog({
                     buttons: {
                         "Sort": function () {
-                            order.reverse.a = $("input[name='reverse']:checked", "#form0", $(this)).val() === "true" ? true : false;
-                            order.reverse.b = $("input[name='reverse']:checked", "#form1", $(this)).val() === "true" ? true : false;
-                            order.reverse.c = $("input[name='reverse']:checked", "#form2", $(this)).val() === "true" ? true : false;
-                            order.value.a = $("option:selected", "#select0", $(this)).val();
-                            order.value.b = $("option:selected", "#select1", $(this)).val();
-                            order.value.c = $("option:selected", "#select2", $(this)).val();
-                            records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
-                            state.setItem(id + "Sort", order);
-                            state.setItem(id + "DashUpdate", true);
-                            caap.UpdateDashboard(true);
-                            utility.log(1, "order", order);
+                            sort.getForm(id, records);
                             $(this).dialog("close");
                         },
                         "Cancel": function () {
@@ -115,9 +105,7 @@ sort = {
                 this.dialog[id].dialog("open");
             }
 
-            $.extend(true, order, state.getItem(id + "Sort", order));
-            this.updateForm(id, order);
-            utility.log(1, "order", order);
+            this.updateForm(id);
             return true;
         } catch (err) {
             utility.error("ERROR in sort.form: " + err);
@@ -125,15 +113,68 @@ sort = {
         }
     },
 
-    updateForm: function (id, order) {
+    getForm: function (id, records) {
         try {
+            var order = {
+                    reverse: {
+                        a: false,
+                        b: false,
+                        c: false
+                    },
+                    value: {
+                        a: '',
+                        b: '',
+                        c: ''
+                    }
+                };
+
             if (this.dialog[id] && this.dialog[id].length) {
-                $("input", "#form0", this.dialog[id]).val([order.reverse.a]);
-                $("input", "#form1", this.dialog[id]).val([order.reverse.b]);
-                $("input", "#form2", this.dialog[id]).val([order.reverse.c]);
+                order.reverse.a = $("#form0 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
+                order.reverse.b = $("#form1 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
+                order.reverse.c = $("#form2 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
+                order.value.a = $("#select0 option:selected", this.dialog[id]).val();
+                order.value.b = $("#select1 option:selected", this.dialog[id]).val();
+                order.value.c = $("#select2 option:selected", this.dialog[id]).val();
+                records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+                state.setItem(id + "Sort", order);
+                state.setItem(id + "DashUpdate", true);
+                caap.UpdateDashboard(true);
+            } else {
+                utility.warn("Dialog for getForm not found", id);
+            }
+
+            return order;
+        } catch (err) {
+            utility.error("ERROR in sort.getForm: " + err);
+            return undefined;
+        }
+    },
+
+    updateForm: function (id) {
+        try {
+            var order = {
+                    reverse: {
+                        a: false,
+                        b: false,
+                        c: false
+                    },
+                    value: {
+                        a: '',
+                        b: '',
+                        c: ''
+                    }
+                };
+
+            if (this.dialog[id] && this.dialog[id].length) {
+                $.extend(true, order, state.getItem(id + "Sort", order));
+                $("#form0 input", this.dialog[id]).val([order.reverse.a]);
+                $("#form1 input", this.dialog[id]).val([order.reverse.b]);
+                $("#form2 input", this.dialog[id]).val([order.reverse.c]);
                 $("#select0", this.dialog[id]).val(order.value.a);
                 $("#select1", this.dialog[id]).val(order.value.b);
                 $("#select2", this.dialog[id]).val(order.value.c);
+            } else {
+                utility.warn("Dialog for updateForm not found", id);
             }
 
             return true;

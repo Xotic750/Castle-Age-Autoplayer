@@ -2919,7 +2919,7 @@ caap = {
                         general.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
                         state.setItem("GeneralsSort", order);
                         state.setItem("GeneralsDashUpdate", true);
-                        sort.updateForm("Generals", order);
+                        sort.updateForm("Generals");
                         caap.UpdateDashboard(true);
                     }
                 };
@@ -3030,7 +3030,7 @@ caap = {
                         state.setItem("SoldiersSort", order);
                         state.setItem("SoldiersDashUpdate", true);
                         caap.UpdateDashboard(true);
-                        sort.updateForm("Soldiers", order);
+                        sort.updateForm("Soldiers");
                     }
                 };
 
@@ -3068,7 +3068,7 @@ caap = {
                         state.setItem("ItemSort", order);
                         state.setItem("ItemDashUpdate", true);
                         caap.UpdateDashboard(true);
-                        sort.updateForm("Item", order);
+                        sort.updateForm("Item");
                     }
                 };
 
@@ -3106,7 +3106,7 @@ caap = {
                         state.setItem("MagicSort", order);
                         state.setItem("MagicDashUpdate", true);
                         caap.UpdateDashboard(true);
-                        sort.updateForm("Magic", order);
+                        sort.updateForm("Magic");
                     }
                 };
 

@@ -218,33 +218,34 @@ gifting = {
 
             if (!giftEntry.checked) {
                 utility.log(1, 'On FB page with gift ready to go');
-                appDiv = $("div[id*='app_46755028429']");
+                appDiv = $("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
-                        inputDiv = $(this).find("input[value='Accept and play']");
+                        var giftRequest = $(this);
+                        inputDiv = giftRequest.find(".uiButtonConfirm input[value*='Accept and play']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
                                 return true;
                             }
 
-                            userId = utility.NumberOnly(userArr[1]);
+                            userId = parseInt(userArr[1], 10);
                             if (giftEntry.userId !== userId) {
                                 return true;
                             }
 
-                            giftDiv = $(this).find("span[class='fb_protected_wrapper']");
+                            giftDiv = giftRequest.find("span[class='fb_protected_wrapper']");
                             giftText = '';
                             giftArr = [];
                             giftType = '';
                             if (giftDiv && giftDiv.length) {
                                 giftText = $.trim(giftDiv.text());
-                                giftArr = giftDiv.text().match(giftRegExp);
+                                giftArr = giftText.match(giftRegExp);
                                 if (giftArr && giftArr.length === 3) {
                                     giftType = giftArr[2];
                                 }
                             } else {
-                                utility.warn("No fb_protected_wrapper in ", $(this));
+                                utility.warn("No fb_protected_wrapper in ", giftRequest);
                             }
 
                             if (giftType === '' || gifting.gifts.list().indexOf(giftType) < 0) {
@@ -262,7 +263,7 @@ gifting = {
                             utility.Click(inputDiv.get(0));
                             return false;
                         } else {
-                            utility.warn("No input found in ", $(this));
+                            utility.warn("No input found in ", giftRequest);
                         }
 
                         return true;

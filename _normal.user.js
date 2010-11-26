@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            11
+// @dev            12
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "11",
+    devVersion    = "12",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -1127,6 +1127,34 @@ utility = {
             return newArray;
         } catch (err) {
             this.error("ERROR in utility.arrayDeepCopy: " + err);
+            return undefined;
+        }
+    },
+
+    getElementHeight: function (jObject) {
+        try {
+            var heightRegExp = new RegExp("height:\\s*([\\d\\.]+)%", "i"),
+                tempArr     = [],
+                width       = 0;
+
+            if (jObject && jObject.length === 1) {
+                if ($().jquery >= "1.4.3") {
+                    tempArr = jObject.attr("style").match(heightRegExp);
+                    if (tempArr && tempArr.length === 2) {
+                        width = parseFloat(tempArr[1]);
+                    } else {
+                        this.warn("getElementHeight did not match a width", jObject);
+                    }
+                } else {
+                    width = parseFloat(jObject.css("height"));
+                }
+            } else {
+                this.warn("getElementHeight problem with jObject", jObject);
+            }
+
+            return width;
+        } catch (err) {
+            this.error("ERROR in utility.getElementHeight: " + err);
             return undefined;
         }
     },
@@ -2373,17 +2401,7 @@ sort = {
                 this.dialog[id].dialog({
                     buttons: {
                         "Sort": function () {
-                            order.reverse.a = $("input[name='reverse']:checked", "#form0", $(this)).val() === "true" ? true : false;
-                            order.reverse.b = $("input[name='reverse']:checked", "#form1", $(this)).val() === "true" ? true : false;
-                            order.reverse.c = $("input[name='reverse']:checked", "#form2", $(this)).val() === "true" ? true : false;
-                            order.value.a = $("option:selected", "#select0", $(this)).val();
-                            order.value.b = $("option:selected", "#select1", $(this)).val();
-                            order.value.c = $("option:selected", "#select2", $(this)).val();
-                            records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
-                            state.setItem(id + "Sort", order);
-                            state.setItem(id + "DashUpdate", true);
-                            caap.UpdateDashboard(true);
-                            utility.log(1, "order", order);
+                            sort.getForm(id, records);
                             $(this).dialog("close");
                         },
                         "Cancel": function () {
@@ -2395,9 +2413,7 @@ sort = {
                 this.dialog[id].dialog("open");
             }
 
-            $.extend(true, order, state.getItem(id + "Sort", order));
-            this.updateForm(id, order);
-            utility.log(1, "order", order);
+            this.updateForm(id);
             return true;
         } catch (err) {
             utility.error("ERROR in sort.form: " + err);
@@ -2405,15 +2421,68 @@ sort = {
         }
     },
 
-    updateForm: function (id, order) {
+    getForm: function (id, records) {
         try {
+            var order = {
+                    reverse: {
+                        a: false,
+                        b: false,
+                        c: false
+                    },
+                    value: {
+                        a: '',
+                        b: '',
+                        c: ''
+                    }
+                };
+
             if (this.dialog[id] && this.dialog[id].length) {
-                $("input", "#form0", this.dialog[id]).val([order.reverse.a]);
-                $("input", "#form1", this.dialog[id]).val([order.reverse.b]);
-                $("input", "#form2", this.dialog[id]).val([order.reverse.c]);
+                order.reverse.a = $("#form0 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
+                order.reverse.b = $("#form1 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
+                order.reverse.c = $("#form2 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
+                order.value.a = $("#select0 option:selected", this.dialog[id]).val();
+                order.value.b = $("#select1 option:selected", this.dialog[id]).val();
+                order.value.c = $("#select2 option:selected", this.dialog[id]).val();
+                records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+                state.setItem(id + "Sort", order);
+                state.setItem(id + "DashUpdate", true);
+                caap.UpdateDashboard(true);
+            } else {
+                utility.warn("Dialog for getForm not found", id);
+            }
+
+            return order;
+        } catch (err) {
+            utility.error("ERROR in sort.getForm: " + err);
+            return undefined;
+        }
+    },
+
+    updateForm: function (id) {
+        try {
+            var order = {
+                    reverse: {
+                        a: false,
+                        b: false,
+                        c: false
+                    },
+                    value: {
+                        a: '',
+                        b: '',
+                        c: ''
+                    }
+                };
+
+            if (this.dialog[id] && this.dialog[id].length) {
+                $.extend(true, order, state.getItem(id + "Sort", order));
+                $("#form0 input", this.dialog[id]).val([order.reverse.a]);
+                $("#form1 input", this.dialog[id]).val([order.reverse.b]);
+                $("#form2 input", this.dialog[id]).val([order.reverse.c]);
                 $("#select0", this.dialog[id]).val(order.value.a);
                 $("#select1", this.dialog[id]).val(order.value.b);
                 $("#select2", this.dialog[id]).val(order.value.c);
+            } else {
+                utility.warn("Dialog for updateForm not found", id);
             }
 
             return true;
@@ -4795,6 +4864,8 @@ guild_monster = {
         try {
             var gates         = null,
                 health        = null,
+                healthGuild   = null,
+                healthEnemy   = null,
                 bannerDiv     = null,
                 appBodyDiv    = null,
                 chatDiv       = null,
@@ -4862,8 +4933,19 @@ guild_monster = {
 
                     health = $("#app46755028429_guild_battle_health");
                     if (health && health.length) {
-                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_you.gif']").get(0));
-                        currentRecord.guildHealth = 100 - utility.getElementWidth(health.find("div[style*='guild_battle_bar_enemy.gif']").get(0));
+                        healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
+                        if (healthEnemy && healthEnemy.length) {
+                            currentRecord.enemyHealth = 100 - utility.getElementWidth(healthEnemy);
+                        } else {
+                            utility.warn("guild_battle_bar_enemy.gif not found");
+                        }
+
+                        healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
+                        if (healthGuild && healthGuild.length) {
+                            currentRecord.guildHealth = 100 - utility.getElementWidth(healthGuild);
+                        } else {
+                            utility.warn("guild_battle_bar_you.gif not found");
+                        }
                     } else {
                         utility.warn("guild_battle_health error");
                     }
@@ -4909,6 +4991,7 @@ guild_monster = {
                                         memberRecord.healthNum = parseInt(memberArr[4], 10);
                                         memberRecord.healthMax = parseInt(memberArr[5], 10);
                                         memberRecord.status = memberArr[6];
+                                        memberRecord.percent = parseFloat(((memberRecord.healthNum / memberRecord.healthMax) * 100).toFixed(2));
                                     }
 
                                     currentRecord.minions.push(memberRecord);
@@ -5033,10 +5116,12 @@ guild_monster = {
 
     getTargetMinion: function (record) {
         try {
-            var it        = 0,
-                alive     = 0,
-                minion    = {},
-                minHealth = 0;
+            var it             = 0,
+                alive          = 0,
+                minion         = {},
+                minHealth      = 0,
+                specialTargets = [0, 25, 50, 75],
+                firstSpecial   = 0;
 
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
@@ -5052,22 +5137,46 @@ guild_monster = {
                     continue;
                 }
 
-                if (minHealth && it) {
-                    if (!alive && record.minions[it].healthNum < minHealth) {
-                        alive = it;
+                if (specialTargets.indexOf(it) >= 0) {
+                    if (!isNaN(record.minions[it].healthNum)) {
+                        specialTargets.pop();
+                        utility.log(2, "Not special minion", it, specialTargets);
+                    } else if (it > 0 && !firstSpecial) {
+                        firstSpecial = it;
+                        utility.log(2, "firstSpecial minion", firstSpecial);
+                        continue;
+                    } else {
+                        utility.log(2, "Special minion", it, specialTargets);
+                        continue;
                     }
+                }
 
-                    continue;
+                if (minHealth && specialTargets.indexOf(it) < 0) {
+                    if (record.minions[it].healthNum < minHealth) {
+                        if (!alive) {
+                            alive = it;
+                            utility.log(2, "First alive", alive);
+                        }
+
+                        continue;
+                    }
                 }
 
                 minion = record.minions[it];
                 break;
             }
 
-            if (!it && alive && config.getItem('chooseIgnoredMinions', false)) {
-                minion = record.minions[alive];
+            if (it <= 0) {
+                minion = record.minions[firstSpecial];
+                utility.log(2, "Target Special", firstSpecial, record.minions[firstSpecial]);
             }
 
+            if (config.getItem('chooseIgnoredMinions', false) && alive) {
+                minion = record.minions[alive];
+                utility.log(2, "Target Alive", alive, record.minions[alive]);
+            }
+
+            utility.log(2, "Target minion", minion);
             return minion;
         } catch (err) {
             utility.error("ERROR in guild_monster.getTargetMinion: " + err, arguments.callee.caller);
@@ -6423,7 +6532,7 @@ town = {
     magicSortable: [],
 
     itemRegex: {
-        Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator/i,
+        Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane/i,
         Shield: /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
         Helmet: /cowl|crown|helm|horns|mask|veil|Virtue of Fortitude/i,
         Glove: /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
@@ -6734,6 +6843,8 @@ spreadsheet = {
             recipe2image : null,
             recipe3      : null,
             recipe3image : null,
+            recipe4      : null,
+            recipe4image : null,
             summon       : null,
             comment      : null
         };
@@ -6965,6 +7076,13 @@ spreadsheet = {
                 if (this.records[tempIt].recipe3 !== null && this.records[tempIt].recipe3 !== undefined) {
                     data.title += ", Recipe3: " + this.records[tempIt].recipe3;
                     owned = town.getCount(this.records[tempIt].recipe3, this.records[tempIt].recipe3image);
+                    data.title += " (Owned: " + owned + ")";
+                    data.hide = owned ? false : true;
+                }
+
+                if (this.records[tempIt].recipe4 !== null && this.records[tempIt].recipe4 !== undefined) {
+                    data.title += ", Recipe4: " + this.records[tempIt].recipe4;
+                    owned = town.getCount(this.records[tempIt].recipe4, this.records[tempIt].recipe4image);
                     data.title += " (Owned: " + owned + ")";
                     data.hide = owned ? false : true;
                 }
@@ -7253,33 +7371,34 @@ gifting = {
 
             if (!giftEntry.checked) {
                 utility.log(1, 'On FB page with gift ready to go');
-                appDiv = $("div[id*='app_46755028429']");
+                appDiv = $("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
-                        inputDiv = $(this).find("input[value='Accept and play']");
+                        var giftRequest = $(this);
+                        inputDiv = giftRequest.find(".uiButtonConfirm input[value*='Accept and play']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
                                 return true;
                             }
 
-                            userId = utility.NumberOnly(userArr[1]);
+                            userId = parseInt(userArr[1], 10);
                             if (giftEntry.userId !== userId) {
                                 return true;
                             }
 
-                            giftDiv = $(this).find("span[class='fb_protected_wrapper']");
+                            giftDiv = giftRequest.find("span[class='fb_protected_wrapper']");
                             giftText = '';
                             giftArr = [];
                             giftType = '';
                             if (giftDiv && giftDiv.length) {
                                 giftText = $.trim(giftDiv.text());
-                                giftArr = giftDiv.text().match(giftRegExp);
+                                giftArr = giftText.match(giftRegExp);
                                 if (giftArr && giftArr.length === 3) {
                                     giftType = giftArr[2];
                                 }
                             } else {
-                                utility.warn("No fb_protected_wrapper in ", $(this));
+                                utility.warn("No fb_protected_wrapper in ", giftRequest);
                             }
 
                             if (giftType === '' || gifting.gifts.list().indexOf(giftType) < 0) {
@@ -7297,7 +7416,7 @@ gifting = {
                             utility.Click(inputDiv.get(0));
                             return false;
                         } else {
-                            utility.warn("No input found in ", $(this));
+                            utility.warn("No input found in ", giftRequest);
                         }
 
                         return true;
@@ -11096,7 +11215,7 @@ caap = {
                         general.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
                         state.setItem("GeneralsSort", order);
                         state.setItem("GeneralsDashUpdate", true);
-                        sort.updateForm("Generals", order);
+                        sort.updateForm("Generals");
                         caap.UpdateDashboard(true);
                     }
                 };
@@ -11207,7 +11326,7 @@ caap = {
                         state.setItem("SoldiersSort", order);
                         state.setItem("SoldiersDashUpdate", true);
                         caap.UpdateDashboard(true);
-                        sort.updateForm("Soldiers", order);
+                        sort.updateForm("Soldiers");
                     }
                 };
 
@@ -11245,7 +11364,7 @@ caap = {
                         state.setItem("ItemSort", order);
                         state.setItem("ItemDashUpdate", true);
                         caap.UpdateDashboard(true);
-                        sort.updateForm("Item", order);
+                        sort.updateForm("Item");
                     }
                 };
 
@@ -11283,7 +11402,7 @@ caap = {
                         state.setItem("MagicSort", order);
                         state.setItem("MagicDashUpdate", true);
                         caap.UpdateDashboard(true);
-                        sort.updateForm("Magic", order);
+                        sort.updateForm("Magic");
                     }
                 };
 
