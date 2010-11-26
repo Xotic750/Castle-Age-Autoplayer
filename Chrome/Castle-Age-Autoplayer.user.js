@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            12
+// @dev            13
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "12",
+    devVersion    = "13",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -4967,6 +4967,7 @@ guild_monster = {
                                     var member       = $(this),
                                         memberText   = '',
                                         memberArr    = [],
+                                        targetIdDiv  = null,
                                         //memberRecord = new guild_monster.minion().data,
                                         memberRecord = {
                                             attacking_position : 0,
@@ -4981,7 +4982,14 @@ guild_monster = {
                                         };
 
                                     memberRecord.attacking_position = (gIndex + 1);
-                                    memberRecord.target_id = (gIndex * 25) + (mIndex + 1);
+                                    //memberRecord.target_id = (gIndex * 25) + (mIndex + 1);
+                                    targetIdDiv = member.find("input[name='target_id']").eq(0);
+                                    if (targetIdDiv && targetIdDiv.length) {
+                                        memberRecord.target_id = parseInt(targetIdDiv.attr("value"), 10);
+                                    } else {
+                                        utility.warn("Unable to find target_id for minion!", member);
+                                    }
+
                                     memberText = $.trim(member.children().eq(1).text()).replace(/\s+/g, ' ');
                                     memberArr = memberText.match(minionRegEx);
                                     if (memberArr && memberArr.length === 7) {

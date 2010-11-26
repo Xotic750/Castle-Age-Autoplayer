@@ -435,6 +435,7 @@ guild_monster = {
                                     var member       = $(this),
                                         memberText   = '',
                                         memberArr    = [],
+                                        targetIdDiv  = null,
                                         //memberRecord = new guild_monster.minion().data,
                                         memberRecord = {
                                             attacking_position : 0,
@@ -449,7 +450,14 @@ guild_monster = {
                                         };
 
                                     memberRecord.attacking_position = (gIndex + 1);
-                                    memberRecord.target_id = (gIndex * 25) + (mIndex + 1);
+                                    //memberRecord.target_id = (gIndex * 25) + (mIndex + 1);
+                                    targetIdDiv = member.find("input[name='target_id']").eq(0);
+                                    if (targetIdDiv && targetIdDiv.length) {
+                                        memberRecord.target_id = parseInt(targetIdDiv.attr("value"), 10);
+                                    } else {
+                                        utility.warn("Unable to find target_id for minion!", member);
+                                    }
+
                                     memberText = $.trim(member.children().eq(1).text()).replace(/\s+/g, ' ');
                                     memberArr = memberText.match(minionRegEx);
                                     if (memberArr && memberArr.length === 7) {
