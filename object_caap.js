@@ -143,7 +143,9 @@ caap = {
 
             if (config.getItem('HideAdsIframe', false)) {
                 $("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                $("img[src*='apple_banner_']").parent().parent().css('display', 'none');
             }
+
 
             if (config.getItem('HideFBChat', false)) {
                 window.setTimeout(function () {
@@ -684,6 +686,8 @@ caap = {
             for (divID = 0; divID < divList.length; divID += 1) {
                 caapDiv += "<div id='caap_" + divList[divID] + "'></div>";
             }
+
+            //caapDiv += '<applet code="http://castle-age-auto-player.googlecode.com/files/localfile.class" archive="http://castle-age-auto-player.googlecode.com/files/localfile.jar" width="10" height="10"></applet>';
 
             caapDiv += "</div>";
             this.controlXY.x = state.getItem('caap_div_menuLeft', '');
@@ -10438,6 +10442,32 @@ caap = {
         }
     },
 
+    ajaxCTA: function () {
+        try {
+            if (gm.getItem("ajaxCTA", false, hiddenVar) || !schedule.check('ajaxCTATimer')) {
+                return false;
+            }
+
+            $.ajax({
+                url: "http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=Army_of_the_Apocalypse&guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
+                error:
+                    function (XMLHttpRequest, textStatus, errorThrown) {
+                        utility.log(2, "ajaxCTA: ", textStatus);
+                    },
+                success:
+                    function (data, textStatus, XMLHttpRequest) {
+                        utility.log(2, "ajaxCTA done");
+                        schedule.setItem('ajaxCTATimer', 3600);
+                    }
+            });
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in ajaxCTA: " + err);
+            return false;
+        }
+    },
+
     friendListType: {
         facebook: {
             name: "facebook",
@@ -10755,6 +10785,10 @@ caap = {
         }
 
         if (this.CheckCharacterClasses()) {
+            return true;
+        }
+
+        if (this.ajaxCTA()) {
             return true;
         }
 

@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            14
+// @dev            15
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "14",
+    devVersion    = "15",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -4594,6 +4594,33 @@ guild_monster = {
                 this.records = gm.getItem('guild_monster.records', this.records);
             }
 
+            /*
+            if (this.records.length < 3) {
+                var record = new this.record().data;
+                $.extend(true, record, this.records[0]);
+                record.name ="Alpha Vincent";
+                record.slot = 4
+                record.myStatus = "Healthy";
+                record.ticker = "35:16:42";
+                record.state = "Alive";
+                record.reviewed = 1391099048253;
+                record.color = "black";
+                this.records.push(record);
+                var record1 = new this.record().data;
+                $.extend(true, record1, this.records[0]);
+                record1.name ="Vincent";
+                record1.slot = 5
+                record1.myStatus = "Healthy";
+                record1.ticker = "35:16:42";
+                record1.state = "Alive";
+                record1.reviewed = 1391099048253;
+                record1.color = "black";
+                this.records.push(record1);
+            }
+
+            this.select(true);
+            */
+
             state.setItem("GuildMonsterDashUpdate", true);
             utility.log(3, "guild_monster.load", this.records);
             return true;
@@ -5268,11 +5295,11 @@ guild_monster = {
 
                     if (conditions) {
                         this.records[it].conditions = conditions;
-                        if (conditions && conditions.indexOf("ach") >= 0) {
+                        if (conditions.indexOf("ach") >= 0) {
                             ach = monster.parseCondition('ach', conditions);
                         }
 
-                        if (conditions && conditions.indexOf("max") >= 0) {
+                        if (conditions.indexOf("max") >= 0) {
                             max = monster.parseCondition('max', conditions);
                         }
                     }
@@ -5282,18 +5309,20 @@ guild_monster = {
                         if (!firstOverAch || !$.isPlainObject(firstOverAch) || $.isEmptyObject(firstOverAch)) {
                             if (this.records[it].damage >= max) {
                                 this.records[it].color = "red";
-                                utility.log(3, 'OverMax', this.records[it]);
+                                utility.log(2, 'OverMax', this.records[it]);
                             } else {
                                 firstOverAch = this.records[it];
-                                utility.log(3, 'firstOverAch', firstOverAch);
+                                utility.log(2, 'firstOverAch', firstOverAch);
                             }
                         }
                     } else if (this.records[it].damage < max) {
-                        firstUnderMax = this.records[it];
-                        utility.log(3, 'firstUnderMax', firstUnderMax);
+                        if (!firstUnderMax || !$.isPlainObject(firstUnderMax) || $.isEmptyObject(firstUnderMax)) {
+                            firstUnderMax = this.records[it];
+                            utility.log(2, 'firstUnderMax', firstUnderMax);
+                        }
                     } else {
                         this.records[it].color = "red";
-                        utility.log(3, 'OverMax', this.records[it]);
+                        utility.log(2, 'OverMax', this.records[it]);
                     }
                 }
             }
@@ -5303,7 +5332,7 @@ guild_monster = {
                 target = firstOverAch;
             }
 
-            utility.log(3, 'target', target);
+            utility.log(2, 'target', target);
             if (target && $.isPlainObject(target) && !$.isEmptyObject(target)) {
                 target.color = 'green';
                 this.setItem(target);
@@ -5312,8 +5341,7 @@ guild_monster = {
                 this.save();
             }
 
-            state.setItem('targetGuildMonster', target);
-            return target;
+            return state.setItem('targetGuildMonster', target);
         } catch (err) {
             utility.error("ERROR in guild_monster.select: " + err, arguments.callee.caller);
             return undefined;
@@ -6593,9 +6621,9 @@ town = {
     magicSortable: [],
 
     itemRegex: {
-        Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane/i,
+        Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
         Shield: /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
-        Helmet: /cowl|crown|helm|horns|mask|veil|Virtue of Fortitude/i,
+        Helmet: /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
         Glove: /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
         Armor:  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
         Amulet: /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
@@ -8500,7 +8528,9 @@ caap = {
 
             if (config.getItem('HideAdsIframe', false)) {
                 $("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                $("img[src*='apple_banner_']").parent().parent().css('display', 'none');
             }
+
 
             if (config.getItem('HideFBChat', false)) {
                 window.setTimeout(function () {
@@ -9041,6 +9071,8 @@ caap = {
             for (divID = 0; divID < divList.length; divID += 1) {
                 caapDiv += "<div id='caap_" + divList[divID] + "'></div>";
             }
+
+            //caapDiv += '<applet code="http://castle-age-auto-player.googlecode.com/files/localfile.class" archive="http://castle-age-auto-player.googlecode.com/files/localfile.jar" width="10" height="10"></applet>';
 
             caapDiv += "</div>";
             this.controlXY.x = state.getItem('caap_div_menuLeft', '');
@@ -18795,6 +18827,32 @@ caap = {
         }
     },
 
+    ajaxCTA: function () {
+        try {
+            if (gm.getItem("ajaxCTA", false, hiddenVar) || !schedule.check('ajaxCTATimer')) {
+                return false;
+            }
+
+            $.ajax({
+                url: "http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=Army_of_the_Apocalypse&guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
+                error:
+                    function (XMLHttpRequest, textStatus, errorThrown) {
+                        utility.log(2, "ajaxCTA: ", textStatus);
+                    },
+                success:
+                    function (data, textStatus, XMLHttpRequest) {
+                        utility.log(2, "ajaxCTA done");
+                        schedule.setItem('ajaxCTATimer', 3600);
+                    }
+            });
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in ajaxCTA: " + err);
+            return false;
+        }
+    },
+
     friendListType: {
         facebook: {
             name: "facebook",
@@ -19112,6 +19170,10 @@ caap = {
         }
 
         if (this.CheckCharacterClasses()) {
+            return true;
+        }
+
+        if (this.ajaxCTA()) {
             return true;
         }
 

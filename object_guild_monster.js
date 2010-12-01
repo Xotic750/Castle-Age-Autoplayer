@@ -62,6 +62,33 @@ guild_monster = {
                 this.records = gm.getItem('guild_monster.records', this.records);
             }
 
+            /*
+            if (this.records.length < 3) {
+                var record = new this.record().data;
+                $.extend(true, record, this.records[0]);
+                record.name ="Alpha Vincent";
+                record.slot = 4
+                record.myStatus = "Healthy";
+                record.ticker = "35:16:42";
+                record.state = "Alive";
+                record.reviewed = 1391099048253;
+                record.color = "black";
+                this.records.push(record);
+                var record1 = new this.record().data;
+                $.extend(true, record1, this.records[0]);
+                record1.name ="Vincent";
+                record1.slot = 5
+                record1.myStatus = "Healthy";
+                record1.ticker = "35:16:42";
+                record1.state = "Alive";
+                record1.reviewed = 1391099048253;
+                record1.color = "black";
+                this.records.push(record1);
+            }
+
+            this.select(true);
+            */
+
             state.setItem("GuildMonsterDashUpdate", true);
             utility.log(3, "guild_monster.load", this.records);
             return true;
@@ -736,11 +763,11 @@ guild_monster = {
 
                     if (conditions) {
                         this.records[it].conditions = conditions;
-                        if (conditions && conditions.indexOf("ach") >= 0) {
+                        if (conditions.indexOf("ach") >= 0) {
                             ach = monster.parseCondition('ach', conditions);
                         }
 
-                        if (conditions && conditions.indexOf("max") >= 0) {
+                        if (conditions.indexOf("max") >= 0) {
                             max = monster.parseCondition('max', conditions);
                         }
                     }
@@ -750,18 +777,20 @@ guild_monster = {
                         if (!firstOverAch || !$.isPlainObject(firstOverAch) || $.isEmptyObject(firstOverAch)) {
                             if (this.records[it].damage >= max) {
                                 this.records[it].color = "red";
-                                utility.log(3, 'OverMax', this.records[it]);
+                                utility.log(2, 'OverMax', this.records[it]);
                             } else {
                                 firstOverAch = this.records[it];
-                                utility.log(3, 'firstOverAch', firstOverAch);
+                                utility.log(2, 'firstOverAch', firstOverAch);
                             }
                         }
                     } else if (this.records[it].damage < max) {
-                        firstUnderMax = this.records[it];
-                        utility.log(3, 'firstUnderMax', firstUnderMax);
+                        if (!firstUnderMax || !$.isPlainObject(firstUnderMax) || $.isEmptyObject(firstUnderMax)) {
+                            firstUnderMax = this.records[it];
+                            utility.log(2, 'firstUnderMax', firstUnderMax);
+                        }
                     } else {
                         this.records[it].color = "red";
-                        utility.log(3, 'OverMax', this.records[it]);
+                        utility.log(2, 'OverMax', this.records[it]);
                     }
                 }
             }
@@ -771,7 +800,7 @@ guild_monster = {
                 target = firstOverAch;
             }
 
-            utility.log(3, 'target', target);
+            utility.log(2, 'target', target);
             if (target && $.isPlainObject(target) && !$.isEmptyObject(target)) {
                 target.color = 'green';
                 this.setItem(target);
@@ -780,8 +809,7 @@ guild_monster = {
                 this.save();
             }
 
-            state.setItem('targetGuildMonster', target);
-            return target;
+            return state.setItem('targetGuildMonster', target);
         } catch (err) {
             utility.error("ERROR in guild_monster.select: " + err, arguments.callee.caller);
             return undefined;
