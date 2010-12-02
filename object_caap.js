@@ -1528,6 +1528,14 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', '');
             htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', '');
+            htmlCode += this.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', '');
+            htmlCode += this.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', '');
+            htmlCode += this.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'SenableRecipeClean_Adv', '', true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='padding-left: 10px'>Recipe Count</td><td style='text-align: right'>" +
+                this.MakeNumberForm('recipeCleanCount', '', 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += '</div>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
             htmlCode += this.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, '', timeInstructions);
             htmlCode += this.MakeCheckTR('Set Title', 'SetTitle', false, 'SetTitle_Adv', titleInstructions0, true);
@@ -2156,7 +2164,7 @@ caap = {
                         case 'name' :
                             data = {
                                 text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name +
-                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId +
+                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 + '&guild_id=' + guild_monster.records[i].guildId +
                                         '&slot=' + guild_monster.records[i].slot + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
                                 color : guild_monster.records[i].color,
                                 id    : '',
@@ -2209,7 +2217,7 @@ caap = {
                     }
 
                     data = {
-                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') +
+                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 +
                                 '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
                         color : 'blue',
                         id    : '',
@@ -5402,6 +5410,76 @@ caap = {
                 spreadsheet.doTitles();
             }
 
+            if (config.getItem("enableRecipeClean", true)) {
+                var recipeDiv   = null,
+                    titleTxt    = '',
+                    titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
+                    titleArr    = [],
+                    tempDiv     = null,
+                    image       = '',
+                    hideCount   = config.getItem("recipeCleanCount", 1);
+                    special     = [
+                        "Volcanic Knight",
+                        "Holy Plate",
+                        "Atlantean Forcefield",
+                        "Spartan Phalanx",
+                        "Cronus, The World Hydra",
+                        "Helm of Dragon Power",
+                        "Avenger",
+                        "Judgement",
+                        "Tempered Steel",
+                        "Bahamut, the Volcanic Dragon",
+                        "Blood Zealot",
+                        "Transcendence",
+                        "Soul Crusher",
+                        "Soulforge",
+                        "Crown of Flames"
+                        ];
+
+                if (hideCount < 1) {
+                    hideCount = 1;
+                }
+
+                recipeDiv = $(".alchemyRecipeBack .recipeTitle");
+                if (recipeDiv && recipeDiv.length) {
+                    recipeDiv.each(function () {
+                        titleTxt = $.trim($(this).text());
+                        if (titleTxt) {
+                            titleArr = titleTxt.match(titleRegExp);
+                            if (titleArr && titleArr.length === 2) {
+                                if (special.indexOf(titleArr[1]) >= 0) {
+                                    return true;
+                                }
+
+                                if (titleArr[1] === "Elven Crown") {
+                                    image = "gift_aeris_complete.jpg";
+                                }
+
+                                if (town.getCount(titleArr[1], image) >= hideCount && !spreadsheet.isSummon(titleArr[1], image)) {
+                                    tempDiv = $(this).parent().parent();
+                                    tempDiv.css("display", "none");
+                                    tempDiv.next().css("display", "none");
+                                }
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+            }
+
+            if (config.getItem("enableIngredientsHide", false)) {
+                $("div[class='statsTTitle'],div[class='statsTMain']").css("display", "none");
+            }
+
+            if (config.getItem("enableAlchemyShrink", true)) {
+                $("div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']").css("height", "100px");
+                $("div[class*='alchemySpace']").css("height", "4px");
+                $(".statsT2 img").not("img[src*='emporium_go.gif']").attr("style", "height: 45px; width: 45px;").parent().attr("style", "height: 45px; width: 45px;").parent().css("width", "50px");
+                $("input[name='Alchemy Submit']").css("width", "80px");
+                $(".recipeTitle").css("margin", "0px");
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_alchemy: " + err);
@@ -7755,7 +7833,7 @@ caap = {
                 if (record && $.isPlainObject(record) && !$.isEmptyObject(record)) {
                     minion = guild_monster.getTargetMinion(record);
                     if (minion && $.isPlainObject(minion) && !$.isEmptyObject(minion)) {
-                        stamina = guild_monster.getStaminaValue(minion, record.attacks);
+                        stamina = guild_monster.getStaminaValue(record, minion);
                         state.setItem('staminaGuildMonster', stamina);
                         if (this.stats.staminaT.num < stamina) {
                             caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + stamina);
@@ -7797,7 +7875,7 @@ caap = {
                 if (!guild_monster.checkPage(record)) {
                     utility.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
                     caap.SetDivContent('guild_monster_mess', "Fighting ("  + record.slot + ") " + record.name);
-                    url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + "&slot=" + record.slot;
+                    url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + "&slot=" + record.slot;
                     utility.ClickAjaxLinkSend(url);
                     return true;
                 }
@@ -7808,7 +7886,7 @@ caap = {
                     caap.SetDivContent('guild_monster_mess', "Fighting (" + minion.target_id + ") " + minion.name);
                     key = $("#app46755028429_attack_key_" + minion.target_id);
                     if (key && key.length) {
-                        attack = guild_monster.getAttackValue(minion);
+                        attack = guild_monster.getAttackValue(record, minion);
                         if (!attack) {
                             return false;
                         }
@@ -8561,7 +8639,7 @@ caap = {
                     objective = "&action=doObjective";
                 }
 
-                url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
+                url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
                 state.setItem('guildMonsterReviewSlot', record.slot);
                 utility.ClickAjaxLinkSend(url);
                 return true;
@@ -10442,28 +10520,73 @@ caap = {
         }
     },
 
-    ajaxCTA: function () {
-        try {
-            if (gm.getItem("ajaxCTA", false, hiddenVar) || !schedule.check('ajaxCTATimer')) {
-                return false;
-            }
+    waitAjaxCTA: false,
 
+    ajaxCTA: function (theUrl, theCount) {
+        try {
             $.ajax({
-                url: "http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=Army_of_the_Apocalypse&guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
+                url: theUrl,
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.log(2, "ajaxCTA: ", textStatus);
+                        utility.log(3, "ajaxCTA: ", theUrl, textStatus);
+                        var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
+                        schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
+                        state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
+                        this.waitAjaxCTA = false;
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
-                        utility.log(2, "ajaxCTA done");
-                        schedule.setItem('ajaxCTATimer', 3600);
+                        var tempText = $(data).find("#app46755028429_guild_battle_banner_section").text();
+                        if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
+                            schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
+                            utility.log(3, "ajaxCTA not done", theUrl);
+                        } else {
+                            schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
+                            utility.log(3, "ajaxCTA done", theUrl);
+                        }
+
+                        state.setItem('ajaxCTABackOff' + theCount, 0);
+                        this.waitAjaxCTA = false;
                     }
             });
 
             return true;
         } catch (err) {
             utility.error("ERROR in ajaxCTA: " + err);
+            return false;
+        }
+    },
+
+    doCTAs: function (urls) {
+        try {
+            urls = [
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=2&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=3&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=4&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=5&ref=nf"
+            ];
+
+            if (gm.getItem("ajaxCTA", false, hiddenVar) || this.waitAjaxCTA || this.stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
+                return false;
+            }
+
+            var count = state.getItem('ajaxCTACount', 0);
+            if (count < urls.length) {
+                if (!schedule.check('ajaxCTATimer' + count)) {
+                    this.waitAjaxCTA = true;
+                    this.ajaxCTA(urls[count], count);
+                }
+
+                state.setItem('ajaxCTACount', count + 1);
+            } else {
+                state.getItem('ajaxCTACount', 0);
+                schedule.setItem('ajaxCTATimer', 1800, 300);
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in doCTAs: " + err);
             return false;
         }
     },
@@ -10788,7 +10911,7 @@ caap = {
             return true;
         }
 
-        if (this.ajaxCTA()) {
+        if (this.doCTAs()) {
             return true;
         }
 

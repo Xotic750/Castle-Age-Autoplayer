@@ -329,5 +329,33 @@ spreadsheet = {
             utility.error("ERROR in spreadsheet.doTitles: " + err);
             return false;
         }
+    },
+
+    isSummon: function (title, image) {
+        try {
+            var it = 0,
+                tempIt = -1,
+                summon = false;
+
+            for (it = this.records.length - 1; it >= 0; it -= 1) {
+                if (this.records[it].name && this.records[it].name === title) {
+                    tempIt = it;
+                    if (this.records[it].image && this.records[it].image === image) {
+                        break;
+                    }
+                }
+            }
+
+            if (tempIt > -1) {
+                if (this.records[tempIt].summon !== null && this.records[tempIt].summon !== undefined) {
+                    summon = true;
+                }
+            }
+
+            return summon;
+        } catch (err) {
+            utility.error("ERROR in spreadsheet.isSummon: " + err);
+            return undefined;
+        }
     }
 };

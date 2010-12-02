@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            15
+// @dev            16
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "15",
+    devVersion    = "16",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -4586,6 +4586,27 @@ guild_monster = {
         };
     },
 
+    info: {
+        "Vincent": {
+            twt2: "vincent",
+            special1: [0],
+            special2: [1],
+            health: [100, 200, 400, 800]
+        },
+        "Alpha Vincent": {
+            twt2: "alpha_vincent",
+            special1: [0],
+            special2: [1],
+            health: [500, 1000, 2000, 4000]
+        },
+        "Army of the Apocalypse": {
+            twt2: "ca_girls",
+            special1: [0, 25, 50, 75],
+            special2: [1, 2, 3, 4],
+            health: [500, 1000, 2000, 4000]
+        }
+    },
+
     load: function () {
         try {
             if (gm.getItem('guild_monster.records', 'default') === 'default' || !$.isArray(gm.getItem('guild_monster.records', 'default'))) {
@@ -4832,17 +4853,18 @@ guild_monster = {
                             imageName = utility.getHTMLPredicate(button.attr("src"));
                             if (imageName) {
                                 switch (imageName) {
+                                case "dragon_list_btn_3.jpg":
+                                    currentRecord.color = "black";
+                                    currentRecord.state = "Alive";
+                                    break;
                                 case "dragon_list_btn_2.jpg":
+                                case "dragon_list_btn_4.jpg":
                                     currentRecord.color = "grey";
                                     if (currentRecord.state !== "Completed") {
                                         utility.log(2, "Updated state", currentRecord.state, "Collect");
                                         currentRecord.state = "Collect";
                                     }
 
-                                    break;
-                                case "dragon_list_btn_3.jpg":
-                                    currentRecord.color = "black";
-                                    currentRecord.state = "Alive";
                                     break;
                                 default:
                                     currentRecord.state = "Error";
@@ -4948,10 +4970,10 @@ guild_monster = {
                 currentRecord.guildHealth = 0;
                 currentRecord.enemyHealth = 0;
 
-                if (!bannerDiv.attr("style").match(/monster_dead/)) {
+                if (!bannerDiv.attr("style").match(/_dead/)) {
                     currentRecord.ticker = $.trim($("#app46755028429_monsterTicker").text());
                     if (myStatsTxt) {
-                        utility.log(2, "myStatsTxt", myStatsTxt);
+                        utility.log(3, "myStatsTxt", myStatsTxt);
                         myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Battle Damage: (\\d+)"));
                         if (myStatsArr && myStatsArr.length === 8) {
                             utility.log(2, "myStatsArr", myStatsArr);
@@ -5138,39 +5160,13 @@ guild_monster = {
         }
     },
 
-    getTargetMonster: function () {
-        try {
-            var it     = 0,
-                len    = 0,
-                record = {};
-
-            for (it = 0, len = this.records.length; it < len; it += 1) {
-                if (this.records[it].state !== 'Alive') {
-                    continue;
-                }
-
-                if (this.records[it].myStatus === 'Stunned') {
-                    continue;
-                }
-
-                record = this.records[it];
-                break;
-            }
-
-            return record;
-        } catch (err) {
-            utility.error("ERROR in guild_monster.getTargetMonster: " + err, arguments.callee.caller);
-            return undefined;
-        }
-    },
-
     getTargetMinion: function (record) {
         try {
             var it             = 0,
                 alive          = 0,
                 minion         = {},
                 minHealth      = 0,
-                specialTargets = [0, 25, 50, 75],
+                specialTargets = this.info[record.name].special1.slice(),
                 firstSpecial   = 0;
 
             if (!record || !$.isPlainObject(record)) {
@@ -5356,16 +5352,17 @@ guild_monster = {
         5: 50
     },
 
-    getAttackValue: function (record) {
+    getAttackValue: function (record, minion) {
         try {
-            if (!record || !$.isPlainObject(record)) {
-                throw "Not passed a record";
+            if (!minion || !$.isPlainObject(minion)) {
+                throw "Not passed a minion";
             }
 
-            var attack = 0,
-                specialTargets = [1, 2, 3, 4];
+            var attack         = 0,
+                recordInfo     = this.info[record.name];
+                specialTargets = recordInfo.special2.slice();
 
-            if (specialTargets.indexOf(record.target_id) >= 0 && isNaN(record.healthNum)) {
+            if (specialTargets.indexOf(minion.target_id) >= 0 && isNaN(minion.healthNum)) {
                 if (caap.stats.staminaT.num < 5) {
                     attack = 1;
                 } else if (caap.stats.staminaT.num < 10) {
@@ -5377,15 +5374,15 @@ guild_monster = {
                 } else {
                     attack = 5;
                 }
-            } else if (record.healthNum < 100) {
+            } else if (minion.healthNum < recordInfo.health[0]) {
                 attack = 1;
-            } else if (record.healthNum < 200) {
+            } else if (minion.healthNum < recordInfo.health[1]) {
                 if (caap.stats.staminaT.num < 5) {
                     attack = 1;
                 } else {
                     attack = 2;
                 }
-            } else if (record.healthNum < 400) {
+            } else if (minion.healthNum < recordInfo.health[2]) {
                 if (caap.stats.staminaT.num < 5) {
                     attack = 1;
                 } else if (caap.stats.staminaT.num < 10) {
@@ -5393,7 +5390,7 @@ guild_monster = {
                 } else {
                     attack = 3;
                 }
-            } else if (record.healthNum < 800) {
+            } else if (minion.healthNum < recordInfo.health[3]) {
                 if (caap.stats.staminaT.num < 5) {
                     attack = 1;
                 } else if (caap.stats.staminaT.num < 10) {
@@ -5429,31 +5426,32 @@ guild_monster = {
         }
     },
 
-    getStaminaValue: function (record, cap) {
+    getStaminaValue: function (record, minion) {
         try {
-            if (!record || !$.isPlainObject(record)) {
-                throw "Not passed a record";
+            if (!minion || !$.isPlainObject(minion)) {
+                throw "Not passed a minion";
             }
 
-            var stamina = 0,
-                staminaCap = 0,
-                specialTargets = [1, 2, 3, 4];
+            var stamina        = 0,
+                staminaCap     = 0,
+                recordInfo     = this.info[record.name];
+                specialTargets = recordInfo.special2.slice();
 
-            if (specialTargets.indexOf(record.target_id) >= 0 && isNaN(record.healthNum)) {
+            if (specialTargets.indexOf(minion.target_id) >= 0 && isNaN(minion.healthNum)) {
                 stamina = 50;
-            } else if (record.healthNum < 100) {
+            } else if (minion.healthNum < recordInfo.health[0]) {
                 stamina = 1;
-            } else if (record.healthNum < 200) {
+            } else if (minion.healthNum < recordInfo.health[1]) {
                 stamina = 5;
-            } else if (record.healthNum < 400) {
+            } else if (minion.healthNum < recordInfo.health[2]) {
                 stamina = 10;
-            } else if (record.healthNum < 800) {
+            } else if (minion.healthNum < recordInfo.health[3]) {
                 stamina = 20;
             } else {
                 stamina = 50;
             }
 
-            staminaCap = this.attack2stamina[cap];
+            staminaCap = this.attack2stamina[record.attacks];
             if (stamina > staminaCap) {
                 stamina = staminaCap;
             }
@@ -7238,6 +7236,34 @@ spreadsheet = {
             utility.error("ERROR in spreadsheet.doTitles: " + err);
             return false;
         }
+    },
+
+    isSummon: function (title, image) {
+        try {
+            var it = 0,
+                tempIt = -1,
+                summon = false;
+
+            for (it = this.records.length - 1; it >= 0; it -= 1) {
+                if (this.records[it].name && this.records[it].name === title) {
+                    tempIt = it;
+                    if (this.records[it].image && this.records[it].image === image) {
+                        break;
+                    }
+                }
+            }
+
+            if (tempIt > -1) {
+                if (this.records[tempIt].summon !== null && this.records[tempIt].summon !== undefined) {
+                    summon = true;
+                }
+            }
+
+            return summon;
+        } catch (err) {
+            utility.error("ERROR in spreadsheet.isSummon: " + err);
+            return undefined;
+        }
     }
 };
 
@@ -7464,7 +7490,7 @@ gifting = {
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
                         var giftRequest = $(this);
-                        inputDiv = giftRequest.find(".uiButtonConfirm input[value*='Accept and play']");
+                        inputDiv = giftRequest.find("input[value*='Accept and play'],input[value*='Accept and Play']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
@@ -7505,7 +7531,7 @@ gifting = {
                             utility.Click(inputDiv.get(0));
                             return false;
                         } else {
-                            utility.warn("No input found in ", giftRequest);
+                            utility.warn("No input found in ", giftRequest.get(0));
                         }
 
                         return true;
@@ -9913,6 +9939,14 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', '');
             htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', '');
+            htmlCode += this.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', '');
+            htmlCode += this.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', '');
+            htmlCode += this.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'SenableRecipeClean_Adv', '', true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='padding-left: 10px'>Recipe Count</td><td style='text-align: right'>" +
+                this.MakeNumberForm('recipeCleanCount', '', 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += '</div>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
             htmlCode += this.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, '', timeInstructions);
             htmlCode += this.MakeCheckTR('Set Title', 'SetTitle', false, 'SetTitle_Adv', titleInstructions0, true);
@@ -10541,7 +10575,7 @@ caap = {
                         case 'name' :
                             data = {
                                 text  : '<span id="caap_guildmonster_' + pp + '" title="Clicking this link will take you to (' + guild_monster.records[i].slot + ') ' + guild_monster.records[i].name +
-                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') + '&guild_id=' + guild_monster.records[i].guildId +
+                                        '" mname="' + guild_monster.records[i].slot + '" rlink="guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 + '&guild_id=' + guild_monster.records[i].guildId +
                                         '&slot=' + guild_monster.records[i].slot + '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + guild_monster.records[i].name + '</span>',
                                 color : guild_monster.records[i].color,
                                 id    : '',
@@ -10594,7 +10628,7 @@ caap = {
                     }
 
                     data = {
-                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.records[i].name.replace(/ /g, '_') +
+                        text  : '<a href="http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i].name].twt2 +
                                 '&guild_id=' + guild_monster.records[i].guildId + '&action=doObjective&slot=' + guild_monster.records[i].slot + '&ref=nf">Link</a>',
                         color : 'blue',
                         id    : '',
@@ -13787,6 +13821,76 @@ caap = {
                 spreadsheet.doTitles();
             }
 
+            if (config.getItem("enableRecipeClean", true)) {
+                var recipeDiv   = null,
+                    titleTxt    = '',
+                    titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
+                    titleArr    = [],
+                    tempDiv     = null,
+                    image       = '',
+                    hideCount   = config.getItem("recipeCleanCount", 1);
+                    special     = [
+                        "Volcanic Knight",
+                        "Holy Plate",
+                        "Atlantean Forcefield",
+                        "Spartan Phalanx",
+                        "Cronus, The World Hydra",
+                        "Helm of Dragon Power",
+                        "Avenger",
+                        "Judgement",
+                        "Tempered Steel",
+                        "Bahamut, the Volcanic Dragon",
+                        "Blood Zealot",
+                        "Transcendence",
+                        "Soul Crusher",
+                        "Soulforge",
+                        "Crown of Flames"
+                        ];
+
+                if (hideCount < 1) {
+                    hideCount = 1;
+                }
+
+                recipeDiv = $(".alchemyRecipeBack .recipeTitle");
+                if (recipeDiv && recipeDiv.length) {
+                    recipeDiv.each(function () {
+                        titleTxt = $.trim($(this).text());
+                        if (titleTxt) {
+                            titleArr = titleTxt.match(titleRegExp);
+                            if (titleArr && titleArr.length === 2) {
+                                if (special.indexOf(titleArr[1]) >= 0) {
+                                    return true;
+                                }
+
+                                if (titleArr[1] === "Elven Crown") {
+                                    image = "gift_aeris_complete.jpg";
+                                }
+
+                                if (town.getCount(titleArr[1], image) >= hideCount && !spreadsheet.isSummon(titleArr[1], image)) {
+                                    tempDiv = $(this).parent().parent();
+                                    tempDiv.css("display", "none");
+                                    tempDiv.next().css("display", "none");
+                                }
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+            }
+
+            if (config.getItem("enableIngredientsHide", false)) {
+                $("div[class='statsTTitle'],div[class='statsTMain']").css("display", "none");
+            }
+
+            if (config.getItem("enableAlchemyShrink", true)) {
+                $("div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']").css("height", "100px");
+                $("div[class*='alchemySpace']").css("height", "4px");
+                $(".statsT2 img").not("img[src*='emporium_go.gif']").attr("style", "height: 45px; width: 45px;").parent().attr("style", "height: 45px; width: 45px;").parent().css("width", "50px");
+                $("input[name='Alchemy Submit']").css("width", "80px");
+                $(".recipeTitle").css("margin", "0px");
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in CheckResults_alchemy: " + err);
@@ -16140,7 +16244,7 @@ caap = {
                 if (record && $.isPlainObject(record) && !$.isEmptyObject(record)) {
                     minion = guild_monster.getTargetMinion(record);
                     if (minion && $.isPlainObject(minion) && !$.isEmptyObject(minion)) {
-                        stamina = guild_monster.getStaminaValue(minion, record.attacks);
+                        stamina = guild_monster.getStaminaValue(record, minion);
                         state.setItem('staminaGuildMonster', stamina);
                         if (this.stats.staminaT.num < stamina) {
                             caap.SetDivContent('guild_monster_mess', 'Guild Monster stamina ' + this.stats.staminaT.num + '/' + stamina);
@@ -16182,7 +16286,7 @@ caap = {
                 if (!guild_monster.checkPage(record)) {
                     utility.log(2, "Fighting Slot (" + record.slot + ") Name: " + record.name);
                     caap.SetDivContent('guild_monster_mess', "Fighting ("  + record.slot + ") " + record.name);
-                    url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + "&slot=" + record.slot;
+                    url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + "&slot=" + record.slot;
                     utility.ClickAjaxLinkSend(url);
                     return true;
                 }
@@ -16193,7 +16297,7 @@ caap = {
                     caap.SetDivContent('guild_monster_mess', "Fighting (" + minion.target_id + ") " + minion.name);
                     key = $("#app46755028429_attack_key_" + minion.target_id);
                     if (key && key.length) {
-                        attack = guild_monster.getAttackValue(minion);
+                        attack = guild_monster.getAttackValue(record, minion);
                         if (!attack) {
                             return false;
                         }
@@ -16946,7 +17050,7 @@ caap = {
                     objective = "&action=doObjective";
                 }
 
-                url = "guild_battle_monster.php?twt2=" + record.name.replace(/ /g, '_') + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
+                url = "guild_battle_monster.php?twt2=" + guild_monster.info[record.name].twt2 + "&guild_id=" + record.guildId + objective + "&slot=" + record.slot + "&ref=nf";
                 state.setItem('guildMonsterReviewSlot', record.slot);
                 utility.ClickAjaxLinkSend(url);
                 return true;
@@ -18827,28 +18931,73 @@ caap = {
         }
     },
 
-    ajaxCTA: function () {
-        try {
-            if (gm.getItem("ajaxCTA", false, hiddenVar) || !schedule.check('ajaxCTATimer')) {
-                return false;
-            }
+    waitAjaxCTA: false,
 
+    ajaxCTA: function (theUrl, theCount) {
+        try {
             $.ajax({
-                url: "http://apps.facebook.com/castle_age/guild_battle_monster.php?twt2=Army_of_the_Apocalypse&guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
+                url: theUrl,
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.log(2, "ajaxCTA: ", textStatus);
+                        utility.log(3, "ajaxCTA: ", theUrl, textStatus);
+                        var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
+                        schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
+                        state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
+                        this.waitAjaxCTA = false;
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
-                        utility.log(2, "ajaxCTA done");
-                        schedule.setItem('ajaxCTATimer', 3600);
+                        var tempText = $(data).find("#app46755028429_guild_battle_banner_section").text();
+                        if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
+                            schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
+                            utility.log(3, "ajaxCTA not done", theUrl);
+                        } else {
+                            schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
+                            utility.log(3, "ajaxCTA done", theUrl);
+                        }
+
+                        state.setItem('ajaxCTABackOff' + theCount, 0);
+                        this.waitAjaxCTA = false;
                     }
             });
 
             return true;
         } catch (err) {
             utility.error("ERROR in ajaxCTA: " + err);
+            return false;
+        }
+    },
+
+    doCTAs: function (urls) {
+        try {
+            urls = [
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=2&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=3&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=4&ref=nf",
+                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=5&ref=nf"
+            ];
+
+            if (gm.getItem("ajaxCTA", false, hiddenVar) || this.waitAjaxCTA || this.stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
+                return false;
+            }
+
+            var count = state.getItem('ajaxCTACount', 0);
+            if (count < urls.length) {
+                if (!schedule.check('ajaxCTATimer' + count)) {
+                    this.waitAjaxCTA = true;
+                    this.ajaxCTA(urls[count], count);
+                }
+
+                state.setItem('ajaxCTACount', count + 1);
+            } else {
+                state.getItem('ajaxCTACount', 0);
+                schedule.setItem('ajaxCTATimer', 1800, 300);
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in doCTAs: " + err);
             return false;
         }
     },
@@ -19173,7 +19322,7 @@ caap = {
             return true;
         }
 
-        if (this.ajaxCTA()) {
+        if (this.doCTAs()) {
             return true;
         }
 
@@ -19808,7 +19957,8 @@ function caap_Start() {
     if (!idOk) {
         // Force reload without retrying
         utility.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-        window.history.go(0);
+        window.location.href = window.location.href;
+        return;
     }
 
     config.load();

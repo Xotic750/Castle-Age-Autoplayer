@@ -54,7 +54,8 @@ function caap_Start() {
     if (!idOk) {
         // Force reload without retrying
         utility.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-        window.history.go(0);
+        window.location.href = window.location.href;
+        return;
     }
 
     config.load();

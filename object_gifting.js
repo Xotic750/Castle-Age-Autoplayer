@@ -222,7 +222,7 @@ gifting = {
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
                         var giftRequest = $(this);
-                        inputDiv = giftRequest.find(".uiButtonConfirm input[value*='Accept and play']");
+                        inputDiv = giftRequest.find("input[value*='Accept and play'],input[value*='Accept and Play']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
@@ -263,7 +263,7 @@ gifting = {
                             utility.Click(inputDiv.get(0));
                             return false;
                         } else {
-                            utility.warn("No input found in ", giftRequest);
+                            utility.warn("No input found in ", giftRequest.get(0));
                         }
 
                         return true;
