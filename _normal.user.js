@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            16
+// @dev            17
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "16",
+    devVersion    = "17",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -7490,7 +7490,7 @@ gifting = {
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
                         var giftRequest = $(this);
-                        inputDiv = giftRequest.find("input[value*='Accept and play'],input[value*='Accept and Play']");
+                        inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
@@ -19941,15 +19941,28 @@ function caap_Start() {
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats.FBID = FBID;
                 idOk = true;
-            } else {
-                tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', ''));
-                if (tempArr && tempArr.length === 2) {
-                    FBID = parseInt(tempArr[1], 10);
-                    if (utility.isNum(FBID) && FBID > 0) {
-                        caap.stats.FBID = FBID;
-                        idOk = true;
-                    }
-                }
+            }
+        }
+    }
+
+    if (!idOk) {
+        tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
+        if (tempArr && tempArr.length === 2) {
+            FBID = parseInt(tempArr[1], 10);
+            if (utility.isNum(FBID) && FBID > 0) {
+                caap.stats.FBID = FBID;
+                idOk = true;
+            }
+        }
+    }
+
+    if (!idOk) {
+        tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
+        if (tempArr && tempArr.length === 2) {
+            FBID = parseInt(tempArr[1], 10);
+            if (utility.isNum(FBID) && FBID > 0) {
+                caap.stats.FBID = FBID;
+                idOk = true;
             }
         }
     }
@@ -19957,7 +19970,14 @@ function caap_Start() {
     if (!idOk) {
         // Force reload without retrying
         utility.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-        window.location.href = window.location.href;
+        if (typeof window.location.reload === 'function') {
+            window.location.reload();
+        } else if (typeof history.go === 'function') {
+            history.go(0);
+        } else {
+            window.location.href = window.location.href;
+        }
+
         return;
     }
 
