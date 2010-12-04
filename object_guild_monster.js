@@ -429,7 +429,7 @@ guild_monster = {
             //utility.log(1, "guidId", $("input[name='guild_id']").eq(0).attr("value"));
             slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
-            myStatsTxt = $.trim(bannerDiv.children().eq(1).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
+            myStatsTxt = $.trim(bannerDiv.children().eq(2).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {
                 utility.log(3, "slot", slot);
                 currentRecord = this.getItem(slot);

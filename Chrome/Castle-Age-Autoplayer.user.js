@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            17
+// @dev            18
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "17",
+    devVersion    = "18",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -4961,7 +4961,7 @@ guild_monster = {
             //utility.log(1, "guidId", $("input[name='guild_id']").eq(0).attr("value"));
             slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
-            myStatsTxt = $.trim(bannerDiv.children().eq(1).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
+            myStatsTxt = $.trim(bannerDiv.children().eq(2).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {
                 utility.log(3, "slot", slot);
                 currentRecord = this.getItem(slot);
