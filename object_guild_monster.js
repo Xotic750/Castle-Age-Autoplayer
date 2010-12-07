@@ -26,7 +26,6 @@ guild_monster = {
         };
     },
 
-/*
     minion: function () {
         this.data = {
             attacking_position : 0,
@@ -40,7 +39,6 @@ guild_monster = {
             percent            : 0
         };
     },
-*/
 
     me: function () {
         this.data = {
@@ -77,38 +75,10 @@ guild_monster = {
 
     load: function () {
         try {
-            if (gm.getItem('guild_monster.records', 'default') === 'default' || !$.isArray(gm.getItem('guild_monster.records', 'default'))) {
-                gm.setItem('guild_monster.records', this.records);
-            } else {
-                this.records = gm.getItem('guild_monster.records', this.records);
+            this.records = gm.getItem('guild_monster.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('guild_monster.records', []);
             }
-
-            /*
-            if (this.records.length < 3) {
-                var record = new this.record().data;
-                $.extend(true, record, this.records[0]);
-                record.name ="Alpha Vincent";
-                record.slot = 4
-                record.myStatus = "Healthy";
-                record.ticker = "35:16:42";
-                record.state = "Alive";
-                record.reviewed = 1391099048253;
-                record.color = "black";
-                this.records.push(record);
-                var record1 = new this.record().data;
-                $.extend(true, record1, this.records[0]);
-                record1.name ="Vincent";
-                record1.slot = 5
-                record1.myStatus = "Healthy";
-                record1.ticker = "35:16:42";
-                record1.state = "Alive";
-                record1.reviewed = 1391099048253;
-                record1.color = "black";
-                this.records.push(record1);
-            }
-
-            this.select(true);
-            */
 
             state.setItem("GuildMonsterDashUpdate", true);
             utility.log(3, "guild_monster.load", this.records);
@@ -425,8 +395,6 @@ guild_monster = {
                 });
             }
 
-            //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
-            //utility.log(1, "guidId", $("input[name='guild_id']").eq(0).attr("value"));
             slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
             myStatsTxt = $.trim(bannerDiv.children().eq(2).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
@@ -437,7 +405,6 @@ guild_monster = {
                 currentRecord.ticker = '';
                 currentRecord.guildHealth = 0;
                 currentRecord.enemyHealth = 0;
-
                 if (!bannerDiv.attr("style").match(/_dead/)) {
                     currentRecord.ticker = $.trim($("#app46755028429_monsterTicker").text());
                     if (myStatsTxt) {
@@ -500,21 +467,9 @@ guild_monster = {
                                         memberText   = '',
                                         memberArr    = [],
                                         targetIdDiv  = null,
-                                        //memberRecord = new guild_monster.minion().data,
-                                        memberRecord = {
-                                            attacking_position : 0,
-                                            target_id          : 0,
-                                            name               : '',
-                                            level              : 0,
-                                            mclass             : '',
-                                            healthNum          : 0,
-                                            healthMax          : 0,
-                                            status             : '',
-                                            percent            : 0
-                                        };
+                                        memberRecord = new guild_monster.minion().data;
 
                                     memberRecord.attacking_position = (gIndex + 1);
-                                    //memberRecord.target_id = (gIndex * 25) + (mIndex + 1);
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
                                         memberRecord.target_id = parseInt(targetIdDiv.attr("value"), 10);
@@ -570,8 +525,6 @@ guild_monster = {
                     } else {
                         utility.warn("monster expired slot error", slot);
                     }
-                //} else if (caap.stats.guild.name && myStatsTxt.indexOf(caap.stats.guild.name) < 0) {
-                //    utility.warn("slot error", slot);
                 } else {
                     utility.log(1, "On another guild's monster", myStatsTxt);
                 }
@@ -618,8 +571,6 @@ guild_monster = {
 
             var slot = 0;
 
-            //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
-            //utility.log(1, "guidId", $("input[name='guild_id']").eq(0).attr("value"));
             slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             return (record.slot === slot);
         } catch (err) {
@@ -709,7 +660,6 @@ guild_monster = {
                 ol              = 0,
                 len             = 0,
                 len1            = 0,
-                record          = {},
                 attackOrderList = [],
                 conditions      = '',
                 ach             = 999999,
@@ -827,7 +777,7 @@ guild_monster = {
             }
 
             var attack         = 0,
-                recordInfo     = this.info[record.name];
+                recordInfo     = this.info[record.name],
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.indexOf(minion.target_id) >= 0 && isNaN(minion.healthNum)) {
@@ -902,7 +852,7 @@ guild_monster = {
 
             var stamina        = 0,
                 staminaCap     = 0,
-                recordInfo     = this.info[record.name];
+                recordInfo     = this.info[record.name],
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.indexOf(minion.target_id) >= 0 && isNaN(minion.healthNum)) {

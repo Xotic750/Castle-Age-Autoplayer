@@ -17,6 +17,7 @@ town = {
 
     magicSortable: [],
 
+    /*jslint maxlen: 512 */
     itemRegex: {
         Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
         Shield: /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
@@ -25,6 +26,7 @@ town = {
         Armor:  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
         Amulet: /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
     },
+    /*jslint maxlen: 250 */
 
     record: function () {
         this.data = {
@@ -83,10 +85,9 @@ town = {
                 throw "Invalid type value!";
             }
 
-            if (gm.getItem(type + '.records', 'default') === 'default' || !$.isArray(gm.getItem(type + '.records', 'default'))) {
-                gm.setItem(type + '.records', this[type]);
-            } else {
-                this[type] = gm.getItem(type + '.records', this[type]);
+            this[type] = gm.getItem(type + '.records', 'default');
+            if (this[type] === 'default' || !$.isArray(this[type])) {
+                this[type] = gm.setItem(type + '.records', []);
             }
 
             this.copy2sortable(type);
@@ -106,7 +107,11 @@ town = {
                 throw "Invalid type value!";
             }
 
-            gm.setItem(type + '.records', this[type]);
+            var hbest    = JSON.hbest(this[type]),
+                compress = false;
+
+            utility.log(2, "Hbest", hbest);
+            gm.setItem(type + '.records', this[type], hbest, compress);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.save", type, this[type]);
             return true;
@@ -269,8 +274,6 @@ town = {
         try {
             var it1     = 0,
                 it2     = 0,
-                type    = 0,
-                len     = 0,
                 tempIt1 = -1,
                 tempIt2 = -1,
                 owned   = 0,

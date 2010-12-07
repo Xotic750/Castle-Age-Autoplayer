@@ -3,11 +3,12 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            18
+// @dev            19
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/json2.js
+// @require        http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http*://*.facebook.com/common/error.html
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
@@ -16,7 +17,7 @@
 // @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 250 */
 /*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage,sessionStorage */
 
 //////////////////////////////////
@@ -28,7 +29,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "18",
+    devVersion    = "19",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -72,7 +73,7 @@ String.prototype.regex = function (r) {
 				a[i] = parseFloat(a[i]);
 			}
 		}
-        
+
 		if (a.length === 1) {
 			return a[0];
 		}
@@ -825,7 +826,8 @@ utility = {
                 caap.waitingForDomLoad = true;
             }
 
-            window.location.href = "javascript:void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+            var jss = "javascript";
+            window.location.href = jss + ":void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
             return true;
         } catch (err) {
             this.error("ERROR in utility.ClickAjaxLinkSend: " + err);
@@ -849,7 +851,8 @@ utility = {
                 caap.waitingForDomLoad = true;
             }
 
-            window.location.href = "javascript:void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
+            var jss = "javascript";
+            window.location.href = jss + ":void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
             return true;
         } catch (err) {
             this.error("ERROR in utility.ClickGetCachedAjax: " + err);
@@ -1374,6 +1377,27 @@ utility = {
     },
 
     /*jslint bitwise: false */
+    toHexStr: function (n) {
+        var s = "",
+            v = 0,
+            i = 0;
+
+        for (i = 7; i >= 0; i -= 1) {
+            v = (n >>> (i * 4)) & 0xf;
+            s += v.toString(16);
+        }
+
+        return s;
+    },
+
+    ROTL: function (n, s) {
+        return (n << s) | (n >>> (32 - s));
+    },
+
+    ROTR: function (n, x) {
+        return (x >>> n) | (x << (32 - n));
+    },
+
     SHA1: function (msg) {
         try {
             if (!msg || typeof msg !== 'string') {
@@ -1381,63 +1405,26 @@ utility = {
                 throw "Invalid msg!";
             }
 
-            function rotate_left(n, s) {
-                return (n << s) | (n >>> (32 - s));
-            }
-
-            function cvt_hex(val) {
-                var str = "", i, v;
-
-                for (i = 7; i >= 0; i -= 1) {
-                    v = (val >>> (i * 4)) & 0x0f;
-                    str += v.toString(16);
-                }
-
-                return str;
-            }
-
-            function Utf8Encode(string) {
-                string = string.replace(/\r\n/g, "\n");
-                var utftext = "",
-                    n = 0,
-                    l = 0,
-                    c = '';
-
-                for (n = 0, l = string.length; n < l; n += 1) {
-                    c = string.charCodeAt(n);
-                    if (c < 128) {
-                        utftext += String.fromCharCode(c);
-                    } else if ((c > 127) && (c < 2048)) {
-                        utftext += String.fromCharCode((c >> 6) | 192);
-                        utftext += String.fromCharCode((c & 63) | 128);
-                    } else {
-                        utftext += String.fromCharCode((c >> 12) | 224);
-                        utftext += String.fromCharCode(((c >> 6) & 63) | 128);
-                        utftext += String.fromCharCode((c & 63) | 128);
-                    }
-                }
-
-                return utftext;
-            }
-
-            var blockstart, i, j,
-                W = [80],
-                H0 = 0x67452301,
-                H1 = 0xEFCDAB89,
-                H2 = 0x98BADCFE,
-                H3 = 0x10325476,
-                H4 = 0xC3D2E1F0,
-                A = null,
-                B = null,
-                C = null,
-                D = null,
-                E = null,
-                temp = null,
-                msg_len = 0,
-                len = 0,
+            var blockstart = 0,
+                i          = 0,
+                j          = 0,
+                W          = [80],
+                H0         = 0x67452301,
+                H1         = 0xEFCDAB89,
+                H2         = 0x98BADCFE,
+                H3         = 0x10325476,
+                H4         = 0xC3D2E1F0,
+                A          = null,
+                B          = null,
+                C          = null,
+                D          = null,
+                E          = null,
+                temp       = null,
+                msg_len    = 0,
+                len        = 0,
                 word_array = [];
 
-            msg = Utf8Encode(msg);
+            msg = this.Utf8.encode(msg);
             msg_len = msg.length;
             for (i = 0; i < msg_len - 3; i += 4) {
                 j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
@@ -1473,7 +1460,7 @@ utility = {
                 }
 
                 for (i = 16; i <= 79; i += 1) {
-                    W[i] = rotate_left(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+                    W[i] = utility.ROTL(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
                 }
 
                 A = H0;
@@ -1482,37 +1469,37 @@ utility = {
                 D = H3;
                 E = H4;
                 for (i = 0; i <= 19; i += 1) {
-                    temp = (rotate_left(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
+                    temp = (utility.ROTL(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
                     E = D;
                     D = C;
-                    C = rotate_left(B, 30);
+                    C = utility.ROTL(B, 30);
                     B = A;
                     A = temp;
                 }
 
                 for (i = 20; i <= 39; i += 1) {
-                    temp = (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
+                    temp = (utility.ROTL(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
                     E = D;
                     D = C;
-                    C = rotate_left(B, 30);
+                    C = utility.ROTL(B, 30);
                     B = A;
                     A = temp;
                 }
 
                 for (i = 40; i <= 59; i += 1) {
-                    temp = (rotate_left(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
+                    temp = (utility.ROTL(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
                     E = D;
                     D = C;
-                    C = rotate_left(B, 30);
+                    C = utility.ROTL(B, 30);
                     B = A;
                     A = temp;
                 }
 
                 for (i = 60; i <= 79; i += 1) {
-                    temp = (rotate_left(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
+                    temp = (utility.ROTL(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
                     E = D;
                     D = C;
-                    C = rotate_left(B, 30);
+                    C = utility.ROTL(B, 30);
                     B = A;
                     A = temp;
                 }
@@ -1524,14 +1511,759 @@ utility = {
                 H4 = (H4 + E) & 0x0ffffffff;
             }
 
-            temp = cvt_hex(H0) + cvt_hex(H1) + cvt_hex(H2) + cvt_hex(H3) + cvt_hex(H4);
+            temp = utility.toHexStr(H0) + utility.toHexStr(H1) + utility.toHexStr(H2) + utility.toHexStr(H3) + utility.toHexStr(H4);
             return temp.toLowerCase();
         } catch (err) {
             utility.error("ERROR in utility.SHA1: " + err);
             return undefined;
         }
-    }
+    },
+
+    SHA256: {
+        hash: function (msg, utf8encode) {
+            utf8encode =  (typeof utf8encode === 'undefined') ? true : utf8encode;
+            if (utf8encode) {
+                msg = utility.Utf8.encode(msg);
+            }
+
+            msg += String.fromCharCode(0x80);
+
+            var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+                     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+                     0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+                     0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+                     0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+                     0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+                     0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+                     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2],
+                H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
+                l = msg.length / 4 + 2,
+                N = Math.ceil(l / 16),
+                M = new Array(N),
+                i = 0,
+                j = 0,
+                W = [],
+                t = 0,
+                a, b, c, d, e, f, g, h, T1, T2;
+
+            for (i = 0; i < N; i += 1) {
+                M[i] = new Array(16);
+                for (j = 0; j < 16; j += 1) {
+                    M[i][j] = (msg.charCodeAt(i * 64 + j * 4)<<24) | (msg.charCodeAt(i * 64 + j * 4 + 1)<<16) | (msg.charCodeAt(i * 64 + j * 4 + 2)<<8) | (msg.charCodeAt(i * 64 + j * 4 + 3));
+                }
+            }
+
+            M[N - 1][14] = ((msg.length - 1) * 8) / Math.pow(2, 32);
+            M[N - 1][14] = Math.floor(M[N - 1][14]);
+            M[N - 1][15] = ((msg.length - 1) * 8) & 0xffffffff;
+            W = new Array(64);
+            for (i = 0; i < N; i += 1) {
+                for (t = 0; t < 16; t += 1) {
+                    W[t] = M[i][t];
+                }
+
+                for (t = 16; t < 64; t += 1) {
+                    W[t] = (this.sigma1(W[t - 2]) + W[t - 7] + this.sigma0(W[t - 15]) + W[t - 16]) & 0xffffffff;
+                }
+
+                a = H[0];
+                b = H[1];
+                c = H[2];
+                d = H[3];
+                e = H[4];
+                f = H[5];
+                g = H[6];
+                h = H[7];
+                for (t = 0; t < 64; t += 1) {
+                    T1 = h + this.Sigma1(e) + this.Ch(e, f, g) + K[t] + W[t];
+                    T2 = this.Sigma0(a) + this.Maj(a, b, c);
+                    h = g;
+                    g = f;
+                    f = e;
+                    e = (d + T1) & 0xffffffff;
+                    d = c;
+                    c = b;
+                    b = a;
+                    a = (T1 + T2) & 0xffffffff;
+                }
+
+                H[0] = (H[0] + a) & 0xffffffff;
+                H[1] = (H[1] + b) & 0xffffffff;
+                H[2] = (H[2] + c) & 0xffffffff;
+                H[3] = (H[3] + d) & 0xffffffff;
+                H[4] = (H[4] + e) & 0xffffffff;
+                H[5] = (H[5] + f) & 0xffffffff;
+                H[6] = (H[6] + g) & 0xffffffff;
+                H[7] = (H[7] + h) & 0xffffffff;
+            }
+
+            return utility.toHexStr(H[0]) + utility.toHexStr(H[1]) + utility.toHexStr(H[2]) + utility.toHexStr(H[3]) +
+                   utility.toHexStr(H[4]) + utility.toHexStr(H[5]) + utility.toHexStr(H[6]) + utility.toHexStr(H[7]);
+        },
+
+        Sigma0: function (x) {
+            return utility.ROTR(2, x) ^ utility.ROTR(13, x) ^ utility.ROTR(22, x);
+        },
+
+        Sigma1: function (x) {
+            return utility.ROTR(6,  x) ^ utility.ROTR(11, x) ^ utility.ROTR(25, x);
+        },
+
+        sigma0: function (x) {
+            return utility.ROTR(7,  x) ^ utility.ROTR(18, x) ^ (x>>>3);
+        },
+
+        sigma1: function (x) {
+            return utility.ROTR(17, x) ^ utility.ROTR(19, x) ^ (x>>>10);
+        },
+
+        Ch: function (x, y, z)  {
+            return (x & y) ^ (~x & z);
+        },
+
+        Maj: function (x, y, z) {
+            return (x & y) ^ (x & z) ^ (y & z);
+        }
+    },
     /*jslint bitwise: true */
+
+    Aes: {
+        cipher: function (input, w) {
+            var Nb     = 4,
+                Nr     = w.length / Nb - 1,
+                state  = [[], [], [], []],
+                i      = 0,
+                round  = 1,
+                output = [];
+
+            for (i = 0; i < 4 * Nb; i += 1) {
+                state[i % 4][Math.floor(i / 4)] = input[i];
+            }
+
+            state = this.addRoundKey(state, w, 0, Nb);
+            for (round = 1; round < Nr; round += 1) {
+                state = this.subBytes(state, Nb);
+                state = this.shiftRows(state, Nb);
+                state = this.mixColumns(state, Nb);
+                state = this.addRoundKey(state, w, round, Nb);
+            }
+
+            state = this.subBytes(state, Nb);
+            state = this.shiftRows(state, Nb);
+            state = this.addRoundKey(state, w, Nr, Nb);
+            output = new Array(4 * Nb);
+            for (i = 0; i < 4 * Nb; i += 1) {
+                output[i] = state[i % 4][Math.floor(i / 4)];
+            }
+
+            return output;
+        },
+
+        keyExpansion: function (key) {
+            var Nb   = 4,
+                Nk   = key.length / 4,
+                Nr   = Nk + 6,
+                w    = new Array(Nb * (Nr + 1)),
+                temp = new Array(4),
+                i    = 0,
+                t    = 0;
+
+            for (i = 0; i < Nk; i += 1) {
+                w[i] = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
+            }
+
+            for (i = Nk; i < (Nb * (Nr + 1)); i += 1) {
+                w[i] = new Array(4);
+                for (t = 0; t < 4; t += 1) {
+                    temp[t] = w[i - 1][t];
+                }
+
+                if (i % Nk === 0) {
+                    temp = this.subWord(this.rotWord(temp));
+                    /*jslint bitwise: false */
+                    for (t = 0; t < 4; t += 1) {
+                        temp[t] ^= this.rCon[i / Nk][t];
+                    }
+                    /*jslint bitwise: true */
+
+                } else if (Nk > 6 && i % Nk === 4) {
+                    temp = this.subWord(temp);
+                }
+
+                /*jslint bitwise: false */
+                for (t = 0; t < 4; t += 1) {
+                    w[i][t] = w[i - Nk][t] ^ temp[t];
+                }
+                /*jslint bitwise: true */
+            }
+
+            return w;
+        },
+
+        subBytes: function (s, Nb) {
+            var r = 0,
+                c = 0;
+
+            for (r = 0; r < 4; r += 1) {
+                for (c = 0; c < Nb; c += 1) {
+                    s[r][c] = this.sBox[s[r][c]];
+                }
+            }
+
+            return s;
+        },
+
+        shiftRows: function (s, Nb) {
+            var t = new Array(4),
+                r = 1,
+                c = 0;
+
+            for (r = 1; r < 4; r += 1) {
+                for (c = 0; c < 4; c += 1) {
+                    t[c] = s[r][(c + r) % Nb];
+                }
+
+                for (c = 0; c < 4; c += 1) {
+                    s[r][c] = t[c];
+                }
+            }
+
+            return s;
+        },
+
+        mixColumns: function (s, Nb) {
+            var c = 0,
+                a = [],
+                b = [],
+                i = 0;
+
+            /*jslint bitwise: false */
+            for (c = 0; c < 4; c += 1) {
+                a = new Array(4);
+                b = new Array(4);
+                for (i = 0; i < 4; i += 1) {
+                    a[i] = s[i][c];
+                    b[i] = s[i][c]&0x80 ? s[i][c]<<1 ^ 0x011b : s[i][c]<<1;
+                }
+
+                s[0][c] = b[0] ^ a[1] ^ b[1] ^ a[2] ^ a[3];
+                s[1][c] = a[0] ^ b[1] ^ a[2] ^ b[2] ^ a[3];
+                s[2][c] = a[0] ^ a[1] ^ b[2] ^ a[3] ^ b[3];
+                s[3][c] = a[0] ^ b[0] ^ a[1] ^ a[2] ^ b[3];
+            }
+            /*jslint bitwise: true */
+
+            return s;
+        },
+
+        addRoundKey: function (state, w, rnd, Nb) {
+            var r = 0,
+                c = 0;
+
+            /*jslint bitwise: false */
+            for (r = 0; r < 4; r += 1) {
+                for (c = 0; c < Nb; c += 1) {
+                    state[r][c] ^= w[rnd * 4 + c][r];
+                }
+            }
+            /*jslint bitwise: true */
+
+            return state;
+        },
+
+        subWord: function (w) {
+            for (var i = 0; i < 4; i += 1) {
+                w[i] = this.sBox[w[i]];
+            }
+
+            return w;
+        },
+
+        rotWord: function (w) {
+            var tmp = w[0],
+                i   = 0;
+
+            for (i = 0; i < 3; i += 1) {
+                w[i] = w[i + 1];
+            }
+
+            w[3] = tmp;
+            return w;
+        },
+
+        sBox: [ 0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+                0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+                0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+                0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+                0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+                0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+                0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+                0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+                0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+                0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+                0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+                0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+                0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+                0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+                0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+                0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16 ],
+
+        rCon: [ [0x00, 0x00, 0x00, 0x00],
+                [0x01, 0x00, 0x00, 0x00],
+                [0x02, 0x00, 0x00, 0x00],
+                [0x04, 0x00, 0x00, 0x00],
+                [0x08, 0x00, 0x00, 0x00],
+                [0x10, 0x00, 0x00, 0x00],
+                [0x20, 0x00, 0x00, 0x00],
+                [0x40, 0x00, 0x00, 0x00],
+                [0x80, 0x00, 0x00, 0x00],
+                [0x1b, 0x00, 0x00, 0x00],
+                [0x36, 0x00, 0x00, 0x00] ],
+
+        Ctr: {
+            encrypt: function (plaintext, password, nBits) {
+                if (!(nBits === 128 || nBits === 192 || nBits === 256)) {
+                    return '';
+                }
+
+                plaintext = utility.Utf8.encode(plaintext);
+                password = utility.Utf8.encode(password);
+                var blockSize    = 16,
+                    nBytes       = nBits / 8,
+                    pwBytes      = new Array(nBytes),
+                    i            = 0,
+                    counterBlock = new Array(blockSize),
+                    nonce        = new Date().getTime(),
+                    nonceSec     = Math.floor(nonce / 1000),
+                    nonceMs      = nonce % 1000,
+                    key          = [],
+                    ctrTxt       = '',
+                    keySchedule  = [],
+                    blockCount   = 0,
+                    ciphertxt    = [],
+                    b            = 0,
+                    c            = 0,
+                    cipherCntr   = [],
+                    blockLength  = 0,
+                    cipherChar   = [],
+                    ciphertext   = '';
+
+                for (i = 0; i < nBytes; i += 1) {
+                    pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
+                }
+
+                key = utility.Aes.cipher(pwBytes, utility.Aes.keyExpansion(pwBytes));
+                key = key.concat(key.slice(0, nBytes - 16));
+                /*jslint bitwise: false */
+                for (i = 0; i < 4; i += 1) {
+                    counterBlock[i] = (nonceSec >>> i * 8) & 0xff;
+                }
+
+                for (i = 0; i < 4; i += 1) {
+                    counterBlock[i + 4] = nonceMs & 0xff;
+                }
+                /*jslint bitwise: true */
+
+                for (i = 0; i < 8; i += 1) {
+                    ctrTxt += String.fromCharCode(counterBlock[i]);
+                }
+
+                keySchedule = utility.Aes.keyExpansion(key);
+                blockCount = Math.ceil(plaintext.length / blockSize);
+                ciphertxt = new Array(blockCount);
+                /*jslint bitwise: false */
+                for (b = 0; b < blockCount; b += 1) {
+                    for (c = 0; c < 4; c += 1) {
+                        counterBlock[15 - c] = (b >>> c * 8) & 0xff;
+                    }
+
+                    for (c = 0; c < 4; c += 1) {
+                        counterBlock[15 - c - 4] = (b / 0x100000000 >>> c * 8);
+                    }
+
+                    cipherCntr = utility.Aes.cipher(counterBlock, keySchedule);
+                    blockLength = b < blockCount - 1 ? blockSize : (plaintext.length - 1) % blockSize + 1;
+                    cipherChar = new Array(blockLength);
+                    for (i = 0; i < blockLength; i += 1) {
+                        cipherChar[i] = cipherCntr[i] ^ plaintext.charCodeAt(b * blockSize + i);
+                        cipherChar[i] = String.fromCharCode(cipherChar[i]);
+                    }
+
+                    ciphertxt[b] = cipherChar.join('');
+                }
+                /*jslint bitwise: true */
+
+                ciphertext = ctrTxt + ciphertxt.join('');
+                ciphertext = utility.Base64.encode(ciphertext);
+                return ciphertext;
+            },
+
+            decrypt: function (ciphertext, password, nBits) {
+                if (!(nBits === 128 || nBits === 192 || nBits === 256)) {
+                    return '';
+                }
+
+                ciphertext = utility.Base64.decode(ciphertext);
+                password = utility.Utf8.encode(password);
+                var blockSize    = 16,
+                    nBytes       = nBits / 8,
+                    pwBytes      = new Array(nBytes),
+                    i            = 0,
+                    key          = [],
+                    counterBlock = [],
+                    ctrTxt       = [],
+                    keySchedule  = [],
+                    nBlocks      = 0,
+                    ct           = [],
+                    b            = 0,
+                    plaintxt     = [],
+                    c            = 0,
+                    cipherCntr   = [],
+                    plaintxtByte = [],
+                    plaintext    = '';
+
+                for (i = 0; i < nBytes; i += 1) {
+                    pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
+                }
+
+                key = utility.Aes.cipher(pwBytes, utility.Aes.keyExpansion(pwBytes));
+                key = key.concat(key.slice(0, nBytes - 16));
+                counterBlock = new Array(8);
+                ctrTxt = ciphertext.slice(0, 8);
+                for (i = 0; i < 8; i += 1) {
+                    counterBlock[i] = ctrTxt.charCodeAt(i);
+                }
+
+                keySchedule = utility.Aes.keyExpansion(key);
+                nBlocks = Math.ceil((ciphertext.length - 8) / blockSize);
+                ct = new Array(nBlocks);
+                for (b = 0; b < nBlocks; b += 1) {
+                    ct[b] = ciphertext.slice(8 + b * blockSize, 8 + b * blockSize + blockSize);
+                }
+
+                ciphertext = ct;
+                plaintxt = new Array(ciphertext.length);
+
+                /*jslint bitwise: false */
+                for (b = 0; b < nBlocks; b += 1) {
+                    for (c = 0; c < 4; c += 1) {
+                        counterBlock[15 - c] = ((b) >>> c * 8) & 0xff;
+                    }
+
+                    for (c = 0; c < 4; c += 1) {
+                        counterBlock[15 - c - 4] = (((b + 1) / 0x100000000 - 1) >>> c * 8) & 0xff;
+                    }
+
+                    cipherCntr = utility.Aes.cipher(counterBlock, keySchedule);
+                    plaintxtByte = new Array(ciphertext[b].length);
+                    for (i = 0; i < ciphertext[b].length; i += 1) {
+                        plaintxtByte[i] = cipherCntr[i] ^ ciphertext[b].charCodeAt(i);
+                        plaintxtByte[i] = String.fromCharCode(plaintxtByte[i]);
+                    }
+
+                    plaintxt[b] = plaintxtByte.join('');
+                }
+                /*jslint bitwise: true */
+
+                plaintext = plaintxt.join('');
+                plaintext = utility.Utf8.decode(plaintext);
+                return plaintext;
+            }
+        }
+    },
+
+    Base64: {
+        code: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+
+        encode: function (str, utf8encode) {
+            var o1, o2, o3, bits, h1, h2, h3, h4,
+                c     = 0,
+                coded = '',
+                plain = '',
+                e     = [],
+                pad   = '',
+                b64   = this.code;
+
+            utf8encode = (typeof utf8encode === 'undefined') ? false : utf8encode;
+            plain = utf8encode ? utility.Utf8.encode(str) : str;
+            c = plain.length % 3;
+            if (c > 0) {
+                while (c < 3) {
+                    pad += '=';
+                    plain += '\0';
+                    c += 1;
+                }
+            }
+
+            /*jslint bitwise: false */
+            for (c = 0; c < plain.length; c += 3) {
+                o1 = plain.charCodeAt(c);
+                o2 = plain.charCodeAt(c + 1);
+                o3 = plain.charCodeAt(c + 2);
+                bits = o1<<16 | o2<<8 | o3;
+                h1 = bits>>18 & 0x3f;
+                h2 = bits>>12 & 0x3f;
+                h3 = bits>>6 & 0x3f;
+                h4 = bits & 0x3f;
+                e[c / 3] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
+            }
+            /*jslint bitwise: true */
+
+            coded = e.join('');
+            coded = coded.slice(0, coded.length - pad.length) + pad;
+            return coded;
+        },
+
+        decode: function (str, utf8decode) {
+            var o1, o2, o3, h1, h2, h3, h4, bits,
+                d     = [],
+                plain = '',
+                coded = '',
+                b64   = this.code,
+                c     = 0;
+
+            utf8decode = (typeof utf8decode === 'undefined') ? false : utf8decode;
+            coded = utf8decode ? utility.Utf8.decode(str) : str;
+            /*jslint bitwise: false */
+            for (c = 0; c < coded.length; c += 4) {
+                h1 = b64.indexOf(coded.charAt(c));
+                h2 = b64.indexOf(coded.charAt(c + 1));
+                h3 = b64.indexOf(coded.charAt(c + 2));
+                h4 = b64.indexOf(coded.charAt(c + 3));
+                bits = h1<<18 | h2<<12 | h3<<6 | h4;
+                o1 = bits>>>16 & 0xff;
+                o2 = bits>>>8 & 0xff;
+                o3 = bits & 0xff;
+                d[c / 4] = String.fromCharCode(o1, o2, o3);
+                if (h4 === 0x40) {
+                    d[c / 4] = String.fromCharCode(o1, o2);
+                }
+
+                if (h3 === 0x40) {
+                    d[c / 4] = String.fromCharCode(o1);
+                }
+            }
+            /*jslint bitwise: true */
+
+            plain = d.join('');
+            return utf8decode ? plain.decodeUTF8() : plain;
+        }
+    },
+
+    Utf8: {
+        encode: function (strUni) {
+            var strUtf = '';
+
+            strUtf = strUni.replace(/[\u0080-\u07ff]/g, function (c) {
+                var cc  = c.charCodeAt(0),
+                    /*jslint bitwise: false */
+                    str = String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f);
+                    /*jslint bitwise: true */
+
+                return str;
+            });
+
+            strUtf = strUtf.replace(/[\u0800-\uffff]/g, function (c) {
+                var cc  = c.charCodeAt(0),
+                    /*jslint bitwise: false */
+                    str = String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f);
+                    /*jslint bitwise: true */
+
+                return str;
+            });
+
+            return strUtf;
+        },
+
+        decode: function (strUtf) {
+            var strUni = '';
+
+            strUni = strUtf.replace(/[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g, function (c) {
+                /*jslint bitwise: false */
+                var cc = ((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | (c.charCodeAt(2)&0x3f);
+                /*jslint bitwise: true */
+
+                return String.fromCharCode(cc);
+            });
+
+            strUni = strUni.replace(/[\u00c0-\u00df][\u0080-\u00bf]/g, function (c) {
+                /*jslint bitwise: false */
+                var cc = (c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f;
+                /*jslint bitwise: true */
+
+                return String.fromCharCode(cc);
+            });
+
+            return strUni;
+        }
+    },
+
+    LZ77: function (settings) {
+        settings = settings || {};
+        var referencePrefix       = "`",
+            referenceIntBase      = settings.referenceIntBase || 96,
+            referenceIntFloorCode = " ".charCodeAt(0),
+            referenceIntCeilCode  = referenceIntFloorCode + referenceIntBase - 1,
+            maxStringDistance     = Math.pow(referenceIntBase, 2) - 1,
+            minStringLength       = settings.minStringLength || 5,
+            maxStringLength       = Math.pow(referenceIntBase, 1) - 1 + minStringLength,
+            defaultWindowLength   = settings.defaultWindowLength || 144,
+            maxWindowLength       = maxStringDistance + minStringLength,
+            encodeReferenceInt    = null,
+            encodeReferenceLength = null,
+            decodeReferenceInt    = null,
+            decodeReferenceLength = null;
+
+
+        encodeReferenceInt = function (value, width) {
+            if ((value >= 0) && (value < (Math.pow(referenceIntBase, width) - 1))) {
+                var encoded       = "",
+                    i             = 0,
+                    missingLength = 0,
+                    mf            = Math.floor,
+                    sc            = String.fromCharCode;
+
+                while (value > 0) {
+                    encoded = sc((value % referenceIntBase) + referenceIntFloorCode) + encoded;
+                    value = mf(value / referenceIntBase);
+                }
+
+                missingLength = width - encoded.length;
+                for (i = 0; i < missingLength; i += 1) {
+                    encoded = sc(referenceIntFloorCode) + encoded;
+                }
+
+                return encoded;
+            } else {
+                throw "Reference int out of range: " + value + " (width = " + width + ")";
+            }
+        };
+
+        encodeReferenceLength = function (length) {
+            return encodeReferenceInt(length - minStringLength, 1);
+        };
+
+        decodeReferenceInt = function (data, width) {
+            var value    = 0,
+                i        = 0,
+                charCode = 0;
+
+            for (i = 0; i < width; i += 1) {
+                value *= referenceIntBase;
+                charCode = data.charCodeAt(i);
+                if ((charCode >= referenceIntFloorCode) && (charCode <= referenceIntCeilCode)) {
+                    value += charCode - referenceIntFloorCode;
+                } else {
+                    throw "Invalid char code in reference int: " + charCode;
+                }
+            }
+
+            return value;
+        };
+
+        decodeReferenceLength = function (data) {
+            return decodeReferenceInt(data, 1) + minStringLength;
+        };
+
+        this.compress = function (data, windowLength) {
+            windowLength = windowLength || defaultWindowLength;
+            if (windowLength > maxWindowLength) {
+                throw "Window length too large";
+            }
+
+            var compressed      = "",
+                pos             = 0,
+                lastPos         = data.length - minStringLength,
+                searchStart     = 0,
+                matchLength     = 0,
+                foundMatch      = false,
+                bestMatch       = {},
+                newCompressed   = null,
+                realMatchLength = 0,
+                mm              = Math.max,
+                dataCharAt      = 0;
+
+            while (pos < lastPos) {
+                searchStart = mm(pos - windowLength, 0);
+                matchLength = minStringLength;
+                foundMatch = false;
+                bestMatch = {
+                    distance : maxStringDistance,
+                    length   : 0
+                };
+
+                newCompressed = null;
+                while ((searchStart + matchLength) < pos) {
+                    if ((matchLength < maxStringLength) && (data.substr(searchStart, matchLength) === data.substr(pos, matchLength))) {
+                        matchLength += 1;
+                        foundMatch = true;
+                    } else {
+                        realMatchLength = matchLength - 1;
+                        if (foundMatch && (realMatchLength > bestMatch.length)) {
+                            bestMatch.distance = pos - searchStart - realMatchLength;
+                            bestMatch.length = realMatchLength;
+                        }
+
+                        matchLength = minStringLength;
+                        searchStart += 1;
+                        foundMatch = false;
+                    }
+                }
+
+                if (bestMatch.length) {
+                    newCompressed = referencePrefix + encodeReferenceInt(bestMatch.distance, 2) + encodeReferenceLength(bestMatch.length);
+                    pos += bestMatch.length;
+                } else {
+                    dataCharAt = data.charAt(pos);
+                    if (dataCharAt !== referencePrefix) {
+                        newCompressed = dataCharAt;
+                    } else {
+                        newCompressed = referencePrefix + referencePrefix;
+                    }
+
+                    pos += 1;
+                }
+
+                compressed += newCompressed;
+            }
+
+            return compressed + data.slice(pos).replace(/`/g, "``");
+        };
+
+        this.decompress = function (data) {
+            var decompressed = "",
+                pos          = 0,
+                currentChar  = '',
+                nextChar     = '',
+                distance     = 0,
+                length       = 0,
+                minStrLength = minStringLength - 1,
+                dataLength   = data.length,
+                posPlusOne   = 0;
+
+            while (pos < dataLength) {
+                currentChar = data.charAt(pos);
+                if (currentChar !== referencePrefix) {
+                    decompressed += currentChar;
+                    pos += 1;
+                } else {
+                    posPlusOne = pos + 1;
+                    nextChar = data.charAt(posPlusOne);
+                    if (nextChar !== referencePrefix) {
+                        distance = decodeReferenceInt(data.substr(posPlusOne, 2), 2);
+                        length = decodeReferenceLength(data.charAt(pos + 3));
+                        decompressed += decompressed.substr(decompressed.length - distance - length, length);
+                        pos += minStrLength;
+                    } else {
+                        decompressed += referencePrefix;
+                        pos += 2;
+                    }
+                }
+            }
+
+            return decompressed;
+        };
+    }
 };
 
 ////////////////////////////////////////////////////////////////////
@@ -1544,10 +2276,9 @@ config = {
 
     load: function () {
         try {
-            if (gm.getItem('config.options', 'default') === 'default' || !$.isPlainObject(gm.getItem('config.options', 'default'))) {
-                gm.setItem('config.options', this.options);
-            } else {
-                $.extend(true, this.options, gm.getItem('config.options', this.options));
+            this.options = gm.getItem('config.options', 'default');
+            if (this.options === 'default' || !$.isPlainObject(this.options)) {
+                this.options = gm.setItem('config.options', {});
             }
 
             utility.log(5, "config.load", this.options);
@@ -1640,10 +2371,9 @@ state = {
 
     load: function () {
         try {
-            if (gm.getItem('state.flags', 'default') === 'default' || !$.isPlainObject(gm.getItem('state.flags', 'default'))) {
-                gm.setItem('state.flags', this.flags);
-            } else {
-                $.extend(true, this.flags, gm.getItem('state.flags', this.flags));
+            this.flags = gm.getItem('state.flags', 'default');
+            if (this.flags === 'default' || !$.isPlainObject(this.flags)) {
+                this.flags = gm.setItem('state.flags', {});
             }
 
             utility.log(5, "state.load", this.flags);
@@ -1743,7 +2473,7 @@ css = {
         try {
             var href = window.location.href;
 
-            if (href.indexOf('apps.facebook.com/castle_age') >= 0) {
+            if (href.indexOf('apps.facebook.com/castle_age') >= 0 || href.indexOf('apps.facebook.com/reqs.php') >= 0) {
                 if (!$('link[href*="jquery-ui.css"').length) {
                     $("<link>").appendTo("head").attr({
                         rel: "stylesheet",
@@ -1807,9 +2537,11 @@ gm = {
     fireFoxUseGM: false,
 
     // use these to set/get values in a way that prepends the game's name
-    setItem: function (name, value) {
+    setItem: function (name, value, hpack, compress) {
         try {
-            var jsonStr;
+            var jsonStr    = '',
+                compressor = null,
+                storageStr = '';
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -1819,15 +2551,35 @@ gm = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
-            jsonStr = JSON.stringify(value);
-            if (jsonStr === undefined || jsonStr === null) {
-                throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+            hpack = (typeof hpack !== 'number') ? false : hpack;
+            if (hpack !== false && hpack >= 0 && hpack <= 3) {
+                jsonStr = JSON.stringify(JSON.hpack(value, hpack));
+                if (jsonStr === undefined || jsonStr === null) {
+                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                }
+
+                jsonStr = "HPACK " + jsonStr;
+                utility.log(2, "Hpacked storage", name, parseFloat(((jsonStr.length / JSON.stringify(value).length) * 100).toFixed(2)));
+            } else {
+                jsonStr = JSON.stringify(value);
+                if (jsonStr === undefined || jsonStr === null) {
+                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                }
+            }
+
+            compress = (typeof compress !== 'boolean') ? false : compress;
+            if (compress) {
+                compressor = new utility.LZ77();
+                storageStr = "LZ77 " + compressor.compress(jsonStr);
+                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / jsonStr.length) * 100).toFixed(2)));
+            } else {
+                storageStr = jsonStr;
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             } else {
-                GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             }
 
             return value;
@@ -1839,16 +2591,31 @@ gm = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj;
+            var jsonObj    = {},
+                compressor = null,
+                storageStr = '';
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                jsonObj = $.parseJSON(localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
+                storageStr = localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name);
             } else {
-                jsonObj = $.parseJSON(GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name));
+                storageStr = GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name);
+            }
+
+            if (storageStr && storageStr.match(/^LZ77 /)) {
+                compressor = new utility.LZ77();
+                storageStr = compressor.decompress(storageStr.slice(5));
+                utility.log(2, "Decompressed storage", name);
+            }
+
+            if (storageStr && storageStr.match(/^HPACK /)) {
+                jsonObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
+                utility.log(2, "DeHpacked storage", name);
+            } else {
+                jsonObj = $.parseJSON(storageStr);
             }
 
             if (jsonObj === undefined || jsonObj === null) {
@@ -1857,9 +2624,9 @@ gm = {
                 }
 
                 if (value !== undefined && value !== null) {
+                    hidden = (typeof hidden !== 'boolean') ? false : hidden;
                     if (!hidden) {
                         utility.warn("gm.getItem using default value ", value);
-                        //this.setItem(name, value);
                     }
 
                     jsonObj = value;
@@ -2354,23 +3121,10 @@ sort = {
 
     form: function (id, list, records) {
         try {
-            var theDialog = null,
-                html      = '',
+            var html      = '',
                 it        = 0,
                 it1       = 0,
-                len1      = 0,
-                order     = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
+                len1      = 0;
 
             if (!this.dialog[id] || !this.dialog[id].length) {
                 list.unshift("");
@@ -2503,10 +3257,9 @@ schedule = {
 
     load: function () {
         try {
-            if (gm.getItem('schedule.timers', 'default') === 'default' || !$.isPlainObject(gm.getItem('schedule.timers', 'default'))) {
-                gm.setItem('schedule.timers', this.timers);
-            } else {
-                $.extend(true, this.timers, gm.getItem('schedule.timers', this.timers));
+            this.timers = gm.getItem('schedule.timers', 'default');
+            if (this.timers === 'default' || !$.isPlainObject(this.timers)) {
+                this.timers = gm.setItem('schedule.timers', {});
             }
 
             utility.log(5, "schedule.load", this.timers);
@@ -2815,10 +3568,9 @@ general = {
 
     load: function () {
         try {
-            if (gm.getItem('general.records', 'default') === 'default' || !$.isArray(gm.getItem('general.records', 'default'))) {
-                gm.setItem('general.records', this.records);
-            } else {
-                this.records = gm.getItem('general.records', this.records);
+            this.records = gm.getItem('general.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('general.records', []);
             }
 
             this.copy2sortable();
@@ -2834,7 +3586,11 @@ general = {
 
     save: function () {
         try {
-            gm.setItem('general.records', this.records);
+            var hbest    = JSON.hbest(this.records),
+                compress = false;
+
+            utility.log(2, "Hbest", hbest);
+            gm.setItem('general.records', this.records, hbest, compress);
             state.setItem("GeneralsDashUpdate", true);
             utility.log(5, "general.save", this.records);
             return true;
@@ -3850,10 +4606,9 @@ monster = {
 
     load: function () {
         try {
-            if (gm.getItem('monster.records', 'default') === 'default' || !$.isArray(gm.getItem('monster.records', 'default'))) {
-                gm.setItem('monster.records', this.records);
-            } else {
-                this.records = gm.getItem('monster.records', this.records);
+            this.records = gm.getItem('monster.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('monster.records', []);
             }
 
             state.setItem("MonsterDashUpdate", true);
@@ -4558,7 +5313,6 @@ guild_monster = {
         };
     },
 
-/*
     minion: function () {
         this.data = {
             attacking_position : 0,
@@ -4572,7 +5326,6 @@ guild_monster = {
             percent            : 0
         };
     },
-*/
 
     me: function () {
         this.data = {
@@ -4609,38 +5362,10 @@ guild_monster = {
 
     load: function () {
         try {
-            if (gm.getItem('guild_monster.records', 'default') === 'default' || !$.isArray(gm.getItem('guild_monster.records', 'default'))) {
-                gm.setItem('guild_monster.records', this.records);
-            } else {
-                this.records = gm.getItem('guild_monster.records', this.records);
+            this.records = gm.getItem('guild_monster.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('guild_monster.records', []);
             }
-
-            /*
-            if (this.records.length < 3) {
-                var record = new this.record().data;
-                $.extend(true, record, this.records[0]);
-                record.name ="Alpha Vincent";
-                record.slot = 4
-                record.myStatus = "Healthy";
-                record.ticker = "35:16:42";
-                record.state = "Alive";
-                record.reviewed = 1391099048253;
-                record.color = "black";
-                this.records.push(record);
-                var record1 = new this.record().data;
-                $.extend(true, record1, this.records[0]);
-                record1.name ="Vincent";
-                record1.slot = 5
-                record1.myStatus = "Healthy";
-                record1.ticker = "35:16:42";
-                record1.state = "Alive";
-                record1.reviewed = 1391099048253;
-                record1.color = "black";
-                this.records.push(record1);
-            }
-
-            this.select(true);
-            */
 
             state.setItem("GuildMonsterDashUpdate", true);
             utility.log(3, "guild_monster.load", this.records);
@@ -4957,8 +5682,6 @@ guild_monster = {
                 });
             }
 
-            //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
-            //utility.log(1, "guidId", $("input[name='guild_id']").eq(0).attr("value"));
             slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
             myStatsTxt = $.trim(bannerDiv.children().eq(2).children().eq(0).children().eq(1).text()).replace(/\s+/g, ' ');
@@ -4969,7 +5692,6 @@ guild_monster = {
                 currentRecord.ticker = '';
                 currentRecord.guildHealth = 0;
                 currentRecord.enemyHealth = 0;
-
                 if (!bannerDiv.attr("style").match(/_dead/)) {
                     currentRecord.ticker = $.trim($("#app46755028429_monsterTicker").text());
                     if (myStatsTxt) {
@@ -5032,21 +5754,9 @@ guild_monster = {
                                         memberText   = '',
                                         memberArr    = [],
                                         targetIdDiv  = null,
-                                        //memberRecord = new guild_monster.minion().data,
-                                        memberRecord = {
-                                            attacking_position : 0,
-                                            target_id          : 0,
-                                            name               : '',
-                                            level              : 0,
-                                            mclass             : '',
-                                            healthNum          : 0,
-                                            healthMax          : 0,
-                                            status             : '',
-                                            percent            : 0
-                                        };
+                                        memberRecord = new guild_monster.minion().data;
 
                                     memberRecord.attacking_position = (gIndex + 1);
-                                    //memberRecord.target_id = (gIndex * 25) + (mIndex + 1);
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
                                         memberRecord.target_id = parseInt(targetIdDiv.attr("value"), 10);
@@ -5102,8 +5812,6 @@ guild_monster = {
                     } else {
                         utility.warn("monster expired slot error", slot);
                     }
-                //} else if (caap.stats.guild.name && myStatsTxt.indexOf(caap.stats.guild.name) < 0) {
-                //    utility.warn("slot error", slot);
                 } else {
                     utility.log(1, "On another guild's monster", myStatsTxt);
                 }
@@ -5150,8 +5858,6 @@ guild_monster = {
 
             var slot = 0;
 
-            //utility.log(1, "name", $.trim($("#app46755028429_enemy_guild_member_list_1").children().eq(0).children().eq(1).children().eq(0).text()));
-            //utility.log(1, "guidId", $("input[name='guild_id']").eq(0).attr("value"));
             slot = parseInt($("input[name='slot']").eq(0).attr("value"), 10);
             return (record.slot === slot);
         } catch (err) {
@@ -5241,7 +5947,6 @@ guild_monster = {
                 ol              = 0,
                 len             = 0,
                 len1            = 0,
-                record          = {},
                 attackOrderList = [],
                 conditions      = '',
                 ach             = 999999,
@@ -5359,7 +6064,7 @@ guild_monster = {
             }
 
             var attack         = 0,
-                recordInfo     = this.info[record.name];
+                recordInfo     = this.info[record.name],
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.indexOf(minion.target_id) >= 0 && isNaN(minion.healthNum)) {
@@ -5434,7 +6139,7 @@ guild_monster = {
 
             var stamina        = 0,
                 staminaCap     = 0,
-                recordInfo     = this.info[record.name];
+                recordInfo     = this.info[record.name],
                 specialTargets = recordInfo.special2.slice();
 
             if (specialTargets.indexOf(minion.target_id) >= 0 && isNaN(minion.healthNum)) {
@@ -5551,10 +6256,9 @@ battle = {
 
     load: function () {
         try {
-            if (gm.getItem('battle.records', 'default') === 'default' || !$.isArray(gm.getItem('battle.records', 'default'))) {
-                gm.setItem('battle.records', this.records);
-            } else {
-                this.records = gm.getItem('battle.records', this.records);
+            this.records = gm.getItem('battle.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('battle.records', []);
             }
 
             state.setItem("BattleDashUpdate", true);
@@ -5568,7 +6272,11 @@ battle = {
 
     save: function () {
         try {
-            gm.setItem('battle.records', this.records);
+            var hbest    = JSON.hbest(this.records),
+                compress = false;
+
+            utility.log(2, "Hbest", hbest);
+            gm.setItem('battle.records', this.records, hbest, compress);
             state.setItem("BattleDashUpdate", true);
             utility.log(5, "battle.save", this.records);
             return true;
@@ -6618,6 +7326,7 @@ town = {
 
     magicSortable: [],
 
+    /*jslint maxlen: 512 */
     itemRegex: {
         Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
         Shield: /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
@@ -6626,6 +7335,7 @@ town = {
         Armor:  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
         Amulet: /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
     },
+    /*jslint maxlen: 250 */
 
     record: function () {
         this.data = {
@@ -6684,10 +7394,9 @@ town = {
                 throw "Invalid type value!";
             }
 
-            if (gm.getItem(type + '.records', 'default') === 'default' || !$.isArray(gm.getItem(type + '.records', 'default'))) {
-                gm.setItem(type + '.records', this[type]);
-            } else {
-                this[type] = gm.getItem(type + '.records', this[type]);
+            this[type] = gm.getItem(type + '.records', 'default');
+            if (this[type] === 'default' || !$.isArray(this[type])) {
+                this[type] = gm.setItem(type + '.records', []);
             }
 
             this.copy2sortable(type);
@@ -6707,7 +7416,11 @@ town = {
                 throw "Invalid type value!";
             }
 
-            gm.setItem(type + '.records', this[type]);
+            var hbest    = JSON.hbest(this[type]),
+                compress = false;
+
+            utility.log(2, "Hbest", hbest);
+            gm.setItem(type + '.records', this[type], hbest, compress);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.save", type, this[type]);
             return true;
@@ -6870,8 +7583,6 @@ town = {
         try {
             var it1     = 0,
                 it2     = 0,
-                type    = 0,
-                len     = 0,
                 tempIt1 = -1,
                 tempIt2 = -1,
                 owned   = 0,
@@ -6940,7 +7651,8 @@ spreadsheet = {
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
-            var jsonStr;
+            var jsonStr = '',
+                hbest   = false;
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -6949,8 +7661,11 @@ spreadsheet = {
             if (value === undefined || value === null) {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
+            var
 
-            jsonStr = JSON.stringify(value);
+            hbest = JSON.hbest(value);
+            utility.log(2, "Hbest", hbest);
+            jsonStr = JSON.stringify(JSON.hpack(value, hbest));
             if (jsonStr === undefined || jsonStr === null) {
                 throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
             }
@@ -6968,22 +7683,29 @@ spreadsheet = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj;
+            var jsonObj    = null,
+                storageStr = '',
+                storageArr = [];
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
             if (utility.is_html5_sessionStorage) {
-                jsonObj = $.parseJSON(sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name));
+                storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                storageArr = $.parseJSON(storageStr);
+                if (storageArr && storageArr.length) {
+                    jsonObj = JSON.hunpack(storageArr);
+                }
+
                 if (jsonObj === undefined || jsonObj === null) {
                     if (!hidden) {
-                        utility.warn("this.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                        utility.warn("spreadsheet.getItem parseJSON returned 'undefined' or 'null' for ", name);
                     }
 
                     if (value !== undefined && value !== null) {
                         if (!hidden) {
-                            utility.warn("this.getItem using default value ", value);
+                            utility.warn("spreadsheet.getItem using default value ", value);
                         }
 
                         jsonObj = value;
@@ -7032,7 +7754,9 @@ spreadsheet = {
                 return true;
             }
 
-            if (this.getItem('spreadsheet.records', 'default') === 'default' || !$.isArray(this.getItem('spreadsheet.records', 'default')) || !this.getItem('spreadsheet.records', 'default').length) {
+            this.records = this.getItem('spreadsheet.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records) || !this.records.length) {
+                this.records = [];
                 $.ajax({
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
@@ -7085,8 +7809,8 @@ spreadsheet = {
                     }
                 });
             } else {
-                this.records = this.getItem('spreadsheet.records', this.records);
-                utility.log(2, "spreadsheet.records", spreadsheet.records);
+                this.records = this.getItem('spreadsheet.records', []);
+                utility.log(2, "spreadsheet.records", this.records);
             }
 
             return true;
@@ -7282,10 +8006,9 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            if (gm.getItem("gifting." + type, 'default') === 'default' || !$.isArray(gm.getItem("gifting." + type, 'default'))) {
-                gm.setItem("gifting." + type, this[type].records);
-            } else {
-                this[type].records = gm.getItem("gifting." + type, this[type].records);
+            this[type].records = gm.getItem("gifting." + type, 'default');
+            if (this[type].records === 'default' || !$.isArray(this[type].records)) {
+                this[type].records = gm.setItem("gifting." + type, []);
             }
 
             utility.log(5, "gifting.load", type, this[type].records);
@@ -7304,7 +8027,16 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            gm.setItem("gifting." + type, this[type].records);
+            var hbest    = false,
+                compress = false;
+
+            if (type === "history") {
+                hbest = JSON.hbest(this[type].records);
+                utility.log(2, "Hbest", hbest);
+                //compress = true;
+            }
+
+            gm.setItem("gifting." + type, this[type].records, hbest, compress);
             utility.log(5, "gifting.save", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
@@ -8040,7 +8772,6 @@ gifting = {
                     it1            = 0,
                     len            = 0,
                     tempGift       = '',
-                    tempText       = '',
                     unselListDiv   = null,
                     selListDiv     = null,
                     unselDiv       = null,
@@ -8059,8 +8790,7 @@ gifting = {
                     searchStr      = '',
                     clickedList    = [],
                     pendingList    = [],
-                    chosenList     = [],
-                    tempList       = [];
+                    chosenList     = [];
 
                 if (!utility.isNum(howmany) || howmany < 1) {
                     throw "Invalid howmany! (" + howmany + ")";
@@ -12531,8 +13261,7 @@ caap = {
 
     AddListeners: function () {
         try {
-            var caapDiv         = null,
-                globalContainer = null;
+            var globalContainer = null;
 
             utility.log(4, "Adding listeners for caap_div");
             if (this.caapDivObject.length === 0) {
@@ -12620,8 +13349,7 @@ caap = {
                     tempHT    = null,
                     stamina   = 0,
                     tempS     = null,
-                    tempST    = null,
-                    images    = null;
+                    tempST    = null;
 
                 // Uncomment this to see the id of domNodes that are inserted
                 /*
@@ -13498,16 +14226,13 @@ caap = {
                 energyPotions  = null,
                 staminaPotions = null,
                 otherStats     = null,
-                guild          = null,
                 energy         = null,
                 stamina        = null,
                 attack         = null,
                 defense        = null,
                 health         = null,
                 statCont       = null,
-                anotherEl      = null,
-                tempText       = '',
-                tempArr        = [];
+                anotherEl      = null;
 
             if ($(".keep_attribute_section").length) {
                 utility.log(8, "Getting new values from player keep");
@@ -13828,7 +14553,7 @@ caap = {
                     titleArr    = [],
                     tempDiv     = null,
                     image       = '',
-                    hideCount   = config.getItem("recipeCleanCount", 1);
+                    hideCount   = config.getItem("recipeCleanCount", 1),
                     special     = [
                         "Volcanic Knight",
                         "Holy Plate",
@@ -13845,7 +14570,7 @@ caap = {
                         "Soul Crusher",
                         "Soulforge",
                         "Crown of Flames"
-                        ];
+                    ];
 
                 if (hideCount < 1) {
                     hideCount = 1;
@@ -16190,7 +16915,6 @@ caap = {
             var when    = config.getItem("WhenGuildMonster", 'Never'),
                 record  = {},
                 minion  = {},
-                button  = null,
                 form    = null,
                 key     = null,
                 url     = '',
@@ -16324,7 +17048,6 @@ caap = {
             var buttonsDiv            = null,
                 page                  = '',
                 monsterReviewed       = {},
-                startCount            = 0,
                 it                    = 0,
                 len                   = 0,
                 url                   = '',
@@ -17558,12 +18281,12 @@ caap = {
     },
 
     LoadDemi: function () {
-        if (gm.getItem('demipoint.records', 'default') === 'default' || !$.isPlainObject(gm.getItem('demipoint.records', 'default'))) {
-            gm.setItem('demipoint.records', this.demi);
-        } else {
-            $.extend(true, this.demi, gm.getItem('demipoint.records', this.demi));
+        var demis = gm.getItem('demipoint.records', 'default');
+        if (demis === 'default' || !$.isPlainObject(demis)) {
+            demis = gm.setItem('demipoint.records', this.demi);
         }
 
+        $.extend(true, this.demi, demis);
         utility.log(4, 'Demi', this.demi);
         state.setItem("UserDashUpdate", true);
     },
@@ -18701,7 +19424,9 @@ caap = {
             utility.log(9, "Energy=" + energy + " Stamina=" + stamina + " Attack=" + attack + " Defense=" + defense + " Heath=" + health);
             if (config.getItem('AutoStatAdv', false)) {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
+                /*jslint evil: true */
                 attrAdjustNew = eval(attrAdjust);
+                /*jslint evil: false */
                 logTxt = "(" + attrAdjust + ")=" + attrAdjustNew;
             }
 
@@ -18783,7 +19508,9 @@ caap = {
 
                 if (config.getItem('AutoStatAdv', false)) {
                     //Using eval, so user can define formulas on menu, like energy = level + 50
+                    /*jslint evil: true */
                     attrAdjust = eval(attrValue);
+                    /*jslint evil: false */
                 }
 
                 if (attribute === "attack" || attribute === "defense") {
@@ -18943,7 +19670,7 @@ caap = {
                         var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
                         schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
                         state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
-                        this.waitAjaxCTA = false;
+                        caap.waitAjaxCTA = false;
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
@@ -18957,7 +19684,7 @@ caap = {
                         }
 
                         state.setItem('ajaxCTABackOff' + theCount, 0);
-                        this.waitAjaxCTA = false;
+                        caap.waitAjaxCTA = false;
                     }
             });
 
@@ -18971,11 +19698,11 @@ caap = {
     doCTAs: function (urls) {
         try {
             urls = [
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=2&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=3&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=4&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=5&ref=nf"
+                "7NT8TFZWVlaxlL0pPD56U52g3UgPX9zN1UbkPQ0oTwv3BwtolRUqB6BfqQeaOVjynGKUpdjWYZ+r4eNwM0AeMj0kRLCCwISHcG1gzTBQebP48ZMenZ5bjo6i6MfksXmxea5MjQotR0h/lmeR7q79dEuvRqiam1yyS69W5WN1kQJouU8=",
+                "AtX8TOrq6uq4AL3jqwwa55YYFfPZCDZ2h3SOotp+GcLqgyMWcn6liJuUIln27/dx5F7ZwMbAddDhhouTQQIJnpLNm+skAyKUzw7m5iPGyKdsx4Z/tSTWM0u8WvKDdQH7URjuTTQjipQ6iKEvpImx/nWmByRGCeGe/FGCAGR3UwN9Fww=",
+                "GNX8TFJSUlI0FKy9rtqANgSt784rIacRvkBTTIAJXt6vaoyZ7exU3G8oBl00pY6cbFLKMbjTCM7NGANTZj0kmCIUzXUGXGo4atLKafgPw37R06RtxxKnzmwDbIHuB4hT9ZvxVuEBzsOklQfXzpLNDLhqsYaLm4FdCg7EyA+fbE6hkzs=",
+                "LtX8TCIiIiJvZRsmu8UE/4M3Vki3AmsZ7maWaBx1yt6cQ8o3IeIbuTYmd5rwabuEISyFDZKaLLzG39m3UOGjVluSzWZkdhP6AXPe2akPBDgNM6/A8DJ7s66us+9216FCCNFMv5gmNxD8MRv1SQifcVOuQpIzHmbzyUIRaquumD4uMDk=",
+                "QNX8TFJSUlIOxfBqJJME6gqstkzl+WcNgyc/266fZMgWSPobhyfU3/JBswxOl5XpIdTWIS8QvrZRFaWU54qsJIllhslLkn96vG4wwtIwwIbomH9Ajn9nPg9JeO86b2HqYD5TtrujcdpLPFHU/Hm9SYrIQg8sBdVR/cENyxiqNNeRGCI="
             ];
 
             if (gm.getItem("ajaxCTA", false, hiddenVar) || this.waitAjaxCTA || this.stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
@@ -18983,15 +19710,17 @@ caap = {
             }
 
             var count = state.getItem('ajaxCTACount', 0);
+            utility.log(3, "doCTAs", count, urls.length);
             if (count < urls.length) {
-                if (!schedule.check('ajaxCTATimer' + count)) {
+                utility.log(3, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
+                if (schedule.check('ajaxCTATimer' + count)) {
                     this.waitAjaxCTA = true;
-                    this.ajaxCTA(urls[count], count);
+                    this.ajaxCTA(utility.Aes.Ctr.decrypt(urls[count], gm.namespace, 256), count);
                 }
 
                 state.setItem('ajaxCTACount', count + 1);
             } else {
-                state.getItem('ajaxCTACount', 0);
+                state.setItem('ajaxCTACount', 0);
                 schedule.setItem('ajaxCTATimer', 1800, 300);
             }
 
@@ -19360,17 +20089,16 @@ caap = {
             statswinsNum    : 0,
             statslossesNum  : 0,
             goldNum         : 0,
-            aliveTime       : new Date(2009, 0, 1).getTime(),
-            attackTime      : new Date(2009, 0, 1).getTime(),
-            selectTime      : new Date(2009, 0, 1).getTime()
+            aliveTime       : 0,
+            attackTime      : 0,
+            selectTime      : 0
         };
     },
 
     LoadRecon: function () {
         this.ReconRecordArray = gm.getItem('recon.records', 'default');
-        if (this.ReconRecordArray === 'default') {
-            this.ReconRecordArray = [];
-            gm.setItem('recon.records', this.ReconRecordArray);
+        if (this.ReconRecordArray === 'default' || !$.isArray(this.ReconRecordArray)) {
+            this.ReconRecordArray = gm.setItem('recon.records', []);
         }
 
         state.setItem("ReconDashUpdate", true);
@@ -19378,7 +20106,11 @@ caap = {
     },
 
     SaveRecon: function () {
-        gm.setItem('recon.records', this.ReconRecordArray);
+        var hbest    = JSON.hbest(this.ReconRecordArray),
+            compress = false;
+
+        utility.log(2, "Hbest", hbest);
+        gm.setItem('recon.records', this.ReconRecordArray, hbest, compress);
         state.setItem("ReconDashUpdate", true);
         utility.log(4, "recon.records", this.ReconRecordArray);
     },
@@ -19749,7 +20481,13 @@ caap = {
             utility.log(1, 'detected Try Again message, waiting to reload');
             // error
             window.setTimeout(function () {
-                window.history.go(0);
+                if (typeof window.location.reload === 'function') {
+                    window.location.reload();
+                } else if (typeof history.go === 'function') {
+                    history.go(0);
+                } else {
+                    window.location.href = window.location.href;
+                }
             }, 30 * 1000);
 
             return true;
@@ -19910,7 +20648,13 @@ utility.log(1, "Starting CAAP ... waiting page load");
 gm.clear0();
 utility.setTimeout(function () {
         utility.error('DOM onload timeout!!! Reloading ...');
-        window.location.reload();
+        if (typeof window.location.reload === 'function') {
+            window.location.reload();
+        } else if (typeof history.go === 'function') {
+            history.go(0);
+        } else {
+            window.location.href = window.location.href;
+        }
     }, 180000);
 
 function caap_Start() {
@@ -19983,6 +20727,7 @@ function caap_Start() {
 
     config.load();
     utility.logLevel = config.getItem('DebugLevel', utility.logLevel);
+    css.AddCSS();
     gm.used();
     schedule.load();
     state.load();
@@ -19992,7 +20737,6 @@ function caap_Start() {
     gifting.init();
     state.setItem('clickUrl', window.location.href);
     schedule.setItem('clickedOnSomething', 0);
-    css.AddCSS();
 
     /////////////////////////////////////////////////////////////////////
     //                          http://code.google.com/ updater
@@ -20036,19 +20780,34 @@ function caap_Start() {
     mainCaapLoop();
 }
 
+function caap_WaitForjsonhpack() {
+    if (typeof JSON.stringify === 'function') {
+        utility.log(1, 'CAAP: json.hpack ready...');
+        $(caap_Start);
+    } else {
+        utility.log(1, 'CAAP: Waiting for json.hpack ...');
+        window.setTimeout(caap_WaitForjsonhpack, 100);
+    }
+}
+
 function caap_WaitForjson2() {
     if (typeof JSON.stringify === 'function') {
         utility.log(1, 'CAAP: json2 ready...');
-        $(caap_Start);
+        if (typeof JSON.hpack !== 'function') {
+            utility.log(1, 'CAAP: Inject json.hpack.');
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');
+        }
+
+        caap_WaitForjsonhpack();
     } else {
-        utility.log(1, 'CAAP: Waiting for json2...');
+        utility.log(1, 'CAAP: Waiting for json2 ...');
         window.setTimeout(caap_WaitForjson2, 100);
     }
 }
 
 function caap_WaitForFarbtastic() {
     if (typeof $.farbtastic === 'function') {
-        utility.log(1, 'CAAP: farbtastic ready...');
+        utility.log(1, 'CAAP: farbtastic ready ...');
         if (typeof JSON.stringify !== 'function') {
             utility.log(1, 'CAAP: Inject json2.');
             utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json2.js');
@@ -20056,14 +20815,14 @@ function caap_WaitForFarbtastic() {
 
         caap_WaitForjson2();
     } else {
-        utility.log(1, 'CAAP: Waiting for farbtastic...');
+        utility.log(1, 'CAAP: Waiting for farbtastic ...');
         window.setTimeout(caap_WaitForFarbtastic, 100);
     }
 }
 
 function caap_WaitForjQueryUI() {
     if (typeof $.ui === 'object') {
-        utility.log(1, 'CAAP: jQueryUI ready...');
+        utility.log(1, 'CAAP: jQueryUI ready ...');
         if (typeof $.farbtastic !== 'function') {
             utility.log(1, 'CAAP: Inject farbtastic.');
             utility.injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
@@ -20071,14 +20830,14 @@ function caap_WaitForjQueryUI() {
 
         caap_WaitForFarbtastic();
     } else {
-        utility.log(1, 'CAAP: Waiting for jQueryUI...');
+        utility.log(1, 'CAAP: Waiting for jQueryUI ...');
         window.setTimeout(caap_WaitForjQueryUI, 100);
     }
 }
 
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
-        utility.log(1, 'CAAP: jQuery ready...');
+        utility.log(1, 'CAAP: jQuery ready ...');
         if (typeof $.ui !== 'object') {
             utility.log(1, 'CAAP: Inject jQueryUI.');
             utility.injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js');
@@ -20086,7 +20845,7 @@ function caap_WaitForjQuery() {
 
         caap_WaitForjQueryUI();
     } else {
-        utility.log(1, 'CAAP: Waiting for jQuery...');
+        utility.log(1, 'CAAP: Waiting for jQuery ...');
         window.setTimeout(caap_WaitForjQuery, 100);
     }
 }

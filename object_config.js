@@ -9,10 +9,9 @@ config = {
 
     load: function () {
         try {
-            if (gm.getItem('config.options', 'default') === 'default' || !$.isPlainObject(gm.getItem('config.options', 'default'))) {
-                gm.setItem('config.options', this.options);
-            } else {
-                $.extend(true, this.options, gm.getItem('config.options', this.options));
+            this.options = gm.getItem('config.options', 'default');
+            if (this.options === 'default' || !$.isPlainObject(this.options)) {
+                this.options = gm.setItem('config.options', {});
             }
 
             utility.log(5, "config.load", this.options);

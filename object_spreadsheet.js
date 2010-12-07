@@ -33,7 +33,8 @@ spreadsheet = {
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
-            var jsonStr;
+            var jsonStr = '',
+                hbest   = false;
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -42,8 +43,11 @@ spreadsheet = {
             if (value === undefined || value === null) {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
+            var
 
-            jsonStr = JSON.stringify(value);
+            hbest = JSON.hbest(value);
+            utility.log(2, "Hbest", hbest);
+            jsonStr = JSON.stringify(JSON.hpack(value, hbest));
             if (jsonStr === undefined || jsonStr === null) {
                 throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
             }
@@ -61,22 +65,29 @@ spreadsheet = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj;
+            var jsonObj    = null,
+                storageStr = '',
+                storageArr = [];
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
             if (utility.is_html5_sessionStorage) {
-                jsonObj = $.parseJSON(sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name));
+                storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                storageArr = $.parseJSON(storageStr);
+                if (storageArr && storageArr.length) {
+                    jsonObj = JSON.hunpack(storageArr);
+                }
+
                 if (jsonObj === undefined || jsonObj === null) {
                     if (!hidden) {
-                        utility.warn("this.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                        utility.warn("spreadsheet.getItem parseJSON returned 'undefined' or 'null' for ", name);
                     }
 
                     if (value !== undefined && value !== null) {
                         if (!hidden) {
-                            utility.warn("this.getItem using default value ", value);
+                            utility.warn("spreadsheet.getItem using default value ", value);
                         }
 
                         jsonObj = value;
@@ -125,7 +136,9 @@ spreadsheet = {
                 return true;
             }
 
-            if (this.getItem('spreadsheet.records', 'default') === 'default' || !$.isArray(this.getItem('spreadsheet.records', 'default')) || !this.getItem('spreadsheet.records', 'default').length) {
+            this.records = this.getItem('spreadsheet.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records) || !this.records.length) {
+                this.records = [];
                 $.ajax({
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
@@ -178,8 +191,8 @@ spreadsheet = {
                     }
                 });
             } else {
-                this.records = this.getItem('spreadsheet.records', this.records);
-                utility.log(2, "spreadsheet.records", spreadsheet.records);
+                this.records = this.getItem('spreadsheet.records', []);
+                utility.log(2, "spreadsheet.records", this.records);
             }
 
             return true;

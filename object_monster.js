@@ -387,10 +387,9 @@ monster = {
 
     load: function () {
         try {
-            if (gm.getItem('monster.records', 'default') === 'default' || !$.isArray(gm.getItem('monster.records', 'default'))) {
-                gm.setItem('monster.records', this.records);
-            } else {
-                this.records = gm.getItem('monster.records', this.records);
+            this.records = gm.getItem('monster.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('monster.records', []);
             }
 
             state.setItem("MonsterDashUpdate", true);

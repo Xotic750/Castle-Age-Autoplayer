@@ -9,10 +9,9 @@ schedule = {
 
     load: function () {
         try {
-            if (gm.getItem('schedule.timers', 'default') === 'default' || !$.isPlainObject(gm.getItem('schedule.timers', 'default'))) {
-                gm.setItem('schedule.timers', this.timers);
-            } else {
-                $.extend(true, this.timers, gm.getItem('schedule.timers', this.timers));
+            this.timers = gm.getItem('schedule.timers', 'default');
+            if (this.timers === 'default' || !$.isPlainObject(this.timers)) {
+                this.timers = gm.setItem('schedule.timers', {});
             }
 
             utility.log(5, "schedule.load", this.timers);

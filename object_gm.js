@@ -10,9 +10,11 @@ gm = {
     fireFoxUseGM: false,
 
     // use these to set/get values in a way that prepends the game's name
-    setItem: function (name, value) {
+    setItem: function (name, value, hpack, compress) {
         try {
-            var jsonStr;
+            var jsonStr    = '',
+                compressor = null,
+                storageStr = '';
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -22,15 +24,35 @@ gm = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
-            jsonStr = JSON.stringify(value);
-            if (jsonStr === undefined || jsonStr === null) {
-                throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+            hpack = (typeof hpack !== 'number') ? false : hpack;
+            if (hpack !== false && hpack >= 0 && hpack <= 3) {
+                jsonStr = JSON.stringify(JSON.hpack(value, hpack));
+                if (jsonStr === undefined || jsonStr === null) {
+                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                }
+
+                jsonStr = "HPACK " + jsonStr;
+                utility.log(2, "Hpacked storage", name, parseFloat(((jsonStr.length / JSON.stringify(value).length) * 100).toFixed(2)));
+            } else {
+                jsonStr = JSON.stringify(value);
+                if (jsonStr === undefined || jsonStr === null) {
+                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                }
+            }
+
+            compress = (typeof compress !== 'boolean') ? false : compress;
+            if (compress) {
+                compressor = new utility.LZ77();
+                storageStr = "LZ77 " + compressor.compress(jsonStr);
+                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / jsonStr.length) * 100).toFixed(2)));
+            } else {
+                storageStr = jsonStr;
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             } else {
-                GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             }
 
             return value;
@@ -42,16 +64,31 @@ gm = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj;
+            var jsonObj    = {},
+                compressor = null,
+                storageStr = '';
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                jsonObj = $.parseJSON(localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name));
+                storageStr = localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name);
             } else {
-                jsonObj = $.parseJSON(GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name));
+                storageStr = GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name);
+            }
+
+            if (storageStr && storageStr.match(/^LZ77 /)) {
+                compressor = new utility.LZ77();
+                storageStr = compressor.decompress(storageStr.slice(5));
+                utility.log(2, "Decompressed storage", name);
+            }
+
+            if (storageStr && storageStr.match(/^HPACK /)) {
+                jsonObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
+                utility.log(2, "DeHpacked storage", name);
+            } else {
+                jsonObj = $.parseJSON(storageStr);
             }
 
             if (jsonObj === undefined || jsonObj === null) {
@@ -60,9 +97,9 @@ gm = {
                 }
 
                 if (value !== undefined && value !== null) {
+                    hidden = (typeof hidden !== 'boolean') ? false : hidden;
                     if (!hidden) {
                         utility.warn("gm.getItem using default value ", value);
-                        //this.setItem(name, value);
                     }
 
                     jsonObj = value;

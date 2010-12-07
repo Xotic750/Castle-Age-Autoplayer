@@ -101,10 +101,9 @@ general = {
 
     load: function () {
         try {
-            if (gm.getItem('general.records', 'default') === 'default' || !$.isArray(gm.getItem('general.records', 'default'))) {
-                gm.setItem('general.records', this.records);
-            } else {
-                this.records = gm.getItem('general.records', this.records);
+            this.records = gm.getItem('general.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('general.records', []);
             }
 
             this.copy2sortable();
@@ -120,7 +119,11 @@ general = {
 
     save: function () {
         try {
-            gm.setItem('general.records', this.records);
+            var hbest    = JSON.hbest(this.records),
+                compress = false;
+
+            utility.log(2, "Hbest", hbest);
+            gm.setItem('general.records', this.records, hbest, compress);
             state.setItem("GeneralsDashUpdate", true);
             utility.log(5, "general.save", this.records);
             return true;

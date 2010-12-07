@@ -14,10 +14,9 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            if (gm.getItem("gifting." + type, 'default') === 'default' || !$.isArray(gm.getItem("gifting." + type, 'default'))) {
-                gm.setItem("gifting." + type, this[type].records);
-            } else {
-                this[type].records = gm.getItem("gifting." + type, this[type].records);
+            this[type].records = gm.getItem("gifting." + type, 'default');
+            if (this[type].records === 'default' || !$.isArray(this[type].records)) {
+                this[type].records = gm.setItem("gifting." + type, []);
             }
 
             utility.log(5, "gifting.load", type, this[type].records);
@@ -36,7 +35,16 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            gm.setItem("gifting." + type, this[type].records);
+            var hbest    = false,
+                compress = false;
+
+            if (type === "history") {
+                hbest = JSON.hbest(this[type].records);
+                utility.log(2, "Hbest", hbest);
+                //compress = true;
+            }
+
+            gm.setItem("gifting." + type, this[type].records, hbest, compress);
             utility.log(5, "gifting.save", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
@@ -772,7 +780,6 @@ gifting = {
                     it1            = 0,
                     len            = 0,
                     tempGift       = '',
-                    tempText       = '',
                     unselListDiv   = null,
                     selListDiv     = null,
                     unselDiv       = null,
@@ -791,8 +798,7 @@ gifting = {
                     searchStr      = '',
                     clickedList    = [],
                     pendingList    = [],
-                    chosenList     = [],
-                    tempList       = [];
+                    chosenList     = [];
 
                 if (!utility.isNum(howmany) || howmany < 1) {
                     throw "Invalid howmany! (" + howmany + ")";

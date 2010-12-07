@@ -4120,8 +4120,7 @@ caap = {
 
     AddListeners: function () {
         try {
-            var caapDiv         = null,
-                globalContainer = null;
+            var globalContainer = null;
 
             utility.log(4, "Adding listeners for caap_div");
             if (this.caapDivObject.length === 0) {
@@ -4209,8 +4208,7 @@ caap = {
                     tempHT    = null,
                     stamina   = 0,
                     tempS     = null,
-                    tempST    = null,
-                    images    = null;
+                    tempST    = null;
 
                 // Uncomment this to see the id of domNodes that are inserted
                 /*
@@ -5087,16 +5085,13 @@ caap = {
                 energyPotions  = null,
                 staminaPotions = null,
                 otherStats     = null,
-                guild          = null,
                 energy         = null,
                 stamina        = null,
                 attack         = null,
                 defense        = null,
                 health         = null,
                 statCont       = null,
-                anotherEl      = null,
-                tempText       = '',
-                tempArr        = [];
+                anotherEl      = null;
 
             if ($(".keep_attribute_section").length) {
                 utility.log(8, "Getting new values from player keep");
@@ -5417,7 +5412,7 @@ caap = {
                     titleArr    = [],
                     tempDiv     = null,
                     image       = '',
-                    hideCount   = config.getItem("recipeCleanCount", 1);
+                    hideCount   = config.getItem("recipeCleanCount", 1),
                     special     = [
                         "Volcanic Knight",
                         "Holy Plate",
@@ -5434,7 +5429,7 @@ caap = {
                         "Soul Crusher",
                         "Soulforge",
                         "Crown of Flames"
-                        ];
+                    ];
 
                 if (hideCount < 1) {
                     hideCount = 1;
@@ -7779,7 +7774,6 @@ caap = {
             var when    = config.getItem("WhenGuildMonster", 'Never'),
                 record  = {},
                 minion  = {},
-                button  = null,
                 form    = null,
                 key     = null,
                 url     = '',
@@ -7913,7 +7907,6 @@ caap = {
             var buttonsDiv            = null,
                 page                  = '',
                 monsterReviewed       = {},
-                startCount            = 0,
                 it                    = 0,
                 len                   = 0,
                 url                   = '',
@@ -9147,12 +9140,12 @@ caap = {
     },
 
     LoadDemi: function () {
-        if (gm.getItem('demipoint.records', 'default') === 'default' || !$.isPlainObject(gm.getItem('demipoint.records', 'default'))) {
-            gm.setItem('demipoint.records', this.demi);
-        } else {
-            $.extend(true, this.demi, gm.getItem('demipoint.records', this.demi));
+        var demis = gm.getItem('demipoint.records', 'default');
+        if (demis === 'default' || !$.isPlainObject(demis)) {
+            demis = gm.setItem('demipoint.records', this.demi);
         }
 
+        $.extend(true, this.demi, demis);
         utility.log(4, 'Demi', this.demi);
         state.setItem("UserDashUpdate", true);
     },
@@ -10290,7 +10283,9 @@ caap = {
             utility.log(9, "Energy=" + energy + " Stamina=" + stamina + " Attack=" + attack + " Defense=" + defense + " Heath=" + health);
             if (config.getItem('AutoStatAdv', false)) {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
+                /*jslint evil: true */
                 attrAdjustNew = eval(attrAdjust);
+                /*jslint evil: false */
                 logTxt = "(" + attrAdjust + ")=" + attrAdjustNew;
             }
 
@@ -10372,7 +10367,9 @@ caap = {
 
                 if (config.getItem('AutoStatAdv', false)) {
                     //Using eval, so user can define formulas on menu, like energy = level + 50
+                    /*jslint evil: true */
                     attrAdjust = eval(attrValue);
+                    /*jslint evil: false */
                 }
 
                 if (attribute === "attack" || attribute === "defense") {
@@ -10532,7 +10529,7 @@ caap = {
                         var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
                         schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
                         state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
-                        this.waitAjaxCTA = false;
+                        caap.waitAjaxCTA = false;
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
@@ -10546,7 +10543,7 @@ caap = {
                         }
 
                         state.setItem('ajaxCTABackOff' + theCount, 0);
-                        this.waitAjaxCTA = false;
+                        caap.waitAjaxCTA = false;
                     }
             });
 
@@ -10560,11 +10557,11 @@ caap = {
     doCTAs: function (urls) {
         try {
             urls = [
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=1&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=2&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=3&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=4&ref=nf",
-                "http://apps.facebook.com/castle_age/guild_battle_monster.php?guild_id=573662238_1282875112&action=doObjective&slot=5&ref=nf"
+                "7NT8TFZWVlaxlL0pPD56U52g3UgPX9zN1UbkPQ0oTwv3BwtolRUqB6BfqQeaOVjynGKUpdjWYZ+r4eNwM0AeMj0kRLCCwISHcG1gzTBQebP48ZMenZ5bjo6i6MfksXmxea5MjQotR0h/lmeR7q79dEuvRqiam1yyS69W5WN1kQJouU8=",
+                "AtX8TOrq6uq4AL3jqwwa55YYFfPZCDZ2h3SOotp+GcLqgyMWcn6liJuUIln27/dx5F7ZwMbAddDhhouTQQIJnpLNm+skAyKUzw7m5iPGyKdsx4Z/tSTWM0u8WvKDdQH7URjuTTQjipQ6iKEvpImx/nWmByRGCeGe/FGCAGR3UwN9Fww=",
+                "GNX8TFJSUlI0FKy9rtqANgSt784rIacRvkBTTIAJXt6vaoyZ7exU3G8oBl00pY6cbFLKMbjTCM7NGANTZj0kmCIUzXUGXGo4atLKafgPw37R06RtxxKnzmwDbIHuB4hT9ZvxVuEBzsOklQfXzpLNDLhqsYaLm4FdCg7EyA+fbE6hkzs=",
+                "LtX8TCIiIiJvZRsmu8UE/4M3Vki3AmsZ7maWaBx1yt6cQ8o3IeIbuTYmd5rwabuEISyFDZKaLLzG39m3UOGjVluSzWZkdhP6AXPe2akPBDgNM6/A8DJ7s66us+9216FCCNFMv5gmNxD8MRv1SQifcVOuQpIzHmbzyUIRaquumD4uMDk=",
+                "QNX8TFJSUlIOxfBqJJME6gqstkzl+WcNgyc/266fZMgWSPobhyfU3/JBswxOl5XpIdTWIS8QvrZRFaWU54qsJIllhslLkn96vG4wwtIwwIbomH9Ajn9nPg9JeO86b2HqYD5TtrujcdpLPFHU/Hm9SYrIQg8sBdVR/cENyxiqNNeRGCI="
             ];
 
             if (gm.getItem("ajaxCTA", false, hiddenVar) || this.waitAjaxCTA || this.stats.stamina.num < 1 || !schedule.check('ajaxCTATimer')) {
@@ -10572,15 +10569,17 @@ caap = {
             }
 
             var count = state.getItem('ajaxCTACount', 0);
+            utility.log(3, "doCTAs", count, urls.length);
             if (count < urls.length) {
-                if (!schedule.check('ajaxCTATimer' + count)) {
+                utility.log(3, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
+                if (schedule.check('ajaxCTATimer' + count)) {
                     this.waitAjaxCTA = true;
-                    this.ajaxCTA(urls[count], count);
+                    this.ajaxCTA(utility.Aes.Ctr.decrypt(urls[count], gm.namespace, 256), count);
                 }
 
                 state.setItem('ajaxCTACount', count + 1);
             } else {
-                state.getItem('ajaxCTACount', 0);
+                state.setItem('ajaxCTACount', 0);
                 schedule.setItem('ajaxCTATimer', 1800, 300);
             }
 
@@ -10949,17 +10948,16 @@ caap = {
             statswinsNum    : 0,
             statslossesNum  : 0,
             goldNum         : 0,
-            aliveTime       : new Date(2009, 0, 1).getTime(),
-            attackTime      : new Date(2009, 0, 1).getTime(),
-            selectTime      : new Date(2009, 0, 1).getTime()
+            aliveTime       : 0,
+            attackTime      : 0,
+            selectTime      : 0
         };
     },
 
     LoadRecon: function () {
         this.ReconRecordArray = gm.getItem('recon.records', 'default');
-        if (this.ReconRecordArray === 'default') {
-            this.ReconRecordArray = [];
-            gm.setItem('recon.records', this.ReconRecordArray);
+        if (this.ReconRecordArray === 'default' || !$.isArray(this.ReconRecordArray)) {
+            this.ReconRecordArray = gm.setItem('recon.records', []);
         }
 
         state.setItem("ReconDashUpdate", true);
@@ -10967,7 +10965,11 @@ caap = {
     },
 
     SaveRecon: function () {
-        gm.setItem('recon.records', this.ReconRecordArray);
+        var hbest    = JSON.hbest(this.ReconRecordArray),
+            compress = false;
+
+        utility.log(2, "Hbest", hbest);
+        gm.setItem('recon.records', this.ReconRecordArray, hbest, compress);
         state.setItem("ReconDashUpdate", true);
         utility.log(4, "recon.records", this.ReconRecordArray);
     },
@@ -11338,7 +11340,13 @@ caap = {
             utility.log(1, 'detected Try Again message, waiting to reload');
             // error
             window.setTimeout(function () {
-                window.history.go(0);
+                if (typeof window.location.reload === 'function') {
+                    window.location.reload();
+                } else if (typeof history.go === 'function') {
+                    history.go(0);
+                } else {
+                    window.location.href = window.location.href;
+                }
             }, 30 * 1000);
 
             return true;

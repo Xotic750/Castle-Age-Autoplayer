@@ -46,23 +46,10 @@ sort = {
 
     form: function (id, list, records) {
         try {
-            var theDialog = null,
-                html      = '',
+            var html      = '',
                 it        = 0,
                 it1       = 0,
-                len1      = 0,
-                order     = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
+                len1      = 0;
 
             if (!this.dialog[id] || !this.dialog[id].length) {
                 list.unshift("");

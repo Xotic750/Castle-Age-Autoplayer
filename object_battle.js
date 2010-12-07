@@ -86,10 +86,9 @@ battle = {
 
     load: function () {
         try {
-            if (gm.getItem('battle.records', 'default') === 'default' || !$.isArray(gm.getItem('battle.records', 'default'))) {
-                gm.setItem('battle.records', this.records);
-            } else {
-                this.records = gm.getItem('battle.records', this.records);
+            this.records = gm.getItem('battle.records', 'default');
+            if (this.records === 'default' || !$.isArray(this.records)) {
+                this.records = gm.setItem('battle.records', []);
             }
 
             state.setItem("BattleDashUpdate", true);
@@ -103,7 +102,11 @@ battle = {
 
     save: function () {
         try {
-            gm.setItem('battle.records', this.records);
+            var hbest    = JSON.hbest(this.records),
+                compress = false;
+
+            utility.log(2, "Hbest", hbest);
+            gm.setItem('battle.records', this.records, hbest, compress);
             state.setItem("BattleDashUpdate", true);
             utility.log(5, "battle.save", this.records);
             return true;

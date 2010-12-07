@@ -8,6 +8,7 @@
               "jquery-ui-1.8.6.custom.min.js",
               "farbtastic.min.js",
               "json2.js",
+              "json.hpack.min.js",
               "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*",
                    "https://*/*" ]
