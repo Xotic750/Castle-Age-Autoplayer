@@ -9,12 +9,16 @@ gm = {
 
     fireFoxUseGM: false,
 
+    useRison: true,
+
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value, hpack, compress) {
         try {
-            var jsonStr    = '',
-                compressor = null,
-                storageStr = '';
+            var stringified = '',
+                compressor  = null,
+                storageStr  = '',
+                hpackArr    = [],
+                reportEnc   = 'JSON.stringify';
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -24,29 +28,51 @@ gm = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
+            if (this.useRison) {
+                reportEnc = "rison.encode";
+            }
+
             hpack = (typeof hpack !== 'number') ? false : hpack;
             if (hpack !== false && hpack >= 0 && hpack <= 3) {
-                jsonStr = JSON.stringify(JSON.hpack(value, hpack));
-                if (jsonStr === undefined || jsonStr === null) {
-                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                hpackArr = JSON.hpack(value, hpack);
+                if (this.useRison) {
+                    stringified = rison.encode(hpackArr);
+                } else {
+                    stringified = JSON.stringify(hpackArr);
                 }
 
-                jsonStr = "HPACK " + jsonStr;
-                utility.log(2, "Hpacked storage", name, parseFloat(((jsonStr.length / JSON.stringify(value).length) * 100).toFixed(2)));
+                if (stringified === undefined || stringified === null) {
+                    throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
+                }
+
+                if (this.useRison) {
+                    stringified = "R-HPACK " + stringified;
+                } else {
+                    stringified = "HPACK " + stringified;
+                }
             } else {
-                jsonStr = JSON.stringify(value);
-                if (jsonStr === undefined || jsonStr === null) {
-                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                if (this.useRison) {
+                    stringified = rison.encode(value);
+                } else {
+                    stringified = JSON.stringify(value);
+                }
+
+                if (stringified === undefined || stringified === null) {
+                    throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
+                }
+
+                if (this.useRison) {
+                    stringified = "RISON " + stringified;
                 }
             }
 
             compress = (typeof compress !== 'boolean') ? false : compress;
             if (compress) {
                 compressor = new utility.LZ77();
-                storageStr = "LZ77 " + compressor.compress(jsonStr);
-                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / jsonStr.length) * 100).toFixed(2)));
+                storageStr = "LZ77 " + compressor.compress(stringified);
+                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
             } else {
-                storageStr = jsonStr;
+                storageStr = stringified;
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
@@ -64,7 +90,7 @@ gm = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj    = {},
+            var jsObj      = null,
                 compressor = null,
                 storageStr = '';
 
@@ -78,22 +104,29 @@ gm = {
                 storageStr = GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name);
             }
 
-            if (storageStr && storageStr.match(/^LZ77 /)) {
-                compressor = new utility.LZ77();
-                storageStr = compressor.decompress(storageStr.slice(5));
-                utility.log(2, "Decompressed storage", name);
+            if (storageStr) {
+                if (storageStr.match(/^LZ77 /)) {
+                    compressor = new utility.LZ77();
+                    storageStr = compressor.decompress(storageStr.slice(5));
+                    utility.log(2, "Decompressed storage", name);
+                }
+
+                if (storageStr) {
+                    if (storageStr.match(/^R-HPACK /)) {
+                        jsObj = JSON.hunpack(rison.decode(storageStr.slice(8)));
+                    } else if (storageStr.match(/^RISON /)) {
+                        jsObj = rison.decode(storageStr.slice(6));
+                    } else if (storageStr.match(/^HPACK /)) {
+                        jsObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
+                    } else {
+                        jsObj = $.parseJSON(storageStr);
+                    }
+                }
             }
 
-            if (storageStr && storageStr.match(/^HPACK /)) {
-                jsonObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
-                utility.log(2, "DeHpacked storage", name);
-            } else {
-                jsonObj = $.parseJSON(storageStr);
-            }
-
-            if (jsonObj === undefined || jsonObj === null) {
+            if (jsObj === undefined || jsObj === null) {
                 if (!hidden) {
-                    utility.warn("gm.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                    utility.warn("gm.getItem parsed string returned 'undefined' or 'null' for ", name);
                 }
 
                 if (value !== undefined && value !== null) {
@@ -102,13 +135,13 @@ gm = {
                         utility.warn("gm.getItem using default value ", value);
                     }
 
-                    jsonObj = value;
+                    jsObj = value;
                 } else {
                     throw "No default value supplied! (" + value + ")";
                 }
             }
 
-            return jsonObj;
+            return jsObj;
         } catch (error) {
             utility.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {

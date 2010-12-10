@@ -3,12 +3,13 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            19
+// @dev            20
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/json2.js
 // @require        http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js
+// @require        http://castle-age-auto-player.googlecode.com/files/rison.js
 // @include        http*://apps.*facebook.com/castle_age/*
 // @include        http*://*.facebook.com/common/error.html
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
@@ -17,8 +18,9 @@
 // @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 250 */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage,sessionStorage */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
+/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage,sessionStorage,rison */
+/*jslint maxlen: 250 */
 
 //////////////////////////////////
 //       Global and Object vars
@@ -29,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "19",
+    devVersion    = "20",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -1398,6 +1400,211 @@ utility = {
         return (x >>> n) | (x << (32 - n));
     },
 
+    MD5: function (msg) {
+        function AddUnsigned(lX, lY) {
+            var lX4     = (lX & 0x40000000),
+                lY4     = (lY & 0x40000000),
+                lX8     = (lX & 0x80000000),
+                lY8     = (lY & 0x80000000),
+                lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+
+            if (lX4 & lY4) {
+                return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
+            }
+
+            if (lX4 | lY4) {
+                if (lResult & 0x40000000) {
+                    return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
+                } else {
+                    return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
+                }
+            } else {
+                return (lResult ^ lX8 ^ lY8);
+            }
+        }
+
+        function F(x, y, z) {
+            return (x & y) | ((~x) & z);
+        }
+
+        function G(x, y, z) {
+            return (x & z) | (y & (~z));
+        }
+
+        function H(x, y, z) {
+            return (x ^ y ^ z);
+        }
+
+        function I(x, y, z) {
+            return (y ^ (x | (~z)));
+        }
+
+        function FF(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
+            return AddUnsigned(utility.ROTL(a, s), b);
+        }
+
+        function GG(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
+            return AddUnsigned(utility.ROTL(a, s), b);
+        }
+
+        function HH(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
+            return AddUnsigned(utility.ROTL(a, s), b);
+        }
+
+        function II(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
+            return AddUnsigned(utility.ROTL(a, s), b);
+        }
+
+        function ConvertToWordArray(textMsg) {
+            var lWordCount           = 0,
+                lMessageLength       = textMsg.length,
+                lNumberOfWords_temp1 = lMessageLength + 8,
+                lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64,
+                lNumberOfWords       = (lNumberOfWords_temp2 + 1) * 16,
+                lWordArray           = Array(lNumberOfWords - 1),
+                lBytePosition        = 0,
+                lByteCount           = 0;
+
+            while (lByteCount < lMessageLength) {
+                lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+                lBytePosition = (lByteCount % 4) * 8;
+                lWordArray[lWordCount] = (lWordArray[lWordCount] | (textMsg.charCodeAt(lByteCount)<<lBytePosition));
+                lByteCount += 1;
+            }
+
+            lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+            lBytePosition = (lByteCount % 4) * 8;
+            lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80<<lBytePosition);
+            lWordArray[lNumberOfWords - 2] = lMessageLength<<3;
+            lWordArray[lNumberOfWords - 1] = lMessageLength>>>29;
+            return lWordArray;
+        }
+
+        function WordToHex(lValue) {
+            var WordToHexValue      = "",
+                WordToHexValue_temp = "",
+                lByte               = 0,
+                lCount              = 0;
+
+            for (lCount = 0; lCount <= 3; lCount += 1) {
+                lByte = (lValue>>>(lCount * 8)) & 255;
+                WordToHexValue_temp = "0" + lByte.toString(16);
+                WordToHexValue += WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
+            }
+
+            return WordToHexValue;
+        }
+
+        var x   = ConvertToWordArray(this.Utf8.encode(msg)),
+            a   = 0x67452301,
+            b   = 0xEFCDAB89,
+            c   = 0x98BADCFE,
+            d   = 0x10325476,
+            S11 = 7,
+            S12 = 12,
+            S13 = 17,
+            S14 = 22,
+            S21 = 5,
+            S22 = 9,
+            S23 = 14,
+            S24 = 20,
+            S31 = 4,
+            S32 = 11,
+            S33 = 16,
+            S34 = 23,
+            S41 = 6,
+            S42 = 10,
+            S43 = 15,
+            S44 = 21,
+            k   = 0,
+            l   = 0,
+            AA  = 0x00000000,
+            BB  = 0x00000000,
+            CC  = 0x00000000,
+            DD  = 0x00000000;
+
+        for (k = 0, l = x.length; k < l; k += 16) {
+            AA = a;
+            BB = b;
+            CC = c;
+            DD = d;
+            a = FF(a, b, c, d, x[k + 0],  S11, 0xD76AA478);
+            d = FF(d, a, b, c, x[k + 1],  S12, 0xE8C7B756);
+            c = FF(c, d, a, b, x[k + 2],  S13, 0x242070DB);
+            b = FF(b, c, d, a, x[k + 3],  S14, 0xC1BDCEEE);
+            a = FF(a, b, c, d, x[k + 4],  S11, 0xF57C0FAF);
+            d = FF(d, a, b, c, x[k + 5],  S12, 0x4787C62A);
+            c = FF(c, d, a, b, x[k + 6],  S13, 0xA8304613);
+            b = FF(b, c, d, a, x[k + 7],  S14, 0xFD469501);
+            a = FF(a, b, c, d, x[k + 8],  S11, 0x698098D8);
+            d = FF(d, a, b, c, x[k + 9],  S12, 0x8B44F7AF);
+            c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+            b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+            a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
+            d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
+            c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
+            b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
+            a = GG(a, b, c, d, x[k + 1],  S21, 0xF61E2562);
+            d = GG(d, a, b, c, x[k + 6],  S22, 0xC040B340);
+            c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+            b = GG(b, c, d, a, x[k + 0],  S24, 0xE9B6C7AA);
+            a = GG(a, b, c, d, x[k + 5],  S21, 0xD62F105D);
+            d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
+            c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+            b = GG(b, c, d, a, x[k + 4],  S24, 0xE7D3FBC8);
+            a = GG(a, b, c, d, x[k + 9],  S21, 0x21E1CDE6);
+            d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+            c = GG(c, d, a, b, x[k + 3],  S23, 0xF4D50D87);
+            b = GG(b, c, d, a, x[k + 8],  S24, 0x455A14ED);
+            a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+            d = GG(d, a, b, c, x[k + 2],  S22, 0xFCEFA3F8);
+            c = GG(c, d, a, b, x[k + 7],  S23, 0x676F02D9);
+            b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+            a = HH(a, b, c, d, x[k + 5],  S31, 0xFFFA3942);
+            d = HH(d, a, b, c, x[k + 8],  S32, 0x8771F681);
+            c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+            b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+            a = HH(a, b, c, d, x[k + 1],  S31, 0xA4BEEA44);
+            d = HH(d, a, b, c, x[k + 4],  S32, 0x4BDECFA9);
+            c = HH(c, d, a, b, x[k + 7],  S33, 0xF6BB4B60);
+            b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+            a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+            d = HH(d, a, b, c, x[k + 0],  S32, 0xEAA127FA);
+            c = HH(c, d, a, b, x[k + 3],  S33, 0xD4EF3085);
+            b = HH(b, c, d, a, x[k + 6],  S34, 0x4881D05);
+            a = HH(a, b, c, d, x[k + 9],  S31, 0xD9D4D039);
+            d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+            c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+            b = HH(b, c, d, a, x[k + 2],  S34, 0xC4AC5665);
+            a = II(a, b, c, d, x[k + 0],  S41, 0xF4292244);
+            d = II(d, a, b, c, x[k + 7],  S42, 0x432AFF97);
+            c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+            b = II(b, c, d, a, x[k + 5],  S44, 0xFC93A039);
+            a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+            d = II(d, a, b, c, x[k + 3],  S42, 0x8F0CCC92);
+            c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+            b = II(b, c, d, a, x[k + 1],  S44, 0x85845DD1);
+            a = II(a, b, c, d, x[k + 8],  S41, 0x6FA87E4F);
+            d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+            c = II(c, d, a, b, x[k + 6],  S43, 0xA3014314);
+            b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+            a = II(a, b, c, d, x[k + 4],  S41, 0xF7537E82);
+            d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+            c = II(c, d, a, b, x[k + 2],  S43, 0x2AD7D2BB);
+            b = II(b, c, d, a, x[k + 9],  S44, 0xEB86D391);
+            a = AddUnsigned(a, AA);
+            b = AddUnsigned(b, BB);
+            c = AddUnsigned(c, CC);
+            d = AddUnsigned(d, DD);
+        }
+
+        return WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
+    },
+
     SHA1: function (msg) {
         try {
             if (!msg || typeof msg !== 'string') {
@@ -1990,7 +2197,7 @@ utility = {
             if (c > 0) {
                 while (c < 3) {
                     pad += '=';
-                    plain += '\0';
+                    plain += String.fromCharCode(0);
                     c += 1;
                 }
             }
@@ -2536,12 +2743,16 @@ gm = {
 
     fireFoxUseGM: false,
 
+    useRison: true,
+
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value, hpack, compress) {
         try {
-            var jsonStr    = '',
-                compressor = null,
-                storageStr = '';
+            var stringified = '',
+                compressor  = null,
+                storageStr  = '',
+                hpackArr    = [],
+                reportEnc   = 'JSON.stringify';
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -2551,29 +2762,51 @@ gm = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
+            if (this.useRison) {
+                reportEnc = "rison.encode";
+            }
+
             hpack = (typeof hpack !== 'number') ? false : hpack;
             if (hpack !== false && hpack >= 0 && hpack <= 3) {
-                jsonStr = JSON.stringify(JSON.hpack(value, hpack));
-                if (jsonStr === undefined || jsonStr === null) {
-                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                hpackArr = JSON.hpack(value, hpack);
+                if (this.useRison) {
+                    stringified = rison.encode(hpackArr);
+                } else {
+                    stringified = JSON.stringify(hpackArr);
                 }
 
-                jsonStr = "HPACK " + jsonStr;
-                utility.log(2, "Hpacked storage", name, parseFloat(((jsonStr.length / JSON.stringify(value).length) * 100).toFixed(2)));
+                if (stringified === undefined || stringified === null) {
+                    throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
+                }
+
+                if (this.useRison) {
+                    stringified = "R-HPACK " + stringified;
+                } else {
+                    stringified = "HPACK " + stringified;
+                }
             } else {
-                jsonStr = JSON.stringify(value);
-                if (jsonStr === undefined || jsonStr === null) {
-                    throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+                if (this.useRison) {
+                    stringified = rison.encode(value);
+                } else {
+                    stringified = JSON.stringify(value);
+                }
+
+                if (stringified === undefined || stringified === null) {
+                    throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
+                }
+
+                if (this.useRison) {
+                    stringified = "RISON " + stringified;
                 }
             }
 
             compress = (typeof compress !== 'boolean') ? false : compress;
             if (compress) {
                 compressor = new utility.LZ77();
-                storageStr = "LZ77 " + compressor.compress(jsonStr);
-                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / jsonStr.length) * 100).toFixed(2)));
+                storageStr = "LZ77 " + compressor.compress(stringified);
+                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
             } else {
-                storageStr = jsonStr;
+                storageStr = stringified;
             }
 
             if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
@@ -2591,7 +2824,7 @@ gm = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj    = {},
+            var jsObj      = null,
                 compressor = null,
                 storageStr = '';
 
@@ -2605,22 +2838,29 @@ gm = {
                 storageStr = GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name);
             }
 
-            if (storageStr && storageStr.match(/^LZ77 /)) {
-                compressor = new utility.LZ77();
-                storageStr = compressor.decompress(storageStr.slice(5));
-                utility.log(2, "Decompressed storage", name);
+            if (storageStr) {
+                if (storageStr.match(/^LZ77 /)) {
+                    compressor = new utility.LZ77();
+                    storageStr = compressor.decompress(storageStr.slice(5));
+                    utility.log(2, "Decompressed storage", name);
+                }
+
+                if (storageStr) {
+                    if (storageStr.match(/^R-HPACK /)) {
+                        jsObj = JSON.hunpack(rison.decode(storageStr.slice(8)));
+                    } else if (storageStr.match(/^RISON /)) {
+                        jsObj = rison.decode(storageStr.slice(6));
+                    } else if (storageStr.match(/^HPACK /)) {
+                        jsObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
+                    } else {
+                        jsObj = $.parseJSON(storageStr);
+                    }
+                }
             }
 
-            if (storageStr && storageStr.match(/^HPACK /)) {
-                jsonObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
-                utility.log(2, "DeHpacked storage", name);
-            } else {
-                jsonObj = $.parseJSON(storageStr);
-            }
-
-            if (jsonObj === undefined || jsonObj === null) {
+            if (jsObj === undefined || jsObj === null) {
                 if (!hidden) {
-                    utility.warn("gm.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                    utility.warn("gm.getItem parsed string returned 'undefined' or 'null' for ", name);
                 }
 
                 if (value !== undefined && value !== null) {
@@ -2629,13 +2869,13 @@ gm = {
                         utility.warn("gm.getItem using default value ", value);
                     }
 
-                    jsonObj = value;
+                    jsObj = value;
                 } else {
                     throw "No default value supplied! (" + value + ")";
                 }
             }
 
-            return jsonObj;
+            return jsObj;
         } catch (error) {
             utility.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
@@ -3317,7 +3557,8 @@ schedule = {
             }
 
             if (!$.isPlainObject(this.timers[name])) {
-                throw "Invalid or non-existant timer! " + name;
+                utility.warn("Invalid or non-existant timer!", name);
+                return 0;
             }
 
             return this.timers[name];
@@ -3566,6 +3807,8 @@ general = {
         }
     },
 
+    hbest: false,
+
     load: function () {
         try {
             this.records = gm.getItem('general.records', 'default');
@@ -3575,6 +3818,8 @@ general = {
 
             this.copy2sortable();
             this.BuildlLists();
+            this.hbest = JSON.hbest(this.records);
+            utility.log(2, "general.load Hbest", this.hbest);
             state.setItem("GeneralsDashUpdate", true);
             utility.log(5, "general.load", this.records);
             return true;
@@ -3586,11 +3831,8 @@ general = {
 
     save: function () {
         try {
-            var hbest    = JSON.hbest(this.records),
-                compress = false;
-
-            utility.log(2, "Hbest", hbest);
-            gm.setItem('general.records', this.records, hbest, compress);
+            var compress = false;
+            gm.setItem('general.records', this.records, this.hbest, compress);
             state.setItem("GeneralsDashUpdate", true);
             utility.log(5, "general.save", this.records);
             return true;
@@ -6254,6 +6496,8 @@ battle = {
         12 : 'First Colonel'
     },
 
+    hbest: false,
+
     load: function () {
         try {
             this.records = gm.getItem('battle.records', 'default');
@@ -6261,6 +6505,8 @@ battle = {
                 this.records = gm.setItem('battle.records', []);
             }
 
+            this.hbest = JSON.hbest(this.records);
+            utility.log(2, "battle.load Hbest", this.hbest);
             state.setItem("BattleDashUpdate", true);
             utility.log(5, "battle.load", this.records);
             return true;
@@ -6272,11 +6518,8 @@ battle = {
 
     save: function () {
         try {
-            var hbest    = JSON.hbest(this.records),
-                compress = false;
-
-            utility.log(2, "Hbest", hbest);
-            gm.setItem('battle.records', this.records, hbest, compress);
+            var compress = false;
+            gm.setItem('battle.records', this.records, this.hbest, compress);
             state.setItem("BattleDashUpdate", true);
             utility.log(5, "battle.save", this.records);
             return true;
@@ -7387,6 +7630,12 @@ town = {
         }
     },
 
+    soldiershbest: false,
+
+    itemhbest: false,
+
+    magichbest: false,
+
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
@@ -7399,6 +7648,8 @@ town = {
                 this[type] = gm.setItem(type + '.records', []);
             }
 
+            this[type + "hbest"] = JSON.hbest(this[type]);
+            utility.log(2, "town.load " + type + " Hbest", this[type + "hbest"]);
             this.copy2sortable(type);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.load", type, this[type]);
@@ -7416,11 +7667,8 @@ town = {
                 throw "Invalid type value!";
             }
 
-            var hbest    = JSON.hbest(this[type]),
-                compress = false;
-
-            utility.log(2, "Hbest", hbest);
-            gm.setItem(type + '.records', this[type], hbest, compress);
+            var compress = false;
+            gm.setItem(type + '.records', this[type], this[type + "hbest"], compress);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.save", type, this[type]);
             return true;
@@ -7648,11 +7896,19 @@ spreadsheet = {
         };
     },
 
+    useRison: true,
+
+    hbest: false,
+
+    compress: true,
+
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
-            var jsonStr = '',
-                hbest   = false;
+            var stringified = '',
+                storageStr  = '',
+                coderStr    = 'JSON.stringify',
+                compressor  = null;
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -7661,17 +7917,28 @@ spreadsheet = {
             if (value === undefined || value === null) {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
-            var
 
-            hbest = JSON.hbest(value);
-            utility.log(2, "Hbest", hbest);
-            jsonStr = JSON.stringify(JSON.hpack(value, hbest));
-            if (jsonStr === undefined || jsonStr === null) {
-                throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+            if (this.useRison) {
+                stringified = rison.encode(JSON.hpack(value, this.hbest));
+                coderStr = 'rison.encode';
+            } else {
+                stringified = JSON.stringify(JSON.hpack(value, this.hbest));
+            }
+
+            if (stringified === undefined || stringified === null) {
+                throw coderStr + " returned 'undefined' or 'null'! (" + stringified + ")";
+            }
+
+            if (this.compress) {
+                compressor = new utility.LZ77();
+                storageStr = compressor.compress(stringified);
+                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
+            } else {
+                storageStr = stringified;
             }
 
             if (utility.is_html5_sessionStorage) {
-                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             }
 
             return value;
@@ -7683,9 +7950,10 @@ spreadsheet = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj    = null,
+            var jsObj      = null,
                 storageStr = '',
-                storageArr = [];
+                storageArr = [],
+                compressor = null;
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -7693,14 +7961,27 @@ spreadsheet = {
 
             if (utility.is_html5_sessionStorage) {
                 storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
-                storageArr = $.parseJSON(storageStr);
-                if (storageArr && storageArr.length) {
-                    jsonObj = JSON.hunpack(storageArr);
+                if (storageStr) {
+                    if (this.compress) {
+                        compressor = new utility.LZ77();
+                        storageStr = compressor.decompress(storageStr);
+                        utility.log(2, "Decompressed storage", name);
+                    }
+
+                    if (this.useRison) {
+                        storageArr = rison.decode(storageStr);
+                    } else {
+                        storageArr = $.parseJSON(storageStr);
+                    }
+
+                    if (storageArr && storageArr.length) {
+                        jsObj = JSON.hunpack(storageArr);
+                    }
                 }
 
-                if (jsonObj === undefined || jsonObj === null) {
+                if (jsObj === undefined || jsObj === null) {
                     if (!hidden) {
-                        utility.warn("spreadsheet.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                        utility.warn("spreadsheet.getItem parsed string returned 'undefined' or 'null' for ", name);
                     }
 
                     if (value !== undefined && value !== null) {
@@ -7708,14 +7989,14 @@ spreadsheet = {
                             utility.warn("spreadsheet.getItem using default value ", value);
                         }
 
-                        jsonObj = value;
+                        jsObj = value;
                     } else {
                         throw "No default value supplied! (" + value + ")";
                     }
                 }
             }
 
-            return jsonObj;
+            return jsObj;
         } catch (error) {
             utility.error("ERROR in spreadsheet.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
@@ -7750,7 +8031,7 @@ spreadsheet = {
 
     load: function () {
         try {
-            if (!config.getItem("enableTitles", true) && !config.getItem("goblinHinting", true)) {
+            if (!config.getItem("enableTitles", true) && !config.getItem("goblinHinting", true) && !config.getItem("enableRecipeClean", true)) {
                 return true;
             }
 
@@ -7804,12 +8085,13 @@ spreadsheet = {
                             spreadsheet.records.push(newRecord);
                         }
 
+                        spreadsheet.hbest = JSON.hbest(spreadsheet.records);
+                        utility.log(2, "spreadsheet.records Hbest", spreadsheet.hbest);
                         spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
                         utility.log(2, "spreadsheet.records", spreadsheet.records);
                     }
                 });
             } else {
-                this.records = this.getItem('spreadsheet.records', []);
                 utility.log(2, "spreadsheet.records", this.records);
             }
 
@@ -7997,6 +8279,8 @@ spreadsheet = {
 /////////////////////////////////////////////////////////////////////
 
 gifting = {
+    cachedGiftEntry: {},
+
     types: ["gifts", "queue", "history"],
 
     load: function (type) {
@@ -8011,6 +8295,8 @@ gifting = {
                 this[type].records = gm.setItem("gifting." + type, []);
             }
 
+            this[type].hbest = JSON.hbest(this[type].records);
+            utility.log(2, "gifting." + type + " Hbest", this[type].hbest);
             utility.log(5, "gifting.load", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
@@ -8027,16 +8313,8 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            var hbest    = false,
-                compress = false;
-
-            if (type === "history") {
-                hbest = JSON.hbest(this[type].records);
-                utility.log(2, "Hbest", hbest);
-                //compress = true;
-            }
-
-            gm.setItem("gifting." + type, this[type].records, hbest, compress);
+            var compress = false;
+            gm.setItem("gifting." + type, this[type].records, this[type].hbest, compress);
             utility.log(5, "gifting.save", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
@@ -8054,7 +8332,7 @@ gifting = {
             }
 
             this[type].records = gm.setItem("gifting." + type, []);
-            gm.setItem("GiftEntry", {});
+            this.cachedGiftEntry = gm.setItem("GiftEntry", {});
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -8117,16 +8395,31 @@ gifting = {
                 utility.warn("No gift messages found!");
             }
 
-            return !$.isEmptyObject(gm.setItem("GiftEntry", current));
+            this.cachedGiftEntry = gm.setItem("GiftEntry", current);
+            return !$.isEmptyObject(this.cachedGiftEntry);
         } catch (err) {
             utility.error("ERROR in gifting.accept: " + err);
             return undefined;
         }
     },
 
+    loadCurrent: function () {
+        try {
+            this.cachedGiftEntry = gm.getItem('GiftEntry', 'default');
+            if (this.cachedGiftEntry === 'default' || !$.isPlainObject(this.cachedGiftEntry)) {
+                this.cachedGiftEntry = gm.setItem('GiftEntry', {});
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in gifting.loadCurrent: " + err);
+            return false;
+        }
+    },
+
     getCurrent: function () {
         try {
-            return gm.getItem("GiftEntry", {});
+            return this.cachedGiftEntry;
         } catch (err) {
             utility.error("ERROR in gifting.getCurrent: " + err);
             return undefined;
@@ -8144,7 +8437,8 @@ gifting = {
                 throw "Invalid identifying userId!";
             }
 
-            return gm.setItem("GiftEntry", record);
+            this.cachedGiftEntry = gm.setItem("GiftEntry", record);
+            return this.cachedGiftEntry;
         } catch (err) {
             utility.error("ERROR in gifting.setCurrent: " + err);
             return undefined;
@@ -8153,7 +8447,8 @@ gifting = {
 
     clearCurrent: function () {
         try {
-            return gm.setItem("GiftEntry", {});
+            this.cachedGiftEntry = gm.setItem("GiftEntry", {});
+            return this.cachedGiftEntry;
         } catch (err) {
             utility.error("ERROR in gifting.clearCurrent: " + err);
             return undefined;
@@ -8183,7 +8478,7 @@ gifting = {
 
             if (!$.isEmptyObject(this.getCurrent()) && !this.getCurrent().checked) {
                 utility.log(1, "Clearing incomplete pending gift", this.getCurrent());
-                gm.setItem("GiftEntry", {});
+                this.cachedGiftEntry = gm.setItem("GiftEntry", {});
             }
 
             return null;
@@ -8222,7 +8517,8 @@ gifting = {
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
                         var giftRequest = $(this);
-                        inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
+                        //inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
+                        inputDiv = giftRequest.find(".uiButtonConfirm input[name*='gift_accept.php']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
@@ -8398,6 +8694,8 @@ gifting = {
                 image : ''
             };
         },
+
+        hbest: false,
 
         getItem: function (name) {
             try {
@@ -8579,6 +8877,8 @@ gifting = {
                 last    : 0
             };
         },
+
+        hbest: false,
 
         fix: function () {
             try {
@@ -9004,6 +9304,8 @@ gifting = {
             };
         },
 
+        hbest: false,
+
         received: function (record) {
             try {
                 if (!record || !$.isPlainObject(record)) {
@@ -9158,7 +9460,7 @@ caap = {
     IncrementPageLoadCounter: function () {
         try {
             this.pageLoadCounter += 1;
-            utility.log(2, "pageLoadCounter", this.pageLoadCounter);
+            utility.log(3, "pageLoadCounter", this.pageLoadCounter);
             return this.pageLoadCounter;
         } catch (err) {
             utility.error("ERROR in IncrementPageLoadCounter: " + err);
@@ -9284,9 +9586,8 @@ caap = {
 
             if (config.getItem('HideAdsIframe', false)) {
                 $("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
-                $("img[src*='apple_banner_']").parent().parent().css('display', 'none');
+                //$("img[src*='apple_banner_']").parent().parent().css('display', 'none');
             }
-
 
             if (config.getItem('HideFBChat', false)) {
                 window.setTimeout(function () {
@@ -10292,7 +10593,6 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenGuildMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenGuildMonsterHide' style='display: " + (config.getItem('WhenGuildMonster', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-
             htmlCode += "<div id='caap_WhenGuildMonsterXStamina' style='display: " + (config.getItem('WhenGuildMonster', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 0px'>Max Stamina To Fight</td><td style='text-align: right'>" +
@@ -10300,19 +10600,17 @@ caap = {
             htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MinStaminaToGMonster', '', 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
-
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, '', '');
-            htmlCode += this.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, '', '');
-            htmlCode += this.MakeCheckTR('Collect Rewards', 'guildMonsterCollect', false, '', '') + '</table>';
+            htmlCode += this.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, '', 'Prioritise the classic monsters and raids before Guild Monsters.');
+            htmlCode += this.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, '', 'Perform siege assists when visiting your Guild Monster.');
+            htmlCode += this.MakeCheckTR('Collect Rewards', 'guildMonsterCollect', false, '', 'Collect the rewards of your completed Guild Monsters.') + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 0px'>Ignore Minions Below Health</td><td style='text-align: right'>" +
-                this.MakeNumberForm('IgnoreMinionsBelow', '', 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('IgnoreMinionsBelow', "Don't attack monster minions that have a health below this value.", 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Choose First Alive', 'chooseIgnoredMinions', false, '', '') + '</table>';
+            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Choose First Alive', 'chooseIgnoredMinions', false, '', 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.') + '</table>';
             htmlCode += "Attack Monsters in this order<br />";
-            htmlCode += this.MakeTextBox('orderGuildMonster', '', '', '');
-
+            htmlCode += this.MakeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -10347,6 +10645,9 @@ caap = {
             htmlCode += this.ToggleControl('Recon', 'RECON');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, 'PlayerReconControl', PReconInstructions, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='padding-left: 0px'>Limit Target Records</td><td style='text-align: right'>" +
+                this.MakeNumberForm('LimitTargets', 'Maximum number of records to hold.', 100, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += 'Find battle targets that are:';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
@@ -10528,18 +10829,15 @@ caap = {
                 this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions);
-
-            htmlCode += this.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', '', true) + '</table>';
+            htmlCode += this.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', "Don't return gifts to a list of UserIDs", true) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', '') + '</td></tr></table>';
             htmlCode += '</div>';
-
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', '', true) + '</table>';
+            htmlCode += this.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', "Don't return gifts for a list of certain gifts recieved", true) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', '') + '</td></tr></table>';
             htmlCode += '</div>';
-
             htmlCode += '</div>';
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -10579,7 +10877,7 @@ caap = {
     AddAutoOptionsMenu: function () {
         try {
             // Other controls
-            var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.",
+            var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards. (Will be removed when CA remove the feature)",
                 autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
                     "that do not have missing ingredients. By default, it will not " +
                     "combine Battle Hearts recipes.",
@@ -10657,6 +10955,12 @@ caap = {
                 hideFBChatInstructions = "Hide the FaceBook Chat",
                 newsSummaryInstructions = "Enable or disable the news summary on the index page.",
                 bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
+                itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.",
+                goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
+                ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
+                alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
+                recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
+                recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
                 styleList = [
                     'CA Skin',
                     'Original',
@@ -10667,14 +10971,14 @@ caap = {
 
             htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', '');
-            htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', '');
-            htmlCode += this.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', '');
-            htmlCode += this.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', '');
-            htmlCode += this.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'SenableRecipeClean_Adv', '', true);
+            htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', itemTitlesInstructions);
+            htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', goblinHintingInstructions);
+            htmlCode += this.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', ingredientsHideInstructions);
+            htmlCode += this.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', alchemyShrinkInstructions);
+            htmlCode += this.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'enableRecipeClean_Adv', recipeCleanInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'>Recipe Count</td><td style='text-align: right'>" +
-                this.MakeNumberForm('recipeCleanCount', '', 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('recipeCleanCount', recipeCleanCountInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
@@ -13595,6 +13899,10 @@ caap = {
         'guild_battle_monster': {
             signatureId: 'app46755028429_guild_battle_banner_section',
             CheckResultsFunction: 'CheckResults_guild_battle_monster'
+        },
+        'apprentice': {
+            signaturePic: 'ma_view_progress2.gif',
+            CheckResultsFunction: 'CheckResults_apprentice'
         }
     },
 
@@ -13987,12 +14295,12 @@ caap = {
     },
 
     LoadStats: function () {
-        if (gm.getItem('stats.record', 'default') === 'default' || !$.isPlainObject(gm.getItem('stats.record', 'default'))) {
-            gm.setItem('stats.record', this.stats);
-        } else {
-            $.extend(this.stats, gm.getItem('stats.record', this.stats));
+        var Stats = gm.getItem('stats.record', 'default');
+        if (Stats === 'default' || !$.isPlainObject(Stats)) {
+            Stats = gm.setItem('stats.record', this.stats);
         }
 
+        $.extend(true, this.stats, Stats);
         utility.log(4, "Stats", this.stats);
         state.setItem("UserDashUpdate", true);
     },
@@ -19616,14 +19924,37 @@ caap = {
         }
     },
 
+    CheckResults_apprentice: function () {
+        try {
+            if (!state.getItem("CollectingMA", false)) {
+                return false;
+            }
+
+            window.setTimeout(function () {
+                caap.SetDivContent('idle_mess', '');
+            }, 5000);
+
+            state.setItem("CollectingMA", false);
+            schedule.setItem('AutoCollectMATimer', 86400, 300);
+            utility.log(2, "Collect Master and Apprentice reward completed");
+            return true;
+        } catch (err) {
+            utility.error("ERROR in AutoCollectMA: " + err);
+            return undefined;
+        }
+    },
+
     AutoCollectMA: function () {
         try {
-            if (!config.getItem('AutoCollectMA', false) || !schedule.check('AutoCollectMATimer') || this.stats.level < 10) {
+            if (!state.getItem("CollectingMA", false) && (!config.getItem('AutoCollectMA', false) || !schedule.check('AutoCollectMATimer') || this.stats.level < 10)) {
                 return false;
             }
 
             utility.log(2, "Collecting Master and Apprentice reward");
             caap.SetDivContent('idle_mess', 'Collect MA Reward');
+            state.setItem("CollectingMA", true);
+            utility.ClickAjaxLinkSend('apprentice.php?collect=true');
+            /*
             var buttonMas = utility.CheckForImage("ma_view_progress_main"),
                 buttonApp = utility.CheckForImage("ma_main_learn_more");
 
@@ -19651,10 +19982,12 @@ caap = {
 
             schedule.setItem('AutoCollectMATimer', 86400, 300);
             utility.log(2, "Collect Master and Apprentice reward completed");
+            */
+
             return true;
         } catch (err) {
             utility.error("ERROR in AutoCollectMA: " + err);
-            return false;
+            return undefined;
         }
     },
 
@@ -19664,23 +19997,57 @@ caap = {
         try {
             $.ajax({
                 url: theUrl,
+                dataType: "html",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.log(3, "ajaxCTA: ", theUrl, textStatus);
+                        utility.warn("error ajaxCTA: ", theUrl, textStatus, errorThrown);
                         var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
                         schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
                         state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
                         caap.waitAjaxCTA = false;
                     },
+                dataFilter:
+                    function (data, type) {
+                        var fbcRegExp = new RegExp("fbcontext=\"(.+)\""),
+                            fbcontext = '',
+                            tempArr   = [],
+                            newData   = '';
+
+                        tempArr = data.match(fbcRegExp);
+                        utility.log(3, "ajaxCTA fbcontext", tempArr);
+                        if (tempArr && tempArr.length !== 2) {
+                            utility.warn("ajaxCTA unable to find fbcontext");
+                            return data;
+                        }
+
+                        fbcontext = tempArr[1];
+                        utility.log(3, "ajaxCTA fbcontext", fbcontext, tempArr);
+                        tempArr = data.split('<div style="padding: 10px 30px;">');
+                        if (tempArr && tempArr.length !== 2) {
+                            utility.warn("ajaxCTA unable to do first split");
+                            return data;
+                        }
+
+                        newData = tempArr[1];
+                        tempArr = newData.split('<div id="app46755028429_guild_bg_bottom" fbcontext="' + fbcontext + '">');
+                        if (tempArr && tempArr.length !== 2) {
+                            utility.warn("ajaxCTA unable to do second split");
+                            return data;
+                        }
+
+                        newData = tempArr[0];
+                        utility.log(3, "ajaxCTA dataFilter", [newData, type]);
+                        return newData;
+                    },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
-                        var tempText = $(data).find("#app46755028429_guild_battle_banner_section").text();
+                        var tempText = $('<div></div>').html(data).find("#app46755028429_guild_battle_banner_section").text();
                         if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
                             schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
-                            utility.log(3, "ajaxCTA not done", theUrl);
+                            utility.log(2, "ajaxCTA not done", theUrl);
                         } else {
                             schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
-                            utility.log(3, "ajaxCTA done", theUrl);
+                            utility.log(2, "ajaxCTA done", theUrl);
                         }
 
                         state.setItem('ajaxCTABackOff' + theCount, 0);
@@ -20095,22 +20462,23 @@ caap = {
         };
     },
 
+    reconhbest: false,
+
     LoadRecon: function () {
         this.ReconRecordArray = gm.getItem('recon.records', 'default');
         if (this.ReconRecordArray === 'default' || !$.isArray(this.ReconRecordArray)) {
             this.ReconRecordArray = gm.setItem('recon.records', []);
         }
 
+        this.reconhbest = JSON.hbest(this.ReconRecordArray);
+        utility.log(2, "recon.records Hbest", this.reconhbest);
         state.setItem("ReconDashUpdate", true);
         utility.log(4, "recon.records", this.ReconRecordArray);
     },
 
     SaveRecon: function () {
-        var hbest    = JSON.hbest(this.ReconRecordArray),
-            compress = false;
-
-        utility.log(2, "Hbest", hbest);
-        gm.setItem('recon.records', this.ReconRecordArray, hbest, compress);
+        var compress = false;
+        gm.setItem('recon.records', this.ReconRecordArray, this.reconhbest, compress);
         state.setItem("ReconDashUpdate", true);
         utility.log(4, "recon.records", this.ReconRecordArray);
     },
@@ -20144,7 +20512,7 @@ caap = {
                             var found       = 0,
                                 regex       = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
                                 regex2      = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-                                entryLimit  = gm.getItem('LimitTargets', 100, hiddenVar),
+                                entryLimit  = config.getItem('LimitTargets', 100),
                                 reconRank   = config.getItem('ReconPlayerRank', 99),
                                 reconLevel  = config.getItem('ReconPlayerLevel', 999),
                                 reconARBase = config.getItem('ReconPlayerARBase', 999);
@@ -20690,7 +21058,7 @@ function caap_Start() {
     }
 
     if (!idOk) {
-        tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
+        tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
         if (tempArr && tempArr.length === 2) {
             FBID = parseInt(tempArr[1], 10);
             if (utility.isNum(FBID) && FBID > 0) {
@@ -20701,7 +21069,7 @@ function caap_Start() {
     }
 
     if (!idOk) {
-        tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
+        tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
         if (tempArr && tempArr.length === 2) {
             FBID = parseInt(tempArr[1], 10);
             if (utility.isNum(FBID) && FBID > 0) {
@@ -20735,6 +21103,7 @@ function caap_Start() {
     caap.stats.FBID = FBID;
     caap.stats.account = accountEl.text();
     gifting.init();
+    gifting.loadCurrent();
     state.setItem('clickUrl', window.location.href);
     schedule.setItem('clickedOnSomething', 0);
 
@@ -20780,10 +21149,25 @@ function caap_Start() {
     mainCaapLoop();
 }
 
-function caap_WaitForjsonhpack() {
-    if (typeof JSON.stringify === 'function') {
-        utility.log(1, 'CAAP: json.hpack ready...');
+function caap_WaitForrison() {
+    if (typeof rison.encode === 'function') {
+        utility.log(1, 'CAAP: rison ready ...');
         $(caap_Start);
+    } else {
+        utility.log(1, 'CAAP: Waiting for rison ...');
+        window.setTimeout(caap_WaitForrison, 100);
+    }
+}
+
+function caap_WaitForjsonhpack() {
+    if (typeof JSON.hpack === 'function') {
+        utility.log(1, 'CAAP: json.hpack ready ...');
+        if (typeof rison.encode !== 'function') {
+            utility.log(1, 'CAAP: Inject rison.');
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
+        }
+
+        caap_WaitForrison();
     } else {
         utility.log(1, 'CAAP: Waiting for json.hpack ...');
         window.setTimeout(caap_WaitForjsonhpack, 100);
@@ -20792,7 +21176,7 @@ function caap_WaitForjsonhpack() {
 
 function caap_WaitForjson2() {
     if (typeof JSON.stringify === 'function') {
-        utility.log(1, 'CAAP: json2 ready...');
+        utility.log(1, 'CAAP: json2 ready ...');
         if (typeof JSON.hpack !== 'function') {
             utility.log(1, 'CAAP: Inject json.hpack.');
             utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');

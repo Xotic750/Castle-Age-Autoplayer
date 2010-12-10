@@ -17,7 +17,7 @@ caap = {
     IncrementPageLoadCounter: function () {
         try {
             this.pageLoadCounter += 1;
-            utility.log(2, "pageLoadCounter", this.pageLoadCounter);
+            utility.log(3, "pageLoadCounter", this.pageLoadCounter);
             return this.pageLoadCounter;
         } catch (err) {
             utility.error("ERROR in IncrementPageLoadCounter: " + err);
@@ -143,9 +143,8 @@ caap = {
 
             if (config.getItem('HideAdsIframe', false)) {
                 $("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
-                $("img[src*='apple_banner_']").parent().parent().css('display', 'none');
+                //$("img[src*='apple_banner_']").parent().parent().css('display', 'none');
             }
-
 
             if (config.getItem('HideFBChat', false)) {
                 window.setTimeout(function () {
@@ -1151,7 +1150,6 @@ caap = {
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + this.MakeDropDown('WhenGuildMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenGuildMonsterHide' style='display: " + (config.getItem('WhenGuildMonster', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-
             htmlCode += "<div id='caap_WhenGuildMonsterXStamina' style='display: " + (config.getItem('WhenGuildMonster', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 0px'>Max Stamina To Fight</td><td style='text-align: right'>" +
@@ -1159,19 +1157,17 @@ caap = {
             htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina</td><td style='text-align: right'>" +
                 this.MakeNumberForm('MinStaminaToGMonster', '', 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "</div>";
-
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, '', '');
-            htmlCode += this.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, '', '');
-            htmlCode += this.MakeCheckTR('Collect Rewards', 'guildMonsterCollect', false, '', '') + '</table>';
+            htmlCode += this.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, '', 'Prioritise the classic monsters and raids before Guild Monsters.');
+            htmlCode += this.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, '', 'Perform siege assists when visiting your Guild Monster.');
+            htmlCode += this.MakeCheckTR('Collect Rewards', 'guildMonsterCollect', false, '', 'Collect the rewards of your completed Guild Monsters.') + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 0px'>Ignore Minions Below Health</td><td style='text-align: right'>" +
-                this.MakeNumberForm('IgnoreMinionsBelow', '', 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('IgnoreMinionsBelow', "Don't attack monster minions that have a health below this value.", 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Choose First Alive', 'chooseIgnoredMinions', false, '', '') + '</table>';
+            htmlCode += this.MakeCheckTR('&nbsp;&nbsp;&nbsp;Choose First Alive', 'chooseIgnoredMinions', false, '', 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.') + '</table>';
             htmlCode += "Attack Monsters in this order<br />";
-            htmlCode += this.MakeTextBox('orderGuildMonster', '', '', '');
-
+            htmlCode += this.MakeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -1206,6 +1202,9 @@ caap = {
             htmlCode += this.ToggleControl('Recon', 'RECON');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, 'PlayerReconControl', PReconInstructions, true);
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='padding-left: 0px'>Limit Target Records</td><td style='text-align: right'>" +
+                this.MakeNumberForm('LimitTargets', 'Maximum number of records to hold.', 100, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += 'Find battle targets that are:';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
@@ -1387,18 +1386,15 @@ caap = {
                 this.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions);
-
-            htmlCode += this.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', '', true) + '</table>';
+            htmlCode += this.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', "Don't return gifts to a list of UserIDs", true) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', '') + '</td></tr></table>';
             htmlCode += '</div>';
-
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', '', true) + '</table>';
+            htmlCode += this.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', "Don't return gifts for a list of certain gifts recieved", true) + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += '<tr><td>' + this.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', '') + '</td></tr></table>';
             htmlCode += '</div>';
-
             htmlCode += '</div>';
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -1438,7 +1434,7 @@ caap = {
     AddAutoOptionsMenu: function () {
         try {
             // Other controls
-            var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards.",
+            var autoCollectMAInstructions = "Auto collect your Master and Apprentice rewards. (Will be removed when CA remove the feature)",
                 autoAlchemyInstructions1 = "AutoAlchemy will combine all recipes " +
                     "that do not have missing ingredients. By default, it will not " +
                     "combine Battle Hearts recipes.",
@@ -1516,6 +1512,12 @@ caap = {
                 hideFBChatInstructions = "Hide the FaceBook Chat",
                 newsSummaryInstructions = "Enable or disable the news summary on the index page.",
                 bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
+                itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.",
+                goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
+                ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
+                alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
+                recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
+                recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
                 styleList = [
                     'CA Skin',
                     'Original',
@@ -1526,14 +1528,14 @@ caap = {
 
             htmlCode += this.ToggleControl('Other', 'OTHER OPTIONS');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', '');
-            htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', '');
-            htmlCode += this.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', '');
-            htmlCode += this.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', '');
-            htmlCode += this.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'SenableRecipeClean_Adv', '', true);
+            htmlCode += this.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', itemTitlesInstructions);
+            htmlCode += this.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', goblinHintingInstructions);
+            htmlCode += this.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', ingredientsHideInstructions);
+            htmlCode += this.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', alchemyShrinkInstructions);
+            htmlCode += this.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'enableRecipeClean_Adv', recipeCleanInstructions, true);
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='padding-left: 10px'>Recipe Count</td><td style='text-align: right'>" +
-                this.MakeNumberForm('recipeCleanCount', '', 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+                this.MakeNumberForm('recipeCleanCount', recipeCleanCountInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += '</div>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += this.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
@@ -4454,6 +4456,10 @@ caap = {
         'guild_battle_monster': {
             signatureId: 'app46755028429_guild_battle_banner_section',
             CheckResultsFunction: 'CheckResults_guild_battle_monster'
+        },
+        'apprentice': {
+            signaturePic: 'ma_view_progress2.gif',
+            CheckResultsFunction: 'CheckResults_apprentice'
         }
     },
 
@@ -4846,12 +4852,12 @@ caap = {
     },
 
     LoadStats: function () {
-        if (gm.getItem('stats.record', 'default') === 'default' || !$.isPlainObject(gm.getItem('stats.record', 'default'))) {
-            gm.setItem('stats.record', this.stats);
-        } else {
-            $.extend(this.stats, gm.getItem('stats.record', this.stats));
+        var Stats = gm.getItem('stats.record', 'default');
+        if (Stats === 'default' || !$.isPlainObject(Stats)) {
+            Stats = gm.setItem('stats.record', this.stats);
         }
 
+        $.extend(true, this.stats, Stats);
         utility.log(4, "Stats", this.stats);
         state.setItem("UserDashUpdate", true);
     },
@@ -10475,14 +10481,37 @@ caap = {
         }
     },
 
+    CheckResults_apprentice: function () {
+        try {
+            if (!state.getItem("CollectingMA", false)) {
+                return false;
+            }
+
+            window.setTimeout(function () {
+                caap.SetDivContent('idle_mess', '');
+            }, 5000);
+
+            state.setItem("CollectingMA", false);
+            schedule.setItem('AutoCollectMATimer', 86400, 300);
+            utility.log(2, "Collect Master and Apprentice reward completed");
+            return true;
+        } catch (err) {
+            utility.error("ERROR in AutoCollectMA: " + err);
+            return undefined;
+        }
+    },
+
     AutoCollectMA: function () {
         try {
-            if (!config.getItem('AutoCollectMA', false) || !schedule.check('AutoCollectMATimer') || this.stats.level < 10) {
+            if (!state.getItem("CollectingMA", false) && (!config.getItem('AutoCollectMA', false) || !schedule.check('AutoCollectMATimer') || this.stats.level < 10)) {
                 return false;
             }
 
             utility.log(2, "Collecting Master and Apprentice reward");
             caap.SetDivContent('idle_mess', 'Collect MA Reward');
+            state.setItem("CollectingMA", true);
+            utility.ClickAjaxLinkSend('apprentice.php?collect=true');
+            /*
             var buttonMas = utility.CheckForImage("ma_view_progress_main"),
                 buttonApp = utility.CheckForImage("ma_main_learn_more");
 
@@ -10510,10 +10539,12 @@ caap = {
 
             schedule.setItem('AutoCollectMATimer', 86400, 300);
             utility.log(2, "Collect Master and Apprentice reward completed");
+            */
+
             return true;
         } catch (err) {
             utility.error("ERROR in AutoCollectMA: " + err);
-            return false;
+            return undefined;
         }
     },
 
@@ -10523,23 +10554,57 @@ caap = {
         try {
             $.ajax({
                 url: theUrl,
+                dataType: "html",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.log(3, "ajaxCTA: ", theUrl, textStatus);
+                        utility.warn("error ajaxCTA: ", theUrl, textStatus, errorThrown);
                         var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
                         schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
                         state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
                         caap.waitAjaxCTA = false;
                     },
+                dataFilter:
+                    function (data, type) {
+                        var fbcRegExp = new RegExp("fbcontext=\"(.+)\""),
+                            fbcontext = '',
+                            tempArr   = [],
+                            newData   = '';
+
+                        tempArr = data.match(fbcRegExp);
+                        utility.log(3, "ajaxCTA fbcontext", tempArr);
+                        if (tempArr && tempArr.length !== 2) {
+                            utility.warn("ajaxCTA unable to find fbcontext");
+                            return data;
+                        }
+
+                        fbcontext = tempArr[1];
+                        utility.log(3, "ajaxCTA fbcontext", fbcontext, tempArr);
+                        tempArr = data.split('<div style="padding: 10px 30px;">');
+                        if (tempArr && tempArr.length !== 2) {
+                            utility.warn("ajaxCTA unable to do first split");
+                            return data;
+                        }
+
+                        newData = tempArr[1];
+                        tempArr = newData.split('<div id="app46755028429_guild_bg_bottom" fbcontext="' + fbcontext + '">');
+                        if (tempArr && tempArr.length !== 2) {
+                            utility.warn("ajaxCTA unable to do second split");
+                            return data;
+                        }
+
+                        newData = tempArr[0];
+                        utility.log(3, "ajaxCTA dataFilter", [newData, type]);
+                        return newData;
+                    },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
-                        var tempText = $(data).find("#app46755028429_guild_battle_banner_section").text();
+                        var tempText = $('<div></div>').html(data).find("#app46755028429_guild_battle_banner_section").text();
                         if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
                             schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
-                            utility.log(3, "ajaxCTA not done", theUrl);
+                            utility.log(2, "ajaxCTA not done", theUrl);
                         } else {
                             schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
-                            utility.log(3, "ajaxCTA done", theUrl);
+                            utility.log(2, "ajaxCTA done", theUrl);
                         }
 
                         state.setItem('ajaxCTABackOff' + theCount, 0);
@@ -10954,22 +11019,23 @@ caap = {
         };
     },
 
+    reconhbest: false,
+
     LoadRecon: function () {
         this.ReconRecordArray = gm.getItem('recon.records', 'default');
         if (this.ReconRecordArray === 'default' || !$.isArray(this.ReconRecordArray)) {
             this.ReconRecordArray = gm.setItem('recon.records', []);
         }
 
+        this.reconhbest = JSON.hbest(this.ReconRecordArray);
+        utility.log(2, "recon.records Hbest", this.reconhbest);
         state.setItem("ReconDashUpdate", true);
         utility.log(4, "recon.records", this.ReconRecordArray);
     },
 
     SaveRecon: function () {
-        var hbest    = JSON.hbest(this.ReconRecordArray),
-            compress = false;
-
-        utility.log(2, "Hbest", hbest);
-        gm.setItem('recon.records', this.ReconRecordArray, hbest, compress);
+        var compress = false;
+        gm.setItem('recon.records', this.ReconRecordArray, this.reconhbest, compress);
         state.setItem("ReconDashUpdate", true);
         utility.log(4, "recon.records", this.ReconRecordArray);
     },
@@ -11003,7 +11069,7 @@ caap = {
                             var found       = 0,
                                 regex       = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*War: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
                                 regex2      = new RegExp('(.+)\\s*\\(Level ([0-9]+)\\)\\s*Battle: ([A-Za-z ]+) \\(Rank ([0-9]+)\\)\\s*([0-9]+)', 'i'),
-                                entryLimit  = gm.getItem('LimitTargets', 100, hiddenVar),
+                                entryLimit  = config.getItem('LimitTargets', 100),
                                 reconRank   = config.getItem('ReconPlayerRank', 99),
                                 reconLevel  = config.getItem('ReconPlayerLevel', 999),
                                 reconARBase = config.getItem('ReconPlayerARBase', 999);

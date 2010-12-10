@@ -5,6 +5,8 @@
 /////////////////////////////////////////////////////////////////////
 
 gifting = {
+    cachedGiftEntry: {},
+
     types: ["gifts", "queue", "history"],
 
     load: function (type) {
@@ -19,6 +21,8 @@ gifting = {
                 this[type].records = gm.setItem("gifting." + type, []);
             }
 
+            this[type].hbest = JSON.hbest(this[type].records);
+            utility.log(2, "gifting." + type + " Hbest", this[type].hbest);
             utility.log(5, "gifting.load", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
@@ -35,16 +39,8 @@ gifting = {
                 throw "Invalid type value!";
             }
 
-            var hbest    = false,
-                compress = false;
-
-            if (type === "history") {
-                hbest = JSON.hbest(this[type].records);
-                utility.log(2, "Hbest", hbest);
-                //compress = true;
-            }
-
-            gm.setItem("gifting." + type, this[type].records, hbest, compress);
+            var compress = false;
+            gm.setItem("gifting." + type, this[type].records, this[type].hbest, compress);
             utility.log(5, "gifting.save", type, this[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
@@ -62,7 +58,7 @@ gifting = {
             }
 
             this[type].records = gm.setItem("gifting." + type, []);
-            gm.setItem("GiftEntry", {});
+            this.cachedGiftEntry = gm.setItem("GiftEntry", {});
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
@@ -125,16 +121,31 @@ gifting = {
                 utility.warn("No gift messages found!");
             }
 
-            return !$.isEmptyObject(gm.setItem("GiftEntry", current));
+            this.cachedGiftEntry = gm.setItem("GiftEntry", current);
+            return !$.isEmptyObject(this.cachedGiftEntry);
         } catch (err) {
             utility.error("ERROR in gifting.accept: " + err);
             return undefined;
         }
     },
 
+    loadCurrent: function () {
+        try {
+            this.cachedGiftEntry = gm.getItem('GiftEntry', 'default');
+            if (this.cachedGiftEntry === 'default' || !$.isPlainObject(this.cachedGiftEntry)) {
+                this.cachedGiftEntry = gm.setItem('GiftEntry', {});
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in gifting.loadCurrent: " + err);
+            return false;
+        }
+    },
+
     getCurrent: function () {
         try {
-            return gm.getItem("GiftEntry", {});
+            return this.cachedGiftEntry;
         } catch (err) {
             utility.error("ERROR in gifting.getCurrent: " + err);
             return undefined;
@@ -152,7 +163,8 @@ gifting = {
                 throw "Invalid identifying userId!";
             }
 
-            return gm.setItem("GiftEntry", record);
+            this.cachedGiftEntry = gm.setItem("GiftEntry", record);
+            return this.cachedGiftEntry;
         } catch (err) {
             utility.error("ERROR in gifting.setCurrent: " + err);
             return undefined;
@@ -161,7 +173,8 @@ gifting = {
 
     clearCurrent: function () {
         try {
-            return gm.setItem("GiftEntry", {});
+            this.cachedGiftEntry = gm.setItem("GiftEntry", {});
+            return this.cachedGiftEntry;
         } catch (err) {
             utility.error("ERROR in gifting.clearCurrent: " + err);
             return undefined;
@@ -191,7 +204,7 @@ gifting = {
 
             if (!$.isEmptyObject(this.getCurrent()) && !this.getCurrent().checked) {
                 utility.log(1, "Clearing incomplete pending gift", this.getCurrent());
-                gm.setItem("GiftEntry", {});
+                this.cachedGiftEntry = gm.setItem("GiftEntry", {});
             }
 
             return null;
@@ -230,7 +243,8 @@ gifting = {
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
                         var giftRequest = $(this);
-                        inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
+                        //inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
+                        inputDiv = giftRequest.find(".uiButtonConfirm input[name*='gift_accept.php']");
                         if (inputDiv && inputDiv.length) {
                             userArr = inputDiv.attr("name").match(uidRegExp);
                             if (!userArr || userArr.length !== 2) {
@@ -406,6 +420,8 @@ gifting = {
                 image : ''
             };
         },
+
+        hbest: false,
 
         getItem: function (name) {
             try {
@@ -587,6 +603,8 @@ gifting = {
                 last    : 0
             };
         },
+
+        hbest: false,
 
         fix: function () {
             try {
@@ -1011,6 +1029,8 @@ gifting = {
                 lastReceived : 0
             };
         },
+
+        hbest: false,
 
         received: function (record) {
             try {

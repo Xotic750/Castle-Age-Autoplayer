@@ -84,6 +84,8 @@ battle = {
         12 : 'First Colonel'
     },
 
+    hbest: false,
+
     load: function () {
         try {
             this.records = gm.getItem('battle.records', 'default');
@@ -91,6 +93,8 @@ battle = {
                 this.records = gm.setItem('battle.records', []);
             }
 
+            this.hbest = JSON.hbest(this.records);
+            utility.log(2, "battle.load Hbest", this.hbest);
             state.setItem("BattleDashUpdate", true);
             utility.log(5, "battle.load", this.records);
             return true;
@@ -102,11 +106,8 @@ battle = {
 
     save: function () {
         try {
-            var hbest    = JSON.hbest(this.records),
-                compress = false;
-
-            utility.log(2, "Hbest", hbest);
-            gm.setItem('battle.records', this.records, hbest, compress);
+            var compress = false;
+            gm.setItem('battle.records', this.records, this.hbest, compress);
             state.setItem("BattleDashUpdate", true);
             utility.log(5, "battle.save", this.records);
             return true;

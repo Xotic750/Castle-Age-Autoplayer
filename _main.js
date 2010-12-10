@@ -49,7 +49,7 @@ function caap_Start() {
     }
 
     if (!idOk) {
-        tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
+        tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
         if (tempArr && tempArr.length === 2) {
             FBID = parseInt(tempArr[1], 10);
             if (utility.isNum(FBID) && FBID > 0) {
@@ -60,7 +60,7 @@ function caap_Start() {
     }
 
     if (!idOk) {
-        tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
+        tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
         if (tempArr && tempArr.length === 2) {
             FBID = parseInt(tempArr[1], 10);
             if (utility.isNum(FBID) && FBID > 0) {
@@ -94,6 +94,7 @@ function caap_Start() {
     caap.stats.FBID = FBID;
     caap.stats.account = accountEl.text();
     gifting.init();
+    gifting.loadCurrent();
     state.setItem('clickUrl', window.location.href);
     schedule.setItem('clickedOnSomething', 0);
 
@@ -139,10 +140,25 @@ function caap_Start() {
     mainCaapLoop();
 }
 
-function caap_WaitForjsonhpack() {
-    if (typeof JSON.stringify === 'function') {
-        utility.log(1, 'CAAP: json.hpack ready...');
+function caap_WaitForrison() {
+    if (typeof rison.encode === 'function') {
+        utility.log(1, 'CAAP: rison ready ...');
         $(caap_Start);
+    } else {
+        utility.log(1, 'CAAP: Waiting for rison ...');
+        window.setTimeout(caap_WaitForrison, 100);
+    }
+}
+
+function caap_WaitForjsonhpack() {
+    if (typeof JSON.hpack === 'function') {
+        utility.log(1, 'CAAP: json.hpack ready ...');
+        if (typeof rison.encode !== 'function') {
+            utility.log(1, 'CAAP: Inject rison.');
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
+        }
+
+        caap_WaitForrison();
     } else {
         utility.log(1, 'CAAP: Waiting for json.hpack ...');
         window.setTimeout(caap_WaitForjsonhpack, 100);
@@ -151,7 +167,7 @@ function caap_WaitForjsonhpack() {
 
 function caap_WaitForjson2() {
     if (typeof JSON.stringify === 'function') {
-        utility.log(1, 'CAAP: json2 ready...');
+        utility.log(1, 'CAAP: json2 ready ...');
         if (typeof JSON.hpack !== 'function') {
             utility.log(1, 'CAAP: Inject json.hpack.');
             utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');

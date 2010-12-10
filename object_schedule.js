@@ -69,7 +69,8 @@ schedule = {
             }
 
             if (!$.isPlainObject(this.timers[name])) {
-                throw "Invalid or non-existant timer! " + name;
+                utility.warn("Invalid or non-existant timer!", name);
+                return 0;
             }
 
             return this.timers[name];

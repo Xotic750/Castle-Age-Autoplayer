@@ -99,6 +99,8 @@ general = {
         }
     },
 
+    hbest: false,
+
     load: function () {
         try {
             this.records = gm.getItem('general.records', 'default');
@@ -108,6 +110,8 @@ general = {
 
             this.copy2sortable();
             this.BuildlLists();
+            this.hbest = JSON.hbest(this.records);
+            utility.log(2, "general.load Hbest", this.hbest);
             state.setItem("GeneralsDashUpdate", true);
             utility.log(5, "general.load", this.records);
             return true;
@@ -119,11 +123,8 @@ general = {
 
     save: function () {
         try {
-            var hbest    = JSON.hbest(this.records),
-                compress = false;
-
-            utility.log(2, "Hbest", hbest);
-            gm.setItem('general.records', this.records, hbest, compress);
+            var compress = false;
+            gm.setItem('general.records', this.records, this.hbest, compress);
             state.setItem("GeneralsDashUpdate", true);
             utility.log(5, "general.save", this.records);
             return true;

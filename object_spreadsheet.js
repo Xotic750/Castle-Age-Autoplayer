@@ -30,11 +30,19 @@ spreadsheet = {
         };
     },
 
+    useRison: true,
+
+    hbest: false,
+
+    compress: true,
+
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
-            var jsonStr = '',
-                hbest   = false;
+            var stringified = '',
+                storageStr  = '',
+                coderStr    = 'JSON.stringify',
+                compressor  = null;
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -43,17 +51,28 @@ spreadsheet = {
             if (value === undefined || value === null) {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
-            var
 
-            hbest = JSON.hbest(value);
-            utility.log(2, "Hbest", hbest);
-            jsonStr = JSON.stringify(JSON.hpack(value, hbest));
-            if (jsonStr === undefined || jsonStr === null) {
-                throw "JSON.stringify returned 'undefined' or 'null'! (" + jsonStr + ")";
+            if (this.useRison) {
+                stringified = rison.encode(JSON.hpack(value, this.hbest));
+                coderStr = 'rison.encode';
+            } else {
+                stringified = JSON.stringify(JSON.hpack(value, this.hbest));
+            }
+
+            if (stringified === undefined || stringified === null) {
+                throw coderStr + " returned 'undefined' or 'null'! (" + stringified + ")";
+            }
+
+            if (this.compress) {
+                compressor = new utility.LZ77();
+                storageStr = compressor.compress(stringified);
+                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
+            } else {
+                storageStr = stringified;
             }
 
             if (utility.is_html5_sessionStorage) {
-                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, jsonStr);
+                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             }
 
             return value;
@@ -65,9 +84,10 @@ spreadsheet = {
 
     getItem: function (name, value, hidden) {
         try {
-            var jsonObj    = null,
+            var jsObj      = null,
                 storageStr = '',
-                storageArr = [];
+                storageArr = [],
+                compressor = null;
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -75,14 +95,27 @@ spreadsheet = {
 
             if (utility.is_html5_sessionStorage) {
                 storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
-                storageArr = $.parseJSON(storageStr);
-                if (storageArr && storageArr.length) {
-                    jsonObj = JSON.hunpack(storageArr);
+                if (storageStr) {
+                    if (this.compress) {
+                        compressor = new utility.LZ77();
+                        storageStr = compressor.decompress(storageStr);
+                        utility.log(2, "Decompressed storage", name);
+                    }
+
+                    if (this.useRison) {
+                        storageArr = rison.decode(storageStr);
+                    } else {
+                        storageArr = $.parseJSON(storageStr);
+                    }
+
+                    if (storageArr && storageArr.length) {
+                        jsObj = JSON.hunpack(storageArr);
+                    }
                 }
 
-                if (jsonObj === undefined || jsonObj === null) {
+                if (jsObj === undefined || jsObj === null) {
                     if (!hidden) {
-                        utility.warn("spreadsheet.getItem parseJSON returned 'undefined' or 'null' for ", name);
+                        utility.warn("spreadsheet.getItem parsed string returned 'undefined' or 'null' for ", name);
                     }
 
                     if (value !== undefined && value !== null) {
@@ -90,14 +123,14 @@ spreadsheet = {
                             utility.warn("spreadsheet.getItem using default value ", value);
                         }
 
-                        jsonObj = value;
+                        jsObj = value;
                     } else {
                         throw "No default value supplied! (" + value + ")";
                     }
                 }
             }
 
-            return jsonObj;
+            return jsObj;
         } catch (error) {
             utility.error("ERROR in spreadsheet.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
@@ -132,7 +165,7 @@ spreadsheet = {
 
     load: function () {
         try {
-            if (!config.getItem("enableTitles", true) && !config.getItem("goblinHinting", true)) {
+            if (!config.getItem("enableTitles", true) && !config.getItem("goblinHinting", true) && !config.getItem("enableRecipeClean", true)) {
                 return true;
             }
 
@@ -186,12 +219,13 @@ spreadsheet = {
                             spreadsheet.records.push(newRecord);
                         }
 
+                        spreadsheet.hbest = JSON.hbest(spreadsheet.records);
+                        utility.log(2, "spreadsheet.records Hbest", spreadsheet.hbest);
                         spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
                         utility.log(2, "spreadsheet.records", spreadsheet.records);
                     }
                 });
             } else {
-                this.records = this.getItem('spreadsheet.records', []);
                 utility.log(2, "spreadsheet.records", this.records);
             }
 

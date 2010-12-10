@@ -78,6 +78,12 @@ town = {
         }
     },
 
+    soldiershbest: false,
+
+    itemhbest: false,
+
+    magichbest: false,
+
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || this.types.indexOf(type) < 0)  {
@@ -90,6 +96,8 @@ town = {
                 this[type] = gm.setItem(type + '.records', []);
             }
 
+            this[type + "hbest"] = JSON.hbest(this[type]);
+            utility.log(2, "town.load " + type + " Hbest", this[type + "hbest"]);
             this.copy2sortable(type);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.load", type, this[type]);
@@ -107,11 +115,8 @@ town = {
                 throw "Invalid type value!";
             }
 
-            var hbest    = JSON.hbest(this[type]),
-                compress = false;
-
-            utility.log(2, "Hbest", hbest);
-            gm.setItem(type + '.records', this[type], hbest, compress);
+            var compress = false;
+            gm.setItem(type + '.records', this[type], this[type + "hbest"], compress);
             state.setItem(type.ucFirst() + "DashUpdate", true);
             utility.log(type, 5, "town.save", type, this[type]);
             return true;
