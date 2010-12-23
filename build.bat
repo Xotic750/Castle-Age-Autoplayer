@@ -31,7 +31,7 @@ rem INSTALLED VERSION
 
 echo Creating Firefox and Chrome versions
 copy _normal.user.js Castle-Age-Autoplayer.user.js >nul
-copy Castle-Age-Autoplayer.user.js Chrome/Castle-Age-Autoplayer.user.js >nul
+copy Castle-Age-Autoplayer.user.js Chrome\Castle-Age-Autoplayer.user.js >nul
 copy README Chrome/README >nul
 
 if EXIST "build\Chrome.pem" (
@@ -48,7 +48,7 @@ rem http://code.google.com/closure/compiler/
 
 echo Creating minimised version (will also show errors)
 copy _head.js _min.user.js >nul
-"C:\Program Files\Java\jre6\bin\java.exe" -jar "C:\Program Files\Compiler\compiler.jar" --js "_normal.user.js" >> "_min.user.js"
-
+"C:\Program Files\Java\jre6\bin\java.exe" -jar "C:\Program Files\Compiler\compiler.jar" --compilation_level SIMPLE_OPTIMIZATIONS --js "_normal.user.js" >> "_min.user.js"
+rem copy _min.user.js Chrome\Castle-Age-Autoplayer.user.js >nul
 echo Press any key to quit.
 pause>nul

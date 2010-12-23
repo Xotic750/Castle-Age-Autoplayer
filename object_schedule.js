@@ -9,12 +9,12 @@ schedule = {
 
     load: function () {
         try {
-            this.timers = gm.getItem('schedule.timers', 'default');
-            if (this.timers === 'default' || !$.isPlainObject(this.timers)) {
-                this.timers = gm.setItem('schedule.timers', {});
+            schedule.timers = gm.getItem('schedule.timers', 'default');
+            if (schedule.timers === 'default' || !$.isPlainObject(schedule.timers)) {
+                schedule.timers = gm.setItem('schedule.timers', {});
             }
 
-            utility.log(5, "schedule.load", this.timers);
+            utility.log(5, "schedule.load", schedule.timers);
             return true;
         } catch (err) {
             utility.error("ERROR in schedule.load: " + err);
@@ -24,8 +24,8 @@ schedule = {
 
     save: function (force) {
         try {
-            gm.setItem('schedule.timers', this.timers);
-            utility.log(5, "schedule.save", this.timers);
+            gm.setItem('schedule.timers', schedule.timers);
+            utility.log(5, "schedule.save", schedule.timers);
             return true;
         } catch (err) {
             utility.error("ERROR in schedule.save: " + err);
@@ -49,13 +49,13 @@ schedule = {
             }
 
             now = new Date().getTime();
-            this.timers[name] = {
-                last: now,
-                next: now + (seconds * 1000) + (Math.floor(Math.random() * randomSecs) * 1000)
+            schedule.timers[name] = {
+                'last': now,
+                'next': now + (seconds * 1000) + (Math.floor(Math.random() * randomSecs) * 1000)
             };
 
-            this.save();
-            return this.timers[name];
+            schedule.save();
+            return schedule.timers[name];
         } catch (err) {
             utility.error("ERROR in schedule.setItem: " + err);
             return undefined;
@@ -68,12 +68,12 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!$.isPlainObject(this.timers[name])) {
+            if (!$.isPlainObject(schedule.timers[name])) {
                 utility.warn("Invalid or non-existant timer!", name);
                 return 0;
             }
 
-            return this.timers[name];
+            return schedule.timers[name];
         } catch (err) {
             utility.error("ERROR in schedule.getItem: " + err);
             return undefined;
@@ -86,11 +86,11 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!$.isPlainObject(this.timers[name])) {
+            if (!$.isPlainObject(schedule.timers[name])) {
                 utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
             }
 
-            delete this.timers[name];
+            delete schedule.timers[name];
             return true;
         } catch (err) {
             utility.error("ERROR in schedule.deleteItem: " + err);
@@ -98,6 +98,8 @@ schedule = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     check: function (name) {
         try {
             var scheduled = false;
@@ -105,13 +107,13 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!$.isPlainObject(this.timers[name])) {
+            if (!$.isPlainObject(schedule.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
 
                 scheduled = true;
-            } else if (this.timers[name].next < new Date().getTime()) {
+            } else if (schedule.timers[name]['next'] < new Date().getTime()) {
                 scheduled = true;
             }
 
@@ -130,12 +132,12 @@ schedule = {
                     throw "Invalid identifying name! (" + name_or_number + ")";
                 }
 
-                if (!$.isPlainObject(this.timers[name_or_number])) {
+                if (!$.isPlainObject(schedule.timers[name_or_number])) {
                     if (utility.logLevel > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
                 } else {
-                    value = this.timers[name_or_number].last;
+                    value = schedule.timers[name_or_number]['last'];
                 }
             } else {
                 value = name_or_number;
@@ -145,6 +147,22 @@ schedule = {
         } catch (err) {
             utility.error("ERROR in schedule.since: " + err, arguments.callee.caller);
             return false;
+        }
+    },
+    /*jslint sub: false */
+    
+    oneMinuteUpdate: function (funcName) {
+        try {
+            if (!state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {
+                return false;
+            }
+
+            schedule.setItem(funcName + 'Timer', 60);
+            state.setItem('reset' + funcName, false);
+            return true;
+        } catch (err) {
+            utility.error("ERROR in schedule.oneMinuteUpdate: " + err);
+            return undefined;
         }
     },
 
@@ -194,6 +212,8 @@ schedule = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     display: function (name) {
         try {
             var formatted = '';
@@ -201,14 +221,14 @@ schedule = {
                 throw "Invalid identifying name!";
             }
 
-            if (!$.isPlainObject(this.timers[name])) {
+            if (!$.isPlainObject(schedule.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
 
-                formatted = this.FormatTime(new Date());
+                formatted = schedule.FormatTime(new Date());
             } else {
-                formatted = this.FormatTime(new Date(this.timers[name].next));
+                formatted = schedule.FormatTime(new Date(schedule.timers[name]['next']));
             }
 
             return formatted;
@@ -217,4 +237,5 @@ schedule = {
             return false;
         }
     }
+    /*jslint sub: false */
 };

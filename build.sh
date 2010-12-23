@@ -45,8 +45,10 @@ echo "Done."
 # http://code.google.com/closure/compiler/
 
 echo "Creating minimised version (will also show errors)"
-cp _head.js _min.user.js
-java -jar bin/compiler.jar --js _normal.user.js >> _min.user.js
+sed -f build/version.sed _head.js > _min.user.js
+java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --warning_level QUIET --js _normal.user.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.6/js/jquery-ui-1.8.6.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs json2/json2.js --externs json.hpack/json.hpack.externs.js --externs rison/rison.js >> _min.user.js
+# java -jar bin/compiler.jar --js _normal.user.js >> _min.user.js
+#cp _min.user.js Chrome/Castle-Age-Autoplayer.user.js
 echo "Done."
 
 if grep -e s/\!dev\!/0/g build/version.sed; then

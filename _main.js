@@ -4,6 +4,7 @@
 /////////////////////////////////////////////////////////////////////
 
 utility.log(1, "Starting CAAP ... waiting page load");
+//gm.deleteItem("schedule.timers");
 gm.clear0();
 utility.setTimeout(function () {
         utility.error('DOM onload timeout!!! Reloading ...');

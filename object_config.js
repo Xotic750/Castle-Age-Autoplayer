@@ -9,12 +9,12 @@ config = {
 
     load: function () {
         try {
-            this.options = gm.getItem('config.options', 'default');
-            if (this.options === 'default' || !$.isPlainObject(this.options)) {
-                this.options = gm.setItem('config.options', {});
+            config.options = gm.getItem('config.options', 'default');
+            if (config.options === 'default' || !$.isPlainObject(config.options)) {
+                config.options = gm.setItem('config.options', {});
             }
 
-            utility.log(5, "config.load", this.options);
+            utility.log(5, "config.load", config.options);
             return true;
         } catch (err) {
             utility.error("ERROR in config.load: " + err);
@@ -24,8 +24,8 @@ config = {
 
     save: function (force) {
         try {
-            gm.setItem('config.options', this.options);
-            utility.log(5, "config.save", this.options);
+            gm.setItem('config.options', config.options);
+            utility.log(5, "config.save", config.options);
             return true;
         } catch (err) {
             utility.error("ERROR in config.save: " + err);
@@ -43,8 +43,8 @@ config = {
                 throw "Value supplied is 'undefined' or 'null'!";
             }
 
-            this.options[name] = value;
-            this.save();
+            config.options[name] = value;
+            config.save();
             return value;
         } catch (err) {
             utility.error("ERROR in config.setItem: " + err);
@@ -59,7 +59,7 @@ config = {
                 throw "Invalid identifying name!";
             }
 
-            item = this.options[name];
+            item = config.options[name];
             if ((item === undefined || item === null) && value !== undefined && value !== null) {
                 item = value;
             }
@@ -81,11 +81,11 @@ config = {
                 throw "Invalid identifying name!";
             }
 
-            if (this.options[name] === undefined || this.options[name] === null) {
+            if (config.options[name] === undefined || config.options[name] === null) {
                 utility.warn("config.deleteItem - Invalid or non-existant flag: ", name);
             }
 
-            delete this.options[name];
+            delete config.options[name];
             return true;
         } catch (err) {
             utility.error("ERROR in config.deleteItem: " + err);

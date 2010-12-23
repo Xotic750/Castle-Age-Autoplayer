@@ -38,7 +38,7 @@ nHtml = {
         } else {
             q = subDocument.evaluate(".//" + tag + "[contains(translate(@" +
                 attr + ",'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'),'" +
-                className.toLowerCase() + "')]", obj, null, this.xpath.first, null);
+                className.toLowerCase() + "')]", obj, null, nHtml.xpath.first, null);
 
             if (q && q.singleNodeValue) {
                 return q.singleNodeValue;
@@ -62,7 +62,7 @@ nHtml = {
                 subDocument = document;
             }
 
-            q = subDocument.evaluate(xp, obj, null, this.xpath.first, null);
+            q = subDocument.evaluate(xp, obj, null, nHtml.xpath.first, null);
         } catch (err) {
             utility.error("XPath Failed:" + err, xp);
         }
@@ -88,7 +88,7 @@ nHtml = {
             len   = 0,
             child = null;
 
-        if (obj.tagName !== undefined && this.spaceTags[obj.tagName.toLowerCase()]) {
+        if (obj.tagName !== undefined && nHtml.spaceTags[obj.tagName.toLowerCase()]) {
             txt += " ";
         }
 
@@ -98,7 +98,7 @@ nHtml = {
 
         for (o = 0, len = obj.childNodes.length; o < len; o += 1) {
             child = obj.childNodes[o];
-            txt += this.GetText(child);
+            txt += nHtml.GetText(child);
         }
 
         return txt;

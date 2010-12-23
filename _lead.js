@@ -37,27 +37,65 @@ var caapVersion   = "!version!",
 ///////////////////////////
 
 String.prototype.ucFirst = function () {
-    var firstLetter = this.substr(0, 1);
-    return firstLetter.toUpperCase() + this.substr(1);
+    return this.charAt(0).toUpperCase() + this.substr(1);
 };
 
-String.prototype.stripHTML = function (html) {
-    return this.replace(new RegExp('<[^>]+>', 'g'), '').replace(/&nbsp;/g, '');
+String.prototype.stripHTML = function () {
+    return this.replace(new RegExp("<[^>]+>", "g"), '').replace(/&nbsp;/g, '');
+};
+
+String.prototype.stripCaap = function () {
+    return this.replace(/caap_/i, '');
+};
+
+String.prototype.stripTRN = function () {
+    return this.replace(/[\t\r\n]/g, '');
+};
+
+String.prototype.stripStar = function () {
+    return this.replace(/\*/g, '');
+};
+
+String.prototype.innerTrim = function () {
+    return this.replace(/\s+/g, ' ');
+};
+
+String.prototype.matchUser = function () {
+    return this.match(/user=([0-9]+)/);
+};
+
+String.prototype.toNumber = function () {
+    return parseFloat(this);
+};
+
+String.prototype.trim = function () {
+    return this.replace(/^\s+|\s+$/g, '');
+};
+
+String.prototype.filepart = function () {
+    var x = this.lastIndexOf('/');
+    if (x >= 0) {
+        return this.substr(x + 1);
+    }
+
+    return this;
 };
 
 String.prototype.regex = function (r) {
-	var a = this.match(r),
-        i;
+	var a   = this.match(r),
+        i   = 0,
+        len = 0;
 
 	if (a) {
 		a.shift();
-		for (i = 0; i < a.length; i += 1) {
+        len = a.length;
+		for (i = 0 ; i < len; i += 1) {
 			if (a[i] && a[i].search(/^[\-+]?[0-9]*\.?[0-9]*$/) >= 0) {
-				a[i] = parseFloat(a[i]);
+				a[i] = a[i].replace('+', '').toNumber();
 			}
 		}
 
-		if (a.length === 1) {
+		if (len === 1) {
 			return a[0];
 		}
 	}

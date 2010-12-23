@@ -28,14 +28,14 @@ gm = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
-            if (this.useRison) {
+            if (gm.useRison) {
                 reportEnc = "rison.encode";
             }
 
             hpack = (typeof hpack !== 'number') ? false : hpack;
             if (hpack !== false && hpack >= 0 && hpack <= 3) {
                 hpackArr = JSON.hpack(value, hpack);
-                if (this.useRison) {
+                if (gm.useRison) {
                     stringified = rison.encode(hpackArr);
                 } else {
                     stringified = JSON.stringify(hpackArr);
@@ -45,13 +45,13 @@ gm = {
                     throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
                 }
 
-                if (this.useRison) {
+                if (gm.useRison) {
                     stringified = "R-HPACK " + stringified;
                 } else {
                     stringified = "HPACK " + stringified;
                 }
             } else {
-                if (this.useRison) {
+                if (gm.useRison) {
                     stringified = rison.encode(value);
                 } else {
                     stringified = JSON.stringify(value);
@@ -61,7 +61,7 @@ gm = {
                     throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
                 }
 
-                if (this.useRison) {
+                if (gm.useRison) {
                     stringified = "RISON " + stringified;
                 }
             }
@@ -75,10 +75,10 @@ gm = {
                 storageStr = stringified;
             }
 
-            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                localStorage.setItem(this.namespace + "." + caap.stats.FBID + "." + name, storageStr);
+            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
+                localStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             } else {
-                GM_setValue(this.namespace + "." + caap.stats.FBID + "." + name, storageStr);
+                GM_setValue(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
             }
 
             return value;
@@ -98,10 +98,10 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                storageStr = localStorage.getItem(this.namespace + "." + caap.stats.FBID + "." + name);
+            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
+                storageStr = localStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
             } else {
-                storageStr = GM_getValue(this.namespace + "." + caap.stats.FBID + "." + name);
+                storageStr = GM_getValue(gm.namespace + "." + caap.stats.FBID + "." + name);
             }
 
             if (storageStr) {
@@ -146,10 +146,10 @@ gm = {
             utility.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
                 if (value !== undefined && value !== null) {
-                    this.setItem(name, value);
+                    gm.setItem(name, value);
                     return value;
                 } else {
-                    this.deleteItem(name);
+                    gm.deleteItem(name);
                 }
             }
 
@@ -163,10 +163,10 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
-                localStorage.removeItem(this.namespace + "." + caap.stats.FBID + "." + name);
+            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
+                localStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
             } else {
-                GM_deleteValue(this.namespace + "." + caap.stats.FBID + "." + name);
+                GM_deleteValue(gm.namespace + "." + caap.stats.FBID + "." + name);
             }
 
             return true;
@@ -182,9 +182,9 @@ gm = {
                 key         = 0,
                 len         = 0,
                 done        = false,
-                nameRegExp  = new RegExp(this.namespace);
+                nameRegExp  = new RegExp(gm.namespace);
 
-            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
                 if (utility.is_firefox) {
                     while (!done) {
                         try {
@@ -226,9 +226,9 @@ gm = {
                 key         = 0,
                 len         = 0,
                 done        = false,
-                nameRegExp  = new RegExp(this.namespace + "\\.0\\.");
+                nameRegExp  = new RegExp(gm.namespace + "\\.0\\.");
 
-            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
                 if (utility.is_firefox) {
                     while (!done) {
                         try {
@@ -266,7 +266,7 @@ gm = {
 
     used: function () {
         try {
-            if (utility.is_html5_localStorage && !this.fireFoxUseGM) {
+            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
                 var key         = 0,
                     len         = 0,
                     charsCaap   = 0,
@@ -275,7 +275,7 @@ gm = {
                     totalPerc   = 0,
                     message     = '',
                     done        = false,
-                    nameRegExp  = new RegExp(this.namespace + "\\.");
+                    nameRegExp  = new RegExp(gm.namespace + "\\.");
 
                 if (utility.is_firefox) {
                     while (!done) {
@@ -332,7 +332,7 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            return this.getItem(name, []).length;
+            return gm.getItem(name, []).length;
         } catch (error) {
             utility.error("ERROR in gm.length: " + error, arguments.callee.caller);
             return undefined;
@@ -362,7 +362,7 @@ gm = {
                 throw "Invalid howmany! (" + howmany + ")";
             }
 
-            newArr = this.getItem(name, []);
+            newArr = gm.getItem(name, []);
             if (arguments.length >= 4) {
                 removed = newArr.splice(index, howmany);
                 for (it = 3; it < arguments.length; it += 1) {
@@ -372,7 +372,7 @@ gm = {
                 removed = newArr.splice(index, howmany);
             }
 
-            this.setItem(name, newArr);
+            gm.setItem(name, newArr);
             return removed;
         } catch (error) {
             utility.error("ERROR in gm.splice: " + error, arguments.callee.caller);
@@ -394,12 +394,12 @@ gm = {
                 throw "Must provide element(s)!";
             }
 
-            newArr = this.getItem(name, []);
+            newArr = gm.getItem(name, []);
             for (it = 1; it < arguments.length; it += 1) {
                 length = newArr.unshift(arguments[it]);
             }
 
-            this.setItem(name, newArr);
+            gm.setItem(name, newArr);
             return length;
         } catch (error) {
             utility.error("ERROR in gm.unshift: " + error, arguments.callee.caller);
@@ -416,9 +416,9 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            newArr = this.getItem(name, []);
+            newArr = gm.getItem(name, []);
             shiftVal = newArr.shift();
-            this.setItem(name, newArr);
+            gm.setItem(name, newArr);
             return shiftVal;
         } catch (error) {
             utility.error("ERROR in gm.shift: " + error, arguments.callee.caller);
@@ -440,12 +440,12 @@ gm = {
                 throw "Must provide element(s)!";
             }
 
-            newArr = this.getItem(name, []);
+            newArr = gm.getItem(name, []);
             for (it = 1; it < arguments.length; it += 1) {
                 length = newArr.push(arguments[it]);
             }
 
-            this.setItem(name, newArr);
+            gm.setItem(name, newArr);
             return length;
         } catch (error) {
             utility.error("ERROR in gm.push: " + error, arguments.callee.caller);
@@ -462,9 +462,9 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            newArr = this.getItem(name, []);
+            newArr = gm.getItem(name, []);
             popVal = newArr.pop();
-            this.setItem(name, newArr);
+            gm.setItem(name, newArr);
             return popVal;
         } catch (error) {
             utility.error("ERROR in gm.pop: " + error, arguments.callee.caller);

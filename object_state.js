@@ -9,12 +9,12 @@ state = {
 
     load: function () {
         try {
-            this.flags = gm.getItem('state.flags', 'default');
-            if (this.flags === 'default' || !$.isPlainObject(this.flags)) {
-                this.flags = gm.setItem('state.flags', {});
+            state.flags = gm.getItem('state.flags', 'default');
+            if (state.flags === 'default' || !$.isPlainObject(state.flags)) {
+                state.flags = gm.setItem('state.flags', {});
             }
 
-            utility.log(5, "state.load", this.flags);
+            utility.log(5, "state.load", state.flags);
             return true;
         } catch (err) {
             utility.error("ERROR in state.load: " + err);
@@ -30,8 +30,8 @@ state = {
                 }
             }
 
-            gm.setItem('state.flags', this.flags);
-            utility.log(5, "state.save", this.flags);
+            gm.setItem('state.flags', state.flags);
+            utility.log(5, "state.save", state.flags);
             schedule.setItem('StateSave', 1);
             return true;
         } catch (err) {
@@ -50,8 +50,8 @@ state = {
                 throw "Value supplied is 'undefined' or 'null'!";
             }
 
-            this.flags[name] = value;
-            this.save();
+            state.flags[name] = value;
+            state.save();
             return value;
         } catch (err) {
             utility.error("ERROR in state.setItem: " + err);
@@ -66,7 +66,7 @@ state = {
                 throw "Invalid identifying name!";
             }
 
-            item = this.flags[name];
+            item = state.flags[name];
             if ((item === undefined || item === null) && value !== undefined && value !== null) {
                 item = value;
             }
@@ -88,11 +88,11 @@ state = {
                 throw "Invalid identifying name!";
             }
 
-            if (this.flags[name] === undefined || this.flags[name] === null) {
+            if (state.flags[name] === undefined || state.flags[name] === null) {
                 utility.warn("state.deleteItem - Invalid or non-existant flag: ", name);
             }
 
-            delete this.flags[name];
+            delete state.flags[name];
             return true;
         } catch (err) {
             utility.error("ERROR in state.deleteItem: " + err);

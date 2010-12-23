@@ -18,12 +18,12 @@ css = {
                     });
                 }
 
-                $("<style type='text/css'>" + this.farbtastic + "</style>").appendTo("head");
+                $("<style type='text/css'>" + css.farbtastic + "</style>").appendTo("head");
             }
 
             return true;
         } catch (err) {
-            this.error("ERROR in AddCSS: " + err);
+            css.error("ERROR in AddCSS: " + err);
             return false;
         }
     },

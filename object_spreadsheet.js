@@ -7,29 +7,6 @@
 spreadsheet = {
     records: [],
 
-    headers: [],
-
-    record: function () {
-        this.data = {
-            name         : null,
-            image        : null,
-            type         : null,
-            attack       : null,
-            defense      : null,
-            hero         : null,
-            recipe1      : null,
-            recipe1image : null,
-            recipe2      : null,
-            recipe2image : null,
-            recipe3      : null,
-            recipe3image : null,
-            recipe4      : null,
-            recipe4image : null,
-            summon       : null,
-            comment      : null
-        };
-    },
-
     useRison: true,
 
     hbest: false,
@@ -42,7 +19,8 @@ spreadsheet = {
             var stringified = '',
                 storageStr  = '',
                 coderStr    = 'JSON.stringify',
-                compressor  = null;
+                compressor  = null,
+                packedArr   = [];
 
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
@@ -52,18 +30,19 @@ spreadsheet = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
-            if (this.useRison) {
-                stringified = rison.encode(JSON.hpack(value, this.hbest));
+            packedArr = JSON.hpack(value, spreadsheet.hbest);
+            if (spreadsheet.useRision) {
+                stringified = rison.encode(packedArr);
                 coderStr = 'rison.encode';
             } else {
-                stringified = JSON.stringify(JSON.hpack(value, this.hbest));
+                stringified = JSON.stringify(packedArr);
             }
 
             if (stringified === undefined || stringified === null) {
                 throw coderStr + " returned 'undefined' or 'null'! (" + stringified + ")";
             }
 
-            if (this.compress) {
+            if (spreadsheet.compress) {
                 compressor = new utility.LZ77();
                 storageStr = compressor.compress(stringified);
                 utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
@@ -96,13 +75,13 @@ spreadsheet = {
             if (utility.is_html5_sessionStorage) {
                 storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
                 if (storageStr) {
-                    if (this.compress) {
+                    if (spreadsheet.compress) {
                         compressor = new utility.LZ77();
                         storageStr = compressor.decompress(storageStr);
                         utility.log(2, "Decompressed storage", name);
                     }
 
-                    if (this.useRison) {
+                    if (spreadsheet.useRision) {
                         storageArr = rison.decode(storageStr);
                     } else {
                         storageArr = $.parseJSON(storageStr);
@@ -135,10 +114,10 @@ spreadsheet = {
             utility.error("ERROR in spreadsheet.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
                 if (value !== undefined && value !== null) {
-                    this.setItem(name, value);
+                    spreadsheet.setItem(name, value);
                     return value;
                 } else {
-                    this.deleteItem(name);
+                    spreadsheet.deleteItem(name);
                 }
             }
 
@@ -169,9 +148,9 @@ spreadsheet = {
                 return true;
             }
 
-            this.records = this.getItem('spreadsheet.records', 'default');
-            if (this.records === 'default' || !$.isArray(this.records) || !this.records.length) {
-                this.records = [];
+            spreadsheet.records = spreadsheet.getItem('spreadsheet.records', 'default');
+            if (spreadsheet.records === 'default' || !$.isArray(spreadsheet.records) || !spreadsheet.records.length) {
+                spreadsheet.records = [];
                 $.ajax({
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
@@ -185,27 +164,34 @@ spreadsheet = {
                             cell       = null,
                             headers    = {},
                             headersLen = 0,
+                            headersArr = [],
                             key        = '';
 
-                        rows = msg.query.results.row;
+                        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                        /*jslint sub: true */
+                        rows = msg['query']['results']['row'];
+                        /*jslint sub: false */
                         headers = rows[0];
                         for (key in headers) {
                             if (headers.hasOwnProperty(key)) {
-                                headersLen = spreadsheet.headers.push((headers[key]).toLowerCase());
+                                headersLen = headersArr.push((headers[key]).toLowerCase());
                             }
                         }
 
                         for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
-                            newRecord = new spreadsheet.record().data;
+                            newRecord = {};
                             for (column = 0; column < headersLen; column += 1) {
-                                cell = rows[row]["col" + column];
-                                if (cell === null || cell === undefined) {
+                                if (headersArr[column] === null || headersArr[column] === undefined || headersArr[column] === '') {
+                                    utility.warn("Spreadsheet column is empty", column);
                                     continue;
                                 }
 
-                                if (isNaN(cell)) {
-                                    if (spreadsheet.headers[column] === "attack" || spreadsheet.headers[column] === "defense") {
-                                        utility.warn("Spreadsheet " + spreadsheet.headers[column] + " cell is NaN", cell);
+                                cell = rows[row]["col" + column];
+                                if (cell === null || cell === undefined || cell === '') {
+                                    cell = null;
+                                } else if (isNaN(cell)) {
+                                    if (headersArr[column] === "attack" || headersArr[column] === "defense") {
+                                        utility.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
                                     }
 
                                     cell = cell.replace(/"/g, "");
@@ -213,7 +199,7 @@ spreadsheet = {
                                     cell = parseFloat(cell);
                                 }
 
-                                newRecord[spreadsheet.headers[column]] = cell;
+                                newRecord[headersArr[column]] = cell;
                             }
 
                             spreadsheet.records.push(newRecord);
@@ -226,7 +212,7 @@ spreadsheet = {
                     }
                 });
             } else {
-                utility.log(2, "spreadsheet.records", this.records);
+                utility.log(2, "spreadsheet.records", spreadsheet.records);
             }
 
             return true;
@@ -238,8 +224,8 @@ spreadsheet = {
 
     save: function () {
         try {
-            this.setItem('spreadsheet.records', this.records);
-            utility.log(1, "spreadsheet.save", this.records);
+            spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
+            utility.log(1, "spreadsheet.save", spreadsheet.records);
             return true;
         } catch (err) {
             utility.error("ERROR in spreadsheet.save: " + err);
@@ -247,120 +233,117 @@ spreadsheet = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     getTitle: function (title, image) {
         try {
-            var it = 0,
-                tempIt = -1,
-                owned  = 0,
-                data   = {
-                    title   : '',
-                    opacity : false,
-                    hide    : false
-                };
+            var it       = 0,
+                tempIt   = -1,
+                owned    = 0,
+                titleStr = '',
+                hide     = false,
+                opacity  = false;
 
-            for (it = this.records.length - 1; it >= 0; it -= 1) {
-                if (this.records[it].name && this.records[it].name === title) {
+            for (it = spreadsheet.records.length - 1; it >= 0; it -= 1) {
+                if (spreadsheet.records[it]['name'] && spreadsheet.records[it]['name'] === title) {
                     tempIt = it;
-                    if (this.records[it].image && this.records[it].image === image) {
+                    if (spreadsheet.records[it]['image'] && spreadsheet.records[it]['image'] === image) {
                         break;
                     }
                 }
             }
 
             if (tempIt > -1) {
-                data.title = this.records[tempIt].name + ": " + this.records[tempIt].type;
-                if (this.records[tempIt].attack !== null && this.records[tempIt].attack !== undefined && this.records[tempIt].defense !== null && this.records[tempIt].defense !== undefined) {
-                    data.title += ", " + this.records[tempIt].attack + "atk," + this.records[tempIt].defense + "def";
+                titleStr = spreadsheet.records[tempIt]['name'] + ": " + spreadsheet.records[tempIt]['type'];
+                if (spreadsheet.records[tempIt]['attack'] !== null && spreadsheet.records[tempIt]['attack'] !== undefined && spreadsheet.records[tempIt]['defense'] !== null && spreadsheet.records[tempIt]['defense'] !== undefined) {
+                    titleStr += ", " + spreadsheet.records[tempIt]['attack'] + "atk," + spreadsheet.records[tempIt]['defense'] + "def";
                 }
 
-                if (this.records[tempIt].hero !== null && this.records[tempIt].hero !== undefined) {
-                    data.title += ", Hero: " + this.records[tempIt].hero;
-                    owned = general.owned(this.records[tempIt].hero);
-                    data.title += " (Owned: " + owned + ")";
-                    data.hide = owned ? false : true;
+                if (spreadsheet.records[tempIt]['hero'] !== null && spreadsheet.records[tempIt]['hero'] !== undefined) {
+                    titleStr += ", Hero: " + spreadsheet.records[tempIt]['hero'];
+                    owned = general.owned(spreadsheet.records[tempIt]['hero']);
+                    titleStr += " (Owned: " + owned + ")";
+                    hide = (owned ? false : true);
                 }
 
-                if (this.records[tempIt].recipe1 !== null && this.records[tempIt].recipe1 !== undefined) {
-                    data.title += ", Recipe1: " + this.records[tempIt].recipe1;
-                    if (this.records[tempIt].recipe1 === "Map of Atlantis") {
+                if (spreadsheet.records[tempIt]['recipe1'] !== null && spreadsheet.records[tempIt]['recipe1'] !== undefined) {
+                    titleStr += ", Recipe1: " + spreadsheet.records[tempIt]['recipe1'];
+                    if (spreadsheet.records[tempIt]['recipe1'] === "Map of Atlantis") {
                         owned = caap.stats.other.atlantis;
-                        data.title += " (Owned: " + owned + ")";
-                        data.hide = owned ? false : true;
+                        titleStr += " (Owned: " + owned + ")";
+                        hide = (owned ? false : true);
                     } else {
-                        owned = town.getCount(this.records[tempIt].recipe1, this.records[tempIt].recipe1image);
-                        data.title += " (Owned: " + owned + ")";
-                        data.hide = owned ? false : true;
+                        owned = town.getCount(spreadsheet.records[tempIt]['recipe1'], spreadsheet.records[tempIt]['recipe1image']);
+                        titleStr += " (Owned: " + owned + ")";
+                        hide = (owned ? false : true);
                     }
                 }
 
-                if (this.records[tempIt].recipe2 !== null && this.records[tempIt].recipe2 !== undefined) {
-                    data.title += ", Recipe2: " + this.records[tempIt].recipe2;
-                    owned = town.getCount(this.records[tempIt].recipe2, this.records[tempIt].recipe2image);
-                    data.title += " (Owned: " + owned + ")";
-                    data.hide = owned ? false : true;
+                if (spreadsheet.records[tempIt]['recipe2'] !== null && spreadsheet.records[tempIt]['recipe2'] !== undefined) {
+                    titleStr += ", Recipe2: " + spreadsheet.records[tempIt]['recipe2'];
+                    owned = town.getCount(spreadsheet.records[tempIt]['recipe2'], spreadsheet.records[tempIt]['recipe2image']);
+                    titleStr += " (Owned: " + owned + ")";
+                    hide = (owned ? false : true);
                 }
 
-                if (this.records[tempIt].recipe3 !== null && this.records[tempIt].recipe3 !== undefined) {
-                    data.title += ", Recipe3: " + this.records[tempIt].recipe3;
-                    owned = town.getCount(this.records[tempIt].recipe3, this.records[tempIt].recipe3image);
-                    data.title += " (Owned: " + owned + ")";
-                    data.hide = owned ? false : true;
+                if (spreadsheet.records[tempIt]['recipe3'] !== null && spreadsheet.records[tempIt]['recipe3'] !== undefined) {
+                    titleStr += ", Recipe3: " + spreadsheet.records[tempIt]['recipe3'];
+                    owned = town.getCount(spreadsheet.records[tempIt]['recipe3'], spreadsheet.records[tempIt]['recipe3image']);
+                    titleStr += " (Owned: " + owned + ")";
+                    hide = (owned ? false : true);
                 }
 
-                if (this.records[tempIt].recipe4 !== null && this.records[tempIt].recipe4 !== undefined) {
-                    data.title += ", Recipe4: " + this.records[tempIt].recipe4;
-                    owned = town.getCount(this.records[tempIt].recipe4, this.records[tempIt].recipe4image);
-                    data.title += " (Owned: " + owned + ")";
-                    data.hide = owned ? false : true;
+                if (spreadsheet.records[tempIt]['recipe4'] !== null && spreadsheet.records[tempIt]['recipe4'] !== undefined) {
+                    titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
+                    owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
+                    titleStr += " (Owned: " + owned + ")";
+                    hide = (owned ? false : true);
                 }
 
-                if (this.records[tempIt].summon !== null && this.records[tempIt].summon !== undefined) {
-                    data.title += ", Summon: " + this.records[tempIt].summon;
-                    data.opacity = true;
+                if (spreadsheet.records[tempIt]['summon'] !== null && spreadsheet.records[tempIt]['summon'] !== undefined) {
+                    titleStr += ", Summon: " + spreadsheet.records[tempIt]['summon'];
+                    opacity = true;
                 }
 
-                if (this.records[tempIt].comment !== null && this.records[tempIt].comment !== undefined) {
-                    data.title += ", Comment: " + this.records[tempIt].comment;
+                if (spreadsheet.records[tempIt]['comment'] !== null && spreadsheet.records[tempIt]['comment'] !== undefined) {
+                    titleStr += ", Comment: " + spreadsheet.records[tempIt]['comment'];
                 }
             }
 
-            return data;
+            return {title: titleStr, opacity: opacity, hide: hide};
         } catch (err) {
             utility.error("ERROR in spreadsheet.getTitle: " + err);
             return undefined;
         }
     },
+    /*jslint sub: false */
 
     doTitles: function (goblin) {
         try {
             var images = $("#app46755028429_globalContainer img");
             if (images && images.length) {
                 images.each(function () {
-                    var img     = $(this),
-                        div     = null,
-                        title   = '',
-                        image   = '',
-                        style   = '',
-                        data    = {
-                            title   : '',
-                            opacity : false,
-                            hide    : false
-                        };
+                    var img   = $(this),
+                        div   = null,
+                        title = '',
+                        image = '',
+                        style = '',
+                        tMes  = {};
 
                     title = img.attr("title");
                     if (title) {
                         image = utility.getHTMLPredicate(img.attr("src"));
-                        data = spreadsheet.getTitle(title, image);
-                        if (data && $.isPlainObject(data) && !$.isEmptyObject(data) && data.title) {
-                            img.attr("title", data.title);
-                            if (goblin && (data.opacity || data.hide)) {
+                        tMes = spreadsheet.getTitle(title, image);
+                        if (tMes && $.isPlainObject(tMes) && !$.isEmptyObject(tMes) && tMes.title) {
+                            img.attr("title", tMes.title);
+                            if (goblin && (tMes.opacity || tMes.hide)) {
                                 div = img.parent().parent();
                                 style = div.attr("style");
-                                if (data.opacity) {
+                                if (tMes.opacity) {
                                     style += " opacity: 0.3;";
                                 }
 
-                                if (data.hide) {
+                                if (tMes.hide) {
                                     style += " display: none;";
                                 }
 
@@ -378,23 +361,25 @@ spreadsheet = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     isSummon: function (title, image) {
         try {
             var it = 0,
                 tempIt = -1,
                 summon = false;
 
-            for (it = this.records.length - 1; it >= 0; it -= 1) {
-                if (this.records[it].name && this.records[it].name === title) {
+            for (it = spreadsheet.records.length - 1; it >= 0; it -= 1) {
+                if (spreadsheet.records[it]['name'] && spreadsheet.records[it]['name'] === title) {
                     tempIt = it;
-                    if (this.records[it].image && this.records[it].image === image) {
+                    if (spreadsheet.records[it]['image'] && spreadsheet.records[it]['image'] === image) {
                         break;
                     }
                 }
             }
 
             if (tempIt > -1) {
-                if (this.records[tempIt].summon !== null && this.records[tempIt].summon !== undefined) {
+                if (spreadsheet.records[tempIt]['summon'] !== null && spreadsheet.records[tempIt]['summon'] !== undefined) {
                     summon = true;
                 }
             }
@@ -405,4 +390,5 @@ spreadsheet = {
             return undefined;
         }
     }
+    /*jslint sub: false */
 };

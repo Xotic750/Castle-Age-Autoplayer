@@ -7,50 +7,56 @@
 monster = {
     records: [],
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     record: function () {
         this.data = {
-            name       : '',
-            userId     : 0,
-            attacked   : -1,
-            defended   : -1,
-            damage     : -1,
-            life       : -1,
-            fortify    : -1,
-            time       : [],
-            t2k        : -1,
-            phase      : '',
-            miss       : 0,
-            link       : '',
-            rix        : -1,
-            mpool      : '',
-            over       : '',
-            page       : '',
-            color      : '',
-            review     : -1,
-            type       : '',
-            conditions : '',
-            charClass  : '',
-            strength   : -1,
-            stun       : -1,
-            stunTime   : -1,
-            stunDo     : false,
-            stunType   : '',
-            tip        : ''
+            'name'       : '',
+            'userId'     : 0,
+            'attacked'   : -1,
+            'defended'   : -1,
+            'damage'     : -1,
+            'life'       : -1,
+            'fortify'    : -1,
+            'time'       : [],
+            't2k'        : -1,
+            'phase'      : '',
+            'miss'       : 0,
+            'link'       : '',
+            'rix'        : -1,
+            'mpool'      : '',
+            'over'       : '',
+            'page'       : '',
+            'color'      : '',
+            'review'     : -1,
+            'type'       : '',
+            'conditions' : '',
+            'charClass'  : '',
+            'strength'   : -1,
+            'stun'       : -1,
+            'stunTime'   : -1,
+            'stunDo'     : false,
+            'stunType'   : '',
+            'tip'        : ''
         };
     },
+    /*jslint sub: false */
 
     engageButtons: {},
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     completeButton: {
-        battle_monster: {
-            name   : undefined,
-            button : undefined
+        'battle_monster': {
+            'name'   : undefined,
+            'button' : undefined
         },
-        raid: {
-            name   : undefined,
-            button : undefined
+        'raid': {
+            'name'   : undefined,
+            'button' : undefined
         }
     },
+    /*jslint sub: false */
 
     // http://castleage.wikidot.com/monster for monster info
     // http://castleage.wikidot.com/skaar
@@ -382,18 +388,38 @@ monster = {
             staMax       : [5, 10, 20, 50],
             nrgMax       : [10, 20, 40, 100],
             defense_img  : 'nm_green.jpg'
+        },
+        "Corvintheus" : {
+            alpha        : true,
+            duration     : 168,
+            hp           : 640000000,
+            ach          : 30000000,
+            siege        : 10,
+            siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+            siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+            siege_img    : [
+                '/graphics/earth_siege_small',
+                '/graphics/castle_siege_small',
+                '/graphics/skaar_siege_small'
+            ],
+            fort         : true,
+            staUse       : 5,
+            staLvl       : [0, 100, 200, 500],
+            staMax       : [5, 10, 20, 50],
+            nrgMax       : [10, 20, 40, 100],
+            defense_img  : 'nm_green.jpg'
         }
     },
 
     load: function () {
         try {
-            this.records = gm.getItem('monster.records', 'default');
-            if (this.records === 'default' || !$.isArray(this.records)) {
-                this.records = gm.setItem('monster.records', []);
+            monster.records = gm.getItem('monster.records', 'default');
+            if (monster.records === 'default' || !$.isArray(monster.records)) {
+                monster.records = gm.setItem('monster.records', []);
             }
 
             state.setItem("MonsterDashUpdate", true);
-            utility.log(5, "monster.load", this.records);
+            utility.log(5, "monster.load", monster.records);
             return true;
         } catch (err) {
             utility.error("ERROR in monster.load: " + err);
@@ -403,9 +429,9 @@ monster = {
 
     save: function () {
         try {
-            gm.setItem('monster.records', this.records);
+            gm.setItem('monster.records', monster.records);
             state.setItem("MonsterDashUpdate", true);
-            utility.log(5, "monster.save", this.records);
+            utility.log(5, "monster.save", monster.records);
             return true;
         } catch (err) {
             utility.error("ERROR in monster.save: " + err);
@@ -492,19 +518,19 @@ monster = {
                 return '';
             }
 
-            for (it = 0, len = this.records.length; it < len; it += 1) {
-                if (this.records[it].name === name) {
+            for (it = 0, len = monster.records.length; it < len; it += 1) {
+                if (monster.records[it]['name'] === name) {
                     success = true;
                     break;
                 }
             }
 
             if (success) {
-                utility.log(3, "Got monster record", name, this.records[it]);
-                return this.records[it];
+                utility.log(3, "Got monster record", name, monster.records[it]);
+                return monster.records[it];
             } else {
-                newRecord = new this.record();
-                newRecord.data.name = name;
+                newRecord = new monster.record();
+                newRecord.data['name'] = name;
                 utility.log(3, "New monster record", name, newRecord.data);
                 return newRecord.data;
             }
@@ -520,8 +546,8 @@ monster = {
                 throw "Not passed a record";
             }
 
-            if (typeof record.name !== 'string' || record.name === '') {
-                utility.warn("name", record.name);
+            if (typeof record['name'] !== 'string' || record['name'] === '') {
+                utility.warn("name", record['name']);
                 throw "Invalid identifying name!";
             }
 
@@ -529,22 +555,22 @@ monster = {
                 len     = 0,
                 success = false;
 
-            for (it = 0, len = this.records.length; it < len; it += 1) {
-                if (this.records[it].name === record.name) {
+            for (it = 0, len = monster.records.length; it < len; it += 1) {
+                if (monster.records[it]['name'] === record['name']) {
                     success = true;
                     break;
                 }
             }
 
             if (success) {
-                this.records[it] = record;
-                utility.log(3, "Updated monster record", record, this.records);
+                monster.records[it] = record;
+                utility.log(3, "Updated monster record", record, monster.records);
             } else {
-                this.records.push(record);
-                utility.log(3, "Added monster record", record, this.records);
+                monster.records.push(record);
+                utility.log(3, "Added monster record", record, monster.records);
             }
 
-            this.save();
+            monster.save();
             return true;
         } catch (err) {
             utility.error("ERROR in monster.setItem: " + err);
@@ -563,20 +589,20 @@ monster = {
                 throw "Invalid identifying name!";
             }
 
-            for (it = 0, len = this.records.length; it < len; it += 1) {
-                if (this.records[it].name === name) {
+            for (it = 0, len = monster.records.length; it < len; it += 1) {
+                if (monster.records[it]['name'] === name) {
                     success = true;
                     break;
                 }
             }
 
             if (success) {
-                this.records.splice(it, 1);
-                this.save();
-                utility.log(3, "Deleted monster record", name, this.records);
+                monster.records.splice(it, 1);
+                monster.save();
+                utility.log(3, "Deleted monster record", name, monster.records);
                 return true;
             } else {
-                utility.warn("Unable to delete monster record", name, this.records);
+                utility.warn("Unable to delete monster record", name, monster.records);
                 return false;
             }
         } catch (err) {
@@ -587,7 +613,7 @@ monster = {
 
     clear: function () {
         try {
-            this.records = gm.setItem("monster.records", []);
+            monster.records = gm.setItem("monster.records", []);
             state.setItem("MonsterDashUpdate", true);
             return true;
         } catch (err) {
@@ -615,33 +641,33 @@ monster = {
                 boss                           = {},
                 siegeStage                     = 0;
 
-            siegeStage = record.phase - 1;
-            boss = this.info[record.type];
-            timeLeft = parseInt(record.time[0], 10) + (parseInt(record.time[1], 10) * 0.0166);
+            siegeStage = record['phase'] - 1;
+            boss = monster.info[record['type']];
+            timeLeft = parseInt(record['time'][0], 10) + (parseInt(record['time'][1], 10) * 0.0166);
             timeUsed = boss.duration - timeLeft;
             if (!boss.siege || !boss.hp) {
-                return (record.life * timeUsed) / (100 - record.life);
+                return (record['life'] * timeUsed) / (100 - record['life']);
             }
 
-            damageDone = (100 - record.life) / 100 * boss.hp;
+            damageDone = (100 - record['life']) / 100 * boss.hp;
             hpLeft = boss.hp - damageDone;
             for (s = 0, len = boss.siegeClicks.length; s < len; s += 1) {
                 utility.log(5, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
-                if (s < siegeStage || record.miss === 0) {
+                if (s < siegeStage || record['miss'] === 0) {
                     totalSiegeDamage += boss.siegeDam[s];
                     totalSiegeClicks += boss.siegeClicks[s];
                 } else if (s === siegeStage) {
                     attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
-                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record.miss) / timeUsed;
+                    clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record['miss']) / timeUsed;
                     utility.log(5, 'Attack Damage Per Hour: ', attackDamPerHour);
                     utility.log(5, 'Damage Done: ', damageDone);
                     utility.log(5, 'Total Siege Damage: ', totalSiegeDamage);
                     utility.log(5, 'Time Used: ', timeUsed);
                     utility.log(5, 'Clicks Per Hour: ', clicksPerHour);
                 } else if (s >= siegeStage) {
-                    clicksToNextSiege = (s === siegeStage) ? record.miss : boss.siegeClicks[s];
+                    clicksToNextSiege = (s === siegeStage) ? record['miss'] : boss.siegeClicks[s];
                     nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
-                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || record.miss === 0) {
+                    if (hpLeft <= nextSiegeAttackPlusSiegeDamage || record['miss'] === 0) {
                         T2K += hpLeft / attackDamPerHour;
                         break;
                     }
@@ -651,7 +677,7 @@ monster = {
                 }
             }
 
-            siegeImpacts = record.life / (100 - record.life) * timeLeft;
+            siegeImpacts = record['life'] / (100 - record['life']) * timeLeft;
             utility.log(3, 'T2K based on siege: ', T2K.toFixed(2));
             utility.log(3, 'T2K estimate without calculating siege impacts: ', siegeImpacts.toFixed(2));
             return T2K;
@@ -661,14 +687,17 @@ monster = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     characterClass: {
-        Warrior : ['Strengthen', 'Heal'],
-        Rogue   : ['Cripple'],
-        Mage    : ['Deflect'],
-        Cleric  : ['Heal'],
-        Warlock : ['Heal', 'Deflect'],
-        Ranger  : ['Strengthen', 'Cripple']
+        'Warrior' : ['Strengthen', 'Heal'],
+        'Rogue'   : ['Cripple'],
+        'Mage'    : ['Deflect'],
+        'Cleric'  : ['Heal'],
+        'Warlock' : ['Heal', 'Deflect'],
+        'Ranger'  : ['Strengthen', 'Cripple']
     },
+    /*jslint sub: false */
 
     flagReview: function (force) {
         try {
@@ -683,8 +712,8 @@ monster = {
 
     flagFullReview: function (force) {
         try {
-            this.clear();
-            this.flagReview();
+            monster.clear();
+            monster.flagReview();
             schedule.setItem('NotargetFrombattle_monster', 0);
             state.setItem('ReleaseControl', true);
             caap.UpdateDashboard(true);
@@ -695,16 +724,19 @@ monster = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     energyTarget: function () {
         this.data = {
-            name : '',
-            type : ''
+            'name' : '',
+            'type' : ''
         };
     },
+    /*jslint sub: false */
 
     select: function (force) {
         try {
-            if (!(force || utility.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
+            if (!(force || schedule.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
                 return false;
             }
 
@@ -734,7 +766,7 @@ monster = {
                 strengthTarget        = '',
                 fortifyTarget         = '',
                 stunTarget            = '',
-                energyTarget          = new this.energyTarget().data,
+                energyTarget          = new monster.energyTarget(),
                 monsterName           = '',
                 monsterObj            = {},
                 monsterConditions     = '',
@@ -743,35 +775,42 @@ monster = {
                 m                     = 0,
                 attackOrderList       = [];
 
+            /* This section is added to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
+            monsterList['any'] = monsterList.any;
+            monsterList['battle_monster'] = monsterList.battle_monster;
+            monsterList['raid'] = monsterList.raid;
+            /*jslint sub: false */
+
             // First we forget everything about who we already picked.
             state.setItem('targetFrombattle_monster', '');
-            state.setItem('targetFromfortify', energyTarget);
+            state.setItem('targetFromfortify', energyTarget.data);
             state.setItem('targetFromraid', '');
 
             // Next we get our monster objects from the reposoitory and break them into separarte lists
             // for monster or raid.  If we are serializing then we make one list only.
-            for (it = 0, len = this.records.length; it < len; it += 1) {
-                if (this.records[it].type === '') {
-                    this.records[it].type = this.type(this.records[it].name);
+            for (it = 0, len = monster.records.length; it < len; it += 1) {
+                if (monster.records[it]['type'] === '') {
+                    monster.records[it]['type'] = monster.type(monster.records[it]['name']);
                 }
 
-                if (this.info[this.records[it].type] && this.info[this.records[it].type].alpha) {
-                    if (this.records[it].damage !== -1 && this.records[it].color !== 'grey' && schedule.since(this.records[it].stunTime, 0)) {
-                        utility.log(2, "Review monster due to class timer", this.records[it].name);
-                        this.records[it].review = -1;
-                        this.flagReview();
+                if (monster.info[monster.records[it]['type']] && monster.info[monster.records[it]['type']].alpha) {
+                    if (monster.records[it]['damage'] !== -1 && monster.records[it]['color'] !== 'grey' && schedule.since(monster.records[it]['stunTime'], 0)) {
+                        utility.log(2, "Review monster due to class timer", monster.records[it]['name']);
+                        monster.records[it]['review'] = -1;
+                        monster.flagReview();
                     }
                 }
 
-                this.records[it].conditions = 'none';
+                monster.records[it]['conditions'] = 'none';
                 if (gm.getItem('SerializeRaidsAndMonsters', false, hiddenVar)) {
-                    monsterList.any.push(this.records[it].name);
-                } else if ((this.records[it].page === 'raid') || (this.records[it].page === 'battle_monster')) {
-                    monsterList[this.records[it].page].push(this.records[it].name);
+                    monsterList.any.push(monster.records[it]['name']);
+                } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'] === 'battle_monster')) {
+                    monsterList[monster.records[it]['page']].push(monster.records[it]['name']);
                 }
             }
 
-            this.save();
+            monster.save();
 
             //PLEASE NOTE BEFORE CHANGING
             //The Serialize Raids and Monsters dictates a 'single-pass' because we only need select
@@ -784,7 +823,7 @@ monster = {
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            utility.log(3, 'records/monsterList/selectTypes', this.records, monsterList, selectTypes);
+            utility.log(3, 'records/monsterList/selectTypes', monster.records, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
             for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
@@ -803,9 +842,9 @@ monster = {
                 strengthTarget        = '';
                 fortifyTarget         = '';
                 stunTarget            = '';
-                energyTarget          = {
-                    name : '',
-                    type : ''
+                energyTarget.data     = {
+                    'name' : '',
+                    'type' : ''
                 };
 
                 // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
@@ -830,81 +869,81 @@ monster = {
                             continue;
                         }
 
-                        monsterObj = this.getItem(monsterList[selectTypes[s]][m]);
+                        monsterObj = monster.getItem(monsterList[selectTypes[s]][m]);
                         // If we set conditions on this monster already then we do not reprocess
-                        if (monsterObj.conditions !== 'none') {
+                        if (monsterObj['conditions'] !== 'none') {
                             continue;
                         }
 
                         // If this monster does not match, skip to next one
                         // Or if this monster is dead, skip to next one
                         // Or if this monster is not the correct type, skip to next one
-                        if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj.page !== selectTypes[s])) {
+                        if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj['page'] !== selectTypes[s])) {
                             continue;
                         }
 
                         //Monster is a match so we set the conditions
-                        monsterObj.conditions = monsterConditions;
-                        this.setItem(monsterObj);
+                        monsterObj['conditions'] = monsterConditions;
+                        monster.setItem(monsterObj);
                         // If it's complete or collect rewards, no need to process further
-                        if (monsterObj.color === 'grey') {
+                        if (monsterObj['color'] === 'grey') {
                             continue;
                         }
 
                         utility.log(3, 'Current monster being checked', monsterObj);
                         // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                         // these to see if this is the monster we should select
-                        if (!firstUnderMax && monsterObj.color !== 'purple') {
-                            if (monsterObj.over === 'ach') {
+                        if (!firstUnderMax && monsterObj['color'] !== 'purple') {
+                            if (monsterObj['over'] === 'ach') {
                                 if (!firstOverAch) {
                                     firstOverAch = monsterList[selectTypes[s]][m];
                                     utility.log(3, 'firstOverAch', firstOverAch);
                                 }
-                            } else if (monsterObj.over !== 'max') {
+                            } else if (monsterObj['over'] !== 'max') {
                                 firstUnderMax = monsterList[selectTypes[s]][m];
                                 utility.log(3, 'firstUnderMax', firstUnderMax);
                             }
                         }
 
-                        monstType = this.type(monsterList[selectTypes[s]][m]);
-                        if (monstType && this.info[monstType]) {
-                            if (!this.info[monstType].alpha || (this.info[monstType].alpha && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Heal') >= 0)) {
-                                maxToFortify = (this.parseCondition('f%', monsterConditions) !== false) ? this.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
-                                if (this.info[monstType].fort && !firstFortUnderMax && monsterObj.fortify < maxToFortify) {
-                                    if (monsterObj.over === 'ach') {
+                        monstType = monster.type(monsterList[selectTypes[s]][m]);
+                        if (monstType && monster.info[monstType]) {
+                            if (!monster.info[monstType].alpha || (monster.info[monstType].alpha && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].indexOf('Heal') >= 0)) {
+                                maxToFortify = (monster.parseCondition('f%', monsterConditions) !== false) ? monster.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
+                                if (monster.info[monstType].fort && !firstFortUnderMax && monsterObj['fortify'] < maxToFortify) {
+                                    if (monsterObj['over'] === 'ach') {
                                         if (!firstFortOverAch) {
                                             firstFortOverAch = monsterList[selectTypes[s]][m];
                                             utility.log(3, 'firstFortOverAch', firstFortOverAch);
                                         }
-                                    } else if (monsterObj.over !== 'max') {
+                                    } else if (monsterObj['over'] !== 'max') {
                                         firstFortUnderMax = monsterList[selectTypes[s]][m];
                                         utility.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                     }
                                 }
                             }
 
-                            if (this.info[monstType].alpha) {
-                                if (config.getItem("StrengthenTo100", true) && this.characterClass[monsterObj.charClass] && this.characterClass[monsterObj.charClass].indexOf('Strengthen') >= 0) {
-                                    if (!firstStrengthUnderMax && monsterObj.strength < 100) {
-                                        if (monsterObj.over === 'ach') {
+                            if (monster.info[monstType].alpha) {
+                                if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].indexOf('Strengthen') >= 0) {
+                                    if (!firstStrengthUnderMax && monsterObj['strength'] < 100) {
+                                        if (monsterObj['over'] === 'ach') {
                                             if (!firstStrengthOverAch) {
                                                 firstStrengthOverAch = monsterList[selectTypes[s]][m];
                                                 utility.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
                                             }
-                                        } else if (monsterObj.over !== 'max') {
+                                        } else if (monsterObj['over'] !== 'max') {
                                             firstStrengthUnderMax = monsterList[selectTypes[s]][m];
                                             utility.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
                                         }
                                     }
                                 }
 
-                                if (!firstStunUnderMax && monsterObj.stunDo) {
-                                    if (monsterObj.over === 'ach') {
+                                if (!firstStunUnderMax && monsterObj['stunDo']) {
+                                    if (monsterObj['over'] === 'ach') {
                                         if (!firstStunOverAch) {
                                             firstStunOverAch = monsterList[selectTypes[s]][m];
                                             utility.log(3, 'firstStunOverAch', firstStunOverAch);
                                         }
-                                    } else if (monsterObj.over !== 'max') {
+                                    } else if (monsterObj['over'] !== 'max') {
                                         firstStunUnderMax = monsterList[selectTypes[s]][m];
                                         utility.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                     }
@@ -923,9 +962,9 @@ monster = {
                     }
 
                     if (strengthTarget) {
-                        energyTarget.name = strengthTarget;
-                        energyTarget.type = 'Strengthen';
-                        utility.log(2, 'Strengthen target ', energyTarget.name);
+                        energyTarget.data['name'] = strengthTarget;
+                        energyTarget.data['type'] = 'Strengthen';
+                        utility.log(2, 'Strengthen target ', energyTarget.data['name']);
                     }
 
                     fortifyTarget = firstFortUnderMax;
@@ -934,9 +973,9 @@ monster = {
                     }
 
                     if (fortifyTarget) {
-                        energyTarget.name = fortifyTarget;
-                        energyTarget.type = 'Fortify';
-                        utility.log(2, 'Fortify replaces strengthen ', energyTarget.name);
+                        energyTarget.data['name'] = fortifyTarget;
+                        energyTarget.data['type'] = 'Fortify';
+                        utility.log(2, 'Fortify replaces strengthen ', energyTarget.data['name']);
                     }
 
                     stunTarget = firstStunUnderMax;
@@ -945,14 +984,14 @@ monster = {
                     }
 
                     if (stunTarget) {
-                        energyTarget.name = stunTarget;
-                        energyTarget.type = 'Stun';
-                        utility.log(2, 'Stun target replaces fortify ', energyTarget.name);
+                        energyTarget.data['name'] = stunTarget;
+                        energyTarget.data['type'] = 'Stun';
+                        utility.log(2, 'Stun target replaces fortify ', energyTarget.data['name']);
                     }
 
-                    state.setItem('targetFromfortify', energyTarget);
-                    if (energyTarget.name) {
-                        utility.log(1, 'Energy target', energyTarget);
+                    state.setItem('targetFromfortify', energyTarget.data);
+                    if (energyTarget.data['name']) {
+                        utility.log(1, 'Energy target', energyTarget.data);
                     }
                 }
 
@@ -964,25 +1003,25 @@ monster = {
                 // If we've got a monster for this selection type then we set the GM variables for the name
                 // and stamina requirements
                 if (monsterName) {
-                    monsterObj = this.getItem(monsterName);
-                    state.setItem('targetFrom' + monsterObj.page, monsterName);
-                    if (monsterObj.page === 'battle_monster') {
+                    monsterObj = monster.getItem(monsterName);
+                    state.setItem('targetFrom' + monsterObj['page'], monsterName);
+                    if (monsterObj['page'] === 'battle_monster') {
                         nodeNum = 0;
-                        if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staLvl) {
-                            for (nodeNum = this.info[monsterObj.type].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max >= this.info[monsterObj.type].staLvl[nodeNum]) {
+                        if (!caap.InLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staLvl) {
+                            for (nodeNum = monster.info[monsterObj['type']].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
+                                if (caap.stats.stamina.max >= monster.info[monsterObj['type']].staLvl[nodeNum]) {
                                     break;
                                 }
                             }
                         }
 
-                        if (!caap.InLevelUpMode() && this.info[monsterObj.type] && this.info[monsterObj.type].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                            state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staMax[nodeNum]);
-                        } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
-                            state.setItem('MonsterStaminaReq', this.info[monsterObj.type].staUse);
-                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj.conditions.match(/:pa/i)) {
+                        if (!caap.InLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                            state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staMax[nodeNum]);
+                        } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
+                            state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staUse);
+                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj['conditions'].match(/:pa/i)) {
                             state.setItem('MonsterStaminaReq', 5);
-                        } else if (monsterObj.conditions.match(/:sa/i)) {
+                        } else if (monsterObj['conditions'].match(/:sa/i)) {
                             state.setItem('MonsterStaminaReq', 1);
                         } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
                             state.setItem('MonsterStaminaReq', 5);
@@ -1003,10 +1042,10 @@ monster = {
                         }
                     } else {
                         // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
-                        if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj.conditions.match(/:pa/i)) {
+                        if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj['conditions'].match(/:pa/i)) {
                             state.setItem('RaidStaminaReq', 5);
-                        } else if (this.info[monsterObj.type] && this.info[monsterObj.type].staUse) {
-                            state.setItem('RaidStaminaReq', this.info[monsterObj.type].staUse);
+                        } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
+                            state.setItem('RaidStaminaReq', monster.info[monsterObj['type']].staUse);
                         } else {
                             state.setItem('RaidStaminaReq', 1);
                         }
@@ -1056,7 +1095,7 @@ monster = {
 
             if (monsterName !== tempText) {
                 utility.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
-                return utility.NavigateTo('keep,' + this.getItem(monsterName).page);
+                return utility.NavigateTo('keep,' + monster.getItem(monsterName).page);
             }
 
             return false;
@@ -1066,3 +1105,11 @@ monster = {
         }
     }
 };
+
+/*jslint sub: true */
+/*
+window['monster'] = monster;
+monster.completeButton['raid'] = monster.completeButton.raid;
+monster.completeButton['battle_monster'] = monster.completeButton.battle_monster;
+*/
+/*jslint sub: false */

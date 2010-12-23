@@ -51,7 +51,7 @@ sort = {
                 it1       = 0,
                 len1      = 0;
 
-            if (!this.dialog[id] || !this.dialog[id].length) {
+            if (!sort.dialog[id] || !sort.dialog[id].length) {
                 list.unshift("");
                 html += "<p>Sort by ...</p>";
                 for (it = 0; it < 3; it += 1) {
@@ -76,8 +76,8 @@ sort = {
                     }
                 }
 
-                this.dialog[id] = $('<div id="sort_form_' + id + '" title="Sort ' + id + '">' + html + '</div>').appendTo(window.document.body);
-                this.dialog[id].dialog({
+                sort.dialog[id] = $('<div id="sort_form_' + id + '" title="Sort ' + id + '">' + html + '</div>').appendTo(window.document.body);
+                sort.dialog[id].dialog({
                     buttons: {
                         "Sort": function () {
                             sort.getForm(id, records);
@@ -89,10 +89,10 @@ sort = {
                     }
                 });
             } else {
-                this.dialog[id].dialog("open");
+                sort.dialog[id].dialog("open");
             }
 
-            this.updateForm(id);
+            sort.updateForm(id);
             return true;
         } catch (err) {
             utility.error("ERROR in sort.form: " + err);
@@ -115,13 +115,13 @@ sort = {
                     }
                 };
 
-            if (this.dialog[id] && this.dialog[id].length) {
-                order.reverse.a = $("#form0 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
-                order.reverse.b = $("#form1 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
-                order.reverse.c = $("#form2 input[name='reverse']:checked", this.dialog[id]).val() === "true" ? true : false;
-                order.value.a = $("#select0 option:selected", this.dialog[id]).val();
-                order.value.b = $("#select1 option:selected", this.dialog[id]).val();
-                order.value.c = $("#select2 option:selected", this.dialog[id]).val();
+            if (sort.dialog[id] && sort.dialog[id].length) {
+                order.reverse.a = $("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.reverse.b = $("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.reverse.c = $("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.value.a = $("#select0 option:selected", sort.dialog[id]).val();
+                order.value.b = $("#select1 option:selected", sort.dialog[id]).val();
+                order.value.c = $("#select2 option:selected", sort.dialog[id]).val();
                 records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
                 state.setItem(id + "Sort", order);
                 state.setItem(id + "DashUpdate", true);
@@ -152,16 +152,16 @@ sort = {
                     }
                 };
 
-            if (this.dialog[id] && this.dialog[id].length) {
+            if (sort.dialog[id] && sort.dialog[id].length) {
                 $.extend(true, order, state.getItem(id + "Sort", order));
-                $("#form0 input", this.dialog[id]).val([order.reverse.a]);
-                $("#form1 input", this.dialog[id]).val([order.reverse.b]);
-                $("#form2 input", this.dialog[id]).val([order.reverse.c]);
-                $("#select0", this.dialog[id]).val(order.value.a);
-                $("#select1", this.dialog[id]).val(order.value.b);
-                $("#select2", this.dialog[id]).val(order.value.c);
+                $("#form0 input", sort.dialog[id]).val([order.reverse.a]);
+                $("#form1 input", sort.dialog[id]).val([order.reverse.b]);
+                $("#form2 input", sort.dialog[id]).val([order.reverse.c]);
+                $("#select0", sort.dialog[id]).val(order.value.a);
+                $("#select1", sort.dialog[id]).val(order.value.b);
+                $("#select2", sort.dialog[id]).val(order.value.c);
             } else {
-                utility.warn("Dialog for updateForm not found", id);
+                utility.warn("Dialog for updateForm not found", id, sort.dialog[id]);
             }
 
             return true;

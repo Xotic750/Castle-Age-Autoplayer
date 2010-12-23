@@ -21,7 +21,7 @@ utility = {
                 throw 'No url passed to VisitUrl';
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
             if (state.getItem('clickUrl', '').indexOf(url) < 0) {
                 state.setItem('clickUrl', url);
             }
@@ -34,7 +34,7 @@ utility = {
             window.location.href = url;
             return true;
         } catch (err) {
-            this.error("ERROR in utility.VisitUrl: " + err);
+            utility.error("ERROR in utility.VisitUrl: " + err);
             return false;
         }
     },
@@ -50,7 +50,7 @@ utility = {
                 caap.waitingForDomLoad = true;
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
             var evt = document.createEvent("MouseEvents");
             evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
             /*
@@ -61,7 +61,7 @@ utility = {
             */
             return !obj.dispatchEvent(evt);
         } catch (err) {
-            this.error("ERROR in utility.Click: " + err);
+            utility.error("ERROR in utility.Click: " + err);
             return undefined;
         }
     },
@@ -72,7 +72,7 @@ utility = {
                 throw 'No link passed to ClickAjaxLinkSend';
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
             if (state.getItem('clickUrl', '').indexOf(link) < 0) {
                 state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
             }
@@ -86,7 +86,7 @@ utility = {
             window.location.href = jss + ":void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
             return true;
         } catch (err) {
-            this.error("ERROR in utility.ClickAjaxLinkSend: " + err);
+            utility.error("ERROR in utility.ClickAjaxLinkSend: " + err);
             return false;
         }
     },
@@ -97,7 +97,7 @@ utility = {
                 throw 'No link passed to ClickGetCachedAjax';
             }
 
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : this.waitTime;
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
             if (state.getItem('clickUrl', '').indexOf(link) < 0) {
                 state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
             }
@@ -111,23 +111,8 @@ utility = {
             window.location.href = jss + ":void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
             return true;
         } catch (err) {
-            this.error("ERROR in utility.ClickGetCachedAjax: " + err);
+            utility.error("ERROR in utility.ClickGetCachedAjax: " + err);
             return false;
-        }
-    },
-
-    oneMinuteUpdate: function (funcName) {
-        try {
-            if (!state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {
-                return false;
-            }
-
-            schedule.setItem(funcName + 'Timer', 60);
-            state.setItem('reset' + funcName, false);
-            return true;
-        } catch (err) {
-            this.error("ERROR in utility.oneMinuteUpdate: " + err);
-            return undefined;
         }
     },
 
@@ -142,12 +127,12 @@ utility = {
 
             content = $("#content");
             if (!content || !content.length) {
-                this.warn('No content to Navigate to', imageOnPage, pathToPage);
+                utility.warn('No content to Navigate to', imageOnPage, pathToPage);
                 return false;
             }
 
             if (imageOnPage) {
-                if (this.CheckForImage(imageOnPage)) {
+                if (utility.CheckForImage(imageOnPage)) {
                     return false;
                 }
             }
@@ -156,8 +141,8 @@ utility = {
             for (s = pathList.length - 1; s >= 0; s -= 1) {
                 a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
                 if (a && a.length) {
-                    this.log(2, 'Go to', pathList[s]);
-                    this.Click(a.get(0));
+                    utility.log(2, 'Go to', pathList[s]);
+                    utility.Click(a.get(0));
                     return true;
                 }
 
@@ -166,18 +151,18 @@ utility = {
                     imageTest = imageTest + '.';
                 }
 
-                img = this.CheckForImage(imageTest);
+                img = utility.CheckForImage(imageTest);
                 if (img) {
-                    this.log(3, 'Click on image', img.src.match(/[\w.]+$/));
-                    this.Click(img);
+                    utility.log(3, 'Click on image', img.src.match(/[\w.]+$/));
+                    utility.Click(img);
                     return true;
                 }
             }
 
-            this.warn('Unable to Navigate to', imageOnPage, pathToPage);
+            utility.warn('Unable to Navigate to', imageOnPage, pathToPage);
             return false;
         } catch (err) {
-            this.error("ERROR in utility.NavigateTo: " + err, imageOnPage, pathToPage);
+            utility.error("ERROR in utility.NavigateTo: " + err, imageOnPage, pathToPage);
             return undefined;
         }
     },
@@ -196,7 +181,7 @@ utility = {
             imageSlice = $(webSlice).find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
             return (imageSlice.length ? imageSlice.get(0) : null);
         } catch (err) {
-            this.error("ERROR in utility.CheckForImage: " + err);
+            utility.error("ERROR in utility.CheckForImage: " + err);
             return undefined;
         }
     },
@@ -205,7 +190,7 @@ utility = {
         try {
             return parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
         } catch (err) {
-            this.error("ERROR in utility.NumberOnly: " + err, arguments.callee.caller);
+            utility.error("ERROR in utility.NumberOnly: " + err, arguments.callee.caller);
             return undefined;
         }
     },
@@ -214,7 +199,7 @@ utility = {
         try {
             return html.replace(new RegExp("\\&[^;]+;", "g"), '');
         } catch (err) {
-            this.error("ERROR in utility.RemoveHtmlJunk: " + err);
+            utility.error("ERROR in utility.RemoveHtmlJunk: " + err);
             return undefined;
         }
     },
@@ -228,7 +213,7 @@ utility = {
             inject = null;
             return true;
         } catch (err) {
-            this.error("ERROR in utility.injectScript: " + err);
+            utility.error("ERROR in utility.injectScript: " + err);
             return false;
         }
     },
@@ -249,7 +234,7 @@ utility = {
 
             return s;
         } catch (err) {
-            this.error("ERROR in utility.typeOf: " + err);
+            utility.error("ERROR in utility.typeOf: " + err);
             return undefined;
         }
     },
@@ -259,11 +244,11 @@ utility = {
             var i, v,
                 empty = true;
 
-            if (this.typeOf(obj) === 'object') {
+            if (utility.typeOf(obj) === 'object') {
                 for (i in obj) {
                     if (obj.hasOwnProperty(i)) {
                         v = obj[i];
-                        if (v !== undefined && this.typeOf(v) !== 'function') {
+                        if (v !== undefined && utility.typeOf(v) !== 'function') {
                             empty = false;
                             break;
                         }
@@ -273,7 +258,7 @@ utility = {
 
             return empty;
         } catch (err) {
-            this.error("ERROR in utility.isEmpty: " + err);
+            utility.error("ERROR in utility.isEmpty: " + err);
             return undefined;
         }
     },
@@ -287,7 +272,7 @@ utility = {
 
             return value === y && value.toString() === y.toString();
         } catch (err) {
-            this.error("ERROR in utility.isInt: " + err);
+            utility.error("ERROR in utility.isInt: " + err);
             return undefined;
         }
     },
@@ -296,7 +281,7 @@ utility = {
         try {
             return $.type(value) === 'number';
         } catch (err) {
-            this.error("ERROR in utility.isNum: " + err);
+            utility.error("ERROR in utility.isNum: " + err);
             return undefined;
         }
     },
@@ -308,13 +293,13 @@ utility = {
     alert: function (message, id) {
         try {
             if (!id) {
-                this.alert_id += 1;
-                id = this.alert_id;
+                utility.alert_id += 1;
+                id = utility.alert_id;
             }
 
-            if (!this.alertDialog[id] || !this.alertDialog[id].length) {
-                this.alertDialog[id] = $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
-                this.alertDialog[id].dialog({
+            if (!utility.alertDialog[id] || !utility.alertDialog[id].length) {
+                utility.alertDialog[id] = $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                utility.alertDialog[id].dialog({
                     buttons: {
                         "Ok": function () {
                             $(this).dialog("close");
@@ -322,13 +307,13 @@ utility = {
                     }
                 });
             } else {
-                this.alertDialog[id].html(message);
-                this.alertDialog[id].dialog("open");
+                utility.alertDialog[id].html(message);
+                utility.alertDialog[id].dialog("open");
             }
 
             return true;
         } catch (err) {
-            this.error("ERROR in utility.alert: " + err);
+            utility.error("ERROR in utility.alert: " + err);
             return false;
         }
     },
@@ -345,18 +330,18 @@ utility = {
                     if (tempArr && tempArr.length === 2) {
                         width = parseFloat(tempArr[1]);
                     } else {
-                        this.warn("getElementWidth did not match a width", jObject);
+                        utility.warn("getElementWidth did not match a width", jObject);
                     }
                 } else {
                     width = parseFloat(jObject.css("width"));
                 }
             } else {
-                this.warn("getElementWidth problem with jObject", jObject);
+                utility.warn("getElementWidth problem with jObject", jObject);
             }
 
             return width;
         } catch (err) {
-            this.error("ERROR in utility.getElementWidth: " + err);
+            utility.error("ERROR in utility.getElementWidth: " + err);
             return undefined;
         }
     },
@@ -374,7 +359,7 @@ utility = {
                     tempValue = $.extend(true, {}, theArray[it]);
                     break;
                 case "array":
-                    tempValue = this.arrayDeepCopy(theArray[it]);
+                    tempValue = utility.arrayDeepCopy(theArray[it]);
                     break;
                 default:
                     tempValue = theArray[it];
@@ -385,7 +370,7 @@ utility = {
 
             return newArray;
         } catch (err) {
-            this.error("ERROR in utility.arrayDeepCopy: " + err);
+            utility.error("ERROR in utility.arrayDeepCopy: " + err);
             return undefined;
         }
     },
@@ -402,18 +387,18 @@ utility = {
                     if (tempArr && tempArr.length === 2) {
                         width = parseFloat(tempArr[1]);
                     } else {
-                        this.warn("getElementHeight did not match a width", jObject);
+                        utility.warn("getElementHeight did not match a width", jObject);
                     }
                 } else {
                     width = parseFloat(jObject.css("height"));
                 }
             } else {
-                this.warn("getElementHeight problem with jObject", jObject);
+                utility.warn("getElementHeight problem with jObject", jObject);
             }
 
             return width;
         } catch (err) {
-            this.error("ERROR in utility.getElementHeight: " + err);
+            utility.error("ERROR in utility.getElementHeight: " + err);
             return undefined;
         }
     },
@@ -422,7 +407,7 @@ utility = {
 
     log: function (level, text) {
         if (console.log !== undefined) {
-            if (this.logLevel && !isNaN(level) && this.logLevel >= level) {
+            if (utility.logLevel && !isNaN(level) && utility.logLevel >= level) {
                 var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
@@ -436,7 +421,7 @@ utility = {
                             newArg = $.extend(true, {}, arguments[it]);
                             break;
                         case "array":
-                            newArg = this.arrayDeepCopy(arguments[it]);
+                            newArg = utility.arrayDeepCopy(arguments[it]);
                             break;
                         default:
                             newArg = arguments[it];
@@ -468,7 +453,7 @@ utility = {
                         newArg = $.extend(true, {}, arguments[it]);
                         break;
                     case "array":
-                        newArg = this.arrayDeepCopy(arguments[it]);
+                        newArg = utility.arrayDeepCopy(arguments[it]);
                         break;
                     default:
                         newArg = arguments[it];
@@ -483,9 +468,9 @@ utility = {
             }
         } else {
             if (arguments.length > 1) {
-                this.log(1, text, Array.prototype.slice.call(arguments, 1));
+                utility.log(1, text, Array.prototype.slice.call(arguments, 1));
             } else {
-                this.log(1, text);
+                utility.log(1, text);
             }
         }
     },
@@ -505,7 +490,7 @@ utility = {
                         newArg = $.extend(true, {}, arguments[it]);
                         break;
                     case "array":
-                        newArg = this.arrayDeepCopy(arguments[it]);
+                        newArg = utility.arrayDeepCopy(arguments[it]);
                         break;
                     default:
                         newArg = arguments[it];
@@ -520,9 +505,9 @@ utility = {
             }
         } else {
             if (arguments.length > 1) {
-                this.log(1, text, Array.prototype.slice.call(arguments, 1));
+                utility.log(1, text, Array.prototype.slice.call(arguments, 1));
             } else {
-                this.log(1, text);
+                utility.log(1, text);
             }
         }
     },
@@ -536,26 +521,60 @@ utility = {
                 utility.timeouts[t] = undefined;
             }, millis);
 
-            this.timeouts[t] = 1;
+            utility.timeouts[t] = 1;
             return true;
         } catch (err) {
-            this.error("ERROR in utility.setTimeout: " + err);
+            utility.error("ERROR in utility.setTimeout: " + err);
             return false;
         }
     },
 
     clearTimeouts: function () {
         try {
-            for (var t in this.timeouts) {
-                if (this.timeouts.hasOwnProperty(t)) {
+            for (var t in utility.timeouts) {
+                if (utility.timeouts.hasOwnProperty(t)) {
                     window.clearTimeout(t);
                 }
             }
 
-            this.timeouts = {};
+            utility.timeouts = {};
             return true;
         } catch (err) {
-            this.error("ERROR in utility.clearTimeouts: " + err);
+            utility.error("ERROR in utility.clearTimeouts: " + err);
+            return false;
+        }
+    },
+
+    chatLink: function (slice, query) {
+        try {
+            var httpRegExp  = new RegExp('.*(http:.*)'),
+                quoteRegExp = /"/g,
+                chatDiv     = slice.find(query);
+
+            if (chatDiv && chatDiv.length) {
+                chatDiv.each(function () {
+                    var e     = $(this),
+                        eHtml = $.trim(e.html()),
+                        Arr   = [];
+
+                    if (eHtml) {
+                        Arr = eHtml.split("<br>");
+                        if (Arr && Arr.length === 2) {
+                            Arr = Arr[1].replace(quoteRegExp, '').match(httpRegExp);
+                            if (Arr && Arr.length === 2 && Arr[1]) {
+                                Arr = Arr[1].split(" ");
+                                if (Arr && Arr.length) {
+                                    e.html(eHtml.replace(Arr[0], "<a href='" + Arr[0] + "'>" + Arr[0] + "</a>"));
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in utility.chatLink: " + err);
             return false;
         }
     },
@@ -570,7 +589,7 @@ utility = {
 
             return HTML;
         } catch (err) {
-            this.error("ERROR in utility.getHTMLPredicate: " + err);
+            utility.error("ERROR in utility.getHTMLPredicate: " + err);
             return undefined;
         }
     },
@@ -596,7 +615,7 @@ utility = {
                 }
             }
 
-            this.log(4, "utility.TextToArray", theArray);
+            utility.log(4, "utility.TextToArray", theArray);
             return theArray;
         } catch (err) {
             utility.error("ERROR in utility.TextToArray: " + err);
@@ -753,7 +772,7 @@ utility = {
             return WordToHexValue;
         }
 
-        var x   = ConvertToWordArray(this.Utf8.encode(msg)),
+        var x   = ConvertToWordArray(utility.Utf8.encode(msg)),
             a   = 0x67452301,
             b   = 0xEFCDAB89,
             c   = 0x98BADCFE,
@@ -885,7 +904,7 @@ utility = {
                 len        = 0,
                 word_array = [];
 
-            msg = this.Utf8.encode(msg);
+            msg = utility.Utf8.encode(msg);
             msg_len = msg.length;
             for (i = 0; i < msg_len - 3; i += 4) {
                 j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
@@ -1024,7 +1043,7 @@ utility = {
                 }
 
                 for (t = 16; t < 64; t += 1) {
-                    W[t] = (this.sigma1(W[t - 2]) + W[t - 7] + this.sigma0(W[t - 15]) + W[t - 16]) & 0xffffffff;
+                    W[t] = (utility.SHA256.sigma1(W[t - 2]) + W[t - 7] + utility.SHA256.sigma0(W[t - 15]) + W[t - 16]) & 0xffffffff;
                 }
 
                 a = H[0];
@@ -1036,8 +1055,8 @@ utility = {
                 g = H[6];
                 h = H[7];
                 for (t = 0; t < 64; t += 1) {
-                    T1 = h + this.Sigma1(e) + this.Ch(e, f, g) + K[t] + W[t];
-                    T2 = this.Sigma0(a) + this.Maj(a, b, c);
+                    T1 = h + utility.SHA256.Sigma1(e) + utility.SHA256.Ch(e, f, g) + K[t] + W[t];
+                    T2 = utility.SHA256.Sigma0(a) + utility.SHA256.Maj(a, b, c);
                     h = g;
                     g = f;
                     f = e;
@@ -1101,17 +1120,17 @@ utility = {
                 state[i % 4][Math.floor(i / 4)] = input[i];
             }
 
-            state = this.addRoundKey(state, w, 0, Nb);
+            state = utility.Aes.addRoundKey(state, w, 0, Nb);
             for (round = 1; round < Nr; round += 1) {
-                state = this.subBytes(state, Nb);
-                state = this.shiftRows(state, Nb);
-                state = this.mixColumns(state, Nb);
-                state = this.addRoundKey(state, w, round, Nb);
+                state = utility.Aes.subBytes(state, Nb);
+                state = utility.Aes.shiftRows(state, Nb);
+                state = utility.Aes.mixColumns(state, Nb);
+                state = utility.Aes.addRoundKey(state, w, round, Nb);
             }
 
-            state = this.subBytes(state, Nb);
-            state = this.shiftRows(state, Nb);
-            state = this.addRoundKey(state, w, Nr, Nb);
+            state = utility.Aes.subBytes(state, Nb);
+            state = utility.Aes.shiftRows(state, Nb);
+            state = utility.Aes.addRoundKey(state, w, Nr, Nb);
             output = new Array(4 * Nb);
             for (i = 0; i < 4 * Nb; i += 1) {
                 output[i] = state[i % 4][Math.floor(i / 4)];
@@ -1140,15 +1159,15 @@ utility = {
                 }
 
                 if (i % Nk === 0) {
-                    temp = this.subWord(this.rotWord(temp));
+                    temp = utility.Aes.subWord(utility.Aes.rotWord(temp));
                     /*jslint bitwise: false */
                     for (t = 0; t < 4; t += 1) {
-                        temp[t] ^= this.rCon[i / Nk][t];
+                        temp[t] ^= utility.Aes.rCon[i / Nk][t];
                     }
                     /*jslint bitwise: true */
 
                 } else if (Nk > 6 && i % Nk === 4) {
-                    temp = this.subWord(temp);
+                    temp = utility.Aes.subWord(temp);
                 }
 
                 /*jslint bitwise: false */
@@ -1167,7 +1186,7 @@ utility = {
 
             for (r = 0; r < 4; r += 1) {
                 for (c = 0; c < Nb; c += 1) {
-                    s[r][c] = this.sBox[s[r][c]];
+                    s[r][c] = utility.Aes.sBox[s[r][c]];
                 }
             }
 
@@ -1234,7 +1253,7 @@ utility = {
 
         subWord: function (w) {
             for (var i = 0; i < 4; i += 1) {
-                w[i] = this.sBox[w[i]];
+                w[i] = utility.Aes.sBox[w[i]];
             }
 
             return w;
@@ -1443,7 +1462,8 @@ utility = {
                 plain = '',
                 e     = [],
                 pad   = '',
-                b64   = this.code;
+                b64   = utility.Base64.code,
+                nChar = String.fromCharCode(0);
 
             utf8encode = (typeof utf8encode === 'undefined') ? false : utf8encode;
             plain = utf8encode ? utility.Utf8.encode(str) : str;
@@ -1451,7 +1471,7 @@ utility = {
             if (c > 0) {
                 while (c < 3) {
                     pad += '=';
-                    plain += String.fromCharCode(0);
+                    plain += nChar;
                     c += 1;
                 }
             }
@@ -1480,7 +1500,7 @@ utility = {
                 d     = [],
                 plain = '',
                 coded = '',
-                b64   = this.code,
+                b64   = utility.Base64.code,
                 c     = 0;
 
             utf8decode = (typeof utf8decode === 'undefined') ? false : utf8decode;
