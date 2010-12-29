@@ -13,6 +13,8 @@ spreadsheet = {
 
     compress: true,
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     // use these to set/get values in a way that prepends the game's name
     setItem: function (name, value) {
         try {
@@ -45,13 +47,13 @@ spreadsheet = {
             if (spreadsheet.compress) {
                 compressor = new utility.LZ77();
                 storageStr = compressor.compress(stringified);
-                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
+                utility.log(2, "Compressed storage", name, ((storageStr.length / stringified.length) * 100).dp(2));
             } else {
                 storageStr = stringified;
             }
 
             if (utility.is_html5_sessionStorage) {
-                sessionStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
+                sessionStorage.setItem(gm.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
             }
 
             return value;
@@ -73,7 +75,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
                 if (storageStr) {
                     if (spreadsheet.compress) {
                         compressor = new utility.LZ77();
@@ -132,7 +134,7 @@ spreadsheet = {
             }
 
             if (utility.is_html5_sessionStorage) {
-                sessionStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                sessionStorage.removeItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
             }
 
             return true;
@@ -141,6 +143,7 @@ spreadsheet = {
             return false;
         }
     },
+    /*jslint sub: false */
 
     load: function () {
         try {
@@ -196,7 +199,7 @@ spreadsheet = {
 
                                     cell = cell.replace(/"/g, "");
                                 } else {
-                                    cell = parseFloat(cell);
+                                    cell = cell.parseInt();
                                 }
 
                                 newRecord[headersArr[column]] = cell;
@@ -269,7 +272,7 @@ spreadsheet = {
                 if (spreadsheet.records[tempIt]['recipe1'] !== null && spreadsheet.records[tempIt]['recipe1'] !== undefined) {
                     titleStr += ", Recipe1: " + spreadsheet.records[tempIt]['recipe1'];
                     if (spreadsheet.records[tempIt]['recipe1'] === "Map of Atlantis") {
-                        owned = caap.stats.other.atlantis;
+                        owned = caap.stats['other']['atlantis'];
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     } else {
@@ -332,7 +335,7 @@ spreadsheet = {
 
                     title = img.attr("title");
                     if (title) {
-                        image = utility.getHTMLPredicate(img.attr("src"));
+                        image = img.attr("src").filepart();
                         tMes = spreadsheet.getTitle(title, image);
                         if (tMes && $.isPlainObject(tMes) && !$.isEmptyObject(tMes) && tMes.title) {
                             img.attr("title", tMes.title);

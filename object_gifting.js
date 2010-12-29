@@ -106,11 +106,11 @@ gifting = {
             // So I have changed the query to try and resolve the issue
             giftDiv = $("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
             if (giftDiv && giftDiv.length) {
-                tempNum = giftDiv.attr("uid").toNumber();
+                tempNum = giftDiv.attr("uid").parseInt();
                 if (tempNum > 0) {
                     current = new gifting.queue.record();
                     current.data['userId'] = tempNum;
-                    tempText = $.trim(giftDiv.attr("title"));
+                    tempText = giftDiv.attr("title").trim();
                     if (tempText) {
                         current.data['name'] = tempText;
                     } else {
@@ -261,7 +261,7 @@ gifting = {
                                 return true;
                             }
 
-                            userId = userArr[1].toNumber();
+                            userId = userArr[1].parseInt();
                             if (giftEntry['userId'] !== userId) {
                                 return true;
                             }
@@ -271,7 +271,7 @@ gifting = {
                             giftArr = [];
                             giftType = '';
                             if (giftDiv && giftDiv.length) {
-                                giftText = $.trim(giftDiv.text());
+                                giftText = giftDiv.text().trim();
                                 giftArr = giftText.match(giftRegExp);
                                 if (giftArr && giftArr.length === 3) {
                                     giftType = giftArr[2];
@@ -510,7 +510,7 @@ gifting = {
                         newGift = new gifting.gifts.record();
                         tempDiv = theGift.children().eq(0);
                         if (tempDiv && tempDiv.length) {
-                            tempText = $.trim(tempDiv.text()).replace("!", "");
+                            tempText = tempDiv.text().trim().replace("!", "");
                             if (tempText) {
                                 newGift.data['name'] = tempText;
                             } else {
@@ -524,7 +524,7 @@ gifting = {
 
                         tempDiv = theGift.find("img[class*='imgButton']");
                         if (tempDiv && tempDiv.length) {
-                            tempText = utility.getHTMLPredicate(tempDiv.attr("src"));
+                            tempText = tempDiv.attr("src").filepart();
                             if (tempText) {
                                 newGift.data['image'] = tempText;
                             } else {
@@ -926,7 +926,7 @@ gifting = {
                     if (unselDiv && unselDiv.length) {
                         unselDiv.each(function () {
                             var unsel = $(this),
-                                id    = unsel.attr("value").toNumber();
+                                id    = unsel.attr("value").parseInt();
 
                             if (!/none/.test(unsel.parent().attr("style"))) {
                                 caap.waitingForDomLoad = false;
@@ -955,7 +955,7 @@ gifting = {
                         if (selDiv && selDiv.length) {
                             selDiv.each(function () {
                                 var sel = $(this),
-                                    id  = sel.attr("value").toNumber();
+                                    id  = sel.attr("value").parseInt();
 
                                 if (!/none/.test(sel.parent().attr("style"))) {
                                     utility.log(2, "User Chosen:", id);

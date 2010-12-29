@@ -186,24 +186,6 @@ utility = {
         }
     },
 
-    NumberOnly: function (num) {
-        try {
-            return parseFloat(num.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
-        } catch (err) {
-            utility.error("ERROR in utility.NumberOnly: " + err, arguments.callee.caller);
-            return undefined;
-        }
-    },
-
-    RemoveHtmlJunk: function (html) {
-        try {
-            return html.replace(new RegExp("\\&[^;]+;", "g"), '');
-        } catch (err) {
-            utility.error("ERROR in utility.RemoveHtmlJunk: " + err);
-            return undefined;
-        }
-    },
-
     injectScript: function (url) {
         try {
             var inject = document.createElement('script');
@@ -328,12 +310,12 @@ utility = {
                 if ($().jquery >= "1.4.3") {
                     tempArr = jObject.attr("style").match(widthRegExp);
                     if (tempArr && tempArr.length === 2) {
-                        width = parseFloat(tempArr[1]);
+                        width = tempArr[1].parseFloat(2);
                     } else {
                         utility.warn("getElementWidth did not match a width", jObject);
                     }
                 } else {
-                    width = parseFloat(jObject.css("width"));
+                    width = jObject.css("width").parseFloat(2);
                 }
             } else {
                 utility.warn("getElementWidth problem with jObject", jObject);
@@ -342,35 +324,6 @@ utility = {
             return width;
         } catch (err) {
             utility.error("ERROR in utility.getElementWidth: " + err);
-            return undefined;
-        }
-    },
-
-    arrayDeepCopy: function (theArray) {
-        try {
-            var it = 0,
-                len = 0,
-                newArray = [],
-                tempValue = null;
-
-            for (it = 0, len = theArray.length; it < len; it += 1) {
-                switch ($.type(theArray[it])) {
-                case "object":
-                    tempValue = $.extend(true, {}, theArray[it]);
-                    break;
-                case "array":
-                    tempValue = utility.arrayDeepCopy(theArray[it]);
-                    break;
-                default:
-                    tempValue = theArray[it];
-                }
-
-                newArray.push(tempValue);
-            }
-
-            return newArray;
-        } catch (err) {
-            utility.error("ERROR in utility.arrayDeepCopy: " + err);
             return undefined;
         }
     },
@@ -385,12 +338,12 @@ utility = {
                 if ($().jquery >= "1.4.3") {
                     tempArr = jObject.attr("style").match(heightRegExp);
                     if (tempArr && tempArr.length === 2) {
-                        width = parseFloat(tempArr[1]);
+                        width = tempArr[1].parseFloat(2);
                     } else {
                         utility.warn("getElementHeight did not match a width", jObject);
                     }
                 } else {
-                    width = parseFloat(jObject.css("height"));
+                    width = jObject.css("height").parseFloat(2);
                 }
             } else {
                 utility.warn("getElementHeight problem with jObject", jObject);
@@ -421,7 +374,7 @@ utility = {
                             newArg = $.extend(true, {}, arguments[it]);
                             break;
                         case "array":
-                            newArg = utility.arrayDeepCopy(arguments[it]);
+                            newArg = arguments[it].deepCopy();
                             break;
                         default:
                             newArg = arguments[it];
@@ -453,7 +406,7 @@ utility = {
                         newArg = $.extend(true, {}, arguments[it]);
                         break;
                     case "array":
-                        newArg = utility.arrayDeepCopy(arguments[it]);
+                        newArg = arguments[it].deepCopy();
                         break;
                     default:
                         newArg = arguments[it];
@@ -490,7 +443,7 @@ utility = {
                         newArg = $.extend(true, {}, arguments[it]);
                         break;
                     case "array":
-                        newArg = utility.arrayDeepCopy(arguments[it]);
+                        newArg = arguments[it].deepCopy();
                         break;
                     default:
                         newArg = arguments[it];
@@ -554,7 +507,7 @@ utility = {
             if (chatDiv && chatDiv.length) {
                 chatDiv.each(function () {
                     var e     = $(this),
-                        eHtml = $.trim(e.html()),
+                        eHtml = e.html().trim(),
                         Arr   = [];
 
                     if (eHtml) {
@@ -579,21 +532,6 @@ utility = {
         }
     },
 
-    getHTMLPredicate: function (HTML) {
-        try {
-            for (var x = HTML.length; x > 1; x -= 1) {
-                if (HTML.substr(x, 1) === '/') {
-                    return HTML.substr(x + 1);
-                }
-            }
-
-            return HTML;
-        } catch (err) {
-            utility.error("ERROR in utility.getHTMLPredicate: " + err);
-            return undefined;
-        }
-    },
-
     // Turns text delimeted with new lines and commas into an array.
     // Primarily for use with user input text boxes.
     TextToArray: function (text) {
@@ -609,7 +547,7 @@ utility = {
                 if (tempArray && tempArray.length) {
                     for (it = 0, len = tempArray.length; it < len; it += 1) {
                         if (tempArray[it] !== '') {
-                            theArray.push(isNaN(tempArray[it]) ? $.trim(tempArray[it]) : parseFloat(tempArray[it]));
+                            theArray.push(isNaN(tempArray[it]) ? tempArray[it].trim() : tempArray[it].parseFloat());
                         }
                     }
                 }
@@ -619,34 +557,6 @@ utility = {
             return theArray;
         } catch (err) {
             utility.error("ERROR in utility.TextToArray: " + err);
-            return undefined;
-        }
-    },
-
-    //pads left
-    lpad: function (text, padString, length) {
-        try {
-            while (text.length < length) {
-                text = padString + text;
-            }
-
-            return text;
-        } catch (err) {
-            utility.error("ERROR in utility.lpad: " + err);
-            return undefined;
-        }
-    },
-
-    //pads right
-    rpad: function (text, padString, length) {
-        try {
-            while (text.length < length) {
-                text = text + padString;
-            }
-
-            return text;
-        } catch (err) {
-            utility.error("ERROR in utility.rpad: " + err);
             return undefined;
         }
     },

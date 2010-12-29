@@ -9,6 +9,8 @@ general = {
 
     recordsSortable: [],
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     record: function () {
         this.data = {
             'name'       : '',
@@ -31,6 +33,7 @@ general = {
             'healthMax'  : 0
         };
     },
+    /*jslint sub: true */
 
     copy2sortable: function () {
         try {
@@ -319,7 +322,7 @@ general = {
                 nameObj     = $("#app46755028429_equippedGeneralContainer .general_name_div3");
 
             if (nameObj) {
-                generalName = $.trim(nameObj.text()).stripTRN().stripStar();
+                generalName = nameObj.text().trim().stripTRN().stripStar();
             }
 
             if (!generalName) {
@@ -366,29 +369,29 @@ general = {
 
                     tempObj = container.find(".imgButton");
                     if (tempObj && tempObj.length) {
-                        img = utility.getHTMLPredicate(tempObj.attr("src"));
+                        img = tempObj.attr("src").filepart();
                     } else {
                         utility.warn("Unable to find 'image' container", index);
                     }
 
                     tempObj = container.children().eq(3);
                     if (tempObj && tempObj.length) {
-                        level = tempObj.text().replace(/Level /gi, '').stripTRN().toNumber();
+                        level = tempObj.text().replace(/Level /gi, '').stripTRN().parseInt();
                     } else {
                         utility.warn("Unable to find 'level' container", index);
                     }
 
                     tempObj = container.children().eq(4);
                     if (tempObj && tempObj.length) {
-                        special = $.trim($(tempObj.html().replace(/<br>/g, ' ')).text());
+                        special = $(tempObj.html().replace(/<br>/g, ' ')).text().trim();
                     } else {
                         utility.warn("Unable to find 'special' container", index);
                     }
 
                     tempObj = container.find(".generals_indv_stats_padding div");
                     if (tempObj && tempObj.length === 2) {
-                        atk = tempObj.eq(0).text().toNumber();
-                        def = tempObj.eq(1).text().toNumber();
+                        atk = tempObj.eq(0).text().parseInt();
+                        def = tempObj.eq(1).text().parseInt();
                     } else {
                         utility.warn("Unable to find 'attack and defence' containers", index);
                     }
@@ -406,9 +409,9 @@ general = {
                         newGeneral.data['lvl'] = level;
                         newGeneral.data['atk'] = atk;
                         newGeneral.data['def'] = def;
-                        newGeneral.data['api'] = atk + (def * 0.7);
-                        newGeneral.data['dpi'] = def + (atk * 0.7);
-                        newGeneral.data['mpi'] = (newGeneral.data['api'] + newGeneral.data['dpi']) / 2;
+                        newGeneral.data['api'] = (atk + (def * 0.7)).dp(2);
+                        newGeneral.data['dpi'] = (def + (atk * 0.7)).dp(2);
+                        newGeneral.data['mpi'] = ((newGeneral.data['api'] + newGeneral.data['dpi']) / 2).dp(2);
                         newGeneral.data['special'] = special;
                         if (it < len) {
                             general.records[it] = newGeneral.data;
@@ -425,8 +428,8 @@ general = {
                 });
 
                 if (save) {
-                    caap.stats.generals.total = general.records.length;
-                    caap.stats.generals.invade = Math.min((caap.stats.army.actual / 5).toFixed(0), general.records.length);
+                    caap.stats['generals']['total'] = general.records.length;
+                    caap.stats['generals']['invade'] = Math.min((caap.stats['army']['actual'] / 5).dp(), general.records.length);
                     general.save();
                     caap.SaveStats();
                     general.copy2sortable();
@@ -481,13 +484,15 @@ general = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     LevelUpCheck: function (whichGeneral) {
         try {
-            var generalType = $.trim(whichGeneral.replace(/General/i, '')),
+            var generalType = whichGeneral.replace(/General/i, '').trim(),
                 use         = false,
                 keepGeneral = false;
 
-            if ((caap.stats.staminaT.num > caap.stats.stamina.max || caap.stats.energyT.num > caap.stats.energy.max) && state.getItem('KeepLevelUpGeneral', false)) {
+            if ((caap.stats['staminaT']['num'] > caap.stats['stamina']['max'] || caap.stats['energyT']['num'] > caap.stats['energy']['max']) && state.getItem('KeepLevelUpGeneral', false)) {
                 if (config.getItem(generalType + 'LevelUpGeneral', false)) {
                     utility.log(2, "Keep Level Up General");
                     keepGeneral = true;
@@ -500,7 +505,7 @@ general = {
             }
 
             if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (general.StandardList.indexOf(generalType) >= 0 || generalType === 'Quest')) {
-                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats.exp.dif && caap.stats.exp.dif <= config.getItem('LevelUpGeneralExp', 0))) {
+                if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats['exp']['dif'] && caap.stats['exp']['dif'] <= config.getItem('LevelUpGeneralExp', 0))) {
                     use = true;
                 }
             }
@@ -511,6 +516,7 @@ general = {
             return undefined;
         }
     },
+    /*jslint sub: false */
 
     Select: function (whichGeneral) {
         try {
@@ -608,10 +614,10 @@ general = {
             if (generalDiv && generalDiv.length === 2) {
                 tempObj = generalDiv.eq(0);
                 if (tempObj && tempObj.length) {
-                    general.records[it]['eatk'] = tempObj.text().toNumber();
+                    general.records[it]['eatk'] = tempObj.text().parseInt();
                     tempObj = generalDiv.eq(1);
                     if (tempObj && tempObj.length) {
-                        general.records[it]['edef'] = tempObj.text().toNumber();
+                        general.records[it]['edef'] = tempObj.text().parseInt();
                         success = true;
                     } else {
                         utility.warn("Unable to get 'General' defense object");
@@ -621,12 +627,12 @@ general = {
                 }
 
                 if (success) {
-                    general.records[it]['eapi'] = (general.records[it]['eatk'] + (general.records[it]['edef'] * 0.7));
-                    general.records[it]['edpi'] = (general.records[it]['edef'] + (general.records[it]['eatk'] * 0.7));
-                    general.records[it]['empi'] = ((general.records[it]['eapi'] + general.records[it]['edpi']) / 2);
-                    general.records[it]['energyMax'] = caap.stats.energyT.max;
-                    general.records[it]['staminaMax'] = caap.stats.staminaT.max;
-                    general.records[it]['healthMax'] = caap.stats.healthT.max;
+                    general.records[it]['eapi'] = (general.records[it]['eatk'] + (general.records[it]['edef'] * 0.7)).dp(2);
+                    general.records[it]['edpi'] = (general.records[it]['edef'] + (general.records[it]['eatk'] * 0.7)).dp(2);
+                    general.records[it]['empi'] = ((general.records[it]['eapi'] + general.records[it]['edpi']) / 2).dp(2);
+                    general.records[it]['energyMax'] = caap.stats['energyT']['max'];
+                    general.records[it]['staminaMax'] = caap.stats['staminaT']['max'];
+                    general.records[it]['healthMax'] = caap.stats['healthT']['max'];
                     general.records[it]['last'] = new Date().getTime();
                     general.save();
                     general.copy2sortable();

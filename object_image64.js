@@ -659,3 +659,13 @@ image64 = {
                     "ZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGq" +
                     "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z"
 };
+
+/* This section is added to allow Advanced Optimisation by the Closure Compiler */
+/*jslint sub: true */
+window['caap'] = image64;
+image64['Ambrosia'] = image64.Ambrosia;
+image64['Malekus'] = image64.Malekus;
+image64['Corvintheus'] = image64.Corvintheus;
+image64['Aurora'] = image64.Aurora;
+image64['Azeron'] = image64.Azeron;
+/*jslint sub: false */

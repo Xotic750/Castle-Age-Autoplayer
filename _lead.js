@@ -64,12 +64,44 @@ String.prototype.matchUser = function () {
     return this.match(/user=([0-9]+)/);
 };
 
-String.prototype.toNumber = function () {
-    return parseFloat(this);
+String.prototype.parseFloat = function (x) {
+    return x >= 0 ? parseFloat(parseFloat(this).toFixed(x)) : parseFloat(this);
+};
+
+String.prototype.parseInt = function (x) {
+    return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
 };
 
 String.prototype.trim = function () {
     return this.replace(/^\s+|\s+$/g, '');
+};
+
+String.prototype.numberOnly = function () {
+    return parseFloat(this.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
+};
+
+String.prototype.removeHtmlJunk = function () {
+    return this.replace(new RegExp("\\&[^;]+;", "g"), '');
+};
+
+//pads left
+String.prototype.lpad = function (s, l) {
+    var t = this;
+    while (t.length < l) {
+        t = s + t;
+    }
+
+    return t;
+};
+
+//pads right
+String.prototype.rpad = function (s, l) {
+    var t = this;
+    while (t.length < l) {
+        t = t + s;
+    }
+
+    return t;
 };
 
 String.prototype.filepart = function () {
@@ -82,23 +114,51 @@ String.prototype.filepart = function () {
 };
 
 String.prototype.regex = function (r) {
-	var a   = this.match(r),
-        i   = 0,
-        len = 0;
+	var a = this.match(r),
+        i = 0,
+        l = 0;
 
 	if (a) {
 		a.shift();
-        len = a.length;
-		for (i = 0 ; i < len; i += 1) {
+        l = a.length;
+		for (i = 0 ; i < l; i += 1) {
 			if (a[i] && a[i].search(/^[\-+]?[0-9]*\.?[0-9]*$/) >= 0) {
-				a[i] = a[i].replace('+', '').toNumber();
+				a[i] = parseFloat(a[i].replace('+', ''));
 			}
 		}
 
-		if (len === 1) {
+		if (l === 1) {
 			return a[0];
 		}
 	}
 
 	return a;
+};
+
+Array.prototype.deepCopy = function () {
+    var i = 0,
+        l = 0,
+        n = [],
+        t = null;
+
+    for (i = 0, l = this.length; i < l; i += 1) {
+        switch ($.type(this[i])) {
+        case "object":
+            t = $.extend(true, {}, this[i]);
+            break;
+        case "array":
+            t = this[i].deepCopy();
+            break;
+        default:
+            t = this[i];
+        }
+
+        n.push(t);
+    }
+
+    return n;
+};
+
+Number.prototype.dp = function (x) {
+    return parseFloat(this.toFixed(x >= 0 ? x : 0));
 };

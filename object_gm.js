@@ -70,20 +70,23 @@ gm = {
             if (compress) {
                 compressor = new utility.LZ77();
                 storageStr = "LZ77 " + compressor.compress(stringified);
-                utility.log(2, "Compressed storage", name, parseFloat(((storageStr.length / stringified.length) * 100).toFixed(2)));
+                utility.log(2, "Compressed storage", name, ((storageStr.length / stringified.length) * 100).dp(2));
             } else {
                 storageStr = stringified;
             }
 
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
             if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
-                localStorage.setItem(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
+                localStorage.setItem(gm.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
             } else {
-                GM_setValue(gm.namespace + "." + caap.stats.FBID + "." + name, storageStr);
+                GM_setValue(gm.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
             }
+            /*jslint sub: false */
 
             return value;
         } catch (error) {
-            utility.error("ERROR in gm.setItem: " + error, arguments.callee.caller);
+            utility.error("ERROR in gm.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
             return undefined;
         }
     },
@@ -98,11 +101,14 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
             if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
-                storageStr = localStorage.getItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                storageStr = localStorage.getItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
             } else {
-                storageStr = GM_getValue(gm.namespace + "." + caap.stats.FBID + "." + name);
+                storageStr = GM_getValue(gm.namespace + "." + caap.stats['FBID'] + "." + name);
             }
+            /*jslint sub: false */
 
             if (storageStr) {
                 if (storageStr.match(/^LZ77 /)) {
@@ -163,11 +169,14 @@ gm = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
             if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
-                localStorage.removeItem(gm.namespace + "." + caap.stats.FBID + "." + name);
+                localStorage.removeItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
             } else {
-                GM_deleteValue(gm.namespace + "." + caap.stats.FBID + "." + name);
+                GM_deleteValue(gm.namespace + "." + caap.stats['FBID'] + "." + name);
             }
+            /*jslint sub: false */
 
             return true;
         } catch (error) {
@@ -300,9 +309,9 @@ gm = {
                     }
                 }
 
-                caapPerc = parseInt(((charsCaap * 2.048 / 5242880) * 100).toFixed(0), 10);
+                caapPerc = ((charsCaap * 2.048 / 5242880) * 100).dp();
                 utility.log(1, "CAAP localStorage used: " + caapPerc + "%");
-                totalPerc = parseInt(((chars * 2.048 / 5242880) * 100).toFixed(0), 10);
+                totalPerc = ((chars * 2.048 / 5242880) * 100).dp();
                 if (totalPerc >= 90) {
                     utility.warn("Total localStorage used: " + totalPerc + "%");
                     message = "<div style='text-align: center;'>";

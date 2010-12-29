@@ -5,6 +5,8 @@
 /////////////////////////////////////////////////////////////////////
 
 town = {
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     soldiers: [],
 
     'soldiersSortable': [],
@@ -19,31 +21,30 @@ town = {
 
     /*jslint maxlen: 512 */
     itemRegex: {
-        Weapon: /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
-        Shield: /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
-        Helmet: /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
-        Glove: /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
-        Armor:  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
-        Amulet: /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
+        'Weapon' : /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
+        'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
+        'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
+        'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
+        'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
+        'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
     },
     /*jslint maxlen: 250 */
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     record: function () {
-        this.data = {};
-        this.data['name']   = '';
-        this.data['image']  = '';
-        this.data['type']   = '';
-        this.data['upkeep'] = 0;
-        this.data['hourly'] = 0;
-        this.data['atk']    = 0;
-        this.data['def']    = 0;
-        this.data['owned']  = 0;
-        this.data['cost']   = 0;
-        this.data['api']    = 0;
-        this.data['dpi']    = 0;
-        this.data['mpi']    = 0;
+        this.data = {
+            'name'   : '',
+            'image'  : '',
+            'type'   : '',
+            'upkeep' : 0,
+            'hourly' : 0,
+            'atk'    : 0,
+            'def'    : 0,
+            'owned'  : 0,
+            'cost'   : 0,
+            'api'    : 0,
+            'dpi'    : 0,
+            'mpi'    : 0
+        };
     },
     /*jslint sub: false */
 
@@ -183,7 +184,7 @@ town = {
                     current = new town.record();
                     tempDiv = row.find("div[class='eq_buy_txt_int'] strong");
                     if (tempDiv && tempDiv.length === 1) {
-                        current.data['name'] = $.trim(tempDiv.text());
+                        current.data['name'] = tempDiv.text().trim();
                         current.data['type'] = town.getItemType(current.data['name']);
                     } else {
                         utility.warn("Unable to get item name in", type);
@@ -193,39 +194,39 @@ town = {
                     if (passed) {
                         tempDiv = row.find("img");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['image'] = utility.getHTMLPredicate(tempDiv.attr("src"));
+                            current.data['image'] = tempDiv.attr("src").filepart();
                         } else {
                             utility.log(4, "No image found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_txt_int'] span[class='negative']");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['upkeep'] = utility.NumberOnly(tempDiv.text());
+                            current.data['upkeep'] = tempDiv.text().numberOnly();
                         } else {
                             utility.log(4, "No upkeep found for", type, current.data.name);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_stats_int'] div");
                         if (tempDiv && tempDiv.length === 2) {
-                            current.data['atk'] = utility.NumberOnly(tempDiv.eq(0).text());
-                            current.data['def'] = utility.NumberOnly(tempDiv.eq(1).text());
-                            current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7));
-                            current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7));
-                            current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2);
+                            current.data['atk'] = tempDiv.eq(0).text().numberOnly();
+                            current.data['def'] = tempDiv.eq(1).text().numberOnly();
+                            current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
+                            current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
+                            current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
                         } else {
                             utility.warn("No atk/def found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_costs_int'] strong[class='gold']");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['cost'] = utility.NumberOnly(tempDiv.text());
+                            current.data['cost'] = tempDiv.text().numberOnly();
                         } else {
                             utility.log(4, "No cost found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_costs_int'] tr:last td").eq(0);
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['owned'] = utility.NumberOnly(tempDiv.text());
+                            current.data['owned'] = tempDiv.text().numberOnly();
                             current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                         } else {
                             utility.warn("No number owned found for", type, current.data['name']);

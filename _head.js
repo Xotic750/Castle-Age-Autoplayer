@@ -11,9 +11,9 @@
 // @require        http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/rison.js
 // @include        http*://apps.*facebook.com/castle_age/*
-// @include        http*://*.facebook.com/common/error.html
+// @include        http*://*.facebook.com/common/error.html*
+// @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
-// @include        http*://apps.facebook.com/*filter=app_46755028429*
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
 // @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+
 // ==/UserScript==

@@ -400,7 +400,8 @@ monster = {
             siege_img    : [
                 '/graphics/earth_siege_small',
                 '/graphics/castle_siege_small',
-                '/graphics/skaar_siege_small'
+                '/graphics/skaar_siege_small',
+                '/graphics/death_siege_small'
             ],
             fort         : true,
             staUse       : 5,
@@ -451,7 +452,7 @@ monster = {
                 second = false;
 
             str = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
-            value = parseFloat(str);
+            value = str.parseFloat();
             if (/k$/i.test(str) || /m$/i.test(str)) {
                 first = /\d+k/i.test(str);
                 second = /\d+m/i.test(str);
@@ -502,6 +503,8 @@ monster = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     getItem: function (name) {
         try {
             var it        = 0,
@@ -610,6 +613,7 @@ monster = {
             return false;
         }
     },
+    /*jslint sub: false */
 
     clear: function () {
         try {
@@ -622,6 +626,8 @@ monster = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     t2kCalc: function (record) {
         try {
             var timeLeft                       = 0,
@@ -643,7 +649,7 @@ monster = {
 
             siegeStage = record['phase'] - 1;
             boss = monster.info[record['type']];
-            timeLeft = parseInt(record['time'][0], 10) + (parseInt(record['time'][1], 10) * 0.0166);
+            timeLeft = record['time'][0].parseInt() + (record['time'][1].parseInt() * 0.0166);
             timeUsed = boss.duration - timeLeft;
             if (!boss.siege || !boss.hp) {
                 return (record['life'] * timeUsed) / (100 - record['life']);
@@ -677,9 +683,10 @@ monster = {
                 }
             }
 
-            siegeImpacts = record['life'] / (100 - record['life']) * timeLeft;
-            utility.log(3, 'T2K based on siege: ', T2K.toFixed(2));
-            utility.log(3, 'T2K estimate without calculating siege impacts: ', siegeImpacts.toFixed(2));
+            siegeImpacts = (record['life'] / (100 - record['life']) * timeLeft).dp(2);
+            T2K = T2K.dp(2);
+            utility.log(3, 'T2K based on siege: ', caap.decHours2HoursMin(T2K));
+            utility.log(3, 'T2K estimate without calculating siege impacts: ', caap.decHours2HoursMin(siegeImpacts));
             return T2K;
         } catch (err) {
             utility.error("ERROR in monster.t2kCalc: " + err);
@@ -687,8 +694,6 @@ monster = {
         }
     },
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     characterClass: {
         'Warrior' : ['Strengthen', 'Heal'],
         'Rogue'   : ['Cripple'],
@@ -732,19 +737,18 @@ monster = {
             'type' : ''
         };
     },
-    /*jslint sub: false */
 
     select: function (force) {
         try {
-            if (!(force || schedule.oneMinuteUpdate('selectMonster')) || caap.stats.level < 7) {
+            if (!(force || schedule.oneMinuteUpdate('selectMonster')) || caap.stats['level'] < 7) {
                 return false;
             }
 
             utility.log(2, 'Selecting monster');
             var monsterList  = {
-                    battle_monster : [],
-                    raid           : [],
-                    any            : []
+                    'battle_monster' : [],
+                    'raid'           : [],
+                    'any'            : []
                 },
                 it                    = 0,
                 len                   = 0,
@@ -775,13 +779,6 @@ monster = {
                 m                     = 0,
                 attackOrderList       = [];
 
-            /* This section is added to allow Advanced Optimisation by the Closure Compiler */
-            /*jslint sub: true */
-            monsterList['any'] = monsterList.any;
-            monsterList['battle_monster'] = monsterList.battle_monster;
-            monsterList['raid'] = monsterList.raid;
-            /*jslint sub: false */
-
             // First we forget everything about who we already picked.
             state.setItem('targetFrombattle_monster', '');
             state.setItem('targetFromfortify', energyTarget.data);
@@ -804,7 +801,7 @@ monster = {
 
                 monster.records[it]['conditions'] = 'none';
                 if (gm.getItem('SerializeRaidsAndMonsters', false, hiddenVar)) {
-                    monsterList.any.push(monster.records[it]['name']);
+                    monsterList['any'].push(monster.records[it]['name']);
                 } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'] === 'battle_monster')) {
                     monsterList[monster.records[it]['page']].push(monster.records[it]['name']);
                 }
@@ -842,10 +839,7 @@ monster = {
                 strengthTarget        = '';
                 fortifyTarget         = '';
                 stunTarget            = '';
-                energyTarget.data     = {
-                    'name' : '',
-                    'type' : ''
-                };
+                energyTarget          = new monster.energyTarget();
 
                 // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                 if (selectTypes[s] === 'any') {
@@ -858,11 +852,11 @@ monster = {
                 utility.log(5, 'attackOrderList', attackOrderList);
                 // Next we step through the users list getting the name and conditions
                 for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
-                    if (!($.trim(attackOrderList[p]))) {
+                    if (!attackOrderList[p].trim()) {
                         continue;
                     }
 
-                    monsterConditions = $.trim(attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString());
+                    monsterConditions = attackOrderList[p].replace(new RegExp("^[^:]+"), '').toString().trim();
                     // Now we try to match the users name agains our list of monsters
                     for (m = 0, len3 = monsterList[selectTypes[s]].length; m < len3; m += 1) {
                         if (!monsterList[selectTypes[s]][m]) {
@@ -878,7 +872,7 @@ monster = {
                         // If this monster does not match, skip to next one
                         // Or if this monster is dead, skip to next one
                         // Or if this monster is not the correct type, skip to next one
-                        if (monsterList[selectTypes[s]][m].toLowerCase().indexOf($.trim(attackOrderList[p].match(new RegExp("^[^:]+")).toString()).toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj['page'] !== selectTypes[s])) {
+                        if (monsterList[selectTypes[s]][m].toLowerCase().indexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj['page'] !== selectTypes[s])) {
                             continue;
                         }
 
@@ -1009,7 +1003,7 @@ monster = {
                         nodeNum = 0;
                         if (!caap.InLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staLvl) {
                             for (nodeNum = monster.info[monsterObj['type']].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
-                                if (caap.stats.stamina.max >= monster.info[monsterObj['type']].staLvl[nodeNum]) {
+                                if (caap.stats['stamina']['max'] >= monster.info[monsterObj['type']].staLvl[nodeNum]) {
                                     break;
                                 }
                             }
@@ -1019,11 +1013,11 @@ monster = {
                             state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staMax[nodeNum]);
                         } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
                             state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staUse);
-                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || monsterObj['conditions'].match(/:pa/i)) {
+                        } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || monsterObj['conditions'].match(/:pa/i)) {
                             state.setItem('MonsterStaminaReq', 5);
                         } else if (monsterObj['conditions'].match(/:sa/i)) {
                             state.setItem('MonsterStaminaReq', 1);
-                        } else if ((caap.InLevelUpMode() && caap.stats.stamina.num >= 10) || config.getItem('PowerAttack', true)) {
+                        } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || config.getItem('PowerAttack', true)) {
                             state.setItem('MonsterStaminaReq', 5);
                         } else {
                             state.setItem('MonsterStaminaReq', 1);
@@ -1070,14 +1064,14 @@ monster = {
 
             monsterDiv = $("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
-                tempText = $.trim(monsterDiv.children(":eq(2)").text());
+                tempText = monsterDiv.children(":eq(2)").text().trim();
             } else {
                 monsterDiv = $("div[style*='nm_top']");
                 if (monsterDiv && monsterDiv.length) {
-                    tempText = $.trim(monsterDiv.children(":eq(0)").children(":eq(0)").text());
+                    tempText = monsterDiv.children(":eq(0)").children(":eq(0)").text().trim();
                     tempDiv = $("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
-                        tempText += ' ' + $.trim(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text()).replace("'s Life", "");
+                        tempText += ' ' + tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text().trim().replace("'s Life", "");
                     } else {
                         utility.warn("Problem finding nm_bars");
                         return false;
@@ -1088,7 +1082,7 @@ monster = {
                 }
             }
 
-            if (monsterDiv.find("img[uid='" + caap.stats.FBID + "']").length) {
+            if (monsterDiv.find("img[uid='" + caap.stats['FBID'] + "']").length) {
                 utility.log(2, "You monster found");
                 tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
@@ -1104,12 +1098,5 @@ monster = {
             return false;
         }
     }
+    /*jslint sub: false */
 };
-
-/*jslint sub: true */
-/*
-window['monster'] = monster;
-monster.completeButton['raid'] = monster.completeButton.raid;
-monster.completeButton['battle_monster'] = monster.completeButton.battle_monster;
-*/
-/*jslint sub: false */

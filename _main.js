@@ -37,13 +37,15 @@ function caap_Start() {
         return;
     }
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     accountEl = $('#navAccountName');
     if (accountEl && accountEl.length) {
         tempText = accountEl.attr('href');
         if (tempText) {
             FBID = tempText.regex(/id=([0-9]+)/i);
             if (utility.isNum(FBID) && FBID > 0) {
-                caap.stats.FBID = FBID;
+                caap.stats['FBID'] = FBID;
                 idOk = true;
             }
         }
@@ -52,9 +54,9 @@ function caap_Start() {
     if (!idOk) {
         tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
         if (tempArr && tempArr.length === 2) {
-            FBID = parseInt(tempArr[1], 10);
+            FBID = tempArr[1].parseInt();
             if (utility.isNum(FBID) && FBID > 0) {
-                caap.stats.FBID = FBID;
+                caap.stats['FBID'] = FBID;
                 idOk = true;
             }
         }
@@ -63,13 +65,14 @@ function caap_Start() {
     if (!idOk) {
         tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
         if (tempArr && tempArr.length === 2) {
-            FBID = parseInt(tempArr[1], 10);
+            FBID = tempArr[1].parseInt();
             if (utility.isNum(FBID) && FBID > 0) {
-                caap.stats.FBID = FBID;
+                caap.stats['FBID'] = FBID;
                 idOk = true;
             }
         }
     }
+    /*jslint sub: false */
 
     if (!idOk) {
         // Force reload without retrying
@@ -92,8 +95,11 @@ function caap_Start() {
     schedule.load();
     state.load();
     caap.LoadStats();
-    caap.stats.FBID = FBID;
-    caap.stats.account = accountEl.text();
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    caap.stats['FBID'] = FBID;
+    caap.stats['account'] = accountEl.text();
+    /*jslint sub: false */
     gifting.init();
     gifting.loadCurrent();
     state.setItem('clickUrl', window.location.href);
