@@ -68,8 +68,16 @@ String.prototype.parseFloat = function (x) {
     return x >= 0 ? parseFloat(parseFloat(this).toFixed(x)) : parseFloat(this);
 };
 
+Number.prototype.parseFloat = function (x) {
+    return this.toString().parseFloat(x);
+};
+
 String.prototype.parseInt = function (x) {
     return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
+};
+
+Number.prototype.parseInt = function (x) {
+    return this.toString().parseInt(x);
 };
 
 String.prototype.trim = function () {
@@ -77,7 +85,11 @@ String.prototype.trim = function () {
 };
 
 String.prototype.numberOnly = function () {
-    return parseFloat(this.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
+    return parseFloat(this.replace(new RegExp("[^0-9\\.]", "g"), ''));
+};
+
+Number.prototype.numberOnly = function () {
+    return this.toString().numberOnly();
 };
 
 String.prototype.removeHtmlJunk = function () {

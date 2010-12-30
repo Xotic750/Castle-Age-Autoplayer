@@ -324,7 +324,7 @@ battle = {
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.parent().text().trim();
                         if (tempText) {
-                            result.points = ((/\d+\s+War Points/i.test(tempText)) ? tempText.match(/\d+\s+War Points/i).numberOnly() : 0);
+                            result.points = ((/\d+\s+War Points/i.test(tempText)) ? tempText.match(/\d+\s+War Points/i)[0].numberOnly() : 0);
                         } else {
                             utility.warn("Unable to find war points text in", tempDiv.parent());
                         }
@@ -393,7 +393,7 @@ battle = {
                         if (tempDiv && tempDiv.length) {
                             tempText = tempDiv.parent().text().trim();
                             if (tempText) {
-                                result.points = ((/\d+\s+Battle Points/i.test(tempText)) ? tempText.match(/\d+\s+Battle Points/i).numberOnly() : 0);
+                                result.points = ((/\d+\s+Battle Points/i.test(tempText)) ? tempText.match(/\d+\s+Battle Points/i)[0].numberOnly() : 0);
                             } else {
                                 utility.warn("Unable to find battle points text in", tempDiv.parent());
                             }
@@ -868,7 +868,7 @@ battle = {
                         tr = tr.parent();
                     }
 
-                    tempRecord.data['deityNum'] = tr.find("img[src*='symbol_']").attr("src").match(/\d+\.jpg/i).numberOnly() - 1;
+                    tempRecord.data['deityNum'] = tr.find("img[src*='symbol_']").attr("src").match(/\d+\.jpg/i)[0].numberOnly() - 1;
                     tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                     utility.log(4, "DemiPointsDone", state.getItem('DemiPointsDone', true));
                     // If looking for demi points, and already full, continue

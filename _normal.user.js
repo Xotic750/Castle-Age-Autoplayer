@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            22
+// @dev            23
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -31,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "22",
+    devVersion    = "23",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -87,8 +87,16 @@ String.prototype.parseFloat = function (x) {
     return x >= 0 ? parseFloat(parseFloat(this).toFixed(x)) : parseFloat(this);
 };
 
+Number.prototype.parseFloat = function (x) {
+    return this.toString().parseFloat(x);
+};
+
 String.prototype.parseInt = function (x) {
     return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
+};
+
+Number.prototype.parseInt = function (x) {
+    return this.toString().parseInt(x);
 };
 
 String.prototype.trim = function () {
@@ -96,7 +104,11 @@ String.prototype.trim = function () {
 };
 
 String.prototype.numberOnly = function () {
-    return parseFloat(this.toString().replace(new RegExp("[^0-9\\.]", "g"), ''));
+    return parseFloat(this.replace(new RegExp("[^0-9\\.]", "g"), ''));
+};
+
+Number.prototype.numberOnly = function () {
+    return this.toString().numberOnly();
 };
 
 String.prototype.removeHtmlJunk = function () {
@@ -6862,7 +6874,7 @@ battle = {
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.parent().text().trim();
                         if (tempText) {
-                            result.points = ((/\d+\s+War Points/i.test(tempText)) ? tempText.match(/\d+\s+War Points/i).numberOnly() : 0);
+                            result.points = ((/\d+\s+War Points/i.test(tempText)) ? tempText.match(/\d+\s+War Points/i)[0].numberOnly() : 0);
                         } else {
                             utility.warn("Unable to find war points text in", tempDiv.parent());
                         }
@@ -6931,7 +6943,7 @@ battle = {
                         if (tempDiv && tempDiv.length) {
                             tempText = tempDiv.parent().text().trim();
                             if (tempText) {
-                                result.points = ((/\d+\s+Battle Points/i.test(tempText)) ? tempText.match(/\d+\s+Battle Points/i).numberOnly() : 0);
+                                result.points = ((/\d+\s+Battle Points/i.test(tempText)) ? tempText.match(/\d+\s+Battle Points/i)[0].numberOnly() : 0);
                             } else {
                                 utility.warn("Unable to find battle points text in", tempDiv.parent());
                             }
@@ -7406,7 +7418,7 @@ battle = {
                         tr = tr.parent();
                     }
 
-                    tempRecord.data['deityNum'] = tr.find("img[src*='symbol_']").attr("src").match(/\d+\.jpg/i).numberOnly() - 1;
+                    tempRecord.data['deityNum'] = tr.find("img[src*='symbol_']").attr("src").match(/\d+\.jpg/i)[0].numberOnly() - 1;
                     tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                     utility.log(4, "DemiPointsDone", state.getItem('DemiPointsDone', true));
                     // If looking for demi points, and already full, continue
