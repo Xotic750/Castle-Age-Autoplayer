@@ -307,15 +307,11 @@ utility = {
                 width       = 0;
 
             if (jObject && jObject.length === 1) {
-                if ($().jquery >= "1.4.3") {
-                    tempArr = jObject.attr("style").match(widthRegExp);
-                    if (tempArr && tempArr.length === 2) {
-                        width = tempArr[1].parseFloat(2);
-                    } else {
-                        utility.warn("getElementWidth did not match a width", jObject);
-                    }
+                tempArr = jObject.attr("style").match(widthRegExp);
+                if (tempArr && tempArr.length === 2) {
+                    width = tempArr[1] ? tempArr[1].parseFloat(2) : 0;
                 } else {
-                    width = jObject.css("width").parseFloat(2);
+                    utility.warn("getElementWidth did not match a width", jObject);
                 }
             } else {
                 utility.warn("getElementWidth problem with jObject", jObject);
@@ -335,15 +331,11 @@ utility = {
                 width       = 0;
 
             if (jObject && jObject.length === 1) {
-                if ($().jquery >= "1.4.3") {
-                    tempArr = jObject.attr("style").match(heightRegExp);
-                    if (tempArr && tempArr.length === 2) {
-                        width = tempArr[1].parseFloat(2);
-                    } else {
-                        utility.warn("getElementHeight did not match a width", jObject);
-                    }
+                tempArr = jObject.attr("style").match(heightRegExp);
+                if (tempArr && tempArr.length === 2) {
+                    width = tempArr[1] ? tempArr[1].parseFloat(2) : 0;
                 } else {
-                    width = jObject.css("height").parseFloat(2);
+                    utility.warn("getElementHeight did not match a width", jObject);
                 }
             } else {
                 utility.warn("getElementHeight problem with jObject", jObject);
@@ -500,24 +492,26 @@ utility = {
 
     chatLink: function (slice, query) {
         try {
-            var httpRegExp  = new RegExp('.*(http:.*)'),
-                quoteRegExp = /"/g,
-                chatDiv     = slice.find(query);
+            var hr = new RegExp('.*(http:.*)'),
+                qr = /"/g,
+                c  = slice.find(query);
 
-            if (chatDiv && chatDiv.length) {
-                chatDiv.each(function () {
-                    var e     = $(this),
-                        eHtml = e.html().trim(),
-                        Arr   = [];
+            if (c && c.length) {
+                c.each(function () {
+                    var e = $(this),
+                        h = '',
+                        a = [];
 
-                    if (eHtml) {
-                        Arr = eHtml.split("<br>");
-                        if (Arr && Arr.length === 2) {
-                            Arr = Arr[1].replace(quoteRegExp, '').match(httpRegExp);
-                            if (Arr && Arr.length === 2 && Arr[1]) {
-                                Arr = Arr[1].split(" ");
-                                if (Arr && Arr.length) {
-                                    e.html(eHtml.replace(Arr[0], "<a href='" + Arr[0] + "'>" + Arr[0] + "</a>"));
+                    h = e.html();
+                    h = h ? h.trim() : '';
+                    if (h) {
+                        a = h.split("<br>");
+                        if (a && a.length === 2) {
+                            a = a[1].replace(qr, '').match(hr);
+                            if (a && a.length === 2 && a[1]) {
+                                a = a[1].split(" ");
+                                if (a && a.length) {
+                                    e.html(h.replace(a[0], "<a href='" + a[0] + "'>" + a[0] + "</a>"));
                                 }
                             }
                         }

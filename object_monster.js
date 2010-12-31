@@ -452,7 +452,7 @@ monster = {
                 second = false;
 
             str = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
-            value = str.parseFloat();
+            value = str ? str.parseFloat() : 0;
             if (/k$/i.test(str) || /m$/i.test(str)) {
                 first = /\d+k/i.test(str);
                 second = /\d+m/i.test(str);
@@ -1060,18 +1060,22 @@ monster = {
             // Confirm name and type of monster
             var monsterDiv = null,
                 tempDiv    = null,
-                tempText   = '';
+                tempText   = '',
+                tStr       = '';
 
             monsterDiv = $("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
-                tempText = monsterDiv.children(":eq(2)").text().trim();
+                tStr = monsterDiv.children(":eq(2)").text();
+                tempText = tStr ? tStr.trim() : '';
             } else {
                 monsterDiv = $("div[style*='nm_top']");
                 if (monsterDiv && monsterDiv.length) {
-                    tempText = monsterDiv.children(":eq(0)").children(":eq(0)").text().trim();
+                    tStr = monsterDiv.children(":eq(0)").children(":eq(0)").text();
+                    tempText = tStr ? tStr.trim() : '';
                     tempDiv = $("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
-                        tempText += ' ' + tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text().trim().replace("'s Life", "");
+                        tStr = tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text();
+                        tempText += ' ' + (tStr ? tStr.trim().replace("'s Life", "") : '');
                     } else {
                         utility.warn("Problem finding nm_bars");
                         return false;

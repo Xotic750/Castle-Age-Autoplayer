@@ -276,6 +276,7 @@ battle = {
                 resultsDiv    = null,
                 tempDiv       = null,
                 tempText      = '',
+                tStr          = '',
                 tempArr       = [],
                 battleRecord  = {},
                 warWinLoseImg = '',
@@ -299,7 +300,8 @@ battle = {
             } else {
                 resultsDiv = wrapperDiv.find("span[class='result_body']");
                 if (resultsDiv && resultsDiv.length) {
-                    tempText = resultsDiv.text().trim();
+                    tempText = resultsDiv.text();
+                    tempText = tempText ? tempText.trim() : '';
                     if (tempText && tempText.match(/Your opponent is hiding, please try again/)) {
                         result.hiding = true;
                         utility.log(1, "Your opponent is hiding");
@@ -322,9 +324,15 @@ battle = {
                 if (resultsDiv && resultsDiv.length) {
                     tempDiv = resultsDiv.find("img[src*='war_rank_small_icon']").eq(0);
                     if (tempDiv && tempDiv.length) {
-                        tempText = tempDiv.parent().text().trim();
+                        tempText = tempDiv.parent().text();
+                        tempText = tempText ? tempText.trim() : '';
                         if (tempText) {
-                            result.points = ((/\d+\s+War Points/i.test(tempText)) ? tempText.match(/\d+\s+War Points/i)[0].numberOnly() : 0);
+                            tempArr = tempText.match(/(\d+)\s+War Points/i);
+                            if (tempArr && tempArr.length === 2) {
+                                result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
+                            } else {
+                                utility.warn("Unable to match war points", tempText);
+                            }
                         } else {
                             utility.warn("Unable to find war points text in", tempDiv.parent());
                         }
@@ -334,9 +342,10 @@ battle = {
 
                     tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
                     if (tempDiv && tempDiv.length) {
-                        tempText = tempDiv.text().trim();
+                        tempText = tempDiv.text();
+                        tempText = tempText ? tempText.trim() : '';
                         if (tempText) {
-                            result.gold = tempText.numberOnly();
+                            result.gold = tempText ? tempText.numberOnly() : 0;
                         } else {
                             utility.warn("Unable to find gold text in", tempDiv);
                         }
@@ -360,7 +369,8 @@ battle = {
 
                     tempDiv = $("div[style*='" + warWinLoseImg + "']");
                     if (tempDiv && tempDiv.length) {
-                        tempText = tempDiv.text().trim();
+                        tempText = tempDiv.text();
+                        tempText = tempText ? tempText.trim() : '';
                         if (tempText) {
                             result.userName = tempText.replace("'s Defense", '');
                         } else {
@@ -391,9 +401,26 @@ battle = {
                     if (resultsDiv && resultsDiv.length) {
                         tempDiv = resultsDiv.find("img[src*='battle_rank_small_icon']").eq(0);
                         if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.parent().text().trim();
+                            tempText = tempDiv.parent().text();
+                            tempText = tempText ? tempText.trim() : '';
                             if (tempText) {
-                                result.points = ((/\d+\s+Battle Points/i.test(tempText)) ? tempText.match(/\d+\s+Battle Points/i)[0].numberOnly() : 0);
+                                tempArr = tempText.match(/(\d+)\s+Battle Points/i);
+                                if (tempArr && tempArr.length === 2) {
+                                    result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
+                                } else {
+                                    tempText = tempDiv.parent().parent().text();
+                                    tempText = tempText ? tempText.trim() : '';
+                                    if (tempText) {
+                                        tempArr = tempText.match(/(\d+)\s+Battle Points/i);
+                                        if (tempArr && tempArr.length === 2) {
+                                            result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
+                                        } else {
+                                            utility.warn("Unable to match battle points", tempText);
+                                        }
+                                    } else {
+                                        utility.warn("Unable to find battle points text in", tempDiv.parent().parent());
+                                    }
+                                }
                             } else {
                                 utility.warn("Unable to find battle points text in", tempDiv.parent());
                             }
@@ -403,9 +430,10 @@ battle = {
 
                         tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
                         if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.text().trim();
+                            tempText = tempDiv.text();
+                            tempText = tempText ? tempText.trim() : '';
                             if (tempText) {
-                                result.gold = tempText.numberOnly();
+                                result.gold = tempText ? tempText.numberOnly() : 0;
                             } else {
                                 utility.warn("Unable to find gold text in", tempDiv);
                             }
@@ -419,13 +447,14 @@ battle = {
                             if (tempText) {
                                 tempArr = tempText.match(/user=(\d+)/i);
                                 if (tempArr && tempArr.length === 2) {
-                                    result.userId = tempArr[1].parseInt();
+                                    result.userId = tempArr[1] ? tempArr[1].parseInt() : 0;
                                 } else {
                                     utility.warn("Unable to match user's id in", tempText);
                                     throw "Unable to get userId!";
                                 }
 
-                                tempText = tempDiv.text().trim();
+                                tempText = tempDiv.text();
+                                tempText = tempText ? tempText.trim() : '';
                                 if (tempText) {
                                     result.userName = tempText;
                                 } else {
@@ -515,7 +544,8 @@ battle = {
 
             resultsDiv = $("#app46755028429_app_body div[class='results']");
             if (resultsDiv && resultsDiv.length) {
-                resultsText = resultsDiv.text().trim();
+                resultsText = resultsDiv.text();
+                resultsText = resultsText ? resultsText.trim() : '';
                 if (resultsText) {
                     if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
                         utility.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
@@ -773,6 +803,7 @@ battle = {
                 chainAttack     = false,
                 inp             = null,
                 txt             = '',
+                tempArr         = [],
                 levelm          = [],
                 minRank         = 0,
                 maxLevel        = 0,
@@ -845,35 +876,53 @@ battle = {
                 tr = null;
                 levelm = [];
                 txt = '';
+                tempArr = [];
                 tempTime = -1;
                 tempRecord = new battle.record();
                 tempRecord.data['button'] = inputDiv.eq(it);
                 if (type === 'Raid') {
                     tr = tempRecord.data['button'].parents().eq(4);
-                    txt = tr.children().eq(1).text().trim();
+                    txt = tr.children().eq(1).text();
+                    txt = txt ? txt.trim() : '';
                     levelm = battle.battles['Raid']['regex1'].exec(txt);
                     if (!levelm || !levelm.length) {
                         utility.warn("Can't match Raid regex in ", txt);
                         continue;
                     }
 
-                    tempRecord.data['nameStr'] = levelm[1].trim();
-                    tempRecord.data['rankNum'] = levelm[2].parseInt();
+                    tempRecord.data['nameStr'] = levelm[1] ? levelm[1].trim() : '';
+                    tempRecord.data['rankNum'] = levelm[2] ? levelm[2].parseInt() : 0;
                     tempRecord.data['rankStr'] = battle.battleRankTable[tempRecord.data['rankNum']];
-                    tempRecord.data['levelNum'] = levelm[4].parseInt();
-                    tempRecord.data['armyNum'] = levelm[6].parseInt();
+                    tempRecord.data['levelNum'] = levelm[4] ? levelm[4].parseInt() : 0;
+                    tempRecord.data['armyNum'] = levelm[6] ? levelm[6].parseInt() : 0;
                 } else {
-                    tr = tempRecord.data['button'];
-                    while (tr.attr("tagName").toLowerCase() !== "tr") {
-                        tr = tr.parent();
+                    tr = tempRecord.data['button'].parents("tr").eq(0);
+                    if (!tr || !tr.length) {
+                        utility.warn("Can't find parent tr in",tempRecord.data['button']);
+                        continue;
                     }
 
-                    tempRecord.data['deityNum'] = tr.find("img[src*='symbol_']").attr("src").match(/\d+\.jpg/i)[0].numberOnly() - 1;
-                    tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
-                    utility.log(4, "DemiPointsDone", state.getItem('DemiPointsDone', true));
+                    txt = tr.find("img[src*='symbol_']").attr("src");
+                    if (txt) {
+                        tempArr = txt.match(/(\d+)\.jpg/i);
+                        if (tempArr && tempArr.length === 2) {
+                            tempRecord.data['deityNum'] = tempArr[1] ? tempArr[1].parseInt() - 1: -1;
+                            if (tempRecord.data['deityNum'] >= 0 && tempRecord.data['deityNum'] <= 4) {
+                                tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
+                            } else {
+                                utility.warn("Demi number is not between 0 and 4", tempRecord.data['deityNum']);
+                                tempRecord.data['deityNum'] = 0;
+                                tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
+                            }
+                        } else {
+                            utility.warn("Unable to match demi number in txt", txt);
+                        }
+                    } else {
+                        utility.warn("Unable to find demi image in tr", tr);
+                    }
+
                     // If looking for demi points, and already full, continue
                     if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
-                        utility.log(5, "Demi Points First", tempRecord.data['deityNum'], tempRecord.data['deityStr'], caap.demi[tempRecord.data['deityStr']], config.getItem('DemiPoint' + tempRecord.data['deityNum'], true));
                         if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0 || !config.getItem('DemiPoint' + tempRecord.data['deityNum'], true)) {
                             utility.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
                             continue;
@@ -885,8 +934,9 @@ battle = {
                         }
                     }
 
-                    txt = tr.text().trim();
-                    if (!txt.length) {
+                    txt = tr.text();
+                    txt = txt ? txt.trim() : '';
+                    if (txt === '') {
                         utility.warn("Can't find txt in tr");
                         continue;
                     }
@@ -910,19 +960,19 @@ battle = {
                         continue;
                     }
 
-                    tempRecord.data['nameStr'] = levelm[1].trim();
-                    tempRecord.data['levelNum'] = levelm[2].parseInt();
-                    tempRecord.data['rankStr'] = levelm[3].trim();
-                    tempRecord.data['rankNum'] = levelm[4].parseInt();
+                    tempRecord.data['nameStr'] = levelm[1] ? levelm[1].trim() : '';
+                    tempRecord.data['levelNum'] = levelm[2] ? levelm[2].parseInt() : 0;
+                    tempRecord.data['rankStr'] = levelm[3] ? levelm[3].trim() : '';
+                    tempRecord.data['rankNum'] = levelm[4] ? levelm[4].parseInt() : 0;
                     if (battle.battles['Freshmeat']['warLevel']) {
-                        tempRecord.data['warRankStr'] = levelm[5].trim();
-                        tempRecord.data['warRankNum'] = levelm[6].parseInt();
+                        tempRecord.data['warRankStr'] = levelm[5] ? levelm[5].trim() : '';
+                        tempRecord.data['warRankNum'] = levelm[6] ? levelm[6].parseInt() : 0;
                     }
 
                     if (battle.battles['Freshmeat']['warLevel']) {
-                        tempRecord.data['armyNum'] = levelm[7].parseInt();
+                        tempRecord.data['armyNum'] = levelm[7] ? levelm[7].parseInt() : 0;
                     } else {
-                        tempRecord.data['armyNum'] = levelm[5].parseInt();
+                        tempRecord.data['armyNum'] = levelm[5] ? levelm[5].parseInt() : 0;
                     }
                 }
 
@@ -932,7 +982,8 @@ battle = {
                     continue;
                 }
 
-                tempRecord.data['userId'] = inp.attr("value").parseInt();
+                txt = inp.attr("value");
+                tempRecord.data['userId'] = txt ? txt.parseInt() : 0;
                 if (battle.hashCheck(tempRecord.data)) {
                     continue;
                 }
@@ -1068,7 +1119,8 @@ battle = {
                         form = inputDiv.eq(0).parent().parent();
                         inp = form.find("input[name='target_id']");
                         if (inp && inp.length) {
-                            firstId = inp.attr("value").parseInt();
+                            txt = inp.attr("value");
+                            firstId = txt ? txt.parseInt() : 0;
                             inp.attr("value", '200000000000001');
                             utility.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
                             battle.click(inputDiv.eq(0).get(0));

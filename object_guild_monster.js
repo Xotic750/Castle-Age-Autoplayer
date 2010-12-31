@@ -266,12 +266,14 @@ guild_monster = {
 
                     form = button.parents("form").eq(0);
                     if (form && form.length) {
-                        slot = form.find("input[name='slot']").eq(0).attr("value").parseInt();
+                        slot = form.find("input[name='slot']").eq(0).attr("value");
+                        slot = slot ? slot.parseInt() : 0;
                         if (typeof slot === 'number' && slot > 0 && slot <= 5) {
                             utility.log(3, "slot", slot);
                             slotArr.push(slot);
                             currentRecord = guild_monster.getItem(slot);
-                            name = button.parents().eq(4).text().trim();
+                            name = button.parents().eq(4).text();
+                            name = name ? name.trim() : '';
                             if (name) {
                                 if (currentRecord['name'] !== name) {
                                     utility.log(1, "Updated name", currentRecord['name'], name);
@@ -372,9 +374,11 @@ guild_monster = {
                 minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
             utility.chatLink($("#app46755028429_app_body"), "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
-            slot = $("input[name='slot']").eq(0).attr("value").parseInt();
+            slot = $("input[name='slot']").eq(0).attr("value");
+            slot = slot ? slot.parseInt() : 0;
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
-            myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text().trim().innerTrim();
+            myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
+            myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {
                 utility.log(3, "slot", slot);
                 currentRecord = guild_monster.getItem(slot);
@@ -383,14 +387,15 @@ guild_monster = {
                 currentRecord['guildHealth'] = 0;
                 currentRecord['enemyHealth'] = 0;
                 if (!bannerDiv.attr("style").match(/_dead/)) {
-                    currentRecord['ticker'] = $("#app46755028429_monsterTicker").text().trim();
+                    currentRecord['ticker'] = $("#app46755028429_monsterTicker").text();
+                    currentRecord['ticker'] = currentRecord['ticker'] ? currentRecord['ticker'].trim() : '';
                     if (myStatsTxt) {
                         utility.log(3, "myStatsTxt", myStatsTxt);
                         myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Battle Damage: (\\d+)"));
                         if (myStatsArr && myStatsArr.length === 8) {
                             utility.log(2, "myStatsArr", myStatsArr);
-                            currentRecord['damage'] = myStatsArr[7].parseInt();
-                            currentRecord['myStatus'] = myStatsArr[6].trim();
+                            currentRecord['damage'] = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
+                            currentRecord['myStatus'] = myStatsArr[6] ? myStatsArr[6].trim() : '';
                         } else {
                             utility.warn("myStatsArr error", myStatsArr, myStatsTxt);
                         }
@@ -398,7 +403,7 @@ guild_monster = {
 
                     allowedDiv = $("#app46755028429_allowedAttacks");
                     if (allowedDiv && allowedDiv.length) {
-                        currentRecord['attacks'] = allowedDiv.attr("value").parseInt();
+                        currentRecord['attacks'] = allowedDiv.attr("value") ? allowedDiv.attr("value").parseInt() : 1;
                         if (currentRecord['attacks'] < 1 || currentRecord['attacks'] > 5) {
                             currentRecord['attacks'] = 1;
                             utility.warn("Invalid allowedAttacks");
@@ -411,14 +416,14 @@ guild_monster = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = 100 - utility.getElementWidth(healthEnemy);
+                            currentRecord['enemyHealth'] = (100 - utility.getElementWidth(healthEnemy)).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['guildHealth'] = 100 - utility.getElementWidth(healthGuild);
+                            currentRecord['guildHealth'] = (100 - utility.getElementWidth(healthGuild)).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }
@@ -449,20 +454,21 @@ guild_monster = {
                                     memberRecord['attacking_position'] = (gIndex + 1);
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
-                                        memberRecord['target_id'] = targetIdDiv.attr("value").parseInt();
+                                        memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
                                     }
 
-                                    memberText = member.children().eq(1).text().trim().innerTrim();
+                                    memberText = member.children().eq(1).text();
+                                    memberText = memberText ? memberText.trim().innerTrim() : '';
                                     memberArr = memberText.match(minionRegEx);
                                     if (memberArr && memberArr.length === 7) {
-                                        memberRecord['name'] = memberArr[1];
-                                        memberRecord['level'] = memberArr[2].parseInt();
-                                        memberRecord['mclass'] = memberArr[3];
-                                        memberRecord['healthNum'] = memberArr[4].parseInt();
-                                        memberRecord['healthMax'] = memberArr[5].parseInt();
-                                        memberRecord['status'] = memberArr[6];
+                                        memberRecord['name'] = memberArr[1] ? memberArr[1] : '';
+                                        memberRecord['level'] = memberArr[2] ? memberArr[2].parseInt() : 0;
+                                        memberRecord['mclass'] = memberArr[3] ? memberArr[3] : '';
+                                        memberRecord['healthNum'] = memberArr[4] ? memberArr[4].parseInt() : 0;
+                                        memberRecord['healthMax'] = memberArr[5] ? memberArr[5].parseInt() : 1;
+                                        memberRecord['status'] = memberArr[6] ? memberArr[6] : '';
                                         memberRecord['percent'] = ((memberRecord['healthNum'] / memberRecord['healthMax']) * 100).dp(2);
                                     }
 
@@ -547,8 +553,8 @@ guild_monster = {
             }
 
             var slot = 0;
-
-            slot = $("input[name='slot']").eq(0).attr("value").parseInt();
+            slot = $("input[name='slot']").eq(0).attr("value");
+            slot = slot ? slot.parseInt() : 0;
             return (record['slot'] === slot);
         } catch (err) {
             utility.error("ERROR in guild_monster.checkPage: " + err, arguments.callee.caller);

@@ -98,6 +98,7 @@ gifting = {
         try {
             var giftDiv   = null,
                 tempText  = '',
+                tStr      = '',
                 tempNum   = 0,
                 current   = {};
 
@@ -106,11 +107,13 @@ gifting = {
             // So I have changed the query to try and resolve the issue
             giftDiv = $("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
             if (giftDiv && giftDiv.length) {
-                tempNum = giftDiv.attr("uid").parseInt();
+                tStr = giftDiv.attr("uid");
+                tempNum = tStr ? tStr.parseInt() : '';
                 if (tempNum > 0) {
                     current = new gifting.queue.record();
                     current.data['userId'] = tempNum;
-                    tempText = giftDiv.attr("title").trim();
+                    tStr = giftDiv.attr("title");
+                    tempText = tStr ? tStr.trim() : '';
                     if (tempText) {
                         current.data['name'] = tempText;
                     } else {
@@ -235,6 +238,7 @@ gifting = {
                 giftText   = '',
                 giftArr    = [],
                 giftType   = '',
+                tStr       = '',
                 uidRegExp  = new RegExp("uid=(\\d+)", "i"),
                 giftRegExp = new RegExp("(.*) has sent you a (.*) in Castle Age!", "i");
 
@@ -261,7 +265,7 @@ gifting = {
                                 return true;
                             }
 
-                            userId = userArr[1].parseInt();
+                            userId = userArr[1] ? userArr[1].parseInt() : '';
                             if (giftEntry['userId'] !== userId) {
                                 return true;
                             }
@@ -271,7 +275,8 @@ gifting = {
                             giftArr = [];
                             giftType = '';
                             if (giftDiv && giftDiv.length) {
-                                giftText = giftDiv.text().trim();
+                                tStr = giftDiv.text();
+                                giftText = tStr ? tStr.trim() : '';
                                 giftArr = giftText.match(giftRegExp);
                                 if (giftArr && giftArr.length === 3) {
                                     giftType = giftArr[2];
@@ -499,6 +504,7 @@ gifting = {
                     newGift  = {},
                     tempDiv  = null,
                     tempText = '',
+                    tStr     = '',
                     tempArr  = [],
                     update   = false;
 
@@ -510,7 +516,8 @@ gifting = {
                         newGift = new gifting.gifts.record();
                         tempDiv = theGift.children().eq(0);
                         if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.text().trim().replace("!", "");
+                            tStr = tempDiv.text();
+                            tempText = tStr ? tStr.trim().replace("!", "") : '';
                             if (tempText) {
                                 newGift.data['name'] = tempText;
                             } else {
@@ -524,7 +531,8 @@ gifting = {
 
                         tempDiv = theGift.find("img[class*='imgButton']");
                         if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.attr("src").filepart();
+                            tStr = tempDiv.attr("src");
+                            tempText = tStr ? tStr.filepart() : '';
                             if (tempText) {
                                 newGift.data['image'] = tempText;
                             } else {
@@ -926,8 +934,11 @@ gifting = {
                     if (unselDiv && unselDiv.length) {
                         unselDiv.each(function () {
                             var unsel = $(this),
-                                id    = unsel.attr("value").parseInt();
+                                tStr = '',
+                                id    = 0;
 
+                            tStr = unsel.attr("value");
+                            id = tStr ? tStr.parseInt() : 0;
                             if (!/none/.test(unsel.parent().attr("style"))) {
                                 caap.waitingForDomLoad = false;
                                 utility.Click(unsel.get(0));
@@ -954,9 +965,12 @@ gifting = {
                         selDiv = selListDiv.find(searchStr);
                         if (selDiv && selDiv.length) {
                             selDiv.each(function () {
-                                var sel = $(this),
-                                    id  = sel.attr("value").parseInt();
+                                var sel  = $(this),
+                                    tStr = '',
+                                    id   = 0;
 
+                                tStr = sel.attr("value");
+                                id = tStr ? tStr.parseInt() : 0;
                                 if (!/none/.test(sel.parent().attr("style"))) {
                                     utility.log(2, "User Chosen:", id);
                                     chosenList.push(id);

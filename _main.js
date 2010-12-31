@@ -22,7 +22,7 @@ function caap_Start() {
         idOk          = false,
         tempText      = '',
         tempArr       = [],
-        accountEl;
+        accountEl     = null;
 
     function mainCaapLoop() {
         caap.waitMilliSecs = 8000;
@@ -43,7 +43,7 @@ function caap_Start() {
     if (accountEl && accountEl.length) {
         tempText = accountEl.attr('href');
         if (tempText) {
-            FBID = tempText.regex(/id=([0-9]+)/i);
+            FBID = tempText.regex(/id=(\d+)/i);
             if (utility.isNum(FBID) && FBID > 0) {
                 caap.stats['FBID'] = FBID;
                 idOk = true;
@@ -52,7 +52,11 @@ function caap_Start() {
     }
 
     if (!idOk) {
-        tempArr = $('script').text().match(new RegExp('user:(\\d+),', 'i'));
+        tempText = $('script').text();
+    }
+
+    if (!idOk) {
+        tempArr = tempText ? tempText.match(new RegExp('user:(\\d+),', 'i')) : [];
         if (tempArr && tempArr.length === 2) {
             FBID = tempArr[1].parseInt();
             if (utility.isNum(FBID) && FBID > 0) {
@@ -63,7 +67,7 @@ function caap_Start() {
     }
 
     if (!idOk) {
-        tempArr = $('script').text().match(new RegExp('."user.":(\\d+),', 'i'));
+        tempArr = tempText ? tempText.match(new RegExp('."user.":(\\d+),', 'i')) : [];
         if (tempArr && tempArr.length === 2) {
             FBID = tempArr[1].parseInt();
             if (utility.isNum(FBID) && FBID > 0) {
@@ -98,7 +102,8 @@ function caap_Start() {
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
     caap.stats['FBID'] = FBID;
-    caap.stats['account'] = accountEl.text();
+    tempText = accountEl.text();
+    caap.stats['account'] = tempText ? tempText : '';
     /*jslint sub: false */
     gifting.init();
     gifting.loadCurrent();

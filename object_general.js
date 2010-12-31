@@ -319,10 +319,12 @@ general = {
     GetCurrent: function () {
         try {
             var generalName = '',
+                tStr        = '',
                 nameObj     = $("#app46755028429_equippedGeneralContainer .general_name_div3");
 
             if (nameObj) {
-                generalName = nameObj.text().trim().stripTRN().stripStar();
+                tStr = nameObj.text();
+                generalName = tStr ? tStr.trim().stripTRN().stripStar() : '';
             }
 
             if (!generalName) {
@@ -350,6 +352,7 @@ general = {
             if (generalsDiv.length) {
                 generalsDiv.each(function (index) {
                     var newGeneral = new general.record(),
+                        tStr       = '',
                         name       = '',
                         img        = '',
                         level      = 0,
@@ -362,36 +365,44 @@ general = {
 
                     tempObj = container.find(".general_name_div3");
                     if (tempObj && tempObj.length) {
-                        name = tempObj.text().stripTRN().stripStar();
+                        tStr = tempObj.text();
+                        name = tStr ? tStr.stripTRN().stripStar() : '';
                     } else {
                         utility.warn("Unable to find 'name' container", index);
                     }
 
                     tempObj = container.find(".imgButton");
                     if (tempObj && tempObj.length) {
-                        img = tempObj.attr("src").filepart();
+                        tStr = tempObj.attr("src");
+                        img = tStr ? tStr.filepart() : '';
                     } else {
                         utility.warn("Unable to find 'image' container", index);
                     }
 
                     tempObj = container.children().eq(3);
                     if (tempObj && tempObj.length) {
-                        level = tempObj.text().replace(/Level /gi, '').stripTRN().parseInt();
+                        tStr = tempObj.text();
+                        level = tStr ? tStr.replace(/Level /gi, '').stripTRN().parseInt() : 0;
                     } else {
                         utility.warn("Unable to find 'level' container", index);
                     }
 
                     tempObj = container.children().eq(4);
                     if (tempObj && tempObj.length) {
-                        special = $(tempObj.html().replace(/<br>/g, ' ')).text().trim();
+                        tStr = tempObj.html();
+                        tStr = tStr ? tStr.replace(/<br>/g, ' ') : '';
+                        tStr = $(tStr).text();
+                        special = tStr ? tStr.trim() : '';
                     } else {
                         utility.warn("Unable to find 'special' container", index);
                     }
 
                     tempObj = container.find(".generals_indv_stats_padding div");
                     if (tempObj && tempObj.length === 2) {
-                        atk = tempObj.eq(0).text().parseInt();
-                        def = tempObj.eq(1).text().parseInt();
+                        tStr = tempObj.eq(0).text();
+                        atk = tStr ? tStr.parseInt() : 0;
+                        tStr = tempObj.eq(1).text();
+                        def = tStr ? tStr.parseInt() : 0;
                     } else {
                         utility.warn("Unable to find 'attack and defence' containers", index);
                     }
@@ -488,10 +499,11 @@ general = {
     /*jslint sub: true */
     LevelUpCheck: function (whichGeneral) {
         try {
-            var generalType = whichGeneral.replace(/General/i, '').trim(),
+            var generalType = '',
                 use         = false,
                 keepGeneral = false;
 
+            generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
             if ((caap.stats['staminaT']['num'] > caap.stats['stamina']['max'] || caap.stats['energyT']['num'] > caap.stats['energy']['max']) && state.getItem('KeepLevelUpGeneral', false)) {
                 if (config.getItem(generalType + 'LevelUpGeneral', false)) {
                     utility.log(2, "Keep Level Up General");
@@ -588,6 +600,7 @@ general = {
     GetEquippedStats: function () {
         try {
             var generalName  = general.GetCurrent(),
+                tStr         = '',
                 it           = 0,
                 len          = 0,
                 generalDiv   = null,
@@ -614,10 +627,12 @@ general = {
             if (generalDiv && generalDiv.length === 2) {
                 tempObj = generalDiv.eq(0);
                 if (tempObj && tempObj.length) {
-                    general.records[it]['eatk'] = tempObj.text().parseInt();
+                    tStr = tempObj.text();
+                    general.records[it]['eatk'] = tStr ? tStr.parseInt() : 0;
                     tempObj = generalDiv.eq(1);
                     if (tempObj && tempObj.length) {
-                        general.records[it]['edef'] = tempObj.text().parseInt();
+                        tStr = tempObj.text();
+                        general.records[it]['edef'] = tStr ? tStr.parseInt() : 0;
                         success = true;
                     } else {
                         utility.warn("Unable to get 'General' defense object");

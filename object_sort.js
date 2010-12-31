@@ -42,6 +42,40 @@ sort = {
         };
     },
 
+    objectBy: function (obj, sortfunc, deep) {
+        try {
+            var list   = [],
+                output = {},
+                i      = 0,
+                j      = '',
+                len    = 0;
+
+            if (typeof deep === 'undefined') {
+                deep = false;
+            }
+
+            for (j in obj) {
+                if (obj.hasOwnProperty(j)) {
+                    list.push(j);
+                }
+            }
+
+            list.sort(sortfunc);
+            for (i = 0, len = list.length; i < len; i += 1) {
+                if (deep && $.isPlainObject(obj[list[i]])) {
+                    output[list[i]] = caap.SortObject(obj[list[i]], sortfunc, deep);
+                } else {
+                    output[list[i]] = obj[list[i]];
+                }
+            }
+
+            return output;
+        } catch (err) {
+            utility.error("ERROR in sort.objectBy: " + err);
+            return undefined;
+        }
+    },
+
     dialog: {},
 
     form: function (id, list, records) {

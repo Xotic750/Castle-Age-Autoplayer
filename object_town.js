@@ -167,6 +167,7 @@ town = {
         try {
             var rowDiv  = null,
                 tempDiv = null,
+                tStr    = '',
                 current = {},
                 passed  = true,
                 save    = false;
@@ -184,7 +185,8 @@ town = {
                     current = new town.record();
                     tempDiv = row.find("div[class='eq_buy_txt_int'] strong");
                     if (tempDiv && tempDiv.length === 1) {
-                        current.data['name'] = tempDiv.text().trim();
+                        tStr = tempDiv.text();
+                        current.data['name'] = tStr ? tStr.trim() : '';
                         current.data['type'] = town.getItemType(current.data['name']);
                     } else {
                         utility.warn("Unable to get item name in", type);
@@ -194,22 +196,26 @@ town = {
                     if (passed) {
                         tempDiv = row.find("img");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['image'] = tempDiv.attr("src").filepart();
+                            tStr = tempDiv.attr("src");
+                            current.data['image'] = tStr ? tStr.filepart() : '';
                         } else {
                             utility.log(4, "No image found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_txt_int'] span[class='negative']");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['upkeep'] = tempDiv.text().numberOnly();
+                            tStr = tempDiv.text();
+                            current.data['upkeep'] = tStr ? tStr.numberOnly() : 0;
                         } else {
                             utility.log(4, "No upkeep found for", type, current.data.name);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_stats_int'] div");
                         if (tempDiv && tempDiv.length === 2) {
-                            current.data['atk'] = tempDiv.eq(0).text().numberOnly();
-                            current.data['def'] = tempDiv.eq(1).text().numberOnly();
+                            tStr = tempDiv.eq(0).text();
+                            current.data['atk'] = tStr ? tStr.numberOnly() : 0;
+                            tStr = tempDiv.eq(1).text();
+                            current.data['def'] = tStr ? tStr.numberOnly() : 0;
                             current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
                             current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                             current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
@@ -219,14 +225,16 @@ town = {
 
                         tempDiv = row.find("div[class='eq_buy_costs_int'] strong[class='gold']");
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['cost'] = tempDiv.text().numberOnly();
+                            tStr = tempDiv.text();
+                            current.data['cost'] = tStr ? tStr.numberOnly() : 0;
                         } else {
                             utility.log(4, "No cost found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_costs_int'] tr:last td").eq(0);
                         if (tempDiv && tempDiv.length === 1) {
-                            current.data['owned'] = tempDiv.text().numberOnly();
+                            tStr = tempDiv.text();
+                            current.data['owned'] = tStr ? tStr.numberOnly() : 0;
                             current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                         } else {
                             utility.warn("No number owned found for", type, current.data['name']);
