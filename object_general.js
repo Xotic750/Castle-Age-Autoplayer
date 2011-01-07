@@ -268,7 +268,8 @@ general = {
         'Invade',
         'Duel',
         'War',
-        'SubQuest'
+        'SubQuest',
+        'Arena'
     ],
 
     BuildlLists: function () {
@@ -320,8 +321,9 @@ general = {
         try {
             var generalName = '',
                 tStr        = '',
-                nameObj     = $("#app46755028429_equippedGeneralContainer .general_name_div3");
+                nameObj     = $();
 
+            nameObj = $("#app46755028429_equippedGeneralContainer .general_name_div3");
             if (nameObj) {
                 tStr = nameObj.text();
                 generalName = tStr ? tStr.trim().stripTRN().stripStar() : '';
@@ -347,7 +349,7 @@ general = {
             var generalsDiv = $(".generalSmallContainer2"),
                 update      = false,
                 save        = false,
-                tempObj     = null;
+                tempObj     = $();
 
             if (generalsDiv.length) {
                 generalsDiv.each(function (index) {
@@ -603,8 +605,8 @@ general = {
                 tStr         = '',
                 it           = 0,
                 len          = 0,
-                generalDiv   = null,
-                tempObj      = null,
+                generalDiv   = $(),
+                tempObj      = $(),
                 success      = false;
 
             if (generalName === 'Use Current') {

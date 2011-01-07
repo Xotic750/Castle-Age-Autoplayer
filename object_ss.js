@@ -1,10 +1,10 @@
 
 /////////////////////////////////////////////////////////////////////
-//                          gm OBJECT
-// this object is used for setting/getting GM specific functions.
+//                          ss OBJECT
+// this object is used for setting/getting session storage specific functions.
 /////////////////////////////////////////////////////////////////////
 
-gm = {
+ss = {
     namespace: 'caap',
 
     fireFoxUseGM: false,
@@ -28,14 +28,14 @@ gm = {
                 throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
             }
 
-            if (gm.useRison) {
+            if (ss.useRison) {
                 reportEnc = "rison.encode";
             }
 
             hpack = (typeof hpack !== 'number') ? false : hpack;
             if (hpack !== false && hpack >= 0 && hpack <= 3) {
                 hpackArr = JSON.hpack(value, hpack);
-                if (gm.useRison) {
+                if (ss.useRison) {
                     stringified = rison.encode(hpackArr);
                 } else {
                     stringified = JSON.stringify(hpackArr);
@@ -45,13 +45,13 @@ gm = {
                     throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
                 }
 
-                if (gm.useRison) {
+                if (ss.useRison) {
                     stringified = "R-HPACK " + stringified;
                 } else {
                     stringified = "HPACK " + stringified;
                 }
             } else {
-                if (gm.useRison) {
+                if (ss.useRison) {
                     stringified = rison.encode(value);
                 } else {
                     stringified = JSON.stringify(value);
@@ -61,7 +61,7 @@ gm = {
                     throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
                 }
 
-                if (gm.useRison) {
+                if (ss.useRison) {
                     stringified = "RISON " + stringified;
                 }
             }
@@ -77,16 +77,16 @@ gm = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
-                localStorage.setItem(gm.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
+            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+                sessionStorage.setItem(ss.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
             } else {
-                GM_setValue(gm.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
+                GM_setValue(ss.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
             }
             /*jslint sub: false */
 
             return value;
         } catch (error) {
-            utility.error("ERROR in gm.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
+            utility.error("ERROR in ss.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
             return undefined;
         }
     },
@@ -103,10 +103,10 @@ gm = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
-                storageStr = localStorage.getItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
+            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+                storageStr = sessionStorage.getItem(ss.namespace + "." + caap.stats['FBID'] + "." + name);
             } else {
-                storageStr = GM_getValue(gm.namespace + "." + caap.stats['FBID'] + "." + name);
+                storageStr = GM_getValue(ss.namespace + "." + caap.stats['FBID'] + "." + name);
             }
             /*jslint sub: false */
 
@@ -132,13 +132,13 @@ gm = {
 
             if (jsObj === undefined || jsObj === null) {
                 if (!hidden) {
-                    utility.warn("gm.getItem parsed string returned 'undefined' or 'null' for ", name);
+                    utility.warn("ss.getItem parsed string returned 'undefined' or 'null' for ", name);
                 }
 
                 if (value !== undefined && value !== null) {
                     hidden = (typeof hidden !== 'boolean') ? false : hidden;
                     if (!hidden) {
-                        utility.warn("gm.getItem using default value ", value);
+                        utility.warn("ss.getItem using default value ", value);
                     }
 
                     jsObj = value;
@@ -149,13 +149,13 @@ gm = {
 
             return jsObj;
         } catch (error) {
-            utility.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
+            utility.error("ERROR in ss.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
                 if (value !== undefined && value !== null) {
-                    gm.setItem(name, value);
+                    ss.setItem(name, value);
                     return value;
                 } else {
-                    gm.deleteItem(name);
+                    ss.deleteItem(name);
                 }
             }
 
@@ -171,16 +171,16 @@ gm = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
-                localStorage.removeItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
+            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+                sessionStorage.removeItem(ss.namespace + "." + caap.stats['FBID'] + "." + name);
             } else {
-                GM_deleteValue(gm.namespace + "." + caap.stats['FBID'] + "." + name);
+                GM_deleteValue(ss.namespace + "." + caap.stats['FBID'] + "." + name);
             }
             /*jslint sub: false */
 
             return true;
         } catch (error) {
-            utility.error("ERROR in gm.deleteItem: " + error, arguments.callee.caller);
+            utility.error("ERROR in ss.deleteItem: " + error, arguments.callee.caller);
             return false;
         }
     },
@@ -191,14 +191,14 @@ gm = {
                 key         = 0,
                 len         = 0,
                 done        = false,
-                nameRegExp  = new RegExp(gm.namespace);
+                nameRegExp  = new RegExp(ss.namespace);
 
-            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
+            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 if (utility.is_firefox) {
                     while (!done) {
                         try {
-                            if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
-                                localStorage.removeItem(localStorage.key(key));
+                            if (sessionStorage.key(key) && sessionStorage.key(key).match(nameRegExp)) {
+                                sessionStorage.removeItem(sessionStorage.key(key));
                             }
 
                             key += 1;
@@ -207,9 +207,9 @@ gm = {
                         }
                     }
                 } else {
-                    for (key = 0, len = localStorage.length; key < len; key += 1) {
-                        if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
-                            localStorage.removeItem(localStorage.key(key));
+                    for (key = 0, len = sessionStorage.length; key < len; key += 1) {
+                        if (sessionStorage.key(key) && sessionStorage.key(key).match(nameRegExp)) {
+                            sessionStorage.removeItem(sessionStorage.key(key));
                         }
                     }
                 }
@@ -224,7 +224,7 @@ gm = {
 
             return true;
         } catch (error) {
-            utility.error("ERROR in gm.clear: " + error, arguments.callee.caller);
+            utility.error("ERROR in ss.clear: " + error, arguments.callee.caller);
             return false;
         }
     },
@@ -235,14 +235,14 @@ gm = {
                 key         = 0,
                 len         = 0,
                 done        = false,
-                nameRegExp  = new RegExp(gm.namespace + "\\.0\\.");
+                nameRegExp  = new RegExp(ss.namespace + "\\.0\\.");
 
-            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
+            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 if (utility.is_firefox) {
                     while (!done) {
                         try {
-                            if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
-                                localStorage.removeItem(localStorage.key(key));
+                            if (sessionStorage.key(key) && sessionStorage.key(key).match(nameRegExp)) {
+                                sessionStorage.removeItem(sessionStorage.key(key));
                             }
 
                             key += 1;
@@ -251,9 +251,9 @@ gm = {
                         }
                     }
                 } else {
-                    for (key = 0, len = localStorage.length; key < len; key += 1) {
-                        if (localStorage.key(key) && localStorage.key(key).match(nameRegExp)) {
-                            localStorage.removeItem(localStorage.key(key));
+                    for (key = 0, len = sessionStorage.length; key < len; key += 1) {
+                        if (sessionStorage.key(key) && sessionStorage.key(key).match(nameRegExp)) {
+                            sessionStorage.removeItem(sessionStorage.key(key));
                         }
                     }
                 }
@@ -268,14 +268,14 @@ gm = {
 
             return true;
         } catch (error) {
-            utility.error("ERROR in gm.clear0: " + error, arguments.callee.caller);
+            utility.error("ERROR in ss.clear0: " + error, arguments.callee.caller);
             return false;
         }
     },
 
     used: function () {
         try {
-            if (utility.is_html5_localStorage && !gm.fireFoxUseGM) {
+            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 var key         = 0,
                     len         = 0,
                     charsCaap   = 0,
@@ -284,14 +284,14 @@ gm = {
                     totalPerc   = 0,
                     message     = '',
                     done        = false,
-                    nameRegExp  = new RegExp(gm.namespace + "\\.");
+                    nameRegExp  = new RegExp(ss.namespace + "\\.");
 
                 if (utility.is_firefox) {
                     while (!done) {
                         try {
-                            chars += localStorage.getItem(localStorage.key(key)).length;
-                            if (localStorage.key(key).match(nameRegExp)) {
-                                charsCaap += localStorage.getItem(localStorage.key(key)).length;
+                            chars += sessionStorage.getItem(sessionStorage.key(key)).length;
+                            if (sessionStorage.key(key).match(nameRegExp)) {
+                                charsCaap += sessionStorage.getItem(sessionStorage.key(key)).length;
                             }
 
                             key += 1;
@@ -301,35 +301,35 @@ gm = {
                     }
 
                 } else {
-                    for (key = 0, len = localStorage.length; key < len; key += 1) {
-                        chars += localStorage.getItem(localStorage.key(key)).length;
-                        if (localStorage.key(key).match(nameRegExp)) {
-                            charsCaap += localStorage.getItem(localStorage.key(key)).length;
+                    for (key = 0, len = sessionStorage.length; key < len; key += 1) {
+                        chars += sessionStorage.getItem(sessionStorage.key(key)).length;
+                        if (sessionStorage.key(key).match(nameRegExp)) {
+                            charsCaap += sessionStorage.getItem(sessionStorage.key(key)).length;
                         }
                     }
                 }
 
                 caapPerc = ((charsCaap * 2.048 / 5242880) * 100).dp();
-                utility.log(1, "CAAP localStorage used: " + caapPerc + "%");
+                utility.log(1, "CAAP sessionStorage used: " + caapPerc + "%");
                 totalPerc = ((chars * 2.048 / 5242880) * 100).dp();
                 if (totalPerc >= 90) {
-                    utility.warn("Total localStorage used: " + totalPerc + "%");
+                    utility.warn("Total sessionStorage used: " + totalPerc + "%");
                     message = "<div style='text-align: center;'>";
                     message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
-                    message += "localStorage usage for domain: " + totalPerc + "%<br />";
+                    message += "sessionStorage usage for domain: " + totalPerc + "%<br />";
                     message += "CAAP is using: " + totalPerc + "%";
                     message += "</div>";
                     window.setTimeout(function () {
-                        utility.alert(message, "LocalStorage");
+                        utility.alert(message, "sessionStorage");
                     }, 5000);
                 } else {
-                    utility.log(1, "Total localStorage used: " + totalPerc + "%");
+                    utility.log(1, "Total sessionStorage used: " + totalPerc + "%");
                 }
             }
 
             return true;
         } catch (error) {
-            utility.error("ERROR in gm.used: " + error, arguments.callee.caller);
+            utility.error("ERROR in ss.used: " + error, arguments.callee.caller);
             return false;
         }
     }

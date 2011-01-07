@@ -20,16 +20,19 @@ var caapVersion   = "!version!",
     state         = {},
     css           = {},
     gm            = {},
+    ss            = {},
     nHtml         = {},
     sort          = {},
     schedule      = {},
     general       = {},
     monster       = {},
     guild_monster = {},
+    arena         = {},
     battle        = {},
     town          = {},
     spreadsheet   = {},
     gifting       = {},
+    army          = {},
     caap          = {};
 
 ///////////////////////////
@@ -107,6 +110,24 @@ Number.prototype.numberOnly = function () {
     return this.toString().numberOnly();
 };
 */
+
+String.prototype.parseTimer = function() {
+        var a = [],
+            b = 0,
+            i = 0,
+            l = 0;
+
+        a = this.split(':');
+        for (i = 0, l = a.length; i < l; i += 1) {
+            b = b * 60 + parseInt(a[i], 10);
+        }
+
+        if (isNaN(b)) {
+            b = -1;
+        }
+
+        return b;
+};
 
 String.prototype.removeHtmlJunk = function () {
     return this.replace(new RegExp("\\&[^;]+;", "g"), '');

@@ -7,143 +7,9 @@
 spreadsheet = {
     records: [],
 
-    useRison: true,
-
-    hbest: false,
+    hbest: 2,
 
     compress: true,
-
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
-    // use these to set/get values in a way that prepends the game's name
-    setItem: function (name, value) {
-        try {
-            var stringified = '',
-                storageStr  = '',
-                coderStr    = 'JSON.stringify',
-                compressor  = null,
-                packedArr   = [];
-
-            if (typeof name !== 'string' || name === '') {
-                throw "Invalid identifying name! (" + name + ")";
-            }
-
-            if (value === undefined || value === null) {
-                throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
-            }
-
-            packedArr = JSON.hpack(value, spreadsheet.hbest);
-            if (spreadsheet.useRision) {
-                stringified = rison.encode(packedArr);
-                coderStr = 'rison.encode';
-            } else {
-                stringified = JSON.stringify(packedArr);
-            }
-
-            if (stringified === undefined || stringified === null) {
-                throw coderStr + " returned 'undefined' or 'null'! (" + stringified + ")";
-            }
-
-            if (spreadsheet.compress) {
-                compressor = new utility.LZ77();
-                storageStr = compressor.compress(stringified);
-                utility.log(2, "Compressed storage", name, ((storageStr.length / stringified.length) * 100).dp(2));
-            } else {
-                storageStr = stringified;
-            }
-
-            if (utility.is_html5_sessionStorage) {
-                sessionStorage.setItem(gm.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
-            }
-
-            return value;
-        } catch (error) {
-            utility.error("ERROR in spreadsheet.setItem: " + error, arguments.callee.caller);
-            return undefined;
-        }
-    },
-
-    getItem: function (name, value, hidden) {
-        try {
-            var jsObj      = null,
-                storageStr = '',
-                storageArr = [],
-                compressor = null;
-
-            if (typeof name !== 'string' || name === '') {
-                throw "Invalid identifying name! (" + name + ")";
-            }
-
-            if (utility.is_html5_sessionStorage) {
-                storageStr = sessionStorage.getItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
-                if (storageStr) {
-                    if (spreadsheet.compress) {
-                        compressor = new utility.LZ77();
-                        storageStr = compressor.decompress(storageStr);
-                        utility.log(2, "Decompressed storage", name);
-                    }
-
-                    if (spreadsheet.useRision) {
-                        storageArr = rison.decode(storageStr);
-                    } else {
-                        storageArr = $.parseJSON(storageStr);
-                    }
-
-                    if (storageArr && storageArr.length) {
-                        jsObj = JSON.hunpack(storageArr);
-                    }
-                }
-
-                if (jsObj === undefined || jsObj === null) {
-                    if (!hidden) {
-                        utility.warn("spreadsheet.getItem parsed string returned 'undefined' or 'null' for ", name);
-                    }
-
-                    if (value !== undefined && value !== null) {
-                        if (!hidden) {
-                            utility.warn("spreadsheet.getItem using default value ", value);
-                        }
-
-                        jsObj = value;
-                    } else {
-                        throw "No default value supplied! (" + value + ")";
-                    }
-                }
-            }
-
-            return jsObj;
-        } catch (error) {
-            utility.error("ERROR in spreadsheet.getItem: " + error, arguments.callee.caller);
-            if (error.match(/Invalid JSON/)) {
-                if (value !== undefined && value !== null) {
-                    spreadsheet.setItem(name, value);
-                    return value;
-                } else {
-                    spreadsheet.deleteItem(name);
-                }
-            }
-
-            return undefined;
-        }
-    },
-
-    deleteItem: function (name) {
-        try {
-            if (typeof name !== 'string' || name === '') {
-                throw "Invalid identifying name! (" + name + ")";
-            }
-
-            if (utility.is_html5_sessionStorage) {
-                sessionStorage.removeItem(gm.namespace + "." + caap.stats['FBID'] + "." + name);
-            }
-
-            return true;
-        } catch (error) {
-            utility.error("ERROR in spreadsheet.deleteItem: " + error, arguments.callee.caller);
-            return false;
-        }
-    },
-    /*jslint sub: false */
 
     load: function () {
         try {
@@ -151,7 +17,7 @@ spreadsheet = {
                 return true;
             }
 
-            spreadsheet.records = spreadsheet.getItem('spreadsheet.records', 'default');
+            spreadsheet.records = ss.getItem('spreadsheet.records', 'default');
             if (spreadsheet.records === 'default' || !$.isArray(spreadsheet.records) || !spreadsheet.records.length) {
                 spreadsheet.records = [];
                 $.ajax({
@@ -208,9 +74,9 @@ spreadsheet = {
                             spreadsheet.records.push(newRecord);
                         }
 
-                        spreadsheet.hbest = JSON.hbest(spreadsheet.records);
+                        //spreadsheet.hbest = JSON.hbest(spreadsheet.records);
                         utility.log(2, "spreadsheet.records Hbest", spreadsheet.hbest);
-                        spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
+                        ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
                         utility.log(2, "spreadsheet.records", spreadsheet.records);
                     }
                 });
@@ -327,7 +193,7 @@ spreadsheet = {
             if (images && images.length) {
                 images.each(function () {
                     var img   = $(this),
-                        div   = null,
+                        div   = $(),
                         title = '',
                         image = '',
                         style = '',
@@ -368,7 +234,7 @@ spreadsheet = {
     /*jslint sub: true */
     isSummon: function (title, image) {
         try {
-            var it = 0,
+            var it     = 0,
                 tempIt = -1,
                 summon = false;
 

@@ -359,13 +359,13 @@ guild_monster = {
 
     onMonster: function () {
         try {
-            var gates         = null,
-                health        = null,
-                healthGuild   = null,
-                healthEnemy   = null,
-                allowedDiv    = null,
-                bannerDiv     = null,
-                collectDiv    = null,
+            var gates         = $(),
+                health        = $(),
+                healthGuild   = $(),
+                healthEnemy   = $(),
+                allowedDiv    = $(),
+                bannerDiv     = $(),
+                collectDiv    = $(),
                 collect       = false,
                 myStatsTxt    = '',
                 myStatsArr    = [],
@@ -373,7 +373,7 @@ guild_monster = {
                 currentRecord = {},
                 minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
-            utility.chatLink($("#app46755028429_app_body"), "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+            utility.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             slot = $("input[name='slot']").eq(0).attr("value");
             slot = slot ? slot.parseInt() : 0;
             bannerDiv = $("#app46755028429_guild_battle_banner_section");
@@ -448,7 +448,7 @@ guild_monster = {
                                     var member       = $(this),
                                         memberText   = '',
                                         memberArr    = [],
-                                        targetIdDiv  = null,
+                                        targetIdDiv  = $(),
                                         memberRecord = new guild_monster.minion().data;
 
                                     memberRecord['attacking_position'] = (gIndex + 1);
@@ -814,7 +814,7 @@ guild_monster = {
 
             return state.setItem('targetGuildMonster', target);
         } catch (err) {
-            utility.error("ERROR in guild_monster.select: " + err, {'record': record}, arguments.callee.caller);
+            utility.error("ERROR in guild_monster.select: " + err, arguments.callee.caller);
             return undefined;
         }
     },

@@ -35,7 +35,7 @@ schedule = {
 
     setItem: function (name, seconds, randomSecs) {
         try {
-            var now;
+            var now = 0;
             if (typeof name !== 'string' || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
@@ -150,7 +150,7 @@ schedule = {
         }
     },
     /*jslint sub: false */
-    
+
     oneMinuteUpdate: function (funcName) {
         try {
             if (!state.getItem('reset' + funcName) && !schedule.check(funcName + 'Timer')) {

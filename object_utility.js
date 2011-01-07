@@ -118,10 +118,10 @@ utility = {
 
     NavigateTo: function (pathToPage, imageOnPage) {
         try {
-            var content   = null,
+            var content   = $(),
                 pathList  = [],
                 s         = 0,
-                a         = null,
+                a         = $(),
                 imageTest = '',
                 img       = null;
 
@@ -169,7 +169,7 @@ utility = {
 
     CheckForImage: function (image, webSlice, subDocument, nodeNum) {
         try {
-            var imageSlice = null;
+            var imageSlice = $();
             if (!webSlice) {
                 webSlice = subDocument ? subDocument.body : window.document.body;
             }
@@ -327,8 +327,8 @@ utility = {
     getElementHeight: function (jObject) {
         try {
             var heightRegExp = new RegExp("height:\\s*([\\d\\.]+)%", "i"),
-                tempArr     = [],
-                width       = 0;
+                tempArr      = [],
+                width        = 0;
 
             if (jObject && jObject.length === 1) {
                 tempArr = jObject.attr("style").match(heightRegExp);
@@ -494,8 +494,9 @@ utility = {
         try {
             var hr = new RegExp('.*(http:.*)'),
                 qr = /"/g,
-                c  = slice.find(query);
+                c  = $();
 
+            c = slice.find(query);
             if (c && c.length) {
                 c.each(function () {
                     var e = $(this),

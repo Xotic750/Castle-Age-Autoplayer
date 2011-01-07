@@ -272,9 +272,9 @@ battle = {
 
     getResult: function () {
         try {
-            var wrapperDiv    = null,
-                resultsDiv    = null,
-                tempDiv       = null,
+            var wrapperDiv    = $(),
+                resultsDiv    = $(),
+                tempDiv       = $(),
                 tempText      = '',
                 tStr          = '',
                 tempArr       = [],
@@ -533,7 +533,7 @@ battle = {
 
     deadCheck: function () {
         try {
-            var resultsDiv   = null,
+            var resultsDiv   = $(),
                 resultsText  = '',
                 battleRecord = {},
                 dead         = false;
@@ -542,7 +542,7 @@ battle = {
                 battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
             }
 
-            resultsDiv = $("#app46755028429_app_body div[class='results']");
+            resultsDiv = caap.appBodyDiv.find("div[class='results']");
             if (resultsDiv && resultsDiv.length) {
                 resultsText = resultsDiv.text();
                 resultsText = resultsText ? resultsText.trim() : '';
@@ -592,6 +592,12 @@ battle = {
                 maxChains    = 0,
                 result       = {};
 
+            if (!battle.flagResult) {
+                return true;
+            }
+            
+            utility.log(2, "Checking Battle Results");
+            battle.flagResult = false;
             state.setItem("BattleChainId", 0);
             if (battle.deadCheck() !== false) {
                 return true;
@@ -739,10 +745,11 @@ battle = {
         }
     },
 
-    click: function (battleButton) {
+    click: function (battleButton, type) {
         try {
             state.setItem('ReleaseControl', true);
             battle.flagResult = true;
+            state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
             utility.Click(battleButton);
             return true;
         } catch (err) {
@@ -796,12 +803,12 @@ battle = {
 
     freshmeat: function (type) {
         try {
-            var inputDiv        = null,
+            var inputDiv        = $(),
                 plusOneSafe     = false,
                 safeTargets     = [],
                 chainId         = '',
                 chainAttack     = false,
-                inp             = null,
+                inp             = $(),
                 txt             = '',
                 tempArr         = [],
                 levelm          = [],
@@ -817,14 +824,14 @@ battle = {
                 tempTime        = 0,
                 it              = 0,
                 len             = 0,
-                tr              = null,
-                form            = null,
+                tr              = $(),
+                form            = $(),
                 firstId         = '',
                 lastBattleID    = 0,
                 engageButton    = null;
 
             utility.log(3, 'target img', battle.battles[type][config.getItem('BattleType', 'Invade')]);
-            inputDiv = $("#app46755028429_app_body input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']");
+            inputDiv = caap.appBodyDiv.find("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
                 utility.warn('Not on battlepage');
                 utility.NavigateTo(caap.battlePage);
@@ -873,7 +880,7 @@ battle = {
             }
 
             for (it = 0, len = inputDiv.length; it < len; it += 1) {
-                tr = null;
+                tr = $();
                 levelm = [];
                 txt = '';
                 tempArr = [];
@@ -898,7 +905,7 @@ battle = {
                 } else {
                     tr = tempRecord.data['button'].parents("tr").eq(0);
                     if (!tr || !tr.length) {
-                        utility.warn("Can't find parent tr in",tempRecord.data['button']);
+                        utility.warn("Can't find parent tr in", tempRecord.data['button']);
                         continue;
                     }
 
@@ -1106,7 +1113,7 @@ battle = {
                     if (inp && inp.length) {
                         inp.attr("value", chainId);
                         utility.log(1, "Chain attacking: ", chainId);
-                        battle.click(inputDiv.eq(0).get(0));
+                        battle.click(inputDiv.eq(0).get(0), type);
                         state.setItem("lastBattleID", chainId);
                         caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                         state.setItem("notSafeCount", 0);
@@ -1123,7 +1130,7 @@ battle = {
                             firstId = txt ? txt.parseInt() : 0;
                             inp.attr("value", '200000000000001');
                             utility.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
-                            battle.click(inputDiv.eq(0).get(0));
+                            battle.click(inputDiv.eq(0).get(0), type);
                             state.setItem("lastBattleID", firstId);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                             state.setItem("notSafeCount", 0);
@@ -1143,7 +1150,7 @@ battle = {
 
                         if (safeTargets[it]['button'] !== null || safeTargets[it]['button'] !== undefined) {
                             utility.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
-                            battle.click(safeTargets[it]['button'].get(0));
+                            battle.click(safeTargets[it]['button'].get(0), type);
                             delete safeTargets[it]['score'];
                             delete safeTargets[it]['targetNumber'];
                             delete safeTargets[it]['button'];

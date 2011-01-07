@@ -153,7 +153,7 @@ function caap_Start() {
 }
 
 function caap_WaitForrison() {
-    if (typeof rison.encode === 'function') {
+    if (typeof rison !== 'undefined') {
         utility.log(1, 'CAAP: rison ready ...');
         $(caap_Start);
     } else {
@@ -165,7 +165,7 @@ function caap_WaitForrison() {
 function caap_WaitForjsonhpack() {
     if (typeof JSON.hpack === 'function') {
         utility.log(1, 'CAAP: json.hpack ready ...');
-        if (typeof rison.encode !== 'function') {
+        if (typeof rison === 'undefined') {
             utility.log(1, 'CAAP: Inject rison.');
             utility.injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
         }

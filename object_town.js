@@ -165,8 +165,8 @@ town = {
     /*jslint sub: true */
     GetItems: function (type) {
         try {
-            var rowDiv  = null,
-                tempDiv = null,
+            var rowDiv  = $(),
+                tempDiv = $(),
                 tStr    = '',
                 current = {},
                 passed  = true,
@@ -178,7 +178,7 @@ town = {
             }
 
             town[type] = [];
-            rowDiv = $("#app46755028429_app_body td[class*='eq_buy_row']");
+            rowDiv = caap.appBodyDiv.find("td[class*='eq_buy_row']");
             if (rowDiv && rowDiv.length) {
                 rowDiv.each(function (index) {
                     var row = $(this);

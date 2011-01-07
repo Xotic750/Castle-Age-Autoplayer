@@ -1058,8 +1058,8 @@ monster = {
     ConfirmRightPage: function (monsterName) {
         try {
             // Confirm name and type of monster
-            var monsterDiv = null,
-                tempDiv    = null,
+            var monsterDiv = $(),
+                tempDiv    = $(),
                 tempText   = '',
                 tStr       = '';
 

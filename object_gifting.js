@@ -96,7 +96,7 @@ gifting = {
     /*jslint sub: true */
     accept: function () {
         try {
-            var giftDiv   = null,
+            var giftDiv   = $(),
                 tempText  = '',
                 tStr      = '',
                 tempNum   = 0,
@@ -230,11 +230,11 @@ gifting = {
     collect: function () {
         try {
             var giftEntry  = false,
-                appDiv     = null,
-                inputDiv   = null,
+                appDiv     = $(),
+                inputDiv   = $(),
                 userArr    = [],
                 userId     = 0,
-                giftDiv    = null,
+                giftDiv    = $(),
                 giftText   = '',
                 giftArr    = [],
                 giftType   = '',
@@ -359,8 +359,8 @@ gifting = {
 
     popCheck: function (type) {
         try {
-            var popDiv     = null,
-                tempDiv    = null,
+            var popDiv     = $(),
+                tempDiv    = $(),
                 tempText   = '',
                 tryAgain   = true;
 
@@ -500,9 +500,9 @@ gifting = {
 
         populate: function () {
             try {
-                var giftDiv  = null,
+                var giftDiv  = $(),
                     newGift  = {},
-                    tempDiv  = null,
+                    tempDiv  = $(),
                     tempText = '',
                     tStr     = '',
                     tempArr  = [],
@@ -826,10 +826,10 @@ gifting = {
                     it1            = 0,
                     len            = 0,
                     tempGift       = '',
-                    unselListDiv   = null,
-                    selListDiv     = null,
-                    unselDiv       = null,
-                    selDiv         = null,
+                    unselListDiv   = $(),
+                    selListDiv     = $(),
+                    unselDiv       = $(),
+                    selDiv         = $(),
                     first          = true,
                     same           = true,
                     returnOnlyOne  = false,
@@ -867,8 +867,8 @@ gifting = {
                     same = false;
                 }
 
-                unselListDiv = $("#app46755028429_app_body div[class='unselected_list']");
-                selListDiv = $("#app46755028429_app_body div[class='selected_list']");
+                unselListDiv = caap.appBodyDiv.find("div[class='unselected_list']");
+                selListDiv = caap.appBodyDiv.find("div[class='selected_list']");
                 for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
                     gifting.queue.records[it]['chosen'] = false;
 
@@ -1011,7 +1011,7 @@ gifting = {
         sent: function () {
             try {
                 var it         = 0,
-                    resultDiv  = null,
+                    resultDiv  = $(),
                     resultText = '',
                     sentok     = false;
 

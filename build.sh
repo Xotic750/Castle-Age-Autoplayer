@@ -16,16 +16,19 @@ cat object_config.js >> _normal.user.js
 cat object_state.js >> _normal.user.js
 cat object_css.js >> _normal.user.js
 cat object_gm.js >> _normal.user.js
+cat object_ss.js >> _normal.user.js
 cat object_html.js >> _normal.user.js
 cat object_sort.js >> _normal.user.js
 cat object_schedule.js >> _normal.user.js
 cat object_general.js >> _normal.user.js
 cat object_monster.js >> _normal.user.js
 cat object_guild_monster.js >> _normal.user.js
+cat object_arena.js >> _normal.user.js
 cat object_battle.js >> _normal.user.js
 cat object_town.js >> _normal.user.js
 cat object_spreadsheet.js >> _normal.user.js
 cat object_gifting.js >> _normal.user.js
+cat object_army.js >> _normal.user.js
 cat object_caap.js >> _normal.user.js
 cat _main.js >> _normal.user.js
 echo "Done."
