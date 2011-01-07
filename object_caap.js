@@ -8043,14 +8043,26 @@ caap = {
             caap.SetDivContent('arena_mess', '');
             record = arena.getItem();
             if (!record || !$.isPlainObject(record) || $.isEmptyObject(record)) {
-                if (arena.navigate_to_main()) {
-                    return true;
+                if (state.getItem('ArenaRefresh', true)) {
+                    if (arena.navigate_to_main_refresh()) {
+                        return true;
+                    }
                 }
 
+                if (!state.getItem('ArenaReview', false)) {
+                    if (arena.navigate_to_main()) {
+                        return true;
+                    }
+
+                    state.setItem('ArenaReview', true);
+                }
+
+                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', false);
                 return false;
             }
 
-            if (!record['days'] || record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready")) {
+            if (!record['days'] || record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
                 return false;
             }
 
@@ -8060,10 +8072,22 @@ caap = {
             }
 
             if (!arena.checkPage()) {
-                if (arena.navigate_to_main()) {
-                    return true;
+                if (state.getItem('ArenaRefresh', true)) {
+                    if (arena.navigate_to_main_refresh()) {
+                        return true;
+                    }
                 }
 
+                if (!state.getItem('ArenaReview', false)) {
+                    if (arena.navigate_to_main()) {
+                        return true;
+                    }
+
+                    state.setItem('ArenaReview', true);
+                }
+
+                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', false);
                 enterButton = $("input[src*='battle_enter_battle.gif']");
                 utility.log(1, "Enter battle", record, enterButton);
                 if (record['tokens'] > 0 && enterButton && enterButton.length) {
@@ -8972,21 +8996,22 @@ caap = {
                 return false;
             }
 
-
             if (state.getItem('ArenaRefresh', true)) {
                 if (arena.navigate_to_main_refresh()) {
                     return true;
                 }
             }
 
-            if (!state.getItem('ArenaRefresh', false)) {
+            if (!state.getItem('ArenaReview', false)) {
                 if (arena.navigate_to_main()) {
                     return true;
                 }
 
-                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', true);
             }
 
+            state.setItem('ArenaRefresh', true);
+            state.setItem('ArenaReview', false);
             utility.log(1, 'Done with Arena review.');
             return false;
         } catch (err) {
@@ -9014,15 +9039,6 @@ caap = {
                     return true;
                 }
             }
-
-            /*
-            if (!caap.stats['guild']['id']) {
-                utility.log(2, "Going to keep to get Guild Id");
-                if (utility.NavigateTo('keep')) {
-                    return true;
-                }
-            }
-            */
 
             var record = {},
                 url    = '',

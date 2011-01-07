@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            25
+// @dev            26
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -31,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "25",
+    devVersion    = "26",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -7061,7 +7061,7 @@ arena = {
                 schedule.setItem("ArenaReview", arenaInfo['nextTime'].parseTimer(), 20);
             } else {
                 if (arenaInfo['tokenTime'] && arenaInfo['tokenTime'].parseTimer() && arenaInfo['state'] === 'Alive') {
-                    schedule.setItem("ArenaReview", arenaInfo['ticker'].parseTimer(), 20);
+                    schedule.setItem("ArenaReview", arenaInfo['tokenTime'].parseTimer(), 20);
                     utility.log(2, "Waiting Arena token in", arenaInfo['tokenTime']);
                 } else {
                     schedule.setItem("ArenaReview", gm.getItem('ArenaReviewMins', 5, hiddenVar) * 60, 120);
@@ -18708,14 +18708,26 @@ caap = {
             caap.SetDivContent('arena_mess', '');
             record = arena.getItem();
             if (!record || !$.isPlainObject(record) || $.isEmptyObject(record)) {
-                if (arena.navigate_to_main()) {
-                    return true;
+                if (state.getItem('ArenaRefresh', true)) {
+                    if (arena.navigate_to_main_refresh()) {
+                        return true;
+                    }
                 }
 
+                if (!state.getItem('ArenaReview', false)) {
+                    if (arena.navigate_to_main()) {
+                        return true;
+                    }
+
+                    state.setItem('ArenaReview', true);
+                }
+
+                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', false);
                 return false;
             }
 
-            if (!record['days'] || record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready")) {
+            if (!record['days'] || record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
                 return false;
             }
 
@@ -18725,10 +18737,22 @@ caap = {
             }
 
             if (!arena.checkPage()) {
-                if (arena.navigate_to_main()) {
-                    return true;
+                if (state.getItem('ArenaRefresh', true)) {
+                    if (arena.navigate_to_main_refresh()) {
+                        return true;
+                    }
                 }
 
+                if (!state.getItem('ArenaReview', false)) {
+                    if (arena.navigate_to_main()) {
+                        return true;
+                    }
+
+                    state.setItem('ArenaReview', true);
+                }
+
+                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', false);
                 enterButton = $("input[src*='battle_enter_battle.gif']");
                 utility.log(1, "Enter battle", record, enterButton);
                 if (record['tokens'] > 0 && enterButton && enterButton.length) {
@@ -19637,21 +19661,22 @@ caap = {
                 return false;
             }
 
-
             if (state.getItem('ArenaRefresh', true)) {
                 if (arena.navigate_to_main_refresh()) {
                     return true;
                 }
             }
 
-            if (!state.getItem('ArenaRefresh', false)) {
+            if (!state.getItem('ArenaReview', false)) {
                 if (arena.navigate_to_main()) {
                     return true;
                 }
 
-                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', true);
             }
 
+            state.setItem('ArenaRefresh', true);
+            state.setItem('ArenaReview', false);
             utility.log(1, 'Done with Arena review.');
             return false;
         } catch (err) {
@@ -19679,15 +19704,6 @@ caap = {
                     return true;
                 }
             }
-
-            /*
-            if (!caap.stats['guild']['id']) {
-                utility.log(2, "Going to keep to get Guild Id");
-                if (utility.NavigateTo('keep')) {
-                    return true;
-                }
-            }
-            */
 
             var record = {},
                 url    = '',

@@ -231,7 +231,7 @@ arena = {
                 schedule.setItem("ArenaReview", arenaInfo['nextTime'].parseTimer(), 20);
             } else {
                 if (arenaInfo['tokenTime'] && arenaInfo['tokenTime'].parseTimer() && arenaInfo['state'] === 'Alive') {
-                    schedule.setItem("ArenaReview", arenaInfo['ticker'].parseTimer(), 20);
+                    schedule.setItem("ArenaReview", arenaInfo['tokenTime'].parseTimer(), 20);
                     utility.log(2, "Waiting Arena token in", arenaInfo['tokenTime']);
                 } else {
                     schedule.setItem("ArenaReview", gm.getItem('ArenaReviewMins', 5, hiddenVar) * 60, 120);
