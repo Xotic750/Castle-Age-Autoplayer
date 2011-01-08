@@ -28,6 +28,7 @@ arena = {
 
     minion: function () {
         this.data = {
+            'index'              : 0,
             'attacking_position' : 0,
             'target_id'          : 0,
             'name'               : '',
@@ -36,7 +37,9 @@ arena = {
             'healthNum'          : 0,
             'healthMax'          : 0,
             'status'             : '',
-            'percent'            : 0
+            'percent'            : 0,
+            'points'             : 0,
+            'lost'               : 0
         };
     },
 
@@ -216,9 +219,10 @@ arena = {
             tStr2 = tStr ? tStr.regex(/ Time Remaining: (\d+:\d+:\d+)/) : '';
             arenaInfo['nextTime'] = tStr2 ? tStr2 : '';
 
-            tStr = tStr ? tStr.regex(/Battle Starts In (\d+ .+?\()/) : '';
+            tStr = tStr ? tStr.regex(new RegExp("Battle Starts In (\\d+ .+?)\\(")) : '';
             tNum = tStr ? tStr.regex(/(\d+)/) : 0;
-            tStr = tStr ? tStr.regex(/\d+ (.+?)/) : 'sec';
+            tStr = tStr ? tStr.regex(new RegExp("\\d+ (.+)")) : 'sec';
+            utility.log(2, "startTime", tNum, tStr);
             if (tStr === 'sec') {
                 arenaInfo['startTime'] = tNum;
             } else if (tStr === 'min') {
@@ -226,7 +230,10 @@ arena = {
             }
 
             arena.setItem(arenaInfo);
-            if (arenaInfo['nextTime'] && arenaInfo['nextTime'].parseTimer() && arenaInfo['state'] === 'Ready') {
+            if (arenaInfo['startTime'] && arenaInfo['state'] === 'Ready') {
+                utility.log(2, "Arena starting in", arenaInfo['startTime']);
+                schedule.setItem("ArenaReview", arenaInfo['startTime'], 20);
+            } else if (arenaInfo['nextTime'] && arenaInfo['nextTime'].parseTimer() < 3600 && arenaInfo['state'] === 'Ready') {
                 utility.log(2, "Waiting Arena start in", arenaInfo['nextTime']);
                 schedule.setItem("ArenaReview", arenaInfo['nextTime'].parseTimer(), 20);
             } else {
@@ -261,23 +268,38 @@ arena = {
                 collect       = false,
                 myStatsTxt    = '',
                 myStatsArr    = [],
-                slot          = 0,
+                index         = 0,
                 currentRecord = {},
+                minions       = [],
                 tStr          = '',
+                lastAttacked  = -1,
                 minionRegEx   = new RegExp("(.*) Level: (\\d+) Class: (.*) Health: (\\d+)/(\\d+) Status: (.*) Arena Activity Points: (\\d+)");
+
+            currentRecord = arena.getItem();
+            lastAttacked = state.getItem('ArenaMinionAttacked', -1);
+            state.setItem('ArenaMinionAttacked', -1);
+            if (lastAttacked >= 0 && lastAttacked < 40) {
+                if ($("img[src*='battle_defeat.gif']").length) {
+                    currentRecord['minions'][lastAttacked]['lost'] += 1;
+                    utility.log(2, "Defeated by minion", lastAttacked, currentRecord['minions'][lastAttacked]);
+                    arena.setItem(currentRecord);
+                }
+            }
 
             bannerDiv = $("#app46755028429_arena_battle_banner_section");
             myStatsTxt = bannerDiv.text();
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
             utility.log(3, "myStatsTxt", myStatsTxt);
             if (bannerDiv && bannerDiv.length) {
-                currentRecord = arena.getItem();
-                currentRecord['minions'] = [];
                 currentRecord['teamHealth'] = 0;
                 currentRecord['enemyHealth'] = 0;
                 tStr = bannerDiv.text();
                 tStr = tStr ? tStr.trim().innerTrim() : '';
-                if (!tStr.regex(/(This Arena Battle Is Over)/) && !$("input[src*='arena3_collectbutton.gif']").length  && !$("input[src*='guild_enter_battle_button.gif']").length) {
+                if (tStr.regex(/(You Are Not A Part Of This Arena Battle)/)) {
+                    return true;
+                }
+
+                if (!tStr.regex(/(This Battle Has Not Started Yet)/) && !tStr.regex(/(This Arena Battle Is Over)/) && !$("input[src*='arena3_collectbutton.gif']").length  && !$("input[src*='guild_enter_battle_button.gif']").length) {
                     currentRecord['state'] = 'Alive';
                     tStr = $("span[id='app46755028429_monsterTicker']").text();
                     currentRecord['ticker'] = tStr ? tStr.trim() : '';
@@ -285,7 +307,7 @@ arena = {
                         utility.log(3, "myStatsTxt", myStatsTxt);
                         myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Arena Activity Points: (\\d+)"));
                         if (myStatsArr && myStatsArr.length === 8) {
-                            utility.log(2, "myStatsArr", myStatsArr);
+                            utility.log(3, "myStatsArr", myStatsArr);
                             currentRecord['damage'] = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
                             currentRecord['myStatus'] = myStatsArr[6] ? myStatsArr[6].trim() : '';
                         } else {
@@ -340,14 +362,15 @@ arena = {
                                         targetIdDiv  = $(),
                                         memberRecord = new arena.minion().data;
 
-                                    memberRecord['attacking_position'] = (gIndex + 1);
+                                    memberRecord['index'] = index;
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
-                                        memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
+                                        memberRecord['target_id'] =  targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
                                     }
 
+                                    memberRecord['attacking_position'] = (gIndex + 1);
                                     memberText = member.children().eq(1).text();
                                     memberText = memberText ? memberText.trim().innerTrim() : '';
                                     utility.log(3, "memberText", memberText);
@@ -357,14 +380,23 @@ arena = {
                                         memberRecord['level'] = memberArr[2] ? memberArr[2].parseInt() : 0;
                                         memberRecord['mclass'] = memberArr[3] ? memberArr[3] : '';
                                         memberRecord['healthNum'] = memberArr[4] ? memberArr[4].parseInt() : 0;
-                                        memberRecord['healthMax'] = memberArr[5] ? memberArr[5].parseInt() : 1;
+                                        memberRecord['healthMax'] = memberArr[5] ? memberArr[5].parseInt() : 0;
                                         memberRecord['status'] = memberArr[6] ? memberArr[6] : '';
-                                        memberRecord['percent'] = ((memberRecord['healthNum'] / memberRecord['healthMax']) * 100).dp(2);
+                                        memberRecord['points'] = memberArr[7] ? memberArr[7].parseInt() : 0;
+                                        memberRecord['percent'] = ((memberRecord['healthNum'] / (memberRecord['healthMax'] ? memberRecord['healthMax'] : 1)) * 100).dp(2);
                                     } else {
                                         utility.warn("Minion match issue!", memberArr);
                                     }
 
-                                    currentRecord['minions'].push(memberRecord);
+                                    if (currentRecord['minions'] && currentRecord['minions'].length === 40) {
+                                        if (currentRecord['minions'][index]['index'] === index) {
+                                            memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : 0;
+                                        } else {
+                                            utility.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
+                                        }
+                                    }
+
+                                    index = minions.push(memberRecord);
                                 });
                             }
                         });
@@ -374,31 +406,22 @@ arena = {
                     if (collectDiv && collectDiv.length) {
                         utility.log(1, "Battle ready to collect");
                         currentRecord['state'] = 'Collect';
-                        currentRecord['myStatus'] = '';
-                        currentRecord['damage'] = 0;
-                        currentRecord['minions'] = [];
-                        currentRecord['teamHealth'] = 0;
-                        currentRecord['enemyHealth'] = 0;
                         collect = true;
                     } else if (!$("input[src*='guild_enter_battle_button.gif']").length && currentRecord['state'] !== 'Ready') {
                         utility.log(1, "Battle is completed");
                         currentRecord['state'] = 'Completed';
-                        currentRecord['myStatus'] = '';
-                        currentRecord['damage'] = 0;
-                        currentRecord['minions'] = [];
-                        currentRecord['teamHealth'] = 0;
-                        currentRecord['enemyHealth'] = 0;
                     } else {
                         utility.log(1, "Battle is ready to join");
                         currentRecord['state'] = 'Ready';
-                        currentRecord['myStatus'] = '';
-                        currentRecord['damage'] = 0;
-                        currentRecord['minions'] = [];
-                        currentRecord['teamHealth'] = 0;
-                        currentRecord['enemyHealth'] = 0;
                     }
+
+                    currentRecord['myStatus'] = '';
+                    currentRecord['damage'] = 0;
+                    currentRecord['teamHealth'] = 0;
+                    currentRecord['enemyHealth'] = 0;
                 }
 
+                currentRecord['minions'] = minions.slice();
                 currentRecord['reviewed'] = new Date().getTime();
                 utility.log(2, "currentRecord", currentRecord);
                 arena.setItem(currentRecord);
@@ -411,7 +434,7 @@ arena = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in arena.onMonster: " + err);
+            utility.error("ERROR in arena.onBattle: " + err);
             return false;
         }
     },
@@ -427,44 +450,180 @@ arena = {
 
     getTargetMinion: function (record) {
         try {
-            var it              = 0,
-                len             = 0,
-                first           = {},
-                minion          = {};
+            var it            = 0,
+                first         = {},
+                activeCleric  = false,
+                firstCleric   = {},
+                activeMage    = false,
+                firstMage     = {},
+                activeRogue   = false,
+                firstRogue    = {},
+                activeWarrior = false,
+                firstWarrior  = {},
+                minion        = {};
 
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
             for (it = record['minions'].length - 1; it >= 0; it -= 1) {
-                if (record['minions'][it]['status'] === 'Stunned') {
+                var cm = {};
+
+                cm = record['minions'][it];
+                if (cm['status'] === 'Stunned') {
+                    utility.log(3, "Skipping stunned minion", cm);
+                    continue;
+                }
+
+                if (cm['lost']) {
+                    utility.log(2, "Skipping minion we lost to", cm);
                     continue;
                 }
 
                 if (!first || !$.isPlainObject(first) || $.isEmptyObject(first)) {
-                    first = record['minions'][it];
-                } else {
-                    if (record['minions'][it]['level'] <= first['level']  && record['minions'][it]['healthNum'] < first['healthNum']) {
-                        first = record['minions'][it];
-                    }
-                }
-
-                if (record['minions'][it]['level'] > caap.stats['level']) {
+                    utility.log(3, "First minion alive", cm);
+                    first = cm;
                     continue;
                 }
 
-                minion = record['minions'][it];
-                break;
-            }
+                switch (cm['mclass']) {
+                case 'Cleric':
+                    if (cm['points']) {
+                        activeCleric = true;
+                        if ($.isEmptyObject(firstCleric)) {
+                            utility.log(2, "First active Cleric", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
 
-            if (!minion || !$.isPlainObject(minion) || $.isEmptyObject(minion)) {
-                utility.log(2, "Using first minion", first);
-                if (first && $.isPlainObject(first) && !$.isEmptyObject(first)) {
-                    minion = first;
+                        if (cm['healthNum'] < firstCleric['healthNum']) {
+                            utility.log(2, "Active Cleric with less health", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstCleric)) {
+                            utility.log(2, "First Cleric", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
+
+                        if (!activeCleric && cm['healthNum'] < firstCleric['healthNum']) {
+                            utility.log(2, "Cleric with less health", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                case 'Mage':
+                    if (cm['points']) {
+                        activeMage = true;
+                        if ($.isEmptyObject(firstMage) && cm['healthNum'] > 200) {
+                            utility.log(2, "First active Mage", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+
+                        if (cm['healthNum'] < firstMage['healthNum']) {
+                            utility.log(2, "Active Mage with less health", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstMage)) {
+                            utility.log(2, "First Mage", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+
+                        if (!activeMage && cm['healthNum'] < firstMage['healthNum']) {
+                            utility.log(2, "Mage with less health", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                case 'Rogue':
+                    if (cm['points']) {
+                        activeRogue = true;
+                        if ($.isEmptyObject(firstRogue) && cm['healthNum'] > 200) {
+                            utility.log(2, "First active Rogue", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+
+                        if (cm['healthNum'] < firstRogue['healthNum']) {
+                            utility.log(2, "Active Rogue with less health", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstRogue)) {
+                            utility.log(2, "First Rogue", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+
+                        if (!activeRogue && cm['healthNum'] < firstRogue['healthNum']) {
+                            utility.log(2, "Rogue with less health", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                case 'Warrior':
+                    if (cm['points']) {
+                        activeWarrior = true;
+                        if ($.isEmptyObject(firstWarrior) && cm['healthNum'] > 200) {
+                            utility.log(2, "First active Warrior", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+
+                        if (cm['healthNum'] < firstWarrior['healthNum']) {
+                            utility.log(2, "Active Warrior with less health", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstWarrior)) {
+                            utility.log(2, "First Warrior", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+
+                        if (!activeWarrior && cm['healthNum'] < firstWarrior['healthNum']) {
+                            utility.log(2, "Warrior with less health", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                default:
                 }
             }
 
-            utility.log(2, "Target minion", minion);
+            if (!$.isEmptyObject(firstCleric)) {
+                minion = firstCleric;
+                utility.log(2, "Target Cleric", minion);
+            } else if (!$.isEmptyObject(firstMage)) {
+                minion = firstMage;
+                utility.log(2, "Target Mage", minion);
+            } else if (!$.isEmptyObject(firstRogue)) {
+                minion = firstRogue;
+                utility.log(2, "Target Rogue", minion);
+            } else if (!$.isEmptyObject(firstWarrior)) {
+                minion = firstWarrior;
+                utility.log(2, "Target Warrior", minion);
+            } else {
+                minion = first;
+                utility.log(2, "Target first alive", minion);
+            }
+
             return minion;
         } catch (err) {
             utility.error("ERROR in arena.getTargetMinion: " + err, arguments.callee.caller);

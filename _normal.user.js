@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            26
+// @dev            27
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -31,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "26",
+    devVersion    = "27",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -130,22 +130,22 @@ Number.prototype.numberOnly = function () {
 };
 */
 
-String.prototype.parseTimer = function() {
-        var a = [],
-            b = 0,
-            i = 0,
-            l = 0;
+String.prototype.parseTimer = function () {
+    var a = [],
+        b = 0,
+        i = 0,
+        l = 0;
 
-        a = this.split(':');
-        for (i = 0, l = a.length; i < l; i += 1) {
-            b = b * 60 + parseInt(a[i], 10);
-        }
+    a = this.split(':');
+    for (i = 0, l = a.length; i < l; i += 1) {
+        b = b * 60 + parseInt(a[i], 10);
+    }
 
-        if (isNaN(b)) {
-            b = -1;
-        }
+    if (isNaN(b)) {
+        b = -1;
+    }
 
-        return b;
+    return b;
 };
 
 String.prototype.removeHtmlJunk = function () {
@@ -6858,6 +6858,7 @@ arena = {
 
     minion: function () {
         this.data = {
+            'index'              : 0,
             'attacking_position' : 0,
             'target_id'          : 0,
             'name'               : '',
@@ -6866,7 +6867,9 @@ arena = {
             'healthNum'          : 0,
             'healthMax'          : 0,
             'status'             : '',
-            'percent'            : 0
+            'percent'            : 0,
+            'points'             : 0,
+            'lost'               : 0
         };
     },
 
@@ -7046,9 +7049,10 @@ arena = {
             tStr2 = tStr ? tStr.regex(/ Time Remaining: (\d+:\d+:\d+)/) : '';
             arenaInfo['nextTime'] = tStr2 ? tStr2 : '';
 
-            tStr = tStr ? tStr.regex(/Battle Starts In (\d+ .+?\()/) : '';
+            tStr = tStr ? tStr.regex(new RegExp("Battle Starts In (\\d+ .+?)\\(")) : '';
             tNum = tStr ? tStr.regex(/(\d+)/) : 0;
-            tStr = tStr ? tStr.regex(/\d+ (.+?)/) : 'sec';
+            tStr = tStr ? tStr.regex(new RegExp("\\d+ (.+)")) : 'sec';
+            utility.log(2, "startTime", tNum, tStr);
             if (tStr === 'sec') {
                 arenaInfo['startTime'] = tNum;
             } else if (tStr === 'min') {
@@ -7056,7 +7060,10 @@ arena = {
             }
 
             arena.setItem(arenaInfo);
-            if (arenaInfo['nextTime'] && arenaInfo['nextTime'].parseTimer() && arenaInfo['state'] === 'Ready') {
+            if (arenaInfo['startTime'] && arenaInfo['state'] === 'Ready') {
+                utility.log(2, "Arena starting in", arenaInfo['startTime']);
+                schedule.setItem("ArenaReview", arenaInfo['startTime'], 20);
+            } else if (arenaInfo['nextTime'] && arenaInfo['nextTime'].parseTimer() < 3600 && arenaInfo['state'] === 'Ready') {
                 utility.log(2, "Waiting Arena start in", arenaInfo['nextTime']);
                 schedule.setItem("ArenaReview", arenaInfo['nextTime'].parseTimer(), 20);
             } else {
@@ -7091,23 +7098,38 @@ arena = {
                 collect       = false,
                 myStatsTxt    = '',
                 myStatsArr    = [],
-                slot          = 0,
+                index         = 0,
                 currentRecord = {},
+                minions       = [],
                 tStr          = '',
+                lastAttacked  = -1,
                 minionRegEx   = new RegExp("(.*) Level: (\\d+) Class: (.*) Health: (\\d+)/(\\d+) Status: (.*) Arena Activity Points: (\\d+)");
+
+            currentRecord = arena.getItem();
+            lastAttacked = state.getItem('ArenaMinionAttacked', -1);
+            state.setItem('ArenaMinionAttacked', -1);
+            if (lastAttacked >= 0 && lastAttacked < 40) {
+                if ($("img[src*='battle_defeat.gif']").length) {
+                    currentRecord['minions'][lastAttacked]['lost'] += 1;
+                    utility.log(2, "Defeated by minion", lastAttacked, currentRecord['minions'][lastAttacked]);
+                    arena.setItem(currentRecord);
+                }
+            }
 
             bannerDiv = $("#app46755028429_arena_battle_banner_section");
             myStatsTxt = bannerDiv.text();
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
             utility.log(3, "myStatsTxt", myStatsTxt);
             if (bannerDiv && bannerDiv.length) {
-                currentRecord = arena.getItem();
-                currentRecord['minions'] = [];
                 currentRecord['teamHealth'] = 0;
                 currentRecord['enemyHealth'] = 0;
                 tStr = bannerDiv.text();
                 tStr = tStr ? tStr.trim().innerTrim() : '';
-                if (!tStr.regex(/(This Arena Battle Is Over)/) && !$("input[src*='arena3_collectbutton.gif']").length  && !$("input[src*='guild_enter_battle_button.gif']").length) {
+                if (tStr.regex(/(You Are Not A Part Of This Arena Battle)/)) {
+                    return true;
+                }
+
+                if (!tStr.regex(/(This Battle Has Not Started Yet)/) && !tStr.regex(/(This Arena Battle Is Over)/) && !$("input[src*='arena3_collectbutton.gif']").length  && !$("input[src*='guild_enter_battle_button.gif']").length) {
                     currentRecord['state'] = 'Alive';
                     tStr = $("span[id='app46755028429_monsterTicker']").text();
                     currentRecord['ticker'] = tStr ? tStr.trim() : '';
@@ -7115,7 +7137,7 @@ arena = {
                         utility.log(3, "myStatsTxt", myStatsTxt);
                         myStatsArr = myStatsTxt.match(new RegExp("(.+) Level: (\\d+) Class: (.+) Health: (\\d+)/(\\d+).+Status: (.+) Arena Activity Points: (\\d+)"));
                         if (myStatsArr && myStatsArr.length === 8) {
-                            utility.log(2, "myStatsArr", myStatsArr);
+                            utility.log(3, "myStatsArr", myStatsArr);
                             currentRecord['damage'] = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
                             currentRecord['myStatus'] = myStatsArr[6] ? myStatsArr[6].trim() : '';
                         } else {
@@ -7170,14 +7192,15 @@ arena = {
                                         targetIdDiv  = $(),
                                         memberRecord = new arena.minion().data;
 
-                                    memberRecord['attacking_position'] = (gIndex + 1);
+                                    memberRecord['index'] = index;
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
-                                        memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
+                                        memberRecord['target_id'] =  targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
                                     }
 
+                                    memberRecord['attacking_position'] = (gIndex + 1);
                                     memberText = member.children().eq(1).text();
                                     memberText = memberText ? memberText.trim().innerTrim() : '';
                                     utility.log(3, "memberText", memberText);
@@ -7187,14 +7210,23 @@ arena = {
                                         memberRecord['level'] = memberArr[2] ? memberArr[2].parseInt() : 0;
                                         memberRecord['mclass'] = memberArr[3] ? memberArr[3] : '';
                                         memberRecord['healthNum'] = memberArr[4] ? memberArr[4].parseInt() : 0;
-                                        memberRecord['healthMax'] = memberArr[5] ? memberArr[5].parseInt() : 1;
+                                        memberRecord['healthMax'] = memberArr[5] ? memberArr[5].parseInt() : 0;
                                         memberRecord['status'] = memberArr[6] ? memberArr[6] : '';
-                                        memberRecord['percent'] = ((memberRecord['healthNum'] / memberRecord['healthMax']) * 100).dp(2);
+                                        memberRecord['points'] = memberArr[7] ? memberArr[7].parseInt() : 0;
+                                        memberRecord['percent'] = ((memberRecord['healthNum'] / (memberRecord['healthMax'] ? memberRecord['healthMax'] : 1)) * 100).dp(2);
                                     } else {
                                         utility.warn("Minion match issue!", memberArr);
                                     }
 
-                                    currentRecord['minions'].push(memberRecord);
+                                    if (currentRecord['minions'] && currentRecord['minions'].length === 40) {
+                                        if (currentRecord['minions'][index]['index'] === index) {
+                                            memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : 0;
+                                        } else {
+                                            utility.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
+                                        }
+                                    }
+
+                                    index = minions.push(memberRecord);
                                 });
                             }
                         });
@@ -7204,31 +7236,22 @@ arena = {
                     if (collectDiv && collectDiv.length) {
                         utility.log(1, "Battle ready to collect");
                         currentRecord['state'] = 'Collect';
-                        currentRecord['myStatus'] = '';
-                        currentRecord['damage'] = 0;
-                        currentRecord['minions'] = [];
-                        currentRecord['teamHealth'] = 0;
-                        currentRecord['enemyHealth'] = 0;
                         collect = true;
                     } else if (!$("input[src*='guild_enter_battle_button.gif']").length && currentRecord['state'] !== 'Ready') {
                         utility.log(1, "Battle is completed");
                         currentRecord['state'] = 'Completed';
-                        currentRecord['myStatus'] = '';
-                        currentRecord['damage'] = 0;
-                        currentRecord['minions'] = [];
-                        currentRecord['teamHealth'] = 0;
-                        currentRecord['enemyHealth'] = 0;
                     } else {
                         utility.log(1, "Battle is ready to join");
                         currentRecord['state'] = 'Ready';
-                        currentRecord['myStatus'] = '';
-                        currentRecord['damage'] = 0;
-                        currentRecord['minions'] = [];
-                        currentRecord['teamHealth'] = 0;
-                        currentRecord['enemyHealth'] = 0;
                     }
+
+                    currentRecord['myStatus'] = '';
+                    currentRecord['damage'] = 0;
+                    currentRecord['teamHealth'] = 0;
+                    currentRecord['enemyHealth'] = 0;
                 }
 
+                currentRecord['minions'] = minions.slice();
                 currentRecord['reviewed'] = new Date().getTime();
                 utility.log(2, "currentRecord", currentRecord);
                 arena.setItem(currentRecord);
@@ -7241,7 +7264,7 @@ arena = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in arena.onMonster: " + err);
+            utility.error("ERROR in arena.onBattle: " + err);
             return false;
         }
     },
@@ -7257,44 +7280,180 @@ arena = {
 
     getTargetMinion: function (record) {
         try {
-            var it              = 0,
-                len             = 0,
-                first           = {},
-                minion          = {};
+            var it            = 0,
+                first         = {},
+                activeCleric  = false,
+                firstCleric   = {},
+                activeMage    = false,
+                firstMage     = {},
+                activeRogue   = false,
+                firstRogue    = {},
+                activeWarrior = false,
+                firstWarrior  = {},
+                minion        = {};
 
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
             for (it = record['minions'].length - 1; it >= 0; it -= 1) {
-                if (record['minions'][it]['status'] === 'Stunned') {
+                var cm = {};
+
+                cm = record['minions'][it];
+                if (cm['status'] === 'Stunned') {
+                    utility.log(3, "Skipping stunned minion", cm);
+                    continue;
+                }
+
+                if (cm['lost']) {
+                    utility.log(2, "Skipping minion we lost to", cm);
                     continue;
                 }
 
                 if (!first || !$.isPlainObject(first) || $.isEmptyObject(first)) {
-                    first = record['minions'][it];
-                } else {
-                    if (record['minions'][it]['level'] <= first['level']  && record['minions'][it]['healthNum'] < first['healthNum']) {
-                        first = record['minions'][it];
-                    }
-                }
-
-                if (record['minions'][it]['level'] > caap.stats['level']) {
+                    utility.log(3, "First minion alive", cm);
+                    first = cm;
                     continue;
                 }
 
-                minion = record['minions'][it];
-                break;
-            }
+                switch (cm['mclass']) {
+                case 'Cleric':
+                    if (cm['points']) {
+                        activeCleric = true;
+                        if ($.isEmptyObject(firstCleric)) {
+                            utility.log(2, "First active Cleric", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
 
-            if (!minion || !$.isPlainObject(minion) || $.isEmptyObject(minion)) {
-                utility.log(2, "Using first minion", first);
-                if (first && $.isPlainObject(first) && !$.isEmptyObject(first)) {
-                    minion = first;
+                        if (cm['healthNum'] < firstCleric['healthNum']) {
+                            utility.log(2, "Active Cleric with less health", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstCleric)) {
+                            utility.log(2, "First Cleric", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
+
+                        if (!activeCleric && cm['healthNum'] < firstCleric['healthNum']) {
+                            utility.log(2, "Cleric with less health", cm);
+                            firstCleric = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                case 'Mage':
+                    if (cm['points']) {
+                        activeMage = true;
+                        if ($.isEmptyObject(firstMage) && cm['healthNum'] > 200) {
+                            utility.log(2, "First active Mage", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+
+                        if (cm['healthNum'] < firstMage['healthNum']) {
+                            utility.log(2, "Active Mage with less health", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstMage)) {
+                            utility.log(2, "First Mage", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+
+                        if (!activeMage && cm['healthNum'] < firstMage['healthNum']) {
+                            utility.log(2, "Mage with less health", cm);
+                            firstMage = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                case 'Rogue':
+                    if (cm['points']) {
+                        activeRogue = true;
+                        if ($.isEmptyObject(firstRogue) && cm['healthNum'] > 200) {
+                            utility.log(2, "First active Rogue", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+
+                        if (cm['healthNum'] < firstRogue['healthNum']) {
+                            utility.log(2, "Active Rogue with less health", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstRogue)) {
+                            utility.log(2, "First Rogue", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+
+                        if (!activeRogue && cm['healthNum'] < firstRogue['healthNum']) {
+                            utility.log(2, "Rogue with less health", cm);
+                            firstRogue = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                case 'Warrior':
+                    if (cm['points']) {
+                        activeWarrior = true;
+                        if ($.isEmptyObject(firstWarrior) && cm['healthNum'] > 200) {
+                            utility.log(2, "First active Warrior", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+
+                        if (cm['healthNum'] < firstWarrior['healthNum']) {
+                            utility.log(2, "Active Warrior with less health", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+                    } else {
+                        if ($.isEmptyObject(firstWarrior)) {
+                            utility.log(2, "First Warrior", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+
+                        if (!activeWarrior && cm['healthNum'] < firstWarrior['healthNum']) {
+                            utility.log(2, "Warrior with less health", cm);
+                            firstWarrior = cm;
+                            continue;
+                        }
+                    }
+
+                    break;
+                default:
                 }
             }
 
-            utility.log(2, "Target minion", minion);
+            if (!$.isEmptyObject(firstCleric)) {
+                minion = firstCleric;
+                utility.log(2, "Target Cleric", minion);
+            } else if (!$.isEmptyObject(firstMage)) {
+                minion = firstMage;
+                utility.log(2, "Target Mage", minion);
+            } else if (!$.isEmptyObject(firstRogue)) {
+                minion = firstRogue;
+                utility.log(2, "Target Rogue", minion);
+            } else if (!$.isEmptyObject(firstWarrior)) {
+                minion = firstWarrior;
+                utility.log(2, "Target Warrior", minion);
+            } else {
+                minion = first;
+                utility.log(2, "Target first alive", minion);
+            }
+
             return minion;
         } catch (err) {
             utility.error("ERROR in arena.getTargetMinion: " + err, arguments.callee.caller);
@@ -10491,7 +10650,11 @@ army = {
                                 pages   = $(),
                                 search  = $(),
                                 tStr    = '',
-                                pCount  = 0;
+                                tTxt    = '',
+                                tNum    = 0,
+                                pCount  = 0,
+                                it      = 0,
+                                record  = {};
 
                             jData = $(data);
                             if (number === 1) {
@@ -10506,13 +10669,10 @@ army = {
 
                             search = jData.find("a[href*='comments.php?casuser=']");
                             search.each(function () {
-                                var record = new army.record(),
-                                    el     = $(this),
-                                    tStr1  = '',
-                                    tNum   = 0,
-                                    tTxt   = '',
-                                    it     = 0;
+                                var el    = $(this),
+                                    tStr1 = '';
 
+                                record = new army.record();
                                 tStr1 = el.attr("href");
                                 tNum = tStr1.regex(/casuser=(\d+)/);
                                 record.data['userId'] = tNum ? tNum : 0;
@@ -14442,6 +14602,7 @@ caap = {
                 monster.flagReview();
                 break;
             case "StatSpendAll" :
+                utility.log(9, "StatSpendAll");
                 state.setItem("statsMatch", true);
                 state.setItem("autoStatRuleLog", true);
                 break;
@@ -14905,7 +15066,7 @@ caap = {
 
         butArr = $(event.target).parents("form").eq(0).attr("onsubmit").match(buttonRegExp);
         if (butArr && butArr.length === 2) {
-            utility.log(4, "duel", butArr[1]);
+            utility.log(2, "duel", butArr[1]);
             state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + butArr[1]);
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
@@ -15043,12 +15204,17 @@ caap = {
                 globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
             }
 
+            if (globalContainer.find("#app46755028429_arena_battle_banner_section").length) {
+                globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+            }
+
             if (globalContainer.find("#app46755028429_guild_battle_banner_section").length) {
                 globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
             }
 
             globalContainer.bind('DOMNodeInserted', function (event) {
                 var targetStr = event.target.id.replace('app46755028429_', ''),
+                    tTxt      = $(event.target).text(),
                     payTimer  = null,
                     energy    = 0,
                     tempE     = null,
@@ -15097,14 +15263,23 @@ caap = {
                     }
 
                     break;
+                case "arena":
+                    utility.log(2, "battle_enter_battle");
+                    globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+
+                    break;
+                case "arena_battle":
+                    utility.log(2, "monster_duel_button");
+                    globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+
+                    break;
                 case "guild_battle_monster":
                     utility.log(2, "Checking Guild Battles Monster");
                     globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
 
                     break;
                 case "gold_time_value":
-                    tStr = $(event.target).text();
-                    payTimer = tStr ? tStr.match(/(\d+):(\d+)/) : [];
+                    payTimer = tTxt ? tTxt.match(/(\d+):(\d+)/) : [];
                     if (payTimer && payTimer.length === 3) {
                         caap.stats['gold']['payTime']['ticker'] = payTimer[0];
                         caap.stats['gold']['payTime']['minutes'] = payTimer[1] ? payTimer[1].parseInt() : 0;
@@ -15113,7 +15288,7 @@ caap = {
 
                     break;
                 case "energy_current_value":
-                    tStr = $(event.target).text();
+                    energy = tTxt ? tTxt.parseInt() : 0;
                     if (utility.isNum(energy)) {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats['energy']['max']);
                         tempET = caap.GetStatusNumbers(energy + "/" + caap.stats['energyT']['max']);
@@ -15127,8 +15302,7 @@ caap = {
 
                     break;
                 case "health_current_value":
-                    tStr = $(event.target).text();
-                    health = tStr ? tStr.parseInt() : 0;
+                    health = tTxt ? tTxt.parseInt() : 0;
                     if (utility.isNum(health)) {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats['health']['max']);
                         tempHT = caap.GetStatusNumbers(health + "/" + caap.stats['healthT']['max']);
@@ -15142,8 +15316,7 @@ caap = {
 
                     break;
                 case "stamina_current_value":
-                    tStr = $(event.target).text();
-                    stamina = tStr ? tStr.parseInt() : 0;
+                    stamina = tTxt ? tTxt.parseInt() : 0;
                     if (utility.isNum(stamina)) {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats['stamina']['max']);
                         tempST = caap.GetStatusNumbers(stamina + "/" + caap.stats['staminaT']['max']);
@@ -15157,10 +15330,11 @@ caap = {
 
                     break;
                 default:
-                    // Reposition the dashboard
-                    if (event.target.id === caap.dashboardXY.selector) {
-                        caap.caapTopObject.css('left', caap.GetDashboardXY().x + 'px');
-                    }
+                }
+
+                // Reposition the dashboard
+                if (event.target.id === caap.dashboardXY.selector) {
+                    caap.caapTopObject.css('left', caap.GetDashboardXY().x + 'px');
                 }
             });
 
@@ -18707,7 +18881,7 @@ caap = {
 
             caap.SetDivContent('arena_mess', '');
             record = arena.getItem();
-            if (!record || !$.isPlainObject(record) || $.isEmptyObject(record)) {
+            if (!record || !$.isPlainObject(record) || $.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                 if (state.getItem('ArenaRefresh', true)) {
                     if (arena.navigate_to_main_refresh()) {
                         return true;
@@ -18724,6 +18898,7 @@ caap = {
 
                 state.setItem('ArenaRefresh', true);
                 state.setItem('ArenaReview', false);
+                state.setItem('ArenaJoined', false);
                 return false;
             }
 
@@ -18759,14 +18934,13 @@ caap = {
                     utility.Click(enterButton.get(0));
                     return true;
                 }
-
-                return true;
             }
 
             enterButton = $("input[src*='guild_enter_battle_button.gif']");
             if (enterButton && enterButton.length) {
                 utility.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
                 if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
+                    state.setItem('ArenaJoined', true);
                     utility.Click(enterButton.get(0));
                     return true;
                 }
@@ -18786,6 +18960,7 @@ caap = {
                 if (key && key.length) {
                     form = key.parents("form").eq(0);
                     if (form && form.length) {
+                        state.setItem('ArenaMinionAttacked', minion['index']);
                         utility.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
                         return true;
                     }
@@ -21157,6 +21332,8 @@ caap = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     CheckResults_index: function (resultsText) {
         if (config.getItem('NewsSummary', true)) {
             caap.News();
@@ -21194,6 +21371,7 @@ caap = {
             utility.log(2, 'arenaInfo', arenaInfo);
         }
     },
+    /*jslint sub: false */
 
     CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
@@ -21476,8 +21654,8 @@ caap = {
                     value = caap.stats[attribute]['num'];
                 }
 
-                if ((attribute === 'stamina') && (caap.stats['points']['skill'] < 2)) {
-                    if (config.getItem("StatSpendAll", false) || attrAdjust > value) {
+                if (attribute === 'stamina' && caap.stats['points']['skill'] < 2) {
+                    if (config.getItem("StatSpendAll", false) && attrAdjust > value) {
                         continue;
                     } else {
                         passed = false;

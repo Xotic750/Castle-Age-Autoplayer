@@ -3777,6 +3777,7 @@ caap = {
                 monster.flagReview();
                 break;
             case "StatSpendAll" :
+                utility.log(9, "StatSpendAll");
                 state.setItem("statsMatch", true);
                 state.setItem("autoStatRuleLog", true);
                 break;
@@ -4240,7 +4241,7 @@ caap = {
 
         butArr = $(event.target).parents("form").eq(0).attr("onsubmit").match(buttonRegExp);
         if (butArr && butArr.length === 2) {
-            utility.log(4, "duel", butArr[1]);
+            utility.log(2, "duel", butArr[1]);
             state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + butArr[1]);
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
@@ -4378,12 +4379,17 @@ caap = {
                 globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
             }
 
+            if (globalContainer.find("#app46755028429_arena_battle_banner_section").length) {
+                globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+            }
+
             if (globalContainer.find("#app46755028429_guild_battle_banner_section").length) {
                 globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
             }
 
             globalContainer.bind('DOMNodeInserted', function (event) {
                 var targetStr = event.target.id.replace('app46755028429_', ''),
+                    tTxt      = $(event.target).text(),
                     payTimer  = null,
                     energy    = 0,
                     tempE     = null,
@@ -4432,14 +4438,23 @@ caap = {
                     }
 
                     break;
+                case "arena":
+                    utility.log(2, "battle_enter_battle");
+                    globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+
+                    break;
+                case "arena_battle":
+                    utility.log(2, "monster_duel_button");
+                    globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+
+                    break;
                 case "guild_battle_monster":
                     utility.log(2, "Checking Guild Battles Monster");
                     globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
 
                     break;
                 case "gold_time_value":
-                    tStr = $(event.target).text();
-                    payTimer = tStr ? tStr.match(/(\d+):(\d+)/) : [];
+                    payTimer = tTxt ? tTxt.match(/(\d+):(\d+)/) : [];
                     if (payTimer && payTimer.length === 3) {
                         caap.stats['gold']['payTime']['ticker'] = payTimer[0];
                         caap.stats['gold']['payTime']['minutes'] = payTimer[1] ? payTimer[1].parseInt() : 0;
@@ -4448,7 +4463,7 @@ caap = {
 
                     break;
                 case "energy_current_value":
-                    tStr = $(event.target).text();
+                    energy = tTxt ? tTxt.parseInt() : 0;
                     if (utility.isNum(energy)) {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats['energy']['max']);
                         tempET = caap.GetStatusNumbers(energy + "/" + caap.stats['energyT']['max']);
@@ -4462,8 +4477,7 @@ caap = {
 
                     break;
                 case "health_current_value":
-                    tStr = $(event.target).text();
-                    health = tStr ? tStr.parseInt() : 0;
+                    health = tTxt ? tTxt.parseInt() : 0;
                     if (utility.isNum(health)) {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats['health']['max']);
                         tempHT = caap.GetStatusNumbers(health + "/" + caap.stats['healthT']['max']);
@@ -4477,8 +4491,7 @@ caap = {
 
                     break;
                 case "stamina_current_value":
-                    tStr = $(event.target).text();
-                    stamina = tStr ? tStr.parseInt() : 0;
+                    stamina = tTxt ? tTxt.parseInt() : 0;
                     if (utility.isNum(stamina)) {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats['stamina']['max']);
                         tempST = caap.GetStatusNumbers(stamina + "/" + caap.stats['staminaT']['max']);
@@ -4492,10 +4505,11 @@ caap = {
 
                     break;
                 default:
-                    // Reposition the dashboard
-                    if (event.target.id === caap.dashboardXY.selector) {
-                        caap.caapTopObject.css('left', caap.GetDashboardXY().x + 'px');
-                    }
+                }
+
+                // Reposition the dashboard
+                if (event.target.id === caap.dashboardXY.selector) {
+                    caap.caapTopObject.css('left', caap.GetDashboardXY().x + 'px');
                 }
             });
 
@@ -8042,7 +8056,7 @@ caap = {
 
             caap.SetDivContent('arena_mess', '');
             record = arena.getItem();
-            if (!record || !$.isPlainObject(record) || $.isEmptyObject(record)) {
+            if (!record || !$.isPlainObject(record) || $.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                 if (state.getItem('ArenaRefresh', true)) {
                     if (arena.navigate_to_main_refresh()) {
                         return true;
@@ -8059,6 +8073,7 @@ caap = {
 
                 state.setItem('ArenaRefresh', true);
                 state.setItem('ArenaReview', false);
+                state.setItem('ArenaJoined', false);
                 return false;
             }
 
@@ -8094,14 +8109,13 @@ caap = {
                     utility.Click(enterButton.get(0));
                     return true;
                 }
-
-                return true;
             }
 
             enterButton = $("input[src*='guild_enter_battle_button.gif']");
             if (enterButton && enterButton.length) {
                 utility.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
                 if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
+                    state.setItem('ArenaJoined', true);
                     utility.Click(enterButton.get(0));
                     return true;
                 }
@@ -8121,6 +8135,7 @@ caap = {
                 if (key && key.length) {
                     form = key.parents("form").eq(0);
                     if (form && form.length) {
+                        state.setItem('ArenaMinionAttacked', minion['index']);
                         utility.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
                         return true;
                     }
@@ -10492,6 +10507,8 @@ caap = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     CheckResults_index: function (resultsText) {
         if (config.getItem('NewsSummary', true)) {
             caap.News();
@@ -10529,6 +10546,7 @@ caap = {
             utility.log(2, 'arenaInfo', arenaInfo);
         }
     },
+    /*jslint sub: false */
 
     CheckResults_gift_accept: function (resultsText) {
         // Confirm gifts actually sent
@@ -10811,8 +10829,8 @@ caap = {
                     value = caap.stats[attribute]['num'];
                 }
 
-                if ((attribute === 'stamina') && (caap.stats['points']['skill'] < 2)) {
-                    if (config.getItem("StatSpendAll", false) || attrAdjust > value) {
+                if (attribute === 'stamina' && caap.stats['points']['skill'] < 2) {
+                    if (config.getItem("StatSpendAll", false) && attrAdjust > value) {
                         continue;
                     } else {
                         passed = false;

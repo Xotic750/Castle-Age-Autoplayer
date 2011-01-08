@@ -149,7 +149,11 @@ army = {
                                 pages   = $(),
                                 search  = $(),
                                 tStr    = '',
-                                pCount  = 0;
+                                tTxt    = '',
+                                tNum    = 0,
+                                pCount  = 0,
+                                it      = 0,
+                                record  = {};
 
                             jData = $(data);
                             if (number === 1) {
@@ -164,13 +168,10 @@ army = {
 
                             search = jData.find("a[href*='comments.php?casuser=']");
                             search.each(function () {
-                                var record = new army.record(),
-                                    el     = $(this),
-                                    tStr1  = '',
-                                    tNum   = 0,
-                                    tTxt   = '',
-                                    it     = 0;
+                                var el    = $(this),
+                                    tStr1 = '';
 
+                                record = new army.record();
                                 tStr1 = el.attr("href");
                                 tNum = tStr1.regex(/casuser=(\d+)/);
                                 record.data['userId'] = tNum ? tNum : 0;
