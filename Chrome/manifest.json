@@ -29,5 +29,5 @@
    "permissions": [ "tabs",
                     "http://apps.facebook.com/castle_age/*",
                     "https://apps.facebook.com/castle_age/*" ],
-   "version": "140.24.1.29"
+   "version": "140.24.1.30"
 }

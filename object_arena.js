@@ -23,7 +23,8 @@ arena = {
             'damage'      : 0,
             'myStatus'    : '',
             'state'       : '',
-            'wins'        : []
+            'wins'        : [],
+            'losses'      : []
         };
     },
 
@@ -40,8 +41,8 @@ arena = {
             'status'             : '',
             'percent'            : 0,
             'points'             : 0,
-            'won'                : 0,
-            'lost'               : 0,
+            'won'                : false,
+            'lost'               : false,
             'last_ap'            : 0
         };
     },
@@ -281,6 +282,83 @@ arena = {
             return false;
         }
     },
+
+    setLoss: function (records, userId) {
+        try {
+            if (!records || !$.isArray(records)) {
+                throw "Not passed records";
+            }
+
+            if (userId === '' || isNaN(userId) || userId < 1) {
+                utility.warn("userId", userId);
+                throw "Invalid identifying userId!";
+            }
+
+            if (records.indexOf(userId) >= 0) {
+                utility.log(3, "userId exists", userId, records);
+            } else {
+                records.push(userId);
+                utility.log(3, "Added userId", userId, records);
+            }
+
+            return records;
+        } catch (err) {
+            utility.error("ERROR in arena.setLoss: " + err, userId, records, arguments.callee.caller);
+            return false;
+        }
+    },
+
+    checkLoss: function (records, userId) {
+        try {
+            if (!records || !$.isArray(records)) {
+                throw "Not passed records";
+            }
+
+            if (userId === '' || isNaN(userId) || userId < 1) {
+                utility.warn("userId", userId);
+                throw "Invalid identifying userId!";
+            }
+
+            if (records.indexOf(userId) >= 0) {
+                utility.log(3, "userId exists", userId, records);
+                return true;
+            } else {
+                utility.log(3, "userId not exists", userId, records);
+                return false;
+            }
+        } catch (err) {
+            utility.error("ERROR in arena.checkLoss: " + err, userId, records, arguments.callee.caller);
+            return undefined;
+        }
+    },
+
+    delLoss: function (records, userId) {
+        try {
+            if (!records || !$.isArray(records)) {
+                throw "Not passed records";
+            }
+
+            if (userId === '' || isNaN(userId) || userId < 1) {
+                utility.warn("userId", userId);
+                throw "Invalid identifying userId!";
+            }
+
+            var it = -1;
+
+            it = records.indexOf(userId);
+            if (it >= 0) {
+                records.splice(it, 1);
+                utility.log(3, "Deleted loss", userId, records);
+                return records;
+            } else {
+                utility.log(3, "Unable to delete loss", userId, records);
+                return false;
+            }
+        } catch (err) {
+            utility.error("ERROR in arena.delLoss: " + err, userId, records, arguments.callee.caller);
+            return false;
+        }
+    },
     /*jslint sub: false */
 
     navigate_to_main: function () {
@@ -401,6 +479,7 @@ arena = {
                 tNum          = 0,
                 lastAttacked  = -1,
                 won           = {},
+                losses        = [],
                 wins          = [],
                 minionRegEx   = new RegExp("(.*) Level: (\\d+) Class: (.*) Health: (\\d+)/(\\d+) Status: (.*) Arena Activity Points: (\\d+)");
 
@@ -409,13 +488,19 @@ arena = {
                 currentRecord['wins'] = [];
             }
 
+            if (!currentRecord['losses']) {
+                currentRecord['losses'] = [];
+            }
+
             lastAttacked = state.getItem('ArenaMinionAttacked', -1);
             state.setItem('ArenaMinionAttacked', -1);
             if (lastAttacked >= 0 && lastAttacked < 40) {
                 if ($("img[src*='battle_defeat.gif']").length) {
-                    currentRecord['minions'][lastAttacked]['lost'] += 1;
+                    currentRecord['minions'][lastAttacked]['lost'] = true;
                     wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked]['target_id']);
                     currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                    losses = arena.setLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked]['target_id']);
+                    currentRecord['losses'] = losses ? losses : currentRecord['losses'];
                     arena.setItem(currentRecord);
                     utility.log(2, "Defeated by minion", lastAttacked, currentRecord['minions'][lastAttacked]);
                 } else {
@@ -431,6 +516,8 @@ arena = {
                             won.data['ap'] = currentRecord['minions'][lastAttacked]['last_ap'];
                             wins = arena.setWin(currentRecord['wins'], won.data);
                             currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                            losses = arena.delLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked]['target_id']);
+                            currentRecord['losses'] = losses ? losses : currentRecord['losses'];
                             arena.setItem(currentRecord);
                             utility.log(2, "Victory against minion", lastAttacked, currentRecord['minions'][lastAttacked]);
                         }
@@ -512,16 +599,22 @@ arena = {
                                         memberText   = '',
                                         memberArr    = [],
                                         targetIdDiv  = $(),
+                                        loss         = false,
                                         memberRecord = new arena.minion().data;
 
                                     memberRecord['index'] = index;
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
-                                        memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
+                                        memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 0;
                                         won = arena.getWin(currentRecord['wins'], memberRecord['target_id']);
                                         if (won) {
                                             memberRecord['won'] = true;
                                             memberRecord['last_ap'] = won['ap'] ? won['ap'] : 0;
+                                        }
+
+                                        loss = arena.checkLoss(currentRecord['losses'], memberRecord['target_id']);
+                                        if (typeof loss === 'boolean') {
+                                            memberRecord['lost'] = loss;
                                         }
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
@@ -547,7 +640,7 @@ arena = {
 
                                     if (currentRecord['minions'] && currentRecord['minions'].length === 40) {
                                         if (currentRecord['minions'][index]['index'] === index) {
-                                            memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : 0;
+                                            memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : false;
                                             memberRecord['last_ap'] = currentRecord['minions'][index]['last_ap'] ? currentRecord['minions'][index]['last_ap'] : 0;
                                         } else {
                                             utility.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
