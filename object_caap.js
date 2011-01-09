@@ -4247,42 +4247,17 @@ caap = {
     },
 
     arenaEngageListener: function (event) {
-        var butArr       = [],
-            buttonRegExp = new RegExp("'globalContainer', '(.*)'");
-
-        butArr = $(event.target).parent().attr("onclick").toString().match(buttonRegExp);
-        if (butArr && butArr.length === 2) {
-            utility.log(2, "engage", butArr[1]);
-            state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + butArr[1]);
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
-        }
+        utility.log(2, "engage arena_battle.php");
+        state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/arena_battle.php');
+        schedule.setItem('clickedOnSomething', 0);
+        caap.waitingForDomLoad = true;
     },
 
     guildMonsterEngageListener: function (event) {
-        var butArr       = [],
-            buttonRegExp = new RegExp("'globalContainer', '(.*)'");
-
-        butArr = $(event.target).parents("form").eq(0).attr("onsubmit").match(buttonRegExp);
-        if (butArr && butArr.length === 2) {
-            utility.log(2, "engage", butArr[1]);
-            state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + butArr[1]);
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
-        }
-    },
-
-    guildMonsterDuelListener: function (event) {
-        var butArr       = [],
-            buttonRegExp = new RegExp("'globalContainer', '(.*)'");
-
-        butArr = $(event.target).parents("form").eq(0).attr("onsubmit").match(buttonRegExp);
-        if (butArr && butArr.length === 2) {
-            utility.log(2, "duel", butArr[1]);
-            state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + butArr[1]);
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
-        }
+        utility.log(2, "engage guild_battle_monster.php");
+        state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/guild_battle_monster.php');
+        schedule.setItem('clickedOnSomething', 0);
+        caap.waitingForDomLoad = true;
     },
 
     windowResizeListener: function (e) {
@@ -4413,7 +4388,7 @@ caap = {
 
             if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
                 utility.log(2, "battle_enter_battle");
-                globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+                globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
             if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
@@ -4422,11 +4397,11 @@ caap = {
             }
 
             if (globalContainer.find("#app46755028429_arena_battle_banner_section").length) {
-                globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+                globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
             if (globalContainer.find("#app46755028429_guild_battle_banner_section").length) {
-                globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+                globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
             }
 
             globalContainer.bind('DOMNodeInserted', function (event) {
@@ -4476,7 +4451,7 @@ caap = {
 
                     if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
                         utility.log(2, "battle_enter_battle");
-                        globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+                        globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
                     }
 
                     if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
@@ -4487,17 +4462,17 @@ caap = {
                     break;
                 case "arena":
                     utility.log(2, "battle_enter_battle");
-                    globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+                    globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
 
                     break;
                 case "arena_battle":
                     utility.log(2, "monster_duel_button");
-                    globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+                    globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
 
                     break;
                 case "guild_battle_monster":
                     utility.log(2, "Checking Guild Battles Monster");
-                    globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
+                    globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
 
                     break;
                 case "gold_time_value":
