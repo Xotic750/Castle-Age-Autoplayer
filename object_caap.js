@@ -1220,6 +1220,10 @@ caap = {
             htmlCode += caap.ToggleControl('Arena', 'ARENA');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenArena', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
+            htmlCode += "<div id='caap_WhenArenaHide' style='display: " + (config.getItem('WhenArena', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("Stun All Clerics First", 'killClericFirst', false, '', "Attack any Cleric that is not stunned.") + '</table>';
+            htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
@@ -3904,31 +3908,50 @@ caap = {
                 utility.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 config.setItem(idName, value);
                 e.target.title = title;
-                if (idName === 'WhenQuest' || idName === 'WhenBattle' || idName === 'WhenMonster' || idName === 'WhenGuildMonster') {
+                if (idName.indexOf('When') >= 0) {
                     caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Never'));
-                    if (idName === 'WhenBattle' || idName === 'WhenMonster' || idName === 'WhenGuildMonster') {
-                        caap.SetDisplay("caapDivObject", idName + 'XStamina', (value === 'At X Stamina'));
+                    if (idName.indexOf('Quest') < 0) {
+                        if (idName.indexOf('Arena') < 0) {
+                            caap.SetDisplay("caapDivObject", idName + 'XStamina', (value === 'At X Stamina'));
+                        }
+
                         caap.SetDisplay("caapDivObject", 'WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
                         caap.SetDisplay("caapDivObject", 'WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
                         caap.SetDisplay("caapDivObject", 'WhenBattleDemiOnly', (config.getItem('WhenBattle', 'Never') === 'Demi Points Only'));
-                        if (idName === 'WhenBattle') {
+                        switch (idName) {
+                        case 'WhenBattle':
                             if (value === 'Never') {
                                 caap.SetDivContent('battle_mess', 'Battle off');
                             } else {
                                 caap.SetDivContent('battle_mess', '');
                             }
-                        } else if (idName === 'WhenMonster') {
+
+                            break;
+                        case 'WhenMonster':
                             if (value === 'Never') {
                                 caap.SetDivContent('monster_mess', 'Monster off');
                             } else {
                                 caap.SetDivContent('monster_mess', '');
                             }
-                        } else if (idName === 'WhenGuildMonster') {
+
+                            break;
+                        case 'WhenGuildMonster':
                             if (value === 'Never') {
                                 caap.SetDivContent('guild_monster_mess', 'Guild Monster off');
                             } else {
                                 caap.SetDivContent('guild_monster_mess', '');
                             }
+
+                            break;
+                        case 'WhenArena':
+                            if (value === 'Never') {
+                                caap.SetDivContent('arena_mess', 'Arena off');
+                            } else {
+                                caap.SetDivContent('arena_mess', '');
+                            }
+
+                            break;
+                        default:
                         }
                     }
 
@@ -4222,6 +4245,19 @@ caap = {
         }
     },
 
+    arenaEngageListener: function (event) {
+        var butArr       = [],
+            buttonRegExp = new RegExp("'globalContainer', '(.*)'");
+
+        butArr = $(event.target).parent().attr("onclick").toString().match(buttonRegExp);
+        if (butArr && butArr.length === 2) {
+            utility.log(2, "engage", butArr[1]);
+            state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + butArr[1]);
+            schedule.setItem('clickedOnSomething', 0);
+            caap.waitingForDomLoad = true;
+        }
+    },
+
     guildMonsterEngageListener: function (event) {
         var butArr       = [],
             buttonRegExp = new RegExp("'globalContainer', '(.*)'");
@@ -4379,6 +4415,11 @@ caap = {
                 globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
             }
 
+            if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
+                utility.log(2, "battle_enter_battle");
+                globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
+            }
+
             if (globalContainer.find("#app46755028429_arena_battle_banner_section").length) {
                 globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.guildMonsterDuelListener).bind('click', caap.guildMonsterDuelListener);
             }
@@ -4435,6 +4476,11 @@ caap = {
                     if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
                         utility.log(2, "battle_enter_battle");
                         globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+                    }
+
+                    if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
+                        utility.log(2, "battle_enter_battle");
+                        globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
                     }
 
                     break;
