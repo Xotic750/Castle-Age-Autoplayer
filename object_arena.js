@@ -22,7 +22,8 @@ arena = {
             'enemyHealth' : 0,
             'damage'      : 0,
             'myStatus'    : '',
-            'state'       : ''
+            'state'       : '',
+            'wins'        : []
         };
     },
 
@@ -39,7 +40,16 @@ arena = {
             'status'             : '',
             'percent'            : 0,
             'points'             : 0,
-            'lost'               : 0
+            'won'                : 0,
+            'lost'               : 0,
+            'last_ap'            : 0
+        };
+    },
+
+    win: function () {
+        this.data = {
+            'userId' : 0,
+            'ap'     : 0
         };
     },
 
@@ -158,6 +168,121 @@ arena = {
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    setWin: function (records, won) {
+        try {
+            if (!records || !$.isArray(records)) {
+                throw "Not passed records";
+            }
+
+            if (!won || !$.isPlainObject(won)) {
+                throw "Not passed a win";
+            }
+
+            if (won['userId'] === '' || isNaN(won['userId']) || won['userId'] < 1) {
+                utility.warn("userId", won['userId']);
+                throw "Invalid identifying userId!";
+            }
+
+            var it      = 0,
+                len     = 0,
+                success = false;
+
+            for (it = 0, len = records.length; it < len; it += 1) {
+                if (records[it]['userId'] === won['userId']) {
+                    success = true;
+                    break;
+                }
+            }
+
+            if (success) {
+                records[it] = won;
+                utility.log(3, "Updated records", won, records);
+            } else {
+                records.push(won);
+                utility.log(3, "Added records", won, records);
+            }
+
+            return records;
+        } catch (err) {
+            utility.error("ERROR in arena.setWin: " + err, won, records, arguments.callee.caller);
+            return false;
+        }
+    },
+
+    getWin: function (records, userId) {
+        try {
+            if (!records || !$.isArray(records)) {
+                throw "Not passed records";
+            }
+
+            if (userId === '' || isNaN(userId) || userId < 1) {
+                utility.warn("userId", userId);
+                throw "Invalid identifying userId!";
+            }
+
+            var it      = 0,
+                len     = 0,
+                success = false;
+
+            for (it = 0, len = records.length; it < len; it += 1) {
+                if (records[it]['userId'] === userId) {
+                    success = true;
+                    break;
+                }
+            }
+
+            if (success) {
+                utility.log(3, "Got win record", userId, records[it]);
+                return records[it];
+            } else {
+                utility.log(3, "No win record", userId);
+                return false;
+            }
+        } catch (err) {
+            utility.error("ERROR in arena.getWin: " + err, userId, records, arguments.callee.caller);
+            return false;
+        }
+    },
+
+    delWin: function (records, userId) {
+        try {
+            if (!records || !$.isArray(records)) {
+                throw "Not passed records";
+            }
+
+            if (userId === '' || isNaN(userId) || userId < 1) {
+                utility.warn("userId", userId);
+                throw "Invalid identifying userId!";
+            }
+
+            var it      = 0,
+                len     = 0,
+                success = false;
+
+            for (it = 0, len = records.length; it < len; it += 1) {
+                if (records[it]['userId'] === userId) {
+                    success = true;
+                    break;
+                }
+            }
+
+            if (success) {
+                records.splice(it, 1);
+                utility.log(3, "Deleted win records", userId, records);
+                return records;
+            } else {
+                utility.log(3, "Unable to delete win records", userId, records);
+                return false;
+            }
+        } catch (err) {
+            utility.error("ERROR in arena.delWin: " + err, userId, records, arguments.callee.caller);
+            return false;
+        }
+    },
+    /*jslint sub: false */
+
     navigate_to_main: function () {
         return utility.NavigateTo('battle,arena', 'tab_arena_on.gif');
     },
@@ -265,6 +390,7 @@ arena = {
                 collectDiv    = $(),
                 tokenSpan     = $(),
                 timerSpan     = $(),
+                resultBody    = $(),
                 collect       = false,
                 myStatsTxt    = '',
                 myStatsArr    = [],
@@ -272,17 +398,43 @@ arena = {
                 currentRecord = {},
                 minions       = [],
                 tStr          = '',
+                tNum          = 0,
                 lastAttacked  = -1,
+                won           = {},
+                wins          = [],
                 minionRegEx   = new RegExp("(.*) Level: (\\d+) Class: (.*) Health: (\\d+)/(\\d+) Status: (.*) Arena Activity Points: (\\d+)");
 
             currentRecord = arena.getItem();
+            if (!currentRecord['wins']) {
+                currentRecord['wins'] = [];
+            }
+
             lastAttacked = state.getItem('ArenaMinionAttacked', -1);
             state.setItem('ArenaMinionAttacked', -1);
             if (lastAttacked >= 0 && lastAttacked < 40) {
                 if ($("img[src*='battle_defeat.gif']").length) {
                     currentRecord['minions'][lastAttacked]['lost'] += 1;
-                    utility.log(2, "Defeated by minion", lastAttacked, currentRecord['minions'][lastAttacked]);
+                    wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked]['target_id']);
+                    currentRecord['wins'] = wins ? wins : currentRecord['wins'];
                     arena.setItem(currentRecord);
+                    utility.log(2, "Defeated by minion", lastAttacked, currentRecord['minions'][lastAttacked]);
+                } else {
+                    resultBody = $("span[class='result_body']");
+                    if (resultBody && resultBody.length) {
+                        tStr = resultBody.text();
+                        tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
+                        currentRecord['minions'][lastAttacked]['last_ap'] = tNum ? tNum : 0;
+                        utility.log(2, "Activity Points", currentRecord['minions'][lastAttacked]['last_ap']);
+                        if ($("img[src*='battle_victory.gif']").length) {
+                            won = new arena.win();
+                            won.data['userId'] = currentRecord['minions'][lastAttacked]['target_id'];
+                            won.data['ap'] = currentRecord['minions'][lastAttacked]['last_ap'];
+                            wins = arena.setWin(currentRecord['wins'], won.data);
+                            currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                            arena.setItem(currentRecord);
+                            utility.log(2, "Victory against minion", lastAttacked, currentRecord['minions'][lastAttacked]);
+                        }
+                    }
                 }
             }
 
@@ -365,7 +517,12 @@ arena = {
                                     memberRecord['index'] = index;
                                     targetIdDiv = member.find("input[name='target_id']").eq(0);
                                     if (targetIdDiv && targetIdDiv.length) {
-                                        memberRecord['target_id'] =  targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
+                                        memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 1;
+                                        won = arena.getWin(currentRecord['wins'], memberRecord['target_id']);
+                                        if (won) {
+                                            memberRecord['won'] = true;
+                                            memberRecord['last_ap'] = won['ap'] ? won['ap'] : 0;
+                                        }
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
                                     }
@@ -391,6 +548,7 @@ arena = {
                                     if (currentRecord['minions'] && currentRecord['minions'].length === 40) {
                                         if (currentRecord['minions'][index]['index'] === index) {
                                             memberRecord['lost'] = currentRecord['minions'][index]['lost'] ? currentRecord['minions'][index]['lost'] : 0;
+                                            memberRecord['last_ap'] = currentRecord['minions'][index]['last_ap'] ? currentRecord['minions'][index]['last_ap'] : 0;
                                         } else {
                                             utility.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
                                         }
@@ -452,28 +610,73 @@ arena = {
         try {
             var it              = 0,
                 nolossFirst     = false,
-                first           = {},
-                activeCleric    = false,
-                firstCleric1    = {},
-                firstCleric2    = {},
-                firstCleric3    = {},
-                activeMage      = false,
-                firstMage1      = {},
-                firstMage2      = {},
-                firstMage3      = {},
-                activeRogue     = false,
-                firstRogue1     = {},
-                firstRogue2     = {},
-                firstRogue3     = {},
-                activeWarrior   = false,
-                firstWarrior1   = {},
-                firstWarrior2   = {},
-                firstWarrior3   = {},
+                target = {
+                    'First'       : {},
+                    'Best'        : {},
+                    'Cleric' : {
+                        'Active'  : {},
+                        'Passive' : {},
+                        'Alive'   : {},
+                        'Search'  : {}
+                    },
+                    'Mage' : {
+                        'Active'  : {},
+                        'Passive' : {},
+                        'Alive'   : {},
+                        'Search'  : {}
+                    },
+                    'Rogue' : {
+                        'Active'  : {},
+                        'Passive' : {},
+                        'Alive'   : {},
+                        'Search'  : {}
+                    },
+                    'Warrior' : {
+                        'Active'  : {},
+                        'Passive' : {},
+                        'Alive'   : {},
+                        'Search'  : {}
+                    }
+                },
                 minion          = {},
-                killClericFirst = false;
+                killClericFirst = false,
+                attackHighestAP = false;
 
+            attackHighestAP = config.getItem("attackHighestAP", false);
+            killClericFirst = config.getItem("killClericFirst", false);
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
+            }
+
+            function targetThis(current, type) {
+                if (type === 'Search') {
+                    if (attackHighestAP && $.isEmptyObject(target[current['mclass']]) && current['last_ap'] === 0) {
+                        target[current['mclass']][type] = current;
+                        utility.log(3, "First " + type + ' ' + current['mclass'], target[current['mclass']][type]);
+                    }
+
+                    return true;
+                }
+
+                if ($.isEmptyObject(target[current['mclass']][type])) {
+                    target[current['mclass']][type] = current;
+                    utility.log(3, "First " + type + ' ' + current['mclass'], target[current['mclass']][type]);
+                    return true;
+                }
+
+                if (current['last_ap'] > target[current['mclass']][type]['last_ap']) {
+                    target[current['mclass']][type] = current;
+                    utility.log(3, type + ' ' + current['mclass'] + " with higher AP", target[current['mclass']][type]);
+                    return true;
+                }
+
+                if (current['last_ap'] >= target[current['mclass']][type]['last_ap'] && current['healthNum'] < target[current['mclass']][type]['healthNum']) {
+                    target[current['mclass']][type] = current;
+                    utility.log(3, type + ' ' + current['mclass'] + " with less health", target[current['mclass']][type]);
+                    return true;
+                }
+
+                return false;
             }
 
             for (it = record['minions'].length - 1; it >= 0; it -= 1) {
@@ -485,212 +688,85 @@ arena = {
                     continue;
                 }
 
-                if (!first || !$.isPlainObject(first) || $.isEmptyObject(first)) {
-                    utility.log(3, "First minion alive", cm);
-                    first = cm;
+                if (!target['First'] || !$.isPlainObject(target['First']) || $.isEmptyObject(target['First'])) {
+                    target['First'] = cm;
+                    utility.log(3, "First minion alive", target['First']);
                 }
 
                 if (cm['lost']) {
-                    utility.log(2, "Skipping minion we lost to", cm);
+                    utility.log(3, "Skipping minion we lost to", cm);
                     continue;
                 }
 
                 if (!nolossFirst) {
-                    nolossFirst = false
-                    utility.log(3, "First minion alive without loss", cm);
-                    first = cm;
+                    nolossFirst = false;
+                    target['First'] = cm;
+                    utility.log(3, "First minion alive without loss", target['First']);
                 }
 
-                switch (cm['mclass']) {
-                case 'Cleric':
-                    if (cm['healthNum'] > 200) {
-                        if (cm['points']) {
-                            activeCleric = true;
-                            if ($.isEmptyObject(firstCleric1)) {
-                                utility.log(2, "First active Cleric", cm);
-                                firstCleric1 = cm;
-                                continue;
-                            }
-
-                            if (cm['healthNum'] < firstCleric1['healthNum']) {
-                                utility.log(2, "Active Cleric with less health", cm);
-                                firstCleric1 = cm;
-                                continue;
-                            }
-                        } else {
-                            if ($.isEmptyObject(firstCleric2)) {
-                                utility.log(2, "First Cleric", cm);
-                                firstCleric2 = cm;
-                                continue;
-                            }
-
-                            if (!activeCleric && cm['healthNum'] < firstCleric2['healthNum']) {
-                                utility.log(2, "Cleric with less health", cm);
-                                firstCleric2 = cm;
-                                continue;
-                            }
-                        }
+                if ($.isEmptyObject(target['Best'])) {
+                    if (cm['last_ap'] >= 240) {
+                        target['Best'] = cm;
+                        utility.log(2, "First best AP", target['Best']['index'], target['Best']);
                     }
+                }
 
-                    if ($.isEmptyObject(firstCleric3)) {
-                        utility.log(2, "First alive Cleric", cm);
-                        firstCleric3 = cm;
-                        continue;
+                targetThis(cm, 'Alive');
+                targetThis(cm, 'Search');
+                if (cm['healthNum'] > 200) {
+                    if (cm['points']) {
+                        targetThis(cm, 'Active');
+                    } else {
+                        targetThis(cm, 'Passive');
                     }
-
-                    break;
-                case 'Mage':
-                    if (cm['healthNum'] > 200) {
-                        if (cm['points']) {
-                            activeMage = true;
-                            if ($.isEmptyObject(firstMage1)) {
-                                utility.log(2, "First active Mage", cm);
-                                firstMage1 = cm;
-                                continue;
-                            }
-
-                            if (cm['healthNum'] < firstMage1['healthNum']) {
-                                utility.log(2, "Active Mage with less health", cm);
-                                firstMage1 = cm;
-                                continue;
-                            }
-                        } else {
-                            if ($.isEmptyObject(firstMage2)) {
-                                utility.log(2, "First Mage", cm);
-                                firstMage2 = cm;
-                                continue;
-                            }
-
-                            if (!activeMage && cm['healthNum'] < firstMage2['healthNum']) {
-                                utility.log(2, "Mage with less health", cm);
-                                firstMage2 = cm;
-                                continue;
-                            }
-                        }
-                    }
-
-                    if ($.isEmptyObject(firstMage3)) {
-                        utility.log(2, "First alive Mage", cm);
-                        firstMage3 = cm;
-                        continue;
-                    }
-
-                    break;
-                case 'Rogue':
-                    if (cm['healthNum'] > 200) {
-                        if (cm['points']) {
-                            activeRogue = true;
-                            if ($.isEmptyObject(firstRogue1)) {
-                                utility.log(2, "First active Rogue", cm);
-                                firstRogue1 = cm;
-                                continue;
-                            }
-
-                            if (cm['healthNum'] < firstRogue1['healthNum']) {
-                                utility.log(2, "Active Rogue with less health", cm);
-                                firstRogue1 = cm;
-                                continue;
-                            }
-                        } else {
-                            if ($.isEmptyObject(firstRogue2)) {
-                                utility.log(2, "First Rogue", cm);
-                                firstRogue2 = cm;
-                                continue;
-                            }
-
-                            if (!activeRogue && cm['healthNum'] < firstRogue2['healthNum']) {
-                                utility.log(2, "Rogue with less health", cm);
-                                firstRogue2 = cm;
-                                continue;
-                            }
-                        }
-                    }
-
-                    if ($.isEmptyObject(firstRogue3)) {
-                        utility.log(2, "First alive Rogue", cm);
-                        firstRogue3 = cm;
-                        continue;
-                    }
-
-                    break;
-                case 'Warrior':
-                    if (cm['healthNum'] > 200) {
-                        if (cm['points']) {
-                            activeWarrior = true;
-                            if ($.isEmptyObject(firstWarrior1)) {
-                                utility.log(2, "First active Warrior", cm);
-                                firstWarrior1 = cm;
-                                continue;
-                            }
-
-                            if (cm['healthNum'] < firstWarrior1['healthNum']) {
-                                utility.log(2, "Active Warrior with less health", cm);
-                                firstWarrior1 = cm;
-                                continue;
-                            }
-                        } else {
-                            if ($.isEmptyObject(firstWarrior2)) {
-                                utility.log(2, "First Warrior", cm);
-                                firstWarrior2 = cm;
-                                continue;
-                            }
-
-                            if (!activeWarrior && cm['healthNum'] < firstWarrior2['healthNum']) {
-                                utility.log(2, "Warrior with less health", cm);
-                                firstWarrior2 = cm;
-                                continue;
-                            }
-                        }
-                    }
-
-                    if ($.isEmptyObject(firstWarrior3)) {
-                        utility.log(2, "First alive Warrior", cm);
-                        firstWarrior3 = cm;
-                        continue;
-                    }
-
-                    break;
-                default:
                 }
             }
 
-
-            killClericFirst = config.getItem("killClericFirst", false);
-            if (killClericFirst && !$.isEmptyObject(firstCleric1)) {
-                minion = firstCleric1;
-            } else if (killClericFirst && !$.isEmptyObject(firstCleric2)) {
-                minion = firstCleric2;
-            } else if (killClericFirst && !$.isEmptyObject(firstCleric3)) {
-                minion = firstCleric23;
-            } else if (!$.isEmptyObject(firstCleric1)) {
-                minion = firstCleric1;
-            } else if (!$.isEmptyObject(firstMage1)) {
-                minion = firstMage1;
-            } else if (!$.isEmptyObject(firstRogue1)) {
-                minion = firstRogue1;
-            } else if (!$.isEmptyObject(firstWarrior1)) {
-                minion = firstWarrior1;
-            } else if (!$.isEmptyObject(firstCleric2)) {
-                minion = firstCleric2;
-            } else if (!$.isEmptyObject(firstMage2)) {
-                minion = firstMage2;
-            } else if (!$.isEmptyObject(firstRogue2)) {
-                minion = firstRogue2;
-            } else if (!$.isEmptyObject(firstWarrior2)) {
-                minion = firstWarrior2;
-            } else if (!$.isEmptyObject(firstCleric3)) {
-                minion = firstCleric3;
-            } else if (!$.isEmptyObject(firstMage3)) {
-                minion = firstMage3;
-            } else if (!$.isEmptyObject(firstRogue3)) {
-                minion = firstRogue3;
-            } else if (!$.isEmptyObject(firstWarrior3)) {
-                minion = firstWarrior3;
+            if (attackHighestAP && !$.isEmptyObject(target['Best'])) {
+                minion = target['Best'];
+            } else if (attackHighestAP && !$.isEmptyObject(target['Cleric']['Search'])) {
+                minion = target['Cleric']['Search'];
+            } else if (attackHighestAP && !$.isEmptyObject(target['Mage']['Search'])) {
+                minion = target['Mage']['Search'];
+            } else if (attackHighestAP && !$.isEmptyObject(target['Rogue']['Search'])) {
+                minion = target['Rogue']['Search'];
+            } else if (attackHighestAP && !$.isEmptyObject(target['Warrior']['Search'])) {
+                minion = target['Warrior']['Search'];
+            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Active'])) {
+                minion = target['Cleric']['Active'];
+            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Passive'])) {
+                minion = target['Cleric']['Passive'];
+            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Alive'])) {
+                minion = target['Cleric']['Alive'];
+            } else if (!$.isEmptyObject(target['Cleric']['Active'])) {
+                minion = target['Cleric']['Active'];
+            } else if (!$.isEmptyObject(target['Mage']['Active'])) {
+                minion = target['Mage']['Active'];
+            } else if (!$.isEmptyObject(target['Rogue']['Active'])) {
+                minion = target['Rogue']['Active'];
+            } else if (!$.isEmptyObject(target['Warrior']['Active'])) {
+                minion = target['Warrior']['Active'];
+            } else if (!$.isEmptyObject(target['Cleric']['Passive'])) {
+                minion = target['Cleric']['Passive'];
+            } else if (!$.isEmptyObject(target['Mage']['Passive'])) {
+                minion = target['Mage']['Passive'];
+            } else if (!$.isEmptyObject(target['Rogue']['Passive'])) {
+                minion = target['Rogue']['Passive'];
+            } else if (!$.isEmptyObject(target['Warrior']['Passive'])) {
+                minion = target['Warrior']['Passive'];
+            } else if (!$.isEmptyObject(target['Cleric']['Alive'])) {
+                minion = target['Cleric']['Alive'];
+            } else if (!$.isEmptyObject(target['Mage']['Alive'])) {
+                minion = target['Mage']['Alive'];
+            } else if (!$.isEmptyObject(target['Rogue']['Alive'])) {
+                minion = target['Rogue']['Alive'];
+            } else if (!$.isEmptyObject(target['Warrior']['Alive'])) {
+                minion = target['Warrior']['Alive'];
             } else {
-                minion = first;
+                minion = target['First'];
             }
 
-            utility.log(2, "Target " + minion['mclass'], minion);
+            utility.log(2, "Target " + minion['mclass'], minion['index'], minion, target);
             return minion;
         } catch (err) {
             utility.error("ERROR in arena.getTargetMinion: " + err, arguments.callee.caller);

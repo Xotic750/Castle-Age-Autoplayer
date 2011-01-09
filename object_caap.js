@@ -1222,7 +1222,8 @@ caap = {
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenArena', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenArenaHide' style='display: " + (config.getItem('WhenArena', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += caap.MakeCheckTR("Stun All Clerics First", 'killClericFirst', false, '', "Attack any Cleric that is not stunned.") + '</table>';
+            htmlCode += caap.MakeCheckTR('Search Max AP', 'attackHighestAP', false, '', "Changes the strategy from team co-operation to searching for most Arena Points");
+            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that is not stunned. Note: 'Search Max AP' takes priority over this.") + '</table>';
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
