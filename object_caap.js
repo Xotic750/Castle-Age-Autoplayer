@@ -1215,15 +1215,36 @@ caap = {
                     'Tokens Available will attack whenever you have enough tokens',
                     'Never - disables attacking in Arena'
                 ],
+                chainList = [
+                    '0',
+                    '160',
+                    '200',
+                    '240'
+                ],
+                chainListInst = [
+                    'Disabled',
+                    'Chain 160 and above',
+                    'Chain 200 and above',
+                    'Chain 240 and above'
+                ],
                 htmlCode = '';
 
             htmlCode += caap.ToggleControl('Arena', 'ARENA');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenArena', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenArenaHide' style='display: " + (config.getItem('WhenArena', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
+            htmlCode += "Attack Classes in this order<br />";
+            htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += caap.MakeCheckTR('Search Max AP', 'attackHighestAP', false, '', "Changes the strategy from team co-operation to searching for most Arena Points");
-            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that is not stunned. Note: 'Search Max AP' takes priority over this.") + '</table>';
+            htmlCode += "<tr><td style='padding-left: 0px'>Ignore Health &lt;=</td><td style='text-align: right'>" +
+                caap.MakeNumberForm('ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 0px'>Ignore Your Level Plus &gt;=</td><td style='text-align: right'>" +
+                caap.MakeNumberForm('maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that is not stunned. Note: 'Search Max AP' takes priority over this.");
+            htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', true, '', "Attack polymorphed players first (Level settings apply).") + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='width: 35%'>Chain</td><td style='text-align: right'>" + caap.MakeDropDown('chainArena', chainList, chainListInst, "style='font-size: 10px; width: 50%;'", '160') + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -4253,6 +4274,14 @@ caap = {
         caap.waitingForDomLoad = true;
     },
 
+    arenaDualListener: function (event) {
+        utility.log(2, "engage arena_battle.php", event.target.id);
+        state.setItem('ArenaMinionAttacked', event.target.id);
+        state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/arena_battle.php');
+        schedule.setItem('clickedOnSomething', 0);
+        caap.waitingForDomLoad = true;
+    },
+
     guildMonsterEngageListener: function (event) {
         utility.log(2, "engage guild_battle_monster.php");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/guild_battle_monster.php');
@@ -4315,7 +4344,10 @@ caap = {
     /*jslint sub: true */
     AddListeners: function () {
         try {
-            var globalContainer = null;
+            var globalContainer = $(),
+                tDiv = $(),
+                tStr = '',
+                tNum = 0;
 
             utility.log(4, "Adding listeners for caap_div");
             if (caap.caapDivObject.length === 0) {
@@ -4396,8 +4428,15 @@ caap = {
                 globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
+            function setArenaDualButtons() {
+                tDiv = globalContainer.find("input[src*='monster_duel_button']");
+                tDiv.each(function (index) {
+                    $(this).attr("id", index).unbind('click', caap.arenaDualListener).bind('click', caap.arenaDualListener);
+                });
+            }
+
             if (globalContainer.find("#app46755028429_arena_battle_banner_section").length) {
-                globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
+                setArenaDualButtons();
             }
 
             if (globalContainer.find("#app46755028429_guild_battle_banner_section").length) {
@@ -4467,7 +4506,7 @@ caap = {
                     break;
                 case "arena_battle":
                     utility.log(2, "monster_duel_button");
-                    globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
+                    setArenaDualButtons();
 
                     break;
                 case "guild_battle_monster":
@@ -8069,15 +8108,22 @@ caap = {
                 url     = '',
                 attack  = 0,
                 stamina = 0,
-                enterButton = $();
+                enterButton = $(),
+                nextTime = '',
+                tokenTimer = 0;
 
             when = config.getItem("WhenArena", 'Never');
             if (when === 'Never') {
                 return false;
             }
 
-            caap.SetDivContent('arena_mess', '');
             record = arena.getItem();
+            nextTime = (record['reviewed'] && record['nextTime']) ? "Next Arena: " + schedule.FormatTime(new Date((record['reviewed'] + (record['nextTime'].parseTimer() * 1000)))) : '';
+            nextTime = record['startTime'] ? "Next Arena: " + record['startTime'] + " seconds" : nextTime;
+            tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
+            tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
+            nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
+            caap.SetDivContent('arena_mess', nextTime);
             if (!record || !$.isPlainObject(record) || $.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                 if (state.getItem('ArenaRefresh', true)) {
                     if (arena.navigate_to_main_refresh()) {
@@ -8099,7 +8145,7 @@ caap = {
                 return false;
             }
 
-            if (!record['days'] || record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
+            if (/*!record['days'] || */record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
                 return false;
             }
 

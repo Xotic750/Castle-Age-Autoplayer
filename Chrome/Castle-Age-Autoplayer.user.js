@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            31
+// @dev            32
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -31,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "31",
+    devVersion    = "32",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -6873,6 +6873,7 @@ arena = {
             'points'             : 0,
             'won'                : false,
             'lost'               : false,
+            'poly'               : false,
             'last_ap'            : 0
         };
     },
@@ -7429,6 +7430,8 @@ arena = {
                                         memberText   = '',
                                         memberArr    = [],
                                         targetIdDiv  = $(),
+                                        polyImg      = $(),
+                                        nameDiv      = $(),
                                         loss         = false,
                                         memberRecord = new arena.minion().data;
 
@@ -7446,10 +7449,23 @@ arena = {
                                         if (typeof loss === 'boolean') {
                                             memberRecord['lost'] = loss;
                                         }
+
+                                        nameDiv = member.find("div[style='font-size: 19px; padding-bottom: 3px;']");
+                                        if (nameDiv && nameDiv.length === 1) {
+                                            if (memberRecord['won']) {
+                                                nameDiv.prepend('<span title="Won" class="ui-icon ui-icon-circle-check">W</span>');
+                                            }
+
+                                            if (memberRecord['lost']) {
+                                                nameDiv.prepend('<span title="Lost" class="ui-icon ui-icon-circle-close">L</span>');
+                                            }
+                                        }
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
                                     }
 
+                                    polyImg = member.find("img[src*='polymorph_effect']");
+                                    memberRecord['poly'] = (polyImg && polyImg.length) ? true : false;
                                     memberRecord['attacking_position'] = (gIndex + 1);
                                     memberText = member.children().eq(1).text();
                                     memberText = memberText ? memberText.trim().innerTrim() : '';
@@ -7475,6 +7491,10 @@ arena = {
                                         } else {
                                             utility.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
                                         }
+                                    }
+
+                                    if (memberRecord['poly']) {
+                                        utility.log(2, "poly", memberRecord);
                                     }
 
                                     index = minions.push(memberRecord);
@@ -7532,74 +7552,125 @@ arena = {
     getTargetMinion: function (record) {
         try {
             var it              = 0,
+                ot              = 0,
+                lenIt           = 0,
+                lenOt           = 0,
                 nolossFirst     = false,
                 target = {
                     'First'       : {},
-                    'Best'        : {},
                     'Cleric' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     },
                     'Mage' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     },
                     'Rogue' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     },
                     'Warrior' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     }
                 },
-                minion          = {},
-                killClericFirst = false,
-                attackHighestAP = false;
+                minion            = {},
+                killClericFirst   = false,
+                attackPoly        = false,
+                ignoreArenaHealth = 0,
+                maxArenaLevel     = 0,
+                chainArena        = 0,
+                attackOrderList   = [],
+                defaultOrderList    = [],
+                typeOrderList     = [],
+                done              = false,
+                uOrder            = '',
+                oType             = '';
 
-            attackHighestAP = config.getItem("attackHighestAP", false);
-            killClericFirst = config.getItem("killClericFirst", false);
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
-            function targetThis(current, type) {
-                if (type === 'Search') {
-                    if (attackHighestAP && $.isEmptyObject(target[current['mclass']]) && current['last_ap'] === 0) {
-                        target[current['mclass']][type] = current;
-                        utility.log(3, "First " + type + ' ' + current['mclass'], target[current['mclass']][type]);
+            ignoreArenaHealth = config.getItem("ignoreArenaHealth", 200);
+            maxArenaLevel = config.getItem("maxArenaLevel", 50);
+            killClericFirst = config.getItem("killClericFirst", false);
+            attackPoly = config.getItem("attackPoly", true);
+            chainArena = config.getItem("chainArena", '160').parseInt();
+            function targetThis(next, type) {
+                try {
+                    var nDiff   = 0,
+                        cDiff   = 0,
+                        lvlDif  = 0,
+                        logic1  = false,
+                        logic2  = false,
+                        logic3  = false,
+                        mclass  = '';
+
+                    mclass = next['mclass'];
+                    logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
+                    logic2 = attackPoly && next['poly'];
+                    logic3 = chainArena && next['last_ap'] >= chainArena;
+
+                    switch (type) {
+                    case "health":
+                        if (!logic1) {
+                            return false;
+                        }
+
+                        break;
+                    case "poly":
+                        if (!logic2) {
+                            return false;
+                        }
+
+                        break;
+                    case "chain":
+                        if (!logic3) {
+                            return false;
+                        }
+
+                        break;
+                    default:
                     }
 
-                    return true;
-                }
+                    nDiff = next['level'] - caap.stats['level'];
+                    cDiff = target[mclass][type]['level'] ? target[mclass][type]['level'] - caap.stats['level'] : 0 - caap.stats['level'];
+                    if (cDiff !== 0) {
+                        if (cDiff > 0) {
+                            if (nDiff >= 0 && nDiff <= maxArenaLevel && nDiff < cDiff) {
+                                utility.log(2, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                target[mclass][type] = next;
+                                return true;
+                            }
 
-                if ($.isEmptyObject(target[current['mclass']][type])) {
-                    target[current['mclass']][type] = current;
-                    utility.log(3, "First " + type + ' ' + current['mclass'], target[current['mclass']][type]);
-                    return true;
-                }
+                            if (nDiff > maxArenaLevel && nDiff < cDiff) {
+                                utility.log(2, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                target[mclass][type] = next;
+                                return true;
+                            }
+                        } else {
+                            if (nDiff <= maxArenaLevel && nDiff > cDiff) {
+                                utility.log(2, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                target[mclass][type] = next;
+                                return true;
+                            }
+                        }
+                    }
 
-                if (current['last_ap'] > target[current['mclass']][type]['last_ap']) {
-                    target[current['mclass']][type] = current;
-                    utility.log(3, type + ' ' + current['mclass'] + " with higher AP", target[current['mclass']][type]);
-                    return true;
+                    return false;
+                } catch (e) {
+                    utility.warn("targetThis", next);
+                    return false;
                 }
-
-                if (current['last_ap'] >= target[current['mclass']][type]['last_ap'] && current['healthNum'] < target[current['mclass']][type]['healthNum']) {
-                    target[current['mclass']][type] = current;
-                    utility.log(3, type + ' ' + current['mclass'] + " with less health", target[current['mclass']][type]);
-                    return true;
-                }
-
-                return false;
             }
 
             for (it = record['minions'].length - 1; it >= 0; it -= 1) {
@@ -7607,85 +7678,63 @@ arena = {
 
                 cm = record['minions'][it];
                 if (cm['status'] === 'Stunned') {
-                    utility.log(3, "Skipping stunned minion", cm);
+                    utility.log(3, "Skipping stunned minion", cm['index'], cm);
                     continue;
                 }
 
                 if (!target['First'] || !$.isPlainObject(target['First']) || $.isEmptyObject(target['First'])) {
+                    utility.log(3, "First minion alive", cm['index'], cm);
                     target['First'] = cm;
-                    utility.log(3, "First minion alive", target['First']);
                 }
 
                 if (cm['lost']) {
-                    utility.log(3, "Skipping minion we lost to", cm);
+                    utility.log(3, "Skipping minion we lost to", cm['index'], cm);
                     continue;
                 }
 
                 if (!nolossFirst) {
                     nolossFirst = false;
+                    utility.log(3, "First minion alive without loss", cm['index'], cm);
                     target['First'] = cm;
-                    utility.log(3, "First minion alive without loss", target['First']);
                 }
 
-                if ($.isEmptyObject(target['Best'])) {
-                    if (cm['last_ap'] >= 240) {
-                        target['Best'] = cm;
-                        utility.log(2, "First best AP", target['Best']['index'], target['Best']);
+                targetThis(cm, 'alive');
+                targetThis(cm, 'health');
+                targetThis(cm, 'poly');
+                targetThis(cm, 'chain');
+            }
+
+            defaultOrderList = ['Cleric', 'Mage', 'Rogue', 'Warrior'];
+            attackOrderList = utility.TextToArray(config.getItem('orderArenaClass', ''));
+            if (!attackOrderList || attackOrderList.length === 0) {
+                attackOrderList = defaultOrderList.slice();
+            }
+
+            typeOrderList = ['chain', 'poly', 'health', 'alive'];
+            for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
+                if (done) {
+                    break;
+                }
+
+                oType = typeOrderList[it];
+                utility.log(3, "oType", oType);
+                for (ot = 0, lenOt = attackOrderList.length; ot < lenOt; ot += 1) {
+                    uOrder = attackOrderList[ot].toString().toLowerCase().ucFirst();
+                    utility.log(3, "uOrder", uOrder);
+                    if (defaultOrderList.indexOf(uOrder) < 0) {
+                        continue;
                     }
-                }
 
-                targetThis(cm, 'Alive');
-                targetThis(cm, 'Search');
-                if (cm['healthNum'] > 200) {
-                    if (cm['points']) {
-                        targetThis(cm, 'Active');
-                    } else {
-                        targetThis(cm, 'Passive');
+                    if (!$.isEmptyObject(target[uOrder][oType])) {
+                        minion = target[uOrder][oType];
+                        utility.log(2, "done", uOrder, oType);
+                        done = true;
+                        break;
                     }
                 }
             }
 
-            if (attackHighestAP && !$.isEmptyObject(target['Best'])) {
-                minion = target['Best'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Cleric']['Search'])) {
-                minion = target['Cleric']['Search'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Mage']['Search'])) {
-                minion = target['Mage']['Search'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Rogue']['Search'])) {
-                minion = target['Rogue']['Search'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Warrior']['Search'])) {
-                minion = target['Warrior']['Search'];
-            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Active'])) {
-                minion = target['Cleric']['Active'];
-            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Passive'])) {
-                minion = target['Cleric']['Passive'];
-            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Alive'])) {
-                minion = target['Cleric']['Alive'];
-            } else if (!$.isEmptyObject(target['Cleric']['Active'])) {
-                minion = target['Cleric']['Active'];
-            } else if (!$.isEmptyObject(target['Mage']['Active'])) {
-                minion = target['Mage']['Active'];
-            } else if (!$.isEmptyObject(target['Rogue']['Active'])) {
-                minion = target['Rogue']['Active'];
-            } else if (!$.isEmptyObject(target['Warrior']['Active'])) {
-                minion = target['Warrior']['Active'];
-            } else if (!$.isEmptyObject(target['Cleric']['Passive'])) {
-                minion = target['Cleric']['Passive'];
-            } else if (!$.isEmptyObject(target['Mage']['Passive'])) {
-                minion = target['Mage']['Passive'];
-            } else if (!$.isEmptyObject(target['Rogue']['Passive'])) {
-                minion = target['Rogue']['Passive'];
-            } else if (!$.isEmptyObject(target['Warrior']['Passive'])) {
-                minion = target['Warrior']['Passive'];
-            } else if (!$.isEmptyObject(target['Cleric']['Alive'])) {
-                minion = target['Cleric']['Alive'];
-            } else if (!$.isEmptyObject(target['Mage']['Alive'])) {
-                minion = target['Mage']['Alive'];
-            } else if (!$.isEmptyObject(target['Rogue']['Alive'])) {
-                minion = target['Rogue']['Alive'];
-            } else if (!$.isEmptyObject(target['Warrior']['Alive'])) {
-                minion = target['Warrior']['Alive'];
-            } else {
+            if ($.isEmptyObject(minion)) {
                 minion = target['First'];
             }
 
@@ -12276,15 +12325,36 @@ caap = {
                     'Tokens Available will attack whenever you have enough tokens',
                     'Never - disables attacking in Arena'
                 ],
+                chainList = [
+                    '0',
+                    '160',
+                    '200',
+                    '240'
+                ],
+                chainListInst = [
+                    'Disabled',
+                    'Chain 160 and above',
+                    'Chain 200 and above',
+                    'Chain 240 and above'
+                ],
                 htmlCode = '';
 
             htmlCode += caap.ToggleControl('Arena', 'ARENA');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenArena', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
             htmlCode += "<div id='caap_WhenArenaHide' style='display: " + (config.getItem('WhenArena', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
+            htmlCode += "Attack Classes in this order<br />";
+            htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += caap.MakeCheckTR('Search Max AP', 'attackHighestAP', false, '', "Changes the strategy from team co-operation to searching for most Arena Points");
-            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that is not stunned. Note: 'Search Max AP' takes priority over this.") + '</table>';
+            htmlCode += "<tr><td style='padding-left: 0px'>Ignore Health &lt;=</td><td style='text-align: right'>" +
+                caap.MakeNumberForm('ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
+            htmlCode += "<tr><td style='padding-left: 0px'>Ignore Your Level Plus &gt;=</td><td style='text-align: right'>" +
+                caap.MakeNumberForm('maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that is not stunned. Note: 'Search Max AP' takes priority over this.");
+            htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', true, '', "Attack polymorphed players first (Level settings apply).") + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += "<tr><td style='width: 35%'>Chain</td><td style='text-align: right'>" + caap.MakeDropDown('chainArena', chainList, chainListInst, "style='font-size: 10px; width: 50%;'", '160') + '</td></tr></table>';
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -15314,6 +15384,14 @@ caap = {
         caap.waitingForDomLoad = true;
     },
 
+    arenaDualListener: function (event) {
+        utility.log(2, "engage arena_battle.php", event.target.id);
+        state.setItem('ArenaMinionAttacked', event.target.id);
+        state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/arena_battle.php');
+        schedule.setItem('clickedOnSomething', 0);
+        caap.waitingForDomLoad = true;
+    },
+
     guildMonsterEngageListener: function (event) {
         utility.log(2, "engage guild_battle_monster.php");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/guild_battle_monster.php');
@@ -15376,7 +15454,10 @@ caap = {
     /*jslint sub: true */
     AddListeners: function () {
         try {
-            var globalContainer = null;
+            var globalContainer = $(),
+                tDiv = $(),
+                tStr = '',
+                tNum = 0;
 
             utility.log(4, "Adding listeners for caap_div");
             if (caap.caapDivObject.length === 0) {
@@ -15457,8 +15538,15 @@ caap = {
                 globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
+            function setArenaDualButtons() {
+                tDiv = globalContainer.find("input[src*='monster_duel_button']");
+                tDiv.each(function (index) {
+                    $(this).attr("id", index).unbind('click', caap.arenaDualListener).bind('click', caap.arenaDualListener);
+                });
+            }
+
             if (globalContainer.find("#app46755028429_arena_battle_banner_section").length) {
-                globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
+                setArenaDualButtons();
             }
 
             if (globalContainer.find("#app46755028429_guild_battle_banner_section").length) {
@@ -15528,7 +15616,7 @@ caap = {
                     break;
                 case "arena_battle":
                     utility.log(2, "monster_duel_button");
-                    globalContainer.find("input[src*='monster_duel_button']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
+                    setArenaDualButtons();
 
                     break;
                 case "guild_battle_monster":
@@ -19130,15 +19218,22 @@ caap = {
                 url     = '',
                 attack  = 0,
                 stamina = 0,
-                enterButton = $();
+                enterButton = $(),
+                nextTime = '',
+                tokenTimer = 0;
 
             when = config.getItem("WhenArena", 'Never');
             if (when === 'Never') {
                 return false;
             }
 
-            caap.SetDivContent('arena_mess', '');
             record = arena.getItem();
+            nextTime = (record['reviewed'] && record['nextTime']) ? "Next Arena: " + schedule.FormatTime(new Date((record['reviewed'] + (record['nextTime'].parseTimer() * 1000)))) : '';
+            nextTime = record['startTime'] ? "Next Arena: " + record['startTime'] + " seconds" : nextTime;
+            tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
+            tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
+            nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
+            caap.SetDivContent('arena_mess', nextTime);
             if (!record || !$.isPlainObject(record) || $.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                 if (state.getItem('ArenaRefresh', true)) {
                     if (arena.navigate_to_main_refresh()) {
@@ -19160,7 +19255,7 @@ caap = {
                 return false;
             }
 
-            if (!record['days'] || record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
+            if (/*!record['days'] || */record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
                 return false;
             }
 

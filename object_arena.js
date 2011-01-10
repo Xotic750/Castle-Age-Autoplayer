@@ -43,6 +43,7 @@ arena = {
             'points'             : 0,
             'won'                : false,
             'lost'               : false,
+            'poly'               : false,
             'last_ap'            : 0
         };
     },
@@ -599,6 +600,8 @@ arena = {
                                         memberText   = '',
                                         memberArr    = [],
                                         targetIdDiv  = $(),
+                                        polyImg      = $(),
+                                        nameDiv      = $(),
                                         loss         = false,
                                         memberRecord = new arena.minion().data;
 
@@ -616,10 +619,23 @@ arena = {
                                         if (typeof loss === 'boolean') {
                                             memberRecord['lost'] = loss;
                                         }
+
+                                        nameDiv = member.find("div[style='font-size: 19px; padding-bottom: 3px;']");
+                                        if (nameDiv && nameDiv.length === 1) {
+                                            if (memberRecord['won']) {
+                                                nameDiv.prepend('<span title="Won" class="ui-icon ui-icon-circle-check">W</span>');
+                                            }
+
+                                            if (memberRecord['lost']) {
+                                                nameDiv.prepend('<span title="Lost" class="ui-icon ui-icon-circle-close">L</span>');
+                                            }
+                                        }
                                     } else {
                                         utility.warn("Unable to find target_id for minion!", member);
                                     }
 
+                                    polyImg = member.find("img[src*='polymorph_effect']");
+                                    memberRecord['poly'] = (polyImg && polyImg.length) ? true : false;
                                     memberRecord['attacking_position'] = (gIndex + 1);
                                     memberText = member.children().eq(1).text();
                                     memberText = memberText ? memberText.trim().innerTrim() : '';
@@ -645,6 +661,10 @@ arena = {
                                         } else {
                                             utility.warn("Minion index issue!", index, currentRecord['minions'][index], memberRecord);
                                         }
+                                    }
+
+                                    if (memberRecord['poly']) {
+                                        utility.log(2, "poly", memberRecord);
                                     }
 
                                     index = minions.push(memberRecord);
@@ -702,74 +722,125 @@ arena = {
     getTargetMinion: function (record) {
         try {
             var it              = 0,
+                ot              = 0,
+                lenIt           = 0,
+                lenOt           = 0,
                 nolossFirst     = false,
                 target = {
                     'First'       : {},
-                    'Best'        : {},
                     'Cleric' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     },
                     'Mage' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     },
                     'Rogue' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     },
                     'Warrior' : {
-                        'Active'  : {},
-                        'Passive' : {},
-                        'Alive'   : {},
-                        'Search'  : {}
+                        'alive'   : {},
+                        'health'  : {},
+                        'poly'    : {},
+                        'chain'   : {}
                     }
                 },
-                minion          = {},
-                killClericFirst = false,
-                attackHighestAP = false;
+                minion            = {},
+                killClericFirst   = false,
+                attackPoly        = false,
+                ignoreArenaHealth = 0,
+                maxArenaLevel     = 0,
+                chainArena        = 0,
+                attackOrderList   = [],
+                defaultOrderList    = [],
+                typeOrderList     = [],
+                done              = false,
+                uOrder            = '',
+                oType             = '';
 
-            attackHighestAP = config.getItem("attackHighestAP", false);
-            killClericFirst = config.getItem("killClericFirst", false);
             if (!record || !$.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
-            function targetThis(current, type) {
-                if (type === 'Search') {
-                    if (attackHighestAP && $.isEmptyObject(target[current['mclass']]) && current['last_ap'] === 0) {
-                        target[current['mclass']][type] = current;
-                        utility.log(3, "First " + type + ' ' + current['mclass'], target[current['mclass']][type]);
+            ignoreArenaHealth = config.getItem("ignoreArenaHealth", 200);
+            maxArenaLevel = config.getItem("maxArenaLevel", 50);
+            killClericFirst = config.getItem("killClericFirst", false);
+            attackPoly = config.getItem("attackPoly", true);
+            chainArena = config.getItem("chainArena", '160').parseInt();
+            function targetThis(next, type) {
+                try {
+                    var nDiff   = 0,
+                        cDiff   = 0,
+                        lvlDif  = 0,
+                        logic1  = false,
+                        logic2  = false,
+                        logic3  = false,
+                        mclass  = '';
+
+                    mclass = next['mclass'];
+                    logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
+                    logic2 = attackPoly && next['poly'];
+                    logic3 = chainArena && next['last_ap'] >= chainArena;
+
+                    switch (type) {
+                    case "health":
+                        if (!logic1) {
+                            return false;
+                        }
+
+                        break;
+                    case "poly":
+                        if (!logic2) {
+                            return false;
+                        }
+
+                        break;
+                    case "chain":
+                        if (!logic3) {
+                            return false;
+                        }
+
+                        break;
+                    default:
                     }
 
-                    return true;
-                }
+                    nDiff = next['level'] - caap.stats['level'];
+                    cDiff = target[mclass][type]['level'] ? target[mclass][type]['level'] - caap.stats['level'] : 0 - caap.stats['level'];
+                    if (cDiff !== 0) {
+                        if (cDiff > 0) {
+                            if (nDiff >= 0 && nDiff <= maxArenaLevel && nDiff < cDiff) {
+                                utility.log(2, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                target[mclass][type] = next;
+                                return true;
+                            }
 
-                if ($.isEmptyObject(target[current['mclass']][type])) {
-                    target[current['mclass']][type] = current;
-                    utility.log(3, "First " + type + ' ' + current['mclass'], target[current['mclass']][type]);
-                    return true;
-                }
+                            if (nDiff > maxArenaLevel && nDiff < cDiff) {
+                                utility.log(2, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                target[mclass][type] = next;
+                                return true;
+                            }
+                        } else {
+                            if (nDiff <= maxArenaLevel && nDiff > cDiff) {
+                                utility.log(2, type + ' ' + mclass + " better level match", target[mclass][type]['level'], next['level'], [target[mclass][type], next]);
+                                target[mclass][type] = next;
+                                return true;
+                            }
+                        }
+                    }
 
-                if (current['last_ap'] > target[current['mclass']][type]['last_ap']) {
-                    target[current['mclass']][type] = current;
-                    utility.log(3, type + ' ' + current['mclass'] + " with higher AP", target[current['mclass']][type]);
-                    return true;
+                    return false;
+                } catch (e) {
+                    utility.warn("targetThis", next);
+                    return false;
                 }
-
-                if (current['last_ap'] >= target[current['mclass']][type]['last_ap'] && current['healthNum'] < target[current['mclass']][type]['healthNum']) {
-                    target[current['mclass']][type] = current;
-                    utility.log(3, type + ' ' + current['mclass'] + " with less health", target[current['mclass']][type]);
-                    return true;
-                }
-
-                return false;
             }
 
             for (it = record['minions'].length - 1; it >= 0; it -= 1) {
@@ -777,85 +848,63 @@ arena = {
 
                 cm = record['minions'][it];
                 if (cm['status'] === 'Stunned') {
-                    utility.log(3, "Skipping stunned minion", cm);
+                    utility.log(3, "Skipping stunned minion", cm['index'], cm);
                     continue;
                 }
 
                 if (!target['First'] || !$.isPlainObject(target['First']) || $.isEmptyObject(target['First'])) {
+                    utility.log(3, "First minion alive", cm['index'], cm);
                     target['First'] = cm;
-                    utility.log(3, "First minion alive", target['First']);
                 }
 
                 if (cm['lost']) {
-                    utility.log(3, "Skipping minion we lost to", cm);
+                    utility.log(3, "Skipping minion we lost to", cm['index'], cm);
                     continue;
                 }
 
                 if (!nolossFirst) {
                     nolossFirst = false;
+                    utility.log(3, "First minion alive without loss", cm['index'], cm);
                     target['First'] = cm;
-                    utility.log(3, "First minion alive without loss", target['First']);
                 }
 
-                if ($.isEmptyObject(target['Best'])) {
-                    if (cm['last_ap'] >= 240) {
-                        target['Best'] = cm;
-                        utility.log(2, "First best AP", target['Best']['index'], target['Best']);
+                targetThis(cm, 'alive');
+                targetThis(cm, 'health');
+                targetThis(cm, 'poly');
+                targetThis(cm, 'chain');
+            }
+
+            defaultOrderList = ['Cleric', 'Mage', 'Rogue', 'Warrior'];
+            attackOrderList = utility.TextToArray(config.getItem('orderArenaClass', ''));
+            if (!attackOrderList || attackOrderList.length === 0) {
+                attackOrderList = defaultOrderList.slice();
+            }
+
+            typeOrderList = ['chain', 'poly', 'health', 'alive'];
+            for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
+                if (done) {
+                    break;
+                }
+
+                oType = typeOrderList[it];
+                utility.log(3, "oType", oType);
+                for (ot = 0, lenOt = attackOrderList.length; ot < lenOt; ot += 1) {
+                    uOrder = attackOrderList[ot].toString().toLowerCase().ucFirst();
+                    utility.log(3, "uOrder", uOrder);
+                    if (defaultOrderList.indexOf(uOrder) < 0) {
+                        continue;
                     }
-                }
 
-                targetThis(cm, 'Alive');
-                targetThis(cm, 'Search');
-                if (cm['healthNum'] > 200) {
-                    if (cm['points']) {
-                        targetThis(cm, 'Active');
-                    } else {
-                        targetThis(cm, 'Passive');
+                    if (!$.isEmptyObject(target[uOrder][oType])) {
+                        minion = target[uOrder][oType];
+                        utility.log(2, "done", uOrder, oType);
+                        done = true;
+                        break;
                     }
                 }
             }
 
-            if (attackHighestAP && !$.isEmptyObject(target['Best'])) {
-                minion = target['Best'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Cleric']['Search'])) {
-                minion = target['Cleric']['Search'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Mage']['Search'])) {
-                minion = target['Mage']['Search'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Rogue']['Search'])) {
-                minion = target['Rogue']['Search'];
-            } else if (attackHighestAP && !$.isEmptyObject(target['Warrior']['Search'])) {
-                minion = target['Warrior']['Search'];
-            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Active'])) {
-                minion = target['Cleric']['Active'];
-            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Passive'])) {
-                minion = target['Cleric']['Passive'];
-            } else if (killClericFirst && !$.isEmptyObject(target['Cleric']['Alive'])) {
-                minion = target['Cleric']['Alive'];
-            } else if (!$.isEmptyObject(target['Cleric']['Active'])) {
-                minion = target['Cleric']['Active'];
-            } else if (!$.isEmptyObject(target['Mage']['Active'])) {
-                minion = target['Mage']['Active'];
-            } else if (!$.isEmptyObject(target['Rogue']['Active'])) {
-                minion = target['Rogue']['Active'];
-            } else if (!$.isEmptyObject(target['Warrior']['Active'])) {
-                minion = target['Warrior']['Active'];
-            } else if (!$.isEmptyObject(target['Cleric']['Passive'])) {
-                minion = target['Cleric']['Passive'];
-            } else if (!$.isEmptyObject(target['Mage']['Passive'])) {
-                minion = target['Mage']['Passive'];
-            } else if (!$.isEmptyObject(target['Rogue']['Passive'])) {
-                minion = target['Rogue']['Passive'];
-            } else if (!$.isEmptyObject(target['Warrior']['Passive'])) {
-                minion = target['Warrior']['Passive'];
-            } else if (!$.isEmptyObject(target['Cleric']['Alive'])) {
-                minion = target['Cleric']['Alive'];
-            } else if (!$.isEmptyObject(target['Mage']['Alive'])) {
-                minion = target['Mage']['Alive'];
-            } else if (!$.isEmptyObject(target['Rogue']['Alive'])) {
-                minion = target['Rogue']['Alive'];
-            } else if (!$.isEmptyObject(target['Warrior']['Alive'])) {
-                minion = target['Warrior']['Alive'];
-            } else {
+            if ($.isEmptyObject(minion)) {
                 minion = target['First'];
             }
 
