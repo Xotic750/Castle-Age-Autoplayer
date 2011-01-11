@@ -725,32 +725,34 @@ arena = {
                 ot              = 0,
                 lenIt           = 0,
                 lenOt           = 0,
-                nolossFirst     = false,
                 target = {
-                    'First'       : {},
                     'Cleric' : {
-                        'alive'   : {},
-                        'health'  : {},
-                        'poly'    : {},
-                        'chain'   : {}
+                        'last'   : {},
+                        'alive'  : {},
+                        'health' : {},
+                        'poly'   : {},
+                        'chain'  : {}
                     },
                     'Mage' : {
-                        'alive'   : {},
-                        'health'  : {},
-                        'poly'    : {},
-                        'chain'   : {}
+                        'last'   : {},
+                        'alive'  : {},
+                        'health' : {},
+                        'poly'   : {},
+                        'chain'  : {}
                     },
                     'Rogue' : {
-                        'alive'   : {},
-                        'health'  : {},
-                        'poly'    : {},
-                        'chain'   : {}
+                        'last'   : {},
+                        'alive'  : {},
+                        'health' : {},
+                        'poly'   : {},
+                        'chain'  : {}
                     },
                     'Warrior' : {
-                        'alive'   : {},
-                        'health'  : {},
-                        'poly'    : {},
-                        'chain'   : {}
+                        'last'   : {},
+                        'alive'  : {},
+                        'health' : {},
+                        'poly'   : {},
+                        'chain'  : {}
                     }
                 },
                 minion            = {},
@@ -761,7 +763,7 @@ arena = {
                 chainArena        = 0,
                 observeHealth     = false,
                 attackOrderList   = [],
-                defaultOrderList    = [],
+                defaultOrderList  = [],
                 typeOrderList     = [],
                 done              = false,
                 uOrder            = '',
@@ -789,9 +791,6 @@ arena = {
 
                     mclass = next['mclass'];
                     logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
-                    logic2 = chainArena && next['last_ap'] >= chainArena;
-                    logic3 = observeHealth && logic1;
-
                     switch (type) {
                     case "health":
                         if (!logic1) {
@@ -809,6 +808,8 @@ arena = {
 
                         break;
                     case "chain":
+                        logic2 = chainArena && next['last_ap'] >= chainArena;
+                        logic3 = observeHealth && logic1;
                         if (!(logic2 && logic3)) {
                             return false;
                         }
@@ -857,25 +858,15 @@ arena = {
                     continue;
                 }
 
-                if (!target['First'] || !$.isPlainObject(target['First']) || $.isEmptyObject(target['First'])) {
-                    utility.log(3, "First minion alive", cm['index'], cm);
-                    target['First'] = cm;
-                }
-
+                targetThis(cm, 'last');
+                targetThis(cm, 'poly');
                 if (cm['lost']) {
                     utility.log(3, "Skipping minion we lost to", cm['index'], cm);
                     continue;
                 }
 
-                if (!nolossFirst) {
-                    nolossFirst = false;
-                    utility.log(3, "First minion alive without loss", cm['index'], cm);
-                    target['First'] = cm;
-                }
-
                 targetThis(cm, 'alive');
                 targetThis(cm, 'health');
-                targetThis(cm, 'poly');
                 targetThis(cm, 'chain');
             }
 
@@ -885,7 +876,7 @@ arena = {
                 attackOrderList = defaultOrderList.slice();
             }
 
-            typeOrderList = ['chain', 'health', 'alive'];
+            typeOrderList = ['chain', 'health', 'alive', 'last'];
             if (attackPoly) {
                 typeOrderList.unshift('poly');
             } else {
@@ -908,7 +899,7 @@ arena = {
 
                     if (!$.isEmptyObject(target[uOrder][oType])) {
                         minion = target[uOrder][oType];
-                        utility.log(2, "done", uOrder, oType);
+                        utility.log(3, "done", uOrder, oType);
                         done = true;
                         break;
                     }
@@ -916,10 +907,11 @@ arena = {
             }
 
             if ($.isEmptyObject(minion)) {
-                minion = target['First'];
+                utility.warn("No target found!");
+            } else {
+                utility.log(1, "Target " + minion['mclass'] + " " + oType, minion['index'], minion, target);
             }
 
-            utility.log(2, "Target " + minion['mclass'], minion['index'], minion, target);
             return minion;
         } catch (err) {
             utility.error("ERROR in arena.getTargetMinion: " + err, arguments.callee.caller);
