@@ -511,7 +511,7 @@ arena = {
                         tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
                         currentRecord['minions'][lastAttacked]['last_ap'] = tNum ? tNum : 0;
                         utility.log(2, "Activity Points", currentRecord['minions'][lastAttacked]['last_ap']);
-                        if ($("img[src*='battle_victory.gif']").length) {
+                        if (!currentRecord['poly'] && $("img[src*='battle_victory.gif']").length) {
                             won = new arena.win();
                             won.data['userId'] = currentRecord['minions'][lastAttacked]['target_id'];
                             won.data['ap'] = currentRecord['minions'][lastAttacked]['last_ap'];
@@ -759,6 +759,7 @@ arena = {
                 ignoreArenaHealth = 0,
                 maxArenaLevel     = 0,
                 chainArena        = 0,
+                observeHealth     = false,
                 attackOrderList   = [],
                 defaultOrderList    = [],
                 typeOrderList     = [],
@@ -775,6 +776,7 @@ arena = {
             killClericFirst = config.getItem("killClericFirst", false);
             attackPoly = config.getItem("attackPoly", true);
             chainArena = config.getItem("chainArena", '160').parseInt();
+            observeHealth = config.getItem("observeHealth", true);
             function targetThis(next, type) {
                 try {
                     var nDiff   = 0,
@@ -787,8 +789,8 @@ arena = {
 
                     mclass = next['mclass'];
                     logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
-                    logic2 = attackPoly && next['poly'];
-                    logic3 = chainArena && next['last_ap'] >= chainArena;
+                    logic2 = chainArena && next['last_ap'] >= chainArena;
+                    logic3 = observeHealth && logic1;
 
                     switch (type) {
                     case "health":
@@ -798,13 +800,16 @@ arena = {
 
                         break;
                     case "poly":
-                        if (!logic2) {
+                        if (next['poly']) {
+                            target[mclass][type] = next;
+                            return true;
+                        } else {
                             return false;
                         }
 
                         break;
                     case "chain":
-                        if (!logic3) {
+                        if (!(logic2 && logic3)) {
                             return false;
                         }
 
@@ -880,7 +885,13 @@ arena = {
                 attackOrderList = defaultOrderList.slice();
             }
 
-            typeOrderList = ['chain', 'poly', 'health', 'alive'];
+            typeOrderList = ['chain', 'health', 'alive'];
+            if (attackPoly) {
+                typeOrderList.unshift('poly');
+            } else {
+                typeOrderList.splice(1, 0, 'poly');
+            }
+
             for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
                 if (done) {
                     break;

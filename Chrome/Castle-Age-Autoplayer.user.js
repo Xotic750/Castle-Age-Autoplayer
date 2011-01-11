@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            32
+// @dev            33
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -31,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "32",
+    devVersion    = "33",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -7341,7 +7341,7 @@ arena = {
                         tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
                         currentRecord['minions'][lastAttacked]['last_ap'] = tNum ? tNum : 0;
                         utility.log(2, "Activity Points", currentRecord['minions'][lastAttacked]['last_ap']);
-                        if ($("img[src*='battle_victory.gif']").length) {
+                        if (!currentRecord['poly'] && $("img[src*='battle_victory.gif']").length) {
                             won = new arena.win();
                             won.data['userId'] = currentRecord['minions'][lastAttacked]['target_id'];
                             won.data['ap'] = currentRecord['minions'][lastAttacked]['last_ap'];
@@ -7589,6 +7589,7 @@ arena = {
                 ignoreArenaHealth = 0,
                 maxArenaLevel     = 0,
                 chainArena        = 0,
+                observeHealth     = false,
                 attackOrderList   = [],
                 defaultOrderList    = [],
                 typeOrderList     = [],
@@ -7605,6 +7606,7 @@ arena = {
             killClericFirst = config.getItem("killClericFirst", false);
             attackPoly = config.getItem("attackPoly", true);
             chainArena = config.getItem("chainArena", '160').parseInt();
+            observeHealth = config.getItem("observeHealth", true);
             function targetThis(next, type) {
                 try {
                     var nDiff   = 0,
@@ -7617,8 +7619,8 @@ arena = {
 
                     mclass = next['mclass'];
                     logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
-                    logic2 = attackPoly && next['poly'];
-                    logic3 = chainArena && next['last_ap'] >= chainArena;
+                    logic2 = chainArena && next['last_ap'] >= chainArena;
+                    logic3 = observeHealth && logic1;
 
                     switch (type) {
                     case "health":
@@ -7628,13 +7630,16 @@ arena = {
 
                         break;
                     case "poly":
-                        if (!logic2) {
+                        if (next['poly']) {
+                            target[mclass][type] = next;
+                            return true;
+                        } else {
                             return false;
                         }
 
                         break;
                     case "chain":
-                        if (!logic3) {
+                        if (!(logic2 && logic3)) {
                             return false;
                         }
 
@@ -7710,7 +7715,13 @@ arena = {
                 attackOrderList = defaultOrderList.slice();
             }
 
-            typeOrderList = ['chain', 'poly', 'health', 'alive'];
+            typeOrderList = ['chain', 'health', 'alive'];
+            if (attackPoly) {
+                typeOrderList.unshift('poly');
+            } else {
+                typeOrderList.splice(1, 0, 'poly');
+            }
+
             for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
                 if (done) {
                     break;
@@ -12351,10 +12362,12 @@ caap = {
             htmlCode += "<tr><td style='padding-left: 0px'>Ignore Your Level Plus &gt;=</td><td style='text-align: right'>" +
                 caap.MakeNumberForm('maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that is not stunned. Note: 'Search Max AP' takes priority over this.");
-            htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', true, '', "Attack polymorphed players first (Level settings apply).") + '</table>';
+            htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that are not stunned.");
+            htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', true, '', "Attack polymorphed players first.") + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Chain</td><td style='text-align: right'>" + caap.MakeDropDown('chainArena', chainList, chainListInst, "style='font-size: 10px; width: 50%;'", '160') + '</td></tr></table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, '', "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.") + '</table>';
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
