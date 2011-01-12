@@ -595,7 +595,7 @@ battle = {
             if (!battle.flagResult) {
                 return true;
             }
-            
+
             utility.log(2, "Checking Battle Results");
             battle.flagResult = false;
             state.setItem("BattleChainId", 0);
@@ -1041,6 +1041,10 @@ battle = {
 
                 // don't battle people we lost to in the last week
                 battleRecord = battle.getItem(tempRecord.data['userId']);
+                if (!$.isEmptyObject(battleRecord)) {
+                    utility.log(1, "We have a battle record", battleRecord);
+                }
+
                 if (!config.getItem("IgnoreBattleLoss", false)) {
                     switch (config.getItem("BattleType", 'Invade')) {
                     case 'Invade' :
@@ -1057,7 +1061,7 @@ battle = {
                     }
 
                     if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 604800)) {
-                        utility.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
+                        utility.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId'], battleRecord);
                         continue;
                     }
                 }

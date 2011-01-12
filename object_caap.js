@@ -1242,11 +1242,20 @@ caap = {
                 caap.MakeNumberForm('maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that are not stunned.");
-            htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', true, '', "Attack polymorphed players first.") + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, 'ChangePolyControl', "Attack polymorphed players.", true) + '</table>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Priority Polymorphed", 'attackPoly', false, '', "Attack polymorphed players first.");
+            htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Attack Polymorphed If Rogue", 'roguePoly', true, '', "Only attack polymorphed players if you are class Rogue.");
+            htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Stunned Ignore Polymorphed", 'stunnedPoly', true, '', "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.") + '</table>';
+            htmlCode += '</div>';
+            htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+            htmlCode += caap.MakeCheckTR("Suicide", 'attackSuicide', false, '', "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.") + '</table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
             htmlCode += "<tr><td style='width: 35%'>Chain</td><td style='text-align: right'>" + caap.MakeDropDown('chainArena', chainList, chainListInst, "style='font-size: 10px; width: 50%;'", '160') + '</td></tr></table>';
             htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-            htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, '', "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.") + '</table>';
+            htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, '', "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
+            htmlCode += caap.MakeCheckTR("Chain Strict", 'chainStrict', false, '', "When chaining, if current target did not match the chain value then ignore and move to next target.") + '</table>';
             htmlCode += "</div>";
             htmlCode += "<hr/></div>";
             return htmlCode;
@@ -1325,6 +1334,7 @@ caap = {
                 LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
                 LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
                 LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
+                LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                 dropDownItem = 0,
                 htmlCode = '';
 
@@ -1352,6 +1362,7 @@ caap = {
             htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Invades", 'InvadeLevelUpGeneral', true, '', LevelUpGenInstructions4);
             htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
             htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
+            htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Arena", 'ArenaLevelUpGeneral', true, '', LevelUpGenInstructions13);
             htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
             htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions8);
             htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Don't Bank After", 'NoBankAfterLvl', true, '', LevelUpGenInstructions9);
@@ -4270,22 +4281,28 @@ caap = {
     },
 
     arenaEngageListener: function (event) {
-        utility.log(2, "engage arena_battle.php");
+        utility.log(3, "engage arena_battle.php");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/arena_battle.php');
         schedule.setItem('clickedOnSomething', 0);
         caap.waitingForDomLoad = true;
     },
 
     arenaDualListener: function (event) {
-        utility.log(2, "engage arena_battle.php", event.target.id);
-        state.setItem('ArenaMinionAttacked', event.target.id);
+        var index  = -1,
+            minion = {};
+
+        utility.log(3, "engage arena_battle.php", event.target.id);
+        index = event.target.id ? event.target.id.parseInt() : -1;
+        minion = arena.getMinion(index);
+        minion = !$.isEmptyObject(minion) ? minion : {};
+        state.setItem('ArenaMinionAttacked', minion);
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/arena_battle.php');
         schedule.setItem('clickedOnSomething', 0);
         caap.waitingForDomLoad = true;
     },
 
     guildMonsterEngageListener: function (event) {
-        utility.log(2, "engage guild_battle_monster.php");
+        utility.log(3, "engage guild_battle_monster.php");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/guild_battle_monster.php');
         schedule.setItem('clickedOnSomething', 0);
         caap.waitingForDomLoad = true;
@@ -4421,12 +4438,12 @@ caap = {
             }
 
             if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
-                utility.log(2, "battle_enter_battle");
+                utility.log(3, "battle_enter_battle");
                 globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
             if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
-                utility.log(2, "battle_enter_battle");
+                utility.log(3, "battle_enter_battle");
                 globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
@@ -4486,33 +4503,33 @@ caap = {
                 switch (targetStr) {
                 case "app_body":
                     if (globalContainer.find("img[src*='guild_monster_list_button_on.jpg']").length) {
-                        utility.log(2, "Checking Guild Current Monster Battles");
+                        utility.log(3, "Checking Guild Current Monster Battles");
                         globalContainer.find("input[src*='dragon_list_btn_']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
                     }
 
                     if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
-                        utility.log(2, "battle_enter_battle");
+                        utility.log(3, "battle_enter_battle");
                         globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
                     }
 
                     if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
-                        utility.log(2, "battle_enter_battle");
+                        utility.log(3, "battle_enter_battle");
                         globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
                     }
 
                     break;
                 case "arena":
-                    utility.log(2, "battle_enter_battle");
+                    utility.log(3, "battle_enter_battle");
                     globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
 
                     break;
                 case "arena_battle":
-                    utility.log(2, "monster_duel_button");
+                    utility.log(3, "monster_duel_button");
                     setArenaDualButtons();
 
                     break;
                 case "guild_battle_monster":
-                    utility.log(2, "Checking Guild Battles Monster");
+                    utility.log(3, "Checking Guild Battles Monster");
                     globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
 
                     break;
@@ -8205,7 +8222,7 @@ caap = {
                 if (key && key.length) {
                     form = key.parents("form").eq(0);
                     if (form && form.length) {
-                        state.setItem('ArenaMinionAttacked', minion['index']);
+                        state.setItem('ArenaMinionAttacked', minion);
                         utility.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
                         return true;
                     }
@@ -10633,11 +10650,21 @@ caap = {
                 giftImg    = '',
                 giftChoice = '',
                 popCheck,
-                collecting;
+                collecting,
+                whenArena  = '',
+                arenaInfo  = {};
 
-            if (!config.getItem('AutoGift', false)) {
+            whenArena = config.getItem("WhenArena", 'Never');
+            if (whenArena !== 'Never') {
+                arenaInfo = arena.getItem();
+            }
+
+            /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+            /*jslint sub: true */
+            if (!config.getItem('AutoGift', false) || (!$.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
                 return false;
             }
+            /*jslint sub: false */
 
             popCheck = gifting.popCheck();
             if (typeof popCheck === 'boolean') {
