@@ -35,6 +35,10 @@ var caapVersion   = "!version!",
     army          = {},
     caap          = {};
 
+if (!document.head) {
+    document.head = document.getElementsByTagName('head')[0];
+}
+
 ///////////////////////////
 //       Prototypes
 ///////////////////////////

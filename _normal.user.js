@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            35
+// @dev            36
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -31,7 +31,7 @@ if (console.log !== undefined) {
 }
 
 var caapVersion   = "140.24.1",
-    devVersion    = "35",
+    devVersion    = "36",
     hiddenVar     = true,
     image64       = {},
     utility       = {},
@@ -53,6 +53,10 @@ var caapVersion   = "140.24.1",
     gifting       = {},
     army          = {},
     caap          = {};
+
+if (!document.head) {
+    document.head = document.getElementsByTagName('head')[0];
+}
 
 ///////////////////////////
 //       Prototypes
@@ -1094,7 +1098,7 @@ utility = {
             var inject = document.createElement('script');
             inject.setAttribute('type', 'application/javascript');
             inject.src = url;
-            document.body.appendChild(inject);
+            document.head.appendChild(inject);
             inject = null;
             return true;
         } catch (err) {
@@ -8221,6 +8225,7 @@ battle = {
                 tempText      = '',
                 tStr          = '',
                 tempArr       = [],
+                tempNum       = 0,
                 battleRecord  = {},
                 warWinLoseImg = '',
                 result        = {
@@ -8300,7 +8305,7 @@ battle = {
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.attr("value");
                         if (tempText) {
-                            result.userId = tempText.parseInt();
+                            result.userId = tempText ? tempText.numberOnly() : 0;
                         } else {
                             utility.warn("No value in", tempDiv);
                             throw "Unable to get userId!";
@@ -8422,6 +8427,7 @@ battle = {
             }
 
             battleRecord = battle.getItem(result.userId);
+            utility.log(1, "battleRecord", battleRecord, result);
             battleRecord['attackTime'] = new Date().getTime();
             if (result.userName && result.userName !== battleRecord['nameStr']) {
                 utility.log(1, "Updating battle record user name, from/to", battleRecord['nameStr'], result.userName);
@@ -8454,11 +8460,14 @@ battle = {
 
                 break;
             case 'War' :
+                utility.log(1, "War Result");
                 if (result.win) {
                     battleRecord['warwinsNum'] += 1;
+                    utility.log(1, "War Win", battleRecord['warwinsNum']);
                 } else {
                     battleRecord['warlossesNum'] += 1;
                     battleRecord['warLostTime'] = new Date().getTime();
+                    utility.log(1, "War Loss", battleRecord['warLostTime']);
                 }
 
                 break;
@@ -8467,6 +8476,7 @@ battle = {
             }
 
             battle.setItem(battleRecord);
+            utility.log(1, "getResult returning", result, battleRecord);
             return result;
         } catch (err) {
             utility.error("ERROR in battle.getResult: " + err);
@@ -8547,6 +8557,7 @@ battle = {
             }
 
             result = battle.getResult();
+            utility.log(2, "result", result);
             if (!result || result.hiding === true) {
                 return true;
             }

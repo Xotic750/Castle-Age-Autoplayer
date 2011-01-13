@@ -278,6 +278,7 @@ battle = {
                 tempText      = '',
                 tStr          = '',
                 tempArr       = [],
+                tempNum       = 0,
                 battleRecord  = {},
                 warWinLoseImg = '',
                 result        = {
@@ -357,7 +358,7 @@ battle = {
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.attr("value");
                         if (tempText) {
-                            result.userId = tempText.parseInt();
+                            result.userId = tempText ? tempText.numberOnly() : 0;
                         } else {
                             utility.warn("No value in", tempDiv);
                             throw "Unable to get userId!";
@@ -479,6 +480,7 @@ battle = {
             }
 
             battleRecord = battle.getItem(result.userId);
+            utility.log(1, "battleRecord", battleRecord, result);
             battleRecord['attackTime'] = new Date().getTime();
             if (result.userName && result.userName !== battleRecord['nameStr']) {
                 utility.log(1, "Updating battle record user name, from/to", battleRecord['nameStr'], result.userName);
@@ -511,11 +513,14 @@ battle = {
 
                 break;
             case 'War' :
+                utility.log(1, "War Result");
                 if (result.win) {
                     battleRecord['warwinsNum'] += 1;
+                    utility.log(1, "War Win", battleRecord['warwinsNum']);
                 } else {
                     battleRecord['warlossesNum'] += 1;
                     battleRecord['warLostTime'] = new Date().getTime();
+                    utility.log(1, "War Loss", battleRecord['warLostTime']);
                 }
 
                 break;
@@ -524,6 +529,7 @@ battle = {
             }
 
             battle.setItem(battleRecord);
+            utility.log(1, "getResult returning", result, battleRecord);
             return result;
         } catch (err) {
             utility.error("ERROR in battle.getResult: " + err);
@@ -604,6 +610,7 @@ battle = {
             }
 
             result = battle.getResult();
+            utility.log(2, "result", result);
             if (!result || result.hiding === true) {
                 return true;
             }

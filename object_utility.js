@@ -191,7 +191,7 @@ utility = {
             var inject = document.createElement('script');
             inject.setAttribute('type', 'application/javascript');
             inject.src = url;
-            document.body.appendChild(inject);
+            document.head.appendChild(inject);
             inject = null;
             return true;
         } catch (err) {
