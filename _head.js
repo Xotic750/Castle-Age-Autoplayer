@@ -15,5 +15,5 @@
 // @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
-// @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+
+// @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+, Opera 11+, Safari 5+
 // ==/UserScript==

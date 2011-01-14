@@ -15,7 +15,7 @@
 // @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
-// @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+
+// @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+, Opera 11+, Safari 5+
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
@@ -13310,7 +13310,7 @@ caap = {
             html += " width='" + header.width + "'";
         }
 
-        html += " style='color:" + header.color + ";font-size:10px;font-weight:bold'>" + header.text + "</th>";
+        html += " style='color:" + header.color + ";font-size:10px;font-weight:bold;text-align:left'>" + header.text + "</th>";
         return html;
     },
 
@@ -13331,7 +13331,7 @@ caap = {
             html += " title='" + data.title + "'";
         }
 
-        html += " style='color:" + data.color + ";font-size:10px'>" + data.text + "</td>";
+        html += " style='color:" + data.color + ";font-size:10px;text-align:left'>" + data.text + "</td>";
         return html;
     },
 

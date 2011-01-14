@@ -2061,7 +2061,7 @@ caap = {
             html += " width='" + header.width + "'";
         }
 
-        html += " style='color:" + header.color + ";font-size:10px;font-weight:bold'>" + header.text + "</th>";
+        html += " style='color:" + header.color + ";font-size:10px;font-weight:bold;text-align:left'>" + header.text + "</th>";
         return html;
     },
 
@@ -2082,7 +2082,7 @@ caap = {
             html += " title='" + data.title + "'";
         }
 
-        html += " style='color:" + data.color + ";font-size:10px'>" + data.text + "</td>";
+        html += " style='color:" + data.color + ";font-size:10px;text-align:left'>" + data.text + "</td>";
         return html;
     },
 
