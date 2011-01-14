@@ -10,7 +10,7 @@ config = {
     load: function () {
         try {
             config.options = gm.getItem('config.options', 'default');
-            if (config.options === 'default' || !$.isPlainObject(config.options)) {
+            if (config.options === 'default' || !$j.isPlainObject(config.options)) {
                 config.options = gm.setItem('config.options', {});
             }
 

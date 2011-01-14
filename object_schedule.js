@@ -10,7 +10,7 @@ schedule = {
     load: function () {
         try {
             schedule.timers = gm.getItem('schedule.timers', 'default');
-            if (schedule.timers === 'default' || !$.isPlainObject(schedule.timers)) {
+            if (schedule.timers === 'default' || !$j.isPlainObject(schedule.timers)) {
                 schedule.timers = gm.setItem('schedule.timers', {});
             }
 
@@ -68,7 +68,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!$.isPlainObject(schedule.timers[name])) {
+            if (!$j.isPlainObject(schedule.timers[name])) {
                 utility.warn("Invalid or non-existant timer!", name);
                 return 0;
             }
@@ -86,7 +86,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!$.isPlainObject(schedule.timers[name])) {
+            if (!$j.isPlainObject(schedule.timers[name])) {
                 utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
             }
 
@@ -107,7 +107,7 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!$.isPlainObject(schedule.timers[name])) {
+            if (!$j.isPlainObject(schedule.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
@@ -132,7 +132,7 @@ schedule = {
                     throw "Invalid identifying name! (" + name_or_number + ")";
                 }
 
-                if (!$.isPlainObject(schedule.timers[name_or_number])) {
+                if (!$j.isPlainObject(schedule.timers[name_or_number])) {
                     if (utility.logLevel > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
@@ -221,7 +221,7 @@ schedule = {
                 throw "Invalid identifying name!";
             }
 
-            if (!$.isPlainObject(schedule.timers[name])) {
+            if (!$j.isPlainObject(schedule.timers[name])) {
                 if (utility.logLevel > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }

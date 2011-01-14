@@ -70,9 +70,9 @@ town = {
                     }
                 };
 
-            $.extend(true, order, state.getItem(type.ucFirst() + "Sort", order));
+            $j.extend(true, order, state.getItem(type.ucFirst() + "Sort", order));
             town[type + 'Sortable'] = [];
-            $.merge(town[type + 'Sortable'], town[type]);
+            $j.merge(town[type + 'Sortable'], town[type]);
             town[type + 'Sortable'].sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
             return true;
         } catch (err) {
@@ -95,7 +95,7 @@ town = {
             }
 
             town[type] = gm.getItem(type + '.records', 'default');
-            if (town[type] === 'default' || !$.isArray(town[type])) {
+            if (town[type] === 'default' || !$j.isArray(town[type])) {
                 town[type] = gm.setItem(type + '.records', []);
             }
 
@@ -165,8 +165,8 @@ town = {
     /*jslint sub: true */
     GetItems: function (type) {
         try {
-            var rowDiv  = $(),
-                tempDiv = $(),
+            var rowDiv  = $j(),
+                tempDiv = $j(),
                 tStr    = '',
                 current = {},
                 passed  = true,
@@ -181,7 +181,7 @@ town = {
             rowDiv = caap.appBodyDiv.find("td[class*='eq_buy_row']");
             if (rowDiv && rowDiv.length) {
                 rowDiv.each(function (index) {
-                    var row = $(this);
+                    var row = $j(this);
                     current = new town.record();
                     tempDiv = row.find("div[class='eq_buy_txt_int'] strong");
                     if (tempDiv && tempDiv.length === 1) {

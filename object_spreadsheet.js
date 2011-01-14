@@ -18,9 +18,9 @@ spreadsheet = {
             }
 
             spreadsheet.records = ss.getItem('spreadsheet.records', 'default');
-            if (spreadsheet.records === 'default' || !$.isArray(spreadsheet.records) || !spreadsheet.records.length) {
+            if (spreadsheet.records === 'default' || !$j.isArray(spreadsheet.records) || !spreadsheet.records.length) {
                 spreadsheet.records = [];
-                $.ajax({
+                $j.ajax({
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
                     success: function (msg) {
@@ -189,11 +189,11 @@ spreadsheet = {
 
     doTitles: function (goblin) {
         try {
-            var images = $("#app46755028429_globalContainer img");
+            var images = $j("#app46755028429_globalContainer img");
             if (images && images.length) {
                 images.each(function () {
-                    var img   = $(this),
-                        div   = $(),
+                    var img   = $j(this),
+                        div   = $j(),
                         title = '',
                         image = '',
                         style = '',
@@ -203,7 +203,7 @@ spreadsheet = {
                     if (title) {
                         image = img.attr("src").filepart();
                         tMes = spreadsheet.getTitle(title, image);
-                        if (tMes && $.isPlainObject(tMes) && !$.isEmptyObject(tMes) && tMes.title) {
+                        if (tMes && $j.isPlainObject(tMes) && !$j.isEmptyObject(tMes) && tMes.title) {
                             img.attr("title", tMes.title);
                             if (goblin && (tMes.opacity || tMes.hide)) {
                                 div = img.parent().parent();

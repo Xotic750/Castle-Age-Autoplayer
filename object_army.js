@@ -45,9 +45,9 @@ army = {
                     }
                 };
 
-            $.extend(true, order, state.getItem("ArmySort", order));
+            $j.extend(true, order, state.getItem("ArmySort", order));
             army.recordsSortable = [];
-            $.merge(army.recordsSortable, army.records);
+            $j.merge(army.recordsSortable, army.records);
             army.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
             return true;
         } catch (err) {
@@ -61,7 +61,7 @@ army = {
     load: function () {
         try {
             army.records = gm.getItem('army.records', 'default');
-            if (army.records === 'default' || !$.isArray(army.records)) {
+            if (army.records === 'default' || !$j.isArray(army.records)) {
                 army.records = gm.setItem('army.records', []);
             }
 
@@ -93,7 +93,7 @@ army = {
     loadTemp: function () {
         try {
             army.recordsTemp = ss.getItem('army.recordsTemp', 'default');
-            if (army.recordsTemp === 'default' || !$.isArray(army.recordsTemp)) {
+            if (army.recordsTemp === 'default' || !$j.isArray(army.recordsTemp)) {
                 army.recordsTemp = ss.setItem('army.recordsTemp', []);
             }
 
@@ -135,7 +135,7 @@ army = {
     page: function (number) {
         try {
             utility.log(1, "army.page number", number);
-            $.ajax({
+            $j.ajax({
                 url: "http://apps.facebook.com/castle_age/army_member.php?page=" + number,
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
@@ -145,9 +145,9 @@ army = {
                 success:
                     function (data, textStatus, XMLHttpRequest) {
                         try {
-                            var jData   = $(),
-                                pages   = $(),
-                                search  = $(),
+                            var jData   = $j(),
+                                pages   = $j(),
+                                search  = $j(),
                                 tStr    = '',
                                 tTxt    = '',
                                 tNum    = 0,
@@ -155,7 +155,7 @@ army = {
                                 it      = 0,
                                 record  = {};
 
-                            jData = $(data);
+                            jData = $j(data);
                             if (number === 1) {
                                 pages = jData.find("a[href*='army_member.php?page=']");
                                 tStr = pages.last().attr("href");
@@ -168,7 +168,7 @@ army = {
 
                             search = jData.find("a[href*='comments.php?casuser=']");
                             search.each(function () {
-                                var el    = $(this),
+                                var el    = $j(this),
                                     tStr1 = '';
 
                                 record = new army.record();

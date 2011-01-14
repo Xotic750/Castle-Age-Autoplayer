@@ -50,9 +50,9 @@ general = {
                     }
                 };
 
-            $.extend(true, order, state.getItem("GeneralsSort", order));
+            $j.extend(true, order, state.getItem("GeneralsSort", order));
             general.recordsSortable = [];
-            $.merge(general.recordsSortable, general.records);
+            $j.merge(general.recordsSortable, general.records);
             general.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
             return true;
         } catch (err) {
@@ -66,7 +66,7 @@ general = {
     load: function () {
         try {
             general.records = gm.getItem('general.records', 'default');
-            if (general.records === 'default' || !$.isArray(general.records)) {
+            if (general.records === 'default' || !$j.isArray(general.records)) {
                 general.records = gm.setItem('general.records', []);
             }
 
@@ -321,9 +321,9 @@ general = {
         try {
             var generalName = '',
                 tStr        = '',
-                nameObj     = $();
+                nameObj     = $j();
 
-            nameObj = $("#app46755028429_equippedGeneralContainer .general_name_div3");
+            nameObj = $j("#app46755028429_equippedGeneralContainer .general_name_div3");
             if (nameObj) {
                 tStr = nameObj.text();
                 generalName = tStr ? tStr.trim().stripTRN().stripStar() : '';
@@ -346,10 +346,10 @@ general = {
     /*jslint sub: true */
     GetGenerals: function () {
         try {
-            var generalsDiv = $(".generalSmallContainer2"),
+            var generalsDiv = $j(".generalSmallContainer2"),
                 update      = false,
                 save        = false,
-                tempObj     = $();
+                tempObj     = $j();
 
             if (generalsDiv.length) {
                 generalsDiv.each(function (index) {
@@ -361,7 +361,7 @@ general = {
                         atk        = 0,
                         def        = 0,
                         special    = '',
-                        container  = $(this),
+                        container  = $j(this),
                         it         = 0,
                         len        = 0;
 
@@ -393,7 +393,7 @@ general = {
                     if (tempObj && tempObj.length) {
                         tStr = tempObj.html();
                         tStr = tStr ? tStr.replace(/<br>/g, ' ') : '';
-                        tStr = $(tStr).text();
+                        tStr = $j(tStr).text();
                         special = tStr ? tStr.trim() : '';
                     } else {
                         utility.warn("Unable to find 'special' container", index);
@@ -605,8 +605,8 @@ general = {
                 tStr         = '',
                 it           = 0,
                 len          = 0,
-                generalDiv   = $(),
-                tempObj      = $(),
+                generalDiv   = $j(),
+                tempObj      = $j(),
                 success      = false;
 
             if (generalName === 'Use Current') {
@@ -625,7 +625,7 @@ general = {
                 return false;
             }
 
-            generalDiv = $("#app46755028429_equippedGeneralContainer .generals_indv_stats div");
+            generalDiv = $j("#app46755028429_equippedGeneralContainer .generals_indv_stats div");
             if (generalDiv && generalDiv.length === 2) {
                 tempObj = generalDiv.eq(0);
                 if (tempObj && tempObj.length) {

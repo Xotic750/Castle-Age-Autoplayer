@@ -9,14 +9,14 @@ sort = {
         return function (o, p) {
             try {
                 var a, b;
-                if ($.type(o) === 'object' && $.type(p) === 'object' && o && p) {
+                if ($j.type(o) === 'object' && $j.type(p) === 'object' && o && p) {
                     a = o[name];
                     b = p[name];
                     if (a === b) {
-                        return $.type(minor) === 'function' ? minor(o, p) : o;
+                        return $j.type(minor) === 'function' ? minor(o, p) : o;
                     }
 
-                    if ($.type(a) === $.type(b)) {
+                    if ($j.type(a) === $j.type(b)) {
                         if (reverse) {
                             return a < b ? 1 : -1;
                         } else {
@@ -25,9 +25,9 @@ sort = {
                     }
 
                     if (reverse) {
-                        return $.type(a) < $.type(b) ? 1 : -1;
+                        return $j.type(a) < $j.type(b) ? 1 : -1;
                     } else {
-                        return $.type(a) < $.type(b) ? -1 : 1;
+                        return $j.type(a) < $j.type(b) ? -1 : 1;
                     }
                 } else {
                     throw {
@@ -62,7 +62,7 @@ sort = {
 
             list.sort(sortfunc);
             for (i = 0, len = list.length; i < len; i += 1) {
-                if (deep && $.isPlainObject(obj[list[i]])) {
+                if (deep && $j.isPlainObject(obj[list[i]])) {
                     output[list[i]] = caap.SortObject(obj[list[i]], sortfunc, deep);
                 } else {
                     output[list[i]] = obj[list[i]];
@@ -110,15 +110,15 @@ sort = {
                     }
                 }
 
-                sort.dialog[id] = $('<div id="sort_form_' + id + '" title="Sort ' + id + '">' + html + '</div>').appendTo(window.document.body);
+                sort.dialog[id] = $j('<div id="sort_form_' + id + '" title="Sort ' + id + '">' + html + '</div>').appendTo(window.document.body);
                 sort.dialog[id].dialog({
                     buttons: {
                         "Sort": function () {
                             sort.getForm(id, records);
-                            $(this).dialog("close");
+                            $j(this).dialog("close");
                         },
                         "Cancel": function () {
-                            $(this).dialog("close");
+                            $j(this).dialog("close");
                         }
                     }
                 });
@@ -150,12 +150,12 @@ sort = {
                 };
 
             if (sort.dialog[id] && sort.dialog[id].length) {
-                order.reverse.a = $("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.reverse.b = $("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.reverse.c = $("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.value.a = $("#select0 option:selected", sort.dialog[id]).val();
-                order.value.b = $("#select1 option:selected", sort.dialog[id]).val();
-                order.value.c = $("#select2 option:selected", sort.dialog[id]).val();
+                order.reverse.a = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.reverse.b = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.reverse.c = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.value.a = $j("#select0 option:selected", sort.dialog[id]).val();
+                order.value.b = $j("#select1 option:selected", sort.dialog[id]).val();
+                order.value.c = $j("#select2 option:selected", sort.dialog[id]).val();
                 records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
                 state.setItem(id + "Sort", order);
                 state.setItem(id + "DashUpdate", true);
@@ -187,13 +187,13 @@ sort = {
                 };
 
             if (sort.dialog[id] && sort.dialog[id].length) {
-                $.extend(true, order, state.getItem(id + "Sort", order));
-                $("#form0 input", sort.dialog[id]).val([order.reverse.a]);
-                $("#form1 input", sort.dialog[id]).val([order.reverse.b]);
-                $("#form2 input", sort.dialog[id]).val([order.reverse.c]);
-                $("#select0", sort.dialog[id]).val(order.value.a);
-                $("#select1", sort.dialog[id]).val(order.value.b);
-                $("#select2", sort.dialog[id]).val(order.value.c);
+                $j.extend(true, order, state.getItem(id + "Sort", order));
+                $j("#form0 input", sort.dialog[id]).val([order.reverse.a]);
+                $j("#form1 input", sort.dialog[id]).val([order.reverse.b]);
+                $j("#form2 input", sort.dialog[id]).val([order.reverse.c]);
+                $j("#select0", sort.dialog[id]).val(order.value.a);
+                $j("#select1", sort.dialog[id]).val(order.value.b);
+                $j("#select2", sort.dialog[id]).val(order.value.c);
             } else {
                 utility.warn("Dialog for updateForm not found", id, sort.dialog[id]);
             }

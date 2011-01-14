@@ -123,9 +123,9 @@ gm = {
                     } else if (storageStr.match(/^RISON /)) {
                         jsObj = rison.decode(storageStr.slice(6));
                     } else if (storageStr.match(/^HPACK /)) {
-                        jsObj = JSON.hunpack($.parseJSON(storageStr.slice(6)));
+                        jsObj = JSON.hunpack($j.parseJSON(storageStr.slice(6)));
                     } else {
-                        jsObj = $.parseJSON(storageStr);
+                        jsObj = $j.parseJSON(storageStr);
                     }
                 }
             }

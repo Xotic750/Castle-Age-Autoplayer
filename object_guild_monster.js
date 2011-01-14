@@ -76,7 +76,7 @@ guild_monster = {
     load: function () {
         try {
             guild_monster.records = gm.getItem('guild_monster.records', 'default');
-            if (guild_monster.records === 'default' || !$.isArray(guild_monster.records)) {
+            if (guild_monster.records === 'default' || !$j.isArray(guild_monster.records)) {
                 guild_monster.records = gm.setItem('guild_monster.records', []);
             }
 
@@ -143,7 +143,7 @@ guild_monster = {
 
     setItem: function (record) {
         try {
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -249,13 +249,13 @@ guild_monster = {
     /*jslint sub: true */
     populate: function () {
         try {
-            var buttons = $("input[src*='dragon_list_btn_']"),
+            var buttons = $j("input[src*='dragon_list_btn_']"),
                 slotArr = [],
                 it      = 0;
 
             if (buttons && buttons.length) {
                 buttons.each(function () {
-                    var button        = $(this),
+                    var button        = $j(this),
                         form          = null,
                         currentRecord = {},
                         imageName     = '',
@@ -359,13 +359,13 @@ guild_monster = {
 
     onMonster: function () {
         try {
-            var gates         = $(),
-                health        = $(),
-                healthGuild   = $(),
-                healthEnemy   = $(),
-                allowedDiv    = $(),
-                bannerDiv     = $(),
-                collectDiv    = $(),
+            var gates         = $j(),
+                health        = $j(),
+                healthGuild   = $j(),
+                healthEnemy   = $j(),
+                allowedDiv    = $j(),
+                bannerDiv     = $j(),
+                collectDiv    = $j(),
                 collect       = false,
                 myStatsTxt    = '',
                 myStatsArr    = [],
@@ -374,9 +374,9 @@ guild_monster = {
                 minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
             utility.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
-            slot = $("input[name='slot']").eq(0).attr("value");
+            slot = $j("input[name='slot']").eq(0).attr("value");
             slot = slot ? slot.parseInt() : 0;
-            bannerDiv = $("#app46755028429_guild_battle_banner_section");
+            bannerDiv = $j("#app46755028429_guild_battle_banner_section");
             myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
             if (typeof slot === 'number' && slot > 0 && slot <= 5) {
@@ -387,7 +387,7 @@ guild_monster = {
                 currentRecord['guildHealth'] = 0;
                 currentRecord['enemyHealth'] = 0;
                 if (!bannerDiv.attr("style").match(/_dead/)) {
-                    currentRecord['ticker'] = $("#app46755028429_monsterTicker").text();
+                    currentRecord['ticker'] = $j("#app46755028429_monsterTicker").text();
                     currentRecord['ticker'] = currentRecord['ticker'] ? currentRecord['ticker'].trim() : '';
                     if (myStatsTxt) {
                         utility.log(3, "myStatsTxt", myStatsTxt);
@@ -401,7 +401,7 @@ guild_monster = {
                         }
                     }
 
-                    allowedDiv = $("#app46755028429_allowedAttacks");
+                    allowedDiv = $j("#app46755028429_allowedAttacks");
                     if (allowedDiv && allowedDiv.length) {
                         currentRecord['attacks'] = allowedDiv.attr("value") ? allowedDiv.attr("value").parseInt() : 1;
                         if (currentRecord['attacks'] < 1 || currentRecord['attacks'] > 5) {
@@ -412,7 +412,7 @@ guild_monster = {
                         utility.warn("Could not find allowedAttacks");
                     }
 
-                    health = $("#app46755028429_guild_battle_health");
+                    health = $j("#app46755028429_guild_battle_health");
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
@@ -431,24 +431,24 @@ guild_monster = {
                         utility.warn("guild_battle_health error");
                     }
 
-                    gates = $("div[id*='app46755028429_enemy_guild_member_list_']");
+                    gates = $j("div[id*='app46755028429_enemy_guild_member_list_']");
                     if (!gates || !gates.length) {
                         utility.warn("No gates found");
                     } else if (gates && gates.length !== 4) {
                         utility.warn("Not enough gates found");
                     } else {
                         gates.each(function (gIndex) {
-                            var memberDivs = $(this).children();
+                            var memberDivs = $j(this).children();
                             if (!memberDivs || !memberDivs.length) {
                                 utility.warn("No members found");
                             } else if (memberDivs && memberDivs.length !== 25) {
                                 utility.warn("Not enough members found", memberDivs);
                             } else {
                                 memberDivs.each(function (mIndex) {
-                                    var member       = $(this),
+                                    var member       = $j(this),
                                         memberText   = '',
                                         memberArr    = [],
-                                        targetIdDiv  = $(),
+                                        targetIdDiv  = $j(),
                                         memberRecord = new guild_monster.minion().data;
 
                                     memberRecord['attacking_position'] = (gIndex + 1);
@@ -478,7 +478,7 @@ guild_monster = {
                         });
                     }
                 } else {
-                    collectDiv = $("input[src*='collect_reward_button2.jpg']");
+                    collectDiv = $j("input[src*='collect_reward_button2.jpg']");
                     if (collectDiv && collectDiv.length) {
                         utility.log(1, "Monster is dead and ready to collect");
                         currentRecord['state'] = 'Collect';
@@ -548,12 +548,12 @@ guild_monster = {
 
     checkPage: function (record) {
         try {
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
             var slot = 0;
-            slot = $("input[name='slot']").eq(0).attr("value");
+            slot = $j("input[name='slot']").eq(0).attr("value");
             slot = slot ? slot.parseInt() : 0;
             return (record['slot'] === slot);
         } catch (err) {
@@ -582,7 +582,7 @@ guild_monster = {
                 attackSouth     = config.getItem('attackGateSouth', true),
                 attackWest      = config.getItem('attackGateWest', true);
 
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -599,7 +599,7 @@ guild_monster = {
 
             ignoreClerics = config.getItem('ignoreClerics', false);
             for (ol = 0, len = attackOrderList.length; ol < len; ol += 1) {
-                if (minion && $.isPlainObject(minion) && !$.isEmptyObject(minion)) {
+                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                     utility.log(2, "Minion matched and set - break", minion);
                     break;
                 }
@@ -686,7 +686,7 @@ guild_monster = {
                 }
             }
 
-            if ($.isEmptyObject(minion) && firstSpecial >= 0) {
+            if ($j.isEmptyObject(minion) && firstSpecial >= 0) {
                 minion = record['minions'][firstSpecial];
                 utility.log(2, "Target Special", firstSpecial, record['minions'][firstSpecial]);
             }
@@ -777,7 +777,7 @@ guild_monster = {
 
                     if (guild_monster.records[it]['damage'] >= ach) {
                         guild_monster.records[it]['color'] = "darkorange";
-                        if (!firstOverAch || !$.isPlainObject(firstOverAch) || $.isEmptyObject(firstOverAch)) {
+                        if (!firstOverAch || !$j.isPlainObject(firstOverAch) || $j.isEmptyObject(firstOverAch)) {
                             if (guild_monster.records[it]['damage'] >= max) {
                                 guild_monster.records[it]['color'] = "red";
                                 utility.log(2, 'OverMax', guild_monster.records[it]);
@@ -787,7 +787,7 @@ guild_monster = {
                             }
                         }
                     } else if (guild_monster.records[it]['damage'] < max) {
-                        if (!firstUnderMax || !$.isPlainObject(firstUnderMax) || $.isEmptyObject(firstUnderMax)) {
+                        if (!firstUnderMax || !$j.isPlainObject(firstUnderMax) || $j.isEmptyObject(firstUnderMax)) {
                             firstUnderMax = guild_monster.records[it];
                             utility.log(2, 'firstUnderMax', firstUnderMax);
                         }
@@ -799,12 +799,12 @@ guild_monster = {
             }
 
             target = firstUnderMax;
-            if (!target || !$.isPlainObject(target) || $.isEmptyObject(target)) {
+            if (!target || !$j.isPlainObject(target) || $j.isEmptyObject(target)) {
                 target = firstOverAch;
             }
 
             utility.log(2, 'target', target);
-            if (target && $.isPlainObject(target) && !$.isEmptyObject(target)) {
+            if (target && $j.isPlainObject(target) && !$j.isEmptyObject(target)) {
                 target['color'] = 'green';
                 guild_monster.setItem(target);
             } else {
@@ -832,7 +832,7 @@ guild_monster = {
     /*jslint sub: true */
     getAttackValue: function (record, minion) {
         try {
-            if (!minion || !$.isPlainObject(minion)) {
+            if (!minion || !$j.isPlainObject(minion)) {
                 throw "Not passed a minion";
             }
 
@@ -906,7 +906,7 @@ guild_monster = {
 
     getStaminaValue: function (record, minion) {
         try {
-            if (!minion || !$.isPlainObject(minion)) {
+            if (!minion || !$j.isPlainObject(minion)) {
                 throw "Not passed a minion";
             }
 

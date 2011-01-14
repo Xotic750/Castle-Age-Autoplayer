@@ -1,19 +1,16 @@
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
-/*global window,unsafeWindow,$,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,CM_Listener,CE_message,ConvertGMtoJSON,localStorage,sessionStorage,rison */
+/*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison */
 /*jslint maxlen: 250 */
 
 //////////////////////////////////
-//       Global and Object vars
+//       Globals
 //////////////////////////////////
-
-if (console.log !== undefined) {
-    console.log("CAAP Initiated");
-}
 
 var caapVersion   = "!version!",
     devVersion    = "!dev!",
     hiddenVar     = true,
+    caap_timeout  = 0,
     image64       = {},
     utility       = {},
     config        = {},
@@ -33,15 +30,16 @@ var caapVersion   = "!version!",
     spreadsheet   = {},
     gifting       = {},
     army          = {},
-    caap          = {};
-
-if (!document.head) {
-    document.head = document.getElementsByTagName('head')[0];
-}
+    caap          = {},
+    $j            = {};
 
 ///////////////////////////
 //       Prototypes
 ///////////////////////////
+
+if (!document.head) {
+    document.head = document.getElementsByTagName('head')[0];
+}
 
 String.prototype.ucFirst = function () {
     return this.charAt(0).toUpperCase() + this.substr(1);
@@ -79,41 +77,18 @@ String.prototype.parseFloat = function (x) {
     return x >= 0 ? parseFloat(parseFloat(this).toFixed(x)) : parseFloat(this);
 };
 
-/*
-Number.prototype.parseFloat = function (x) {
-    return this.toString().parseFloat(x);
-};
-*/
-
 String.prototype.parseInt = function (x) {
     return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
 };
-
-/*
-Number.prototype.parseInt = function (x) {
-    return this.toString().parseInt(x);
-};
-*/
 
 String.prototype.trim = function () {
     return this.replace(/^\s+|\s+$/g, '');
 };
 
-/*
-Number.prototype.trim = function () {
-    return this.toString().trim();
-};
-*/
-
 String.prototype.numberOnly = function () {
     return parseFloat(this.replace(new RegExp("[^0-9\\.]", "g"), ''));
 };
 
-/*
-Number.prototype.numberOnly = function () {
-    return this.toString().numberOnly();
-};
-*/
 
 String.prototype.parseTimer = function () {
     var a = [],
@@ -195,9 +170,9 @@ Array.prototype.deepCopy = function () {
         t = null;
 
     for (i = 0, l = this.length; i < l; i += 1) {
-        switch ($.type(this[i])) {
+        switch ($j.type(this[i])) {
         case "object":
-            t = $.extend(true, {}, this[i]);
+            t = $j.extend(true, {}, this[i]);
             break;
         case "array":
             t = this[i].deepCopy();

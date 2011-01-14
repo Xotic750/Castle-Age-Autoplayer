@@ -71,7 +71,7 @@ arena = {
     load: function () {
         try {
             arena.records = gm.getItem('arena.records', 'default');
-            if (arena.records === 'default' || !$.isArray(arena.records)) {
+            if (arena.records === 'default' || !$j.isArray(arena.records)) {
                 arena.records = gm.setItem('arena.records', []);
             }
 
@@ -110,7 +110,7 @@ arena = {
 
     setItem: function (record) {
         try {
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -176,11 +176,11 @@ arena = {
     /*jslint sub: true */
     setWin: function (records, won) {
         try {
-            if (!records || !$.isArray(records)) {
+            if (!records || !$j.isArray(records)) {
                 throw "Not passed records";
             }
 
-            if (!won || !$.isPlainObject(won)) {
+            if (!won || !$j.isPlainObject(won)) {
                 throw "Not passed a win";
             }
 
@@ -217,7 +217,7 @@ arena = {
 
     getWin: function (records, userId) {
         try {
-            if (!records || !$.isArray(records)) {
+            if (!records || !$j.isArray(records)) {
                 throw "Not passed records";
             }
 
@@ -252,7 +252,7 @@ arena = {
 
     delWin: function (records, userId) {
         try {
-            if (!records || !$.isArray(records)) {
+            if (!records || !$j.isArray(records)) {
                 throw "Not passed records";
             }
 
@@ -288,7 +288,7 @@ arena = {
 
     setLoss: function (records, userId) {
         try {
-            if (!records || !$.isArray(records)) {
+            if (!records || !$j.isArray(records)) {
                 throw "Not passed records";
             }
 
@@ -313,7 +313,7 @@ arena = {
 
     checkLoss: function (records, userId) {
         try {
-            if (!records || !$.isArray(records)) {
+            if (!records || !$j.isArray(records)) {
                 throw "Not passed records";
             }
 
@@ -337,7 +337,7 @@ arena = {
 
     delLoss: function (records, userId) {
         try {
-            if (!records || !$.isArray(records)) {
+            if (!records || !$j.isArray(records)) {
                 throw "Not passed records";
             }
 
@@ -372,7 +372,7 @@ arena = {
                 found     = false;
 
             arenaInfo = arena.getItem();
-            if (!$.isEmptyObject(arenaInfo)) {
+            if (!$j.isEmptyObject(arenaInfo)) {
                 for (it = 0, len = arenaInfo['wins'].length; it < len; it += 1) {
                     if (arenaInfo['losses'].indexOf(arenaInfo['wins'][it]['userId']) >= 0) {
                         utility.log(1, "Found win in losses: delete", arenaInfo['wins'][it]);
@@ -415,10 +415,10 @@ arena = {
     /*jslint sub: true */
     checkInfo: function () {
         try {
-            var tokenSpan   = $(),
-                timerSpan   = $(),
-                daysDiv     = $(),
-                bottomDiv   = $(),
+            var tokenSpan   = $j(),
+                timerSpan   = $j(),
+                daysDiv     = $j(),
+                bottomDiv   = $j(),
                 enterButton = null,
                 tStr        = '',
                 tStr2       = '',
@@ -428,20 +428,20 @@ arena = {
             arenaInfo = arena.getItem();
             arenaInfo['reviewed'] = new Date().getTime();
 
-            tokenSpan = $("span[id='app46755028429_guild_token_current_value']");
+            tokenSpan = $j("span[id='app46755028429_guild_token_current_value']");
             tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
             arenaInfo['tokens'] = tStr ? tStr.parseInt() : 0;
 
-            timerSpan = $("span[id='app46755028429_guild_token_time_value']");
+            timerSpan = $j("span[id='app46755028429_guild_token_time_value']");
             tStr = timerSpan.length ? timerSpan.text().trim() : '';
             tStr = tStr ? tStr.regex(/(\d+:\d+)/) : '';
             arenaInfo['tokenTime'] = tStr ? tStr : '';
 
-            daysDiv = $("#app46755028429_arena_banner").children().eq(0).children().eq(0);
+            daysDiv = $j("#app46755028429_arena_banner").children().eq(0).children().eq(0);
             tStr = daysDiv.length ? daysDiv.text().trim() : '';
             arenaInfo['days'] = tStr ? tStr.regex(/(\d+) DAYS/) : 0;
 
-            bottomDiv = $("div[style *='arena3_home_bottom.jpg']");
+            bottomDiv = $j("div[style *='arena3_home_bottom.jpg']");
             tStr = bottomDiv.length ? bottomDiv.text().trim().innerTrim() : '';
             arenaInfo['collect'] = tStr ? (tStr.regex(/(Battle Over, Collect Your Reward!)/)  ? true : false) : false;
             tStr2 = tStr ? tStr.regex(/^Time Remaining: (\d+:\d+:\d+)/) : '';
@@ -494,18 +494,18 @@ arena = {
 
     onBattle: function () {
         try {
-            var gates         = $(),
-                tabs          = $(),
-                health        = $(),
-                healthGuild   = $(),
-                healthEnemy   = $(),
-                allowedDiv    = $(),
-                bannerDiv     = $(),
-                collectDiv    = $(),
-                tokenSpan     = $(),
-                timerSpan     = $(),
-                resultBody    = $(),
-                imgDiv        = $(),
+            var gates         = $j(),
+                tabs          = $j(),
+                health        = $j(),
+                healthGuild   = $j(),
+                healthEnemy   = $j(),
+                allowedDiv    = $j(),
+                bannerDiv     = $j(),
+                collectDiv    = $j(),
+                tokenSpan     = $j(),
+                timerSpan     = $j(),
+                resultBody    = $j(),
+                imgDiv        = $j(),
                 collect       = false,
                 myStatsTxt    = '',
                 myStatsArr    = [],
@@ -541,15 +541,15 @@ arena = {
 
             lastAttacked = state.getItem('ArenaMinionAttacked', {});
             state.setItem('ArenaMinionAttacked', {});
-            if (!$.isEmptyObject(lastAttacked) && lastAttacked['index'] >= 0 && lastAttacked['index'] < 40) {
-                resultBody = $("span[class='result_body']");
+            if (!$j.isEmptyObject(lastAttacked) && lastAttacked['index'] >= 0 && lastAttacked['index'] < 40) {
+                resultBody = $j("span[class='result_body']");
                 if (resultBody && resultBody.length) {
                     tStr = resultBody.text();
                     tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
                     currentRecord['minions'][lastAttacked['index']]['last_ap'] = tNum ? tNum : 0;
                 }
 
-                imgDiv = $("img[src*='battle_defeat.gif']");
+                imgDiv = $j("img[src*='battle_defeat.gif']");
                 if (imgDiv && imgDiv.length) {
                     currentRecord['minions'][lastAttacked['index']]['lost'] = true;
                     wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked['index']]['target_id']);
@@ -560,7 +560,7 @@ arena = {
                     utility.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                 } else {
                     currentRecord['minions'][lastAttacked['index']]['last_ap'] = tNum ? tNum : 0;
-                    imgDiv = $("img[src*='battle_victory.gif']");
+                    imgDiv = $j("img[src*='battle_victory.gif']");
                     if (imgDiv && imgDiv.length) {
                         if (lastAttacked['poly']) {
                             utility.log(1, "Victory against polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
@@ -579,7 +579,7 @@ arena = {
                 }
             }
 
-            bannerDiv = $("#app46755028429_arena_battle_banner_section");
+            bannerDiv = $j("#app46755028429_arena_battle_banner_section");
             myStatsTxt = bannerDiv.text();
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
             if (myStatsTxt.regex(/(You Are Not A Part Of This Arena Battle)/)) {
@@ -591,9 +591,9 @@ arena = {
                 currentRecord['teamHealth'] = 0;
                 currentRecord['enemyHealth'] = 0;
                 if (!myStatsTxt.regex(/(This Battle Has Not Started Yet)/)) {
-                    gates = $("div[id*='app46755028429_enemy_guild_member_list_']");
+                    gates = $j("div[id*='app46755028429_enemy_guild_member_list_']");
                     if (!gates || !gates.length) {
-                        tabs = $("div[id*='app46755028429_your_arena_tab']");
+                        tabs = $j("div[id*='app46755028429_your_arena_tab']");
                         if (!tabs || !tabs.length) {
                             utility.warn("No gates found");
                         }
@@ -601,19 +601,19 @@ arena = {
                         utility.warn("Not enough gates found");
                     } else {
                         gates.each(function (gIndex) {
-                            var memberDivs = $(this).children();
+                            var memberDivs = $j(this).children();
                             if (!memberDivs || !memberDivs.length) {
                                 utility.warn("No members found");
                             } else if (memberDivs && memberDivs.length !== 10) {
                                 utility.warn("Not enough members found", memberDivs);
                             } else {
                                 memberDivs.each(function (mIndex) {
-                                    var member       = $(this),
+                                    var member       = $j(this),
                                         memberText   = '',
                                         memberArr    = [],
-                                        targetIdDiv  = $(),
-                                        polyImg      = $(),
-                                        nameDiv      = $(),
+                                        targetIdDiv  = $j(),
+                                        polyImg      = $j(),
+                                        nameDiv      = $j(),
                                         loss         = false,
                                         memberRecord = new arena.minion().data;
 
@@ -689,9 +689,9 @@ arena = {
                     }
                 }
 
-                if (!myStatsTxt.regex(/(This Battle Has Not Started Yet)/) && !myStatsTxt.regex(/(This Arena Battle Is Over)/) && !$("input[src*='arena3_collectbutton.gif']").length  && !$("input[src*='guild_enter_battle_button.gif']").length) {
+                if (!myStatsTxt.regex(/(This Battle Has Not Started Yet)/) && !myStatsTxt.regex(/(This Arena Battle Is Over)/) && !$j("input[src*='arena3_collectbutton.gif']").length  && !$j("input[src*='guild_enter_battle_button.gif']").length) {
                     currentRecord['state'] = 'Alive';
-                    tStr = $("span[id='app46755028429_monsterTicker']").text();
+                    tStr = $j("span[id='app46755028429_monsterTicker']").text();
                     currentRecord['ticker'] = tStr ? tStr.trim() : '';
                     if (myStatsTxt) {
                         utility.log(3, "myStatsTxt", myStatsTxt);
@@ -706,15 +706,15 @@ arena = {
                         }
                     }
 
-                    tokenSpan = $("span[id='app46755028429_guild_token_current_value']");
+                    tokenSpan = $j("span[id='app46755028429_guild_token_current_value']");
                     tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
                     currentRecord['tokens'] = tStr ? tStr.parseInt() : 0;
 
-                    timerSpan = $("span[id='app46755028429_guild_token_time_value']");
+                    timerSpan = $j("span[id='app46755028429_guild_token_time_value']");
                     tStr = timerSpan.length ? timerSpan.text().trim() : '';
                     currentRecord['tokenTime'] = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
 
-                    health = $("#app46755028429_guild_battle_health");
+                    health = $j("#app46755028429_guild_battle_health");
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
@@ -733,12 +733,12 @@ arena = {
                         utility.warn("guild_battle_health error");
                     }
                 } else {
-                    collectDiv = $("input[src*='arena3_collectbutton.gif']");
+                    collectDiv = $j("input[src*='arena3_collectbutton.gif']");
                     if (collectDiv && collectDiv.length) {
                         utility.log(1, "Battle ready to collect");
                         currentRecord['state'] = 'Collect';
                         collect = true;
-                    } else if (!$("input[src*='guild_enter_battle_button.gif']").length && currentRecord['state'] !== 'Ready') {
+                    } else if (!$j("input[src*='guild_enter_battle_button.gif']").length && currentRecord['state'] !== 'Ready') {
                         utility.log(1, "Battle is completed");
                         currentRecord['state'] = 'Completed';
                     } else {
@@ -775,7 +775,7 @@ arena = {
 
     checkPage: function () {
         try {
-            return ($("#app46755028429_arena_battle_banner_section").length ? true : false);
+            return ($j("#app46755028429_arena_battle_banner_section").length ? true : false);
         } catch (err) {
             utility.error("ERROR in arena.checkPage: " + err, arguments.callee.caller);
             return undefined;
@@ -795,7 +795,7 @@ arena = {
             }
 
             arenaInfo = arena.getItem();
-            if (!$.isEmptyObject(arenaInfo) && arenaInfo['minions'] && arenaInfo['minions'].length === 40) {
+            if (!$j.isEmptyObject(arenaInfo) && arenaInfo['minions'] && arenaInfo['minions'].length === 40) {
                 minion = arenaInfo['minions'][index];
             } else {
                 utility.log(1, "No minion records available", arenaInfo);
@@ -873,7 +873,7 @@ arena = {
                 uOrder            = '',
                 oType             = '';
 
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -949,7 +949,7 @@ arena = {
                         target[mclass][type] = next;
                         break;
                     case "last":
-                        logic2 = $.isEmptyObject(target[mclass][type]) && clericMage && next['healthNum'] > 0 && next['healthNum'] <= 30;
+                        logic2 = $j.isEmptyObject(target[mclass][type]) && clericMage && next['healthNum'] > 0 && next['healthNum'] <= 30;
                         if (logic2) {
                             target[mclass][type] = next;
                             return true;
@@ -962,7 +962,7 @@ arena = {
                             return true;
                         }
 
-                        logic5 = $.isEmptyObject(target[mclass][type]) && logic3 && next['healthNum'] > (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
+                        logic5 = $j.isEmptyObject(target[mclass][type]) && logic3 && next['healthNum'] > (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
                         if (logic5) {
                             target[mclass][type] = next;
                             return true;
@@ -1090,7 +1090,7 @@ arena = {
                         continue;
                     }
 
-                    if (!$.isEmptyObject(target[uOrder][oType])) {
+                    if (!$j.isEmptyObject(target[uOrder][oType])) {
                         minion = target[uOrder][oType];
                         utility.log(3, "done", uOrder, oType);
                         done = true;
@@ -1099,7 +1099,7 @@ arena = {
                 }
             }
 
-            if ($.isEmptyObject(minion)) {
+            if ($j.isEmptyObject(minion)) {
                 utility.warn("No target found!");
             } else {
                 utility.log(1, "Target " + minion['mclass'] + " " + oType, minion['index'], minion, target);

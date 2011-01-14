@@ -10,7 +10,7 @@ state = {
     load: function () {
         try {
             state.flags = gm.getItem('state.flags', 'default');
-            if (state.flags === 'default' || !$.isPlainObject(state.flags)) {
+            if (state.flags === 'default' || !$j.isPlainObject(state.flags)) {
                 state.flags = gm.setItem('state.flags', {});
             }
 

@@ -118,14 +118,14 @@ utility = {
 
     NavigateTo: function (pathToPage, imageOnPage) {
         try {
-            var content   = $(),
+            var content   = $j(),
                 pathList  = [],
                 s         = 0,
-                a         = $(),
+                a         = $j(),
                 imageTest = '',
                 img       = null;
 
-            content = $("#content");
+            content = $j("#content");
             if (!content || !content.length) {
                 utility.warn('No content to Navigate to', imageOnPage, pathToPage);
                 return false;
@@ -169,7 +169,7 @@ utility = {
 
     CheckForImage: function (image, webSlice, subDocument, nodeNum) {
         try {
-            var imageSlice = $();
+            var imageSlice = $j();
             if (!webSlice) {
                 webSlice = subDocument ? subDocument.body : window.document.body;
             }
@@ -178,25 +178,11 @@ utility = {
                 nodeNum = 0;
             }
 
-            imageSlice = $(webSlice).find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
+            imageSlice = $j(webSlice).find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
             return (imageSlice.length ? imageSlice.get(0) : null);
         } catch (err) {
             utility.error("ERROR in utility.CheckForImage: " + err);
             return undefined;
-        }
-    },
-
-    injectScript: function (url) {
-        try {
-            var inject = document.createElement('script');
-            inject.setAttribute('type', 'application/javascript');
-            inject.src = url;
-            document.head.appendChild(inject);
-            inject = null;
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.injectScript: " + err);
-            return false;
         }
     },
 
@@ -261,7 +247,7 @@ utility = {
 
     isNum: function (value) {
         try {
-            return $.type(value) === 'number';
+            return $j.type(value) === 'number';
         } catch (err) {
             utility.error("ERROR in utility.isNum: " + err);
             return undefined;
@@ -280,11 +266,11 @@ utility = {
             }
 
             if (!utility.alertDialog[id] || !utility.alertDialog[id].length) {
-                utility.alertDialog[id] = $('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                utility.alertDialog[id] = $j('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
                 utility.alertDialog[id].dialog({
                     buttons: {
                         "Ok": function () {
-                            $(this).dialog("close");
+                            $j(this).dialog("close");
                         }
                     }
                 });
@@ -361,9 +347,9 @@ utility = {
 
                 if (arguments.length > 2) {
                     for (it = 2, len = arguments.length; it < len; it += 1) {
-                        switch ($.type(arguments[it])) {
+                        switch ($j.type(arguments[it])) {
                         case "object":
-                            newArg = $.extend(true, {}, arguments[it]);
+                            newArg = $j.extend(true, {}, arguments[it]);
                             break;
                         case "array":
                             newArg = arguments[it].deepCopy();
@@ -393,9 +379,9 @@ utility = {
 
             if (arguments.length > 1) {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($.type(arguments[it])) {
+                    switch ($j.type(arguments[it])) {
                     case "object":
-                        newArg = $.extend(true, {}, arguments[it]);
+                        newArg = $j.extend(true, {}, arguments[it]);
                         break;
                     case "array":
                         newArg = arguments[it].deepCopy();
@@ -430,9 +416,9 @@ utility = {
 
             if (arguments.length > 1) {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($.type(arguments[it])) {
+                    switch ($j.type(arguments[it])) {
                     case "object":
-                        newArg = $.extend(true, {}, arguments[it]);
+                        newArg = $j.extend(true, {}, arguments[it]);
                         break;
                     case "array":
                         newArg = arguments[it].deepCopy();
@@ -457,49 +443,16 @@ utility = {
         }
     },
 
-    timeouts: {},
-
-    setTimeout: function (func, millis) {
-        try {
-            var t = window.setTimeout(function () {
-                func();
-                utility.timeouts[t] = undefined;
-            }, millis);
-
-            utility.timeouts[t] = 1;
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.setTimeout: " + err);
-            return false;
-        }
-    },
-
-    clearTimeouts: function () {
-        try {
-            for (var t in utility.timeouts) {
-                if (utility.timeouts.hasOwnProperty(t)) {
-                    window.clearTimeout(t);
-                }
-            }
-
-            utility.timeouts = {};
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.clearTimeouts: " + err);
-            return false;
-        }
-    },
-
     chatLink: function (slice, query) {
         try {
             var hr = new RegExp('.*(http:.*)'),
                 qr = /"/g,
-                c  = $();
+                c  = $j();
 
             c = slice.find(query);
             if (c && c.length) {
                 c.each(function () {
-                    var e = $(this),
+                    var e = $j(this),
                         h = '',
                         a = [];
 

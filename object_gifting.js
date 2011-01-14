@@ -17,7 +17,7 @@ gifting = {
             }
 
             gifting[type].records = gm.getItem("gifting." + type, 'default');
-            if (gifting[type].records === 'default' || !$.isArray(gifting[type].records)) {
+            if (gifting[type].records === 'default' || !$j.isArray(gifting[type].records)) {
                 gifting[type].records = gm.setItem("gifting." + type, []);
             }
 
@@ -96,16 +96,16 @@ gifting = {
     /*jslint sub: true */
     accept: function () {
         try {
-            var giftDiv   = $(),
+            var giftDiv   = $j(),
                 tempText  = '',
                 tStr      = '',
                 tempNum   = 0,
                 current   = {};
 
             // Some users reported an issue with the following jQuery search using jQuery 1.4.3
-            //giftDiv = $("div[class='messages']:first img:first");
+            //giftDiv = $j("div[class='messages']:first img:first");
             // So I have changed the query to try and resolve the issue
-            giftDiv = $("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
+            giftDiv = $j("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
             if (giftDiv && giftDiv.length) {
                 tStr = giftDiv.attr("uid");
                 tempNum = tStr ? tStr.parseInt() : '';
@@ -128,7 +128,7 @@ gifting = {
             }
 
             gifting.setCurrent(gm.setItem("GiftEntry", current.data));
-            return !$.isEmptyObject(gifting.getCurrent());
+            return !$j.isEmptyObject(gifting.getCurrent());
         } catch (err) {
             utility.error("ERROR in gifting.accept: " + err);
             return undefined;
@@ -139,7 +139,7 @@ gifting = {
     loadCurrent: function () {
         try {
             gifting.cachedGiftEntry = gm.getItem('GiftEntry', 'default');
-            if (gifting.cachedGiftEntry === 'default' || !$.isPlainObject(gifting.cachedGiftEntry)) {
+            if (gifting.cachedGiftEntry === 'default' || !$j.isPlainObject(gifting.cachedGiftEntry)) {
                 gifting.cachedGiftEntry = gm.setItem('GiftEntry', {});
             }
 
@@ -163,7 +163,7 @@ gifting = {
     /*jslint sub: true */
     setCurrent: function (record) {
         try {
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -196,11 +196,11 @@ gifting = {
     collecting: function () {
         try {
             var giftEntry = gifting.getCurrent();
-            if (!$.isEmptyObject(giftEntry) && giftEntry['checked']) {
+            if (!$j.isEmptyObject(giftEntry) && giftEntry['checked']) {
                 gifting.collected(true);
             }
 
-            if ($.isEmptyObject(giftEntry) && state.getItem('HaveGift', false)) {
+            if ($j.isEmptyObject(giftEntry) && state.getItem('HaveGift', false)) {
                 if (utility.NavigateTo('army', 'invite_on.gif')) {
                     return true;
                 }
@@ -215,7 +215,7 @@ gifting = {
                 return true;
             }
 
-            if (!$.isEmptyObject(giftEntry) && !giftEntry['checked']) {
+            if (!$j.isEmptyObject(giftEntry) && !giftEntry['checked']) {
                 utility.log(1, "Clearing incomplete pending gift", giftEntry);
                 gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
             }
@@ -230,11 +230,11 @@ gifting = {
     collect: function () {
         try {
             var giftEntry  = false,
-                appDiv     = $(),
-                inputDiv   = $(),
+                appDiv     = $j(),
+                inputDiv   = $j(),
                 userArr    = [],
                 userId     = 0,
-                giftDiv    = $(),
+                giftDiv    = $j(),
                 giftText   = '',
                 giftArr    = [],
                 giftType   = '',
@@ -247,16 +247,16 @@ gifting = {
             }
 
             giftEntry = gifting.getCurrent();
-            if ($.isEmptyObject(giftEntry)) {
+            if ($j.isEmptyObject(giftEntry)) {
                 return false;
             }
 
             if (!giftEntry['checked']) {
                 utility.log(1, 'On FB page with gift ready to go');
-                appDiv = $("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
+                appDiv = $j("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
-                        var giftRequest = $(this);
+                        var giftRequest = $j(this);
                         //inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
                         inputDiv = giftRequest.find(".uiButtonConfirm input[name*='gift_accept.php']");
                         if (inputDiv && inputDiv.length) {
@@ -337,7 +337,7 @@ gifting = {
     collected: function (force) {
         try {
             var giftEntry = gifting.getCurrent();
-            if (!$.isEmptyObject(giftEntry)) {
+            if (!$j.isEmptyObject(giftEntry)) {
                 if (force || utility.CheckForImage("gift_yes.gif")) {
                     if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                         gifting.queue.setItem(giftEntry);
@@ -359,12 +359,12 @@ gifting = {
 
     popCheck: function (type) {
         try {
-            var popDiv     = $(),
-                tempDiv    = $(),
+            var popDiv     = $j(),
+                tempDiv    = $j(),
                 tempText   = '',
                 tryAgain   = true;
 
-            popDiv = $("#pop_content");
+            popDiv = $j("#pop_content");
             if (popDiv && popDiv.length) {
                 tempDiv = popDiv.find("input[name='sendit']");
                 if (tempDiv && tempDiv.length) {
@@ -500,19 +500,19 @@ gifting = {
 
         populate: function () {
             try {
-                var giftDiv  = $(),
+                var giftDiv  = $j(),
                     newGift  = {},
-                    tempDiv  = $(),
+                    tempDiv  = $j(),
                     tempText = '',
                     tStr     = '',
                     tempArr  = [],
                     update   = false;
 
-                giftDiv = $("#app46755028429_giftContainer div[id*='app46755028429_gift']");
+                giftDiv = $j("#app46755028429_giftContainer div[id*='app46755028429_gift']");
                 if (giftDiv && giftDiv.length) {
                     gifting.clear("gifts");
                     giftDiv.each(function () {
-                        var theGift = $(this);
+                        var theGift = $j(this);
                         newGift = new gifting.gifts.record();
                         tempDiv = theGift.children().eq(0);
                         if (tempDiv && tempDiv.length) {
@@ -584,7 +584,7 @@ gifting = {
                     giftList.push(gifting.gifts.records[it]['name']);
                 }
 
-                return $.merge($.merge([], gifting.gifts.options), giftList);
+                return $j.merge($j.merge([], gifting.gifts.options), giftList);
             } catch (err) {
                 utility.error("ERROR in gifting.gifts.list: " + err);
                 return undefined;
@@ -657,7 +657,7 @@ gifting = {
 
         setItem: function (record) {
             try {
-                if (!record || !$.isPlainObject(record)) {
+                if (!record || !$j.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -826,10 +826,10 @@ gifting = {
                     it1            = 0,
                     len            = 0,
                     tempGift       = '',
-                    unselListDiv   = $(),
-                    selListDiv     = $(),
-                    unselDiv       = $(),
-                    selDiv         = $(),
+                    unselListDiv   = $j(),
+                    selListDiv     = $j(),
+                    unselDiv       = $j(),
+                    selDiv         = $j(),
                     first          = true,
                     same           = true,
                     returnOnlyOne  = false,
@@ -933,7 +933,7 @@ gifting = {
                     unselDiv = unselListDiv.find(searchStr);
                     if (unselDiv && unselDiv.length) {
                         unselDiv.each(function () {
-                            var unsel = $(this),
+                            var unsel = $j(this),
                                 tStr = '',
                                 id    = 0;
 
@@ -951,7 +951,7 @@ gifting = {
                         });
                     } else {
                         utility.log(2, "Ids not found:", giftingList, searchStr);
-                        $.merge(pendingList, giftingList);
+                        $j.merge(pendingList, giftingList);
                     }
 
                     if (clickedList && clickedList.length) {
@@ -965,7 +965,7 @@ gifting = {
                         selDiv = selListDiv.find(searchStr);
                         if (selDiv && selDiv.length) {
                             selDiv.each(function () {
-                                var sel  = $(this),
+                                var sel  = $j(this),
                                     tStr = '',
                                     id   = 0;
 
@@ -981,7 +981,7 @@ gifting = {
                             });
                         } else {
                             utility.log(2, "Selected ids not found:", searchStr);
-                            $.merge(pendingList, clickedList);
+                            $j.merge(pendingList, clickedList);
                         }
                     }
 
@@ -1011,12 +1011,12 @@ gifting = {
         sent: function () {
             try {
                 var it         = 0,
-                    resultDiv  = $(),
+                    resultDiv  = $j(),
                     resultText = '',
                     sentok     = false;
 
                 if (window.location.href.indexOf('act=create') >= 0) {
-                    resultDiv = $('#app46755028429_results_main_wrapper');
+                    resultDiv = $j('#app46755028429_results_main_wrapper');
                     if (resultDiv && resultDiv.length) {
                         resultText = resultDiv.text();
                         if (resultText) {
@@ -1099,7 +1099,7 @@ gifting = {
 
         received: function (record) {
             try {
-                if (!record || !$.isPlainObject(record)) {
+                if (!record || !$j.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
@@ -1148,7 +1148,7 @@ gifting = {
 
         sent: function (record) {
             try {
-                if (!record || !$.isPlainObject(record)) {
+                if (!record || !$j.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 

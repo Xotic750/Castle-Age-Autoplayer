@@ -415,7 +415,7 @@ monster = {
     load: function () {
         try {
             monster.records = gm.getItem('monster.records', 'default');
-            if (monster.records === 'default' || !$.isArray(monster.records)) {
+            if (monster.records === 'default' || !$j.isArray(monster.records)) {
                 monster.records = gm.setItem('monster.records', []);
             }
 
@@ -545,7 +545,7 @@ monster = {
 
     setItem: function (record) {
         try {
-            if (!record || !$.isPlainObject(record)) {
+            if (!record || !$j.isPlainObject(record)) {
                 throw "Not passed a record";
             }
 
@@ -844,7 +844,7 @@ monster = {
                 // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                 if (selectTypes[s] === 'any') {
                     attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
-                    $.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
+                    $j.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
                 } else {
                     attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
                 }
@@ -1058,21 +1058,21 @@ monster = {
     ConfirmRightPage: function (monsterName) {
         try {
             // Confirm name and type of monster
-            var monsterDiv = $(),
-                tempDiv    = $(),
+            var monsterDiv = $j(),
+                tempDiv    = $j(),
                 tempText   = '',
                 tStr       = '';
 
-            monsterDiv = $("div[style*='dragon_title_owner']");
+            monsterDiv = $j("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
                 tStr = monsterDiv.children(":eq(2)").text();
                 tempText = tStr ? tStr.trim() : '';
             } else {
-                monsterDiv = $("div[style*='nm_top']");
+                monsterDiv = $j("div[style*='nm_top']");
                 if (monsterDiv && monsterDiv.length) {
                     tStr = monsterDiv.children(":eq(0)").children(":eq(0)").text();
                     tempText = tStr ? tStr.trim() : '';
-                    tempDiv = $("div[style*='nm_bars']");
+                    tempDiv = $j("div[style*='nm_bars']");
                     if (tempDiv && tempDiv.length) {
                         tStr = tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text();
                         tempText += ' ' + (tStr ? tStr.trim().replace("'s Life", "") : '');

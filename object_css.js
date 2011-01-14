@@ -9,15 +9,15 @@ css = {
         try {
             var href = window.location.href;
             if (href.indexOf('apps.facebook.com/castle_age') >= 0 || href.indexOf('apps.facebook.com/reqs.php') >= 0) {
-                if (!$('link[href*="jquery-ui.css"').length) {
-                    $("<link>").appendTo("head").attr({
+                if (!$j('link[href*="jquery-ui.css"').length) {
+                    $j("<link>").appendTo("head").attr({
                         rel: "stylesheet",
                         type: "text/css",
                         href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/themes/smoothness/jquery-ui.css"
                     });
                 }
 
-                $("<style type='text/css'>" + css.farbtastic + "</style>").appendTo("head");
+                $j("<style type='text/css'>" + css.farbtastic + "</style>").appendTo("head");
             }
 
             return true;
