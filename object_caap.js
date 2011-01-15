@@ -312,6 +312,8 @@ caap = {
             caap.CheckResults();
             caap.AutoStatCheck();
             army.init();
+            caap.bestLand = new caap.landRecord().data;
+            caap.sellLand = {};
             //schedule.deleteItem("army_member");
             //schedule.deleteItem("ArenaReview")
 
@@ -5403,7 +5405,7 @@ caap = {
                     newLevel = levelArray[1].parseInt();
                     if (newLevel > caap.stats['level']) {
                         utility.log(2, 'New level. Resetting Best Land Cost.');
-                        state.setItem('BestLandCost', 0);
+                        state.setItem('BestLandCost', {});
                         state.setItem('KeepLevelUpGeneral', true);
                         caap.stats['level'] = newLevel;
                     }
@@ -6800,8 +6802,8 @@ caap = {
             $j("div[class='autoquest']").remove();
             var expRegExp       = new RegExp("\\+(\\d+)"),
                 energyRegExp    = new RegExp("(\\d+)\\s+energy", "i"),
-                moneyRegExp     = new RegExp("\\$j([0-9,]+)\\s*-\\s*\\$j([0-9,]+)", "i"),
-                money2RegExp    = new RegExp("\\$j([0-9,]+)mil\\s*-\\s*\\$j([0-9,]+)mil", "i"),
+                moneyRegExp     = new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
+                money2RegExp    = new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"),
                 influenceRegExp = new RegExp("(\\d+)%");
 
             for (s = 0, len = ss.snapshotLength; s < len; s += 1) {
@@ -7079,24 +7081,27 @@ caap = {
 
     GetQuestName: function (questDiv) {
         try {
-            var item_title = nHtml.FindByAttrXPath(questDiv, 'div', "@class='quest_desc' or @class='quest_sub_title'");
-            if (!item_title) {
+            var item_title = $j(),
+                firstb     = $j();
+
+            item_title = $j(questDiv).find("div[class*='quest_desc'],div[class*='quest_sub_title']");
+            if (!item_title || !item_title.length) {
                 utility.log(2, "Can't find quest description or sub-title");
                 return false;
             }
 
-            if (item_title.innerHTML.toString().match(/LOCK/)) {
+            if (item_title.html().match(/LOCK/)) {
                 utility.log(2, "Quest locked", item_title);
                 return false;
             }
 
-            var firstb = item_title.getElementsByTagName('b')[0];
-            if (!firstb) {
-                utility.warn("Can't get bolded member out of", item_title.innerHTML.toString());
+            firstb = item_title.find("b").eq(0);
+            if (!firstb || !firstb.length) {
+                utility.warn("Can't get bolded member out of", item_title.html());
                 return false;
             }
 
-            caap.questName = firstb.innerHTML.toString().trim().stripHTML();
+            caap.questName = firstb.text().trim();
             if (!caap.questName) {
                 utility.warn('No quest name for this row');
                 return false;
@@ -7258,43 +7263,47 @@ caap = {
     /*jslint sub: false */
 
     LabelQuests: function (div, energy, reward, experience, click) {
-        if ($j(div).find("div[class='autoquest'").length) {
-            return;
+        try {
+            if ($j(div).find("div[class='autoquest'").length) {
+                return;
+            }
+
+            div = document.createElement('div');
+            div.className = 'autoquest';
+            div.style.fontSize = '10px';
+            div.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
+                "<br />Exp per energy: " + (Math.floor(experience / energy * 100) / 100) + "<br />";
+
+            if (state.getItem('AutoQuest', caap.newAutoQuest()).name === caap.questName) {
+                var b = document.createElement('b');
+                b.innerHTML = "Current auto quest";
+                div.appendChild(b);
+            } else {
+                var setAutoQuest = document.createElement('a');
+                setAutoQuest.innerHTML = 'Auto run this quest.';
+                setAutoQuest.quest_name = caap.questName;
+
+                var quest_nameObj = document.createElement('span');
+                quest_nameObj.innerHTML = caap.questName;
+                quest_nameObj.style.display = 'none';
+                setAutoQuest.appendChild(quest_nameObj);
+
+                var quest_energyObj = document.createElement('span');
+                quest_energyObj.innerHTML = energy;
+                quest_energyObj.style.display = 'none';
+                setAutoQuest.appendChild(quest_energyObj);
+                setAutoQuest.addEventListener("click", caap.LabelListener, false);
+
+                div.appendChild(setAutoQuest);
+            }
+
+            div.style.position = 'absolute';
+            div.style.background = '#B09060';
+            div.style.right = "144px";
+            click.parentNode.insertBefore(div, click);
+        } catch (err) {
+            utility.error("ERROR in LabelQuests: " + err);
         }
-
-        div = document.createElement('div');
-        div.className = 'autoquest';
-        div.style.fontSize = '10px';
-        div.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
-            "<br />Exp per energy: " + (Math.floor(experience / energy * 100) / 100) + "<br />";
-
-        if (state.getItem('AutoQuest', caap.newAutoQuest()).name === caap.questName) {
-            var b = document.createElement('b');
-            b.innerHTML = "Current auto quest";
-            div.appendChild(b);
-        } else {
-            var setAutoQuest = document.createElement('a');
-            setAutoQuest.innerHTML = 'Auto run this quest.';
-            setAutoQuest.quest_name = caap.questName;
-
-            var quest_nameObj = document.createElement('span');
-            quest_nameObj.innerHTML = caap.questName;
-            quest_nameObj.style.display = 'none';
-            setAutoQuest.appendChild(quest_nameObj);
-
-            var quest_energyObj = document.createElement('span');
-            quest_energyObj.innerHTML = energy;
-            quest_energyObj.style.display = 'none';
-            setAutoQuest.appendChild(quest_energyObj);
-            setAutoQuest.addEventListener("click", caap.LabelListener, false);
-
-            div.appendChild(setAutoQuest);
-        }
-
-        div.style.position = 'absolute';
-        div.style.background = '#B09060';
-        div.style.right = "144px";
-        click.parentNode.insertBefore(div, click);
     },
 
     /////////////////////////////////////////////////////////////////////
@@ -7378,192 +7387,206 @@ caap = {
     // Displays return on lands and perfom auto purchasing
     /////////////////////////////////////////////////////////////////////
 
-    LandsGetNameFromRow: function (row) {
-        // schoolofmagic, etc. <div class=item_title
-        var infoDiv = nHtml.FindByAttrXPath(row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
-        if (!infoDiv) {
-            utility.warn("can't find land_buy_info");
-        }
-
-        if (infoDiv.className.indexOf('item_title') >= 0) {
-            return infoDiv.textContent.trim();
-        }
-
-        var strongs = infoDiv.getElementsByTagName('strong');
-        if (strongs.length < 1) {
-            return null;
-        }
-
-        return strongs[0].textContent.trim();
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    landRecord: function () {
+        this.data = {
+            'row'         : $j(),
+            'name'        : '',
+            'income'      : 0,
+            'cost'        : -1,
+            'totalCost'   : 0,
+            'owned'       : 0,
+            'maxAllowed'  : 0,
+            'buy'         : 0,
+            'roi'         : 0
+        };
     },
+    /*jslint sub: false */
 
-    bestLand: {
-        land : '',
-        roi  : 0
-    },
+    bestLand: {},
 
+    sellLand: {},
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     CheckResults_land: function () {
-        if (nHtml.FindByAttrXPath(document, 'div', "contains(@class,'caap_landDone')")) {
-            return null;
-        }
-
-        state.setItem('BestLandCost', 0);
-        caap.sellLand = '';
-        caap.bestLand.roi = 0;
-        caap.IterateLands(function (land) {
-            caap.SelectLands(land.row, 2);
-            var roi = (parseInt((land.income / land.totalCost) * 240000, 10) / 100);
-            var div = null;
-            if (!nHtml.FindByAttrXPath(land.row, 'input', "@name='Buy'")) {
-                roi = 0;
-                // Lets get our max allowed from the land_buy_info div
-                div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')");
-                var maxText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
-                var maxAllowed = Number(maxText.replace(/:\s+/, ''));
-                // Lets get our owned total from the land_buy_costs div
-                div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_costs')");
-                var ownedText = nHtml.GetText(div).match(/:\s+\d+/i).toString().trim();
-                var owned = Number(ownedText.replace(/:\s+/, ''));
-                // If we own more than allowed we will set land and selection
-                var selection = [1, 5, 10];
-                for (var s = 2; s >= 0; s -= 1) {
-                    if (owned - maxAllowed >= selection[s]) {
-                        caap.sellLand = land;
-                        caap.sellLand.selection = s;
-                        break;
-                    }
-                }
-            }
-
-            div = nHtml.FindByAttrXPath(land.row, 'div', "contains(@class,'land_buy_info') or contains(@class,'item_title')").getElementsByTagName('strong');
-            div[0].innerHTML += " | " + roi + "% per day.";
-            if (!land.usedByOther) {
-                if (!(caap.bestLand.roi || roi === 0) || roi > caap.bestLand.roi) {
-                    caap.bestLand.roi = roi;
-                    caap.bestLand.land = land;
-                    state.setItem('BestLandCost', caap.bestLand.land.cost);
-                }
-            }
-        });
-
-        var bestLandCost = state.getItem('BestLandCost', '');
-        utility.log(2, "Best Land Cost: ", bestLandCost);
-        if (!bestLandCost) {
-            state.setItem('BestLandCost', 'none');
-        }
-
-        var div = document.createElement('div');
-        div.className = 'caap_landDone';
-        div.style.display = 'none';
-        nHtml.FindByAttrContains(document.body, "tr", "class", 'land_buy_row').appendChild(div);
-        return null;
-    },
-
-    IterateLands: function (func) {
         try {
-            var content = document.getElementById('content'),
-                ss = document.evaluate(".//tr[contains(@class,'land_buy_row')]", content, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+            var bestLandCost = {},
+                ss           = $j(),
+                landByName   = {},
+                landNames    = [],
+                row          = $j(),
+                name         = '',
+                moneyss      = $j(),
+                incomeEl     = $j(),
+                income       = 0,
+                nums         = [],
+                tStr         = '',
+                cost         = 0,
+                land         = {},
+                p            = 0,
+                s            = 0,
+                len          = 0,
+                div          = $j(),
+                infoDiv      = $j(),
+                strongs      = $j(),
+                maxAllowed   = 0,
+                owned        = 0,
+                roi          = 0,
+                selection    = [1, 5, 10];
 
-            if (!ss || (ss.snapshotLength === 0)) {
-                utility.log(9, "Can't find land_buy_row");
-                return null;
+            state.setItem('BestLandCost', {});
+            caap.sellLand = {};
+            ss = $j("#content tr[class*='land_buy_row']");
+            if (!ss || !ss.length) {
+                utility.warn("Can't find land_buy_row");
+                return false;
             }
 
-            var landByName = {},
-                landNames = [];
-
-            utility.log(9, 'forms found', ss.snapshotLength);
-            var numberRegExp = new RegExp("([0-9,]+)");
-            for (var s = 0, len = ss.snapshotLength; s < len; s += 1) {
-                var row = ss.snapshotItem(s);
-                if (!row) {
-                    continue;
+            ss.each(function () {
+                row = $j(this);
+                if (!row || !row.length) {
+                    return false;
                 }
 
-                var name = caap.LandsGetNameFromRow(row);
-                if (name === null || name === '') {
+                caap.SelectLands(row, 10);
+                infoDiv = row.find("div[class*='land_buy_info']");
+                if (!infoDiv || !infoDiv.length) {
+                    utility.warn("Can't find land_buy_info");
+                    return false;
+                }
+
+                strongs = infoDiv.find("strong");
+                if (strongs && strongs.length < 1) {
+                    utility.warn("Can't find strong");
+                    return false;
+                }
+
+                name = strongs.eq(0).text().trim();
+                if (!name) {
                     utility.warn("Can't find land name");
-                    continue;
+                    return false;
                 }
 
-                var moneyss = document.evaluate(".//*[contains(@class,'gold') or contains(@class,'currency')]", row, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                if (moneyss.snapshotLength < 2) {
+                moneyss = row.find("strong[class*='gold']");
+                if (!moneyss || moneyss.length < 2) {
                     utility.warn("Can't find 2 gold instances");
-                    continue;
+                    return false;
                 }
 
-                var income = 0,
-                    nums = [];
-
-                for (var sm = 0, len1 = moneyss.snapshotLength; sm < len1; sm += 1) {
-                    income = moneyss.snapshotItem(sm);
-                    if (income.className.indexOf('label') >= 0) {
-                        income = income.parentNode;
-                        var m = [];
-                        m = numberRegExp.exec(income.textContent);
-                        if (m && m.length >= 2 && m[1].length > 1) {
-                            // number must be more than a digit or else it could be a "? required" text
-                            income = m[1] ? m[1].numberOnly() : 0;
-                        } else {
-                            utility.log(9, 'Cannot find income for ', name, income.textContent);
-                            income = 0;
-                            continue;
+                nums = [];
+                moneyss.each(function () {
+                    incomeEl = $j(this);
+                    if (incomeEl.attr("class").indexOf('label') >= 0) {
+                        incomeEl = income.parent();
+                        tStr = incomeEl.text();
+                        tStr = tStr ? tStr.regex(/([\d,]+)/) : '';
+                        if (!tStr) {
+                            utility.warn('Cannot find income for ', name, tStr);
+                            return false;
                         }
                     } else {
-                        income = income.textContent;
-                        income = income ? income.numberOnly() : 0;
+                        tStr = incomeEl.text();
                     }
 
+                    income = tStr ? tStr.numberOnly() : 0;
                     nums.push(income);
-                }
+                    return true;
+                });
 
-                income = nums[0];
-                var cost = nums[1];
+                income = nums[0] ? nums[0] : 0;
+                cost = nums[1] ? nums[1] : 0;
                 if (!income || !cost) {
                     utility.warn("Can't find income or cost for", name);
-                    continue;
+                    return false;
                 }
 
                 if (income > cost) {
                     // income is always less than the cost of land.
-                    income = nums[1];
-                    cost = nums[0];
+                    income = nums[1] ? nums[1] : 0;
+                    cost = nums[0] ? nums[0] : 0;
                 }
 
-                var totalCost = cost,
-                    land = {
-                        row         : row,
-                        name        : name,
-                        income      : income,
-                        cost        : cost,
-                        totalCost   : totalCost,
-                        usedByOther : false
-                    };
+                // Lets get our max allowed from the land_buy_info div
+                tStr = infoDiv.text();
+                tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
+                maxAllowed = tStr ? tStr.parseInt() : 0;
+                // Lets get our owned total from the land_buy_costs div
+                div = row.find("div[class*='land_buy_costs']");
+                tStr = div.text();
+                tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
+                owned = tStr ? tStr.parseInt() : 0;
+                land = new caap.landRecord();
+                land.data['row'] = row;
+                land.data['name'] = name;
+                land.data['income'] = income;
+                land.data['cost'] = cost;
+                land.data['maxAllowed'] = maxAllowed;
+                land.data['owned'] = owned;
+                land.data['buy'] = (maxAllowed - owned) > 10 ? 10 : maxAllowed - owned;
+                land.data['totalCost'] = land.data['buy'] * cost;
+                roi = (((income / cost) * 240000) / 100).dp(2);
+                if (!row.find("input[name='Buy']").length) {
+                    roi = 0;
+                    // If we own more than allowed we will set land and selection
+                    for (s = 2; s >= 0; s -= 1) {
+                        if (land.data['owned'] - land.data['maxAllowed'] >= selection[s]) {
+                            caap.sellLand = land.data;
+                            caap.SelectLands(row, selection[s], 'Sell');
+                            break;
+                        }
+                    }
+                }
 
-                landByName[name] = land;
-                landNames.push(name);
+                land.data['roi'] = roi ? roi : 0;
+                div = infoDiv.find("strong");
+                tStr = div.eq(0).text();
+                div.eq(0).text(tStr + " | " + land.data['roi'] + "% per day.");
+                if (!(caap.bestLand['roi'] || land.data['roi'] === 0) || land.data['roi'] > caap.bestLand['roi']) {
+                    bestLandCost = $j.extend(true, caap.bestLand, land.data);
+                    delete bestLandCost['row'];
+                    state.setItem('BestLandCost', bestLandCost);
+                    bestLandCost = {};
+                }
+
+                return true;
+            });
+
+            bestLandCost = state.getItem('BestLandCost', {});
+            if (!$j.isEmptyObject(bestLandCost)) {
+                utility.log(2, "Best Land Cost: ", bestLandCost['name'], bestLandCost['cost'], bestLandCost);
             }
 
-            for (var p = 0, len2 = landNames.length; p < len2; p += 1) {
-                func.call(this, landByName[landNames[p]]);
+            if (bestLandCost['cost'] === 0) {
+                bestLandCost = new caap.landRecord().data;
+                state.setItem('BestLandCost', bestLandCost);
             }
 
-            return landByName;
+            return true;
         } catch (err) {
-            utility.error("ERROR in IterateLands: " + err);
-            return undefined;
+            utility.error("ERROR in CheckResults_land: " + err);
+            return false;
         }
     },
 
-    SelectLands: function (row, val) {
+    SelectLands: function (row, val, type) {
         try {
-            var selects = row.getElementsByTagName('select');
-            if (selects.length < 1) {
+            var selects = $j();
+            type = type ? type : 'Buy';
+            selects = row.find("select");
+            if (selects && selects.length < 1) {
                 return false;
             }
 
-            var select = selects[0];
-            select.selectedIndex = val;
+            if (type === "Buy") {
+                if (selects.length === 2) {
+                    selects.eq(0).val(val);
+                }
+            } else {
+                selects.eq(0).val(val);
+            }
+
             return true;
         } catch (err) {
             utility.error("ERROR in SelectLands: " + err);
@@ -7571,59 +7594,62 @@ caap = {
         }
     },
 
-    BuyLand: function (land) {
-        caap.SelectLands(land.row, 2);
-        var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
-        if (button) {
-            utility.log(9, "Clicking buy button", button);
-            utility.log(1, "Buying Land", land.name);
-            utility.Click(button, 15000);
-            state.setItem('BestLandCost', 0);
-            caap.bestLand.roi = 0;
-            return true;
-        }
+    BuySellLand: function (land, type) {
+        try {
+            var button = $j();
+            type = type ? type : 'Buy';
+            button = land['row'].find("input[name='" + type + "]");
+            if (button && button.length) {
+                utility.log(1, type + " land", land['name']);
+                utility.Click(button.get(0), 15000);
+                if (type === 'Buy') {
+                    caap.bestLand = new caap.landRecord().data;
+                } else {
+                    caap.sellLand = {};
+                }
 
-        return false;
-    },
-
-    SellLand: function (land, select) {
-        caap.SelectLands(land.row, select);
-        var button = nHtml.FindByAttrXPath(land.row, 'input', "@type='submit' or @type='image'");
-        if (button) {
-            utility.log(9, "Clicking sell button", button);
-            utility.log(1, "Selling Land: ", land.name);
-            utility.Click(button, 15000);
-            caap.sellLand = '';
-            return true;
-        }
-
-        return false;
-    },
-
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
-    Lands: function () {
-        if (config.getItem('autoBuyLand', false)) {
-            // Do we have lands above our max to sell?
-            if (caap.sellLand && config.getItem('SellLands', false)) {
-                caap.SellLand(caap.sellLand, caap.sellLand.selection);
+                state.setItem('BestLandCost', {});
                 return true;
             }
 
-            var bestLandCost = state.getItem('BestLandCost', '');
-            if (!bestLandCost) {
+            return false;
+        } catch (err) {
+            utility.error("ERROR in BuySellLand: " + err);
+            return false;
+        }
+    },
+
+    Lands: function () {
+        try {
+            if (!config.getItem('autoBuyLand', false)) {
+                return false;
+            }
+
+            var bestLandCost = {},
+                cashTotAvail = 0,
+                cashNeed     = 0,
+                theGeneral   = '';
+
+            // Do we have lands above our max to sell?
+            if (!$j.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
+                utility.log(2, "Selling land", caap.sellLand['name']);
+                caap.BuySellLand(caap.sellLand, 'Sell');
+                return true;
+            }
+
+            bestLandCost = state.getItem('BestLandCost', {});
+            if ($j.isEmptyObject(bestLandCost)) {
                 utility.log(2, "Going to land to get Best Land Cost");
                 if (utility.NavigateTo('soldiers,land', 'tab_land_on.gif')) {
                     return true;
                 }
             }
 
-            if (bestLandCost === 'none') {
-                utility.log(3, "No Lands avaliable");
+            if (bestLandCost['cost'] === -1) {
+                utility.log(2, "No lands to purchase");
                 return false;
             }
 
-            utility.log(4, "Lands: How much gold in store?", caap.stats['gold']['bank']);
             if (!caap.stats['gold']['bank'] && caap.stats['gold']['bank'] !== 0) {
                 utility.log(2, "Going to keep to get Stored Value");
                 if (utility.NavigateTo('keep')) {
@@ -7632,9 +7658,9 @@ caap = {
             }
 
             // Retrieving from Bank
-            var cashTotAvail = caap.stats['gold']['cash'] + (caap.stats['gold']['bank'] - config.getItem('minInStore', 0));
-            var cashNeed = 10 * bestLandCost;
-            var theGeneral = config.getItem('IdleGeneral', 'Use Current');
+            cashTotAvail = caap.stats['gold']['cash'] + (caap.stats['gold']['bank'] - config.getItem('minInStore', 0));
+            cashNeed = bestLandCost['buy'] * bestLandCost['cost'];
+            theGeneral = config.getItem('IdleGeneral', 'Use Current');
             if ((cashTotAvail >= cashNeed) && (caap.stats['gold']['cash'] < cashNeed)) {
                 if (theGeneral !== 'Use Current') {
                     utility.log(2, "Changing to idle general");
@@ -7643,12 +7669,12 @@ caap = {
                     }
                 }
 
-                utility.log(1, "Trying to retrieve", 10 * bestLandCost - caap.stats['gold']['cash']);
-                return caap.RetrieveFromBank(10 * bestLandCost - caap.stats['gold']['cash']);
+                utility.log(2, "Trying to retrieve", cashNeed - caap.stats['gold']['cash']);
+                return caap.RetrieveFromBank(cashNeed - caap.stats['gold']['cash']);
             }
 
             // Need to check for enough moneys + do we have enough of the builton type that we already own.
-            if (bestLandCost && caap.stats['gold']['cash'] >= 10 * bestLandCost) {
+            if (bestLandCost['cost'] && caap.stats['gold']['cash'] >= cashNeed) {
                 if (theGeneral !== 'Use Current') {
                     utility.log(2, "Changing to idle general");
                     if (general.Select('IdleGeneral')) {
@@ -7658,17 +7684,22 @@ caap = {
 
                 utility.NavigateTo('soldiers,land');
                 if (utility.CheckForImage('tab_land_on.gif')) {
-                    utility.log(2, "Buying land", caap.bestLand.land.name);
-                    if (caap.BuyLand(caap.bestLand.land)) {
-                        return true;
+                    if (bestLandCost['buy']) {
+                        utility.log(2, "Buying land", caap.bestLand['name']);
+                        if (caap.BuySellLand(caap.bestLand)) {
+                            return true;
+                        }
                     }
                 } else {
                     return utility.NavigateTo('soldiers,land');
                 }
             }
-        }
 
-        return false;
+            return false;
+        } catch (err) {
+            utility.error("ERROR in Lands: " + err);
+            return false;
+        }
     },
     /*jslint sub: false */
 
@@ -10671,7 +10702,7 @@ caap = {
                         my_xp = txt.regex(/(\d+) experience/i);
                         my_bp = txt.regex(/(\d+) Battle Points!/i);
                         my_wp = txt.regex(/(\d+) War Points!/i);
-                        my_cash = txt.regex(/\$j(\d+)/i);
+                        my_cash = txt.regex(/\$(\d+)/i);
                         if (txt.regex(/Victory!/i)) {
                             win += 1;
                             user[uid].lose += 1;

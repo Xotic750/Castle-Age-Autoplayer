@@ -347,11 +347,10 @@ arena = {
             }
 
             var it = -1;
-
             it = records.indexOf(userId);
             if (it >= 0) {
                 records.splice(it, 1);
-                utility.log(3, "Deleted loss", userId, records);
+                utility.log(2, "Deleted loss", userId, records);
                 return records;
             } else {
                 utility.log(3, "Unable to delete loss", userId, records);
@@ -502,6 +501,7 @@ arena = {
                 allowedDiv    = $j(),
                 bannerDiv     = $j(),
                 collectDiv    = $j(),
+                enterDiv      = $j(),
                 tokenSpan     = $j(),
                 timerSpan     = $j(),
                 resultBody    = $j(),
@@ -519,6 +519,9 @@ arena = {
                 won           = {},
                 losses        = [],
                 wins          = [],
+                notStarted    = '',
+                notArena      = '',
+                battleOver    = '',
                 minionRegEx   = new RegExp("(.*) Level: (\\d+) Class: (.*) Health: (\\d+)/(\\d+) Status: (.*) Arena Activity Points: (\\d+)");
 
             currentRecord = arena.getItem();
@@ -582,7 +585,10 @@ arena = {
             bannerDiv = $j("#app46755028429_arena_battle_banner_section");
             myStatsTxt = bannerDiv.text();
             myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
-            if (myStatsTxt.regex(/(You Are Not A Part Of This Arena Battle)/)) {
+            notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
+            notArena = myStatsTxt.regex(/(You Are Not A Part Of This Arena Battle)/);
+            battleOver = myStatsTxt.regex(/(This Arena Battle Is Over)/);
+            if (notArena) {
                 return true;
             }
 
@@ -590,7 +596,7 @@ arena = {
             if (bannerDiv && bannerDiv.length) {
                 currentRecord['teamHealth'] = 0;
                 currentRecord['enemyHealth'] = 0;
-                if (!myStatsTxt.regex(/(This Battle Has Not Started Yet)/)) {
+                if (!notStarted) {
                     gates = $j("div[id*='app46755028429_enemy_guild_member_list_']");
                     if (!gates || !gates.length) {
                         tabs = $j("div[id*='app46755028429_your_arena_tab']");
@@ -689,7 +695,9 @@ arena = {
                     }
                 }
 
-                if (!myStatsTxt.regex(/(This Battle Has Not Started Yet)/) && !myStatsTxt.regex(/(This Arena Battle Is Over)/) && !$j("input[src*='arena3_collectbutton.gif']").length  && !$j("input[src*='guild_enter_battle_button.gif']").length) {
+                collectDiv = $j("input[src*='arena3_collectbutton.gif']");
+                enterDiv = $j("input[src*='guild_enter_battle_button.gif']");
+                if (currentRecord['ticker'] && !notStarted && !battleOver && !collectDiv.length  && !enterDiv.length) {
                     currentRecord['state'] = 'Alive';
                     tStr = $j("span[id='app46755028429_monsterTicker']").text();
                     currentRecord['ticker'] = tStr ? tStr.trim() : '';
@@ -700,7 +708,7 @@ arena = {
                             utility.log(3, "myStatsArr", myStatsArr);
                             currentRecord['damage'] = myStatsArr[7] ? myStatsArr[7].parseInt() : 0;
                             currentRecord['myStatus'] = myStatsArr[6] ? myStatsArr[6].trim() : '';
-                            currentRecord['myClass'] = myStatsArr[3] ? myStatsArr[6].trim() : '';
+                            currentRecord['myClass'] = myStatsArr[3] ? myStatsArr[3].trim() : '';
                         } else {
                             utility.warn("myStatsArr error", myStatsArr, myStatsTxt);
                         }
@@ -733,12 +741,10 @@ arena = {
                         utility.warn("guild_battle_health error");
                     }
                 } else {
-                    collectDiv = $j("input[src*='arena3_collectbutton.gif']");
                     if (collectDiv && collectDiv.length) {
                         utility.log(1, "Battle ready to collect");
                         currentRecord['state'] = 'Collect';
-                        collect = true;
-                    } else if (!$j("input[src*='guild_enter_battle_button.gif']").length && currentRecord['state'] !== 'Ready') {
+                    } else if (!enterDiv.length && currentRecord['state'] !== 'Ready') {
                         utility.log(1, "Battle is completed");
                         currentRecord['state'] = 'Completed';
                     } else {
@@ -759,7 +765,7 @@ arena = {
                 currentRecord['reviewed'] = new Date().getTime();
                 utility.log(2, "currentRecord", currentRecord);
                 arena.setItem(currentRecord);
-                if (collect) {
+                if (currentRecord['state'] === 'Collect' && collectDiv.length) {
                     utility.Click(collectDiv.get(0));
                 }
             } else {
@@ -946,7 +952,6 @@ arena = {
                             return false;
                         }
 
-                        target[mclass][type] = next;
                         break;
                     case "last":
                         logic2 = $j.isEmptyObject(target[mclass][type]) && clericMage && next['healthNum'] > 0 && next['healthNum'] <= 30;
@@ -955,7 +960,7 @@ arena = {
                             return true;
                         }
 
-                        logic3 = !clericMage && target[mclass][type]['level'] !== 'Cleric' && target[mclass][type]['level'] !== 'mage';
+                        logic3 = !clericMage && target[mclass][type]['mclass'] !== 'Cleric' && target[mclass][type]['mclass'] !== 'mage';
                         logic4 = logic3 && next['healthNum'] > 200 && next['healthNum'] < (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
                         if (logic4) {
                             target[mclass][type] = next;
