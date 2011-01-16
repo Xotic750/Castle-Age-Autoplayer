@@ -18,7 +18,6 @@ var caapVersion   = "!version!",
     css           = {},
     gm            = {},
     ss            = {},
-    nHtml         = {},
     sort          = {},
     schedule      = {},
     general       = {},
@@ -86,7 +85,7 @@ String.prototype.trim = function () {
 };
 
 String.prototype.numberOnly = function () {
-    return parseFloat(this.replace(new RegExp("[^0-9\\.]", "g"), ''));
+    return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
 };
 
 

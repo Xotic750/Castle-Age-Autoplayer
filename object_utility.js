@@ -169,7 +169,9 @@ utility = {
 
     CheckForImage: function (image, webSlice, subDocument, nodeNum) {
         try {
-            var imageSlice = $j();
+            var imageSlice = $j(),
+                jSlice     = $j();
+
             if (!webSlice) {
                 webSlice = subDocument ? subDocument.body : window.document.body;
             }
@@ -178,7 +180,8 @@ utility = {
                 nodeNum = 0;
             }
 
-            imageSlice = $j(webSlice).find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
+            jSlice = webSlice.jquery ? webSlice : $j(webSlice);
+            imageSlice = jSlice.find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
             return (imageSlice.length ? imageSlice.get(0) : null);
         } catch (err) {
             utility.error("ERROR in utility.CheckForImage: " + err);

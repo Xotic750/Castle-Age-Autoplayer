@@ -4150,6 +4150,8 @@ caap = {
                     }
                 } else if (idName === 'BattleType') {
                     state.getItem('BattleChainId', 0);
+                } else if (idName === 'AutoBless') {
+                    schedule.setItem('BlessingTimer', 0);
                 } else if (idName === 'TargetType') {
                     state.getItem('BattleChainId', 0);
                     switch (value) {
@@ -6350,6 +6352,7 @@ caap = {
             var storeRetrieve = state.getItem('storeRetrieve', '');
             if (storeRetrieve) {
                 if (storeRetrieve === 'general') {
+                    utility.log(1, "storeRetrieve", storeRetrieve);
                     if (general.Select('BuyGeneral')) {
                         return true;
                     }
@@ -6405,7 +6408,8 @@ caap = {
                 }
             }
 
-            if (!state.getItem('AutoQuest', caap.newAutoQuest())['name']) {
+            var autoQuestName = state.getItem('AutoQuest', caap.newAutoQuest())['name'];
+            if (!autoQuestName) {
                 if (config.getItem('WhyQuest', 'Manual') === 'Manual') {
                     caap.SetDivContent('quest_mess', 'Pick quest manually.');
                     return false;
@@ -6468,9 +6472,11 @@ caap = {
                 }
 
                 var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
-                var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + caap.demiQuestTable[subDQArea]);
-                if (picSlice.style.height !== '160px') {
-                    return utility.NavigateTo('deity_' + caap.demiQuestTable[subDQArea]);
+                var picSlice = $j("img[src*='deity_" + caap.demiQuestTable[subDQArea] + "']");
+                if (picSlice.css("height") !== '160px') {
+                    if (utility.NavigateTo('deity_' + caap.demiQuestTable[subDQArea])) {
+                        return true;
+                    }
                 }
 
                 break;
@@ -6495,17 +6501,18 @@ caap = {
                 general.GetEquippedStats();
             }
 
-            var costToBuy = '';
+            var costToBuy = 0;
             //Buy quest requires popup
-            var itemBuyPopUp = nHtml.FindByAttrContains(document.body, "form", "id", 'itemBuy');
-            if (itemBuyPopUp) {
+            var itemBuyPopUp = $j("form[id*='itemBuy']");
+            if (itemBuyPopUp && itemBuyPopUp.length) {
+                utility.log(1, 'itemBuy');
                 state.setItem('storeRetrieve', 'general');
                 if (general.Select('BuyGeneral')) {
                     return true;
                 }
 
                 state.setItem('storeRetrieve', '');
-                costToBuy = itemBuyPopUp.textContent.replace(new RegExp(".*\\$"), '').replace(new RegExp("[^0-9]{3,}.*"), '');
+                costToBuy = itemBuyPopUp.text().replace(new RegExp(".*\\$"), '').replace(new RegExp("[^\\d]{3,}.*"), '').parseInt();
                 utility.log(2, "costToBuy", costToBuy);
                 if (caap.stats['gold']['cash'] < costToBuy) {
                     //Retrieving from Bank
@@ -6533,6 +6540,7 @@ caap = {
 
             button = utility.CheckForImage('quick_buy_button.jpg');
             if (button) {
+                utility.log(1, 'quick_buy_button');
                 state.setItem('storeRetrieve', 'general');
                 if (general.Select('BuyGeneral')) {
                     return true;
@@ -6561,40 +6569,50 @@ caap = {
                 return true;
             }
 
-            var autoQuestDivs = caap.CheckResults_quests(true);
-            if (!state.getItem('AutoQuest', caap.newAutoQuest())['name']) {
+            var autoQuestDivs = {
+                    name     : '',
+                    click    : $j(),
+                    tr       : $j(),
+                    genDiv   : $j(),
+                    orbCheck : false
+                };
+
+            autoQuestDivs = caap.CheckResults_quests(true);
+            //utility.log(1, 'autoQuestDivs/autoQuestName', autoQuestDivs, autoQuestName);
+            if (!autoQuestDivs.name) {
                 utility.log(1, 'Could not find AutoQuest.');
                 caap.SetDivContent('quest_mess', 'Could not find AutoQuest.');
                 return false;
             }
 
-            var autoQuestName = state.getItem('AutoQuest', caap.newAutoQuest())['name'];
-            if (state.getItem('AutoQuest', caap.newAutoQuest())['name'] !== autoQuestName) {
+            if (autoQuestDivs.name !== autoQuestName) {
                 utility.log(1, 'New AutoQuest found.');
                 caap.SetDivContent('quest_mess', 'New AutoQuest found.');
                 return true;
             }
 
             // if found missing requires, click to buy
-            if (autoQuestDivs.tr !== undefined) {
-                var background = nHtml.FindByAttrContains(autoQuestDivs.tr, "div", "style", 'background-color');
-                if (background && background.style.backgroundColor === 'rgb(158, 11, 15)') {
+            if (autoQuestDivs.tr && autoQuestDivs.tr.length) {
+                var background = autoQuestDivs.tr.find("div[style*='background-color']");
+                if (background && background.length && background.css("background-color") === 'rgb(158, 11, 15)') {
+                    utility.log(1, "Missing item", autoQuestDivs.tr);
                     if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
                         utility.log(1, "Cant buy Atlantis items, stopping quest");
                         caap.ManualAutoQuest();
                         return false;
                     }
 
-                    utility.log(3, " background.style.backgroundColor", background.style.backgroundColor);
+                    utility.log(2, "background.style.backgroundColor", background.css("background-color"));
                     state.setItem('storeRetrieve', 'general');
                     if (general.Select('BuyGeneral')) {
                         return true;
                     }
 
                     state.setItem('storeRetrieve', '');
-                    if (background.firstChild.firstChild.title) {
-                        utility.log(2, "Clicking to buy", background.firstChild.firstChild.title);
-                        utility.Click(background.firstChild.firstChild);
+                    utility.log(2, "background.children().eq(0).children().eq(0).attr('title')", background.children().eq(0).children().eq(0).attr("title"));
+                    if (background.children().eq(0).children().eq(0).attr("title")) {
+                        utility.log(2, "Clicking to buy", background.children().eq(0).children().eq(0).attr("title"));
+                        utility.Click(background.children().eq(0).children().eq(0).get(0));
                         return true;
                     }
                 }
@@ -6616,9 +6634,9 @@ caap = {
 
                     utility.log(2, 'Using level up general');
                 } else {
-                    if (autoQuestDivs.genDiv !== undefined) {
+                    if (autoQuestDivs.genDiv && autoQuestDivs.genDiv.length) {
                         utility.log(2, 'Clicking on general', questGeneral);
-                        utility.Click(autoQuestDivs.genDiv);
+                        utility.Click(autoQuestDivs.genDiv.get(0));
                         return true;
                     } else {
                         utility.warn('Can not click on general', questGeneral);
@@ -6627,10 +6645,10 @@ caap = {
                 }
             }
 
-            if (autoQuestDivs.click !== undefined) {
+            if (autoQuestDivs.click && autoQuestDivs.click) {
                 utility.log(2, 'Clicking auto quest', autoQuestName);
                 state.setItem('ReleaseControl', true);
-                utility.Click(autoQuestDivs.click);
+                utility.Click(autoQuestDivs.click.get(0));
                 caap.ShowAutoQuest();
                 if (autoQuestDivs.orbCheck) {
                     schedule.setItem("magic", 0);
@@ -6697,7 +6715,7 @@ caap = {
 
     isBossQuest: function (name) {
         try {
-            var qn = '',
+            var qn    = '',
                 found = false;
 
             for (qn in caap.QuestAreaInfo) {
@@ -6716,20 +6734,25 @@ caap = {
         }
     },
 
+    symbolquestsListener: function (event) {
+        utility.log(3, "symbolquests");
+        state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/symbolquests.php');
+        caap.CheckResults();
+    },
+
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
     CheckResults_quests: function (pickQuestTF) {
         try {
+            //utility.log(1, "CheckResults_quests pickQuestTF", pickQuestTF);
+            pickQuestTF = pickQuestTF ? pickQuestTF : false;
             if ($j("#app46755028429_quest_map_container").length) {
-                var metaQuest = $j("div[id*='app46755028429_meta_quest_']");
-                if (metaQuest && metaQuest.length) {
-                    metaQuest.each(function (index) {
-                        var row = $j(this);
-                        if (!(row.find("img[src*='_completed']").length || row.find("img[src*='_locked']").length)) {
-                            $j("div[id='app46755028429_quest_wrapper_" + row.attr("id").replace("app46755028429_meta_quest_", '') + "']").css("display", "block");
-                        }
-                    });
-                }
+                $j("div[id*='app46755028429_meta_quest_']").each(function (index) {
+                    var row = $j(this);
+                    if (!(row.find("img[src*='_completed']").length || row.find("img[src*='_locked']").length)) {
+                        $j("div[id='app46755028429_quest_wrapper_" + row.attr("id").replace("app46755028429_meta_quest_", '') + "']").css("display", "block");
+                    }
+                });
             }
 
             if (config.getItem("enableTitles", true)) {
@@ -6743,29 +6766,33 @@ caap = {
 
             var bestReward  = 0,
                 rewardRatio = 0,
-                div         = document.body,
-                ss          = null,
+                div         = $j(),
+                ss          = $j(),
                 s           = 0,
                 len         = 0;
 
             if (utility.CheckForImage('demi_quest_on.gif')) {
                 caap.CheckResults_symbolquests(pickQuestTF);
-                ss = document.evaluate(".//div[contains(@id,'symbol_displaysymbolquest')]",
-                    div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                if (ss.snapshotLength <= 0) {
+                $j("div[id*='app46755028429_symbol_tab_symbolquests']").unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
+                ss = $j("div[id*='symbol_displaysymbolquest']");
+                if (!ss || !ss.length) {
                     utility.warn("Failed to find symbol_displaysymbolquest");
                 }
 
-                for (s = 0, len = ss.snapshotLength; s < len; s += 1) {
-                    div = ss.snapshotItem(s);
-                    if (div.style.display !== 'none') {
-                        break;
+                ss.each(function () {
+                    div = $j(this);
+                    if (div.css("display") !== 'none') {
+                        return false;
                     }
-                }
+
+                    return true;
+                });
+            } else {
+                div = $j(document.body);
             }
 
-            ss = document.evaluate(".//div[contains(@class,'quests_background')]", div, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-            if (ss.snapshotLength <= 0) {
+            ss = div.find("div[class*='quests_background']");
+            if (!ss || !ss.length) {
                 utility.warn("Failed to find quests_background");
                 return false;
             }
@@ -6793,9 +6820,10 @@ caap = {
             }
 
             var autoQuestDivs = {
-                click    : undefined,
-                tr       : undefined,
-                genDiv   : undefined,
+                name     : '',
+                click    : $j(),
+                tr       : $j(),
+                genDiv   : $j(),
                 orbCheck : false
             };
 
@@ -6806,11 +6834,11 @@ caap = {
                 money2RegExp    = new RegExp("\\$([0-9,]+)mil\\s*-\\s*\\$([0-9,]+)mil", "i"),
                 influenceRegExp = new RegExp("(\\d+)%");
 
-            for (s = 0, len = ss.snapshotLength; s < len; s += 1) {
-                div = ss.snapshotItem(s);
+            ss.each(function () {
+                div = $j(this);
                 caap.questName = caap.GetQuestName(div);
                 if (!caap.questName) {
-                    continue;
+                    return true;
                 }
 
                 var reward     = null,
@@ -6820,7 +6848,7 @@ caap = {
                     expM       = [],
                     tStr       = '';
 
-                divTxt = nHtml.GetText(div);
+                divTxt = div.text();
                 expM = divTxt ? divTxt.match(expRegExp) : [];
                 if (expM && expM.length === 2) {
                     experience = expM[1] ? expM[1].numberOnly() : 0;
@@ -6843,15 +6871,15 @@ caap = {
                 if (energyM && energyM.length === 2) {
                     energy = energyM[1] ? energyM[1].numberOnly() : 0;
                 } else {
-                    var eObj = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_req');
-                    if (eObj) {
-                        energy = eObj.getElementsByTagName('b')[0];
+                    var eObj = div.find("div[class*='quest_req']");
+                    if (eObj && eObj.length) {
+                        energy = eObj.find('b').eq(0).text().numberOnly();
                     }
                 }
 
                 if (!energy) {
                     utility.warn("Can't find energy for", caap.questName);
-                    continue;
+                    return true;
                 }
 
                 var moneyM     = [],
@@ -6874,57 +6902,51 @@ caap = {
                     }
                 }
 
-                var click = $j(div).find("input[name*='Do']");
-                if (click && click.length) {
-                    click = click.get(0);
-                } else {
+                var click = div.find("input[name*='Do Quest']");
+                if (!click || !click.length) {
                     utility.warn('No button found for', caap.questName);
-                    continue;
+                    return true;
                 }
 
-                var influence = null;
+                var influence = -1;
                 if (caap.isBossQuest(caap.questName)) {
                     if ($j("div[class='quests_background_sub']").length) {
                         //if boss and found sub quests
-                        influence = "100";
+                        influence = 100;
                     } else {
-                        influence = "0";
+                        influence = 0;
                     }
                 } else {
                     var influenceList = divTxt.match(influenceRegExp);
                     if (influenceList && influenceList.length === 2) {
-                        influence = influenceList[1];
+                        influence = influenceList[1] ? influenceList[1].parseInt() : 0;
                     } else {
                         utility.warn("Influence div not found.", influenceList);
                     }
                 }
 
-                if (!influence) {
+                if (influence < 0) {
                     utility.warn('No influence found for', caap.questName, divTxt);
                 }
 
                 var general = 'none',
-                    genDiv  = null;
+                    genDiv  = $j();
 
-                if (influence && influence < 100) {
-                    genDiv = nHtml.FindByAttrContains(div, 'div', 'className', 'quest_act_gen');
-                    if (genDiv) {
-                        genDiv = nHtml.FindByAttrContains(genDiv, 'img', 'src', 'jpg');
-                        if (genDiv) {
-                            general = genDiv.title;
+                if (influence >= 0 && influence < 100) {
+                    genDiv = div.find("div[class*='quest_act_gen']");
+                    if (genDiv && genDiv.length) {
+                        genDiv = genDiv.find("img[src*='jpg']");
+                        if (genDiv && genDiv.length) {
+                            general = genDiv.attr("title");
                         }
                     }
                 }
 
                 var questType = 'subquest';
-                if (div.className === 'quests_background') {
+                if (div.attr("class") === 'quests_background') {
                     questType = 'primary';
-                } else if (div.className === 'quests_background_special') {
+                } else if (div.attr("class") === 'quests_background_special') {
                     questType = 'boss';
-                }
-
-                if (s === 0) {
-                    utility.log(3, "Adding Quest Labels and Listeners");
                 }
 
                 caap.LabelQuests(div, energy, reward, experience, click);
@@ -6938,8 +6960,8 @@ caap = {
 
                     switch (whyQuest) {
                     case 'Advancement' :
-                        if (influence) {
-                            if (!state.getItem('AutoQuest', caap.newAutoQuest())['name'] && questType === 'primary' && influence.numberOnly() < 100) {
+                        if (influence >= 0) {
+                            if (!state.getItem('AutoQuest', caap.newAutoQuest())['name'] && questType === 'primary' && influence < 100) {
                                 caap.updateAutoQuest('name', caap.questName);
                                 pickQuestTF = true;
                             }
@@ -6949,8 +6971,8 @@ caap = {
 
                         break;
                     case 'Max Influence' :
-                        if (influence) {
-                            if (!state.getItem('AutoQuest', caap.newAutoQuest())['name'] && influence.numberOnly() < 100) {
+                        if (influence >= 0) {
+                            if (!state.getItem('AutoQuest', caap.newAutoQuest())['name'] && influence < 100) {
                                 caap.updateAutoQuest('name', caap.questName);
                                 pickQuestTF = true;
                             }
@@ -6978,7 +7000,6 @@ caap = {
                     default :
                     }
 
-                    utility.log(5, "Setting AutoQuest?", state.getItem('AutoQuest', caap.newAutoQuest()), caap.questName);
                     if (isTheArea && state.getItem('AutoQuest', caap.newAutoQuest())['name'] === caap.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / (energy ? energy : 1);
@@ -6991,16 +7012,21 @@ caap = {
                         state.setItem('AutoQuest', tempAutoQuest);
                         utility.log(3, "CheckResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
                         caap.ShowAutoQuest();
-                        autoQuestDivs.click    = click;
-                        autoQuestDivs.tr       = div;
-                        autoQuestDivs.genDiv   = genDiv;
+                        autoQuestDivs.name = caap.questName;
+                        autoQuestDivs.click = click;
+                        autoQuestDivs.tr = div;
+                        autoQuestDivs.genDiv = genDiv;
                     }
                 }
-            }
 
+                //utility.log(1, "End of run");
+                return true;
+            });
+
+            //utility.log(1, "pickQuestTF", pickQuestTF);
             if (pickQuestTF) {
                 if (state.getItem('AutoQuest', caap.newAutoQuest())['name']) {
-                    utility.log(3, "CheckResults_quests(pickQuestTF)", state.getItem('AutoQuest', caap.newAutoQuest()));
+                    //utility.log(2, "return autoQuestDivs", autoQuestDivs);
                     caap.ShowAutoQuest();
                     return autoQuestDivs;
                 }
@@ -7084,7 +7110,7 @@ caap = {
             var item_title = $j(),
                 firstb     = $j();
 
-            item_title = $j(questDiv).find("div[class*='quest_desc'],div[class*='quest_sub_title']");
+            item_title = questDiv.find("div[class*='quest_desc'],div[class*='quest_sub_title']");
             if (!item_title || !item_title.length) {
                 utility.log(2, "Can't find quest description or sub-title");
                 return false;
@@ -7260,24 +7286,24 @@ caap = {
             return false;
         }
     },
-    /*jslint sub: false */
 
     LabelQuests: function (div, energy, reward, experience, click) {
         try {
-            if ($j(div).find("div[class='autoquest'").length) {
+            if (div.find("div[class='autoquest'").length) {
                 return;
             }
 
-            div = document.createElement('div');
-            div.className = 'autoquest';
-            div.style.fontSize = '10px';
-            div.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
+            var newdiv = {};
+            newdiv = document.createElement('div');
+            newdiv.className = 'autoquest';
+            newdiv.style.fontSize = '10px';
+            newdiv.innerHTML = "$ per energy: " + (Math.floor(reward / energy * 10) / 10) +
                 "<br />Exp per energy: " + (Math.floor(experience / energy * 100) / 100) + "<br />";
 
-            if (state.getItem('AutoQuest', caap.newAutoQuest()).name === caap.questName) {
+            if (state.getItem('AutoQuest', caap.newAutoQuest())['name'] === caap.questName) {
                 var b = document.createElement('b');
                 b.innerHTML = "Current auto quest";
-                div.appendChild(b);
+                newdiv.appendChild(b);
             } else {
                 var setAutoQuest = document.createElement('a');
                 setAutoQuest.innerHTML = 'Auto run this quest.';
@@ -7294,13 +7320,13 @@ caap = {
                 setAutoQuest.appendChild(quest_energyObj);
                 setAutoQuest.addEventListener("click", caap.LabelListener, false);
 
-                div.appendChild(setAutoQuest);
+                newdiv.appendChild(setAutoQuest);
             }
 
-            div.style.position = 'absolute';
-            div.style.background = '#B09060';
-            div.style.right = "144px";
-            click.parentNode.insertBefore(div, click);
+            newdiv.style.position = 'absolute';
+            newdiv.style.background = '#B09060';
+            newdiv.style.right = "144px";
+            click.parent().before(newdiv);
         } catch (err) {
             utility.error("ERROR in LabelQuests: " + err);
         }
@@ -7310,8 +7336,6 @@ caap = {
     //                          AUTO BLESSING
     /////////////////////////////////////////////////////////////////////
 
-    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-    /*jslint sub: true */
     deityTable: {
         'energy'  : 1,
         'attack'  : 2,
@@ -7341,7 +7365,10 @@ caap = {
     },
 
     AutoBless: function () {
-        var autoBless = config.getItem('AutoBless', 'none').toLowerCase();
+        var picSlice  = $j(),
+            autoBless = '';
+
+        autoBless = config.getItem('AutoBless', 'none').toLowerCase();
         if (autoBless === 'none') {
             return false;
         }
@@ -7354,18 +7381,18 @@ caap = {
             return true;
         }
 
-        var picSlice = nHtml.FindByAttrContains(document.body, 'img', 'src', 'deity_' + autoBless);
-        if (!picSlice) {
+        picSlice = $j("img[src*='deity_" + autoBless + "']");
+        if (!picSlice || !picSlice.length) {
             utility.warn('No diety pics for deity', autoBless);
             return false;
         }
 
-        if (picSlice.style.height !== '160px') {
+        if (picSlice.css('height') !== '160px') {
             return utility.NavigateTo('deity_' + autoBless);
         }
 
-        picSlice = nHtml.FindByAttrContains(document.body, 'form', 'id', '_symbols_form_' + caap.deityTable[autoBless]);
-        if (!picSlice) {
+        picSlice = $j("form[id*='_symbols_form_" + caap.deityTable[autoBless] + "']");
+        if (!picSlice || !picSlice.length) {
             utility.warn('No form for deity blessing.');
             return false;
         }
@@ -7447,32 +7474,32 @@ caap = {
             ss.each(function () {
                 row = $j(this);
                 if (!row || !row.length) {
-                    return false;
+                    return true;
                 }
 
                 caap.SelectLands(row, 10);
                 infoDiv = row.find("div[class*='land_buy_info']");
                 if (!infoDiv || !infoDiv.length) {
                     utility.warn("Can't find land_buy_info");
-                    return false;
+                    return true;
                 }
 
                 strongs = infoDiv.find("strong");
                 if (strongs && strongs.length < 1) {
                     utility.warn("Can't find strong");
-                    return false;
+                    return true;
                 }
 
                 name = strongs.eq(0).text().trim();
                 if (!name) {
                     utility.warn("Can't find land name");
-                    return false;
+                    return true;
                 }
 
                 moneyss = row.find("strong[class*='gold']");
                 if (!moneyss || moneyss.length < 2) {
                     utility.warn("Can't find 2 gold instances");
-                    return false;
+                    return true;
                 }
 
                 nums = [];
@@ -7484,7 +7511,7 @@ caap = {
                         tStr = tStr ? tStr.regex(/([\d,]+)/) : '';
                         if (!tStr) {
                             utility.warn('Cannot find income for ', name, tStr);
-                            return false;
+                            return true;
                         }
                     } else {
                         tStr = incomeEl.text();
@@ -7499,7 +7526,7 @@ caap = {
                 cost = nums[1] ? nums[1] : 0;
                 if (!income || !cost) {
                     utility.warn("Can't find income or cost for", name);
-                    return false;
+                    return true;
                 }
 
                 if (income > cost) {
@@ -7640,7 +7667,7 @@ caap = {
             bestLandCost = state.getItem('BestLandCost', {});
             if ($j.isEmptyObject(bestLandCost)) {
                 utility.log(2, "Going to land to get Best Land Cost");
-                if (utility.NavigateTo('soldiers,land', 'tab_land_on.gif')) {
+                if (utility.NavigateTo('soldiers,land', utility.CheckForImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
                     return true;
                 }
             }
@@ -10231,36 +10258,31 @@ caap = {
             }
 
             if (!schedule.check('AlchemyTimer')) {
-                return false;
+                //return false;
             }
     /*-------------------------------------------------------------------------------------\
     Now we navigate to the Alchemy Recipe page.
     \-------------------------------------------------------------------------------------*/
             if (!utility.NavigateTo('keep,alchemy', 'tab_alchemy_on.gif')) {
-                var button    = null,
+                var button    = {},
                     recipeDiv = $j(),
-                    tempDiv   = $j();
+                    ss        = $j(),
+                    clicked   = false;
 
                 recipeDiv = $j("#app46755028429_recipe_list");
                 if (recipeDiv && recipeDiv.length) {
                     if (recipeDiv.attr("class") !== 'show_items') {
-                        tempDiv = recipeDiv.find("div[id*='alchemy_item_tab']");
-                        if (tempDiv && tempDiv.length) {
-                            button = tempDiv.get(0);
-                            if (button) {
-                                utility.Click(button);
-                                return true;
-                            } else {
-                                utility.warn('Cant find tab button', button);
-                                return false;
-                            }
+                        button = recipeDiv.find("div[id*='alchemy_item_tab']");
+                        if (button && button.length) {
+                            utility.Click(button.get(0));
+                            return true;
                         } else {
-                            utility.warn('Cant find item tab', tempDiv);
+                            utility.warn('Cant find item tab', recipeDiv);
                             return false;
                         }
                     }
                 } else {
-                    utility.warn('Cant find recipe list', recipeDiv);
+                    utility.warn('Cant find recipe list');
                     return false;
                 }
     /*-------------------------------------------------------------------------------------\
@@ -10274,33 +10296,45 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     Now we get all of the recipes and step through them one by one
     \-------------------------------------------------------------------------------------*/
-                var ss = document.evaluate(".//div[@class='alchemyRecipeBack']", document.body, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-                for (var s = 0, len = ss.snapshotLength; s < len; s += 1) {
-                    recipeDiv = ss.snapshotItem(s);
+                ss = $j("div[class*='alchemyRecipeBack']");
+                if (!ss || !ss.length) {
+                    utility.log(2, 'No recipes found');
+                }
+
+                ss.each(function () {
+                    recipeDiv = $j(this);
     /*-------------------------------------------------------------------------------------\
     If we are missing an ingredient then skip it
     \-------------------------------------------------------------------------------------*/
-                    if (nHtml.FindByAttrContains(recipeDiv, 'div', 'class', 'missing')) {
-                        utility.log(4, 'Skipping Recipe');
-                        continue;
+                    if (recipeDiv.find("div[class*='missing']").length) {
+                        utility.log(2, 'Skipping Recipe');
+                        return true;
                     }
     /*-------------------------------------------------------------------------------------\
     If we are skipping battle hearts then skip it
     \-------------------------------------------------------------------------------------*/
                     if (utility.CheckForImage('raid_hearts', recipeDiv) && !config.getItem('AutoAlchemyHearts', false)) {
                         utility.log(2, 'Skipping Hearts');
-                        continue;
+                        return true;
                     }
     /*-------------------------------------------------------------------------------------\
     Find our button and click it
     \-------------------------------------------------------------------------------------*/
-                    button = nHtml.FindByAttrXPath(recipeDiv, 'input', "@type='image'");
-                    if (button) {
-                        utility.Click(button);
-                        return true;
+                    button = recipeDiv.find("input[type='image']");
+                    if (button && button.length) {
+                        clicked = true;
+                        utility.Click(button.get(0));
+                        utility.log(2, 'Clicked A Recipe');
+                        return false;
                     } else {
                         utility.warn('Cant Find Item Image Button');
                     }
+
+                    return true;
+                });
+
+                if (clicked) {
+                    return true;
                 }
     /*-------------------------------------------------------------------------------------\
     All done. Set the timer to check back in 3 hours.
@@ -10934,10 +10968,9 @@ caap = {
     /*jslint sub: true */
     IncreaseStat: function (attribute, attrAdjust, atributeSlice) {
         try {
-            utility.log(9, "Attribute: " + attribute + "   Adjust: " + attrAdjust);
             attribute = attribute.toLowerCase();
-            var button        = null,
-                ajaxLoadIcon  = null,
+            var button        = $j(),
+                ajaxLoadIcon  = $j(),
                 level         = 0,
                 attrCurrent   = 0,
                 energy        = 0,
@@ -10946,8 +10979,12 @@ caap = {
                 defense       = 0,
                 health        = 0,
                 attrAdjustNew = 0,
-                logTxt        = "",
-                repRegExp     = new RegExp("[^0-9]", "g");
+                energyDiv     = $j(),
+                staminaDiv    = $j(),
+                attackDiv     = $j(),
+                defenseDiv    = $j(),
+                healthDiv     = $j(),
+                logTxt        = "";
 
             ajaxLoadIcon = $j('#app46755028429_AjaxLoadIcon');
             if (!ajaxLoadIcon.length || ajaxLoadIcon.css("display") !== 'none') {
@@ -10955,21 +10992,26 @@ caap = {
                 return "Fail";
             }
 
+            energyDiv = atributeSlice.find("a[href*='energy_max']");
+            staminaDiv = atributeSlice.find("a[href*='stamina_max']");
+            attackDiv = atributeSlice.find("a[href*='attack']");
+            defenseDiv = atributeSlice.find("a[href*='defense']");
+            healthDiv = atributeSlice.find("a[href*='health_max']");
             switch (attribute) {
             case "energy" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max');
+                button = energyDiv;
                 break;
             case "stamina" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max');
+                button = staminaDiv;
                 break;
             case "attack" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack');
+                button = attackDiv;
                 break;
             case "defense" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense');
+                button = defenseDiv;
                 break;
             case "health" :
-                button = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max');
+                button = healthDiv;
                 break;
             default :
                 throw "Unable to match attribute: " + attribute;
@@ -10983,16 +11025,19 @@ caap = {
             attrAdjustNew = attrAdjust;
             logTxt = attrAdjust;
             level = caap.stats['level'];
-            attrCurrent = button.parentNode.parentNode.childNodes[3].firstChild.data.replace(repRegExp, '').parseInt();
-            energy = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'energy_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(repRegExp, '').parseInt();
-            stamina = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'stamina_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(repRegExp, '').parseInt();
-            if (level >= 10) {
-                attack = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'attack').parentNode.parentNode.childNodes[3].firstChild.data.replace(repRegExp, '').parseInt();
-                defense = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'defense').parentNode.parentNode.childNodes[3].firstChild.data.replace(repRegExp, '').parseInt();
-                health = nHtml.FindByAttrContains(atributeSlice, 'a', 'href', 'health_max').parentNode.parentNode.childNodes[3].firstChild.data.replace(repRegExp, '').parseInt();
+            function getValue(div) {
+                return div.parent().parent().find("div[class='attribute_stat_container']").text().regex(/(\d+)/);
             }
 
-            utility.log(9, "Energy=" + energy + " Stamina=" + stamina + " Attack=" + attack + " Defense=" + defense + " Heath=" + health);
+            attrCurrent = getValue(button);
+            energy = getValue(energyDiv);
+            stamina = getValue(staminaDiv);
+            if (level >= 10) {
+                attack = getValue(attackDiv);
+                defense = getValue(defenseDiv);
+                health = getValue(healthDiv);
+            }
+
             if (config.getItem('AutoStatAdv', false)) {
                 //Using eval, so user can define formulas on menu, like energy = level + 50
                 /*jslint evil: true */
@@ -11017,7 +11062,7 @@ caap = {
 
             if (attrAdjustNew > attrCurrent) {
                 utility.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
-                utility.Click(button);
+                utility.Click(button.get(0));
                 return "Click";
             }
 
@@ -11137,8 +11182,8 @@ caap = {
                 n                  = 0,
                 returnIncreaseStat = '';
 
-            atributeSlice = $j("div[class*='keep_attribute_section']").get(0);
-            if (!atributeSlice) {
+            atributeSlice = $j("div[class*='keep_attribute_section']");
+            if (!atributeSlice || !atributeSlice.length) {
                 utility.NavigateTo('keep');
                 return true;
             }
@@ -11152,7 +11197,7 @@ caap = {
                 attrName = 'Attribute' + n;
                 attribute = config.getItem(attrName, '');
                 if (attribute === '') {
-                    utility.log(9, attrName + " is blank: continue");
+                    utility.log(3, attrName + " is blank: continue");
                     continue;
                 }
 
@@ -11167,13 +11212,13 @@ caap = {
                 returnIncreaseStat = caap.IncreaseStat(attribute, attrValue, atributeSlice);
                 switch (returnIncreaseStat) {
                 case "Next" :
-                    utility.log(9, attrName + " : next");
+                    utility.log(3, attrName + " : next");
                     continue;
                 case "Click" :
-                    utility.log(9, attrName + " : click");
+                    utility.log(3, attrName + " : click");
                     return true;
                 default :
-                    utility.log(9, attrName + " return value: " + returnIncreaseStat);
+                    utility.log(3, attrName + " return value: " + returnIncreaseStat);
                     return false;
                 }
             }

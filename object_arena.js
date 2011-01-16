@@ -45,6 +45,8 @@ arena = {
             'won'                : false,
             'lost'               : false,
             'poly'               : false,
+            'shout'              : false,
+            'shield'             : false,
             'last_ap'            : 0
         };
     },
@@ -619,6 +621,8 @@ arena = {
                                         memberArr    = [],
                                         targetIdDiv  = $j(),
                                         polyImg      = $j(),
+                                        shoutImg     = $j(),
+                                        shieldImg    = $j(),
                                         nameDiv      = $j(),
                                         loss         = false,
                                         memberRecord = new arena.minion().data;
@@ -686,6 +690,18 @@ arena = {
                                     memberRecord['poly'] = (polyImg && polyImg.length) ? true : false;
                                     if (memberRecord['poly']) {
                                         utility.log(3, "poly", memberRecord);
+                                    }
+
+                                    shoutImg = member.find("img[src*='warrior_effect_shout']");
+                                    memberRecord['shout'] = (shoutImg && shoutImg.length) ? true : false;
+                                    if (memberRecord['shout']) {
+                                        utility.log(2, "shout", memberRecord);
+                                    }
+
+                                    shieldImg = member.find("img[src*='mage_effect_shield']");
+                                    memberRecord['shield'] = (shieldImg && shieldImg.length) ? true : false;
+                                    if (memberRecord['shield']) {
+                                        utility.log(2, "shield", memberRecord);
                                     }
 
                                     index = minions.push(memberRecord);
@@ -828,6 +844,7 @@ arena = {
                         'alive'   : {},
                         'health'  : {},
                         'poly'    : {},
+                        'shout'   : {},
                         'chain'   : {}
                     },
                     'Mage' : {
@@ -837,6 +854,7 @@ arena = {
                         'alive'   : {},
                         'health'  : {},
                         'poly'    : {},
+                        'shout'   : {},
                         'chain'   : {}
                     },
                     'Rogue' : {
@@ -846,6 +864,7 @@ arena = {
                         'alive'   : {},
                         'health'  : {},
                         'poly'    : {},
+                        'shout'   : {},
                         'chain'   : {}
                     },
                     'Warrior' : {
@@ -855,6 +874,7 @@ arena = {
                         'alive'   : {},
                         'health'  : {},
                         'poly'    : {},
+                        'shout'   : {},
                         'chain'   : {}
                     }
                 },
@@ -903,6 +923,7 @@ arena = {
                         lowerLevel = false,
                         knownWin = false,
                         clericMage = false,
+                        shieldShout = false,
                         logic1  = false,
                         logic2  = false,
                         logic3  = false,
@@ -915,6 +936,7 @@ arena = {
                     lowerLevel = next['level'] < (target[mclass][type]['level'] ? target[mclass][type]['level'] : 99999);
                     knownWin = next['won'] && !target[mclass][type]['won'];
                     clericMage = mclass === "Cleric" || mclass === "Mage";
+                    shieldShout = next['shield'] || next['shout'];
                     logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
                     logic2 = !doPoly && next['poly'];
                     logic3 = doPoly && stunnedPoly && next['poly'] && record['myStatus'] === 'Stunned';
@@ -927,13 +949,13 @@ arena = {
 
                     switch (type) {
                     case "health":
-                        if (!logic1) {
+                        if (!(logic1 && !shieldShout)) {
                             return false;
                         }
 
                         break;
                     case "active":
-                        if (!(logic1 && next['points'])) {
+                        if (!(logic1 && next['points'] && !shieldShout)) {
                             return false;
                         }
 
@@ -941,13 +963,9 @@ arena = {
                     case "suicide":
                         logic2 = next['healthNum'] < (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 99999);
                         logic3 = !clericMage && logic1 && next['points'] && logic2;
-                        if (logic3) {
-                            if (lowerLevel) {
-                                target[mclass][type] = next;
-                                return true;
-                            }
-
-                            return false;
+                        if (logic3 && !shieldShout && lowerLevel) {
+                            target[mclass][type] = next;
+                            return true;
                         } else {
                             return false;
                         }
@@ -955,20 +973,20 @@ arena = {
                         break;
                     case "last":
                         logic2 = $j.isEmptyObject(target[mclass][type]) && clericMage && next['healthNum'] > 0 && next['healthNum'] <= 30;
-                        if (logic2) {
+                        if (logic2 && !shieldShout) {
                             target[mclass][type] = next;
                             return true;
                         }
 
                         logic3 = !clericMage && target[mclass][type]['mclass'] !== 'Cleric' && target[mclass][type]['mclass'] !== 'mage';
                         logic4 = logic3 && next['healthNum'] > 200 && next['healthNum'] < (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
-                        if (logic4) {
+                        if (logic4 && !shieldShout && lowerLevel) {
                             target[mclass][type] = next;
                             return true;
                         }
 
                         logic5 = $j.isEmptyObject(target[mclass][type]) && logic3 && next['healthNum'] > (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
-                        if (logic5) {
+                        if (logic5 && !shieldShout) {
                             target[mclass][type] = next;
                             return true;
                         } else {
@@ -977,13 +995,9 @@ arena = {
 
                         break;
                     case "poly":
-                        if (next['poly']) {
-                            if (higherLevel) {
-                                target[mclass][type] = next;
-                                return true;
-                            }
-
-                            return false;
+                        if (next['poly'] && (shieldShout || higherLevel)) {
+                            target[mclass][type] = next;
+                            return true;
                         } else {
                             return false;
                         }
@@ -994,11 +1008,8 @@ arena = {
                         logic3 = !observeHealth && logic2;
                         logic4 = observeHealth && logic1 && logic2;
                         logic5 = logic3 || logic4;
-                        if (logic5) {
-                            if (higherLevel) {
-                                target[mclass][type] = next;
-                            }
-
+                        if (logic5 && higherLevel) {
+                            target[mclass][type] = next;
                             return true;
                         } else {
                             return false;
