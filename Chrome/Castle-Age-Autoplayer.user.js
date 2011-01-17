@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            36
+// @dev            37
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "36",
+    devVersion    = "37",
     hiddenVar     = true,
     caap_timeout  = 0,
     image64       = {},
@@ -780,36 +780,7 @@ Number.prototype.ROTL = function (x) {
 Number.prototype.ROTR = function (x) {
     return (x >>> this) | (x << (32 - this));
 };
-
 /*jslint bitwise: true */
-
-jQuery.prototype.getElementWidth = function (x) {
-    var t = [],
-        w = 0;
-
-    if (this && this.length === 1) {
-        t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
-        if (t && t.length === 2) {
-            w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
-        }
-    }
-
-    return w;
-};
-
-jQuery.prototype.getElementHeight = function (x) {
-    var t = [],
-        w = 0;
-
-    if (this && this.length === 1) {
-        t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
-        if (t && t.length === 2) {
-            w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
-        }
-    }
-
-    return w;
-};
 
 ////////////////////////////////////////////////////////////////////
 //                          image64 OBJECT
@@ -23673,6 +23644,34 @@ function caap_WaitForjQueryUI() {
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
         caap_log("jQuery ready ...");
+        jQuery.prototype.getElementWidth = function (x) {
+            var t = [],
+                w = 0;
+
+            if (this && this.length === 1) {
+                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+                if (t && t.length === 2) {
+                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
+                }
+            }
+
+            return w;
+        };
+
+        jQuery.prototype.getElementHeight = function (x) {
+            var t = [],
+                w = 0;
+
+            if (this && this.length === 1) {
+                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+                if (t && t.length === 2) {
+                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
+                }
+            }
+
+            return w;
+        };
+
         $j = jQuery.noConflict();
         if (typeof $j.ui !== 'object') {
             caap_log("Inject jQueryUI.");

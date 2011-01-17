@@ -110,6 +110,34 @@ function caap_WaitForjQueryUI() {
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
         caap_log("jQuery ready ...");
+        jQuery.prototype.getElementWidth = function (x) {
+            var t = [],
+                w = 0;
+
+            if (this && this.length === 1) {
+                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+                if (t && t.length === 2) {
+                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
+                }
+            }
+
+            return w;
+        };
+
+        jQuery.prototype.getElementHeight = function (x) {
+            var t = [],
+                w = 0;
+
+            if (this && this.length === 1) {
+                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+                if (t && t.length === 2) {
+                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
+                }
+            }
+
+            return w;
+        };
+
         $j = jQuery.noConflict();
         if (typeof $j.ui !== 'object') {
             caap_log("Inject jQueryUI.");
