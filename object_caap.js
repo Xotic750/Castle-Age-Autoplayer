@@ -71,6 +71,15 @@ caap = {
                         idOk = true;
                     }
                 }
+
+                if (!idOk) {
+                    FBID = window.presence.user ? window.presence.user.parseInt() : 0;
+                    if (utility.isNum(FBID) && FBID > 0) {
+                        utility.log(1, "FBID", FBID);
+                        caap.stats['FBID'] = FBID;
+                        idOk = true;
+                    }
+                }
             }
         }
         /*jslint sub: false */

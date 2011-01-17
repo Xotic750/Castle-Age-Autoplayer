@@ -31,8 +31,8 @@ function caap_DomTimeOut() {
 
 function caap_injectScript(url) {
     var inject = document.createElement('script');
-    inject.setAttribute('type', 'application/javascript');
-    inject.src = url;
+    inject.setAttribute('type', 'text/javascript');
+    inject.setAttribute('src', url);
     document.head.appendChild(inject);
     inject = null;
 }

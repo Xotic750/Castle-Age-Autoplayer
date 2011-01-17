@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            37
+// @dev            38
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "37",
+    devVersion    = "38",
     hiddenVar     = true,
     caap_timeout  = 0,
     image64       = {},
@@ -11158,6 +11158,15 @@ caap = {
                 if (tempArr && tempArr.length === 2) {
                     FBID = tempArr[1].parseInt();
                     if (utility.isNum(FBID) && FBID > 0) {
+                        caap.stats['FBID'] = FBID;
+                        idOk = true;
+                    }
+                }
+
+                if (!idOk) {
+                    FBID = window.presence.user ? window.presence.user.parseInt() : 0;
+                    if (utility.isNum(FBID) && FBID > 0) {
+                        utility.log(1, "FBID", FBID);
                         caap.stats['FBID'] = FBID;
                         idOk = true;
                     }
@@ -23565,8 +23574,8 @@ function caap_DomTimeOut() {
 
 function caap_injectScript(url) {
     var inject = document.createElement('script');
-    inject.setAttribute('type', 'application/javascript');
-    inject.src = url;
+    inject.setAttribute('type', 'text/javascript');
+    inject.setAttribute('src', url);
     document.head.appendChild(inject);
     inject = null;
 }
