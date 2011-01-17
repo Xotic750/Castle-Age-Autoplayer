@@ -749,13 +749,13 @@ gifting = {
 
                 filterId = config.getItem("FilterReturnId", false);
                 if (filterId) {
-                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdList = config.getList("FilterReturnIdList", '');
                     filterIdLen = filterIdList.length;
                 }
 
                 filterGift = config.getItem("FilterReturnGift", false);
                 if (filterGift) {
-                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftList = config.getList("FilterReturnGiftList", '');
                     filterGiftLen = filterGiftList.length;
                 }
 
@@ -853,13 +853,13 @@ gifting = {
                 returnOnlyOne = config.getItem("ReturnOnlyOne", false);
                 filterId = config.getItem("FilterReturnId", false);
                 if (filterId) {
-                    filterIdList = utility.TextToArray(config.getItem("FilterReturnIdList", ''));
+                    filterIdList = config.getList("FilterReturnIdList", '');
                     filterIdLen = filterIdList.length;
                 }
 
                 filterGift = config.getItem("FilterReturnGift", false);
                 if (filterGift) {
-                    filterGiftList = utility.TextToArray(config.getItem("FilterReturnGiftList", ''));
+                    filterGiftList = config.getList("FilterReturnGiftList", '');
                     filterGiftLen = filterGiftList.length;
                 }
 

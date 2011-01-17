@@ -260,7 +260,7 @@ battle = {
                 throw "Invalid identifying userId!";
             }
 
-            hash = utility.SHA1(utility.SHA1(record['userId'].toString()) + record['nameStr']);
+            hash = (record['userId'].toString().SHA1() + record['nameStr']).SHA1();
             return (hashes.indexOf(hash) >= 0);
         } catch (err) {
             utility.error("ERROR in battle.hashCheck: " + err);
@@ -718,7 +718,7 @@ battle = {
                 return target;
             }
 
-            targets = utility.TextToArray(config.getItem('BattleTargets', ''));
+            targets = config.getList('BattleTargets', '');
             if (!targets.length) {
                 return false;
             }

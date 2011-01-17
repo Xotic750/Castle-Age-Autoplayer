@@ -843,10 +843,10 @@ monster = {
 
                 // The extra apostrophe at the end of attack order makes it match any "soandos's monster" so it always selects a monster if available
                 if (selectTypes[s] === 'any') {
-                    attackOrderList = utility.TextToArray(config.getItem('orderbattle_monster', ''));
-                    $j.merge(attackOrderList, utility.TextToArray(config.getItem('orderraid', '')).concat('your', "'"));
+                    attackOrderList = config.getList('orderbattle_monster', '');
+                    $j.merge(attackOrderList, config.getList('orderraid', '').concat('your', "'"));
                 } else {
-                    attackOrderList = utility.TextToArray(config.getItem('order' + selectTypes[s], '')).concat('your', "'");
+                    attackOrderList = config.getList('order' + selectTypes[s], '').concat('your', "'");
                 }
 
                 utility.log(5, 'attackOrderList', attackOrderList);

@@ -416,14 +416,14 @@ guild_monster = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = (100 - utility.getElementWidth(healthEnemy)).dp(2);
+                            currentRecord['enemyHealth'] = (100 - healthEnemy.getElementWidth()).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['guildHealth'] = (100 - utility.getElementWidth(healthGuild)).dp(2);
+                            currentRecord['guildHealth'] = (100 - healthGuild.getElementWidth()).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }
@@ -591,7 +591,7 @@ guild_monster = {
                 minHealth = 0;
             }
 
-            attackOrderList = utility.TextToArray(config.getItem('orderGuildMinion', ''));
+            attackOrderList = config.getList('orderGuildMinion', '');
             if (!attackOrderList || attackOrderList.length === 0) {
                 attackOrderList = [String.fromCharCode(0)];
                 utility.log(2, "Added null character to getTargetMinion attackOrderList", attackOrderList);
@@ -723,7 +723,7 @@ guild_monster = {
             }
 
             state.setItem('targetGuildMonster', {});
-            attackOrderList = utility.TextToArray(config.getItem('orderGuildMonster', ''));
+            attackOrderList = config.getList('orderGuildMonster', '');
             if (!attackOrderList || attackOrderList.length === 0) {
                 attackOrderList = [String.fromCharCode(0)];
                 utility.log(3, "Added null character to select attackOrderList", attackOrderList);

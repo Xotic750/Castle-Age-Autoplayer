@@ -485,7 +485,7 @@ arena = {
                 }
             }
 
-            utility.log(2, "arena.checkInfo", arenaInfo);
+            utility.log(3, "arena.checkInfo", arenaInfo);
             return true;
         } catch (err) {
             utility.error("ERROR in arena.checkInfo: " + err);
@@ -551,25 +551,32 @@ arena = {
                 if (resultBody && resultBody.length) {
                     tStr = resultBody.text();
                     tNum = tStr ? tStr.regex(/\+(\d+) Battle Activity Points/) : 0;
-                    currentRecord['minions'][lastAttacked['index']]['last_ap'] = tNum ? tNum : 0;
                 }
 
                 imgDiv = $j("img[src*='battle_defeat.gif']");
                 if (imgDiv && imgDiv.length) {
-                    currentRecord['minions'][lastAttacked['index']]['lost'] = true;
-                    wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked['index']]['target_id']);
-                    currentRecord['wins'] = wins ? wins : currentRecord['wins'];
-                    losses = arena.setLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
-                    currentRecord['losses'] = losses ? losses : currentRecord['losses'];
-                    arena.setItem(currentRecord);
-                    utility.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                    if (lastAttacked['poly']) {
+                        utility.log(1, "Defeated by polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                    } else {
+                        currentRecord['minions'][lastAttacked['index']]['lost'] = true;
+                        currentRecord['minions'][lastAttacked['index']]['won'] = false;
+                        currentRecord['minions'][lastAttacked['index']]['last_ap'] = 0;
+                        wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                        currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                        losses = arena.setLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                        currentRecord['losses'] = losses ? losses : currentRecord['losses'];
+                        arena.setItem(currentRecord);
+                        utility.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
+                    }
                 } else {
-                    currentRecord['minions'][lastAttacked['index']]['last_ap'] = tNum ? tNum : 0;
                     imgDiv = $j("img[src*='battle_victory.gif']");
                     if (imgDiv && imgDiv.length) {
                         if (lastAttacked['poly']) {
                             utility.log(1, "Victory against polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                         } else if (imgDiv && imgDiv.length) {
+                            currentRecord['minions'][lastAttacked['index']]['lost'] = false;
+                            currentRecord['minions'][lastAttacked['index']]['won'] = true;
+                            currentRecord['minions'][lastAttacked['index']]['last_ap'] = tNum ? tNum : 160;
                             won = new arena.win();
                             won.data['userId'] = currentRecord['minions'][lastAttacked['index']]['target_id'];
                             won.data['ap'] = currentRecord['minions'][lastAttacked['index']]['last_ap'];
@@ -580,6 +587,8 @@ arena = {
                             arena.setItem(currentRecord);
                             utility.log(1, "Victory against minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                         }
+                    } else {
+                        utility.log(1, "Unknown if won or lost");
                     }
                 }
             }
@@ -742,14 +751,14 @@ arena = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = (100 - utility.getElementWidth(healthEnemy)).dp(2);
+                            currentRecord['enemyHealth'] = (100 - healthEnemy.getElementWidth()).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['teamHealth'] = (100 - utility.getElementWidth(healthGuild)).dp(2);
+                            currentRecord['teamHealth'] = (100 - healthGuild.getElementWidth()).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }
@@ -779,7 +788,7 @@ arena = {
                 }
 
                 currentRecord['reviewed'] = new Date().getTime();
-                utility.log(2, "currentRecord", currentRecord);
+                utility.log(3, "currentRecord", currentRecord);
                 arena.setItem(currentRecord);
                 if (currentRecord['state'] === 'Collect' && collectDiv.length) {
                     utility.Click(collectDiv.get(0));
@@ -795,12 +804,16 @@ arena = {
         }
     },
 
-    checkPage: function () {
+    clearMinions: function () {
         try {
-            return ($j("#app46755028429_arena_battle_banner_section").length ? true : false);
+            var currentRecord = {};
+            currentRecord = arena.getItem();
+            currentRecord['minions'] = [];
+            arena.setItem(currentRecord);
+            return true;
         } catch (err) {
-            utility.error("ERROR in arena.checkPage: " + err, arguments.callee.caller);
-            return undefined;
+            utility.error("ERROR in arena.clearMinions: " + err, arguments.callee.caller);
+            return false;
         }
     },
 
@@ -1074,7 +1087,7 @@ arena = {
             }
 
             defaultOrderList = ['Cleric', 'Mage', 'Rogue', 'Warrior'];
-            attackOrderList = utility.TextToArray(config.getItem('orderArenaClass', ''));
+            attackOrderList = config.getList('orderArenaClass', '');
             if (!attackOrderList || attackOrderList.length === 0) {
                 attackOrderList = defaultOrderList.slice();
             }

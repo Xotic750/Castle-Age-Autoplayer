@@ -75,6 +75,21 @@ config = {
         }
     },
 
+    getList: function (name, value) {
+        try {
+            var item = [];
+            if (typeof name !== 'string' || name === '') {
+                throw "Invalid identifying name!";
+            }
+
+            item = config.getItem(name, value).toArray();
+            return item;
+        } catch (err) {
+            utility.error("ERROR in config.getArray: " + err);
+            return undefined;
+        }
+    },
+
     deleteItem: function (name) {
         try {
             if (typeof name !== 'string' || name === '') {
