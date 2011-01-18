@@ -399,13 +399,13 @@ arena = {
     /*jslint sub: false */
 
     navigate_to_main: function () {
-        return utility.NavigateTo('battle,arena', 'tab_arena_on.gif');
+        return caap.NavigateTo('battle,arena', 'tab_arena_on.gif');
     },
 
     navigate_to_main_refresh: function () {
-        var button = utility.CheckForImage("tab_arena_on.gif");
+        var button = caap.CheckForImage("tab_arena_on.gif");
         if (button) {
-            utility.Click(button);
+            caap.Click(button);
         }
 
         state.setItem('ArenaRefresh', false);
@@ -804,7 +804,7 @@ arena = {
                 utility.log(3, "currentRecord", currentRecord);
                 arena.setItem(currentRecord);
                 if (currentRecord['state'] === 'Collect' && collectDiv.length) {
-                    utility.Click(collectDiv.get(0));
+                    caap.Click(collectDiv.get(0));
                 }
             } else {
                 utility.warn("Not on arena battle page");

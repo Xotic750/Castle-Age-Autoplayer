@@ -228,13 +228,13 @@ guild_monster = {
     },
 
     navigate_to_main: function () {
-        return utility.NavigateTo('guild', 'tab_guild_main_on.gif');
+        return caap.NavigateTo('guild', 'tab_guild_main_on.gif');
     },
 
     navigate_to_battles_refresh: function () {
-        var button = utility.CheckForImage("guild_monster_tab_on.jpg");
+        var button = caap.CheckForImage("guild_monster_tab_on.jpg");
         if (button) {
-            utility.Click(button);
+            caap.Click(button);
         }
 
         state.setItem('guildMonsterBattlesRefresh', false);
@@ -242,7 +242,7 @@ guild_monster = {
     },
 
     navigate_to_battles: function () {
-        return utility.NavigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
+        return caap.NavigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
     },
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -373,7 +373,7 @@ guild_monster = {
                 currentRecord = {},
                 minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
-            utility.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+            caap.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             slot = $j("input[name='slot']").eq(0).attr("value");
             slot = slot ? slot.parseInt() : 0;
             bannerDiv = $j("#app46755028429_guild_battle_banner_section");
@@ -497,7 +497,7 @@ guild_monster = {
                 utility.log(2, "currentRecord", currentRecord);
                 guild_monster.setItem(currentRecord);
                 if (collect) {
-                    utility.Click(collectDiv.get(0));
+                    caap.Click(collectDiv.get(0));
                 }
             } else {
                 if (bannerDiv.children().eq(0).text().indexOf("You do not have an on going guild monster battle. Have your Guild initiate more!") >= 0) {

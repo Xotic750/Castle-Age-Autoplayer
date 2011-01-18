@@ -154,8 +154,9 @@ function caap_WaitForjQuery() {
 /////////////////////////////////////////////////////////////////////
 //                         Begin
 /////////////////////////////////////////////////////////////////////
-
+utility.log_version = caapVersion;
 caap_log("Starting ... waiting page load");
+utility.log(1, "Starting ... waiting page load");
 caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
 if (typeof window.jQuery !== 'function') {
     caap_log("Inject jQuery");

@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            40
+// @dev            41
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -19,7 +19,7 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
-/*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison */
+/*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison,utility */
 /*jslint maxlen: 250 */
 
 //////////////////////////////////
@@ -27,11 +27,10 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "40",
+    devVersion    = "41",
     hiddenVar     = true,
     caap_timeout  = 0,
     image64       = {},
-    utility       = {},
     config        = {},
     state         = {},
     css           = {},
@@ -51,732 +50,1834 @@ var caapVersion   = "140.24.1",
     caap          = {},
     $j            = {};
 
-///////////////////////////
-//       Prototypes
-///////////////////////////
+////////////////////////////////////////////////////////////////////
+//                          utility OBJECT
+// Small functions called a lot to reduce duplicate code
+/////////////////////////////////////////////////////////////////////
 
-if (!document.head) {
-    document.head = document.getElementsByTagName('head')[0];
+if (!this.utility) {
+    this.utility = {};
 }
 
-String.prototype.ucFirst = function () {
-    return this.charAt(0).toUpperCase() + this.substr(1);
-};
+(function () {
 
-String.prototype.stripHTML = function () {
-    return this.replace(new RegExp("<[^>]+>", "g"), '').replace(/&nbsp;/g, '');
-};
+    ///////////////////////////
+    //       Prototypes
+    ///////////////////////////
 
-String.prototype.stripCaap = function () {
-    return this.replace(/caap_/i, '');
-};
-
-String.prototype.stripTRN = function () {
-    return this.replace(/[\t\r\n]/g, '');
-};
-
-String.prototype.stripStar = function () {
-    return this.replace(/\*/g, '');
-};
-
-String.prototype.innerTrim = function () {
-    return this.replace(/\s+/g, ' ');
-};
-
-String.prototype.matchUser = function () {
-    return this.match(/user=(\d+)/);
-};
-
-String.prototype.matchNum = function () {
-    return this.match(/(\d+)/);
-};
-
-String.prototype.parseFloat = function (x) {
-    return x >= 0 ? parseFloat(parseFloat(this).toFixed(x >= 0 && x <= 20 ? x : 20)) : parseFloat(this);
-};
-
-String.prototype.parseInt = function (x) {
-    return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
-};
-
-String.prototype.trim = function () {
-    return this.replace(/^\s+|\s+$/g, '');
-};
-
-String.prototype.numberOnly = function () {
-    return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
-};
-
-
-String.prototype.parseTimer = function () {
-    var a = [],
-        b = 0,
-        i = 0,
-        l = 0;
-
-    a = this.split(':');
-    for (i = 0, l = a.length; i < l; i += 1) {
-        b = b * 60 + parseInt(a[i], 10);
+    if (!document.head) {
+        document.head = document.getElementsByTagName('head')[0];
     }
 
-    if (isNaN(b)) {
-        b = -1;
-    }
+    String.prototype.ucFirst = function () {
+        return this.charAt(0).toUpperCase() + this.substr(1);
+    };
 
-    return b;
-};
+    String.prototype.stripHTML = function () {
+        return this.replace(new RegExp("<[^>]+>", "g"), '').replace(/&nbsp;/g, '');
+    };
 
-String.prototype.removeHtmlJunk = function () {
-    return this.replace(new RegExp("\\&[^;]+;", "g"), '');
-};
+    String.prototype.stripCaap = function () {
+        return this.replace(/caap_/i, '');
+    };
 
-//pads left
-String.prototype.lpad = function (s, l) {
-    var t = this;
-    while (t.length < l) {
-        t = s + t;
-    }
+    String.prototype.stripTRN = function () {
+        return this.replace(/[\t\r\n]/g, '');
+    };
 
-    return t;
-};
+    String.prototype.stripStar = function () {
+        return this.replace(/\*/g, '');
+    };
 
-//pads right
-String.prototype.rpad = function (s, l) {
-    var t = this;
-    while (t.length < l) {
-        t = t + s;
-    }
+    String.prototype.innerTrim = function () {
+        return this.replace(/\s+/g, ' ');
+    };
 
-    return t;
-};
+    String.prototype.matchUser = function () {
+        return this.match(/user=(\d+)/);
+    };
 
-String.prototype.filepart = function () {
-    var x = this.lastIndexOf('/');
-    if (x >= 0) {
-        return this.substr(x + 1);
-    }
+    String.prototype.matchNum = function () {
+        return this.match(/(\d+)/);
+    };
 
-    return this;
-};
+    String.prototype.parseFloat = function (x) {
+        return x >= 0 ? parseFloat(parseFloat(this).toFixed(x >= 0 && x <= 20 ? x : 20)) : parseFloat(this);
+    };
 
-String.prototype.regex = function (r) {
-	var a = this.match(r),
-        i = 0,
-        l = 0;
+    String.prototype.parseInt = function (x) {
+        return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
+    };
 
-	if (a) {
-		a.shift();
-        l = a.length;
-		for (i = 0 ; i < l; i += 1) {
-			if (a[i] && a[i].search(/^[\-+]?[\d]*\.?[\d]*$/) >= 0) {
-				a[i] = parseFloat(a[i].replace('+', ''));
-			}
-		}
+    String.prototype.trim = function () {
+        return this.replace(/^\s+|\s+$/g, '');
+    };
 
-		if (l === 1) {
-			return a[0];
-		}
-	}
+    String.prototype.numberOnly = function () {
+        return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
+    };
 
-	return a;
-};
+    String.prototype.parseTimer = function () {
+        var a = [],
+            b = 0,
+            i = 0,
+            l = 0;
 
-// Turns text delimeted with new lines and commas into an array.
-// Primarily for use with user input text boxes.
-String.prototype.toArray = function () {
-    var a = [],
-        t = [],
-        i = 0,
-        l = 0;
+        a = this.split(':');
+        for (i = 0, l = a.length; i < l; i += 1) {
+            b = b * 60 + parseInt(a[i], 10);
+        }
 
-    t = this.replace(/,/g, '\n').split('\n');
-    if (t && t.length) {
-        for (i = 0, l = t.length; i < l; i += 1) {
-            if (t[i] !== '') {
-                a.push(isNaN(t[i]) ? t[i].trim() : parseFloat(t[i]));
+        if (isNaN(b)) {
+            b = -1;
+        }
+
+        return b;
+    };
+
+    String.prototype.removeHtmlJunk = function () {
+        return this.replace(new RegExp("\\&[^;]+;", "g"), '');
+    };
+
+    //pads left
+    String.prototype.lpad = function (s, l) {
+        var t = this;
+        while (t.length < l) {
+            t = s + t;
+        }
+
+        return t;
+    };
+
+    //pads right
+    String.prototype.rpad = function (s, l) {
+        var t = this;
+        while (t.length < l) {
+            t = t + s;
+        }
+
+        return t;
+    };
+
+    String.prototype.filepart = function () {
+        var x = this.lastIndexOf('/');
+        if (x >= 0) {
+            return this.substr(x + 1);
+        }
+
+        return this;
+    };
+
+    String.prototype.regex = function (r) {
+        var a = this.match(r),
+            i = 0,
+            l = 0;
+
+        if (a) {
+            a.shift();
+            l = a.length;
+            for (i = 0 ; i < l; i += 1) {
+                if (a[i] && a[i].search(/^[\-+]?[\d]*\.?[\d]*$/) >= 0) {
+                    a[i] = parseFloat(a[i].replace('+', ''));
+                }
+            }
+
+            if (l === 1) {
+                return a[0];
             }
         }
-    }
 
-    return a;
-};
+        return a;
+    };
 
-/*jslint bitwise: false */
-String.prototype.Utf8encode = function () {
-    var strUtf = '';
-    strUtf = this.replace(/[\u0080-\u07ff]/g, function (c) {
-        var cc = c.charCodeAt(0);
-        return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f);
-    });
+    // Turns text delimeted with new lines and commas into an array.
+    // Primarily for use with user input text boxes.
+    String.prototype.toArray = function () {
+        var a = [],
+            t = [],
+            i = 0,
+            l = 0;
 
-    strUtf = strUtf.replace(/[\u0800-\uffff]/g, function (c) {
-        var cc = c.charCodeAt(0);
-        return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f);
-    });
-
-    return strUtf;
-};
-
-String.prototype.Utf8decode = function () {
-    var strUni = '';
-    strUni = this.replace(/[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g, function (c) {
-        return String.fromCharCode(((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | (c.charCodeAt(2)&0x3f));
-    });
-
-    strUni = strUni.replace(/[\u00c0-\u00df][\u0080-\u00bf]/g, function (c) {
-        return String.fromCharCode((c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f);
-    });
-
-    return strUni;
-};
-
-String.prototype.Base64encode = function (utf8encode) {
-    var o1, o2, o3, bits, h1, h2, h3, h4,
-        c     = 0,
-        coded = '',
-        plain = '',
-        e     = [],
-        pad   = '',
-        b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
-        nChar = String.fromCharCode(0);
-
-    utf8encode = (typeof utf8encode === 'undefined') ? false : utf8encode;
-    plain = utf8encode ? this.Utf8encode() : this;
-    c = plain.length % 3;
-    if (c > 0) {
-        while (c < 3) {
-            pad += '=';
-            plain += nChar;
-            c += 1;
-        }
-    }
-
-    for (c = 0; c < plain.length; c += 3) {
-        o1 = plain.charCodeAt(c);
-        o2 = plain.charCodeAt(c + 1);
-        o3 = plain.charCodeAt(c + 2);
-        bits = o1<<16 | o2<<8 | o3;
-        h1 = bits>>18 & 0x3f;
-        h2 = bits>>12 & 0x3f;
-        h3 = bits>>6 & 0x3f;
-        h4 = bits & 0x3f;
-        e[c / 3] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
-    }
-
-    coded = e.join('');
-    coded = coded.slice(0, coded.length - pad.length) + pad;
-    return coded;
-};
-
-String.prototype.Base64decode = function (utf8decode) {
-    var o1, o2, o3, h1, h2, h3, h4, bits,
-        d     = [],
-        plain = '',
-        coded = '',
-        b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
-        c     = 0;
-
-    utf8decode = (typeof utf8decode === 'undefined') ? false : utf8decode;
-    coded = utf8decode ? this.Utf8decode() : this;
-    for (c = 0; c < coded.length; c += 4) {
-        h1 = b64.indexOf(coded.charAt(c));
-        h2 = b64.indexOf(coded.charAt(c + 1));
-        h3 = b64.indexOf(coded.charAt(c + 2));
-        h4 = b64.indexOf(coded.charAt(c + 3));
-        bits = h1<<18 | h2<<12 | h3<<6 | h4;
-        o1 = bits>>>16 & 0xff;
-        o2 = bits>>>8 & 0xff;
-        o3 = bits & 0xff;
-        d[c / 4] = String.fromCharCode(o1, o2, o3);
-        if (h4 === 0x40) {
-            d[c / 4] = String.fromCharCode(o1, o2);
+        t = this.replace(/,/g, '\n').split('\n');
+        if (t && t.length) {
+            for (i = 0, l = t.length; i < l; i += 1) {
+                if (t[i] !== '') {
+                    a.push(isNaN(t[i]) ? t[i].trim() : parseFloat(t[i]));
+                }
+            }
         }
 
-        if (h3 === 0x40) {
-            d[c / 4] = String.fromCharCode(o1);
+        return a;
+    };
+
+    /*jslint bitwise: false */
+    String.prototype.Utf8encode = function () {
+        var s = '';
+        s = this.replace(/[\u0080-\u07ff]/g, function (c) {
+            var cc = c.charCodeAt(0);
+            return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f);
+        });
+
+        s = s.replace(/[\u0800-\uffff]/g, function (c) {
+            var cc = c.charCodeAt(0);
+            return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f);
+        });
+
+        return s;
+    };
+
+    String.prototype.Utf8decode = function () {
+        var s = '';
+        s = this.replace(/[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g, function (c) {
+            return String.fromCharCode(((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | (c.charCodeAt(2)&0x3f));
+        });
+
+        s = s.replace(/[\u00c0-\u00df][\u0080-\u00bf]/g, function (c) {
+            return String.fromCharCode((c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f);
+        });
+
+        return s;
+    };
+
+    String.prototype.Base64encode = function (utf8encode) {
+        var o1, o2, o3, bits, h1, h2, h3, h4,
+            c     = 0,
+            coded = '',
+            plain = '',
+            e     = [],
+            pad   = '',
+            b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+            nChar = String.fromCharCode(0);
+
+        utf8encode = (typeof utf8encode === 'undefined') ? false : utf8encode;
+        plain = utf8encode ? this.Utf8encode() : this;
+        c = plain.length % 3;
+        if (c > 0) {
+            while (c < 3) {
+                pad += '=';
+                plain += nChar;
+                c += 1;
+            }
         }
-    }
 
-    plain = d.join('');
-    return utf8decode ? plain.Utf8decode() : plain;
-};
-
-String.prototype.MD5 = function () {
-    function AddUnsigned(lX, lY) {
-        var lX4     = (lX & 0x40000000),
-            lY4     = (lY & 0x40000000),
-            lX8     = (lX & 0x80000000),
-            lY8     = (lY & 0x80000000),
-            lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
-
-        if (lX4 & lY4) {
-            return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
+        for (c = 0; c < plain.length; c += 3) {
+            o1 = plain.charCodeAt(c);
+            o2 = plain.charCodeAt(c + 1);
+            o3 = plain.charCodeAt(c + 2);
+            bits = o1<<16 | o2<<8 | o3;
+            h1 = bits>>18 & 0x3f;
+            h2 = bits>>12 & 0x3f;
+            h3 = bits>>6 & 0x3f;
+            h4 = bits & 0x3f;
+            e[c / 3] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
         }
 
-        if (lX4 | lY4) {
-            if (lResult & 0x40000000) {
-                return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
+        coded = e.join('');
+        coded = coded.slice(0, coded.length - pad.length) + pad;
+        return coded;
+    };
+
+    String.prototype.Base64decode = function (utf8decode) {
+        var o1, o2, o3, h1, h2, h3, h4, bits,
+            d     = [],
+            plain = '',
+            coded = '',
+            b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+            c     = 0;
+
+        utf8decode = (typeof utf8decode === 'undefined') ? false : utf8decode;
+        coded = utf8decode ? this.Utf8decode() : this;
+        for (c = 0; c < coded.length; c += 4) {
+            h1 = b64.indexOf(coded.charAt(c));
+            h2 = b64.indexOf(coded.charAt(c + 1));
+            h3 = b64.indexOf(coded.charAt(c + 2));
+            h4 = b64.indexOf(coded.charAt(c + 3));
+            bits = h1<<18 | h2<<12 | h3<<6 | h4;
+            o1 = bits>>>16 & 0xff;
+            o2 = bits>>>8 & 0xff;
+            o3 = bits & 0xff;
+            d[c / 4] = String.fromCharCode(o1, o2, o3);
+            if (h4 === 0x40) {
+                d[c / 4] = String.fromCharCode(o1, o2);
+            }
+
+            if (h3 === 0x40) {
+                d[c / 4] = String.fromCharCode(o1);
+            }
+        }
+
+        plain = d.join('');
+        return utf8decode ? plain.Utf8decode() : plain;
+    };
+
+    String.prototype.MD5 = function (utf8encode) {
+        function AddUnsigned(lX, lY) {
+            var lX4     = (lX & 0x40000000),
+                lY4     = (lY & 0x40000000),
+                lX8     = (lX & 0x80000000),
+                lY8     = (lY & 0x80000000),
+                lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+
+            if (lX4 & lY4) {
+                return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
+            }
+
+            if (lX4 | lY4) {
+                if (lResult & 0x40000000) {
+                    return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
+                } else {
+                    return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
+                }
             } else {
-                return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
+                return (lResult ^ lX8 ^ lY8);
             }
-        } else {
-            return (lResult ^ lX8 ^ lY8);
         }
-    }
 
-    function F(x, y, z) {
-        return (x & y) | ((~x) & z);
-    }
+        function F(x, y, z) {
+            return (x & y) | ((~x) & z);
+        }
 
-    function G(x, y, z) {
-        return (x & z) | (y & (~z));
-    }
+        function G(x, y, z) {
+            return (x & z) | (y & (~z));
+        }
 
-    function H(x, y, z) {
-        return (x ^ y ^ z);
-    }
+        function H(x, y, z) {
+            return (x ^ y ^ z);
+        }
 
-    function I(x, y, z) {
-        return (y ^ (x | (~z)));
-    }
+        function I(x, y, z) {
+            return (y ^ (x | (~z)));
+        }
 
-    function FF(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
-        return AddUnsigned(a.ROTL(s), b);
-    }
+        function FF(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
+            return AddUnsigned(a.ROTL(s), b);
+        }
 
-    function GG(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
-        return AddUnsigned(a.ROTL(s), b);
-    }
+        function GG(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
+            return AddUnsigned(a.ROTL(s), b);
+        }
 
-    function HH(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
-        return AddUnsigned(a.ROTL(s), b);
-    }
+        function HH(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
+            return AddUnsigned(a.ROTL(s), b);
+        }
 
-    function II(a, b, c, d, x, s, ac) {
-        a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
-        return AddUnsigned(a.ROTL(s), b);
-    }
+        function II(a, b, c, d, x, s, ac) {
+            a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
+            return AddUnsigned(a.ROTL(s), b);
+        }
 
-    function ConvertToWordArray(textMsg) {
-        var lWordCount           = 0,
-            lMessageLength       = textMsg.length,
-            lNumberOfWords_temp1 = lMessageLength + 8,
-            lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64,
-            lNumberOfWords       = (lNumberOfWords_temp2 + 1) * 16,
-            lWordArray           = Array(lNumberOfWords - 1),
-            lBytePosition        = 0,
-            lByteCount           = 0;
+        function ConvertToWordArray(textMsg) {
+            var lWordCount           = 0,
+                lMessageLength       = textMsg.length,
+                lNumberOfWords_temp1 = lMessageLength + 8,
+                lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64,
+                lNumberOfWords       = (lNumberOfWords_temp2 + 1) * 16,
+                lWordArray           = Array(lNumberOfWords - 1),
+                lBytePosition        = 0,
+                lByteCount           = 0;
 
-        while (lByteCount < lMessageLength) {
+            while (lByteCount < lMessageLength) {
+                lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+                lBytePosition = (lByteCount % 4) * 8;
+                lWordArray[lWordCount] = (lWordArray[lWordCount] | (textMsg.charCodeAt(lByteCount)<<lBytePosition));
+                lByteCount += 1;
+            }
+
             lWordCount = (lByteCount - (lByteCount % 4)) / 4;
             lBytePosition = (lByteCount % 4) * 8;
-            lWordArray[lWordCount] = (lWordArray[lWordCount] | (textMsg.charCodeAt(lByteCount)<<lBytePosition));
-            lByteCount += 1;
+            lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80<<lBytePosition);
+            lWordArray[lNumberOfWords - 2] = lMessageLength<<3;
+            lWordArray[lNumberOfWords - 1] = lMessageLength>>>29;
+            return lWordArray;
         }
 
-        lWordCount = (lByteCount - (lByteCount % 4)) / 4;
-        lBytePosition = (lByteCount % 4) * 8;
-        lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80<<lBytePosition);
-        lWordArray[lNumberOfWords - 2] = lMessageLength<<3;
-        lWordArray[lNumberOfWords - 1] = lMessageLength>>>29;
-        return lWordArray;
-    }
+        function WordToHex(lValue) {
+            var WordToHexValue      = "",
+                WordToHexValue_temp = "",
+                lByte               = 0,
+                lCount              = 0;
 
-    function WordToHex(lValue) {
-        var WordToHexValue      = "",
-            WordToHexValue_temp = "",
-            lByte               = 0,
-            lCount              = 0;
+            for (lCount = 0; lCount <= 3; lCount += 1) {
+                lByte = (lValue>>>(lCount * 8)) & 255;
+                WordToHexValue_temp = "0" + lByte.toString(16);
+                WordToHexValue += WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
+            }
 
-        for (lCount = 0; lCount <= 3; lCount += 1) {
-            lByte = (lValue>>>(lCount * 8)) & 255;
-            WordToHexValue_temp = "0" + lByte.toString(16);
-            WordToHexValue += WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
+            return WordToHexValue;
         }
 
-        return WordToHexValue;
-    }
+        var x   = [],
+            a   = 0x67452301,
+            b   = 0xEFCDAB89,
+            c   = 0x98BADCFE,
+            d   = 0x10325476,
+            S11 = 7,
+            S12 = 12,
+            S13 = 17,
+            S14 = 22,
+            S21 = 5,
+            S22 = 9,
+            S23 = 14,
+            S24 = 20,
+            S31 = 4,
+            S32 = 11,
+            S33 = 16,
+            S34 = 23,
+            S41 = 6,
+            S42 = 10,
+            S43 = 15,
+            S44 = 21,
+            k   = 0,
+            l   = 0,
+            AA  = 0x00000000,
+            BB  = 0x00000000,
+            CC  = 0x00000000,
+            DD  = 0x00000000,
+            msg = '';
 
-    var x   = ConvertToWordArray(this.Utf8encode()),
-        a   = 0x67452301,
-        b   = 0xEFCDAB89,
-        c   = 0x98BADCFE,
-        d   = 0x10325476,
-        S11 = 7,
-        S12 = 12,
-        S13 = 17,
-        S14 = 22,
-        S21 = 5,
-        S22 = 9,
-        S23 = 14,
-        S24 = 20,
-        S31 = 4,
-        S32 = 11,
-        S33 = 16,
-        S34 = 23,
-        S41 = 6,
-        S42 = 10,
-        S43 = 15,
-        S44 = 21,
-        k   = 0,
-        l   = 0,
-        AA  = 0x00000000,
-        BB  = 0x00000000,
-        CC  = 0x00000000,
-        DD  = 0x00000000;
-
-    for (k = 0, l = x.length; k < l; k += 16) {
-        AA = a;
-        BB = b;
-        CC = c;
-        DD = d;
-        a = FF(a, b, c, d, x[k + 0],  S11, 0xD76AA478);
-        d = FF(d, a, b, c, x[k + 1],  S12, 0xE8C7B756);
-        c = FF(c, d, a, b, x[k + 2],  S13, 0x242070DB);
-        b = FF(b, c, d, a, x[k + 3],  S14, 0xC1BDCEEE);
-        a = FF(a, b, c, d, x[k + 4],  S11, 0xF57C0FAF);
-        d = FF(d, a, b, c, x[k + 5],  S12, 0x4787C62A);
-        c = FF(c, d, a, b, x[k + 6],  S13, 0xA8304613);
-        b = FF(b, c, d, a, x[k + 7],  S14, 0xFD469501);
-        a = FF(a, b, c, d, x[k + 8],  S11, 0x698098D8);
-        d = FF(d, a, b, c, x[k + 9],  S12, 0x8B44F7AF);
-        c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
-        b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
-        a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
-        d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
-        c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
-        b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
-        a = GG(a, b, c, d, x[k + 1],  S21, 0xF61E2562);
-        d = GG(d, a, b, c, x[k + 6],  S22, 0xC040B340);
-        c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
-        b = GG(b, c, d, a, x[k + 0],  S24, 0xE9B6C7AA);
-        a = GG(a, b, c, d, x[k + 5],  S21, 0xD62F105D);
-        d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
-        c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
-        b = GG(b, c, d, a, x[k + 4],  S24, 0xE7D3FBC8);
-        a = GG(a, b, c, d, x[k + 9],  S21, 0x21E1CDE6);
-        d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
-        c = GG(c, d, a, b, x[k + 3],  S23, 0xF4D50D87);
-        b = GG(b, c, d, a, x[k + 8],  S24, 0x455A14ED);
-        a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
-        d = GG(d, a, b, c, x[k + 2],  S22, 0xFCEFA3F8);
-        c = GG(c, d, a, b, x[k + 7],  S23, 0x676F02D9);
-        b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
-        a = HH(a, b, c, d, x[k + 5],  S31, 0xFFFA3942);
-        d = HH(d, a, b, c, x[k + 8],  S32, 0x8771F681);
-        c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
-        b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
-        a = HH(a, b, c, d, x[k + 1],  S31, 0xA4BEEA44);
-        d = HH(d, a, b, c, x[k + 4],  S32, 0x4BDECFA9);
-        c = HH(c, d, a, b, x[k + 7],  S33, 0xF6BB4B60);
-        b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
-        a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
-        d = HH(d, a, b, c, x[k + 0],  S32, 0xEAA127FA);
-        c = HH(c, d, a, b, x[k + 3],  S33, 0xD4EF3085);
-        b = HH(b, c, d, a, x[k + 6],  S34, 0x4881D05);
-        a = HH(a, b, c, d, x[k + 9],  S31, 0xD9D4D039);
-        d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
-        c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
-        b = HH(b, c, d, a, x[k + 2],  S34, 0xC4AC5665);
-        a = II(a, b, c, d, x[k + 0],  S41, 0xF4292244);
-        d = II(d, a, b, c, x[k + 7],  S42, 0x432AFF97);
-        c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
-        b = II(b, c, d, a, x[k + 5],  S44, 0xFC93A039);
-        a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
-        d = II(d, a, b, c, x[k + 3],  S42, 0x8F0CCC92);
-        c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
-        b = II(b, c, d, a, x[k + 1],  S44, 0x85845DD1);
-        a = II(a, b, c, d, x[k + 8],  S41, 0x6FA87E4F);
-        d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
-        c = II(c, d, a, b, x[k + 6],  S43, 0xA3014314);
-        b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
-        a = II(a, b, c, d, x[k + 4],  S41, 0xF7537E82);
-        d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
-        c = II(c, d, a, b, x[k + 2],  S43, 0x2AD7D2BB);
-        b = II(b, c, d, a, x[k + 9],  S44, 0xEB86D391);
-        a = AddUnsigned(a, AA);
-        b = AddUnsigned(b, BB);
-        c = AddUnsigned(c, CC);
-        d = AddUnsigned(d, DD);
-    }
-
-    return WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
-};
-
-String.prototype.SHA1 = function () {
-    var blockstart = 0,
-        i          = 0,
-        j          = 0,
-        W          = [80],
-        H0         = 0x67452301,
-        H1         = 0xEFCDAB89,
-        H2         = 0x98BADCFE,
-        H3         = 0x10325476,
-        H4         = 0xC3D2E1F0,
-        A          = null,
-        B          = null,
-        C          = null,
-        D          = null,
-        E          = null,
-        temp       = null,
-        msg        = '',
-        msg_len    = 0,
-        len        = 0,
-        word_array = [];
-
-    msg = this.Utf8encode();
-    msg_len = msg.length;
-    for (i = 0; i < msg_len - 3; i += 4) {
-        j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
-        word_array.push(j);
-    }
-
-    switch (msg_len % 4) {
-    case 0:
-        i = 0x080000000;
-        break;
-    case 1:
-        i = msg.charCodeAt(msg_len - 1) << 24 | 0x0800000;
-        break;
-    case 2:
-        i = msg.charCodeAt(msg_len - 2) << 24 | msg.charCodeAt(msg_len - 1) << 16 | 0x08000;
-        break;
-    case 3:
-        i = msg.charCodeAt(msg_len - 3) << 24 | msg.charCodeAt(msg_len - 2) << 16 | msg.charCodeAt(msg_len - 1) << 8 | 0x80;
-        break;
-    default:
-    }
-
-    word_array.push(i);
-    while ((word_array.length % 16) !== 14) {
-        word_array.push(0);
-    }
-
-    word_array.push(msg_len >>> 29);
-    word_array.push((msg_len << 3) & 0x0ffffffff);
-    for (blockstart = 0, len = word_array.length; blockstart < len; blockstart += 16) {
-        for (i = 0; i < 16; i += 1) {
-            W[i] = word_array[blockstart + i];
+        utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
+        msg = utf8encode ? this.Utf8encode() : this;
+        x = ConvertToWordArray(msg);
+        for (k = 0, l = x.length; k < l; k += 16) {
+            AA = a;
+            BB = b;
+            CC = c;
+            DD = d;
+            a = FF(a, b, c, d, x[k + 0],  S11, 0xD76AA478);
+            d = FF(d, a, b, c, x[k + 1],  S12, 0xE8C7B756);
+            c = FF(c, d, a, b, x[k + 2],  S13, 0x242070DB);
+            b = FF(b, c, d, a, x[k + 3],  S14, 0xC1BDCEEE);
+            a = FF(a, b, c, d, x[k + 4],  S11, 0xF57C0FAF);
+            d = FF(d, a, b, c, x[k + 5],  S12, 0x4787C62A);
+            c = FF(c, d, a, b, x[k + 6],  S13, 0xA8304613);
+            b = FF(b, c, d, a, x[k + 7],  S14, 0xFD469501);
+            a = FF(a, b, c, d, x[k + 8],  S11, 0x698098D8);
+            d = FF(d, a, b, c, x[k + 9],  S12, 0x8B44F7AF);
+            c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+            b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+            a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
+            d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
+            c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
+            b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
+            a = GG(a, b, c, d, x[k + 1],  S21, 0xF61E2562);
+            d = GG(d, a, b, c, x[k + 6],  S22, 0xC040B340);
+            c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+            b = GG(b, c, d, a, x[k + 0],  S24, 0xE9B6C7AA);
+            a = GG(a, b, c, d, x[k + 5],  S21, 0xD62F105D);
+            d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
+            c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+            b = GG(b, c, d, a, x[k + 4],  S24, 0xE7D3FBC8);
+            a = GG(a, b, c, d, x[k + 9],  S21, 0x21E1CDE6);
+            d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+            c = GG(c, d, a, b, x[k + 3],  S23, 0xF4D50D87);
+            b = GG(b, c, d, a, x[k + 8],  S24, 0x455A14ED);
+            a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+            d = GG(d, a, b, c, x[k + 2],  S22, 0xFCEFA3F8);
+            c = GG(c, d, a, b, x[k + 7],  S23, 0x676F02D9);
+            b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+            a = HH(a, b, c, d, x[k + 5],  S31, 0xFFFA3942);
+            d = HH(d, a, b, c, x[k + 8],  S32, 0x8771F681);
+            c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+            b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+            a = HH(a, b, c, d, x[k + 1],  S31, 0xA4BEEA44);
+            d = HH(d, a, b, c, x[k + 4],  S32, 0x4BDECFA9);
+            c = HH(c, d, a, b, x[k + 7],  S33, 0xF6BB4B60);
+            b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+            a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+            d = HH(d, a, b, c, x[k + 0],  S32, 0xEAA127FA);
+            c = HH(c, d, a, b, x[k + 3],  S33, 0xD4EF3085);
+            b = HH(b, c, d, a, x[k + 6],  S34, 0x4881D05);
+            a = HH(a, b, c, d, x[k + 9],  S31, 0xD9D4D039);
+            d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+            c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+            b = HH(b, c, d, a, x[k + 2],  S34, 0xC4AC5665);
+            a = II(a, b, c, d, x[k + 0],  S41, 0xF4292244);
+            d = II(d, a, b, c, x[k + 7],  S42, 0x432AFF97);
+            c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+            b = II(b, c, d, a, x[k + 5],  S44, 0xFC93A039);
+            a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+            d = II(d, a, b, c, x[k + 3],  S42, 0x8F0CCC92);
+            c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+            b = II(b, c, d, a, x[k + 1],  S44, 0x85845DD1);
+            a = II(a, b, c, d, x[k + 8],  S41, 0x6FA87E4F);
+            d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+            c = II(c, d, a, b, x[k + 6],  S43, 0xA3014314);
+            b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+            a = II(a, b, c, d, x[k + 4],  S41, 0xF7537E82);
+            d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+            c = II(c, d, a, b, x[k + 2],  S43, 0x2AD7D2BB);
+            b = II(b, c, d, a, x[k + 9],  S44, 0xEB86D391);
+            a = AddUnsigned(a, AA);
+            b = AddUnsigned(b, BB);
+            c = AddUnsigned(c, CC);
+            d = AddUnsigned(d, DD);
         }
 
-        for (i = 16; i <= 79; i += 1) {
-            W[i] = (W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16]).ROTL(1);
+        return WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
+    };
+
+    String.prototype.SHA1 = function (utf8encode) {
+        var blockstart = 0,
+            i          = 0,
+            j          = 0,
+            W          = [80],
+            H0         = 0x67452301,
+            H1         = 0xEFCDAB89,
+            H2         = 0x98BADCFE,
+            H3         = 0x10325476,
+            H4         = 0xC3D2E1F0,
+            A          = null,
+            B          = null,
+            C          = null,
+            D          = null,
+            E          = null,
+            temp       = null,
+            msg        = '',
+            msg_len    = 0,
+            len        = 0,
+            word_array = [];
+
+        utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
+        msg = utf8encode ? this.Utf8encode() : this;
+        msg_len = msg.length;
+        for (i = 0; i < msg_len - 3; i += 4) {
+            j = msg.charCodeAt(i) << 24 | msg.charCodeAt(i + 1) << 16 | msg.charCodeAt(i + 2) << 8 | msg.charCodeAt(i + 3);
+            word_array.push(j);
         }
 
-        A = H0;
-        B = H1;
-        C = H2;
-        D = H3;
-        E = H4;
-        for (i = 0; i <= 19; i += 1) {
-            temp = (A.ROTL(5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
-            E = D;
-            D = C;
-            C = B.ROTL(30);
-            B = A;
-            A = temp;
-        }
-
-        for (i = 20; i <= 39; i += 1) {
-            temp = (A.ROTL(5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
-            E = D;
-            D = C;
-            C = B.ROTL(30);
-            B = A;
-            A = temp;
-        }
-
-        for (i = 40; i <= 59; i += 1) {
-            temp = (A.ROTL(5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
-            E = D;
-            D = C;
-            C = B.ROTL(30);
-            B = A;
-            A = temp;
-        }
-
-        for (i = 60; i <= 79; i += 1) {
-            temp = (A.ROTL(5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
-            E = D;
-            D = C;
-            C = B.ROTL(30);
-            B = A;
-            A = temp;
-        }
-
-        H0 = (H0 + A) & 0x0ffffffff;
-        H1 = (H1 + B) & 0x0ffffffff;
-        H2 = (H2 + C) & 0x0ffffffff;
-        H3 = (H3 + D) & 0x0ffffffff;
-        H4 = (H4 + E) & 0x0ffffffff;
-    }
-
-    temp = H0.toHexStr() + H1.toHexStr() + H2.toHexStr() + H3.toHexStr() + H4.toHexStr();
-    return temp.toLowerCase();
-};
-
-String.prototype.SHA256 = function (utf8encode) {
-    function Sigma0(x) {
-        return Number(2).ROTR(x) ^ Number(13).ROTR(x) ^ Number(22).ROTR(x);
-    }
-
-    function Sigma1(x) {
-        return Number(6).ROTR(x) ^ Number(11).ROTR(x) ^ Number(25).ROTR(x);
-    }
-
-    function sigma0(x) {
-        return Number(7).ROTR(x) ^ Number(18).ROTR(x) ^ (x>>>3);
-    }
-
-    function sigma1(x) {
-        return Number(17).ROTR(x) ^ Number(19).ROTR(x) ^ (x>>>10);
-    }
-
-    function Ch(x, y, z)  {
-        return (x & y) ^ (~x & z);
-    }
-
-    function Maj(x, y, z) {
-        return (x & y) ^ (x & z) ^ (y & z);
-    }
-
-    var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-             0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-             0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-             0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-             0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-             0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2],
-        H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
-        msg = '',
-        l = 0,
-        N = 0,
-        M = [],
-        i = 0,
-        j = 0,
-        W = [],
-        t = 0,
-        a, b, c, d, e, f, g, h, T1, T2;
-
-    utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
-    msg = utf8encode ? this.Utf8encode() : this;
-    msg += String.fromCharCode(0x80);
-    l = msg.length / 4 + 2;
-    N = Math.ceil(l / 16);
-    M = new Array(N);
-
-    for (i = 0; i < N; i += 1) {
-        M[i] = new Array(16);
-        for (j = 0; j < 16; j += 1) {
-            M[i][j] = (msg.charCodeAt(i * 64 + j * 4)<<24) | (msg.charCodeAt(i * 64 + j * 4 + 1)<<16) | (msg.charCodeAt(i * 64 + j * 4 + 2)<<8) | (msg.charCodeAt(i * 64 + j * 4 + 3));
-        }
-    }
-
-    M[N - 1][14] = ((msg.length - 1) * 8) / Math.pow(2, 32);
-    M[N - 1][14] = Math.floor(M[N - 1][14]);
-    M[N - 1][15] = ((msg.length - 1) * 8) & 0xffffffff;
-    W = new Array(64);
-    for (i = 0; i < N; i += 1) {
-        for (t = 0; t < 16; t += 1) {
-            W[t] = M[i][t];
-        }
-
-        for (t = 16; t < 64; t += 1) {
-            W[t] = (sigma1(W[t - 2]) + W[t - 7] + sigma0(W[t - 15]) + W[t - 16]) & 0xffffffff;
-        }
-
-        a = H[0];
-        b = H[1];
-        c = H[2];
-        d = H[3];
-        e = H[4];
-        f = H[5];
-        g = H[6];
-        h = H[7];
-        for (t = 0; t < 64; t += 1) {
-            T1 = h + Sigma1(e) + Ch(e, f, g) + K[t] + W[t];
-            T2 = Sigma0(a) + Maj(a, b, c);
-            h = g;
-            g = f;
-            f = e;
-            e = (d + T1) & 0xffffffff;
-            d = c;
-            c = b;
-            b = a;
-            a = (T1 + T2) & 0xffffffff;
-        }
-
-        H[0] = (H[0] + a) & 0xffffffff;
-        H[1] = (H[1] + b) & 0xffffffff;
-        H[2] = (H[2] + c) & 0xffffffff;
-        H[3] = (H[3] + d) & 0xffffffff;
-        H[4] = (H[4] + e) & 0xffffffff;
-        H[5] = (H[5] + f) & 0xffffffff;
-        H[6] = (H[6] + g) & 0xffffffff;
-        H[7] = (H[7] + h) & 0xffffffff;
-    }
-
-    return H[0].toHexStr() + H[1].toHexStr() + H[2].toHexStr() + H[3].toHexStr() +
-           H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
-};
-
-Array.prototype.deepCopy = function () {
-    var i = 0,
-        l = 0,
-        n = [],
-        t = null;
-
-    for (i = 0, l = this.length; i < l; i += 1) {
-        switch ($j.type(this[i])) {
-        case "object":
-            t = $j.extend(true, {}, this[i]);
+        switch (msg_len % 4) {
+        case 0:
+            i = 0x080000000;
             break;
-        case "array":
-            t = this[i].deepCopy();
+        case 1:
+            i = msg.charCodeAt(msg_len - 1) << 24 | 0x0800000;
+            break;
+        case 2:
+            i = msg.charCodeAt(msg_len - 2) << 24 | msg.charCodeAt(msg_len - 1) << 16 | 0x08000;
+            break;
+        case 3:
+            i = msg.charCodeAt(msg_len - 3) << 24 | msg.charCodeAt(msg_len - 2) << 16 | msg.charCodeAt(msg_len - 1) << 8 | 0x80;
             break;
         default:
-            t = this[i];
         }
 
-        n.push(t);
-    }
+        word_array.push(i);
+        while ((word_array.length % 16) !== 14) {
+            word_array.push(0);
+        }
 
-    return n;
-};
+        word_array.push(msg_len >>> 29);
+        word_array.push((msg_len << 3) & 0x0ffffffff);
+        for (blockstart = 0, len = word_array.length; blockstart < len; blockstart += 16) {
+            for (i = 0; i < 16; i += 1) {
+                W[i] = word_array[blockstart + i];
+            }
 
-Number.prototype.dp = function (x) {
-    return parseFloat(this.toFixed(x >= 0 && x <= 20 ? x : 0));
-};
+            for (i = 16; i <= 79; i += 1) {
+                W[i] = (W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16]).ROTL(1);
+            }
 
-/*jslint bitwise: false */
-// For use with SHA1 and SHA256
-Number.prototype.toHexStr = function () {
-    var s = "",
-        v = 0,
-        i = 0;
+            A = H0;
+            B = H1;
+            C = H2;
+            D = H3;
+            E = H4;
+            for (i = 0; i <= 19; i += 1) {
+                temp = (A.ROTL(5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
+                E = D;
+                D = C;
+                C = B.ROTL(30);
+                B = A;
+                A = temp;
+            }
 
-    for (i = 7; i >= 0; i -= 1) {
-        v = (this >>> (i * 4)) & 0xf;
-        s += v.toString(16);
-    }
+            for (i = 20; i <= 39; i += 1) {
+                temp = (A.ROTL(5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
+                E = D;
+                D = C;
+                C = B.ROTL(30);
+                B = A;
+                A = temp;
+            }
 
-    return s;
-};
+            for (i = 40; i <= 59; i += 1) {
+                temp = (A.ROTL(5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
+                E = D;
+                D = C;
+                C = B.ROTL(30);
+                B = A;
+                A = temp;
+            }
 
-// For use with SHA1 and MD5
-Number.prototype.ROTL = function (x) {
-    return (this << x) | (this >>> (32 - x));
-};
+            for (i = 60; i <= 79; i += 1) {
+                temp = (A.ROTL(5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
+                E = D;
+                D = C;
+                C = B.ROTL(30);
+                B = A;
+                A = temp;
+            }
 
-// For use with SHA256
-Number.prototype.ROTR = function (x) {
-    return (x >>> this) | (x << (32 - this));
-};
-/*jslint bitwise: true */
+            H0 = (H0 + A) & 0x0ffffffff;
+            H1 = (H1 + B) & 0x0ffffffff;
+            H2 = (H2 + C) & 0x0ffffffff;
+            H3 = (H3 + D) & 0x0ffffffff;
+            H4 = (H4 + E) & 0x0ffffffff;
+        }
+
+        temp = H0.toHexStr() + H1.toHexStr() + H2.toHexStr() + H3.toHexStr() + H4.toHexStr();
+        return temp.toLowerCase();
+    };
+
+    String.prototype.SHA256 = function (utf8encode) {
+        function Sigma0(x) {
+            return Number(2).ROTR(x) ^ Number(13).ROTR(x) ^ Number(22).ROTR(x);
+        }
+
+        function Sigma1(x) {
+            return Number(6).ROTR(x) ^ Number(11).ROTR(x) ^ Number(25).ROTR(x);
+        }
+
+        function sigma0(x) {
+            return Number(7).ROTR(x) ^ Number(18).ROTR(x) ^ (x>>>3);
+        }
+
+        function sigma1(x) {
+            return Number(17).ROTR(x) ^ Number(19).ROTR(x) ^ (x>>>10);
+        }
+
+        function Ch(x, y, z)  {
+            return (x & y) ^ (~x & z);
+        }
+
+        function Maj(x, y, z) {
+            return (x & y) ^ (x & z) ^ (y & z);
+        }
+
+        var K = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+                 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+                 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+                 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+                 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+                 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+                 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+                 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2],
+            H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19],
+            msg = '',
+            l = 0,
+            N = 0,
+            M = [],
+            i = 0,
+            j = 0,
+            W = [],
+            t = 0,
+            a, b, c, d, e, f, g, h, T1, T2;
+
+        utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
+        msg = utf8encode ? this.Utf8encode() : this;
+        msg += String.fromCharCode(0x80);
+        l = msg.length / 4 + 2;
+        N = Math.ceil(l / 16);
+        M = new Array(N);
+
+        for (i = 0; i < N; i += 1) {
+            M[i] = new Array(16);
+            for (j = 0; j < 16; j += 1) {
+                M[i][j] = (msg.charCodeAt(i * 64 + j * 4)<<24) | (msg.charCodeAt(i * 64 + j * 4 + 1)<<16) | (msg.charCodeAt(i * 64 + j * 4 + 2)<<8) | (msg.charCodeAt(i * 64 + j * 4 + 3));
+            }
+        }
+
+        M[N - 1][14] = ((msg.length - 1) * 8) / Math.pow(2, 32);
+        M[N - 1][14] = Math.floor(M[N - 1][14]);
+        M[N - 1][15] = ((msg.length - 1) * 8) & 0xffffffff;
+        W = new Array(64);
+        for (i = 0; i < N; i += 1) {
+            for (t = 0; t < 16; t += 1) {
+                W[t] = M[i][t];
+            }
+
+            for (t = 16; t < 64; t += 1) {
+                W[t] = (sigma1(W[t - 2]) + W[t - 7] + sigma0(W[t - 15]) + W[t - 16]) & 0xffffffff;
+            }
+
+            a = H[0];
+            b = H[1];
+            c = H[2];
+            d = H[3];
+            e = H[4];
+            f = H[5];
+            g = H[6];
+            h = H[7];
+            for (t = 0; t < 64; t += 1) {
+                T1 = h + Sigma1(e) + Ch(e, f, g) + K[t] + W[t];
+                T2 = Sigma0(a) + Maj(a, b, c);
+                h = g;
+                g = f;
+                f = e;
+                e = (d + T1) & 0xffffffff;
+                d = c;
+                c = b;
+                b = a;
+                a = (T1 + T2) & 0xffffffff;
+            }
+
+            H[0] = (H[0] + a) & 0xffffffff;
+            H[1] = (H[1] + b) & 0xffffffff;
+            H[2] = (H[2] + c) & 0xffffffff;
+            H[3] = (H[3] + d) & 0xffffffff;
+            H[4] = (H[4] + e) & 0xffffffff;
+            H[5] = (H[5] + f) & 0xffffffff;
+            H[6] = (H[6] + g) & 0xffffffff;
+            H[7] = (H[7] + h) & 0xffffffff;
+        }
+
+        return H[0].toHexStr() + H[1].toHexStr() + H[2].toHexStr() + H[3].toHexStr() +
+               H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
+    };
+
+    Array.prototype.deepCopy = function () {
+        var i = 0,
+            l = 0,
+            n = [],
+            t = null;
+
+        for (i = 0, l = this.length; i < l; i += 1) {
+            switch ($j.type(this[i])) {
+            case "object":
+                t = $j.extend(true, {}, this[i]);
+                break;
+            case "array":
+                t = this[i].deepCopy();
+                break;
+            default:
+                t = this[i];
+            }
+
+            n.push(t);
+        }
+
+        return n;
+    };
+
+    Number.prototype.dp = function (x) {
+        return parseFloat(this.toFixed(x >= 0 && x <= 20 ? x : 0));
+    };
+
+    /*jslint bitwise: false */
+    // For use with SHA1 and SHA256
+    Number.prototype.toHexStr = function () {
+        var s = "",
+            v = 0,
+            i = 0;
+
+        for (i = 7; i >= 0; i -= 1) {
+            v = (this >>> (i * 4)) & 0xf;
+            s += v.toString(16);
+        }
+
+        return s;
+    };
+
+    // For use with SHA1 and MD5
+    Number.prototype.ROTL = function (x) {
+        return (this << x) | (this >>> (32 - x));
+    };
+
+    // For use with SHA256
+    Number.prototype.ROTR = function (x) {
+        return (x >>> this) | (x << (32 - this));
+    };
+    /*jslint bitwise: true */
+
+    utility.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false;
+
+    utility.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false;
+
+    utility.is_html5_localStorage = ('localStorage' in window) && window.localStorage !== null;
+
+    utility.is_html5_sessionStorage = ('sessionStorage' in window) && window.sessionStorage !== null;
+
+    utility.typeOf = function (obj) {
+        try {
+            var s = typeof obj;
+
+            if (s === 'object') {
+                if (obj) {
+                    if (obj instanceof Array) {
+                        s = 'array';
+                    }
+                } else {
+                    s = 'null';
+                }
+            }
+
+            return s;
+        } catch (err) {
+            utility.error("ERROR in utility.typeOf: " + err);
+            return undefined;
+        }
+    };
+
+    utility.isEmpty = function (obj) {
+        try {
+            var i, v,
+                empty = true;
+
+            if (utility.typeOf(obj) === 'object') {
+                for (i in obj) {
+                    if (obj.hasOwnProperty(i)) {
+                        v = obj[i];
+                        if (v !== undefined && utility.typeOf(v) !== 'function') {
+                            empty = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return empty;
+        } catch (err) {
+            utility.error("ERROR in utility.isEmpty: " + err);
+            return undefined;
+        }
+    };
+
+    ///////////////////////////
+    //       Functions
+    ///////////////////////////
+
+    utility.isInt = function (value) {
+        try {
+            var y = parseInt(value, 10);
+            if (isNaN(y)) {
+                return false;
+            }
+
+            return value === y && value.toString() === y.toString();
+        } catch (err) {
+            utility.error("ERROR in utility.isInt: " + err);
+            return undefined;
+        }
+    };
+
+    utility.isNum = function (value) {
+        try {
+            return $j.type(value) === 'number';
+        } catch (err) {
+            utility.error("ERROR in utility.isNum: " + err);
+            return undefined;
+        }
+    };
+
+    utility.alertDialog = {};
+
+    utility.alert_id = 0;
+
+    utility.alert = function (message, id) {
+        try {
+            if (!id) {
+                utility.alert_id += 1;
+                id = utility.alert_id;
+            }
+
+            if (!utility.alertDialog[id] || !utility.alertDialog[id].length) {
+                utility.alertDialog[id] = $j('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                utility.alertDialog[id].dialog({
+                    buttons: {
+                        "Ok": function () {
+                            $j(this).dialog("close");
+                        }
+                    }
+                });
+            } else {
+                utility.alertDialog[id].html(message);
+                utility.alertDialog[id].dialog("open");
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in utility.alert: " + err);
+            return false;
+        }
+    };
+
+    utility.log_version = '0';
+
+    utility.log_level = 1;
+
+    utility.log = function (level, text) {
+        if (console.log !== undefined) {
+            if (utility.log_level && !isNaN(level) && utility.log_level >= level) {
+                var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
+                    tempArr = [],
+                    it      = 0,
+                    len     = 0,
+                    newArg;
+
+                if (arguments.length > 2) {
+                    for (it = 2, len = arguments.length; it < len; it += 1) {
+                        switch ($j.type(arguments[it])) {
+                        case "object":
+                            newArg = $j.extend(true, {}, arguments[it]);
+                            break;
+                        case "array":
+                            newArg = arguments[it].deepCopy();
+                            break;
+                        default:
+                            newArg = arguments[it];
+                        }
+
+                        tempArr.push(newArg);
+                    }
+
+                    console.log(message, tempArr);
+                } else {
+                    console.log(message);
+                }
+            }
+        }
+    };
+
+    utility.warn = function (text) {
+        if (console.warn !== undefined) {
+            var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
+                    tempArr = [],
+                    it      = 0,
+                    len     = 0,
+                    newArg;
+
+            if (arguments.length > 1) {
+                for (it = 1, len = arguments.length; it < len; it += 1) {
+                    switch ($j.type(arguments[it])) {
+                    case "object":
+                        newArg = $j.extend(true, {}, arguments[it]);
+                        break;
+                    case "array":
+                        newArg = arguments[it].deepCopy();
+                        break;
+                    default:
+                        newArg = arguments[it];
+                    }
+
+                    tempArr.push(newArg);
+                }
+
+                console.warn(message, tempArr);
+            } else {
+                console.warn(message);
+            }
+        } else {
+            if (arguments.length > 1) {
+                utility.log(1, text, Array.prototype.slice.call(arguments, 1));
+            } else {
+                utility.log(1, text);
+            }
+        }
+    };
+
+    utility.error = function (text) {
+        if (console.error !== undefined) {
+            var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
+                    tempArr = [],
+                    it      = 0,
+                    len     = 0,
+                    newArg;
+
+            if (arguments.length > 1) {
+                for (it = 1, len = arguments.length; it < len; it += 1) {
+                    switch ($j.type(arguments[it])) {
+                    case "object":
+                        newArg = $j.extend(true, {}, arguments[it]);
+                        break;
+                    case "array":
+                        newArg = arguments[it].deepCopy();
+                        break;
+                    default:
+                        newArg = arguments[it];
+                    }
+
+                    tempArr.push(newArg);
+                }
+
+                console.error(message, tempArr);
+            } else {
+                console.error(message);
+            }
+        } else {
+            if (arguments.length > 1) {
+                utility.log(1, text, Array.prototype.slice.call(arguments, 1));
+            } else {
+                utility.log(1, text);
+            }
+        }
+    };
+
+    utility.charPrintables = function () {
+        try {
+            var t = '',
+                i = 0;
+
+            for (i = 32; i <= 126; i += 1) {
+                t += String.fromCharCode(i);
+            }
+
+            return t;
+        } catch (err) {
+            utility.error("ERROR in utility.charPrintables: " + err);
+            return undefined;
+        }
+    };
+
+    utility.charNonPrintables = function () {
+        try {
+            var t = '',
+                i = 0;
+
+            for (i = 0; i <= 255; i += 1) {
+                t += String.fromCharCode(i);
+            }
+
+            return t;
+        } catch (err) {
+            utility.error("ERROR in utility.charNonPrintables: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testMD5 = function () {
+        try {
+            var t = '',
+                r = '',
+                c = 'e5df5a39f2b8cb71b24e1d8038f93131',
+                d = 'e1cb1402564d3f0d07fc946196789c81',
+                p = true;
+
+            t = utility.charPrintables();
+            r = t.MD5();
+            if (r !== c) {
+                p = false;
+            }
+
+            t = utility.charNonPrintables();
+            r = t.MD5();
+            if (r !== d) {
+                p = false;
+            }
+
+
+            if (p) {
+                utility.log(1, "MD5 Passed");
+            } else {
+                utility.warn("MD5 Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testMD5: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testSHA1 = function () {
+        try {
+            var t = '',
+                r = '',
+                c = 'e4f8188cdca2a68b074005e2ccab5b67842c6fc7',
+                d = 'ae79896181f7034c2c11a57bd211ec3dea276625',
+                p = true;
+
+            t = utility.charPrintables();
+            r = t.SHA1();
+            if (r !== c) {
+                p = false;
+            }
+
+            t = utility.charNonPrintables();
+            r = t.SHA1();
+            if (r !== d) {
+                p = false;
+            }
+
+            if (p) {
+                utility.log(1, "SHA1 Passed");
+            } else {
+                utility.warn("SHA1 Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testSHA1: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testSHA256 = function () {
+        try {
+            var t = '',
+                r = '',
+                c = 'cb2a9233adc1225c5c495c46e62cf6308223c5e241ef33ad109f03141b57966a',
+                d = '9799e3eb6096a48f515a94324200b7af24251a4131eccf9a2cd65d012a1f5c71',
+                p = true;
+
+            t = utility.charPrintables();
+            r = t.SHA256();
+            if (r !== c) {
+                p = false;
+            }
+
+            t = utility.charNonPrintables();
+            r = t.SHA256();
+            if (r !== d) {
+                p = false;
+            }
+
+            if (p) {
+                utility.log(1, "SHA256 Passed");
+            } else {
+                utility.warn("SHA256 Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testSHA256: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testUTF8 = function () {
+        try {
+            var t = '',
+                r = '',
+                s = '',
+                p = true;
+
+            t = utility.charNonPrintables();
+            r = t.Utf8encode();
+            s = r.Utf8decode();
+            if (s !== t) {
+                p = false;
+            }
+
+            if (p) {
+                utility.log(1, "Utf8 Passed");
+            } else {
+                utility.warn("Utf8 Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testUTF8: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testBase64 = function () {
+        try {
+            var t = '',
+                r = '',
+                s = '',
+                p = true;
+
+            t = utility.charNonPrintables();
+            r = t.Base64encode();
+            s = r.Base64decode();
+            if (s !== t) {
+                p = false;
+            }
+
+            r = image64.header.Base64decode();
+            s = r.Base64encode();
+            if (s !== image64.header) {
+                p = false;
+            }
+
+            if (p) {
+                utility.log(1, "Base64 Passed");
+            } else {
+                utility.warn("Base64 Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testBase64: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testAes = function () {
+        try {
+            var t = '',
+                r = '',
+                s = '',
+                c = new utility.Aes("password"),
+                d = new utility.Aes("test"),
+                e = 'YWQ1TWVlZWXr+E1tVWIBV0wzwzwdzTiH/YEHUjpWgt7sx9NcneHZHQ==',
+                f = "pssst ... đon’t tell anyøne!",
+                p = true;
+
+            t = utility.charNonPrintables();
+            r = c.encrypt(t);
+            s = c.decrypt(r);
+            if (s !== t) {
+                p = false;
+            }
+
+            r = d.decrypt(e);
+            if (r !== f) {
+                p = false;
+            }
+
+            if (p) {
+                utility.log(1, "Aes Passed");
+            } else {
+                utility.warn("Aes Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testAes: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testLZ77 = function () {
+        try {
+            var t = '',
+                r = '',
+                s = '',
+                c = new utility.LZ77(),
+                p = true;
+
+            t = utility.charNonPrintables();
+            r = c.compress(t);
+            s = c.decompress(r);
+            if (s !== t) {
+                p = false;
+            }
+
+            t = "LZ77 algorithms achieve compression by replacing portions of the data with references";
+            t += " to matching data that have already passed through both encoder and decoder. A match";
+            t += " is encoded by a pair of numbers called a length-distance pair, which is equivalent to";
+            t += " the statement \"each of the next length characters is equal to the character exactly ";
+            t += "distance characters behind it in the uncompressed stream.\" (The \"distance\" is sometimes";
+            t += " called the \"offset\" instead.)\n";
+            t += "The encoder and decoder must both keep track of some amount of the most recent data, such";
+            t += " as the last 2 kB, 4 kB, or 32 kB. The structure in which this data is held is called a ";
+            t += "sliding window, which is why LZ77 is sometimes called sliding window compression. The ";
+            t += "encoder needs to keep this data to look for matches, and the decoder needs to keep this data";
+            t += " to interpret the matches the encoder refers to. This is why the encoder can use a smaller ";
+            t += "size sliding window than the decoder, but not vice-versa.\n";
+            t += "Many documents which talk about LZ77 algorithms describe a length-distance pair as a command ";
+            t += "to \"copy\" data from the sliding window: \"Go back distance characters in the buffer and ";
+            t += "copy length characters, starting from that point.\" While those used to imperative programming";
+            t += " may find this model intuitive, it may also make it hard to understand a feature of LZ77 ";
+            t += "encoding: namely, that it is not only acceptable but frequently useful to have a length-distance";
+            t += " pair where the length actually exceeds the distance. As a copy command, this is puzzling: \"Go ";
+            t += "back one character in the buffer and copy seven characters, starting from that point.\" How can";
+            t += " seven characters be copied from the buffer when only one of the specified characters is actually";
+            t += " in the buffer? Looking at a length-distance pair as a statement of identity, however, clarifies ";
+            t += "the confusion: each of the next seven characters is identical to the character that comes one ";
+            t += "before it. This means that each character can be determined by looking back in the buffer – even ";
+            t += "if the character looked back to was not in the buffer when the decoding of the current pair began. ";
+            t += "Since by definition a pair like this will be repeating a sequence of distance characters multiple ";
+            t += "times, it means that LZ77 incorporates a flexible and easy form of run-length encoding.";
+            r = c.compress(t);
+            s = c.decompress(r);
+            if (s !== t) {
+                p = false;
+            }
+
+            if (p) {
+                utility.log(1, "LZ77 Passed", ((r.length / t.length) * 100).dp(2));
+            } else {
+                utility.warn("LZ77 Failed");
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testLZ77: " + err);
+            return undefined;
+        }
+    };
+
+    utility.testsRun = function (run) {
+        try {
+            var p = true;
+            if (run) {
+                if (!utility.testMD5()) {
+                    p = false;
+                }
+
+                if (!utility.testSHA1()) {
+                    p = false;
+                }
+
+                if (!utility.testSHA256()) {
+                    p = false;
+                }
+
+                if (!utility.testUTF8()) {
+                    p = false;
+                }
+
+                if (!utility.testBase64()) {
+                    p = false;
+                }
+
+                if (!utility.testAes()) {
+                    p = false;
+                }
+
+                if (!utility.testLZ77()) {
+                    p = false;
+                }
+            }
+
+            return p;
+        } catch (err) {
+            utility.error("ERROR in utility.testsRun: " + err);
+            return undefined;
+        }
+    };
+
+    /*jslint bitwise: false */
+    utility.Aes = function (password, nBits, utf8encode) {
+        try {
+            utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
+            password = utf8encode ? password.Utf8encode() : password;
+            nBits = (nBits === 128 || nBits === 192 || nBits === 256) ? nBits : 256;
+            var sBox = [
+                    0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
+                    0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
+                    0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
+                    0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
+                    0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
+                    0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
+                    0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
+                    0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
+                    0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
+                    0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
+                    0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
+                    0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
+                    0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
+                    0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
+                    0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
+                    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
+                ],
+                rCon = [
+                    [0x00, 0x00, 0x00, 0x00],
+                    [0x01, 0x00, 0x00, 0x00],
+                    [0x02, 0x00, 0x00, 0x00],
+                    [0x04, 0x00, 0x00, 0x00],
+                    [0x08, 0x00, 0x00, 0x00],
+                    [0x10, 0x00, 0x00, 0x00],
+                    [0x20, 0x00, 0x00, 0x00],
+                    [0x40, 0x00, 0x00, 0x00],
+                    [0x80, 0x00, 0x00, 0x00],
+                    [0x1b, 0x00, 0x00, 0x00],
+                    [0x36, 0x00, 0x00, 0x00]
+                ],
+                subBytes     = null,
+                shiftRows    = null,
+                mixColumns   = null,
+                addRoundKey  = null,
+                cipher       = null,
+                subWord      = null,
+                rotWord      = null,
+                keyExpansion = null;
+
+            subBytes = function (s, Nb) {
+                var r = 0,
+                    c = 0;
+
+                for (r = 0; r < 4; r += 1) {
+                    for (c = 0; c < Nb; c += 1) {
+                        s[r][c] = sBox[s[r][c]];
+                    }
+                }
+
+                return s;
+            };
+
+            shiftRows = function (s, Nb) {
+                var t = new Array(4),
+                    r = 1,
+                    c = 0;
+
+                for (r = 1; r < 4; r += 1) {
+                    for (c = 0; c < 4; c += 1) {
+                        t[c] = s[r][(c + r) % Nb];
+                    }
+
+                    for (c = 0; c < 4; c += 1) {
+                        s[r][c] = t[c];
+                    }
+                }
+
+                return s;
+            };
+
+            mixColumns = function (s, Nb) {
+                var c = 0,
+                    a = [],
+                    b = [],
+                    i = 0;
+
+                for (c = 0; c < 4; c += 1) {
+                    a = new Array(4);
+                    b = new Array(4);
+                    for (i = 0; i < 4; i += 1) {
+                        a[i] = s[i][c];
+                        b[i] = s[i][c]&0x80 ? s[i][c]<<1 ^ 0x011b : s[i][c]<<1;
+                    }
+
+                    s[0][c] = b[0] ^ a[1] ^ b[1] ^ a[2] ^ a[3];
+                    s[1][c] = a[0] ^ b[1] ^ a[2] ^ b[2] ^ a[3];
+                    s[2][c] = a[0] ^ a[1] ^ b[2] ^ a[3] ^ b[3];
+                    s[3][c] = a[0] ^ b[0] ^ a[1] ^ a[2] ^ b[3];
+                }
+
+                return s;
+            };
+
+            addRoundKey = function (state, w, rnd, Nb) {
+                var r = 0,
+                    c = 0;
+
+                for (r = 0; r < 4; r += 1) {
+                    for (c = 0; c < Nb; c += 1) {
+                        state[r][c] ^= w[rnd * 4 + c][r];
+                    }
+                }
+
+                return state;
+            };
+
+            cipher = function (input, w) {
+                var Nb     = 4,
+                    Nr     = w.length / Nb - 1,
+                    state  = [[], [], [], []],
+                    i      = 0,
+                    round  = 1,
+                    output = [];
+
+                for (i = 0; i < 4 * Nb; i += 1) {
+                    state[i % 4][Math.floor(i / 4)] = input[i];
+                }
+
+                state = addRoundKey(state, w, 0, Nb);
+                for (round = 1; round < Nr; round += 1) {
+                    state = subBytes(state, Nb);
+                    state = shiftRows(state, Nb);
+                    state = mixColumns(state, Nb);
+                    state = addRoundKey(state, w, round, Nb);
+                }
+
+                state = subBytes(state, Nb);
+                state = shiftRows(state, Nb);
+                state = addRoundKey(state, w, Nr, Nb);
+                output = new Array(4 * Nb);
+                for (i = 0; i < 4 * Nb; i += 1) {
+                    output[i] = state[i % 4][Math.floor(i / 4)];
+                }
+
+                return output;
+            };
+
+            subWord = function (w) {
+                for (var i = 0; i < 4; i += 1) {
+                    w[i] = sBox[w[i]];
+                }
+
+                return w;
+            };
+
+            rotWord = function (w) {
+                var tmp = w[0],
+                    i   = 0;
+
+                for (i = 0; i < 3; i += 1) {
+                    w[i] = w[i + 1];
+                }
+
+                w[3] = tmp;
+                return w;
+            };
+
+            keyExpansion = function (key) {
+                var Nb   = 4,
+                    Nk   = key.length / 4,
+                    Nr   = Nk + 6,
+                    w    = new Array(Nb * (Nr + 1)),
+                    temp = new Array(4),
+                    i    = 0,
+                    t    = 0;
+
+                for (i = 0; i < Nk; i += 1) {
+                    w[i] = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
+                }
+
+                for (i = Nk; i < (Nb * (Nr + 1)); i += 1) {
+                    w[i] = new Array(4);
+                    for (t = 0; t < 4; t += 1) {
+                        temp[t] = w[i - 1][t];
+                    }
+
+                    if (i % Nk === 0) {
+                        temp = subWord(rotWord(temp));
+                        for (t = 0; t < 4; t += 1) {
+                            temp[t] ^= rCon[i / Nk][t];
+                        }
+
+                    } else if (Nk > 6 && i % Nk === 4) {
+                        temp = subWord(temp);
+                    }
+
+                    for (t = 0; t < 4; t += 1) {
+                        w[i][t] = w[i - Nk][t] ^ temp[t];
+                    }
+                }
+
+                return w;
+            };
+
+            this.encrypt = function (plaintext) {
+                try {
+                    plaintext = utf8encode ? plaintext.Utf8encode() : plaintext;
+                    var blockSize    = 16,
+                        nBytes       = nBits / 8,
+                        pwBytes      = new Array(nBytes),
+                        i            = 0,
+                        counterBlock = new Array(blockSize),
+                        nonce        = new Date().getTime(),
+                        nonceSec     = Math.floor(nonce / 1000),
+                        nonceMs      = nonce % 1000,
+                        key          = [],
+                        ctrTxt       = '',
+                        keySchedule  = [],
+                        blockCount   = 0,
+                        ciphertxt    = [],
+                        b            = 0,
+                        c            = 0,
+                        cipherCntr   = [],
+                        blockLength  = 0,
+                        cipherChar   = [],
+                        ciphertext   = '';
+
+                    for (i = 0; i < nBytes; i += 1) {
+                        pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
+                    }
+
+                    key = cipher(pwBytes, keyExpansion(pwBytes));
+                    key = key.concat(key.slice(0, nBytes - 16));
+                    for (i = 0; i < 4; i += 1) {
+                        counterBlock[i] = (nonceSec >>> i * 8) & 0xff;
+                    }
+
+                    for (i = 0; i < 4; i += 1) {
+                        counterBlock[i + 4] = nonceMs & 0xff;
+                    }
+
+                    for (i = 0; i < 8; i += 1) {
+                        ctrTxt += String.fromCharCode(counterBlock[i]);
+                    }
+
+                    keySchedule = keyExpansion(key);
+                    blockCount = Math.ceil(plaintext.length / blockSize);
+                    ciphertxt = new Array(blockCount);
+                    for (b = 0; b < blockCount; b += 1) {
+                        for (c = 0; c < 4; c += 1) {
+                            counterBlock[15 - c] = (b >>> c * 8) & 0xff;
+                        }
+
+                        for (c = 0; c < 4; c += 1) {
+                            counterBlock[15 - c - 4] = (b / 0x100000000 >>> c * 8);
+                        }
+
+                        cipherCntr = cipher(counterBlock, keySchedule);
+                        blockLength = b < blockCount - 1 ? blockSize : (plaintext.length - 1) % blockSize + 1;
+                        cipherChar = new Array(blockLength);
+                        for (i = 0; i < blockLength; i += 1) {
+                            cipherChar[i] = cipherCntr[i] ^ plaintext.charCodeAt(b * blockSize + i);
+                            cipherChar[i] = String.fromCharCode(cipherChar[i]);
+                        }
+
+                        ciphertxt[b] = cipherChar.join('');
+                    }
+
+                    ciphertext = ctrTxt + ciphertxt.join('');
+                    ciphertext = ciphertext.Base64encode();
+                    return ciphertext;
+                } catch (err) {
+                    utility.error("ERROR in utility.Aes.encrypt: " + err);
+                    return undefined;
+                }
+            };
+
+            this.decrypt = function (ciphertext) {
+                try {
+                    ciphertext = ciphertext.Base64decode();
+                    var blockSize    = 16,
+                        nBytes       = nBits / 8,
+                        pwBytes      = new Array(nBytes),
+                        i            = 0,
+                        key          = [],
+                        counterBlock = [],
+                        ctrTxt       = [],
+                        keySchedule  = [],
+                        nBlocks      = 0,
+                        ct           = [],
+                        b            = 0,
+                        plaintxt     = [],
+                        c            = 0,
+                        cipherCntr   = [],
+                        plaintxtByte = [],
+                        plaintext    = '';
+
+                    for (i = 0; i < nBytes; i += 1) {
+                        pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
+                    }
+
+                    key = cipher(pwBytes, keyExpansion(pwBytes));
+                    key = key.concat(key.slice(0, nBytes - 16));
+                    counterBlock = new Array(8);
+                    ctrTxt = ciphertext.slice(0, 8);
+                    for (i = 0; i < 8; i += 1) {
+                        counterBlock[i] = ctrTxt.charCodeAt(i);
+                    }
+
+                    keySchedule = keyExpansion(key);
+                    nBlocks = Math.ceil((ciphertext.length - 8) / blockSize);
+                    ct = new Array(nBlocks);
+                    for (b = 0; b < nBlocks; b += 1) {
+                        ct[b] = ciphertext.slice(8 + b * blockSize, 8 + b * blockSize + blockSize);
+                    }
+
+                    ciphertext = ct;
+                    plaintxt = new Array(ciphertext.length);
+
+                    for (b = 0; b < nBlocks; b += 1) {
+                        for (c = 0; c < 4; c += 1) {
+                            counterBlock[15 - c] = ((b) >>> c * 8) & 0xff;
+                        }
+
+                        for (c = 0; c < 4; c += 1) {
+                            counterBlock[15 - c - 4] = (((b + 1) / 0x100000000 - 1) >>> c * 8) & 0xff;
+                        }
+
+                        cipherCntr = cipher(counterBlock, keySchedule);
+                        plaintxtByte = new Array(ciphertext[b].length);
+                        for (i = 0; i < ciphertext[b].length; i += 1) {
+                            plaintxtByte[i] = cipherCntr[i] ^ ciphertext[b].charCodeAt(i);
+                            plaintxtByte[i] = String.fromCharCode(plaintxtByte[i]);
+                        }
+
+                        plaintxt[b] = plaintxtByte.join('');
+                    }
+
+                    plaintext = plaintxt.join('');
+                    plaintext = utf8encode ? plaintext.Utf8decode() : plaintext;
+                    return plaintext;
+                } catch (err) {
+                    utility.error("ERROR in utility.Aes.decrypt: " + err);
+                    return undefined;
+                }
+            };
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in utility.Aes: " + err);
+            return false;
+        }
+    };
+    /*jslint bitwise: true */
+
+    utility.LZ77 = function (settings) {
+        try {
+            settings = settings || {};
+            var referencePrefix       = "`",
+                referenceIntBase      = settings.referenceIntBase || 96,
+                referenceIntFloorCode = " ".charCodeAt(0),
+                referenceIntCeilCode  = referenceIntFloorCode + referenceIntBase - 1,
+                maxStringDistance     = Math.pow(referenceIntBase, 2) - 1,
+                minStringLength       = settings.minStringLength || 5,
+                maxStringLength       = Math.pow(referenceIntBase, 1) - 1 + minStringLength,
+                defaultWindowLength   = settings.defaultWindowLength || 144,
+                maxWindowLength       = maxStringDistance + minStringLength,
+                encodeReferenceInt    = null,
+                encodeReferenceLength = null,
+                decodeReferenceInt    = null,
+                decodeReferenceLength = null;
+
+            encodeReferenceInt = function (value, width) {
+                if ((value >= 0) && (value < (Math.pow(referenceIntBase, width) - 1))) {
+                    var encoded       = "",
+                        i             = 0,
+                        missingLength = 0,
+                        mf            = Math.floor,
+                        sc            = String.fromCharCode;
+
+                    while (value > 0) {
+                        encoded = sc((value % referenceIntBase) + referenceIntFloorCode) + encoded;
+                        value = mf(value / referenceIntBase);
+                    }
+
+                    missingLength = width - encoded.length;
+                    for (i = 0; i < missingLength; i += 1) {
+                        encoded = sc(referenceIntFloorCode) + encoded;
+                    }
+
+                    return encoded;
+                } else {
+                    throw "Reference int out of range: " + value + " (width = " + width + ")";
+                }
+            };
+
+            encodeReferenceLength = function (length) {
+                return encodeReferenceInt(length - minStringLength, 1);
+            };
+
+            decodeReferenceInt = function (data, width) {
+                var value    = 0,
+                    i        = 0,
+                    charCode = 0;
+
+                for (i = 0; i < width; i += 1) {
+                    value *= referenceIntBase;
+                    charCode = data.charCodeAt(i);
+                    if ((charCode >= referenceIntFloorCode) && (charCode <= referenceIntCeilCode)) {
+                        value += charCode - referenceIntFloorCode;
+                    } else {
+                        throw "Invalid char code in reference int: " + charCode;
+                    }
+                }
+
+                return value;
+            };
+
+            decodeReferenceLength = function (data) {
+                return decodeReferenceInt(data, 1) + minStringLength;
+            };
+
+            this.compress = function (data, windowLength) {
+                try {
+                    windowLength = windowLength || defaultWindowLength;
+                    if (windowLength > maxWindowLength) {
+                        throw "Window length too large";
+                    }
+
+                    var compressed      = "",
+                        pos             = 0,
+                        lastPos         = data.length - minStringLength,
+                        searchStart     = 0,
+                        matchLength     = 0,
+                        foundMatch      = false,
+                        bestMatch       = {},
+                        newCompressed   = null,
+                        realMatchLength = 0,
+                        mm              = Math.max,
+                        dataCharAt      = 0;
+
+                    while (pos < lastPos) {
+                        searchStart = mm(pos - windowLength, 0);
+                        matchLength = minStringLength;
+                        foundMatch = false;
+                        bestMatch = {
+                            distance : maxStringDistance,
+                            length   : 0
+                        };
+
+                        newCompressed = null;
+                        while ((searchStart + matchLength) < pos) {
+                            if ((matchLength < maxStringLength) && (data.substr(searchStart, matchLength) === data.substr(pos, matchLength))) {
+                                matchLength += 1;
+                                foundMatch = true;
+                            } else {
+                                realMatchLength = matchLength - 1;
+                                if (foundMatch && (realMatchLength > bestMatch.length)) {
+                                    bestMatch.distance = pos - searchStart - realMatchLength;
+                                    bestMatch.length = realMatchLength;
+                                }
+
+                                matchLength = minStringLength;
+                                searchStart += 1;
+                                foundMatch = false;
+                            }
+                        }
+
+                        if (bestMatch.length) {
+                            newCompressed = referencePrefix + encodeReferenceInt(bestMatch.distance, 2) + encodeReferenceLength(bestMatch.length);
+                            pos += bestMatch.length;
+                        } else {
+                            dataCharAt = data.charAt(pos);
+                            if (dataCharAt !== referencePrefix) {
+                                newCompressed = dataCharAt;
+                            } else {
+                                newCompressed = referencePrefix + referencePrefix;
+                            }
+
+                            pos += 1;
+                        }
+
+                        compressed += newCompressed;
+                    }
+
+                    return compressed + data.slice(pos).replace(/`/g, "``");
+                } catch (err) {
+                    utility.error("ERROR in utility.LZ77.compress: " + err);
+                    return undefined;
+                }
+            };
+
+            this.decompress = function (data) {
+                try {
+                    var decompressed = "",
+                        pos          = 0,
+                        currentChar  = '',
+                        nextChar     = '',
+                        distance     = 0,
+                        length       = 0,
+                        minStrLength = minStringLength - 1,
+                        dataLength   = data.length,
+                        posPlusOne   = 0;
+
+                    while (pos < dataLength) {
+                        currentChar = data.charAt(pos);
+                        if (currentChar !== referencePrefix) {
+                            decompressed += currentChar;
+                            pos += 1;
+                        } else {
+                            posPlusOne = pos + 1;
+                            nextChar = data.charAt(posPlusOne);
+                            if (nextChar !== referencePrefix) {
+                                distance = decodeReferenceInt(data.substr(posPlusOne, 2), 2);
+                                length = decodeReferenceLength(data.charAt(pos + 3));
+                                decompressed += decompressed.substr(decompressed.length - distance - length, length);
+                                pos += minStrLength;
+                            } else {
+                                decompressed += referencePrefix;
+                                pos += 2;
+                            }
+                        }
+                    }
+
+                    return decompressed;
+                } catch (err) {
+                    utility.error("ERROR in utility.LZ77.decompress: " + err);
+                    return undefined;
+                }
+            };
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in utility.LZ77: " + err);
+            return false;
+        }
+    };
+}());
 
 ////////////////////////////////////////////////////////////////////
 //                          image64 OBJECT
@@ -1448,944 +2549,6 @@ image64['Corvintheus'] = image64.Corvintheus;
 image64['Aurora'] = image64.Aurora;
 image64['Azeron'] = image64.Azeron;
 /*jslint sub: false */
-
-////////////////////////////////////////////////////////////////////
-//                          utility OBJECT
-// Small functions called a lot to reduce duplicate code
-/////////////////////////////////////////////////////////////////////
-
-utility = {
-    is_chrome               : navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
-
-    is_firefox              : navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
-
-    is_html5_localStorage   : ('localStorage' in window) && window.localStorage !== null,
-
-    is_html5_sessionStorage : ('sessionStorage' in window) && window.sessionStorage !== null,
-
-    waitTime: 5000,
-
-    VisitUrl: function (url, loadWaitTime) {
-        try {
-            if (!url) {
-                throw 'No url passed to VisitUrl';
-            }
-
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
-            if (state.getItem('clickUrl', '').indexOf(url) < 0) {
-                state.setItem('clickUrl', url);
-            }
-
-            if (caap.waitingForDomLoad === false) {
-                schedule.setItem('clickedOnSomething', 0);
-                caap.waitingForDomLoad = true;
-            }
-
-            window.location.href = url;
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.VisitUrl: " + err);
-            return false;
-        }
-    },
-
-    Click: function (obj, loadWaitTime) {
-        try {
-            if (!obj) {
-                throw 'Null object passed to Click';
-            }
-
-            if (caap.waitingForDomLoad === false) {
-                schedule.setItem('clickedOnSomething', 0);
-                caap.waitingForDomLoad = true;
-            }
-
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
-            var evt = document.createEvent("MouseEvents");
-            evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-            /*
-            Return Value: boolean
-            The return value of dispatchEvent indicates whether any of the listeners
-            which handled the event called preventDefault. If preventDefault was called
-            the value is false, else the value is true.
-            */
-            return !obj.dispatchEvent(evt);
-        } catch (err) {
-            utility.error("ERROR in utility.Click: " + err);
-            return undefined;
-        }
-    },
-
-    ClickAjaxLinkSend: function (link, loadWaitTime) {
-        try {
-            if (!link) {
-                throw 'No link passed to ClickAjaxLinkSend';
-            }
-
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
-            if (state.getItem('clickUrl', '').indexOf(link) < 0) {
-                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-            }
-
-            if (caap.waitingForDomLoad === false) {
-                schedule.setItem('clickedOnSomething', 0);
-                caap.waitingForDomLoad = true;
-            }
-
-            var jss = "javascript";
-            window.location.href = jss + ":void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.ClickAjaxLinkSend: " + err);
-            return false;
-        }
-    },
-
-    ClickGetCachedAjax: function (link, loadWaitTime) {
-        try {
-            if (!link) {
-                throw 'No link passed to ClickGetCachedAjax';
-            }
-
-            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : utility.waitTime;
-            if (state.getItem('clickUrl', '').indexOf(link) < 0) {
-                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
-            }
-
-            if (caap.waitingForDomLoad === false) {
-                schedule.setItem('clickedOnSomething', 0);
-                caap.waitingForDomLoad = true;
-            }
-
-            var jss = "javascript";
-            window.location.href = jss + ":void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.ClickGetCachedAjax: " + err);
-            return false;
-        }
-    },
-
-    NavigateTo: function (pathToPage, imageOnPage) {
-        try {
-            var content   = $j(),
-                pathList  = [],
-                s         = 0,
-                a         = $j(),
-                imageTest = '',
-                img       = null;
-
-            content = $j("#content");
-            if (!content || !content.length) {
-                utility.warn('No content to Navigate to', imageOnPage, pathToPage);
-                return false;
-            }
-
-            if (imageOnPage) {
-                if (utility.CheckForImage(imageOnPage)) {
-                    return false;
-                }
-            }
-
-            pathList = pathToPage.split(",");
-            for (s = pathList.length - 1; s >= 0; s -= 1) {
-                a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
-                if (a && a.length) {
-                    utility.log(2, 'Go to', pathList[s]);
-                    utility.Click(a.get(0));
-                    return true;
-                }
-
-                imageTest = pathList[s];
-                if (imageTest.indexOf(".") === -1) {
-                    imageTest = imageTest + '.';
-                }
-
-                img = utility.CheckForImage(imageTest);
-                if (img) {
-                    utility.log(3, 'Click on image', img.src.match(/[\w.]+$/));
-                    utility.Click(img);
-                    return true;
-                }
-            }
-
-            utility.warn('Unable to Navigate to', imageOnPage, pathToPage);
-            return false;
-        } catch (err) {
-            utility.error("ERROR in utility.NavigateTo: " + err, imageOnPage, pathToPage);
-            return undefined;
-        }
-    },
-
-    CheckForImage: function (image, webSlice, subDocument, nodeNum) {
-        try {
-            var imageSlice = $j(),
-                jSlice     = $j();
-
-            if (!webSlice) {
-                webSlice = subDocument ? subDocument.body : window.document.body;
-            }
-
-            if (!nodeNum || typeof nodeNum !== 'number') {
-                nodeNum = 0;
-            }
-
-            jSlice = webSlice.jquery ? webSlice : $j(webSlice);
-            imageSlice = jSlice.find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
-            return (imageSlice.length ? imageSlice.get(0) : null);
-        } catch (err) {
-            utility.error("ERROR in utility.CheckForImage: " + err);
-            return undefined;
-        }
-    },
-
-    typeOf: function (obj) {
-        try {
-            var s = typeof obj;
-
-            if (s === 'object') {
-                if (obj) {
-                    if (obj instanceof Array) {
-                        s = 'array';
-                    }
-                } else {
-                    s = 'null';
-                }
-            }
-
-            return s;
-        } catch (err) {
-            utility.error("ERROR in utility.typeOf: " + err);
-            return undefined;
-        }
-    },
-
-    isEmpty: function (obj) {
-        try {
-            var i, v,
-                empty = true;
-
-            if (utility.typeOf(obj) === 'object') {
-                for (i in obj) {
-                    if (obj.hasOwnProperty(i)) {
-                        v = obj[i];
-                        if (v !== undefined && utility.typeOf(v) !== 'function') {
-                            empty = false;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return empty;
-        } catch (err) {
-            utility.error("ERROR in utility.isEmpty: " + err);
-            return undefined;
-        }
-    },
-
-    isInt: function (value) {
-        try {
-            var y = parseInt(value, 10);
-            if (isNaN(y)) {
-                return false;
-            }
-
-            return value === y && value.toString() === y.toString();
-        } catch (err) {
-            utility.error("ERROR in utility.isInt: " + err);
-            return undefined;
-        }
-    },
-
-    isNum: function (value) {
-        try {
-            return $j.type(value) === 'number';
-        } catch (err) {
-            utility.error("ERROR in utility.isNum: " + err);
-            return undefined;
-        }
-    },
-
-    alertDialog: {},
-
-    alert_id: 0,
-
-    alert: function (message, id) {
-        try {
-            if (!id) {
-                utility.alert_id += 1;
-                id = utility.alert_id;
-            }
-
-            if (!utility.alertDialog[id] || !utility.alertDialog[id].length) {
-                utility.alertDialog[id] = $j('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
-                utility.alertDialog[id].dialog({
-                    buttons: {
-                        "Ok": function () {
-                            $j(this).dialog("close");
-                        }
-                    }
-                });
-            } else {
-                utility.alertDialog[id].html(message);
-                utility.alertDialog[id].dialog("open");
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.alert: " + err);
-            return false;
-        }
-    },
-
-    logLevel: 1,
-
-    log: function (level, text) {
-        if (console.log !== undefined) {
-            if (utility.logLevel && !isNaN(level) && utility.logLevel >= level) {
-                var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
-                    tempArr = [],
-                    it      = 0,
-                    len     = 0,
-                    newArg;
-
-                if (arguments.length > 2) {
-                    for (it = 2, len = arguments.length; it < len; it += 1) {
-                        switch ($j.type(arguments[it])) {
-                        case "object":
-                            newArg = $j.extend(true, {}, arguments[it]);
-                            break;
-                        case "array":
-                            newArg = arguments[it].deepCopy();
-                            break;
-                        default:
-                            newArg = arguments[it];
-                        }
-
-                        tempArr.push(newArg);
-                    }
-
-                    console.log(message, tempArr);
-                } else {
-                    console.log(message);
-                }
-            }
-        }
-    },
-
-    warn: function (text) {
-        if (console.warn !== undefined) {
-            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
-                    tempArr = [],
-                    it      = 0,
-                    len     = 0,
-                    newArg;
-
-            if (arguments.length > 1) {
-                for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($j.type(arguments[it])) {
-                    case "object":
-                        newArg = $j.extend(true, {}, arguments[it]);
-                        break;
-                    case "array":
-                        newArg = arguments[it].deepCopy();
-                        break;
-                    default:
-                        newArg = arguments[it];
-                    }
-
-                    tempArr.push(newArg);
-                }
-
-                console.warn(message, tempArr);
-            } else {
-                console.warn(message);
-            }
-        } else {
-            if (arguments.length > 1) {
-                utility.log(1, text, Array.prototype.slice.call(arguments, 1));
-            } else {
-                utility.log(1, text);
-            }
-        }
-    },
-
-    error: function (text) {
-        if (console.error !== undefined) {
-            var message = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
-                    tempArr = [],
-                    it      = 0,
-                    len     = 0,
-                    newArg;
-
-            if (arguments.length > 1) {
-                for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($j.type(arguments[it])) {
-                    case "object":
-                        newArg = $j.extend(true, {}, arguments[it]);
-                        break;
-                    case "array":
-                        newArg = arguments[it].deepCopy();
-                        break;
-                    default:
-                        newArg = arguments[it];
-                    }
-
-                    tempArr.push(newArg);
-                }
-
-                console.error(message, tempArr);
-            } else {
-                console.error(message);
-            }
-        } else {
-            if (arguments.length > 1) {
-                utility.log(1, text, Array.prototype.slice.call(arguments, 1));
-            } else {
-                utility.log(1, text);
-            }
-        }
-    },
-
-    chatLink: function (slice, query) {
-        try {
-            var hr = new RegExp('.*(http:.*)'),
-                qr = /"/g,
-                c  = $j();
-
-            c = slice.find(query);
-            if (c && c.length) {
-                c.each(function () {
-                    var e = $j(this),
-                        h = '',
-                        a = [];
-
-                    h = e.html();
-                    h = h ? h.trim() : '';
-                    if (h) {
-                        a = h.split("<br>");
-                        if (a && a.length === 2) {
-                            a = a[1].replace(qr, '').match(hr);
-                            if (a && a.length === 2 && a[1]) {
-                                a = a[1].split(" ");
-                                if (a && a.length) {
-                                    e.html(h.replace(a[0], "<a href='" + a[0] + "'>" + a[0] + "</a>"));
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-            return true;
-        } catch (err) {
-            utility.error("ERROR in utility.chatLink: " + err);
-            return false;
-        }
-    },
-
-    /*jslint bitwise: false */
-    Aes: function (password, nBits) {
-        password = password.Utf8encode();
-        nBits = (nBits === 128 || nBits === 192 || nBits === 256) ? nBits : 256;
-        var sBox = [
-                0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
-                0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
-                0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
-                0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
-                0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
-                0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
-                0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
-                0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
-                0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
-                0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
-                0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
-                0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
-                0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
-                0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
-                0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
-                0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
-            ],
-            rCon = [
-                [0x00, 0x00, 0x00, 0x00],
-                [0x01, 0x00, 0x00, 0x00],
-                [0x02, 0x00, 0x00, 0x00],
-                [0x04, 0x00, 0x00, 0x00],
-                [0x08, 0x00, 0x00, 0x00],
-                [0x10, 0x00, 0x00, 0x00],
-                [0x20, 0x00, 0x00, 0x00],
-                [0x40, 0x00, 0x00, 0x00],
-                [0x80, 0x00, 0x00, 0x00],
-                [0x1b, 0x00, 0x00, 0x00],
-                [0x36, 0x00, 0x00, 0x00]
-            ],
-            subBytes     = null,
-            shiftRows    = null,
-            mixColumns   = null,
-            addRoundKey  = null,
-            cipher       = null,
-            subWord      = null,
-            rotWord      = null,
-            keyExpansion = null;
-
-        subBytes = function (s, Nb) {
-            var r = 0,
-                c = 0;
-
-            for (r = 0; r < 4; r += 1) {
-                for (c = 0; c < Nb; c += 1) {
-                    s[r][c] = sBox[s[r][c]];
-                }
-            }
-
-            return s;
-        };
-
-        shiftRows = function (s, Nb) {
-            var t = new Array(4),
-                r = 1,
-                c = 0;
-
-            for (r = 1; r < 4; r += 1) {
-                for (c = 0; c < 4; c += 1) {
-                    t[c] = s[r][(c + r) % Nb];
-                }
-
-                for (c = 0; c < 4; c += 1) {
-                    s[r][c] = t[c];
-                }
-            }
-
-            return s;
-        };
-
-        mixColumns = function (s, Nb) {
-            var c = 0,
-                a = [],
-                b = [],
-                i = 0;
-
-            for (c = 0; c < 4; c += 1) {
-                a = new Array(4);
-                b = new Array(4);
-                for (i = 0; i < 4; i += 1) {
-                    a[i] = s[i][c];
-                    b[i] = s[i][c]&0x80 ? s[i][c]<<1 ^ 0x011b : s[i][c]<<1;
-                }
-
-                s[0][c] = b[0] ^ a[1] ^ b[1] ^ a[2] ^ a[3];
-                s[1][c] = a[0] ^ b[1] ^ a[2] ^ b[2] ^ a[3];
-                s[2][c] = a[0] ^ a[1] ^ b[2] ^ a[3] ^ b[3];
-                s[3][c] = a[0] ^ b[0] ^ a[1] ^ a[2] ^ b[3];
-            }
-
-            return s;
-        };
-
-        addRoundKey = function (state, w, rnd, Nb) {
-            var r = 0,
-                c = 0;
-
-            for (r = 0; r < 4; r += 1) {
-                for (c = 0; c < Nb; c += 1) {
-                    state[r][c] ^= w[rnd * 4 + c][r];
-                }
-            }
-
-            return state;
-        };
-
-        cipher = function (input, w) {
-            var Nb     = 4,
-                Nr     = w.length / Nb - 1,
-                state  = [[], [], [], []],
-                i      = 0,
-                round  = 1,
-                output = [];
-
-            for (i = 0; i < 4 * Nb; i += 1) {
-                state[i % 4][Math.floor(i / 4)] = input[i];
-            }
-
-            state = addRoundKey(state, w, 0, Nb);
-            for (round = 1; round < Nr; round += 1) {
-                state = subBytes(state, Nb);
-                state = shiftRows(state, Nb);
-                state = mixColumns(state, Nb);
-                state = addRoundKey(state, w, round, Nb);
-            }
-
-            state = subBytes(state, Nb);
-            state = shiftRows(state, Nb);
-            state = addRoundKey(state, w, Nr, Nb);
-            output = new Array(4 * Nb);
-            for (i = 0; i < 4 * Nb; i += 1) {
-                output[i] = state[i % 4][Math.floor(i / 4)];
-            }
-
-            return output;
-        };
-
-        subWord = function (w) {
-            for (var i = 0; i < 4; i += 1) {
-                w[i] = sBox[w[i]];
-            }
-
-            return w;
-        };
-
-        rotWord = function (w) {
-            var tmp = w[0],
-                i   = 0;
-
-            for (i = 0; i < 3; i += 1) {
-                w[i] = w[i + 1];
-            }
-
-            w[3] = tmp;
-            return w;
-        };
-
-        keyExpansion = function (key) {
-            var Nb   = 4,
-                Nk   = key.length / 4,
-                Nr   = Nk + 6,
-                w    = new Array(Nb * (Nr + 1)),
-                temp = new Array(4),
-                i    = 0,
-                t    = 0;
-
-            for (i = 0; i < Nk; i += 1) {
-                w[i] = [key[4 * i], key[4 * i + 1], key[4 * i + 2], key[4 * i + 3]];
-            }
-
-            for (i = Nk; i < (Nb * (Nr + 1)); i += 1) {
-                w[i] = new Array(4);
-                for (t = 0; t < 4; t += 1) {
-                    temp[t] = w[i - 1][t];
-                }
-
-                if (i % Nk === 0) {
-                    temp = subWord(rotWord(temp));
-                    for (t = 0; t < 4; t += 1) {
-                        temp[t] ^= rCon[i / Nk][t];
-                    }
-
-                } else if (Nk > 6 && i % Nk === 4) {
-                    temp = subWord(temp);
-                }
-
-                for (t = 0; t < 4; t += 1) {
-                    w[i][t] = w[i - Nk][t] ^ temp[t];
-                }
-            }
-
-            return w;
-        };
-
-        this.encrypt = function (plaintext) {
-            plaintext = plaintext.Utf8encode();
-            var blockSize    = 16,
-                nBytes       = nBits / 8,
-                pwBytes      = new Array(nBytes),
-                i            = 0,
-                counterBlock = new Array(blockSize),
-                nonce        = new Date().getTime(),
-                nonceSec     = Math.floor(nonce / 1000),
-                nonceMs      = nonce % 1000,
-                key          = [],
-                ctrTxt       = '',
-                keySchedule  = [],
-                blockCount   = 0,
-                ciphertxt    = [],
-                b            = 0,
-                c            = 0,
-                cipherCntr   = [],
-                blockLength  = 0,
-                cipherChar   = [],
-                ciphertext   = '';
-
-            for (i = 0; i < nBytes; i += 1) {
-                pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
-            }
-
-            key = cipher(pwBytes, keyExpansion(pwBytes));
-            key = key.concat(key.slice(0, nBytes - 16));
-            for (i = 0; i < 4; i += 1) {
-                counterBlock[i] = (nonceSec >>> i * 8) & 0xff;
-            }
-
-            for (i = 0; i < 4; i += 1) {
-                counterBlock[i + 4] = nonceMs & 0xff;
-            }
-
-            for (i = 0; i < 8; i += 1) {
-                ctrTxt += String.fromCharCode(counterBlock[i]);
-            }
-
-            keySchedule = keyExpansion(key);
-            blockCount = Math.ceil(plaintext.length / blockSize);
-            ciphertxt = new Array(blockCount);
-            for (b = 0; b < blockCount; b += 1) {
-                for (c = 0; c < 4; c += 1) {
-                    counterBlock[15 - c] = (b >>> c * 8) & 0xff;
-                }
-
-                for (c = 0; c < 4; c += 1) {
-                    counterBlock[15 - c - 4] = (b / 0x100000000 >>> c * 8);
-                }
-
-                cipherCntr = cipher(counterBlock, keySchedule);
-                blockLength = b < blockCount - 1 ? blockSize : (plaintext.length - 1) % blockSize + 1;
-                cipherChar = new Array(blockLength);
-                for (i = 0; i < blockLength; i += 1) {
-                    cipherChar[i] = cipherCntr[i] ^ plaintext.charCodeAt(b * blockSize + i);
-                    cipherChar[i] = String.fromCharCode(cipherChar[i]);
-                }
-
-                ciphertxt[b] = cipherChar.join('');
-            }
-
-            ciphertext = ctrTxt + ciphertxt.join('');
-            ciphertext = ciphertext.Base64encode();
-            return ciphertext;
-        };
-
-        this.decrypt = function (ciphertext) {
-            ciphertext = ciphertext.Base64decode();
-            var blockSize    = 16,
-                nBytes       = nBits / 8,
-                pwBytes      = new Array(nBytes),
-                i            = 0,
-                key          = [],
-                counterBlock = [],
-                ctrTxt       = [],
-                keySchedule  = [],
-                nBlocks      = 0,
-                ct           = [],
-                b            = 0,
-                plaintxt     = [],
-                c            = 0,
-                cipherCntr   = [],
-                plaintxtByte = [],
-                plaintext    = '';
-
-            for (i = 0; i < nBytes; i += 1) {
-                pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
-            }
-
-            key = cipher(pwBytes, keyExpansion(pwBytes));
-            key = key.concat(key.slice(0, nBytes - 16));
-            counterBlock = new Array(8);
-            ctrTxt = ciphertext.slice(0, 8);
-            for (i = 0; i < 8; i += 1) {
-                counterBlock[i] = ctrTxt.charCodeAt(i);
-            }
-
-            keySchedule = keyExpansion(key);
-            nBlocks = Math.ceil((ciphertext.length - 8) / blockSize);
-            ct = new Array(nBlocks);
-            for (b = 0; b < nBlocks; b += 1) {
-                ct[b] = ciphertext.slice(8 + b * blockSize, 8 + b * blockSize + blockSize);
-            }
-
-            ciphertext = ct;
-            plaintxt = new Array(ciphertext.length);
-
-            for (b = 0; b < nBlocks; b += 1) {
-                for (c = 0; c < 4; c += 1) {
-                    counterBlock[15 - c] = ((b) >>> c * 8) & 0xff;
-                }
-
-                for (c = 0; c < 4; c += 1) {
-                    counterBlock[15 - c - 4] = (((b + 1) / 0x100000000 - 1) >>> c * 8) & 0xff;
-                }
-
-                cipherCntr = cipher(counterBlock, keySchedule);
-                plaintxtByte = new Array(ciphertext[b].length);
-                for (i = 0; i < ciphertext[b].length; i += 1) {
-                    plaintxtByte[i] = cipherCntr[i] ^ ciphertext[b].charCodeAt(i);
-                    plaintxtByte[i] = String.fromCharCode(plaintxtByte[i]);
-                }
-
-                plaintxt[b] = plaintxtByte.join('');
-            }
-
-            plaintext = plaintxt.join('');
-            plaintext = plaintext.Utf8decode();
-            return plaintext;
-        };
-    },
-    /*jslint bitwise: true */
-
-    LZ77: function (settings) {
-        settings = settings || {};
-        var referencePrefix       = "`",
-            referenceIntBase      = settings.referenceIntBase || 96,
-            referenceIntFloorCode = " ".charCodeAt(0),
-            referenceIntCeilCode  = referenceIntFloorCode + referenceIntBase - 1,
-            maxStringDistance     = Math.pow(referenceIntBase, 2) - 1,
-            minStringLength       = settings.minStringLength || 5,
-            maxStringLength       = Math.pow(referenceIntBase, 1) - 1 + minStringLength,
-            defaultWindowLength   = settings.defaultWindowLength || 144,
-            maxWindowLength       = maxStringDistance + minStringLength,
-            encodeReferenceInt    = null,
-            encodeReferenceLength = null,
-            decodeReferenceInt    = null,
-            decodeReferenceLength = null;
-
-
-        encodeReferenceInt = function (value, width) {
-            if ((value >= 0) && (value < (Math.pow(referenceIntBase, width) - 1))) {
-                var encoded       = "",
-                    i             = 0,
-                    missingLength = 0,
-                    mf            = Math.floor,
-                    sc            = String.fromCharCode;
-
-                while (value > 0) {
-                    encoded = sc((value % referenceIntBase) + referenceIntFloorCode) + encoded;
-                    value = mf(value / referenceIntBase);
-                }
-
-                missingLength = width - encoded.length;
-                for (i = 0; i < missingLength; i += 1) {
-                    encoded = sc(referenceIntFloorCode) + encoded;
-                }
-
-                return encoded;
-            } else {
-                throw "Reference int out of range: " + value + " (width = " + width + ")";
-            }
-        };
-
-        encodeReferenceLength = function (length) {
-            return encodeReferenceInt(length - minStringLength, 1);
-        };
-
-        decodeReferenceInt = function (data, width) {
-            var value    = 0,
-                i        = 0,
-                charCode = 0;
-
-            for (i = 0; i < width; i += 1) {
-                value *= referenceIntBase;
-                charCode = data.charCodeAt(i);
-                if ((charCode >= referenceIntFloorCode) && (charCode <= referenceIntCeilCode)) {
-                    value += charCode - referenceIntFloorCode;
-                } else {
-                    throw "Invalid char code in reference int: " + charCode;
-                }
-            }
-
-            return value;
-        };
-
-        decodeReferenceLength = function (data) {
-            return decodeReferenceInt(data, 1) + minStringLength;
-        };
-
-        this.compress = function (data, windowLength) {
-            windowLength = windowLength || defaultWindowLength;
-            if (windowLength > maxWindowLength) {
-                throw "Window length too large";
-            }
-
-            var compressed      = "",
-                pos             = 0,
-                lastPos         = data.length - minStringLength,
-                searchStart     = 0,
-                matchLength     = 0,
-                foundMatch      = false,
-                bestMatch       = {},
-                newCompressed   = null,
-                realMatchLength = 0,
-                mm              = Math.max,
-                dataCharAt      = 0;
-
-            while (pos < lastPos) {
-                searchStart = mm(pos - windowLength, 0);
-                matchLength = minStringLength;
-                foundMatch = false;
-                bestMatch = {
-                    distance : maxStringDistance,
-                    length   : 0
-                };
-
-                newCompressed = null;
-                while ((searchStart + matchLength) < pos) {
-                    if ((matchLength < maxStringLength) && (data.substr(searchStart, matchLength) === data.substr(pos, matchLength))) {
-                        matchLength += 1;
-                        foundMatch = true;
-                    } else {
-                        realMatchLength = matchLength - 1;
-                        if (foundMatch && (realMatchLength > bestMatch.length)) {
-                            bestMatch.distance = pos - searchStart - realMatchLength;
-                            bestMatch.length = realMatchLength;
-                        }
-
-                        matchLength = minStringLength;
-                        searchStart += 1;
-                        foundMatch = false;
-                    }
-                }
-
-                if (bestMatch.length) {
-                    newCompressed = referencePrefix + encodeReferenceInt(bestMatch.distance, 2) + encodeReferenceLength(bestMatch.length);
-                    pos += bestMatch.length;
-                } else {
-                    dataCharAt = data.charAt(pos);
-                    if (dataCharAt !== referencePrefix) {
-                        newCompressed = dataCharAt;
-                    } else {
-                        newCompressed = referencePrefix + referencePrefix;
-                    }
-
-                    pos += 1;
-                }
-
-                compressed += newCompressed;
-            }
-
-            return compressed + data.slice(pos).replace(/`/g, "``");
-        };
-
-        this.decompress = function (data) {
-            var decompressed = "",
-                pos          = 0,
-                currentChar  = '',
-                nextChar     = '',
-                distance     = 0,
-                length       = 0,
-                minStrLength = minStringLength - 1,
-                dataLength   = data.length,
-                posPlusOne   = 0;
-
-            while (pos < dataLength) {
-                currentChar = data.charAt(pos);
-                if (currentChar !== referencePrefix) {
-                    decompressed += currentChar;
-                    pos += 1;
-                } else {
-                    posPlusOne = pos + 1;
-                    nextChar = data.charAt(posPlusOne);
-                    if (nextChar !== referencePrefix) {
-                        distance = decodeReferenceInt(data.substr(posPlusOne, 2), 2);
-                        length = decodeReferenceLength(data.charAt(pos + 3));
-                        decompressed += decompressed.substr(decompressed.length - distance - length, length);
-                        pos += minStrLength;
-                    } else {
-                        decompressed += referencePrefix;
-                        pos += 2;
-                    }
-                }
-            }
-
-            return decompressed;
-        };
-    }
-};
 
 ////////////////////////////////////////////////////////////////////
 //                          config OBJECT
@@ -3649,7 +3812,7 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                if (utility.logLevel > 2) {
+                if (utility.log_level > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
 
@@ -3674,7 +3837,7 @@ schedule = {
                 }
 
                 if (!$j.isPlainObject(schedule.timers[name_or_number])) {
-                    if (utility.logLevel > 2) {
+                    if (utility.log_level > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
                 } else {
@@ -3763,7 +3926,7 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                if (utility.logLevel > 2) {
+                if (utility.log_level > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
 
@@ -4355,13 +4518,13 @@ general = {
             }
 
             utility.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
-            if (utility.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                 return true;
             }
 
             generalImage = general.GetImage(generalName);
-            if (utility.CheckForImage(generalImage)) {
-                return utility.NavigateTo(generalImage);
+            if (caap.CheckForImage(generalImage)) {
+                return caap.NavigateTo(generalImage);
             }
 
             caap.SetDivContent('Could not find ' + generalName);
@@ -4479,16 +4642,16 @@ general = {
                 return false;
             }
 
-            if (utility.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                 utility.log(2, "Visiting generals to get 'General' stats");
                 return true;
             }
 
             generalImage = general.GetImage(general.records[it]['name']);
-            if (utility.CheckForImage(generalImage)) {
+            if (caap.CheckForImage(generalImage)) {
                 if (general.GetCurrent() !== general.records[it]['name']) {
                     utility.log(2, "Visiting 'General'", general.records[it]['name']);
-                    return utility.NavigateTo(generalImage);
+                    return caap.NavigateTo(generalImage);
                 }
             }
 
@@ -5614,7 +5777,7 @@ monster = {
 
             if (monsterName !== tempText) {
                 utility.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
-                return utility.NavigateTo('keep,' + monster.getItem(monsterName).page);
+                return caap.NavigateTo('keep,' + monster.getItem(monsterName).page);
             }
 
             return false;
@@ -5855,13 +6018,13 @@ guild_monster = {
     },
 
     navigate_to_main: function () {
-        return utility.NavigateTo('guild', 'tab_guild_main_on.gif');
+        return caap.NavigateTo('guild', 'tab_guild_main_on.gif');
     },
 
     navigate_to_battles_refresh: function () {
-        var button = utility.CheckForImage("guild_monster_tab_on.jpg");
+        var button = caap.CheckForImage("guild_monster_tab_on.jpg");
         if (button) {
-            utility.Click(button);
+            caap.Click(button);
         }
 
         state.setItem('guildMonsterBattlesRefresh', false);
@@ -5869,7 +6032,7 @@ guild_monster = {
     },
 
     navigate_to_battles: function () {
-        return utility.NavigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
+        return caap.NavigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
     },
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -6000,7 +6163,7 @@ guild_monster = {
                 currentRecord = {},
                 minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
-            utility.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+            caap.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
             slot = $j("input[name='slot']").eq(0).attr("value");
             slot = slot ? slot.parseInt() : 0;
             bannerDiv = $j("#app46755028429_guild_battle_banner_section");
@@ -6124,7 +6287,7 @@ guild_monster = {
                 utility.log(2, "currentRecord", currentRecord);
                 guild_monster.setItem(currentRecord);
                 if (collect) {
-                    utility.Click(collectDiv.get(0));
+                    caap.Click(collectDiv.get(0));
                 }
             } else {
                 if (bannerDiv.children().eq(0).text().indexOf("You do not have an on going guild monster battle. Have your Guild initiate more!") >= 0) {
@@ -6970,13 +7133,13 @@ arena = {
     /*jslint sub: false */
 
     navigate_to_main: function () {
-        return utility.NavigateTo('battle,arena', 'tab_arena_on.gif');
+        return caap.NavigateTo('battle,arena', 'tab_arena_on.gif');
     },
 
     navigate_to_main_refresh: function () {
-        var button = utility.CheckForImage("tab_arena_on.gif");
+        var button = caap.CheckForImage("tab_arena_on.gif");
         if (button) {
-            utility.Click(button);
+            caap.Click(button);
         }
 
         state.setItem('ArenaRefresh', false);
@@ -7375,7 +7538,7 @@ arena = {
                 utility.log(3, "currentRecord", currentRecord);
                 arena.setItem(currentRecord);
                 if (currentRecord['state'] === 'Collect' && collectDiv.length) {
-                    utility.Click(collectDiv.get(0));
+                    caap.Click(collectDiv.get(0));
                 }
             } else {
                 utility.warn("Not on arena battle page");
@@ -8497,7 +8660,7 @@ battle = {
             state.setItem('ReleaseControl', true);
             battle.flagResult = true;
             state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
-            utility.Click(battleButton);
+            caap.Click(battleButton);
             return true;
         } catch (err) {
             utility.error("ERROR in battle.click: " + err);
@@ -8581,7 +8744,7 @@ battle = {
             inputDiv = caap.appBodyDiv.find("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
                 utility.warn('Not on battlepage');
-                utility.NavigateTo(caap.battlePage);
+                caap.NavigateTo(caap.battlePage);
                 return false;
             }
 
@@ -8936,13 +9099,13 @@ battle = {
             if (type === 'Raid') {
                 engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
                 if (state.getItem("page", '') === 'raid' && engageButton) {
-                    utility.Click(engageButton);
+                    caap.Click(engageButton);
                 } else {
                     schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
-                    utility.NavigateTo(caap.battlePage + ',raid');
+                    caap.NavigateTo(caap.battlePage + ',raid');
                 }
             } else {
-                utility.NavigateTo(caap.battlePage + ',battle_on.gif');
+                caap.NavigateTo(caap.battlePage + ',battle_on.gif');
             }
 
             return true;
@@ -9748,7 +9911,7 @@ gifting = {
             }
 
             if ($j.isEmptyObject(giftEntry) && state.getItem('HaveGift', false)) {
-                if (utility.NavigateTo('army', 'invite_on.gif')) {
+                if (caap.NavigateTo('army', 'invite_on.gif')) {
                     return true;
                 }
 
@@ -9758,7 +9921,7 @@ gifting = {
                 }
 
                 schedule.setItem('ClickedFacebookURL', 30);
-                utility.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
+                caap.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
                 return true;
             }
 
@@ -9844,7 +10007,7 @@ gifting = {
                             giftEntry['checked'] = true;
                             gifting.setCurrent(giftEntry);
                             schedule.setItem('ClickedFacebookURL', 35);
-                            utility.Click(inputDiv.get(0));
+                            caap.Click(inputDiv.get(0));
                             return false;
                         } else {
                             utility.warn("No input found in ", giftRequest.get(0));
@@ -9872,7 +10035,7 @@ gifting = {
                 utility.log(1, 'Unable to find gift', giftEntry);
             }
 
-            utility.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+            caap.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
             return true;
         } catch (err) {
             utility.error("ERROR in gifting.collect: " + err);
@@ -9885,7 +10048,7 @@ gifting = {
         try {
             var giftEntry = gifting.getCurrent();
             if (!$j.isEmptyObject(giftEntry)) {
-                if (force || utility.CheckForImage("gift_yes.gif")) {
+                if (force || caap.CheckForImage("gift_yes.gif")) {
                     if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                         gifting.queue.setItem(giftEntry);
                     }
@@ -9916,14 +10079,14 @@ gifting = {
                 tempDiv = popDiv.find("input[name='sendit']");
                 if (tempDiv && tempDiv.length) {
                     utility.log(1, 'Sending gifts to Facebook');
-                    utility.Click(tempDiv.get(0));
+                    caap.Click(tempDiv.get(0));
                     return true;
                 }
 
                 tempDiv = popDiv.find("input[name='skip_ci_btn']");
                 if (tempDiv && tempDiv.length) {
                     utility.log(1, 'Denying Email Nag For Gift Send');
-                    utility.Click(tempDiv.get(0));
+                    caap.Click(tempDiv.get(0));
                     return true;
                 }
 
@@ -9942,7 +10105,7 @@ gifting = {
                         utility.warn('Popup message but no text found', tempDiv);
                     }
 
-                    utility.Click(tempDiv.get(0));
+                    caap.Click(tempDiv.get(0));
                     return tryAgain;
                 }
 
@@ -10488,7 +10651,7 @@ gifting = {
                             id = tStr ? tStr.parseInt() : 0;
                             if (!/none/.test(unsel.parent().attr("style"))) {
                                 caap.waitingForDomLoad = false;
-                                utility.Click(unsel.get(0));
+                                caap.Click(unsel.get(0));
                                 utility.log(2, "Id clicked:", id);
                                 clickedList.push(id);
                             } else {
@@ -11131,6 +11294,9 @@ caap = {
     appBodyDiv          : {},
 
     start: function () {
+        utility.log(1, 'Full page load completed');
+        window.clearTimeout(caap_timeout);
+
         var FBID          = 0,
             idOk          = false,
             tempText      = '',
@@ -11143,8 +11309,6 @@ caap = {
             caap.ReloadOccasionally();
         }
 
-        utility.log(1, 'Full page load completed');
-        window.clearTimeout(caap_timeout);
         gm.clear0();
         if (caap.ErrorCheck()) {
             mainCaapLoop();
@@ -11213,7 +11377,8 @@ caap = {
         }
 
         config.load();
-        utility.logLevel = config.getItem('DebugLevel', utility.logLevel);
+        utility.log_level = config.getItem('DebugLevel', utility.log_level);
+        utility.testsRun(utility.log_level >= 2 ? true : false);
         css.AddCSS();
         gm.used();
         schedule.load();
@@ -11448,9 +11613,226 @@ caap = {
     },
 
     /////////////////////////////////////////////////////////////////////
+    //                          NAVIGATION FUNCTIONS
+    /////////////////////////////////////////////////////////////////////
+
+    waitTime: 5000,
+
+    VisitUrl: function (url, loadWaitTime) {
+        try {
+            if (!url) {
+                throw 'No url passed to VisitUrl';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : caap.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(url) < 0) {
+                state.setItem('clickUrl', url);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            window.location.href = url;
+            return true;
+        } catch (err) {
+            utility.error("ERROR in caap.VisitUrl: " + err);
+            return false;
+        }
+    },
+
+    Click: function (obj, loadWaitTime) {
+        try {
+            if (!obj) {
+                throw 'Null object passed to Click';
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : caap.waitTime;
+            var evt = document.createEvent("MouseEvents");
+            evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            /*
+            Return Value: boolean
+            The return value of dispatchEvent indicates whether any of the listeners
+            which handled the event called preventDefault. If preventDefault was called
+            the value is false, else the value is true.
+            */
+            return !obj.dispatchEvent(evt);
+        } catch (err) {
+            utility.error("ERROR in caap.Click: " + err);
+            return undefined;
+        }
+    },
+
+    ClickAjaxLinkSend: function (link, loadWaitTime) {
+        try {
+            if (!link) {
+                throw 'No link passed to ClickAjaxLinkSend';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : caap.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(link) < 0) {
+                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            var jss = "javascript";
+            window.location.href = jss + ":void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
+            return true;
+        } catch (err) {
+            utility.error("ERROR in caap.ClickAjaxLinkSend: " + err);
+            return false;
+        }
+    },
+
+    ClickGetCachedAjax: function (link, loadWaitTime) {
+        try {
+            if (!link) {
+                throw 'No link passed to ClickGetCachedAjax';
+            }
+
+            caap.waitMilliSecs = loadWaitTime ? loadWaitTime : caap.waitTime;
+            if (state.getItem('clickUrl', '').indexOf(link) < 0) {
+                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + link);
+            }
+
+            if (caap.waitingForDomLoad === false) {
+                schedule.setItem('clickedOnSomething', 0);
+                caap.waitingForDomLoad = true;
+            }
+
+            var jss = "javascript";
+            window.location.href = jss + ":void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
+            return true;
+        } catch (err) {
+            utility.error("ERROR in caap.ClickGetCachedAjax: " + err);
+            return false;
+        }
+    },
+
+    NavigateTo: function (pathToPage, imageOnPage) {
+        try {
+            var content   = $j(),
+                pathList  = [],
+                s         = 0,
+                a         = $j(),
+                imageTest = '',
+                img       = null;
+
+            content = $j("#content");
+            if (!content || !content.length) {
+                utility.warn('No content to Navigate to', imageOnPage, pathToPage);
+                return false;
+            }
+
+            if (imageOnPage) {
+                if (caap.CheckForImage(imageOnPage)) {
+                    return false;
+                }
+            }
+
+            pathList = pathToPage.split(",");
+            for (s = pathList.length - 1; s >= 0; s -= 1) {
+                a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
+                if (a && a.length) {
+                    utility.log(2, 'Go to', pathList[s]);
+                    caap.Click(a.get(0));
+                    return true;
+                }
+
+                imageTest = pathList[s];
+                if (imageTest.indexOf(".") === -1) {
+                    imageTest = imageTest + '.';
+                }
+
+                img = caap.CheckForImage(imageTest);
+                if (img) {
+                    utility.log(3, 'Click on image', img.src.match(/[\w.]+$/));
+                    caap.Click(img);
+                    return true;
+                }
+            }
+
+            utility.warn('Unable to Navigate to', imageOnPage, pathToPage);
+            return false;
+        } catch (err) {
+            utility.error("ERROR in caap.NavigateTo: " + err, imageOnPage, pathToPage);
+            return undefined;
+        }
+    },
+
+    CheckForImage: function (image, webSlice, subDocument, nodeNum) {
+        try {
+            var imageSlice = $j(),
+                jSlice     = $j();
+
+            if (!webSlice) {
+                webSlice = subDocument ? subDocument.body : window.document.body;
+            }
+
+            if (!nodeNum || typeof nodeNum !== 'number') {
+                nodeNum = 0;
+            }
+
+            jSlice = webSlice.jquery ? webSlice : $j(webSlice);
+            imageSlice = jSlice.find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
+            return (imageSlice.length ? imageSlice.get(0) : null);
+        } catch (err) {
+            utility.error("ERROR in caap.CheckForImage: " + err);
+            return undefined;
+        }
+    },
+
+    /////////////////////////////////////////////////////////////////////
     //                          DISPLAY FUNCTIONS
     // these functions set up the control applet and allow it to be changed
     /////////////////////////////////////////////////////////////////////
+
+    chatLink: function (slice, query) {
+        try {
+            var hr = new RegExp('.*(http:.*)'),
+                qr = /"/g,
+                c  = $j();
+
+            c = slice.find(query);
+            if (c && c.length) {
+                c.each(function () {
+                    var e = $j(this),
+                        h = '',
+                        a = [];
+
+                    h = e.html();
+                    h = h ? h.trim() : '';
+                    if (h) {
+                        a = h.split("<br>");
+                        if (a && a.length === 2) {
+                            a = a[1].replace(qr, '').match(hr);
+                            if (a && a.length === 2 && a[1]) {
+                                a = a[1].split(" ");
+                                if (a && a.length) {
+                                    e.html(h.replace(a[0], "<a href='" + a[0] + "'>" + a[0] + "</a>"));
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in caap.chatLink: " + err);
+            return false;
+        }
+    },
 
     MakeDropDown: function (idName, dropDownList, instructions, formatParms, defaultValue) {
         try {
@@ -13418,7 +13800,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitMonsterLink.arlink);
+                    caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
                 };
 
                 caap.caapTopObject.find("span[id*='caap_monster_']").unbind('click', handler).click(handler);
@@ -13446,7 +13828,7 @@ caap = {
                     if (resp === true) {
                         monster.deleteItem(monsterRemove.mname);
                         caap.UpdateDashboard(true);
-                        utility.ClickGetCachedAjax(monsterRemove.arlink);
+                        caap.ClickGetCachedAjax(monsterRemove.arlink);
                     }
                 };
 
@@ -13571,7 +13953,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitMonsterLink.arlink);
+                    caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
                 };
 
                 caap.caapTopObject.find("span[id*='caap_guildmonster_']").unbind('click', handler).click(handler);
@@ -13684,7 +14066,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitMonsterLink.arlink);
+                    caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
                 };
 
                 caap.caapTopObject.find("span[id='caap_arena_1']").unbind('click', handler).click(handler);
@@ -13758,7 +14140,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
                 caap.caapTopObject.find("span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
@@ -13823,7 +14205,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 });
 
                 state.setItem("BattleDashUpdate", false);
@@ -14583,7 +14965,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
                 caap.caapTopObject.find("span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
@@ -14655,7 +15037,7 @@ caap = {
                         }
                     }
 
-                    utility.ClickAjaxLinkSend(visitUserIdLink.arlink);
+                    caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                 };
 
                 caap.caapTopObject.find("span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
@@ -14783,7 +15165,7 @@ caap = {
     },
 
     liveFeedButtonListener: function (e) {
-        utility.ClickAjaxLinkSend('army_news_feed.php');
+        caap.ClickAjaxLinkSend('army_news_feed.php');
     },
 
     clearTargetsButtonListener: function (e) {
@@ -15151,7 +15533,7 @@ caap = {
             } else if (/Chain/.test(idName)) {
                 state.getItem('BattleChainId', 0);
             } else if (idName === 'DebugLevel') {
-                utility.logLevel = e.target.value;
+                utility.log_level = e.target.value;
             } else if (idName === "IgnoreMinionsBelow") {
                 state.setItem('targetGuildMonster', {});
                 state.setItem('staminaGuildMonster', 0);
@@ -16122,7 +16504,7 @@ caap = {
 
             // Check for Elite Guard Add image
             if (!config.getItem('AutoEliteIgnore', false)) {
-                if (state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy' && utility.CheckForImage('elite_guard_add')) {
+                if (state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy' && caap.CheckForImage('elite_guard_add')) {
                     schedule.setItem('AutoEliteGetList', 0);
                 }
             }
@@ -16771,7 +17153,7 @@ caap = {
 
                 // Other stats
                 // Atlantis Open
-                atlantisImg = utility.CheckForImage("seamonster_map_finished.jpg");
+                atlantisImg = caap.CheckForImage("seamonster_map_finished.jpg");
                 if (atlantisImg) {
                     caap.stats['other'].atlantis = true;
                 } else {
@@ -17547,16 +17929,16 @@ caap = {
                     }
 
                     if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2') {
-                        imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
+                        imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                     } else if (landPic === 'tab_heaven') {
-                        imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
+                        imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
                     } else if ((landPic === 'land_demon_realm') || (landPic === 'land_undead_realm')) {
-                        imgExist = utility.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
+                        imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '.gif', landPic + '_sel');
                     } else {
-                        imgExist = utility.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
+                        imgExist = caap.NavigateTo('quests,jobs_tab_back.gif,' + landPic + '.gif', landPic + '_sel');
                     }
                 } else {
-                    imgExist = utility.NavigateTo('quests', 'quest_back_1.jpg');
+                    imgExist = caap.NavigateTo('quests', 'quest_back_1.jpg');
                 }
 
                 if (imgExist) {
@@ -17565,32 +17947,32 @@ caap = {
 
                 break;
             case 'Demi Quests' :
-                if (utility.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
+                if (caap.NavigateTo('quests,symbolquests', 'demi_quest_on.gif')) {
                     return true;
                 }
 
                 var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
                 var picSlice = $j("img[src*='deity_" + caap.demiQuestTable[subDQArea] + "']");
                 if (picSlice.css("height") !== '160px') {
-                    if (utility.NavigateTo('deity_' + caap.demiQuestTable[subDQArea])) {
+                    if (caap.NavigateTo('deity_' + caap.demiQuestTable[subDQArea])) {
                         return true;
                     }
                 }
 
                 break;
             case 'Atlantis' :
-                if (!utility.CheckForImage('tab_atlantis_on.gif')) {
-                    return utility.NavigateTo('quests,monster_quests');
+                if (!caap.CheckForImage('tab_atlantis_on.gif')) {
+                    return caap.NavigateTo('quests,monster_quests');
                 }
 
                 break;
             default :
             }
 
-            var button = utility.CheckForImage('quick_switch_button.gif');
+            var button = caap.CheckForImage('quick_switch_button.gif');
             if (button && !config.getItem('ForceSubGeneral', false)) {
                 utility.log(2, 'Clicking on quick switch general button.');
-                utility.Click(button);
+                caap.Click(button);
                 general.quickSwitch = true;
                 return true;
             }
@@ -17625,10 +18007,10 @@ caap = {
                     }
                 }
 
-                button = utility.CheckForImage('quick_buy_button.jpg');
+                button = caap.CheckForImage('quick_buy_button.jpg');
                 if (button) {
                     utility.log(1, 'Clicking on quick buy button.');
-                    utility.Click(button);
+                    caap.Click(button);
                     return true;
                 }
 
@@ -17636,7 +18018,7 @@ caap = {
                 return false;
             }
 
-            button = utility.CheckForImage('quick_buy_button.jpg');
+            button = caap.CheckForImage('quick_buy_button.jpg');
             if (button) {
                 utility.log(1, 'quick_buy_button');
                 state.setItem('storeRetrieve', 'general');
@@ -17663,7 +18045,7 @@ caap = {
                 }
 
                 utility.log(2, 'Clicking on quick buy general button.');
-                utility.Click(button);
+                caap.Click(button);
                 return true;
             }
 
@@ -17710,7 +18092,7 @@ caap = {
                     utility.log(2, "background.children().eq(0).children().eq(0).attr('title')", background.children().eq(0).children().eq(0).attr("title"));
                     if (background.children().eq(0).children().eq(0).attr("title")) {
                         utility.log(2, "Clicking to buy", background.children().eq(0).children().eq(0).attr("title"));
-                        utility.Click(background.children().eq(0).children().eq(0).get(0));
+                        caap.Click(background.children().eq(0).children().eq(0).get(0));
                         return true;
                     }
                 }
@@ -17734,7 +18116,7 @@ caap = {
                 } else {
                     if (autoQuestDivs.genDiv && autoQuestDivs.genDiv.length) {
                         utility.log(2, 'Clicking on general', questGeneral);
-                        utility.Click(autoQuestDivs.genDiv.get(0));
+                        caap.Click(autoQuestDivs.genDiv.get(0));
                         return true;
                     } else {
                         utility.warn('Can not click on general', questGeneral);
@@ -17746,7 +18128,7 @@ caap = {
             if (autoQuestDivs.click && autoQuestDivs.click) {
                 utility.log(2, 'Clicking auto quest', autoQuestName);
                 state.setItem('ReleaseControl', true);
-                utility.Click(autoQuestDivs.click.get(0));
+                caap.Click(autoQuestDivs.click.get(0));
                 caap.ShowAutoQuest();
                 if (autoQuestDivs.orbCheck) {
                     schedule.setItem("magic", 0);
@@ -17869,7 +18251,7 @@ caap = {
                 s           = 0,
                 len         = 0;
 
-            if (utility.CheckForImage('demi_quest_on.gif')) {
+            if (caap.CheckForImage('demi_quest_on.gif')) {
                 caap.CheckResults_symbolquests(pickQuestTF);
                 $j("div[id*='app46755028429_symbol_tab_symbolquests']").unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
                 ss = $j("div[id*='symbol_displaysymbolquest']");
@@ -18186,7 +18568,7 @@ caap = {
             var found = false;
 
             if (caap.stats['level'] < 8) {
-                if (utility.CheckForImage('quest_back_1.jpg')) {
+                if (caap.CheckForImage('quest_back_1.jpg')) {
                     found = true;
                 }
             } else if (QuestSubArea && caap.QuestAreaInfo[QuestSubArea]) {
@@ -18347,19 +18729,19 @@ caap = {
 
             caap.ManualAutoQuest(tempAutoQuest);
             utility.log(5, 'LabelListener', sps, state.getItem('AutoQuest'));
-            if (caap.stats['level'] < 10 && utility.CheckForImage('quest_back_1.jpg')) {
+            if (caap.stats['level'] < 10 && caap.CheckForImage('quest_back_1.jpg')) {
                 config.setItem('QuestArea', 'Quest');
                 config.setItem('QuestSubArea', 'Land of Fire');
             } else {
-                if (utility.CheckForImage('tab_quest_on.gif')) {
+                if (caap.CheckForImage('tab_quest_on.gif')) {
                     config.setItem('QuestArea', 'Quest');
                     caap.SelectDropOption('QuestArea', 'Quest');
                     caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
-                } else if (utility.CheckForImage('demi_quest_on.gif')) {
+                } else if (caap.CheckForImage('demi_quest_on.gif')) {
                     config.setItem('QuestArea', 'Demi Quests');
                     caap.SelectDropOption('QuestArea', 'Demi Quests');
                     caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
-                } else if (utility.CheckForImage('tab_atlantis_on.gif')) {
+                } else if (caap.CheckForImage('tab_atlantis_on.gif')) {
                     config.setItem('QuestArea', 'Atlantis');
                     caap.SelectDropOption('QuestArea', 'Atlantis');
                     caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
@@ -18475,7 +18857,7 @@ caap = {
             return false;
         }
 
-        if (utility.NavigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
+        if (caap.NavigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
             return true;
         }
 
@@ -18486,7 +18868,7 @@ caap = {
         }
 
         if (picSlice.css('height') !== '160px') {
-            return utility.NavigateTo('deity_' + autoBless);
+            return caap.NavigateTo('deity_' + autoBless);
         }
 
         picSlice = $j("form[id*='_symbols_form_" + caap.deityTable[autoBless] + "']");
@@ -18495,7 +18877,7 @@ caap = {
             return false;
         }
 
-        picSlice = utility.CheckForImage('demi_quest_bless', picSlice);
+        picSlice = caap.CheckForImage('demi_quest_bless', picSlice);
         if (!picSlice) {
             utility.warn('No image for deity blessing.');
             return false;
@@ -18503,7 +18885,7 @@ caap = {
 
         utility.log(1, 'Click deity blessing for ', autoBless);
         schedule.setItem('BlessingTimer', 3600, 300);
-        utility.Click(picSlice);
+        caap.Click(picSlice);
         return true;
     },
 
@@ -18738,7 +19120,7 @@ caap = {
                             caap.sellLand = {};
                         }
 
-                        utility.Click(button.get(0), 15000);
+                        caap.Click(button.get(0), 15000);
                         return true;
                     } else {
                         utility.warn(type + " button not found!");
@@ -18760,7 +19142,7 @@ caap = {
             bestLandCost = state.getItem('BestLandCost', new caap.landRecord().data);
             if (!bestLandCost['set']) {
                 utility.log(2, "Going to land to get Best Land Cost");
-                if (utility.NavigateTo('soldiers,land', utility.CheckForImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
+                if (caap.NavigateTo('soldiers,land', caap.CheckForImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
                     return true;
                 }
             }
@@ -18772,7 +19154,7 @@ caap = {
 
             if (!caap.stats['gold']['bank'] && caap.stats['gold']['bank'] !== 0) {
                 utility.log(2, "Going to keep to get Stored Value");
-                if (utility.NavigateTo('keep')) {
+                if (caap.NavigateTo('keep')) {
                     return true;
                 }
             }
@@ -18802,8 +19184,8 @@ caap = {
                     }
                 }
 
-                utility.NavigateTo('soldiers,land');
-                if (utility.CheckForImage('tab_land_on.gif')) {
+                caap.NavigateTo('soldiers,land');
+                if (caap.CheckForImage('tab_land_on.gif')) {
                     if (bestLandCost['buy']) {
                         utility.log(2, "Buying land", caap.bestLand['name']);
                         if (BuySellLand(caap.bestLand)) {
@@ -18811,7 +19193,7 @@ caap = {
                         }
                     }
                 } else {
-                    return utility.NavigateTo('soldiers,land');
+                    return caap.NavigateTo('soldiers,land');
                 }
             }
 
@@ -18834,7 +19216,7 @@ caap = {
             }
 
             utility.log(2, 'Visiting keep to get stats');
-            return utility.NavigateTo('keep', 'tab_stats_on.gif');
+            return caap.NavigateTo('keep', 'tab_stats_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckKeep: " + err);
             return false;
@@ -18848,7 +19230,7 @@ caap = {
             }
 
             utility.log(2, "Checking Oracle for Favor Points");
-            return utility.NavigateTo('oracle', 'oracle_on.gif');
+            return caap.NavigateTo('oracle', 'oracle_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckOracle: " + err);
             return false;
@@ -18864,7 +19246,7 @@ caap = {
             }
 
             utility.log(2, 'Visiting Battle Rank to get stats');
-            return utility.NavigateTo('battle,battlerank', 'tab_battle_rank_on.gif');
+            return caap.NavigateTo('battle,battlerank', 'tab_battle_rank_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckBattleRank: " + err);
             return false;
@@ -18878,7 +19260,7 @@ caap = {
             }
 
             utility.log(2, 'Visiting War Rank to get stats');
-            return utility.NavigateTo('battle,war_rank', 'tab_war_on.gif');
+            return caap.NavigateTo('battle,war_rank', 'tab_war_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckWar: " + err);
             return false;
@@ -18893,7 +19275,7 @@ caap = {
             }
 
             utility.log(2, "Visiting generals to get 'General' list");
-            return utility.NavigateTo('mercenary,generals', 'tab_generals_on.gif');
+            return caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckGenerals: " + err);
             return false;
@@ -18907,7 +19289,7 @@ caap = {
             }
 
             utility.log(2, "Checking Soldiers");
-            return utility.NavigateTo('soldiers', 'tab_soldiers_on.gif');
+            return caap.NavigateTo('soldiers', 'tab_soldiers_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckSoldiers: " + err);
             return false;
@@ -18922,7 +19304,7 @@ caap = {
             }
 
             utility.log(2, "Checking Item");
-            return utility.NavigateTo('soldiers,item', 'tab_black_smith_on.gif');
+            return caap.NavigateTo('soldiers,item', 'tab_black_smith_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckItem: " + err);
             return false;
@@ -18936,7 +19318,7 @@ caap = {
             }
 
             utility.log(2, "Checking Magic");
-            return utility.NavigateTo('soldiers,magic', 'tab_magic_on.gif');
+            return caap.NavigateTo('soldiers,magic', 'tab_magic_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckMagic: " + err);
             return false;
@@ -18950,7 +19332,7 @@ caap = {
             }
 
             utility.log(2, 'Visiting achievements to get stats');
-            return utility.NavigateTo('keep,achievements', 'tab_achievements_on.gif');
+            return caap.NavigateTo('keep,achievements', 'tab_achievements_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckAchievements: " + err);
             return false;
@@ -18966,7 +19348,7 @@ caap = {
             }
 
             utility.log(2, "Visiting symbolquests to get 'Demi-Power' points");
-            return utility.NavigateTo('quests,symbolquests', 'demi_quest_on.gif');
+            return caap.NavigateTo('quests,symbolquests', 'demi_quest_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckSymbolQuests: " + err);
             return false;
@@ -18980,7 +19362,7 @@ caap = {
             }
 
             utility.log(2, "Checking Monster Class to get Character Class Stats");
-            return utility.NavigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
+            return caap.NavigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
         } catch (err) {
             utility.error("ERROR in CheckCharacterClasses: " + err);
             return false;
@@ -18995,7 +19377,7 @@ caap = {
             }
 
             utility.log(2, "Checking Gift");
-            return utility.NavigateTo('army,gift', 'tab_gifts_on.gif');
+            return caap.NavigateTo('army,gift', 'tab_gifts_on.gif');
         } catch (err) {
             utility.error("ERROR in CheckGift: " + err);
             return false;
@@ -19018,7 +19400,7 @@ caap = {
                 form         = $j(),
                 inp          = $j();
 
-            battleButton = utility.CheckForImage(battle.battles['Freshmeat'][config.getItem('BattleType', 'Invade')]);
+            battleButton = caap.CheckForImage(battle.battles['Freshmeat'][config.getItem('BattleType', 'Invade')]);
             if (battleButton) {
                 form = $j(battleButton).parent().parent();
                 if (form && form.length) {
@@ -19189,7 +19571,7 @@ caap = {
 
             // Check if we should chain attack
             if ($j("#app46755028429_results_main_wrapper img[src*='battle_victory.gif']").length) {
-                button = utility.CheckForImage(chainImg);
+                button = caap.CheckForImage(chainImg);
                 battleChainId = state.getItem("BattleChainId", 0);
                 if (button && battleChainId) {
                     caap.SetDivContent('battle_mess', 'Chain Attack In Progress');
@@ -19216,12 +19598,12 @@ caap = {
                 }
 
                 caap.SetDivContent('battle_mess', 'Joining the Raid');
-                if (utility.NavigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
+                if (caap.NavigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
                     return true;
                 }
 
                 if (config.getItem('clearCompleteRaids', false) && monster.completeButton['raid']['button'] && monster.completeButton['raid']['name']) {
-                    utility.Click(monster.completeButton['raid']['button']);
+                    caap.Click(monster.completeButton['raid']['button']);
                     monster.deleteItem(monster.completeButton['raid']['name']);
                     monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
                     caap.UpdateDashboard(true);
@@ -19233,7 +19615,7 @@ caap = {
                 if (!$j("div[style*='dragon_title_owner']").length) {
                     button = monster.engageButtons[raidName];
                     if (button) {
-                        utility.Click(button);
+                        caap.Click(button);
                         return true;
                     }
 
@@ -19266,7 +19648,7 @@ caap = {
 
                 return battle.freshmeat('Raid');
             case 'freshmeat' :
-                if (utility.NavigateTo(caap.battlePage, 'battle_on.gif')) {
+                if (caap.NavigateTo(caap.battlePage, 'battle_on.gif')) {
                     return true;
                 }
 
@@ -19315,7 +19697,7 @@ caap = {
                     }
                 }
 
-                if (utility.NavigateTo(caap.battlePage, 'battle_on.gif')) {
+                if (caap.NavigateTo(caap.battlePage, 'battle_on.gif')) {
                     return true;
                 }
 
@@ -19429,7 +19811,7 @@ caap = {
 
             if (!caap.stats['guild']['id']) {
                 utility.log(2, "Going to guild to get Guild Id");
-                if (utility.NavigateTo('guild')) {
+                if (caap.NavigateTo('guild')) {
                     return true;
                 }
             }
@@ -19461,7 +19843,7 @@ caap = {
 
                 url = "guild_battle_monster.php?twt2=" + guild_monster.info[record['name']].twt2 + "&guild_id=" + record['guildId'] + objective + "&slot=" + record['slot'] + "&ref=nf";
                 state.setItem('guildMonsterReviewSlot', record['slot']);
-                utility.ClickAjaxLinkSend(url);
+                caap.ClickAjaxLinkSend(url);
                 return true;
             }
 
@@ -19524,7 +19906,7 @@ caap = {
 
             if (!caap.stats['guild']['id']) {
                 utility.log(2, "Going to guild to get Guild Id");
-                if (utility.NavigateTo('guild')) {
+                if (caap.NavigateTo('guild')) {
                     return true;
                 }
             }
@@ -19532,7 +19914,7 @@ caap = {
             /*
             if (!caap.stats['guild']['id']) {
                 utility.log(2, "Going to keep to get Guild Id");
-                if (utility.NavigateTo('keep')) {
+                if (caap.NavigateTo('keep')) {
                     return true;
                 }
             }
@@ -19608,7 +19990,7 @@ caap = {
                     utility.log(2, "Fighting Slot (" + record['slot'] + ") Name: " + record['name']);
                     caap.SetDivContent('guild_monster_mess', "Fighting ("  + record['slot'] + ") " + record['name']);
                     url = "guild_battle_monster.php?twt2=" + guild_monster.info[record['name']].twt2 + "&guild_id=" + record['guildId'] + "&slot=" + record['slot'];
-                    utility.ClickAjaxLinkSend(url);
+                    caap.ClickAjaxLinkSend(url);
                     return true;
                 }
 
@@ -19626,7 +20008,7 @@ caap = {
                         key.attr("value", attack);
                         form = key.parents("form").eq(0);
                         if (form && form.length) {
-                            utility.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
+                            caap.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
                             return true;
                         }
                     }
@@ -19783,7 +20165,7 @@ caap = {
                 utility.log(1, "Enter battle", record, enterButton);
                 if (record['tokens'] > 0 && enterButton && enterButton.length) {
                     arena.clearMinions();
-                    utility.Click(enterButton.get(0));
+                    caap.Click(enterButton.get(0));
                     return true;
                 }
             }
@@ -19793,7 +20175,7 @@ caap = {
                 utility.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
                 if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
                     state.setItem('ArenaJoined', true);
-                    utility.Click(enterButton.get(0));
+                    caap.Click(enterButton.get(0));
                     return true;
                 }
 
@@ -19813,7 +20195,7 @@ caap = {
                     form = key.parents("form").eq(0);
                     if (form && form.length) {
                         state.setItem('ArenaMinionAttacked', minion);
-                        utility.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
+                        caap.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']").get(0));
                         return true;
                     }
                 }
@@ -19904,7 +20286,7 @@ caap = {
 
                     if (!monster.completeButton[page]['button'] && !monster.completeButton[page]['name']) {
                         monster.completeButton[page]['name'] = monsterName;
-                        monster.completeButton[page]['button'] = utility.CheckForImage('cancelButton.gif', monsterRow);
+                        monster.completeButton[page]['button'] = caap.CheckForImage('cancelButton.gif', monsterRow);
                     }
 
                     monsterReviewed['status'] = 'Complete';
@@ -19982,7 +20364,7 @@ caap = {
                 spreadsheet.doTitles();
             }
 
-            utility.chatLink(caap.appBodyDiv, "#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
+            caap.chatLink(caap.appBodyDiv, "#app46755028429_chat_log div[style*='hidden'] div[style*='320px']");
             monsterDiv = caap.appBodyDiv.find("div[style*='dragon_title_owner']");
             if (monsterDiv && monsterDiv.length) {
                 tStr = monsterDiv.children(":eq(2)").text();
@@ -20044,7 +20426,7 @@ caap = {
                 utility.log(4, "Monster ticker found");
                 time = tempDiv.text().split(":");
             } else {
-                if (!utility.CheckForImage("dead.jpg")) {
+                if (!caap.CheckForImage("dead.jpg")) {
                     utility.warn("Could not locate Monster ticker.");
                 }
             }
@@ -20533,7 +20915,7 @@ caap = {
 
             if (counter === -2) {
                 if (caap.stats['level'] > 6) {
-                    if (utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+                    if (caap.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                         state.setItem('reviewDone', false);
                         return true;
                     }
@@ -20551,7 +20933,7 @@ caap = {
 
             if (counter === -1) {
                 if (caap.stats['level'] > 7) {
-                    if (utility.NavigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
+                    if (caap.NavigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
                         state.setItem('reviewDone', false);
                         return true;
                     }
@@ -20649,7 +21031,7 @@ caap = {
                     state.setItem('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '').replace('?', '?twt2&');
                     utility.log(5, "Link", link);
-                    utility.ClickAjaxLinkSend(link);
+                    caap.ClickAjaxLinkSend(link);
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
                     state.setItem('resetselectMonster', true);
                     return true;
@@ -20829,7 +21211,7 @@ caap = {
                         useTactics = false;
                     }
 
-                    if (useTactics && utility.CheckForImage('nm_button_tactics.gif')) {
+                    if (useTactics && caap.CheckForImage('nm_button_tactics.gif')) {
                         utility.log(2, "Attacking monster using tactics buttons");
                         buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
                     } else {
@@ -20862,7 +21244,7 @@ caap = {
                 }
 
                 for (it = 0, len = buttonList.length; it < len; it += 1) {
-                    attackButton = utility.CheckForImage(buttonList[it], null, null, nodeNum);
+                    attackButton = caap.CheckForImage(buttonList[it], null, null, nodeNum);
                     if (attackButton) {
                         break;
                     }
@@ -20880,7 +21262,7 @@ caap = {
                     utility.log(1, attackMess);
                     caap.SetDivContent('monster_mess', attackMess);
                     state.setItem('ReleaseControl', true);
-                    utility.Click(attackButton);
+                    caap.Click(attackButton);
                     return true;
                 } else {
                     utility.warn('No button to attack/fortify with.');
@@ -20890,18 +21272,18 @@ caap = {
             }
 
             ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
-            if (utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+            if (caap.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                 return true;
             }
 
             buttonHref = $j("img[src*='dragon_list_btn_']").eq(0).parent().attr("href");
             if (state.getItem('pageUserCheck', '') && (!buttonHref || !buttonHref.match('user=' + caap.stats['FBID']) || !buttonHref.match(/alchemy\.php/))) {
                 utility.log(2, "On another player's keep.", state.getItem('pageUserCheck', ''));
-                return utility.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
+                return caap.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
             }
 
             if (config.getItem('clearCompleteMonsters', false) && monster.completeButton['battle_monster']['button'] && monster.completeButton['battle_monster']['name']) {
-                utility.Click(monster.completeButton['battle_monster']['button']);
+                caap.Click(monster.completeButton['battle_monster']['button']);
                 monster.deleteItem(monster.completeButton['battle_monster']['name']);
                 monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
                 caap.UpdateDashboard(true);
@@ -20911,7 +21293,7 @@ caap = {
 
             if (monster.engageButtons[monsterName]) {
                 caap.SetDivContent('monster_mess', 'Opening ' + monsterName);
-                utility.Click(monster.engageButtons[monsterName]);
+                caap.Click(monster.engageButtons[monsterName]);
                 return true;
             } else {
                 schedule.setItem('NotargetFrombattle_monster', 60);
@@ -21067,7 +21449,7 @@ caap = {
             }
 
             if (schedule.check("battle")) {
-                if (utility.NavigateTo(caap.battlePage, 'battle_on.gif')) {
+                if (caap.NavigateTo(caap.battlePage, 'battle_on.gif')) {
                     return true;
                 }
             }
@@ -21312,7 +21694,7 @@ caap = {
                 try {
                     if (!$j(".statsTTitle").length) {
                         utility.log(2, "Going to keep for potions");
-                        if (utility.NavigateTo('keep')) {
+                        if (caap.NavigateTo('keep')) {
                             return true;
                         }
                     }
@@ -21330,7 +21712,7 @@ caap = {
                     if (potionDiv && potionDiv.length) {
                         button = potionDiv.get(0);
                         if (button) {
-                            utility.Click(button);
+                            caap.Click(button);
                         } else {
                             utility.warn("Could not find consume button for", potion);
                             return false;
@@ -21388,7 +21770,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     Now we navigate to the Alchemy Recipe page.
     \-------------------------------------------------------------------------------------*/
-            if (!utility.NavigateTo('keep,alchemy', 'tab_alchemy_on.gif')) {
+            if (!caap.NavigateTo('keep,alchemy', 'tab_alchemy_on.gif')) {
                 var button    = {},
                     recipeDiv = $j(),
                     ss        = $j(),
@@ -21399,7 +21781,7 @@ caap = {
                     if (recipeDiv.attr("class") !== 'show_items') {
                         button = recipeDiv.find("div[id*='alchemy_item_tab']");
                         if (button && button.length) {
-                            utility.Click(button.get(0));
+                            caap.Click(button.get(0));
                             return true;
                         } else {
                             utility.warn('Cant find item tab', recipeDiv);
@@ -21413,9 +21795,9 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     We close the results of our combines so they don't hog up our screen
     \-------------------------------------------------------------------------------------*/
-                button = utility.CheckForImage('help_close_x.gif');
+                button = caap.CheckForImage('help_close_x.gif');
                 if (button) {
-                    utility.Click(button);
+                    caap.Click(button);
                     return true;
                 }
     /*-------------------------------------------------------------------------------------\
@@ -21438,7 +21820,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     If we are skipping battle hearts then skip it
     \-------------------------------------------------------------------------------------*/
-                    if (utility.CheckForImage('raid_hearts', recipeDiv) && !config.getItem('AutoAlchemyHearts', false)) {
+                    if (caap.CheckForImage('raid_hearts', recipeDiv) && !config.getItem('AutoAlchemyHearts', false)) {
                         utility.log(2, 'Skipping Hearts');
                         return true;
                     }
@@ -21448,8 +21830,8 @@ caap = {
                     button = recipeDiv.find("input[type='image']");
                     if (button && button.length) {
                         clicked = true;
-                        utility.Click(button.get(0));
-                        utility.log(2, 'Clicked A Recipe');
+                        caap.Click(button.get(0));
+                        utility.log(2, 'Clicked A Recipe', recipeDiv.find("img").attr("title"));
                         return false;
                     } else {
                         utility.warn('Cant Find Item Image Button');
@@ -21515,7 +21897,7 @@ caap = {
             depositButton = $j("input[src*='btn_stash.gif']");
             if (!depositButton || !depositButton.length) {
                 // Cannot find the link
-                return utility.NavigateTo('keep');
+                return caap.NavigateTo('keep');
             }
 
             numberInput = $j("input[name='stash_gold']");
@@ -21527,7 +21909,7 @@ caap = {
             deposit = numberInput.attr("value").parseInt() - minInCash;
             numberInput.attr("value", deposit);
             utility.log(1, 'Depositing into bank:', deposit);
-            utility.Click(depositButton.get(0));
+            caap.Click(depositButton.get(0));
             return true;
         } catch (err) {
             utility.error("ERROR in Bank: " + err);
@@ -21548,7 +21930,7 @@ caap = {
             retrieveButton = $j("input[src*='btn_retrieve.gif']");
             if (!retrieveButton || !retrieveButton.length) {
                 // Cannot find the link
-                return utility.NavigateTo('keep');
+                return caap.NavigateTo('keep');
             }
 
             minInStore = config.getItem('minInStore', 0);
@@ -21565,7 +21947,7 @@ caap = {
             numberInput.attr("value", num);
             utility.log(1, 'Retrieving from bank:', num);
             state.setItem('storeRetrieve', '');
-            utility.Click(retrieveButton.get(0));
+            caap.Click(retrieveButton.get(0));
             return true;
         } catch (err) {
             utility.error("ERROR in RetrieveFromBank: " + err);
@@ -21604,7 +21986,7 @@ caap = {
             if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
                 if ((caap.InLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['staminaT']['max']) && caap.stats['health']['num'] < 10) {
                     utility.log(1, 'Heal');
-                    return utility.NavigateTo('keep,heal_button.gif');
+                    return caap.NavigateTo('keep,heal_button.gif');
                 }
             }
 
@@ -21618,7 +22000,7 @@ caap = {
             }
 
             utility.log(1, 'Heal');
-            return utility.NavigateTo('keep,heal_button.gif');
+            return caap.NavigateTo('keep,heal_button.gif');
         } catch (err) {
             utility.error("ERROR in Heal: " + err);
             return false;
@@ -21733,7 +22115,7 @@ caap = {
                 utility.log(2, 'Elite Guard has a MyEliteTodo list, shifting User ID');
                 var user = eliteList.shift();
                 utility.log(1, 'Add Elite Guard ID: ', user);
-                utility.ClickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
+                caap.ClickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
                 utility.log(2, 'Elite Guard sent request, saving shifted MyEliteTodo');
                 state.setItem('MyEliteTodo', eliteList);
                 schedule.setItem('AutoEliteReqNext', 7);
@@ -22053,7 +22435,7 @@ caap = {
 
             // Go to gifts page if gift list is empty
             if (gifting.gifts.length() <= 2) {
-                if (utility.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
+                if (caap.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                     return true;
                 }
             }
@@ -22082,20 +22464,20 @@ caap = {
 
             giftChoice = gifting.queue.chooseGift();
             if (gifting.queue.length() && giftChoice) {
-                //if (utility.NavigateTo('army,gift,gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
-                if (utility.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
+                //if (caap.NavigateTo('army,gift,gift_invite_castle_off.gif', 'gift_invite_castle_on.gif')) {
+                if (caap.NavigateTo('army,gift', 'tab_gifts_on.gif')) {
                     return true;
                 }
 
                 giftImg = gifting.gifts.getImg(giftChoice);
                 if (giftImg) {
-                    utility.NavigateTo('gift_more_gifts.gif');
+                    caap.NavigateTo('gift_more_gifts.gif');
                     tempDiv = $j("#app46755028429_giftContainer img[class='imgButton']").eq(0);
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.attr("src").filepart();
                         if (tempText !== giftImg) {
                             utility.log(3, "images", tempText, giftImg);
-                            return utility.NavigateTo(giftImg);
+                            return caap.NavigateTo(giftImg);
                         }
 
                         utility.log(1, "Gift selected", giftChoice);
@@ -22107,7 +22489,7 @@ caap = {
                 if (gifting.queue.chooseFriend(gm.getItem("NumberOfGifts", 5, hiddenVar))) {
                     tempDiv = $j("form[id*='req_form_'] input[name='send']");
                     if (tempDiv && tempDiv.length) {
-                        utility.Click(tempDiv.get(0));
+                        caap.Click(tempDiv.get(0));
                         return true;
                     } else {
                         utility.warn("Send button not found!");
@@ -22244,7 +22626,7 @@ caap = {
 
             if (attrAdjustNew > attrCurrent) {
                 utility.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
-                utility.Click(button.get(0));
+                caap.Click(button.get(0));
                 return "Click";
             }
 
@@ -22366,7 +22748,7 @@ caap = {
 
             atributeSlice = $j("div[class*='keep_attribute_section']");
             if (!atributeSlice || !atributeSlice.length) {
-                utility.NavigateTo('keep');
+                caap.NavigateTo('keep');
                 return true;
             }
 
@@ -23362,7 +23744,7 @@ caap = {
             //We don't need to send out any notifications
             button = $j("a[class*='undo_link']");
             if (button && button.length) {
-                utility.Click(button.get(0));
+                caap.Click(button.get(0));
                 utility.log(1, 'Undoing notification');
             }
 
@@ -23476,7 +23858,7 @@ caap = {
         try {
             // better than reload... no prompt on forms!
             if (!config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
-                utility.VisitUrl("http://apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0");
+                caap.VisitUrl("http://apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0");
             }
 
             return true;
@@ -23720,8 +24102,9 @@ function caap_WaitForjQuery() {
 /////////////////////////////////////////////////////////////////////
 //                         Begin
 /////////////////////////////////////////////////////////////////////
-
+utility.log_version = caapVersion;
 caap_log("Starting ... waiting page load");
+utility.log(1, "Starting ... waiting page load");
 caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
 if (typeof window.jQuery !== 'function') {
     caap_log("Inject jQuery");

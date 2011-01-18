@@ -201,7 +201,7 @@ gifting = {
             }
 
             if ($j.isEmptyObject(giftEntry) && state.getItem('HaveGift', false)) {
-                if (utility.NavigateTo('army', 'invite_on.gif')) {
+                if (caap.NavigateTo('army', 'invite_on.gif')) {
                     return true;
                 }
 
@@ -211,7 +211,7 @@ gifting = {
                 }
 
                 schedule.setItem('ClickedFacebookURL', 30);
-                utility.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
+                caap.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
                 return true;
             }
 
@@ -297,7 +297,7 @@ gifting = {
                             giftEntry['checked'] = true;
                             gifting.setCurrent(giftEntry);
                             schedule.setItem('ClickedFacebookURL', 35);
-                            utility.Click(inputDiv.get(0));
+                            caap.Click(inputDiv.get(0));
                             return false;
                         } else {
                             utility.warn("No input found in ", giftRequest.get(0));
@@ -325,7 +325,7 @@ gifting = {
                 utility.log(1, 'Unable to find gift', giftEntry);
             }
 
-            utility.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+            caap.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
             return true;
         } catch (err) {
             utility.error("ERROR in gifting.collect: " + err);
@@ -338,7 +338,7 @@ gifting = {
         try {
             var giftEntry = gifting.getCurrent();
             if (!$j.isEmptyObject(giftEntry)) {
-                if (force || utility.CheckForImage("gift_yes.gif")) {
+                if (force || caap.CheckForImage("gift_yes.gif")) {
                     if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                         gifting.queue.setItem(giftEntry);
                     }
@@ -369,14 +369,14 @@ gifting = {
                 tempDiv = popDiv.find("input[name='sendit']");
                 if (tempDiv && tempDiv.length) {
                     utility.log(1, 'Sending gifts to Facebook');
-                    utility.Click(tempDiv.get(0));
+                    caap.Click(tempDiv.get(0));
                     return true;
                 }
 
                 tempDiv = popDiv.find("input[name='skip_ci_btn']");
                 if (tempDiv && tempDiv.length) {
                     utility.log(1, 'Denying Email Nag For Gift Send');
-                    utility.Click(tempDiv.get(0));
+                    caap.Click(tempDiv.get(0));
                     return true;
                 }
 
@@ -395,7 +395,7 @@ gifting = {
                         utility.warn('Popup message but no text found', tempDiv);
                     }
 
-                    utility.Click(tempDiv.get(0));
+                    caap.Click(tempDiv.get(0));
                     return tryAgain;
                 }
 
@@ -941,7 +941,7 @@ gifting = {
                             id = tStr ? tStr.parseInt() : 0;
                             if (!/none/.test(unsel.parent().attr("style"))) {
                                 caap.waitingForDomLoad = false;
-                                utility.Click(unsel.get(0));
+                                caap.Click(unsel.get(0));
                                 utility.log(2, "Id clicked:", id);
                                 clickedList.push(id);
                             } else {

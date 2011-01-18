@@ -108,7 +108,7 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                if (utility.logLevel > 2) {
+                if (utility.log_level > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
 
@@ -133,7 +133,7 @@ schedule = {
                 }
 
                 if (!$j.isPlainObject(schedule.timers[name_or_number])) {
-                    if (utility.logLevel > 2) {
+                    if (utility.log_level > 2) {
                         utility.warn("Invalid or non-existant timer!", name_or_number);
                     }
                 } else {
@@ -222,7 +222,7 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                if (utility.logLevel > 2) {
+                if (utility.log_level > 2) {
                     utility.warn("Invalid or non-existant timer!", name);
                 }
 

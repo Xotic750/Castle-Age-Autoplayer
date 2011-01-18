@@ -1093,7 +1093,7 @@ monster = {
 
             if (monsterName !== tempText) {
                 utility.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
-                return utility.NavigateTo('keep,' + monster.getItem(monsterName).page);
+                return caap.NavigateTo('keep,' + monster.getItem(monsterName).page);
             }
 
             return false;

@@ -757,7 +757,7 @@ battle = {
             state.setItem('ReleaseControl', true);
             battle.flagResult = true;
             state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
-            utility.Click(battleButton);
+            caap.Click(battleButton);
             return true;
         } catch (err) {
             utility.error("ERROR in battle.click: " + err);
@@ -841,7 +841,7 @@ battle = {
             inputDiv = caap.appBodyDiv.find("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
                 utility.warn('Not on battlepage');
-                utility.NavigateTo(caap.battlePage);
+                caap.NavigateTo(caap.battlePage);
                 return false;
             }
 
@@ -1196,13 +1196,13 @@ battle = {
             if (type === 'Raid') {
                 engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
                 if (state.getItem("page", '') === 'raid' && engageButton) {
-                    utility.Click(engageButton);
+                    caap.Click(engageButton);
                 } else {
                     schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
-                    utility.NavigateTo(caap.battlePage + ',raid');
+                    caap.NavigateTo(caap.battlePage + ',raid');
                 }
             } else {
-                utility.NavigateTo(caap.battlePage + ',battle_on.gif');
+                caap.NavigateTo(caap.battlePage + ',battle_on.gif');
             }
 
             return true;

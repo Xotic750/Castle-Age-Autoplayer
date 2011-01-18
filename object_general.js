@@ -573,13 +573,13 @@ general = {
             }
 
             utility.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
-            if (utility.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                 return true;
             }
 
             generalImage = general.GetImage(generalName);
-            if (utility.CheckForImage(generalImage)) {
-                return utility.NavigateTo(generalImage);
+            if (caap.CheckForImage(generalImage)) {
+                return caap.NavigateTo(generalImage);
             }
 
             caap.SetDivContent('Could not find ' + generalName);
@@ -697,16 +697,16 @@ general = {
                 return false;
             }
 
-            if (utility.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+            if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                 utility.log(2, "Visiting generals to get 'General' stats");
                 return true;
             }
 
             generalImage = general.GetImage(general.records[it]['name']);
-            if (utility.CheckForImage(generalImage)) {
+            if (caap.CheckForImage(generalImage)) {
                 if (general.GetCurrent() !== general.records[it]['name']) {
                     utility.log(2, "Visiting 'General'", general.records[it]['name']);
-                    return utility.NavigateTo(generalImage);
+                    return caap.NavigateTo(generalImage);
                 }
             }
 
