@@ -6353,7 +6353,7 @@ caap = {
                     tStr = monsterClass.attr("class");
                     name = tStr ? tStr.replace("banner_", '') : '';
                     if (name && $j.isPlainObject(caap.stats['character'][name])) {
-                        caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getElementWidth(2);
+                        caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getPercent('width').dp(2);
                         tStr = monsterClass.children().eq(2).text();
                         caap.stats['character'][name]['level'] = tStr ? tStr.numberOnly() : 0;
                         utility.log(2, "Got character class record", name, caap.stats['character'][name]);
@@ -9165,7 +9165,7 @@ caap = {
                 case 'bar_dispel.gif' :
                     tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster['fortify'] = (100 - tempDiv.parent().getElementWidth()).dp(2);
+                        currentMonster['fortify'] = (100 - tempDiv.parent().getPercent('width')).dp(2);
                     } else {
                         utility.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
@@ -9174,11 +9174,11 @@ caap = {
                 case 'seamonster_ship_health.jpg' :
                     tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster['fortify'] = tempDiv.parent().getElementWidth(2);
+                        currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
                         if (monsterInfo.repair_img) {
                             tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.repair_img + "']");
                             if (tempDiv && tempDiv.length) {
-                                currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.parent().getElementWidth()))).dp(2);
+                                currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.parent().getPercent('width')))).dp(2);
                             } else {
                                 utility.warn("Unable to find repair bar", monsterInfo.repair_img);
                             }
@@ -9191,8 +9191,8 @@ caap = {
                 case 'nm_green.jpg' :
                     tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster['fortify'] = tempDiv.parent().getElementWidth(2);
-                        currentMonster['strength'] = tempDiv.parent().parent().getElementWidth(2);
+                        currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
+                        currentMonster['strength'] = tempDiv.parent().parent().getPercent('width').dp(2);
                     } else {
                         utility.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
@@ -9263,7 +9263,7 @@ caap = {
                 currentMonster['time'] = time;
                 if (monsterDiv && monsterDiv.length) {
                     utility.log(4, "Found monster health div");
-                    currentMonster['life'] = monsterDiv.parent().getElementWidth(2);
+                    currentMonster['life'] = monsterDiv.parent().getPercent('width').dp(2);
                 } else {
                     utility.warn("Could not find monster health div.");
                 }
@@ -9310,7 +9310,7 @@ caap = {
 
                             tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
                             if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.getElementWidth(2);
+                                tempText = tempDiv.getPercent('width').dp(2);
                                 utility.log(4, "Stun bar percent text", tempText);
                                 if (tempText >= 0) {
                                     currentMonster['stun'] = tempText;

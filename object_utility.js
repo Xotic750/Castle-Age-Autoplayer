@@ -1,12 +1,8 @@
 
 ////////////////////////////////////////////////////////////////////
-//                          utility OBJECT
+//                          utility library
 // Small functions called a lot to reduce duplicate code
 /////////////////////////////////////////////////////////////////////
-
-if (!this.utility) {
-    this.utility = {};
-}
 
 (function () {
 
@@ -687,30 +683,6 @@ if (!this.utility) {
                H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
     };
 
-    Array.prototype.deepCopy = function () {
-        var i = 0,
-            l = 0,
-            n = [],
-            t = null;
-
-        for (i = 0, l = this.length; i < l; i += 1) {
-            switch ($j.type(this[i])) {
-            case "object":
-                t = $j.extend(true, {}, this[i]);
-                break;
-            case "array":
-                t = this[i].deepCopy();
-                break;
-            default:
-                t = this[i];
-            }
-
-            n.push(t);
-        }
-
-        return n;
-    };
-
     Number.prototype.dp = function (x) {
         return parseFloat(this.toFixed(x >= 0 && x <= 20 ? x : 0));
     };
@@ -741,6 +713,31 @@ if (!this.utility) {
     };
     /*jslint bitwise: true */
 
+    ///////////////////////////
+    //       jQuery
+    ///////////////////////////
+
+    (function ($) {
+        $.fn.getPercent = function (type) {
+            var t = [];
+            if (!type || type === 'width') {
+                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+            } else if (!type || type === 'height') {
+                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+            }
+
+            return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+        };
+    })(jQuery);
+
+    if (!this.utility) {
+        this.utility = {};
+    }
+
+    ///////////////////////////
+    //       utility
+    ///////////////////////////
+
     utility.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false;
 
     utility.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false;
@@ -749,6 +746,20 @@ if (!this.utility) {
 
     utility.is_html5_sessionStorage = ('sessionStorage' in window) && window.sessionStorage !== null;
 
+    utility.injectScript = function (url) {
+        try {
+            var inject = document.createElement('script');
+            inject.setAttribute('type', 'text/javascript');
+            inject.setAttribute('src', url);
+            document.head.appendChild(inject);
+            return true;
+        } catch (err) {
+            utility.error("ERROR in utility.injectScript: " + err);
+            return false;
+        }
+    };
+
+    /*
     utility.typeOf = function (obj) {
         try {
             var s = typeof obj;
@@ -794,10 +805,6 @@ if (!this.utility) {
         }
     };
 
-    ///////////////////////////
-    //       Functions
-    ///////////////////////////
-
     utility.isInt = function (value) {
         try {
             var y = parseInt(value, 10);
@@ -811,14 +818,10 @@ if (!this.utility) {
             return undefined;
         }
     };
+    */
 
     utility.isNum = function (value) {
-        try {
-            return $j.type(value) === 'number';
-        } catch (err) {
-            utility.error("ERROR in utility.isNum: " + err);
-            return undefined;
-        }
+        return typeof value === 'number';
     };
 
     utility.alertDialog = {};
@@ -833,11 +836,11 @@ if (!this.utility) {
             }
 
             if (!utility.alertDialog[id] || !utility.alertDialog[id].length) {
-                utility.alertDialog[id] = $j('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                utility.alertDialog[id] = jQuery('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
                 utility.alertDialog[id].dialog({
                     buttons: {
                         "Ok": function () {
-                            $j(this).dialog("close");
+                            jQuery(this).dialog("close");
                         }
                     }
                 });
@@ -853,9 +856,25 @@ if (!this.utility) {
         }
     };
 
-    utility.log_version = '0';
+    utility.log_version = '';
 
     utility.log_level = 1;
+
+    utility.log_copy = function (obj) {
+        var t;
+        switch (jQuery.type(obj)) {
+        case "object":
+            t = jQuery.extend(true, {}, obj);
+            break;
+        case "array":
+            t = obj.slice();
+            break;
+        default:
+            t = obj;
+        }
+
+        return t;
+    };
 
     utility.log = function (level, text) {
         if (console.log !== undefined) {
@@ -863,23 +882,11 @@ if (!this.utility) {
                 var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
-                    len     = 0,
-                    newArg;
+                    len     = 0;
 
                 if (arguments.length > 2) {
                     for (it = 2, len = arguments.length; it < len; it += 1) {
-                        switch ($j.type(arguments[it])) {
-                        case "object":
-                            newArg = $j.extend(true, {}, arguments[it]);
-                            break;
-                        case "array":
-                            newArg = arguments[it].deepCopy();
-                            break;
-                        default:
-                            newArg = arguments[it];
-                        }
-
-                        tempArr.push(newArg);
+                        tempArr.push(utility.log_copy(arguments[it]));
                     }
 
                     console.log(message, tempArr);
@@ -895,23 +902,11 @@ if (!this.utility) {
             var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
-                    len     = 0,
-                    newArg;
+                    len     = 0;
 
             if (arguments.length > 1) {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($j.type(arguments[it])) {
-                    case "object":
-                        newArg = $j.extend(true, {}, arguments[it]);
-                        break;
-                    case "array":
-                        newArg = arguments[it].deepCopy();
-                        break;
-                    default:
-                        newArg = arguments[it];
-                    }
-
-                    tempArr.push(newArg);
+                    tempArr.push(utility.log_copy(arguments[it]));
                 }
 
                 console.warn(message, tempArr);
@@ -937,18 +932,7 @@ if (!this.utility) {
 
             if (arguments.length > 1) {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($j.type(arguments[it])) {
-                    case "object":
-                        newArg = $j.extend(true, {}, arguments[it]);
-                        break;
-                    case "array":
-                        newArg = arguments[it].deepCopy();
-                        break;
-                    default:
-                        newArg = arguments[it];
-                    }
-
-                    tempArr.push(newArg);
+                    tempArr.push(utility.log_copy(arguments[it]));
                 }
 
                 console.error(message, tempArr);

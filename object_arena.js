@@ -595,10 +595,12 @@ arena = {
                         }
                     } else {
                         resultsTxt = $j("div[class='results']").text();
-                        if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/)) {
+                        if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/i)) {
                             utility.log(1, "You didn't have enough battle tokens");
-                        } else if (resultsTxt.regex(/(does not have any health left to battle)/)) {
+                        } else if (resultsTxt.regex(/(does not have any health left to battle)/i)) {
                             utility.log(1, "Minion had no health left");
+                        } else if (resultsTxt.regex(/(you tripped)/i)) {
+                            utility.log(1, "oops, you tripped");
                         } else {
                             utility.log(1, "Unknown win or loss or result");
                         }
@@ -764,14 +766,14 @@ arena = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = (100 - healthEnemy.getElementWidth()).dp(2);
+                            currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['teamHealth'] = (100 - healthGuild.getElementWidth()).dp(2);
+                            currentRecord['teamHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }

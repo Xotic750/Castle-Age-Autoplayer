@@ -3,23 +3,8 @@
 //       Functions
 //////////////////////////////////
 
-function caap_log() {
-    if (console.log !== undefined) {
-        var args = [],
-            msg  = "";
-
-        args = Array.prototype.slice.call(arguments);
-        msg = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + args.shift();
-        if (args.length > 1) {
-            console.log(msg, args);
-        } else {
-            console.log(msg);
-        }
-    }
-}
-
 function caap_DomTimeOut() {
-    caap_log("DOM onload timeout!!! Reloading ...");
+    utility.log(1, "DOM onload timeout!!! Reloading ...");
     if (typeof window.location.reload === 'function') {
         window.location.reload();
     } else if (typeof history.go === 'function') {
@@ -29,124 +14,88 @@ function caap_DomTimeOut() {
     }
 }
 
-function caap_injectScript(url) {
-    var inject = document.createElement('script');
-    inject.setAttribute('type', 'text/javascript');
-    inject.setAttribute('src', url);
-    document.head.appendChild(inject);
-    inject = null;
-}
-
 function caap_WaitForrison() {
     if (typeof rison !== 'undefined') {
-        caap_log("rison ready ...");
-        $j(caap.start());
+        utility.log(1, "rison ready ...");
+        jQuery(caap.start());
     } else {
-        caap_log("Waiting for rison ...");
+        utility.log(1, "Waiting for rison ...");
         window.setTimeout(caap_WaitForrison, 100);
     }
 }
 
 function caap_WaitForjsonhpack() {
     if (typeof JSON.hpack === 'function') {
-        caap_log("json.hpack ready ...");
+        utility.log(1, "json.hpack ready ...");
         if (typeof rison === 'undefined') {
-            caap_log("Inject rison.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
+            utility.log(1, "Inject rison.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
         }
 
         caap_WaitForrison();
     } else {
-        caap_log("Waiting for json.hpack ...");
+        utility.log(1, "Waiting for json.hpack ...");
         window.setTimeout(caap_WaitForjsonhpack, 100);
     }
 }
 
 function caap_WaitForjson2() {
     if (typeof JSON.stringify === 'function') {
-        caap_log("json2 ready ...");
+        utility.log(1, "json2 ready ...");
         if (typeof JSON.hpack !== 'function') {
-            caap_log("Inject json.hpack.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');
+            utility.log(1, "Inject json.hpack.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');
         }
 
         caap_WaitForjsonhpack();
     } else {
-        caap_log("Waiting for json2 ...");
+        utility.log(1, "Waiting for json2 ...");
         window.setTimeout(caap_WaitForjson2, 100);
     }
 }
 
 function caap_WaitForFarbtastic() {
-    if (typeof $j.farbtastic === 'function') {
-        caap_log("farbtastic ready ...");
+    if (typeof jQuery.farbtastic === 'function') {
+        utility.log(1, "farbtastic ready ...");
         if (typeof JSON.stringify !== 'function') {
-            caap_log("Inject json2.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/json2.js');
+            utility.log(1, "Inject json2.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json2.js');
         }
 
         caap_WaitForjson2();
     } else {
-        caap_log("Waiting for farbtastic ...");
+        utility.log(1, "Waiting for farbtastic ...");
         window.setTimeout(caap_WaitForFarbtastic, 100);
     }
 }
 
 function caap_WaitForjQueryUI() {
-    if (typeof $j.ui === 'object') {
-        caap_log("jQueryUI ready ...");
-        if (typeof $j.farbtastic !== 'function') {
-            caap_log("Inject farbtastic.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
+    if (typeof jQuery.ui === 'object') {
+        utility.log(1, "jQueryUI ready ...");
+        if (typeof jQuery.farbtastic !== 'function') {
+            utility.log(1, "Inject farbtastic.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
         }
 
         caap_WaitForFarbtastic();
     } else {
-        caap_log("Waiting for jQueryUI ...");
+        utility.log(1, "Waiting for jQueryUI ...");
         window.setTimeout(caap_WaitForjQueryUI, 100);
     }
 }
 
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
-        caap_log("jQuery ready ...");
-        jQuery.prototype.getElementWidth = function (x) {
-            var t = [],
-                w = 0;
-
-            if (this && this.length === 1) {
-                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
-                if (t && t.length === 2) {
-                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
-                }
-            }
-
-            return w;
-        };
-
-        jQuery.prototype.getElementHeight = function (x) {
-            var t = [],
-                w = 0;
-
-            if (this && this.length === 1) {
-                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
-                if (t && t.length === 2) {
-                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
-                }
-            }
-
-            return w;
-        };
-
+        utility.log(1, "jQuery ready ...");
         $j = jQuery.noConflict();
         if (typeof $j.ui !== 'object') {
-            caap_log("Inject jQueryUI.");
-            caap_injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js');
+            utility.log(1, "Inject jQueryUI.");
+            utility.injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js');
         }
 
         caap_WaitForjQueryUI();
     } else {
-        caap_log("Waiting for jQuery ...");
+        utility.log(1, "Waiting for jQuery ...");
         window.setTimeout(caap_WaitForjQuery, 100);
     }
 }
@@ -155,12 +104,11 @@ function caap_WaitForjQuery() {
 //                         Begin
 /////////////////////////////////////////////////////////////////////
 utility.log_version = caapVersion;
-caap_log("Starting ... waiting page load");
 utility.log(1, "Starting ... waiting page load");
 caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
 if (typeof window.jQuery !== 'function') {
-    caap_log("Inject jQuery");
-    caap_injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
+    utility.log(1, "Inject jQuery");
+    utility.injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
 }
 
 caap_WaitForjQuery();

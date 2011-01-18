@@ -18,7 +18,7 @@
 // @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+, Opera 11+, Safari 5+
 // ==/UserScript==
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true,regexp: true, eqeqeq: true, maxlen: 512 */
 /*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison,utility */
 /*jslint maxlen: 250 */
 
@@ -51,13 +51,9 @@ var caapVersion   = "140.24.1",
     $j            = {};
 
 ////////////////////////////////////////////////////////////////////
-//                          utility OBJECT
+//                          utility library
 // Small functions called a lot to reduce duplicate code
 /////////////////////////////////////////////////////////////////////
-
-if (!this.utility) {
-    this.utility = {};
-}
 
 (function () {
 
@@ -738,30 +734,6 @@ if (!this.utility) {
                H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
     };
 
-    Array.prototype.deepCopy = function () {
-        var i = 0,
-            l = 0,
-            n = [],
-            t = null;
-
-        for (i = 0, l = this.length; i < l; i += 1) {
-            switch ($j.type(this[i])) {
-            case "object":
-                t = $j.extend(true, {}, this[i]);
-                break;
-            case "array":
-                t = this[i].deepCopy();
-                break;
-            default:
-                t = this[i];
-            }
-
-            n.push(t);
-        }
-
-        return n;
-    };
-
     Number.prototype.dp = function (x) {
         return parseFloat(this.toFixed(x >= 0 && x <= 20 ? x : 0));
     };
@@ -792,6 +764,31 @@ if (!this.utility) {
     };
     /*jslint bitwise: true */
 
+    ///////////////////////////
+    //       jQuery
+    ///////////////////////////
+
+    (function ($) {
+        $.fn.getPercent = function (type) {
+            var t = [];
+            if (!type || type === 'width') {
+                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+            } else if (!type || type === 'height') {
+                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+            }
+
+            return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+        };
+    })(jQuery);
+
+    if (!this.utility) {
+        this.utility = {};
+    }
+
+    ///////////////////////////
+    //       utility
+    ///////////////////////////
+
     utility.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false;
 
     utility.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false;
@@ -800,6 +797,20 @@ if (!this.utility) {
 
     utility.is_html5_sessionStorage = ('sessionStorage' in window) && window.sessionStorage !== null;
 
+    utility.injectScript = function (url) {
+        try {
+            var inject = document.createElement('script');
+            inject.setAttribute('type', 'text/javascript');
+            inject.setAttribute('src', url);
+            document.head.appendChild(inject);
+            return true;
+        } catch (err) {
+            utility.error("ERROR in utility.injectScript: " + err);
+            return false;
+        }
+    };
+
+    /*
     utility.typeOf = function (obj) {
         try {
             var s = typeof obj;
@@ -845,10 +856,6 @@ if (!this.utility) {
         }
     };
 
-    ///////////////////////////
-    //       Functions
-    ///////////////////////////
-
     utility.isInt = function (value) {
         try {
             var y = parseInt(value, 10);
@@ -862,14 +869,10 @@ if (!this.utility) {
             return undefined;
         }
     };
+    */
 
     utility.isNum = function (value) {
-        try {
-            return $j.type(value) === 'number';
-        } catch (err) {
-            utility.error("ERROR in utility.isNum: " + err);
-            return undefined;
-        }
+        return typeof value === 'number';
     };
 
     utility.alertDialog = {};
@@ -884,11 +887,11 @@ if (!this.utility) {
             }
 
             if (!utility.alertDialog[id] || !utility.alertDialog[id].length) {
-                utility.alertDialog[id] = $j('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
+                utility.alertDialog[id] = jQuery('<div id="alert_' + id + '" title="Alert!">' + message + '</div>').appendTo(window.document.body);
                 utility.alertDialog[id].dialog({
                     buttons: {
                         "Ok": function () {
-                            $j(this).dialog("close");
+                            jQuery(this).dialog("close");
                         }
                     }
                 });
@@ -904,9 +907,25 @@ if (!this.utility) {
         }
     };
 
-    utility.log_version = '0';
+    utility.log_version = '';
 
     utility.log_level = 1;
+
+    utility.log_copy = function (obj) {
+        var t;
+        switch (jQuery.type(obj)) {
+        case "object":
+            t = jQuery.extend(true, {}, obj);
+            break;
+        case "array":
+            t = obj.slice();
+            break;
+        default:
+            t = obj;
+        }
+
+        return t;
+    };
 
     utility.log = function (level, text) {
         if (console.log !== undefined) {
@@ -914,23 +933,11 @@ if (!this.utility) {
                 var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
-                    len     = 0,
-                    newArg;
+                    len     = 0;
 
                 if (arguments.length > 2) {
                     for (it = 2, len = arguments.length; it < len; it += 1) {
-                        switch ($j.type(arguments[it])) {
-                        case "object":
-                            newArg = $j.extend(true, {}, arguments[it]);
-                            break;
-                        case "array":
-                            newArg = arguments[it].deepCopy();
-                            break;
-                        default:
-                            newArg = arguments[it];
-                        }
-
-                        tempArr.push(newArg);
+                        tempArr.push(utility.log_copy(arguments[it]));
                     }
 
                     console.log(message, tempArr);
@@ -946,23 +953,11 @@ if (!this.utility) {
             var message = 'v' + utility.log_version + ' (' + (new Date()).toLocaleTimeString() + ') : ' + text,
                     tempArr = [],
                     it      = 0,
-                    len     = 0,
-                    newArg;
+                    len     = 0;
 
             if (arguments.length > 1) {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($j.type(arguments[it])) {
-                    case "object":
-                        newArg = $j.extend(true, {}, arguments[it]);
-                        break;
-                    case "array":
-                        newArg = arguments[it].deepCopy();
-                        break;
-                    default:
-                        newArg = arguments[it];
-                    }
-
-                    tempArr.push(newArg);
+                    tempArr.push(utility.log_copy(arguments[it]));
                 }
 
                 console.warn(message, tempArr);
@@ -988,18 +983,7 @@ if (!this.utility) {
 
             if (arguments.length > 1) {
                 for (it = 1, len = arguments.length; it < len; it += 1) {
-                    switch ($j.type(arguments[it])) {
-                    case "object":
-                        newArg = $j.extend(true, {}, arguments[it]);
-                        break;
-                    case "array":
-                        newArg = arguments[it].deepCopy();
-                        break;
-                    default:
-                        newArg = arguments[it];
-                    }
-
-                    tempArr.push(newArg);
+                    tempArr.push(utility.log_copy(arguments[it]));
                 }
 
                 console.error(message, tempArr);
@@ -6206,14 +6190,14 @@ guild_monster = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = (100 - healthEnemy.getElementWidth()).dp(2);
+                            currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['guildHealth'] = (100 - healthGuild.getElementWidth()).dp(2);
+                            currentRecord['guildHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }
@@ -7329,10 +7313,12 @@ arena = {
                         }
                     } else {
                         resultsTxt = $j("div[class='results']").text();
-                        if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/)) {
+                        if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/i)) {
                             utility.log(1, "You didn't have enough battle tokens");
-                        } else if (resultsTxt.regex(/(does not have any health left to battle)/)) {
+                        } else if (resultsTxt.regex(/(does not have any health left to battle)/i)) {
                             utility.log(1, "Minion had no health left");
+                        } else if (resultsTxt.regex(/(you tripped)/i)) {
+                            utility.log(1, "oops, you tripped");
                         } else {
                             utility.log(1, "Unknown win or loss or result");
                         }
@@ -7498,14 +7484,14 @@ arena = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = (100 - healthEnemy.getElementWidth()).dp(2);
+                            currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['teamHealth'] = (100 - healthGuild.getElementWidth()).dp(2);
+                            currentRecord['teamHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }
@@ -17630,7 +17616,7 @@ caap = {
                     tStr = monsterClass.attr("class");
                     name = tStr ? tStr.replace("banner_", '') : '';
                     if (name && $j.isPlainObject(caap.stats['character'][name])) {
-                        caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getElementWidth(2);
+                        caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getPercent('width').dp(2);
                         tStr = monsterClass.children().eq(2).text();
                         caap.stats['character'][name]['level'] = tStr ? tStr.numberOnly() : 0;
                         utility.log(2, "Got character class record", name, caap.stats['character'][name]);
@@ -20442,7 +20428,7 @@ caap = {
                 case 'bar_dispel.gif' :
                     tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster['fortify'] = (100 - tempDiv.parent().getElementWidth()).dp(2);
+                        currentMonster['fortify'] = (100 - tempDiv.parent().getPercent('width')).dp(2);
                     } else {
                         utility.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
@@ -20451,11 +20437,11 @@ caap = {
                 case 'seamonster_ship_health.jpg' :
                     tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster['fortify'] = tempDiv.parent().getElementWidth(2);
+                        currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
                         if (monsterInfo.repair_img) {
                             tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.repair_img + "']");
                             if (tempDiv && tempDiv.length) {
-                                currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.parent().getElementWidth()))).dp(2);
+                                currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.parent().getPercent('width')))).dp(2);
                             } else {
                                 utility.warn("Unable to find repair bar", monsterInfo.repair_img);
                             }
@@ -20468,8 +20454,8 @@ caap = {
                 case 'nm_green.jpg' :
                     tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
                     if (tempDiv && tempDiv.length) {
-                        currentMonster['fortify'] = tempDiv.parent().getElementWidth(2);
-                        currentMonster['strength'] = tempDiv.parent().parent().getElementWidth(2);
+                        currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
+                        currentMonster['strength'] = tempDiv.parent().parent().getPercent('width').dp(2);
                     } else {
                         utility.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
@@ -20540,7 +20526,7 @@ caap = {
                 currentMonster['time'] = time;
                 if (monsterDiv && monsterDiv.length) {
                     utility.log(4, "Found monster health div");
-                    currentMonster['life'] = monsterDiv.parent().getElementWidth(2);
+                    currentMonster['life'] = monsterDiv.parent().getPercent('width').dp(2);
                 } else {
                     utility.warn("Could not find monster health div.");
                 }
@@ -20587,7 +20573,7 @@ caap = {
 
                             tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
                             if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.getElementWidth(2);
+                                tempText = tempDiv.getPercent('width').dp(2);
                                 utility.log(4, "Stun bar percent text", tempText);
                                 if (tempText >= 0) {
                                     currentMonster['stun'] = tempText;
@@ -23951,23 +23937,8 @@ caap['AutoIncome'] = caap.AutoIncome;
 //       Functions
 //////////////////////////////////
 
-function caap_log() {
-    if (console.log !== undefined) {
-        var args = [],
-            msg  = "";
-
-        args = Array.prototype.slice.call(arguments);
-        msg = 'v' + caapVersion + ' (' + (new Date()).toLocaleTimeString() + ') : ' + args.shift();
-        if (args.length > 1) {
-            console.log(msg, args);
-        } else {
-            console.log(msg);
-        }
-    }
-}
-
 function caap_DomTimeOut() {
-    caap_log("DOM onload timeout!!! Reloading ...");
+    utility.log(1, "DOM onload timeout!!! Reloading ...");
     if (typeof window.location.reload === 'function') {
         window.location.reload();
     } else if (typeof history.go === 'function') {
@@ -23977,124 +23948,88 @@ function caap_DomTimeOut() {
     }
 }
 
-function caap_injectScript(url) {
-    var inject = document.createElement('script');
-    inject.setAttribute('type', 'text/javascript');
-    inject.setAttribute('src', url);
-    document.head.appendChild(inject);
-    inject = null;
-}
-
 function caap_WaitForrison() {
     if (typeof rison !== 'undefined') {
-        caap_log("rison ready ...");
-        $j(caap.start());
+        utility.log(1, "rison ready ...");
+        jQuery(caap.start());
     } else {
-        caap_log("Waiting for rison ...");
+        utility.log(1, "Waiting for rison ...");
         window.setTimeout(caap_WaitForrison, 100);
     }
 }
 
 function caap_WaitForjsonhpack() {
     if (typeof JSON.hpack === 'function') {
-        caap_log("json.hpack ready ...");
+        utility.log(1, "json.hpack ready ...");
         if (typeof rison === 'undefined') {
-            caap_log("Inject rison.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
+            utility.log(1, "Inject rison.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
         }
 
         caap_WaitForrison();
     } else {
-        caap_log("Waiting for json.hpack ...");
+        utility.log(1, "Waiting for json.hpack ...");
         window.setTimeout(caap_WaitForjsonhpack, 100);
     }
 }
 
 function caap_WaitForjson2() {
     if (typeof JSON.stringify === 'function') {
-        caap_log("json2 ready ...");
+        utility.log(1, "json2 ready ...");
         if (typeof JSON.hpack !== 'function') {
-            caap_log("Inject json.hpack.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');
+            utility.log(1, "Inject json.hpack.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');
         }
 
         caap_WaitForjsonhpack();
     } else {
-        caap_log("Waiting for json2 ...");
+        utility.log(1, "Waiting for json2 ...");
         window.setTimeout(caap_WaitForjson2, 100);
     }
 }
 
 function caap_WaitForFarbtastic() {
-    if (typeof $j.farbtastic === 'function') {
-        caap_log("farbtastic ready ...");
+    if (typeof jQuery.farbtastic === 'function') {
+        utility.log(1, "farbtastic ready ...");
         if (typeof JSON.stringify !== 'function') {
-            caap_log("Inject json2.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/json2.js');
+            utility.log(1, "Inject json2.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/json2.js');
         }
 
         caap_WaitForjson2();
     } else {
-        caap_log("Waiting for farbtastic ...");
+        utility.log(1, "Waiting for farbtastic ...");
         window.setTimeout(caap_WaitForFarbtastic, 100);
     }
 }
 
 function caap_WaitForjQueryUI() {
-    if (typeof $j.ui === 'object') {
-        caap_log("jQueryUI ready ...");
-        if (typeof $j.farbtastic !== 'function') {
-            caap_log("Inject farbtastic.");
-            caap_injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
+    if (typeof jQuery.ui === 'object') {
+        utility.log(1, "jQueryUI ready ...");
+        if (typeof jQuery.farbtastic !== 'function') {
+            utility.log(1, "Inject farbtastic.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
         }
 
         caap_WaitForFarbtastic();
     } else {
-        caap_log("Waiting for jQueryUI ...");
+        utility.log(1, "Waiting for jQueryUI ...");
         window.setTimeout(caap_WaitForjQueryUI, 100);
     }
 }
 
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
-        caap_log("jQuery ready ...");
-        jQuery.prototype.getElementWidth = function (x) {
-            var t = [],
-                w = 0;
-
-            if (this && this.length === 1) {
-                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
-                if (t && t.length === 2) {
-                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
-                }
-            }
-
-            return w;
-        };
-
-        jQuery.prototype.getElementHeight = function (x) {
-            var t = [],
-                w = 0;
-
-            if (this && this.length === 1) {
-                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
-                if (t && t.length === 2) {
-                    w = t[1] ? parseFloat(t[1]).toFixed(x >= 0 && x <= 20 ? x : 20) : 0;
-                }
-            }
-
-            return w;
-        };
-
+        utility.log(1, "jQuery ready ...");
         $j = jQuery.noConflict();
         if (typeof $j.ui !== 'object') {
-            caap_log("Inject jQueryUI.");
-            caap_injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js');
+            utility.log(1, "Inject jQueryUI.");
+            utility.injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js');
         }
 
         caap_WaitForjQueryUI();
     } else {
-        caap_log("Waiting for jQuery ...");
+        utility.log(1, "Waiting for jQuery ...");
         window.setTimeout(caap_WaitForjQuery, 100);
     }
 }
@@ -24103,12 +24038,11 @@ function caap_WaitForjQuery() {
 //                         Begin
 /////////////////////////////////////////////////////////////////////
 utility.log_version = caapVersion;
-caap_log("Starting ... waiting page load");
 utility.log(1, "Starting ... waiting page load");
 caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
 if (typeof window.jQuery !== 'function') {
-    caap_log("Inject jQuery");
-    caap_injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
+    utility.log(1, "Inject jQuery");
+    utility.injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
 }
 
 caap_WaitForjQuery();

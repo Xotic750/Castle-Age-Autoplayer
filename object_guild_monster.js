@@ -416,14 +416,14 @@ guild_monster = {
                     if (health && health.length) {
                         healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                         if (healthEnemy && healthEnemy.length) {
-                            currentRecord['enemyHealth'] = (100 - healthEnemy.getElementWidth()).dp(2);
+                            currentRecord['enemyHealth'] = (100 - healthEnemy.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_enemy.gif not found");
                         }
 
                         healthGuild = health.find("div[style*='guild_battle_bar_you.gif']").eq(0);
                         if (healthGuild && healthGuild.length) {
-                            currentRecord['guildHealth'] = (100 - healthGuild.getElementWidth()).dp(2);
+                            currentRecord['guildHealth'] = (100 - healthGuild.getPercent('width')).dp(2);
                         } else {
                             utility.warn("guild_battle_bar_you.gif not found");
                         }
