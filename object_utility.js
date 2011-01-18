@@ -721,6 +721,25 @@
         this.utility = {};
     }
 
+    utility.jQueryExtend = function (url) {
+        ///////////////////////////
+        //       Extend jQuery
+        ///////////////////////////
+
+        (function ($) {
+            $.fn.getPercent = function (type) {
+                var t = [];
+                if (!type || type === 'width') {
+                    t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+                } else if (!type || type === 'height') {
+                    t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+                }
+
+                return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+            };
+        })(jQuery);
+    };
+
     utility.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false;
 
     utility.is_firefox = navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false;
