@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            39
+// @dev            40
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 //////////////////////////////////
 
 var caapVersion   = "140.24.1",
-    devVersion    = "39",
+    devVersion    = "40",
     hiddenVar     = true,
     caap_timeout  = 0,
     image64       = {},
@@ -7088,6 +7088,7 @@ arena = {
                 tStr          = '',
                 checkStr      = '',
                 tNum          = 0,
+                resultsTxt    = '',
                 lastAttacked  = {},
                 won           = {},
                 losses        = [],
@@ -7129,14 +7130,19 @@ arena = {
                     if (lastAttacked['poly']) {
                         utility.log(1, "Defeated by polymorphed minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                     } else {
-                        currentRecord['minions'][lastAttacked['index']]['lost'] = true;
-                        currentRecord['minions'][lastAttacked['index']]['won'] = false;
-                        currentRecord['minions'][lastAttacked['index']]['last_ap'] = 0;
-                        wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked['index']]['target_id']);
-                        currentRecord['wins'] = wins ? wins : currentRecord['wins'];
-                        losses = arena.setLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
-                        currentRecord['losses'] = losses ? losses : currentRecord['losses'];
-                        arena.setItem(currentRecord);
+                        if (tNum > 50) {
+                            currentRecord['minions'][lastAttacked['index']]['lost'] = true;
+                            currentRecord['minions'][lastAttacked['index']]['won'] = false;
+                            currentRecord['minions'][lastAttacked['index']]['last_ap'] = 0;
+                            wins = arena.delWin(currentRecord['wins'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                            currentRecord['wins'] = wins ? wins : currentRecord['wins'];
+                            losses = arena.setLoss(currentRecord['losses'], currentRecord['minions'][lastAttacked['index']]['target_id']);
+                            currentRecord['losses'] = losses ? losses : currentRecord['losses'];
+                            arena.setItem(currentRecord);
+                        } else {
+                            utility.log(1, "You were polymorphed");
+                        }
+
                         utility.log(1, "Defeated by minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                     }
                 } else {
@@ -7159,7 +7165,14 @@ arena = {
                             utility.log(1, "Victory against minion", tNum, currentRecord['minions'][lastAttacked['index']]);
                         }
                     } else {
-                        utility.log(1, "Unknown if won or lost");
+                        resultsTxt = $j("div[class='results']").text();
+                        if (resultsTxt.regex(/(You do not have enough battle tokens for this action)/)) {
+                            utility.log(1, "You didn't have enough battle tokens");
+                        } else if (resultsTxt.regex(/(does not have any health left to battle)/)) {
+                            utility.log(1, "Minion had no health left");
+                        } else {
+                            utility.log(1, "Unknown win or loss or result");
+                        }
                     }
                 }
             }
