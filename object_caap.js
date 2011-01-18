@@ -10307,7 +10307,7 @@ caap = {
     /*-------------------------------------------------------------------------------------\
     Now we get all of the recipes and step through them one by one
     \-------------------------------------------------------------------------------------*/
-                ss = $j("div[class*='alchemyRecipeBack']");
+                ss = $j("div[class='alchemyRecipeBack']");
                 if (!ss || !ss.length) {
                     utility.log(2, 'No recipes found');
                 }

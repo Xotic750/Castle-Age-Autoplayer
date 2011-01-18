@@ -165,20 +165,16 @@ String.prototype.regex = function (r) {
 // Turns text delimeted with new lines and commas into an array.
 // Primarily for use with user input text boxes.
 String.prototype.toArray = function () {
-    var s = this,
-        a = [],
+    var a = [],
         t = [],
         i = 0,
         l = 0;
 
-    if (typeof s === 'string' && s !== '') {
-        s = s.replace(/,/g, '\n');
-        t = s.split('\n');
-        if (t && t.length) {
-            for (i = 0, l = t.length; i < l; i += 1) {
-                if (t[i] !== '') {
-                    a.push(isNaN(t[i]) ? t[i].trim() : parseFloat(t[i]));
-                }
+    t = this.replace(/,/g, '\n').split('\n');
+    if (t && t.length) {
+        for (i = 0, l = t.length; i < l; i += 1) {
+            if (t[i] !== '') {
+                a.push(isNaN(t[i]) ? t[i].trim() : parseFloat(t[i]));
             }
         }
     }

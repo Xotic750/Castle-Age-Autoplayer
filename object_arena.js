@@ -937,6 +937,7 @@ arena = {
                         knownWin = false,
                         clericMage = false,
                         shieldShout = false,
+                        ignorePoly = false,
                         logic1  = false,
                         logic2  = false,
                         logic3  = false,
@@ -953,21 +954,28 @@ arena = {
                     logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
                     logic2 = !doPoly && next['poly'];
                     logic3 = doPoly && stunnedPoly && next['poly'] && record['myStatus'] === 'Stunned';
-                    logic4 = doPoly && roguePoly && next['poly'] && record['myClass'] === 'Rogue';
+                    logic4 = doPoly && roguePoly && next['poly'] && record['myClass'] !== 'Rogue';
                     logic5 = doPoly && next['poly'] && next['healthNum'] <= 50;
-                    if (logic2 || logic3 || logic4 || logic5) {
-                        utility.log(2, "Ignoring polymorphed minion " + mclass +  " " + type, record['myStatus'], next);
-                        return false;
-                    }
+                    ignorePoly = logic2 || logic3 || logic4 || logic5;
 
                     switch (type) {
                     case "health":
+                        if (ignorePoly) {
+                            utility.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                            return false;
+                        }
+
                         if (!(logic1 && !shieldShout)) {
                             return false;
                         }
 
                         break;
                     case "active":
+                        if (ignorePoly) {
+                            utility.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                            return false;
+                        }
+
                         if (!(logic1 && next['points'] && !shieldShout)) {
                             return false;
                         }
@@ -1008,6 +1016,11 @@ arena = {
 
                         break;
                     case "poly":
+                        if (ignorePoly) {
+                            utility.log(2, "Ignoring polymorphed minion " + mclass + " " + type, record['myStatus'], next);
+                            return false;
+                        }
+
                         if (next['poly'] && (shieldShout || higherLevel)) {
                             target[mclass][type] = next;
                             return true;
@@ -1021,7 +1034,7 @@ arena = {
                         logic3 = !observeHealth && logic2;
                         logic4 = observeHealth && logic1 && logic2;
                         logic5 = logic3 || logic4;
-                        if (logic5 && higherLevel) {
+                        if (logic5 && higherLevel && next['last_ap'] >= target[mclass][type]['last_ap']) {
                             target[mclass][type] = next;
                             return true;
                         } else {
@@ -1067,7 +1080,7 @@ arena = {
                 var cm = {};
 
                 cm = record['minions'][it];
-                if (cm['status'] === 'Stunned') {
+                if (cm['status'] === 'Stunned' && cm['healthNum'] <= 0) {
                     utility.log(2, "Stunned minion", cm['index'], cm);
                     continue;
                 }
