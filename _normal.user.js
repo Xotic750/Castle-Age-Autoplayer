@@ -765,29 +765,9 @@ var caapVersion   = "140.24.1",
     /*jslint bitwise: true */
 
     ///////////////////////////
-    //       jQuery
-    ///////////////////////////
-
-    if (!this.jQuery) {
-        this.jQuery = {};
-    }
-
-    (function ($) {
-        $.fn.getPercent = function (type) {
-            var t = [];
-            if (!type || type === 'width') {
-                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
-            } else if (!type || type === 'height') {
-                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
-            }
-
-            return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
-        };
-    })(jQuery);
-
-    ///////////////////////////
     //       utility
     ///////////////////////////
+
     if (!this.utility) {
         this.utility = {};
     }
@@ -24024,6 +24004,24 @@ function caap_WaitForjQueryUI() {
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
         utility.log(1, "jQuery ready ...");
+
+        ///////////////////////////
+        //       Extend jQuery
+        ///////////////////////////
+
+        (function ($) {
+            $.fn.getPercent = function (type) {
+                var t = [];
+                if (!type || type === 'width') {
+                    t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+                } else if (!type || type === 'height') {
+                    t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+                }
+
+                return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+            };
+        })(jQuery);
+
         $j = jQuery.noConflict();
         if (typeof $j.ui !== 'object') {
             utility.log(1, "Inject jQueryUI.");

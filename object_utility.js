@@ -714,29 +714,9 @@
     /*jslint bitwise: true */
 
     ///////////////////////////
-    //       jQuery
-    ///////////////////////////
-
-    if (!this.jQuery) {
-        this.jQuery = {};
-    }
-
-    (function ($) {
-        $.fn.getPercent = function (type) {
-            var t = [];
-            if (!type || type === 'width') {
-                t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
-            } else if (!type || type === 'height') {
-                t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
-            }
-
-            return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
-        };
-    })(jQuery);
-
-    ///////////////////////////
     //       utility
     ///////////////////////////
+
     if (!this.utility) {
         this.utility = {};
     }
