@@ -948,7 +948,7 @@ arena = {
                     mclass = next['mclass'];
                     higherLevel = next['level'] > (target[mclass][type]['level'] ? target[mclass][type]['level'] : 0);
                     lowerLevel = next['level'] < (target[mclass][type]['level'] ? target[mclass][type]['level'] : 99999);
-                    knownWin = next['won'] && !target[mclass][type]['won'];
+                    knownWin = next['won'] && !(target[mclass][type]['won'] ? target[mclass][type]['won'] : false);
                     clericMage = mclass === "Cleric" || mclass === "Mage";
                     shieldShout = next['shield'] || next['shout'];
                     logic1 = ((killClericFirst && mclass === "Cleric") || next['healthNum'] > ignoreArenaHealth);
@@ -999,7 +999,7 @@ arena = {
                             return true;
                         }
 
-                        logic3 = !clericMage && target[mclass][type]['mclass'] !== 'Cleric' && target[mclass][type]['mclass'] !== 'mage';
+                        logic3 = !clericMage && target[mclass][type]['mclass'] !== 'Cleric' && (target[mclass][type]['mclass'] ? target[mclass][type]['mclass'] : 'none') !== 'mage';
                         logic4 = logic3 && next['healthNum'] > 200 && next['healthNum'] < (target[mclass][type]['healthNum'] ? target[mclass][type]['healthNum'] : 0);
                         if (logic4 && !shieldShout && lowerLevel) {
                             target[mclass][type] = next;
@@ -1034,7 +1034,8 @@ arena = {
                         logic3 = !observeHealth && logic2;
                         logic4 = observeHealth && logic1 && logic2;
                         logic5 = logic3 || logic4;
-                        if (logic5 && higherLevel && next['last_ap'] >= target[mclass][type]['last_ap']) {
+
+                        if (logic5 && higherLevel && next['last_ap'] >= (target[mclass][type]['last_ap'] ? target[mclass][type]['last_ap'] : 0)) {
                             target[mclass][type] = next;
                             return true;
                         } else {

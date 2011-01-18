@@ -520,7 +520,7 @@ battle = {
                 } else {
                     battleRecord['warlossesNum'] += 1;
                     battleRecord['warLostTime'] = new Date().getTime();
-                    utility.log(1, "War Loss", battleRecord['warLostTime']);
+                    utility.log(1, "War Loss", battleRecord['userId'], battleRecord);
                 }
 
                 break;
