@@ -717,6 +717,10 @@
     //       jQuery
     ///////////////////////////
 
+    if (!this.jQuery) {
+        this.jQuery = {};
+    }
+
     (function ($) {
         $.fn.getPercent = function (type) {
             var t = [];
@@ -730,13 +734,12 @@
         };
     })(jQuery);
 
-    if (!this.utility) {
-        this.utility = {};
-    }
-
     ///////////////////////////
     //       utility
     ///////////////////////////
+    if (!this.utility) {
+        this.utility = {};
+    }
 
     utility.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false;
 

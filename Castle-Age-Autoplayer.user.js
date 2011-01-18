@@ -768,6 +768,10 @@ var caapVersion   = "140.24.1",
     //       jQuery
     ///////////////////////////
 
+    if (!this.jQuery) {
+        this.jQuery = {};
+    }
+
     (function ($) {
         $.fn.getPercent = function (type) {
             var t = [];
@@ -781,13 +785,12 @@ var caapVersion   = "140.24.1",
         };
     })(jQuery);
 
-    if (!this.utility) {
-        this.utility = {};
-    }
-
     ///////////////////////////
     //       utility
     ///////////////////////////
+    if (!this.utility) {
+        this.utility = {};
+    }
 
     utility.is_chrome = navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false;
 
