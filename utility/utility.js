@@ -1,3 +1,6 @@
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512, onevar: true */
+/*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison */
+/*jslint maxlen: 250 */
 
 ////////////////////////////////////////////////////////////////////
 //                          utility library
@@ -5,64 +8,65 @@
 /////////////////////////////////////////////////////////////////////
 
 (function () {
-
     ///////////////////////////
     //       Prototypes
     ///////////////////////////
 
-    if (!document.head) {
-        document.head = document.getElementsByTagName('head')[0];
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    if (!document['head']) {
+        document['head'] = document.head = document.getElementsByTagName('head')[0];
     }
 
-    String.prototype.ucFirst = function () {
+    String.prototype['ucFirst'] = String.prototype.ucFirst = function () {
         return this.charAt(0).toUpperCase() + this.substr(1);
     };
 
-    String.prototype.stripHTML = function () {
+    String.prototype['stripHTML'] = String.prototype.stripHTML = function () {
         return this.replace(new RegExp("<[^>]+>", "g"), '').replace(/&nbsp;/g, '');
     };
 
-    String.prototype.stripCaap = function () {
+    String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
         return this.replace(/caap_/i, '');
     };
 
-    String.prototype.stripTRN = function () {
+    String.prototype['stripTRN'] = String.prototype.stripTRN = function () {
         return this.replace(/[\t\r\n]/g, '');
     };
 
-    String.prototype.stripStar = function () {
+    String.prototype['stripStar'] = String.prototype.stripStar = function () {
         return this.replace(/\*/g, '');
     };
 
-    String.prototype.innerTrim = function () {
+    String.prototype['innerTrim'] = String.prototype.innerTrim = function () {
         return this.replace(/\s+/g, ' ');
     };
 
-    String.prototype.matchUser = function () {
+    String.prototype['matchUser'] = String.prototype.matchUser = function () {
         return this.match(/user=(\d+)/);
     };
 
-    String.prototype.matchNum = function () {
+    String.prototype['matchNum'] = String.prototype.matchNum = function () {
         return this.match(/(\d+)/);
     };
 
-    String.prototype.parseFloat = function (x) {
+    String.prototype['parseFloat'] = String.prototype.parseFloat = function (x) {
         return x >= 0 ? parseFloat(parseFloat(this).toFixed(x >= 0 && x <= 20 ? x : 20)) : parseFloat(this);
     };
 
-    String.prototype.parseInt = function (x) {
+    String.prototype['parseInt'] = String.prototype.parseInt = function (x) {
         return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
     };
 
-    String.prototype.trim = function () {
+    String.prototype['trim'] = String.prototype.trim = function () {
         return this.replace(/^\s+|\s+$/g, '');
     };
 
-    String.prototype.numberOnly = function () {
+    String.prototype['numberOnly'] = String.prototype.numberOnly = function () {
         return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
     };
 
-    String.prototype.parseTimer = function () {
+    String.prototype['parseTimer'] = String.prototype.parseTimer = function () {
         var a = [],
             b = 0,
             i = 0,
@@ -80,12 +84,12 @@
         return b;
     };
 
-    String.prototype.removeHtmlJunk = function () {
+    String.prototype['removeHtmlJunk'] = String.prototype.removeHtmlJunk = function () {
         return this.replace(new RegExp("\\&[^;]+;", "g"), '');
     };
 
     //pads left
-    String.prototype.lpad = function (s, l) {
+    String.prototype['lpad'] = String.prototype.lpad = function (s, l) {
         var t = this;
         while (t.length < l) {
             t = s + t;
@@ -95,7 +99,7 @@
     };
 
     //pads right
-    String.prototype.rpad = function (s, l) {
+    String.prototype['rpad'] = String.prototype.rpad = function (s, l) {
         var t = this;
         while (t.length < l) {
             t = t + s;
@@ -104,7 +108,7 @@
         return t;
     };
 
-    String.prototype.filepart = function () {
+    String.prototype['filepart'] = String.prototype.filepart = function () {
         var x = this.lastIndexOf('/');
         if (x >= 0) {
             return this.substr(x + 1);
@@ -113,7 +117,7 @@
         return this;
     };
 
-    String.prototype.regex = function (r) {
+    String.prototype['regex'] = String.prototype.regex = function (r) {
         var a = this.match(r),
             i = 0,
             l = 0;
@@ -137,7 +141,7 @@
 
     // Turns text delimeted with new lines and commas into an array.
     // Primarily for use with user input text boxes.
-    String.prototype.toArray = function () {
+    String.prototype['toArray'] = String.prototype.toArray = function () {
         var a = [],
             t = [],
             i = 0,
@@ -156,7 +160,7 @@
     };
 
     /*jslint bitwise: false */
-    String.prototype.Utf8encode = function () {
+    String.prototype['Utf8encode'] = String.prototype.Utf8encode = function () {
         var s = '';
         s = this.replace(/[\u0080-\u07ff]/g, function (c) {
             var cc = c.charCodeAt(0);
@@ -171,7 +175,7 @@
         return s;
     };
 
-    String.prototype.Utf8decode = function () {
+    String.prototype['Utf8decode'] = String.prototype.Utf8decode = function () {
         var s = '';
         s = this.replace(/[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g, function (c) {
             return String.fromCharCode(((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | (c.charCodeAt(2)&0x3f));
@@ -184,7 +188,7 @@
         return s;
     };
 
-    String.prototype.Base64encode = function (utf8encode) {
+    String.prototype['Base64encode'] = String.prototype.Base64encode = function (utf8encode) {
         var o1, o2, o3, bits, h1, h2, h3, h4,
             c     = 0,
             coded = '',
@@ -222,7 +226,7 @@
         return coded;
     };
 
-    String.prototype.Base64decode = function (utf8decode) {
+    String.prototype['Base64decode'] = String.prototype.Base64decode = function (utf8decode) {
         var o1, o2, o3, h1, h2, h3, h4, bits,
             d     = [],
             plain = '',
@@ -255,7 +259,7 @@
         return utf8decode ? plain.Utf8decode() : plain;
     };
 
-    String.prototype.MD5 = function (utf8encode) {
+    String.prototype['MD5'] = String.prototype.MD5 = function (utf8encode) {
         function AddUnsigned(lX, lY) {
             var lX4     = (lX & 0x40000000),
                 lY4     = (lY & 0x40000000),
@@ -464,7 +468,7 @@
         return WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
     };
 
-    String.prototype.SHA1 = function (utf8encode) {
+    String.prototype['SHA1'] = String.prototype.SHA1 = function (utf8encode) {
         var blockstart = 0,
             i          = 0,
             j          = 0,
@@ -577,7 +581,7 @@
         return temp.toLowerCase();
     };
 
-    String.prototype.SHA256 = function (utf8encode) {
+    String.prototype['SHA256'] = String.prototype.SHA256 = function (utf8encode) {
         function Sigma0(x) {
             return Number(2).ROTR(x) ^ Number(13).ROTR(x) ^ Number(22).ROTR(x);
         }
@@ -683,13 +687,13 @@
                H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
     };
 
-    Number.prototype.dp = function (x) {
+    Number.prototype['dp'] = Number.prototype.dp = function (x) {
         return parseFloat(this.toFixed(x >= 0 && x <= 20 ? x : 0));
     };
 
     /*jslint bitwise: false */
     // For use with SHA1 and SHA256
-    Number.prototype.toHexStr = function () {
+    Number.prototype['toHexStr'] = Number.prototype.toHexStr = function () {
         var s = "",
             v = 0,
             i = 0;
@@ -703,17 +707,17 @@
     };
 
     // For use with SHA1 and MD5
-    Number.prototype.ROTL = function (x) {
+    Number.prototype['ROTL'] = Number.prototype.ROTL = function (x) {
         return (this << x) | (this >>> (32 - x));
     };
 
     // For use with SHA256
-    Number.prototype.ROTR = function (x) {
+    Number.prototype['ROTR'] = Number.prototype.ROTR = function (x) {
         return (x >>> this) | (x << (32 - this));
     };
     /*jslint bitwise: true */
 
-    Number.prototype.isInt = function () {
+    Number.prototype['isInt'] = Number.prototype.isInt = function () {
         var y = parseInt(this, 10);
         if (isNaN(y)) {
             return false;
@@ -722,7 +726,7 @@
         return this === y && this.toString() === y.toString();
     };
 
-    Array.prototype.pushCopy = function (o) {
+    Array.prototype['pushCopy'] = Array.prototype.pushCopy = function (o) {
         switch (jQuery.type(o)) {
         case "object":
             this.push(jQuery.extend(true, {}, o));
@@ -734,19 +738,24 @@
             this.push(o);
         }
     };
+    /*jslint sub: false */
 
     ///////////////////////////
     //       utility
     ///////////////////////////
-
-    var utility = {
+    var log_version = '',
+        log_level = 1,
+        utility = {
         jQueryExtend: function (url) {
             ///////////////////////////
             //       Extend jQuery
             ///////////////////////////
 
             (function ($) {
-                $.fn.getPercent = function (type) {
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                $.fn['getPercent'] = $.fn.getPercent = function (type) {
+                /*jslint sub: false */
                     var t = [];
                     if (!type || type === 'width') {
                         t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
@@ -794,13 +803,25 @@
             });
         },
 
-        log_version: '',
+        set_log_version: function (text) {
+            log_version = text;
+        },
 
-        log_level: 1,
+        get_log_version: function () {
+            return log_version;
+        },
+
+        set_log_level: function (level) {
+            log_level = level;
+        },
+
+        get_log_level: function () {
+            return log_level;
+        },
 
         log_common: function (type, level, text) {
-            if (utility.get_log_level && !isNaN(level) && utility.get_log_level >= level) {
-                var m = utility.log_version + ' |' + (new Date()).toLocaleTimeString() + '| ' + text,
+            if (log_level && !isNaN(level) && log_level >= level) {
+                var m = log_version + ' |' + (new Date()).toLocaleTimeString() + '| ' + text,
                     t = [],
                     i = 0,
                     l = 0;
@@ -808,13 +829,11 @@
                 type = type ? type : "log";
                 type = typeof console[type] !== undefined ? type : typeof console.log !== undefined ? type : '';
                 if (type) {
-                    if (arguments.length > 3) {
-                        for (i = 3, l = arguments.length; i < l; i += 1) {
-                            t.pushCopy(arguments[i][0]);
+                    if (arguments.length === 4) {
+                        for (i = 0, l = arguments[3].length; i < l; i += 1) {
+                            t.pushCopy(arguments[3][i]);
                         }
-                    }
 
-                    if (t.length) {
                         console[type](m, t);
                     } else {
                         console[type](m);
@@ -1009,6 +1028,20 @@
         testBase64: function () {
             try {
                 var t = '',
+                    c = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
+                        "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
+                        "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
+                        "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAA" +
+                        "AAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQ" +
+                        "xIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+" +
+                        "kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba" +
+                        "7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5" +
+                        "xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXD" +
+                        "oNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTp" +
+                        "tRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUf" +
+                        "H5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYY" +
+                        "ZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGq" +
+                        "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z",
                     r = '',
                     s = '',
                     p = true;
@@ -1020,9 +1053,9 @@
                     p = false;
                 }
 
-                r = image64.header.Base64decode();
+                r = c.Base64decode();
                 s = r.Base64encode();
-                if (s !== image64.header) {
+                if (s !== c) {
                     p = false;
                 }
 
@@ -1368,7 +1401,10 @@
                     return w;
                 }
 
-                this.encrypt = function (plaintext) {
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                this['encrypt'] = this.encrypt = function (plaintext) {
+                /*jslint sub: false */
                     try {
                         plaintext = utf8encode ? plaintext.Utf8encode() : plaintext;
                         var blockSize    = 16,
@@ -1441,7 +1477,10 @@
                     }
                 };
 
-                this.decrypt = function (ciphertext) {
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                this['decrypt'] = this.decrypt = function (ciphertext) {
+                /*jslint sub: false */
                     try {
                         ciphertext = ciphertext.Base64decode();
                         var blockSize    = 16,
@@ -1522,15 +1561,18 @@
         LZ77: function (settings) {
             try {
                 settings = settings || {};
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
                 var referencePrefix       = "`",
-                    referenceIntBase      = settings.referenceIntBase || 96,
+                    referenceIntBase      = settings['referenceIntBase'] || 96,
                     referenceIntFloorCode = " ".charCodeAt(0),
                     referenceIntCeilCode  = referenceIntFloorCode + referenceIntBase - 1,
                     maxStringDistance     = Math.pow(referenceIntBase, 2) - 1,
-                    minStringLength       = settings.minStringLength || 5,
+                    minStringLength       = settings['minStringLength'] || 5,
                     maxStringLength       = Math.pow(referenceIntBase, 1) - 1 + minStringLength,
-                    defaultWindowLength   = settings.defaultWindowLength || 144,
+                    defaultWindowLength   = settings['defaultWindowLength'] || 144,
                     maxWindowLength       = maxStringDistance + minStringLength;
+                /*jslint sub: false */
 
                 function encodeReferenceInt(value, width) {
                     if ((value >= 0) && (value < (Math.pow(referenceIntBase, width) - 1))) {
@@ -1582,7 +1624,10 @@
                     return decodeReferenceInt(data, 1) + minStringLength;
                 }
 
-                this.compress = function (data, windowLength) {
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                this['compress'] = this.compress = function (data, windowLength) {
+                /*jslint sub: false */
                     try {
                         windowLength = windowLength || defaultWindowLength;
                         if (windowLength > maxWindowLength) {
@@ -1652,7 +1697,10 @@
                     }
                 };
 
-                this.decompress = function (data) {
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                this['decompress'] = this.decompress = function (data) {
+                /*jslint sub: false */
                     try {
                         var decompressed = "",
                             pos          = 0,
@@ -1696,42 +1744,358 @@
                 utility.error("ERROR in utility.LZ77: " + err);
                 return false;
             }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        storage: function (settings) {
+            try {
+                settings = settings || {};
+                var namespace = settings['namespace'] ? settings['namespace'] : '',
+                    fireFoxUseGM = settings['fireFoxUseGM'] ? settings['fireFoxUseGM'] : false,
+                    useRison = settings['useRison'] ? settings['useRison'] : true,
+                    storage_id = settings['storage_id'] ? settings['storage_id'] : '',
+                    storage_type = settings['storage_type'] ? settings['storage_type'] : 'localStorage';
+
+                this['set_namespace'] = this.set_namespace = function (text) {
+                    namespace = text;
+                };
+
+                this['get_namespace'] = this.get_namespace = function () {
+                    return namespace;
+                };
+
+                this['set_storage_id'] = this.set_storage_id = function (text) {
+                    storage_id = text;
+                };
+
+                this['get_storage_id'] = this.get_storage_id = function () {
+                    return storage_id;
+                };
+
+                this['set_fireFoxUseGM'] = this.set_fireFoxUseGM = function (bool) {
+                    fireFoxUseGM = bool;
+                };
+
+                this['get_fireFoxUseGM'] = this.get_fireFoxUseGM = function () {
+                    return fireFoxUseGM;
+                };
+
+                this['set_useRison'] = this.set_useRison = function (bool) {
+                    useRison = bool;
+                };
+
+                this['get_useRison'] = this.get_useRison = function () {
+                    return useRison;
+                };
+
+                // use these to set/get values in a way that prepends the game's name
+                this['setItem'] = this.setItem = function (name, value, hpack, compress) {
+                    try {
+                        var stringified = '',
+                            compressor  = null,
+                            storageStr  = '',
+                            hpackArr    = [],
+                            reportEnc   = 'JSON.stringify',
+                            storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
+
+                        if (typeof name !== 'string' || name === '') {
+                            throw "Invalid identifying name! (" + name + ")";
+                        }
+
+                        if (value === undefined || value === null) {
+                            throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
+                        }
+
+                        if (useRison) {
+                            reportEnc = "rison.encode";
+                        }
+
+                        hpack = (typeof hpack !== 'number') ? false : hpack;
+                        if (hpack !== false && hpack >= 0 && hpack <= 3) {
+                            hpackArr = JSON.hpack(value, hpack);
+                            if (useRison) {
+                                stringified = rison.encode(hpackArr);
+                            } else {
+                                stringified = JSON.stringify(hpackArr);
+                            }
+
+                            if (stringified === undefined || stringified === null) {
+                                throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
+                            }
+
+                            if (useRison) {
+                                stringified = "R-HPACK " + stringified;
+                            } else {
+                                stringified = "HPACK " + stringified;
+                            }
+                        } else {
+                            if (useRison) {
+                                stringified = rison.encode(value);
+                            } else {
+                                stringified = JSON.stringify(value);
+                            }
+
+                            if (stringified === undefined || stringified === null) {
+                                throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
+                            }
+
+                            if (useRison) {
+                                stringified = "RISON " + stringified;
+                            }
+                        }
+
+                        compress = (typeof compress !== 'boolean') ? false : compress;
+                        if (compress) {
+                            compressor = new utility.LZ77();
+                            storageStr = "LZ77 " + compressor.compress(stringified);
+                            utility.log(2, "Compressed storage", name, ((storageStr.length / stringified.length) * 100).dp(2));
+                        } else {
+                            storageStr = stringified;
+                        }
+
+                        if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
+                            window[storage_type].setItem(storage_ref + name, storageStr);
+                        } else {
+                            GM_setValue(storage_ref + name, storageStr);
+                        }
+
+                        return value;
+                    } catch (error) {
+                        utility.error("ERROR in utility.storage.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
+                        return undefined;
+                    }
+                };
+
+                this['getItem'] = this.getItem = function (name, value, hidden) {
+                    try {
+                        var jsObj       = null,
+                            compressor  = null,
+                            storageStr  = '',
+                            storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
+
+                        if (typeof name !== 'string' || name === '') {
+                            throw "Invalid identifying name! (" + name + ")";
+                        }
+
+                        if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
+                            storageStr = window[storage_type].getItem(storage_ref + name);
+                        } else {
+                            storageStr = GM_getValue(storage_ref + name);
+                        }
+
+                        if (storageStr) {
+                            if (storageStr.match(/^LZ77 /)) {
+                                compressor = new utility.LZ77();
+                                storageStr = compressor.decompress(storageStr.slice(5));
+                                utility.log(2, "Decompressed storage", name);
+                            }
+
+                            if (storageStr) {
+                                if (storageStr.match(/^R-HPACK /)) {
+                                    jsObj = JSON.hunpack(rison.decode(storageStr.slice(8)));
+                                } else if (storageStr.match(/^RISON /)) {
+                                    jsObj = rison.decode(storageStr.slice(6));
+                                } else if (storageStr.match(/^HPACK /)) {
+                                    jsObj = JSON.hunpack(JSON.parse(storageStr.slice(6)));
+                                } else {
+                                    jsObj = JSON.parse(storageStr);
+                                }
+                            }
+                        }
+
+                        if (jsObj === undefined || jsObj === null) {
+                            if (!hidden) {
+                                utility.warn("utility.storage.getItem parsed string returned 'undefined' or 'null' for ", name);
+                            }
+
+                            if (value !== undefined && value !== null) {
+                                hidden = (typeof hidden !== 'boolean') ? false : hidden;
+                                if (!hidden) {
+                                    utility.warn("utility.storage.getItem using default value ", value);
+                                }
+
+                                jsObj = value;
+                            } else {
+                                throw "No default value supplied! (" + value + ")";
+                            }
+                        }
+
+                        return jsObj;
+                    } catch (error) {
+                        utility.error("ERROR in utility.storage.getItem: " + error, arguments.callee.caller);
+                        if (error.match(/Invalid JSON/)) {
+                            if (value !== undefined && value !== null) {
+                                utility.storage.setItem(name, value);
+                                return value;
+                            } else {
+                                utility.storage.deleteItem(name);
+                            }
+                        }
+
+                        return undefined;
+                    }
+                };
+
+                this['deleteItem'] = this.deleteItem = function (name) {
+                    try {
+                        var storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
+                        if (typeof name !== 'string' || name === '') {
+                            throw "Invalid identifying name! (" + name + ")";
+                        }
+
+                        if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
+                            window[storage_type].removeItem(storage_ref + name);
+                        } else {
+                            GM_deleteValue(storage_ref + name);
+                        }
+
+                        return true;
+                    } catch (error) {
+                        utility.error("ERROR in utility.storage.deleteItem: " + error, arguments.callee.caller);
+                        return false;
+                    }
+                };
+
+                this['clear'] = this.clear = function (id) {
+                    try {
+                        var storageKeys = [],
+                            key         = 0,
+                            len         = 0,
+                            done        = false,
+                            storage_ref = (namespace ? namespace + "." : '') + (id ? id : (storage_id ? storage_id + "." : '')),
+                            nameRegExp  = new RegExp(storage_ref);
+
+                        if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
+                            if (utility.is_firefox) {
+                                while (!done) {
+                                    try {
+                                        if (window[storage_type].key(key) && window[storage_type].key(key).match(nameRegExp)) {
+                                            window[storage_type].removeItem(window[storage_type].key(key));
+                                        }
+
+                                        key += 1;
+                                    } catch (e) {
+                                        done = true;
+                                    }
+                                }
+                            } else {
+                                for (key = 0, len = window[storage_type].length; key < len; key += 1) {
+                                    if (window[storage_type].key(key) && window[storage_type].key(key).match(nameRegExp)) {
+                                        window[storage_type].removeItem(window[storage_type].key(key));
+                                    }
+                                }
+                            }
+                        } else {
+                            storageKeys = GM_listValues();
+                            for (key = 0, len = storageKeys.length; key < len; key += 1) {
+                                if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
+                                    GM_deleteValue(storageKeys[key]);
+                                }
+                            }
+                        }
+
+                        return true;
+                    } catch (error) {
+                        utility.error("ERROR in utility.storage.clear: " + error, arguments.callee.caller);
+                        return false;
+                    }
+                };
+
+                this['used'] = this.used = function (id) {
+                    try {
+                        var storageKeys = [],
+                            key         = 0,
+                            len         = 0,
+                            charCnt     = 0,
+                            chars       = 0,
+                            done        = false,
+                            storage_ref = (namespace ? namespace + "." : '') + (id ? id : (storage_id ? storage_id + "." : '')),
+                            nameRegExp  = new RegExp(storage_ref);
+
+                        if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
+                            if (utility.is_firefox) {
+                                while (!done) {
+                                    try {
+                                        chars += window[storage_type].getItem(window[storage_type].key(key)).length;
+                                        if (window[storage_type].key(key).match(nameRegExp)) {
+                                            charCnt += window[storage_type].getItem(window[storage_type].key(key)).length;
+                                        }
+
+                                        key += 1;
+                                    } catch (e) {
+                                        done = true;
+                                    }
+                                }
+
+                            } else {
+                                for (key = 0, len = window[storage_type].length; key < len; key += 1) {
+                                    chars += window[storage_type].getItem(window[storage_type].key(key)).length;
+                                    if (window[storage_type].key(key).match(nameRegExp)) {
+                                        charCnt += window[storage_type].getItem(window[storage_type].key(key)).length;
+                                    }
+                                }
+                            }
+                        } else {
+                            storageKeys = GM_listValues();
+                            for (key = 0, len = storageKeys.length; key < len; key += 1) {
+                                chars += GM_getValue(storageKeys[key]).length;
+                                if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
+                                    charCnt += GM_getValue(storageKeys[key]).length;
+                                }
+                            }
+                        }
+
+                        return {'match': charCnt, 'total': chars};
+                    } catch (error) {
+                        utility.error("ERROR in utility.storage.used: " + error, arguments.callee.caller);
+                        return undefined;
+                    }
+                };
+
+                return true;
+            } catch (err) {
+                utility.error("ERROR in utility.storage: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };
 
-    if (!window.utility) {
-        window.utility = window.$u = utility;
-    }
-
-    /* This section is added to allow Advanced Optimisation by the Closure Compiler */
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
-    window['utility'] = utility;
-    utility['jQueryExtend'] = utility.jQueryExtend;
-    utility['is_chrome'] = utility.is_chrome;
-    utility['is_firefox'] = utility.is_firefox;
-    utility['is_html5_localStorage'] = utility.is_html5_localStorage;
-    utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
-    utility['injectScript'] = utility.injectScript;
-    utility['isNum'] = utility.isNum;
-    utility['alert'] = utility.alert;
-    utility['log_version'] = utility.log_version;
-    utility['log_level'] = utility.get_log_level;
-    utility['log_common'] = utility.log_common;
-    utility['log'] = utility.log;
-    utility['warn'] = utility.warn;
-    utility['error'] = utility.error;
-    utility['charPrintables'] = utility.charPrintables;
-    utility['charNonPrintables'] = utility.charNonPrintables;
-    utility['testMD5'] = utility.testMD5;
-    utility['testSHA1'] = utility.testSHA1;
-    utility['testSHA256'] = utility.testSHA256;
-    utility['testUTF8'] = utility.testUTF8;
-    utility['testBase64'] = utility.testBase64;
-    utility['testAes'] = utility.testAes;
-    utility['testLZ77'] = utility.testLZ77;
-    utility['testAes'] = utility.testAes;
-    utility['testsRun'] = utility.testAes;
-    utility['Aes'] = utility.Aes;
-    utility['LZ77'] = utility.LZ77;
+    if (!window['utility']) {
+        window['utility'] = window.utility = window.$u = utility;
+        utility['jQueryExtend'] = utility.jQueryExtend;
+        utility['is_chrome'] = utility.is_chrome;
+        utility['is_firefox'] = utility.is_firefox;
+        utility['is_html5_localStorage'] = utility.is_html5_localStorage;
+        utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
+        utility['injectScript'] = utility.injectScript;
+        utility['isNum'] = utility.isNum;
+        utility['alert'] = utility.alert;
+        utility['set_log_version'] = utility.set_log_version;
+        utility['get_log_version'] = utility.get_log_version;
+        utility['set_log_level'] = utility.set_log_level;
+        utility['get_log_level'] = utility.get_log_level;
+        utility['log_common'] = utility.log_common;
+        utility['log'] = utility.log;
+        utility['warn'] = utility.warn;
+        utility['error'] = utility.error;
+        utility['charPrintables'] = utility.charPrintables;
+        utility['charNonPrintables'] = utility.charNonPrintables;
+        utility['testMD5'] = utility.testMD5;
+        utility['testSHA1'] = utility.testSHA1;
+        utility['testSHA256'] = utility.testSHA256;
+        utility['testUTF8'] = utility.testUTF8;
+        utility['testBase64'] = utility.testBase64;
+        utility['testAes'] = utility.testAes;
+        utility['testLZ77'] = utility.testLZ77;
+        utility['testAes'] = utility.testAes;
+        utility['testsRun'] = utility.testsRun;
+        utility['Aes'] = utility.Aes;
+        utility['LZ77'] = utility.LZ77;
+        utility['storage'] = utility.storage;
+    }
     /*jslint sub: false */
 }());

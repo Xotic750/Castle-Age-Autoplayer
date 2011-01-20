@@ -1121,7 +1121,7 @@ arena = {
                 attackOrderList = defaultOrderList.slice();
             }
 
-            utility.log(2, "attackOrderList", attackOrderList);
+            utility.log(3, "attackOrderList", attackOrderList);
             typeOrderList = ['chain', 'active', 'health', 'alive', 'last'];
             if (attackSuicide) {
                 typeOrderList.splice(3, 0, 'suicide');
@@ -1133,7 +1133,7 @@ arena = {
                 typeOrderList.splice(1, 0, 'poly');
             }
 
-            utility.log(2, "typeOrderList", typeOrderList);
+            utility.log(3, "typeOrderList", typeOrderList);
             for (it = 0, lenIt = typeOrderList.length; it < lenIt; it += 1) {
                 if (done) {
                     break;

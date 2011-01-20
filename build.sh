@@ -10,13 +10,12 @@ echo "Done."
 echo -n "Joining files into _normal.user.js : "
 sed -f build/version.sed _head.js > _normal.user.js
 sed -f build/version.sed _lead.js >> _normal.user.js
-cat object_utility.js >> _normal.user.js
 cat object_image64.js >> _normal.user.js
 cat object_config.js >> _normal.user.js
 cat object_state.js >> _normal.user.js
 cat object_css.js >> _normal.user.js
-cat object_gm.js >> _normal.user.js
-cat object_ss.js >> _normal.user.js
+#cat object_gm.js >> _normal.user.js
+#cat object_ss.js >> _normal.user.js
 cat object_sort.js >> _normal.user.js
 cat object_schedule.js >> _normal.user.js
 cat object_general.js >> _normal.user.js
@@ -46,9 +45,14 @@ echo "Done."
 # Change path to compiler and source - obtain it from here:
 # http://code.google.com/closure/compiler/
 
+echo "Creating minimised utility (will also show errors)"
+java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --output_wrapper "(function(){%output%})();" --warning_level QUIET --js utility/utility.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.6/js/jquery-ui-1.8.6.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs json2/json2.js --externs json.hpack/json.hpack.externs.js --externs rison/rison.js > utility/utility.min.js
+cp utility/utility.min.js Chrome/utility.min.js
+echo "Done."
+
 echo "Creating minimised version (will also show errors)"
 sed -f build/version.sed _head.js > _min.user.js
-java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --warning_level QUIET --js _normal.user.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.6/js/jquery-ui-1.8.6.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs json2/json2.js --externs json.hpack/json.hpack.externs.js --externs rison/rison.js >> _min.user.js
+#java -jar bin/compiler.jar --compilation_level ADVANCED_OPTIMIZATIONS --output_wrapper "(function(){%output%})();" --warning_level QUIET --js _normal.user.js --externs jquery-1.4.4-fix/jquery-1.4.4.js --externs jquery-ui-1.8.6/js/jquery-ui-1.8.6.custom.min.js --externs farbtastic12/farbtastic/farbtastic.js --externs json2/json2.js --externs json.hpack/json.hpack.externs.js --externs rison/rison.js --externs utility/utility.js>> _min.user.js
 # java -jar bin/compiler.jar --js _normal.user.js >> _min.user.js
 #cp _min.user.js Chrome/Castle-Age-Autoplayer.user.js
 echo "Done."

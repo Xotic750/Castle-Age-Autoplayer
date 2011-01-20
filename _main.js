@@ -14,10 +14,27 @@ function caap_DomTimeOut() {
     }
 }
 
+function caap_WaitForutility() {
+    if (typeof utility !== 'undefined') {
+        utility.log(1, "utility ready ...");
+        gm = new utility.storage({'namespace': 'caap'});
+        ss = new utility.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
+        jQuery(caap.start());
+    } else {
+        utility.log(1, "Waiting for utility ...");
+        window.setTimeout(caap_WaitForutility, 100);
+    }
+}
+
 function caap_WaitForrison() {
     if (typeof rison !== 'undefined') {
         utility.log(1, "rison ready ...");
-        jQuery(caap.start());
+        if (typeof rison === 'undefined') {
+            utility.log(1, "Inject utility.");
+            utility.injectScript('http://castle-age-auto-player.googlecode.com/files/utility.min.js');
+        }
+
+        caap_WaitForutility();
     } else {
         utility.log(1, "Waiting for rison ...");
         window.setTimeout(caap_WaitForrison, 100);
@@ -104,7 +121,7 @@ function caap_WaitForjQuery() {
 /////////////////////////////////////////////////////////////////////
 //                         Begin
 /////////////////////////////////////////////////////////////////////
-utility.log_version = caapVersion;
+utility.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
 utility.log(1, "Starting ... waiting page load");
 caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
 if (typeof window.jQuery !== 'function') {

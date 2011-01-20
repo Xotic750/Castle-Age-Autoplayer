@@ -1,5 +1,5 @@
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true,regexp: true, eqeqeq: true, maxlen: 512 */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
 /*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison,utility */
 /*jslint maxlen: 250 */
 
@@ -15,8 +15,8 @@ var caapVersion   = "!version!",
     config        = {},
     state         = {},
     css           = {},
-    gm            = {},
-    ss            = {},
+    gm            = null,
+    ss            = null,
     sort          = {},
     schedule      = {},
     general       = {},

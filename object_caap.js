@@ -32,7 +32,7 @@ caap = {
             caap.ReloadOccasionally();
         }
 
-        gm.clear0();
+        gm.clear('0');
         if (caap.ErrorCheck()) {
             mainCaapLoop();
             return;
@@ -99,11 +99,13 @@ caap = {
             return;
         }
 
+        gm.set_storage_id(FBID.toString());
+        ss.set_storage_id(FBID.toString());
         config.load();
-        utility.log_level = config.getItem('DebugLevel', utility.log_level);
-        utility.testsRun(utility.log_level >= 2 ? true : false);
+        utility.set_log_level(config.getItem('DebugLevel', utility.get_log_level()));
+        utility.testsRun(utility.get_log_level() >= 2 ? true : false);
         css.AddCSS();
-        gm.used();
+        caap.lsUsed();
         schedule.load();
         state.load();
         caap.LoadStats();
@@ -156,6 +158,43 @@ caap = {
         }
 
         mainCaapLoop();
+    },
+
+    lsUsed: function () {
+        try {
+            var count     = {
+                    'match' : 0,
+                    'total' : 0
+                },
+                perc      = {
+                    caap  : 0,
+                    total : 0
+                },
+                message   = '';
+
+            count = gm.used();
+            perc.caap = ((count['match'] * 2.048 / 5242880) * 100).dp();
+            utility.log(1, "CAAP localStorage used: " + perc.caap + "%");
+            perc.total = ((count['total'] * 2.048 / 5242880) * 100).dp();
+            if (perc.total >= 90) {
+                utility.warn("Total localStorage used: " + perc.total + "%");
+                message = "<div style='text-align: center;'>";
+                message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
+                message += "localStorage usage for domain: " + perc.total + "%<br />";
+                message += "CAAP is using: " + perc.total + "%";
+                message += "</div>";
+                window.setTimeout(function () {
+                    utility.alert(message);
+                }, 5000);
+            } else {
+                utility.log(1, "Total localStorage used: " + perc.total + "%");
+            }
+
+            return true;
+        } catch (err) {
+            utility.error("ERROR in release lsUsed: " + err);
+            return false;
+        }
     },
 
     IncrementPageLoadCounter: function () {
@@ -1018,8 +1057,6 @@ caap = {
                 left                    : styleXY.x + 'px',
                 zIndex                  : state.getItem('caap_div_zIndex', '2'),
                 position                : 'absolute',
-                //'-moz-border-radius'    : '5px',
-                //'-webkit-border-radius' : '5px',
                 'border-radius'         : '5px'
             }).appendTo(document.body);
 
@@ -2190,8 +2227,6 @@ caap = {
                 left                    : styleXY.x + 'px',
                 zIndex                  : state.getItem('caap_top_zIndex', 1),
                 position                : 'absolute',
-                //'-moz-border-radius'    : '5px',
-                //'-webkit-border-radius' : '5px',
                 'border-radius'         : '5px'
             }).appendTo(document.body);
 
@@ -4229,7 +4264,7 @@ caap = {
                 message += "'" + e.target.value + "'<br /><br />";
                 message += "Please enter a number or leave blank.";
                 message += "</div>";
-                utility.alert(message, "NumberBox");
+                utility.alert(message);
                 number = '';
             } else {
                 number = e.target.value.parseFloat();
@@ -4256,7 +4291,7 @@ caap = {
             } else if (/Chain/.test(idName)) {
                 state.getItem('BattleChainId', 0);
             } else if (idName === 'DebugLevel') {
-                utility.log_level = e.target.value;
+                utility.set_log_level(e.target.value.parseInt());
             } else if (idName === "IgnoreMinionsBelow") {
                 state.setItem('targetGuildMonster', {});
                 state.setItem('staminaGuildMonster', 0);
@@ -5684,7 +5719,7 @@ caap = {
             }
 
             if (!passed && caap.stats['energy']['max'] === 0 && caap.stats['health']['max'] === 0 && caap.stats['stamina']['max'] === 0) {
-                utility.alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>", "Disabled");
+                utility.alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>");
                 utility.warn("Paused as this account may have been disabled!", caap.stats);
                 caap.PauseListener();
             }
@@ -11612,7 +11647,7 @@ caap = {
             }
 
             var count = state.getItem('ajaxCTACount', 0),
-                aes = new utility.Aes(gm.namespace);
+                aes = new utility.Aes(gm.get_namespace());
 
             utility.log(3, "doCTAs", count, urls.length);
             if (count < urls.length) {
