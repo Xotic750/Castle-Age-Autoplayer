@@ -21512,7 +21512,7 @@ function caap_DomTimeOut() {
 }
 
 function caap_WaitForutility() {
-    if (typeof window.utility !== 'undefined') {
+    if (typeof utility !== 'undefined') {
         caap_log("utility ready ...");
         utility.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
         utility.jQueryExtend();
@@ -21521,6 +21521,7 @@ function caap_WaitForutility() {
         jQuery(caap.start());
     } else {
         caap_log("Waiting for utility ...");
+        caap_log(utility);
         window.setTimeout(caap_WaitForutility, 100);
     }
 }
