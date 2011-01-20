@@ -12,7 +12,7 @@ gifting = {
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || gifting.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to load: ", type);
+                $u.warn("Type passed to load: ", type);
                 throw "Invalid type value!";
             }
 
@@ -22,12 +22,12 @@ gifting = {
             }
 
             gifting[type].hbest = JSON.hbest(gifting[type].records);
-            utility.log(2, "gifting." + type + " Hbest", gifting[type].hbest);
-            utility.log(5, "gifting.load", type, gifting[type].records);
+            $u.log(2, "gifting." + type + " Hbest", gifting[type].hbest);
+            $u.log(5, "gifting.load", type, gifting[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
-            utility.error("ERROR in gifting.load: " + err);
+            $u.error("ERROR in gifting.load: " + err);
             return false;
         }
     },
@@ -35,17 +35,17 @@ gifting = {
     save: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || gifting.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to load: ", type);
+                $u.warn("Type passed to load: ", type);
                 throw "Invalid type value!";
             }
 
             var compress = false;
             gm.setItem("gifting." + type, gifting[type].records, gifting[type].hbest, compress);
-            utility.log(5, "gifting.save", type, gifting[type].records);
+            $u.log(5, "gifting.save", type, gifting[type].records);
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
-            utility.error("ERROR in gifting.save: " + err);
+            $u.error("ERROR in gifting.save: " + err);
             return false;
         }
     },
@@ -53,7 +53,7 @@ gifting = {
     clear: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || gifting.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to clear: ", type);
+                $u.warn("Type passed to clear: ", type);
                 throw "Invalid type value!";
             }
 
@@ -62,7 +62,7 @@ gifting = {
             state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
             return true;
         } catch (err) {
-            utility.error("ERROR in gifting.clear: " + err);
+            $u.error("ERROR in gifting.clear: " + err);
             return false;
         }
     },
@@ -87,7 +87,7 @@ gifting = {
             gifting.history.fix();
             return result;
         } catch (err) {
-            utility.error("ERROR in gifting.init: " + err);
+            $u.error("ERROR in gifting.init: " + err);
             return undefined;
         }
     },
@@ -117,20 +117,20 @@ gifting = {
                     if (tempText) {
                         current.data['name'] = tempText;
                     } else {
-                        utility.warn("No name found in", giftDiv);
+                        $u.warn("No name found in", giftDiv);
                         current.data['name'] = "Unknown";
                     }
                 } else {
-                    utility.warn("No uid found in", giftDiv);
+                    $u.warn("No uid found in", giftDiv);
                 }
             } else {
-                utility.warn("No gift messages found!");
+                $u.warn("No gift messages found!");
             }
 
             gifting.setCurrent(gm.setItem("GiftEntry", current.data));
             return !$j.isEmptyObject(gifting.getCurrent());
         } catch (err) {
-            utility.error("ERROR in gifting.accept: " + err);
+            $u.error("ERROR in gifting.accept: " + err);
             return undefined;
         }
     },
@@ -145,7 +145,7 @@ gifting = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in gifting.loadCurrent: " + err);
+            $u.error("ERROR in gifting.loadCurrent: " + err);
             return false;
         }
     },
@@ -154,7 +154,7 @@ gifting = {
         try {
             return gifting.cachedGiftEntry;
         } catch (err) {
-            utility.error("ERROR in gifting.getCurrent: " + err);
+            $u.error("ERROR in gifting.getCurrent: " + err);
             return undefined;
         }
     },
@@ -168,14 +168,14 @@ gifting = {
             }
 
             if (isNaN(record['userId']) || record['userId'] < 1) {
-                utility.warn("userId", record, record['userId']);
+                $u.warn("userId", record, record['userId']);
                 throw "Invalid identifying userId!";
             }
 
             gifting.cachedGiftEntry = gm.setItem("GiftEntry", record);
             return gifting.cachedGiftEntry;
         } catch (err) {
-            utility.error("ERROR in gifting.setCurrent: " + err);
+            $u.error("ERROR in gifting.setCurrent: " + err);
             return undefined;
         }
     },
@@ -186,7 +186,7 @@ gifting = {
             gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
             return gifting.cachedGiftEntry;
         } catch (err) {
-            utility.error("ERROR in gifting.clearCurrent: " + err);
+            $u.error("ERROR in gifting.clearCurrent: " + err);
             return undefined;
         }
     },
@@ -216,13 +216,13 @@ gifting = {
             }
 
             if (!$j.isEmptyObject(giftEntry) && !giftEntry['checked']) {
-                utility.log(1, "Clearing incomplete pending gift", giftEntry);
+                $u.log(1, "Clearing incomplete pending gift", giftEntry);
                 gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
             }
 
             return null;
         } catch (err) {
-            utility.error("ERROR in gifting.collecting: " + err);
+            $u.error("ERROR in gifting.collecting: " + err);
             return undefined;
         }
     },
@@ -252,7 +252,7 @@ gifting = {
             }
 
             if (!giftEntry['checked']) {
-                utility.log(1, 'On FB page with gift ready to go');
+                $u.log(1, 'On FB page with gift ready to go');
                 appDiv = $j("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
                 if (appDiv && appDiv.length) {
                     appDiv.each(function () {
@@ -282,14 +282,14 @@ gifting = {
                                     giftType = giftArr[2];
                                 }
                             } else {
-                                utility.warn("No fb_protected_wrapper in ", giftRequest);
+                                $u.warn("No fb_protected_wrapper in ", giftRequest);
                             }
 
                             if (giftType === '' || gifting.gifts.list().indexOf(giftType) < 0) {
-                                utility.log(1, 'Unknown gift type', giftType, gifting.gifts.list());
+                                $u.log(1, 'Unknown gift type', giftType, gifting.gifts.list());
                                 giftType = 'Unknown Gift';
                             } else {
-                                utility.log(1, 'gift type', giftType, gifting.gifts.list());
+                                $u.log(1, 'gift type', giftType, gifting.gifts.list());
                             }
 
                             giftEntry['gift'] = giftType;
@@ -300,13 +300,13 @@ gifting = {
                             caap.Click(inputDiv.get(0));
                             return false;
                         } else {
-                            utility.warn("No input found in ", giftRequest.get(0));
+                            $u.warn("No input found in ", giftRequest.get(0));
                         }
 
                         return true;
                     });
                 } else {
-                    utility.warn("No gifts found for CA");
+                    $u.warn("No gifts found for CA");
                 }
 
                 giftEntry['checked'] = true;
@@ -318,17 +318,17 @@ gifting = {
             }
 
             if (giftEntry['found']) {
-                utility.log(1, 'Gift click timed out');
+                $u.log(1, 'Gift click timed out');
             } else {
                 giftEntry['gift'] = 'Unknown Gift';
                 gifting.setCurrent(giftEntry);
-                utility.log(1, 'Unable to find gift', giftEntry);
+                $u.log(1, 'Unable to find gift', giftEntry);
             }
 
             caap.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
             return true;
         } catch (err) {
-            utility.error("ERROR in gifting.collect: " + err);
+            $u.error("ERROR in gifting.collect: " + err);
             return false;
         }
     },
@@ -352,7 +352,7 @@ gifting = {
             schedule.setItem("NoGiftDelay", 0);
             return true;
         } catch (err) {
-            utility.error("ERROR in gifting.collected: " + err);
+            $u.error("ERROR in gifting.collected: " + err);
             return false;
         }
     },
@@ -368,14 +368,14 @@ gifting = {
             if (popDiv && popDiv.length) {
                 tempDiv = popDiv.find("input[name='sendit']");
                 if (tempDiv && tempDiv.length) {
-                    utility.log(1, 'Sending gifts to Facebook');
+                    $u.log(1, 'Sending gifts to Facebook');
                     caap.Click(tempDiv.get(0));
                     return true;
                 }
 
                 tempDiv = popDiv.find("input[name='skip_ci_btn']");
                 if (tempDiv && tempDiv.length) {
-                    utility.log(1, 'Denying Email Nag For Gift Send');
+                    $u.log(1, 'Denying Email Nag For Gift Send');
                     caap.Click(tempDiv.get(0));
                     return true;
                 }
@@ -385,14 +385,14 @@ gifting = {
                     tempText = tempDiv.parent().parent().prev().text();
                     if (tempText) {
                         if (/you have run out of requests/.test(tempText)) {
-                            utility.log(2, 'Out of requests: ', tempText);
+                            $u.log(2, 'Out of requests: ', tempText);
                             schedule.setItem("MaxGiftsExceeded", 10800, 300);
                             tryAgain = false;
                         } else {
-                            utility.warn('Popup message: ', tempText);
+                            $u.warn('Popup message: ', tempText);
                         }
                     } else {
-                        utility.warn('Popup message but no text found', tempDiv);
+                        $u.warn('Popup message but no text found', tempDiv);
                     }
 
                     caap.Click(tempDiv.get(0));
@@ -402,14 +402,14 @@ gifting = {
                 tempText = popDiv.text();
                 if (tempText) {
                     if (/Loading/.test(tempText)) {
-                        utility.log(2, "Popup is loading ...");
+                        $u.log(2, "Popup is loading ...");
                         return true;
                     } else {
-                        utility.warn('Unknown popup!', popDiv.text());
+                        $u.warn('Unknown popup!', popDiv.text());
                         return false;
                     }
                 } else {
-                    utility.warn('Popup message but no text found', popDiv);
+                    $u.warn('Popup message but no text found', popDiv);
                     return false;
                 }
             }
@@ -420,7 +420,7 @@ gifting = {
 
             return null;
         } catch (err) {
-            utility.error("ERROR in gifting.popCheck: " + err);
+            $u.error("ERROR in gifting.popCheck: " + err);
             return undefined;
         }
     },
@@ -448,7 +448,7 @@ gifting = {
                     gift  = false;
 
                 if (typeof name !== 'string' || name === '') {
-                    utility.warn("name", name);
+                    $u.warn("name", name);
                     throw "Invalid identifying name!";
                 }
 
@@ -461,7 +461,7 @@ gifting = {
 
                 return gift;
             } catch (err) {
-                utility.error("ERROR in gifting.gifts.getItem: " + err);
+                $u.error("ERROR in gifting.gifts.getItem: " + err);
                 return undefined;
             }
         },
@@ -473,7 +473,7 @@ gifting = {
                     image = '';
 
                 if (typeof name !== 'string' || name === '') {
-                    utility.warn("name", name);
+                    $u.warn("name", name);
                     throw "Invalid identifying name!";
                 }
 
@@ -487,13 +487,13 @@ gifting = {
                     }
 
                     if (it >= len) {
-                        utility.warn("Gift not in list! ", name);
+                        $u.warn("Gift not in list! ", name);
                     }
                 }
 
                 return image;
             } catch (err) {
-                utility.error("ERROR in gifting.gifts.getImg: " + err);
+                $u.error("ERROR in gifting.gifts.getImg: " + err);
                 return undefined;
             }
         },
@@ -521,11 +521,11 @@ gifting = {
                             if (tempText) {
                                 newGift.data['name'] = tempText;
                             } else {
-                                utility.warn("Unable to get gift name! No text in ", tempDiv);
+                                $u.warn("Unable to get gift name! No text in ", tempDiv);
                                 return true;
                             }
                         } else {
-                            utility.warn("Unable to get gift name! No child!");
+                            $u.warn("Unable to get gift name! No child!");
                             return true;
                         }
 
@@ -536,17 +536,17 @@ gifting = {
                             if (tempText) {
                                 newGift.data['image'] = tempText;
                             } else {
-                                utility.warn("Unable to get gift image! No src in ", tempDiv);
+                                $u.warn("Unable to get gift image! No src in ", tempDiv);
                                 return true;
                             }
                         } else {
-                            utility.warn("Unable to get gift image! No img!");
+                            $u.warn("Unable to get gift image! No img!");
                             return true;
                         }
 
                         if (gifting.gifts.getItem(newGift.data['name'])) {
                             newGift.data['name'] += " #2";
-                            utility.log(2, "Gift exists, no auto return for ", newGift.data['name']);
+                            $u.log(2, "Gift exists, no auto return for ", newGift.data['name']);
                         }
 
                         gifting.gifts.records.push(newGift.data);
@@ -559,7 +559,7 @@ gifting = {
                     tempArr = gifting.gifts.list();
                     tempText = config.getItem("GiftChoice", gifting.gifts.options[0]);
                     if (tempArr.indexOf(tempText) < 0)  {
-                        utility.log(1, "Gift choice invalid, changing from/to ", tempText, gifting.gifts.options[0]);
+                        $u.log(1, "Gift choice invalid, changing from/to ", tempText, gifting.gifts.options[0]);
                         tempText = config.setItem("GiftChoice", gifting.gifts.options[0]);
                     }
 
@@ -569,7 +569,7 @@ gifting = {
 
                 return update;
             } catch (err) {
-                utility.error("ERROR in gifting.gifts.populate: " + err);
+                $u.error("ERROR in gifting.gifts.populate: " + err);
                 return undefined;
             }
         },
@@ -586,7 +586,7 @@ gifting = {
 
                 return $j.merge($j.merge([], gifting.gifts.options), giftList);
             } catch (err) {
-                utility.error("ERROR in gifting.gifts.list: " + err);
+                $u.error("ERROR in gifting.gifts.list: " + err);
                 return undefined;
             }
         },
@@ -595,7 +595,7 @@ gifting = {
             try {
                 return gifting.gifts.records[Math.floor(Math.random() * (gifting.gifts.records.length))]['name'];
             } catch (err) {
-                utility.error("ERROR in gifting.gifts.random: " + err);
+                $u.error("ERROR in gifting.gifts.random: " + err);
                 return undefined;
             }
         },
@@ -605,7 +605,7 @@ gifting = {
             try {
                 return gifting.gifts.records.length;
             } catch (err) {
-                utility.error("ERROR in gifting.gifts.length: " + err);
+                $u.error("ERROR in gifting.gifts.length: " + err);
                 return undefined;
             }
         }
@@ -636,7 +636,7 @@ gifting = {
 
                 for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
                     if (isNaN(gifting.queue.records[it]['userId']) || gifting.queue.records[it]['userId'] < 1 || gifting.queue.records[it]['sent'] === true) {
-                        utility.warn("gifting.queue.fix - delete", gifting.queue.records[it]);
+                        $u.warn("gifting.queue.fix - delete", gifting.queue.records[it]);
                         gifting.queue.records.splice(it, 1);
                         save = true;
                     }
@@ -648,7 +648,7 @@ gifting = {
 
                 return save;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.fix: " + err);
+                $u.error("ERROR in gifting.queue.fix: " + err);
                 return undefined;
             }
         },
@@ -662,7 +662,7 @@ gifting = {
                 }
 
                 if (isNaN(record['userId']) || record['userId'] < 1) {
-                    utility.warn("userId", record['userId']);
+                    $u.warn("userId", record['userId']);
                     throw "Invalid identifying userId!";
                 }
 
@@ -677,7 +677,7 @@ gifting = {
                             if (gifting.queue.records[it]['name'] !== record['name']) {
                                 gifting.queue.records[it]['name'] = record['name'];
                                 updated = true;
-                                utility.log(2, "Updated users name", record, gifting.queue.records);
+                                $u.log(2, "Updated users name", record, gifting.queue.records);
                             }
 
                             found = true;
@@ -689,7 +689,7 @@ gifting = {
                 if (!found) {
                     gifting.queue.records.push(record);
                     updated = true;
-                    utility.log(2, "Added gift to queue", record, gifting.queue.records);
+                    $u.log(2, "Added gift to queue", record, gifting.queue.records);
                 }
 
                 if (updated) {
@@ -698,7 +698,7 @@ gifting = {
 
                 return true;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.setItem: " + err, record);
+                $u.error("ERROR in gifting.queue.setItem: " + err, record);
                 return false;
             }
         },
@@ -714,7 +714,7 @@ gifting = {
                 gifting.save("queue");
                 return true;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.deleteIndex: " + err, index);
+                $u.error("ERROR in gifting.queue.deleteIndex: " + err, index);
                 return false;
             }
         },
@@ -723,7 +723,7 @@ gifting = {
             try {
                 return gifting.queue.records.length;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.length: " + err);
+                $u.error("ERROR in gifting.queue.length: " + err);
                 return undefined;
             }
         },
@@ -770,7 +770,7 @@ gifting = {
                     }
 
                     if (filterId && filterIdLen && filterIdList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
-                        utility.log(2, "chooseGift Filter Id", gifting.queue.records[it]['userId']);
+                        $u.log(2, "chooseGift Filter Id", gifting.queue.records[it]['userId']);
                         continue;
                     }
 
@@ -778,7 +778,7 @@ gifting = {
                         filterGiftCont = false;
                         for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (gifting.queue.records[it]['gift'].indexOf(filterGiftList[it1]) >= 0) {
-                                utility.log(2, "chooseGift Filter Gift", gifting.queue.records[it]['gift']);
+                                $u.log(2, "chooseGift Filter Gift", gifting.queue.records[it]['gift']);
                                 filterGiftCont = true;
                                 break;
                             }
@@ -815,7 +815,7 @@ gifting = {
 
                 return gift;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.chooseGift: " + err);
+                $u.error("ERROR in gifting.queue.chooseGift: " + err);
                 return undefined;
             }
         },
@@ -885,7 +885,7 @@ gifting = {
                     }
 
                     if (filterId && filterIdLen && filterIdList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
-                        utility.log(2, "chooseFriend Filter Id", gifting.queue.records[it]['userId']);
+                        $u.log(2, "chooseFriend Filter Id", gifting.queue.records[it]['userId']);
                         continue;
                     }
 
@@ -893,7 +893,7 @@ gifting = {
                         filterGiftCont = false;
                         for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
                             if (gifting.queue.records[it]['gift'].indexOf(filterGiftList[it1]) >= 0) {
-                                utility.log(2, "chooseFriend Filter Gift", gifting.queue.records[it]['gift']);
+                                $u.log(2, "chooseFriend Filter Gift", gifting.queue.records[it]['gift']);
                                 filterGiftCont = true;
                                 break;
                             }
@@ -906,7 +906,7 @@ gifting = {
 
                     if (returnOnlyOne) {
                         if (gifting.history.checkSentOnce(gifting.queue.records[it]['userId'])) {
-                            utility.log(2, "Sent Today: ", gifting.queue.records[it]['userId']);
+                            $u.log(2, "Sent Today: ", gifting.queue.records[it]['userId']);
                             gifting.queue.records[it]['last'] = new Date().getTime();
                             continue;
                         }
@@ -942,15 +942,15 @@ gifting = {
                             if (!/none/.test(unsel.parent().attr("style"))) {
                                 caap.waitingForDomLoad = false;
                                 caap.Click(unsel.get(0));
-                                utility.log(2, "Id clicked:", id);
+                                $u.log(2, "Id clicked:", id);
                                 clickedList.push(id);
                             } else {
-                                utility.log(2, "Id not found, perhaps gift pending:", id);
+                                $u.log(2, "Id not found, perhaps gift pending:", id);
                                 pendingList.push(id);
                             }
                         });
                     } else {
-                        utility.log(2, "Ids not found:", giftingList, searchStr);
+                        $u.log(2, "Ids not found:", giftingList, searchStr);
                         $j.merge(pendingList, giftingList);
                     }
 
@@ -972,27 +972,27 @@ gifting = {
                                 tStr = sel.attr("value");
                                 id = tStr ? tStr.parseInt() : 0;
                                 if (!/none/.test(sel.parent().attr("style"))) {
-                                    utility.log(2, "User Chosen:", id);
+                                    $u.log(2, "User Chosen:", id);
                                     chosenList.push(id);
                                 } else {
-                                    utility.log(2, "Selected id is none:", id);
+                                    $u.log(2, "Selected id is none:", id);
                                     pendingList.push(id);
                                 }
                             });
                         } else {
-                            utility.log(2, "Selected ids not found:", searchStr);
+                            $u.log(2, "Selected ids not found:", searchStr);
                             $j.merge(pendingList, clickedList);
                         }
                     }
 
-                    utility.log(2, "chosenList/pendingList", chosenList, pendingList);
+                    $u.log(2, "chosenList/pendingList", chosenList, pendingList);
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
                         if (chosenList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
-                            utility.log(2, "Chosen", gifting.queue.records[it]['userId']);
+                            $u.log(2, "Chosen", gifting.queue.records[it]['userId']);
                             gifting.queue.records[it]['chosen'] = true;
                             gifting.queue.records[it]['last'] = new Date().getTime();
                         } else if (pendingList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
-                            utility.log(2, "Pending", gifting.queue.records[it]['userId']);
+                            $u.log(2, "Pending", gifting.queue.records[it]['userId']);
                             gifting.queue.records[it]['last'] = new Date().getTime();
                         }
                     }
@@ -1003,7 +1003,7 @@ gifting = {
 
                 return chosenList.length;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.chooseFriend: " + err);
+                $u.error("ERROR in gifting.queue.chooseFriend: " + err);
                 return undefined;
             }
         },
@@ -1029,26 +1029,26 @@ gifting = {
                                     }
                                 }
 
-                                utility.log(1, 'Confirmed gifts sent out.');
+                                $u.log(1, 'Confirmed gifts sent out.');
                                 sentok = true;
                                 gifting.save("queue");
                             } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
-                                utility.log(1, 'Exceeded daily gift limit.');
+                                $u.log(1, 'Exceeded daily gift limit.');
                                 schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
                             } else {
-                                utility.log(2, 'Result message', resultText);
+                                $u.log(2, 'Result message', resultText);
                             }
                         } else {
-                            utility.log(2, 'No result message');
+                            $u.log(2, 'No result message');
                         }
                     }
                 } else {
-                    utility.log(2, 'Not a gift create request');
+                    $u.log(2, 'Not a gift create request');
                 }
 
                 return sentok;
             } catch (err) {
-                utility.error("ERROR in gifting.queue.sent: " + err);
+                $u.error("ERROR in gifting.queue.sent: " + err);
                 return undefined;
             }
         }
@@ -1078,7 +1078,7 @@ gifting = {
 
                 for (it = gifting.history.records.length - 1; it >= 0; it -= 1) {
                     if (isNaN(gifting.history.records[it]['userId']) || gifting.history.records[it]['userId'] < 1) {
-                        utility.warn("gifting.history.fix - delete", gifting.history.records[it]);
+                        $u.warn("gifting.history.fix - delete", gifting.history.records[it]);
                         gifting.history.records.splice(it, 1);
                         save = true;
                     }
@@ -1090,7 +1090,7 @@ gifting = {
 
                 return save;
             } catch (err) {
-                utility.error("ERROR in gifting.history.fix: " + err);
+                $u.error("ERROR in gifting.history.fix: " + err);
                 return undefined;
             }
         },
@@ -1104,7 +1104,7 @@ gifting = {
                 }
 
                 if (isNaN(record['userId']) || record['userId'] < 1) {
-                    utility.warn("userId", record['userId']);
+                    $u.warn("userId", record['userId']);
                     throw "Invalid identifying userId!";
                 }
 
@@ -1127,7 +1127,7 @@ gifting = {
                 }
 
                 if (success) {
-                    utility.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
+                    $u.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
                 } else {
                     newRecord = new gifting.history.record();
                     newRecord.data['userId'] = record['userId'];
@@ -1135,13 +1135,13 @@ gifting = {
                     newRecord.data['received'] = 1;
                     newRecord.data['lastReceived'] = new Date().getTime();
                     gifting.history.records.push(newRecord.data);
-                    utility.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
+                    $u.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
                 }
 
                 gifting.save("history");
                 return true;
             } catch (err) {
-                utility.error("ERROR in gifting.history.received: " + err, record);
+                $u.error("ERROR in gifting.history.received: " + err, record);
                 return false;
             }
         },
@@ -1153,7 +1153,7 @@ gifting = {
                 }
 
                 if (isNaN(record['userId']) || record['userId'] < 1) {
-                    utility.warn("userId", record['userId']);
+                    $u.warn("userId", record['userId']);
                     throw "Invalid identifying userId!";
                 }
 
@@ -1176,7 +1176,7 @@ gifting = {
                 }
 
                 if (success) {
-                    utility.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
+                    $u.log(2, "Updated gifting.history record", gifting.history.records[it], gifting.history.records);
                 } else {
                     newRecord = new gifting.history.record();
                     newRecord.data['userId'] = record['userId'];
@@ -1184,13 +1184,13 @@ gifting = {
                     newRecord.data['sent'] = 1;
                     newRecord.data['lastSent'] = new Date().getTime();
                     gifting.history.records.push(newRecord.data);
-                    utility.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
+                    $u.log(2, "Added gifting.history record", newRecord.data, gifting.history.records);
                 }
 
                 gifting.save("history");
                 return true;
             } catch (err) {
-                utility.error("ERROR in gifting.history.sent: " + err, record);
+                $u.error("ERROR in gifting.history.sent: " + err, record);
                 return false;
             }
         },
@@ -1198,7 +1198,7 @@ gifting = {
         checkSentOnce: function (userId) {
             try {
                 if (isNaN(userId) || userId < 1) {
-                    utility.warn("userId", userId);
+                    $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
@@ -1217,7 +1217,7 @@ gifting = {
 
                 return sentOnce;
             } catch (err) {
-                utility.error("ERROR in gifting.history.checkSentOnce: " + err, userId);
+                $u.error("ERROR in gifting.history.checkSentOnce: " + err, userId);
                 return undefined;
             }
         },
@@ -1227,7 +1227,7 @@ gifting = {
             try {
                 return gifting.history.records.length;
             } catch (err) {
-                utility.error("ERROR in gifting.history.length: " + err);
+                $u.error("ERROR in gifting.history.length: " + err);
                 return undefined;
             }
         }

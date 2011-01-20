@@ -775,7 +775,7 @@
                 document.head.appendChild(inject);
                 return true;
             } catch (err) {
-                utility.error("ERROR in utility.injectScript: " + err);
+                $u.error("ERROR in $u.injectScript: " + err);
                 return false;
             }
         },
@@ -799,8 +799,8 @@
         log_level: 1,
 
         log_common: function (type, level, text) {
-            if (utility.get_log_level && !isNaN(level) && utility.get_log_level >= level) {
-                var m = utility.log_version + ' |' + (new Date()).toLocaleTimeString() + '| ' + text,
+            if ($u.get_log_level && !isNaN(level) && $u.get_log_level >= level) {
+                var m = $u.log_version + ' |' + (new Date()).toLocaleTimeString() + '| ' + text,
                     t = [],
                     i = 0,
                     l = 0;
@@ -825,25 +825,25 @@
 
         log: function (level, text) {
             if (arguments.length > 2) {
-                utility.log_common("log", level, text, Array.prototype.slice.call(arguments, 2));
+                $u.log_common("log", level, text, Array.prototype.slice.call(arguments, 2));
             } else {
-                utility.log_common("log", level, text);
+                $u.log_common("log", level, text);
             }
         },
 
         warn: function (text) {
             if (arguments.length > 1) {
-                utility.log_common("warn", 1, text, Array.prototype.slice.call(arguments, 1));
+                $u.log_common("warn", 1, text, Array.prototype.slice.call(arguments, 1));
             } else {
-                utility.log_common("warn", 1, text);
+                $u.log_common("warn", 1, text);
             }
         },
 
         error: function (text) {
             if (arguments.length > 1) {
-                utility.log_common("error", 1, text, Array.prototype.slice.call(arguments, 1));
+                $u.log_common("error", 1, text, Array.prototype.slice.call(arguments, 1));
             } else {
-                utility.log_common("error", 1, text);
+                $u.log_common("error", 1, text);
             }
         },
 
@@ -858,7 +858,7 @@
 
                 return t;
             } catch (err) {
-                utility.error("ERROR in utility.charPrintables: " + err);
+                $u.error("ERROR in $u.charPrintables: " + err);
                 return undefined;
             }
         },
@@ -874,7 +874,7 @@
 
                 return t;
             } catch (err) {
-                utility.error("ERROR in utility.charNonPrintables: " + err);
+                $u.error("ERROR in $u.charNonPrintables: " + err);
                 return undefined;
             }
         },
@@ -887,13 +887,13 @@
                     d = 'e1cb1402564d3f0d07fc946196789c81',
                     p = true;
 
-                t = utility.charPrintables();
+                t = $u.charPrintables();
                 r = t.MD5();
                 if (r !== c) {
                     p = false;
                 }
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = t.MD5();
                 if (r !== d) {
                     p = false;
@@ -901,14 +901,14 @@
 
 
                 if (p) {
-                    utility.log(1, "MD5 Passed");
+                    $u.log(1, "MD5 Passed");
                 } else {
-                    utility.warn("MD5 Failed");
+                    $u.warn("MD5 Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testMD5: " + err);
+                $u.error("ERROR in $u.testMD5: " + err);
                 return undefined;
             }
         },
@@ -921,27 +921,27 @@
                     d = 'ae79896181f7034c2c11a57bd211ec3dea276625',
                     p = true;
 
-                t = utility.charPrintables();
+                t = $u.charPrintables();
                 r = t.SHA1();
                 if (r !== c) {
                     p = false;
                 }
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = t.SHA1();
                 if (r !== d) {
                     p = false;
                 }
 
                 if (p) {
-                    utility.log(1, "SHA1 Passed");
+                    $u.log(1, "SHA1 Passed");
                 } else {
-                    utility.warn("SHA1 Failed");
+                    $u.warn("SHA1 Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testSHA1: " + err);
+                $u.error("ERROR in $u.testSHA1: " + err);
                 return undefined;
             }
         },
@@ -954,27 +954,27 @@
                     d = '9799e3eb6096a48f515a94324200b7af24251a4131eccf9a2cd65d012a1f5c71',
                     p = true;
 
-                t = utility.charPrintables();
+                t = $u.charPrintables();
                 r = t.SHA256();
                 if (r !== c) {
                     p = false;
                 }
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = t.SHA256();
                 if (r !== d) {
                     p = false;
                 }
 
                 if (p) {
-                    utility.log(1, "SHA256 Passed");
+                    $u.log(1, "SHA256 Passed");
                 } else {
-                    utility.warn("SHA256 Failed");
+                    $u.warn("SHA256 Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testSHA256: " + err);
+                $u.error("ERROR in $u.testSHA256: " + err);
                 return undefined;
             }
         },
@@ -986,7 +986,7 @@
                     s = '',
                     p = true;
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = t.Utf8encode();
                 s = r.Utf8decode();
                 if (s !== t) {
@@ -994,14 +994,14 @@
                 }
 
                 if (p) {
-                    utility.log(1, "Utf8 Passed");
+                    $u.log(1, "Utf8 Passed");
                 } else {
-                    utility.warn("Utf8 Failed");
+                    $u.warn("Utf8 Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testUTF8: " + err);
+                $u.error("ERROR in $u.testUTF8: " + err);
                 return undefined;
             }
         },
@@ -1013,7 +1013,7 @@
                     s = '',
                     p = true;
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = t.Base64encode();
                 s = r.Base64decode();
                 if (s !== t) {
@@ -1027,14 +1027,14 @@
                 }
 
                 if (p) {
-                    utility.log(1, "Base64 Passed");
+                    $u.log(1, "Base64 Passed");
                 } else {
-                    utility.warn("Base64 Failed");
+                    $u.warn("Base64 Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testBase64: " + err);
+                $u.error("ERROR in $u.testBase64: " + err);
                 return undefined;
             }
         },
@@ -1044,13 +1044,13 @@
                 var t = '',
                     r = '',
                     s = '',
-                    c = new utility.Aes("password"),
-                    d = new utility.Aes("test"),
+                    c = new $u.Aes("password"),
+                    d = new $u.Aes("test"),
                     e = 'YWQ1TWVlZWXr+E1tVWIBV0wzwzwdzTiH/YEHUjpWgt7sx9NcneHZHQ==',
                     f = "pssst ... đon’t tell anyøne!",
                     p = true;
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = c.encrypt(t);
                 s = c.decrypt(r);
                 if (s !== t) {
@@ -1063,14 +1063,14 @@
                 }
 
                 if (p) {
-                    utility.log(1, "Aes Passed");
+                    $u.log(1, "Aes Passed");
                 } else {
-                    utility.warn("Aes Failed");
+                    $u.warn("Aes Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testAes: " + err);
+                $u.error("ERROR in $u.testAes: " + err);
                 return undefined;
             }
         },
@@ -1080,10 +1080,10 @@
                 var t = '',
                     r = '',
                     s = '',
-                    c = new utility.LZ77(),
+                    c = new $u.LZ77(),
                     p = true;
 
-                t = utility.charNonPrintables();
+                t = $u.charNonPrintables();
                 r = c.compress(t);
                 s = c.decompress(r);
                 if (s !== t) {
@@ -1123,14 +1123,14 @@
                 }
 
                 if (p) {
-                    utility.log(1, "LZ77 Passed", ((r.length / t.length) * 100).dp(2));
+                    $u.log(1, "LZ77 Passed", ((r.length / t.length) * 100).dp(2));
                 } else {
-                    utility.warn("LZ77 Failed");
+                    $u.warn("LZ77 Failed");
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testLZ77: " + err);
+                $u.error("ERROR in $u.testLZ77: " + err);
                 return undefined;
             }
         },
@@ -1139,38 +1139,38 @@
             try {
                 var p = true;
                 if (run) {
-                    if (!utility.testMD5()) {
+                    if (!$u.testMD5()) {
                         p = false;
                     }
 
-                    if (!utility.testSHA1()) {
+                    if (!$u.testSHA1()) {
                         p = false;
                     }
 
-                    if (!utility.testSHA256()) {
+                    if (!$u.testSHA256()) {
                         p = false;
                     }
 
-                    if (!utility.testUTF8()) {
+                    if (!$u.testUTF8()) {
                         p = false;
                     }
 
-                    if (!utility.testBase64()) {
+                    if (!$u.testBase64()) {
                         p = false;
                     }
 
-                    if (!utility.testAes()) {
+                    if (!$u.testAes()) {
                         p = false;
                     }
 
-                    if (!utility.testLZ77()) {
+                    if (!$u.testLZ77()) {
                         p = false;
                     }
                 }
 
                 return p;
             } catch (err) {
-                utility.error("ERROR in utility.testsRun: " + err);
+                $u.error("ERROR in $u.testsRun: " + err);
                 return undefined;
             }
         },
@@ -1436,7 +1436,7 @@
                         ciphertext = ciphertext.Base64encode();
                         return ciphertext;
                     } catch (err) {
-                        utility.error("ERROR in utility.Aes.encrypt: " + err);
+                        $u.error("ERROR in $u.Aes.encrypt: " + err);
                         return undefined;
                     }
                 };
@@ -1506,14 +1506,14 @@
                         plaintext = utf8encode ? plaintext.Utf8decode() : plaintext;
                         return plaintext;
                     } catch (err) {
-                        utility.error("ERROR in utility.Aes.decrypt: " + err);
+                        $u.error("ERROR in $u.Aes.decrypt: " + err);
                         return undefined;
                     }
                 };
 
                 return true;
             } catch (err) {
-                utility.error("ERROR in utility.Aes: " + err);
+                $u.error("ERROR in $u.Aes: " + err);
                 return false;
             }
         },
@@ -1647,7 +1647,7 @@
 
                         return compressed + data.slice(pos).replace(/`/g, "``");
                     } catch (err) {
-                        utility.error("ERROR in utility.LZ77.compress: " + err);
+                        $u.error("ERROR in $u.LZ77.compress: " + err);
                         return undefined;
                     }
                 };
@@ -1686,14 +1686,14 @@
 
                         return decompressed;
                     } catch (err) {
-                        utility.error("ERROR in utility.LZ77.decompress: " + err);
+                        $u.error("ERROR in $u.LZ77.decompress: " + err);
                         return undefined;
                     }
                 };
 
                 return true;
             } catch (err) {
-                utility.error("ERROR in utility.LZ77: " + err);
+                $u.error("ERROR in $u.LZ77: " + err);
                 return false;
             }
         }
@@ -1706,32 +1706,32 @@
     /* This section is added to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
     window['utility'] = utility;
-    utility['jQueryExtend'] = utility.jQueryExtend;
-    utility['is_chrome'] = utility.is_chrome;
-    utility['is_firefox'] = utility.is_firefox;
-    utility['is_html5_localStorage'] = utility.is_html5_localStorage;
-    utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
-    utility['injectScript'] = utility.injectScript;
-    utility['isNum'] = utility.isNum;
-    utility['alert'] = utility.alert;
-    utility['log_version'] = utility.log_version;
-    utility['log_level'] = utility.get_log_level;
-    utility['log_common'] = utility.log_common;
-    utility['log'] = utility.log;
-    utility['warn'] = utility.warn;
-    utility['error'] = utility.error;
-    utility['charPrintables'] = utility.charPrintables;
-    utility['charNonPrintables'] = utility.charNonPrintables;
-    utility['testMD5'] = utility.testMD5;
-    utility['testSHA1'] = utility.testSHA1;
-    utility['testSHA256'] = utility.testSHA256;
-    utility['testUTF8'] = utility.testUTF8;
-    utility['testBase64'] = utility.testBase64;
-    utility['testAes'] = utility.testAes;
-    utility['testLZ77'] = utility.testLZ77;
-    utility['testAes'] = utility.testAes;
-    utility['testsRun'] = utility.testAes;
-    utility['Aes'] = utility.Aes;
-    utility['LZ77'] = utility.LZ77;
+    utility['jQueryExtend'] = $u.jQueryExtend;
+    utility['is_chrome'] = $u.is_chrome;
+    utility['is_firefox'] = $u.is_firefox;
+    utility['is_html5_localStorage'] = $u.is_html5_localStorage;
+    utility['is_html5_sessionStorage'] = $u.is_html5_sessionStorage;
+    utility['injectScript'] = $u.injectScript;
+    utility['isNum'] = $u.isNum;
+    utility['alert'] = $u.alert;
+    utility['log_version'] = $u.log_version;
+    utility['log_level'] = $u.get_log_level;
+    utility['log_common'] = $u.log_common;
+    utility['log'] = $u.log;
+    utility['warn'] = $u.warn;
+    utility['error'] = $u.error;
+    utility['charPrintables'] = $u.charPrintables;
+    utility['charNonPrintables'] = $u.charNonPrintables;
+    utility['testMD5'] = $u.testMD5;
+    utility['testSHA1'] = $u.testSHA1;
+    utility['testSHA256'] = $u.testSHA256;
+    utility['testUTF8'] = $u.testUTF8;
+    utility['testBase64'] = $u.testBase64;
+    utility['testAes'] = $u.testAes;
+    utility['testLZ77'] = $u.testLZ77;
+    utility['testAes'] = $u.testAes;
+    utility['testsRun'] = $u.testAes;
+    utility['Aes'] = $u.Aes;
+    utility['LZ77'] = $u.LZ77;
     /*jslint sub: false */
 }());

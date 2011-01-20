@@ -17,14 +17,14 @@ caap = {
     appBodyDiv          : {},
 
     start: function () {
-        utility.log(1, 'Full page load completed');
+        $u.log(1, 'Full page load completed');
         window.clearTimeout(caap_timeout);
 
-        var FBID          = 0,
-            idOk          = false,
-            tempText      = '',
-            tempArr       = [],
-            accountEl     = $j();
+        var FBID      = 0,
+            idOk      = false,
+            tempText  = '',
+            tempArr   = [],
+            accountEl = $j();
 
         function mainCaapLoop() {
             caap.waitMilliSecs = 8000;
@@ -45,7 +45,7 @@ caap = {
             tempText = accountEl.attr('href');
             if (tempText) {
                 FBID = tempText.regex(/id=(\d+)/i);
-                if (utility.isNum(FBID) && FBID > 0) {
+                if ($u.isNum(FBID) && FBID > 0) {
                     caap.stats['FBID'] = FBID;
                     idOk = true;
                 }
@@ -57,7 +57,7 @@ caap = {
             tempArr = tempText ? tempText.match(new RegExp('user:(\\d+),', 'i')) : [];
             if (tempArr && tempArr.length === 2) {
                 FBID = tempArr[1].parseInt();
-                if (utility.isNum(FBID) && FBID > 0) {
+                if ($u.isNum(FBID) && FBID > 0) {
                     caap.stats['FBID'] = FBID;
                     idOk = true;
                 }
@@ -67,7 +67,7 @@ caap = {
                 tempArr = tempText ? tempText.match(new RegExp('."user.":(\\d+),', 'i')) : [];
                 if (tempArr && tempArr.length === 2) {
                     FBID = tempArr[1].parseInt();
-                    if (utility.isNum(FBID) && FBID > 0) {
+                    if ($u.isNum(FBID) && FBID > 0) {
                         caap.stats['FBID'] = FBID;
                         idOk = true;
                     }
@@ -75,8 +75,8 @@ caap = {
 
                 if (!idOk) {
                     FBID = window.presence.user ? window.presence.user.parseInt() : 0;
-                    if (utility.isNum(FBID) && FBID > 0) {
-                        utility.log(1, "FBID", FBID);
+                    if ($u.isNum(FBID) && FBID > 0) {
+                        $u.log(1, "FBID", FBID);
                         caap.stats['FBID'] = FBID;
                         idOk = true;
                     }
@@ -87,7 +87,7 @@ caap = {
 
         if (!idOk) {
             // Force reload without retrying
-            utility.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
+            $u.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
             if (typeof window.location.reload === 'function') {
                 window.location.reload();
             } else if (typeof history.go === 'function') {
@@ -102,8 +102,8 @@ caap = {
         gm.set_storage_id(FBID.toString());
         ss.set_storage_id(FBID.toString());
         config.load();
-        utility.set_log_level(config.getItem('DebugLevel', utility.get_log_level()));
-        utility.testsRun(utility.get_log_level() >= 2 ? true : false);
+        $u.set_log_level(config.getItem('DebugLevel', $u.get_log_level()));
+        $u.testsRun($u.get_log_level() >= 2 ? true : false);
         css.AddCSS();
         caap.lsUsed();
         schedule.load();
@@ -126,7 +126,7 @@ caap = {
         // to get updates from http://code.google.com/
         /////////////////////////////////////////////////////////////////////
 
-        if (utility.is_firefox) {
+        if ($u.is_firefox) {
             if (!devVersion) {
                 caap.releaseUpdate();
             } else {
@@ -160,50 +160,53 @@ caap = {
         mainCaapLoop();
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     lsUsed: function () {
         try {
-            var count     = {
+            var count = {
                     'match' : 0,
                     'total' : 0
                 },
-                perc      = {
+                perc = {
                     caap  : 0,
                     total : 0
                 },
-                message   = '';
+                message = '';
 
             count = gm.used();
             perc.caap = ((count['match'] * 2.048 / 5242880) * 100).dp();
-            utility.log(1, "CAAP localStorage used: " + perc.caap + "%");
+            $u.log(1, "CAAP localStorage used: " + perc.caap + "%");
             perc.total = ((count['total'] * 2.048 / 5242880) * 100).dp();
             if (perc.total >= 90) {
-                utility.warn("Total localStorage used: " + perc.total + "%");
+                $u.warn("Total localStorage used: " + perc.total + "%");
                 message = "<div style='text-align: center;'>";
                 message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
                 message += "localStorage usage for domain: " + perc.total + "%<br />";
                 message += "CAAP is using: " + perc.total + "%";
                 message += "</div>";
                 window.setTimeout(function () {
-                    utility.alert(message);
+                    $u.alert(message);
                 }, 5000);
             } else {
-                utility.log(1, "Total localStorage used: " + perc.total + "%");
+                $u.log(1, "Total localStorage used: " + perc.total + "%");
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in release lsUsed: " + err);
+            $u.error("ERROR in release lsUsed: " + err);
             return false;
         }
     },
+    /*jslint sub: false */
 
     IncrementPageLoadCounter: function () {
         try {
             caap.pageLoadCounter += 1;
-            utility.log(3, "pageLoadCounter", caap.pageLoadCounter);
+            $u.log(3, "pageLoadCounter", caap.pageLoadCounter);
             return caap.pageLoadCounter;
         } catch (err) {
-            utility.error("ERROR in IncrementPageLoadCounter: " + err);
+            $u.error("ERROR in IncrementPageLoadCounter: " + err);
             return undefined;
         }
     },
@@ -229,7 +232,7 @@ caap = {
                                 schedule.setItem('SUC_last_update', 86400000);
                                 state.setItem('SUC_target_script_name', script_name);
                                 state.setItem('SUC_remote_version', remote_version);
-                                utility.log(1, 'Remote version ', remote_version);
+                                $u.log(1, 'Remote version ', remote_version);
                                 if (remote_version > caapVersion) {
                                     caap.newVersionAvailable = true;
                                     if (forced) {
@@ -256,7 +259,7 @@ caap = {
 
             updateCheck(false);
         } catch (err) {
-            utility.error("ERROR in release updater: " + err);
+            $u.error("ERROR in release updater: " + err);
         }
     },
 
@@ -283,7 +286,7 @@ caap = {
                                 state.setItem('SUC_target_script_name', script_name);
                                 state.setItem('SUC_remote_version', remote_version);
                                 state.setItem('DEV_remote_version', dev_version);
-                                utility.log(1, 'Remote version ', remote_version, dev_version);
+                                $u.log(1, 'Remote version ', remote_version, dev_version);
                                 if (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) {
                                     caap.newVersionAvailable = true;
                                     if (forced) {
@@ -310,7 +313,7 @@ caap = {
 
             updateCheck(false);
         } catch (err) {
-            utility.error("ERROR in development updater: " + err);
+            $u.error("ERROR in development updater: " + err);
         }
     },
 
@@ -369,7 +372,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in init: " + err);
+            $u.error("ERROR in init: " + err);
             return false;
         }
     },
@@ -399,7 +402,7 @@ caap = {
             window.location.href = url;
             return true;
         } catch (err) {
-            utility.error("ERROR in caap.VisitUrl: " + err);
+            $u.error("ERROR in caap.VisitUrl: " + err);
             return false;
         }
     },
@@ -426,7 +429,7 @@ caap = {
             */
             return !obj.dispatchEvent(evt);
         } catch (err) {
-            utility.error("ERROR in caap.Click: " + err);
+            $u.error("ERROR in caap.Click: " + err);
             return undefined;
         }
     },
@@ -451,7 +454,7 @@ caap = {
             window.location.href = jss + ":void(a46755028429_ajaxLinkSend('globalContainer', '" + link + "'))";
             return true;
         } catch (err) {
-            utility.error("ERROR in caap.ClickAjaxLinkSend: " + err);
+            $u.error("ERROR in caap.ClickAjaxLinkSend: " + err);
             return false;
         }
     },
@@ -476,7 +479,7 @@ caap = {
             window.location.href = jss + ":void(a46755028429_get_cached_ajax('" + link + "', 'get_body'))";
             return true;
         } catch (err) {
-            utility.error("ERROR in caap.ClickGetCachedAjax: " + err);
+            $u.error("ERROR in caap.ClickGetCachedAjax: " + err);
             return false;
         }
     },
@@ -492,7 +495,7 @@ caap = {
 
             content = $j("#content");
             if (!content || !content.length) {
-                utility.warn('No content to Navigate to', imageOnPage, pathToPage);
+                $u.warn('No content to Navigate to', imageOnPage, pathToPage);
                 return false;
             }
 
@@ -506,7 +509,7 @@ caap = {
             for (s = pathList.length - 1; s >= 0; s -= 1) {
                 a = content.find("a[href*='/" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
                 if (a && a.length) {
-                    utility.log(2, 'Go to', pathList[s]);
+                    $u.log(2, 'Go to', pathList[s]);
                     caap.Click(a.get(0));
                     return true;
                 }
@@ -518,16 +521,16 @@ caap = {
 
                 img = caap.CheckForImage(imageTest);
                 if (img) {
-                    utility.log(3, 'Click on image', img.src.match(/[\w.]+$/));
+                    $u.log(3, 'Click on image', img.src.match(/[\w.]+$/));
                     caap.Click(img);
                     return true;
                 }
             }
 
-            utility.warn('Unable to Navigate to', imageOnPage, pathToPage);
+            $u.warn('Unable to Navigate to', imageOnPage, pathToPage);
             return false;
         } catch (err) {
-            utility.error("ERROR in caap.NavigateTo: " + err, imageOnPage, pathToPage);
+            $u.error("ERROR in caap.NavigateTo: " + err, imageOnPage, pathToPage);
             return undefined;
         }
     },
@@ -549,7 +552,7 @@ caap = {
             imageSlice = jSlice.find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
             return (imageSlice.length ? imageSlice.get(0) : null);
         } catch (err) {
-            utility.error("ERROR in caap.CheckForImage: " + err);
+            $u.error("ERROR in caap.CheckForImage: " + err);
             return undefined;
         }
     },
@@ -591,7 +594,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in caap.chatLink: " + err);
+            $u.error("ERROR in caap.chatLink: " + err);
             return false;
         }
     },
@@ -636,7 +639,7 @@ caap = {
             htmlCode += '</select>';
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in MakeDropDown: " + err);
+            $u.error("ERROR in MakeDropDown: " + err);
             return '';
         }
     },
@@ -663,7 +666,7 @@ caap = {
 
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in MakeCheckBox: " + err);
+            $u.error("ERROR in MakeCheckBox: " + err);
             return '';
         }
     },
@@ -675,7 +678,7 @@ caap = {
             }
 
             if (subtype === 'number' && isNaN(initDefault) && initDefault !== '') {
-                utility.warn("MakeNumberForm - default value is not a number!", idName, initDefault);
+                $u.warn("MakeNumberForm - default value is not a number!", idName, initDefault);
             }
 
             if (!initDefault) {
@@ -692,7 +695,7 @@ caap = {
 
             return ("<input type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + config.getItem(idName) + "' />");
         } catch (err) {
-            utility.error("ERROR in MakeNumberForm: " + err);
+            $u.error("ERROR in MakeNumberForm: " + err);
             return '';
         }
     },
@@ -709,7 +712,7 @@ caap = {
 
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in MakeCheckTR: " + err);
+            $u.error("ERROR in MakeCheckTR: " + err);
             return '';
         }
     },
@@ -731,7 +734,7 @@ caap = {
 
             return toggleCode;
         } catch (err) {
-            utility.error("ERROR in ToggleControl: " + err);
+            $u.error("ERROR in ToggleControl: " + err);
             return '';
         }
     },
@@ -747,7 +750,7 @@ caap = {
             }
 
             if (formatParms === '') {
-                if (utility.is_chrome) {
+                if ($u.is_chrome) {
                     formatParms = " rows='3' cols='25'";
                 } else {
                     formatParms = " rows='3' cols='21'";
@@ -756,7 +759,7 @@ caap = {
 
             return ("<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + config.getItem(idName) + "</textarea>");
         } catch (err) {
-            utility.error("ERROR in MakeTextBox: " + err);
+            $u.error("ERROR in MakeTextBox: " + err);
             return '';
         }
     },
@@ -777,7 +780,7 @@ caap = {
 
             caap.caapDivObject.find('#caap_' + idName).html(mess);
         } catch (err) {
-            utility.error("ERROR in SetDivContent: " + err);
+            $u.error("ERROR in SetDivContent: " + err);
         }
     },
     /*jslint sub: false */
@@ -814,7 +817,7 @@ caap = {
             caap.caapDivObject.find("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
             return true;
         } catch (err) {
-            utility.error("ERROR in SelectDropOption: " + err);
+            $u.error("ERROR in SelectDropOption: " + err);
             return false;
         }
     },
@@ -848,7 +851,7 @@ caap = {
             state.setItem('AutoQuest', temp);
             return true;
         } catch (err) {
-            utility.error("ERROR in updateAutoQuest: " + err);
+            $u.error("ERROR in updateAutoQuest: " + err);
             return false;
         }
     },
@@ -861,7 +864,7 @@ caap = {
             caap.caapDivObject.find("#stopAutoQuest").css('display', 'block');
             return true;
         } catch (err) {
-            utility.error("ERROR in ShowAutoQuest: " + err);
+            $u.error("ERROR in ShowAutoQuest: " + err);
             return false;
         }
     },
@@ -873,7 +876,7 @@ caap = {
             caap.caapDivObject.find("#stopAutoQuest").css('display', 'none');
             return true;
         } catch (err) {
-            utility.error("ERROR in ClearAutoQuest: " + err);
+            $u.error("ERROR in ClearAutoQuest: " + err);
             return false;
         }
     },
@@ -888,10 +891,10 @@ caap = {
             config.setItem('WhyQuest', 'Manual');
             caap.SelectDropOption('WhyQuest', 'Manual');
             caap.ClearAutoQuest();
-            utility.log(5, "ManualAutoQuest", state.getItem('AutoQuest'));
+            $u.log(5, "ManualAutoQuest", state.getItem('AutoQuest'));
             return true;
         } catch (err) {
-            utility.error("ERROR in ManualAutoQuest: " + err);
+            $u.error("ERROR in ManualAutoQuest: " + err);
             return false;
         }
     },
@@ -903,7 +906,7 @@ caap = {
             for (var item = 0; item < dropList.length; item += 1) {
                 if (item === 0 && !option) {
                     config.setItem(idName, dropList[item]);
-                    utility.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
+                    $u.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                 }
 
                 caap.caapDivObject.find("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
@@ -917,7 +920,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in ChangeDropDownList: " + err);
+            $u.error("ERROR in ChangeDropDownList: " + err);
             return false;
         }
     },
@@ -947,7 +950,7 @@ caap = {
 
             return {x: newLeft, y: newTop};
         } catch (err) {
-            utility.error("ERROR in GetControlXY: " + err);
+            $u.error("ERROR in GetControlXY: " + err);
             return {x: 0, y: 0};
         }
     },
@@ -960,7 +963,7 @@ caap = {
             state.setItem('caap_top_zIndex', '1');
             state.setItem('caap_div_zIndex', '2');
         } catch (err) {
-            utility.error("ERROR in SaveControlXY: " + err);
+            $u.error("ERROR in SaveControlXY: " + err);
         }
     },
 
@@ -989,7 +992,7 @@ caap = {
 
             return {x: newLeft, y: newTop};
         } catch (err) {
-            utility.error("ERROR in GetDashboardXY: " + err);
+            $u.error("ERROR in GetDashboardXY: " + err);
             return {x: 0, y: 0};
         }
     },
@@ -1002,7 +1005,7 @@ caap = {
             state.setItem('caap_div_zIndex', '1');
             state.setItem('caap_top_zIndex', '2');
         } catch (err) {
-            utility.error("ERROR in SaveDashboardXY: " + err);
+            $u.error("ERROR in SaveDashboardXY: " + err);
         }
     },
 
@@ -1092,7 +1095,7 @@ caap = {
             $j("#caap_ResetMenuLocation").button();
             return true;
         } catch (err) {
-            utility.error("ERROR in AddControl: " + err);
+            $u.error("ERROR in AddControl: " + err);
             return false;
         }
     },
@@ -1101,7 +1104,7 @@ caap = {
         try {
             return ("<div id='caapPaused' style='font-weight: bold; display: " + state.getItem('caapPause', 'block') + "'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
         } catch (err) {
-            utility.error("ERROR in AddPauseMenu: " + err);
+            $u.error("ERROR in AddPauseMenu: " + err);
             return ("<div id='caapPaused' style='font-weight: bold; display: block'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />");
         }
     },
@@ -1115,7 +1118,7 @@ caap = {
             htmlCode += caap.MakeCheckTR("Disable Autoplayer", 'Disabled', false, '', autoRunInstructions) + '</table><hr />';
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddDisableMenu: " + err);
+            $u.error("ERROR in AddDisableMenu: " + err);
             return '';
         }
     },
@@ -1150,7 +1153,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddCashHealthMenu: " + err);
+            $u.error("ERROR in AddCashHealthMenu: " + err);
             return '';
         }
     },
@@ -1241,7 +1244,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddQuestMenu: " + err);
+            $u.error("ERROR in AddQuestMenu: " + err);
             return '';
         }
     },
@@ -1373,7 +1376,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddBattleMenu: " + err);
+            $u.error("ERROR in AddBattleMenu: " + err);
             return '';
         }
     },
@@ -1482,7 +1485,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddMonsterMenu: " + err);
+            $u.error("ERROR in AddMonsterMenu: " + err);
             return '';
         }
     },
@@ -1539,7 +1542,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddGuildMonstersMenu: " + err);
+            $u.error("ERROR in AddGuildMonstersMenu: " + err);
             return '';
         }
     },
@@ -1599,7 +1602,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddArenaMenu: " + err);
+            $u.error("ERROR in AddArenaMenu: " + err);
             return '';
         }
     },
@@ -1644,7 +1647,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddReconMenu: " + err);
+            $u.error("ERROR in AddReconMenu: " + err);
             return '';
         }
     },
@@ -1713,7 +1716,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddGeneralsMenu: " + err);
+            $u.error("ERROR in AddGeneralsMenu: " + err);
             return '';
         }
     },
@@ -1786,7 +1789,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddSkillPointsMenu: " + err);
+            $u.error("ERROR in AddSkillPointsMenu: " + err);
             return '';
         }
     },
@@ -1828,7 +1831,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddGiftingOptionsMenu: " + err);
+            $u.error("ERROR in AddGiftingOptionsMenu: " + err);
             return '';
         }
     },
@@ -1855,7 +1858,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddEliteGuardOptionsMenu: " + err);
+            $u.error("ERROR in AddEliteGuardOptionsMenu: " + err);
             return '';
         }
     },
@@ -1922,7 +1925,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddAutoOptionsMenu: " + err);
+            $u.error("ERROR in AddAutoOptionsMenu: " + err);
             return '';
         }
     },
@@ -2009,7 +2012,7 @@ caap = {
             htmlCode += "<hr/></div>";
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddOtherOptionsMenu: " + err);
+            $u.error("ERROR in AddOtherOptionsMenu: " + err);
             return '';
         }
     },
@@ -2035,7 +2038,7 @@ caap = {
 
             return htmlCode;
         } catch (err) {
-            utility.error("ERROR in AddFooterMenu: " + err);
+            $u.error("ERROR in AddFooterMenu: " + err);
             return '';
         }
     },
@@ -2083,7 +2086,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in AddColorWheels: " + err);
+            $u.error("ERROR in AddColorWheels: " + err);
             return false;
         }
     },
@@ -2130,7 +2133,7 @@ caap = {
                     htmlCode += '</select>';
                     return htmlCode;
                 } catch (err) {
-                    utility.error("ERROR in DBDropDown: " + err);
+                    $u.error("ERROR in DBDropDown: " + err);
                     return '';
                 }
             }
@@ -2244,7 +2247,7 @@ caap = {
             caap.caapTopObject.find("#caap_sortMagic").button();
             return true;
         } catch (err) {
-            utility.error("ERROR in AddDashboard: " + err);
+            $u.error("ERROR in AddDashboard: " + err);
             return false;
         }
     },
@@ -2254,7 +2257,7 @@ caap = {
     // Display the current monsters and stats
     /////////////////////////////////////////////////////////////////////
     decHours2HoursMin : function (decHours) {
-        utility.log(9, "decHours2HoursMin", decHours);
+        $u.log(9, "decHours2HoursMin", decHours);
         var hours   = 0,
             minutes = 0;
 
@@ -2338,14 +2341,14 @@ caap = {
 
             if (!force && !schedule.oneMinuteUpdate('dashboard') && $j('#caap_infoMonster').html()) {
                 if (caap.UpdateDashboardWaitLog) {
-                    utility.log(3, "Dashboard update is waiting on oneMinuteUpdate");
+                    $u.log(3, "Dashboard update is waiting on oneMinuteUpdate");
                     caap.UpdateDashboardWaitLog = false;
                 }
 
                 return false;
             }
 
-            utility.log(3, "Updating Dashboard");
+            $u.log(3, "Updating Dashboard");
             var html                     = '',
                 monsterList              = [],
                 color                    = '',
@@ -3450,32 +3453,21 @@ caap = {
 
                 handler = function (e) {
                     var clicked = '',
-                        order = {
-                            reverse: {
-                                a: false,
-                                b: false,
-                                c: false
-                            },
-                            value: {
-                                a: '',
-                                b: '',
-                                c: ''
-                            }
-                        };
+                        order = new sort.order();
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
                     }
 
                     if (generalValues.indexOf(clicked) !== -1) {
-                        order.value.a = clicked;
+                        order.data['value']['a'] = clicked;
                         if (clicked !== 'name') {
-                            order.reverse.a = true;
-                            order.value.b = "name";
+                            order.data['reverse']['a'] = true;
+                            order.data['value']['b'] = "name";
                         }
 
-                        general.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
-                        state.setItem("GeneralsSort", order);
+                        general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                        state.setItem("GeneralsSort", order.data);
                         state.setItem("GeneralsDashUpdate", true);
                         sort.updateForm("Generals");
                         caap.UpdateDashboard(true);
@@ -3559,32 +3551,21 @@ caap = {
 
                 handler = function (e) {
                     var clicked = '',
-                        order = {
-                            reverse: {
-                                a: false,
-                                b: false,
-                                c: false
-                            },
-                            value: {
-                                a: '',
-                                b: '',
-                                c: ''
-                            }
-                        };
+                        order = new sort.order();
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
                     }
 
                     if (townValues.indexOf(clicked) !== -1) {
-                        order.value.a = clicked;
+                        order.data['value']['a'] = clicked;
                         if (clicked !== 'name') {
-                            order.reverse.a = true;
-                            order.value.b = "name";
+                            order.data['reverse']['a'] = true;
+                            order.data['value']['b'] = "name";
                         }
 
-                        town['soldiersSortable'].sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
-                        state.setItem("SoldiersSort", order);
+                        town['soldiersSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                        state.setItem("SoldiersSort", order.data);
                         state.setItem("SoldiersDashUpdate", true);
                         caap.UpdateDashboard(true);
                         sort.updateForm("Soldiers");
@@ -3596,32 +3577,21 @@ caap = {
 
                 handler = function (e) {
                     var clicked = '',
-                        order = {
-                            reverse: {
-                                a: false,
-                                b: false,
-                                c: false
-                            },
-                            value: {
-                                a: '',
-                                b: '',
-                                c: ''
-                            }
-                        };
+                        order = new sort.order();
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
                     }
 
                     if (townValues.indexOf(clicked) !== -1) {
-                        order.value.a = clicked;
+                        order.data['value']['a'] = clicked;
                         if (clicked !== 'name') {
-                            order.reverse.a = true;
-                            order.value.b = "name";
+                            order.data['reverse']['a'] = true;
+                            order.data['value']['b'] = "name";
                         }
 
-                        town['itemSortable'].sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
-                        state.setItem("ItemSort", order);
+                        town['itemSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                        state.setItem("ItemSort", order.data);
                         state.setItem("ItemDashUpdate", true);
                         caap.UpdateDashboard(true);
                         sort.updateForm("Item");
@@ -3633,32 +3603,21 @@ caap = {
 
                 handler = function (e) {
                     var clicked = '',
-                        order = {
-                            reverse: {
-                                a: false,
-                                b: false,
-                                c: false
-                            },
-                            value: {
-                                a: '',
-                                b: '',
-                                c: ''
-                            }
-                        };
+                        order = new sort.order();
 
                     if (e.target.id) {
                         clicked = e.target.id.replace(statsRegExp, '');
                     }
 
                     if (townValues.indexOf(clicked) !== -1) {
-                        order.value.a = clicked;
+                        order.data['value']['a'] = clicked;
                         if (clicked !== 'name') {
-                            order.reverse.a = true;
-                            order.value.b = "name";
+                            order.data['reverse']['a'] = true;
+                            order.data['value']['b'] = "name";
                         }
 
-                        town['magicSortable'].sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b)));
-                        state.setItem("MagicSort", order);
+                        town['magicSortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                        state.setItem("MagicSort", order.data);
                         state.setItem("MagicDashUpdate", true);
                         caap.UpdateDashboard(true);
                         sort.updateForm("Magic");
@@ -3825,7 +3784,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in UpdateDashboard: " + err);
+            $u.error("ERROR in UpdateDashboard: " + err);
             return false;
         }
     },
@@ -3915,7 +3874,7 @@ caap = {
     },
 
     refreshGuildMonstersListener: function (e) {
-        utility.log(1, "refreshGuildMonstersListener");
+        $u.log(1, "refreshGuildMonstersListener");
         state.setItem('ReleaseControl', true);
         guild_monster.clear();
         caap.UpdateDashboard(true);
@@ -3978,7 +3937,7 @@ caap = {
 
     AddDBListener: function () {
         try {
-            utility.log(3, "Adding listeners for caap_top");
+            $u.log(3, "Adding listeners for caap_top");
             if (!caap.caapTopObject.find('#caap_DBDisplay').length) {
                 caap.ReloadCastleAge();
             }
@@ -3995,10 +3954,10 @@ caap = {
             caap.caapTopObject.find('#caap_sortSoldiers').click(caap.sortSoldiersButtonListener);
             caap.caapTopObject.find('#caap_sortItem').click(caap.sortItemButtonListener);
             caap.caapTopObject.find('#caap_sortMagic').click(caap.sortMagicButtonListener);
-            utility.log(8, "Listeners added for caap_top");
+            $u.log(8, "Listeners added for caap_top");
             return true;
         } catch (err) {
-            utility.error("ERROR in AddDBListener: " + err);
+            $u.error("ERROR in AddDBListener: " + err);
             return false;
         }
     },
@@ -4011,7 +3970,7 @@ caap = {
     SetDisplay: function (area, idName, display) {
         try {
             if (idName === null || idName === undefined) {
-                utility.warn("idName", idName);
+                $u.warn("idName", idName);
                 throw "Bad idName!";
             }
 
@@ -4024,12 +3983,12 @@ caap = {
                 areaDiv = caap.caapTopObject.find('#caap_' + idName);
                 break;
             default:
-                utility.warn("area", area);
+                $u.warn("area", area);
                 throw "Unknown area!";
             }
 
             if (!areaDiv || areaDiv.length === 0) {
-                utility.warn("idName/area", idName, area);
+                $u.warn("idName/area", idName, area);
                 throw "Unable to find idName in area!";
             }
 
@@ -4042,7 +4001,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in SetDisplay: " + err);
+            $u.error("ERROR in SetDisplay: " + err);
             return false;
         }
     },
@@ -4056,7 +4015,7 @@ caap = {
                 d             = '',
                 styleXY       = {};
 
-            utility.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
+            $u.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
             config.setItem(idName, e.target.checked);
             if (e.target.className) {
                 caap.SetDisplay("caapDivObject", e.target.className, e.target.checked);
@@ -4064,7 +4023,7 @@ caap = {
 
             switch (idName) {
             case "AutoStatAdv" :
-                utility.log(9, "AutoStatAdv");
+                $u.log(9, "AutoStatAdv");
                 if (e.target.checked) {
                     caap.SetDisplay("caapDivObject", 'Status_Normal', false);
                     caap.SetDisplay("caapDivObject", 'Status_Adv', true);
@@ -4076,7 +4035,7 @@ caap = {
                 state.setItem("statsMatch", true);
                 break;
             case "HideAds" :
-                utility.log(9, "HideAds");
+                $u.log(9, "HideAds");
                 if (e.target.checked) {
                     $j('.UIStandardFrame_SidebarAds').css('display', 'none');
                 } else {
@@ -4085,7 +4044,7 @@ caap = {
 
                 break;
             case "HideAdsIframe" :
-                utility.log(9, "HideAdsIframe");
+                $u.log(9, "HideAdsIframe");
                 if (e.target.checked) {
                     $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                 } else {
@@ -4102,7 +4061,7 @@ caap = {
 
                 break;
             case "HideFBChat" :
-                utility.log(9, "HideFBChat");
+                $u.log(9, "HideFBChat");
                 if (e.target.checked) {
                     $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', 'none');
                 } else {
@@ -4111,7 +4070,7 @@ caap = {
 
                 break;
             case "BannerDisplay" :
-                utility.log(9, "BannerDisplay");
+                $u.log(9, "BannerDisplay");
                 if (e.target.checked) {
                     caap.caapDivObject.find('#caap_BannerHide').css('display', 'block');
                 } else {
@@ -4120,16 +4079,16 @@ caap = {
 
                 break;
             case "IgnoreBattleLoss" :
-                utility.log(9, "IgnoreBattleLoss");
+                $u.log(9, "IgnoreBattleLoss");
                 if (e.target.checked) {
-                    utility.log(1, "Ignore Battle Losses has been enabled.");
+                    $u.log(1, "Ignore Battle Losses has been enabled.");
                 }
 
                 break;
             case "SetTitle" :
             case "SetTitleAction" :
             case "SetTitleName" :
-                utility.log(9, idName);
+                $u.log(9, idName);
                 if (e.target.checked) {
                     if (config.getItem('SetTitleAction', false)) {
                         d = caap.caapDivObject.find('#caap_activity_mess').html();
@@ -4149,7 +4108,7 @@ caap = {
 
                 break;
             case "unlockMenu" :
-                utility.log(9, "unlockMenu");
+                $u.log(9, "unlockMenu");
                 if (e.target.checked) {
                     caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: true});
                     caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: true});
@@ -4173,7 +4132,7 @@ caap = {
 
                 break;
             case "AutoElite" :
-                utility.log(9, "AutoElite");
+                $u.log(9, "AutoElite");
                 schedule.setItem('AutoEliteGetList', 0);
                 schedule.setItem('AutoEliteReqNext', 0);
                 state.setItem('AutoEliteEnd', '');
@@ -4185,11 +4144,11 @@ caap = {
 
                 break;
             case "AchievementMode" :
-                utility.log(9, "AchievementMode");
+                $u.log(9, "AchievementMode");
                 monster.flagReview();
                 break;
             case "StatSpendAll" :
-                utility.log(9, "StatSpendAll");
+                $u.log(9, "StatSpendAll");
                 state.setItem("statsMatch", true);
                 state.setItem("autoStatRuleLog", true);
                 break;
@@ -4211,7 +4170,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckBoxListener: " + err);
+            $u.error("ERROR in CheckBoxListener: " + err);
             return false;
         }
     },
@@ -4221,7 +4180,7 @@ caap = {
         try {
             var idName = e.target.id.stripCaap();
 
-            utility.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
+            $u.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
             if (/Style+/.test(idName)) {
                 switch (idName) {
                 case "StyleBackgroundLight" :
@@ -4247,7 +4206,7 @@ caap = {
             config.setItem(idName, String(e.target.value));
             return true;
         } catch (err) {
-            utility.error("ERROR in TextBoxListener: " + err);
+            $u.error("ERROR in TextBoxListener: " + err);
             return false;
         }
     },
@@ -4264,7 +4223,7 @@ caap = {
                 message += "'" + e.target.value + "'<br /><br />";
                 message += "Please enter a number or leave blank.";
                 message += "</div>";
-                utility.alert(message);
+                $u.alert(message);
                 number = '';
             } else {
                 number = e.target.value.parseFloat();
@@ -4273,7 +4232,7 @@ caap = {
                 }
             }
 
-            utility.log(1, 'Change: setting "' + idName + '" to ', number);
+            $u.log(1, 'Change: setting "' + idName + '" to ', number);
             if (/Style+/.test(idName)) {
                 switch (idName) {
                 case "StyleOpacityLight" :
@@ -4291,7 +4250,7 @@ caap = {
             } else if (/Chain/.test(idName)) {
                 state.getItem('BattleChainId', 0);
             } else if (idName === 'DebugLevel') {
-                utility.set_log_level(e.target.value.parseInt());
+                $u.set_log_level(e.target.value.parseInt());
             } else if (idName === "IgnoreMinionsBelow") {
                 state.setItem('targetGuildMonster', {});
                 state.setItem('staminaGuildMonster', 0);
@@ -4301,7 +4260,7 @@ caap = {
             e.target.value = config.setItem(idName, number);
             return true;
         } catch (err) {
-            utility.error("ERROR in NumberBoxListener: " + err);
+            $u.error("ERROR in NumberBoxListener: " + err);
             return false;
         }
     },
@@ -4313,7 +4272,7 @@ caap = {
                     value  = e.target.options[e.target.selectedIndex].value,
                     title  = e.target.options[e.target.selectedIndex].title;
 
-                utility.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
+                $u.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                 config.setItem(idName, value);
                 e.target.title = title;
                 if (idName.indexOf('When') >= 0) {
@@ -4459,7 +4418,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in DropBoxListener: " + err);
+            $u.error("ERROR in DropBoxListener: " + err);
             return false;
         }
     },
@@ -4480,7 +4439,7 @@ caap = {
                 }
             }
 
-            utility.log(1, 'Change: setting "' + idName + '" to ', e.target.value);
+            $u.log(1, 'Change: setting "' + idName + '" to ', e.target.value);
             config.setItem(idName, e.target.value);
             switch (idName) {
             case "orderGuildMinion":
@@ -4505,7 +4464,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in TextAreaListener: " + err);
+            $u.error("ERROR in TextAreaListener: " + err);
             return false;
         }
     },
@@ -4590,12 +4549,12 @@ caap = {
                 subDiv = document.getElementById(subId);
 
             if (subDiv.style.display === "block") {
-                utility.log(2, 'Folding: ', subId);
+                $u.log(2, 'Folding: ', subId);
                 subDiv.style.display = "none";
                 e.target.innerHTML = e.target.innerHTML.replace(/-/, '+');
                 state.setItem('Control_' + subId.stripCaap(), "none");
             } else {
-                utility.log(2, 'Unfolding: ', subId);
+                $u.log(2, 'Unfolding: ', subId);
                 subDiv.style.display = "block";
                 e.target.innerHTML = e.target.innerHTML.replace(/\+/, '-');
                 state.setItem('Control_' + subId.stripCaap(), "block");
@@ -4603,7 +4562,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in FoldingBlockListener: " + err);
+            $u.error("ERROR in FoldingBlockListener: " + err);
             return false;
         }
     },
@@ -4619,14 +4578,14 @@ caap = {
                 state.setItem('clickUrl', obj.href);
                 schedule.setItem('clickedOnSomething', 0);
                 caap.waitingForDomLoad = true;
-                //utility.log(9, 'globalContainer', obj.href);
+                //$u.log(9, 'globalContainer', obj.href);
             } else {
                 if (obj && !obj.href) {
-                    utility.warn('whatClickedURLListener globalContainer no href', obj);
+                    $u.warn('whatClickedURLListener globalContainer no href', obj);
                 }
             }
         } catch (err) {
-            utility.error("ERROR in whatClickedURLListener: " + err, event);
+            $u.error("ERROR in whatClickedURLListener: " + err, event);
         }
     },
 
@@ -4651,12 +4610,12 @@ caap = {
                 caap.waitingForDomLoad = true;
             }
         } catch (err) {
-            utility.error("ERROR in whatFriendBox: " + err, event);
+            $u.error("ERROR in whatFriendBox: " + err, event);
         }
     },
 
     arenaEngageListener: function (event) {
-        utility.log(3, "engage arena_battle.php");
+        $u.log(3, "engage arena_battle.php");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/arena_battle.php');
         schedule.setItem('clickedOnSomething', 0);
         caap.waitingForDomLoad = true;
@@ -4666,7 +4625,7 @@ caap = {
         var index  = -1,
             minion = {};
 
-        utility.log(3, "engage arena_battle.php", event.target.id);
+        $u.log(3, "engage arena_battle.php", event.target.id);
         index = event.target.id ? event.target.id.parseInt() : -1;
         minion = arena.getMinion(index);
         minion = !$j.isEmptyObject(minion) ? minion : {};
@@ -4677,7 +4636,7 @@ caap = {
     },
 
     guildMonsterEngageListener: function (event) {
-        utility.log(3, "engage guild_battle_monster.php");
+        $u.log(3, "engage guild_battle_monster.php");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/guild_battle_monster.php');
         schedule.setItem('clickedOnSomething', 0);
         caap.waitingForDomLoad = true;
@@ -4743,7 +4702,7 @@ caap = {
                 tStr = '',
                 tNum = 0;
 
-            utility.log(4, "Adding listeners for caap_div");
+            $u.log(4, "Adding listeners for caap_div");
             if (caap.caapDivObject.length === 0) {
                 throw "Unable to find div for caap_div";
             }
@@ -4796,7 +4755,7 @@ caap = {
             caap.caapDivObject.find('#caapRestart').click(caap.RestartListener);
             caap.caapDivObject.find('#caap_control').mousedown(caap.PauseListener);
             caap.caapDivObject.find('#stopAutoQuest').click(function (e) {
-                utility.log(1, 'Change: setting stopAutoQuest and go to Manual');
+                $u.log(1, 'Change: setting stopAutoQuest and go to Manual');
                 caap.ManualAutoQuest();
             });
 
@@ -4813,12 +4772,12 @@ caap = {
             }
 
             if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
-                utility.log(3, "battle_enter_battle");
+                $u.log(3, "battle_enter_battle");
                 globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
             if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
-                utility.log(3, "battle_enter_battle");
+                $u.log(3, "battle_enter_battle");
                 globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
             }
 
@@ -4865,7 +4824,7 @@ caap = {
                 }
 
                 if ($j.inArray(targetStr, caap.targetList) !== -1) {
-                    utility.log(5, "Refreshing DOM Listeners", event.target.id);
+                    $u.log(5, "Refreshing DOM Listeners", event.target.id);
                     caap.waitingForDomLoad = false;
                     globalContainer.find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
                     globalContainer.find("div[id*='app46755028429_friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
@@ -4878,33 +4837,33 @@ caap = {
                 switch (targetStr) {
                 case "app_body":
                     if (globalContainer.find("img[src*='guild_monster_list_button_on.jpg']").length) {
-                        utility.log(3, "Checking Guild Current Monster Battles");
+                        $u.log(3, "Checking Guild Current Monster Battles");
                         globalContainer.find("input[src*='dragon_list_btn_']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
                     }
 
                     if (globalContainer.find("img[src*='tab_arena_on.gif']").length) {
-                        utility.log(3, "battle_enter_battle");
+                        $u.log(3, "battle_enter_battle");
                         globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
                     }
 
                     if (globalContainer.find("div[style*='arena3_newsfeed']").length) {
-                        utility.log(3, "battle_enter_battle");
+                        $u.log(3, "battle_enter_battle");
                         globalContainer.find("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
                     }
 
                     break;
                 case "arena":
-                    utility.log(3, "battle_enter_battle");
+                    $u.log(3, "battle_enter_battle");
                     globalContainer.find("input[src*='battle_enter_battle']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
 
                     break;
                 case "arena_battle":
-                    utility.log(3, "monster_duel_button");
+                    $u.log(3, "monster_duel_button");
                     setArenaDualButtons();
 
                     break;
                 case "guild_battle_monster":
-                    utility.log(3, "Checking Guild Battles Monster");
+                    $u.log(3, "Checking Guild Battles Monster");
                     globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
 
                     break;
@@ -4919,42 +4878,42 @@ caap = {
                     break;
                 case "energy_current_value":
                     energy = tTxt ? tTxt.parseInt() : 0;
-                    if (utility.isNum(energy)) {
+                    if ($u.isNum(energy)) {
                         tempE = caap.GetStatusNumbers(energy + "/" + caap.stats['energy']['max']);
                         tempET = caap.GetStatusNumbers(energy + "/" + caap.stats['energyT']['max']);
                         if (tempE && tempET) {
                             caap.stats['energy'] = tempE;
                             caap.stats['energyT'] = tempET;
                         } else {
-                            utility.warn("Unable to get energy levels");
+                            $u.warn("Unable to get energy levels");
                         }
                     }
 
                     break;
                 case "health_current_value":
                     health = tTxt ? tTxt.parseInt() : 0;
-                    if (utility.isNum(health)) {
+                    if ($u.isNum(health)) {
                         tempH = caap.GetStatusNumbers(health + "/" + caap.stats['health']['max']);
                         tempHT = caap.GetStatusNumbers(health + "/" + caap.stats['healthT']['max']);
                         if (tempH && tempHT) {
                             caap.stats['health'] = tempH;
                             caap.stats['healthT'] = tempHT;
                         } else {
-                            utility.warn("Unable to get health levels");
+                            $u.warn("Unable to get health levels");
                         }
                     }
 
                     break;
                 case "stamina_current_value":
                     stamina = tTxt ? tTxt.parseInt() : 0;
-                    if (utility.isNum(stamina)) {
+                    if ($u.isNum(stamina)) {
                         tempS = caap.GetStatusNumbers(stamina + "/" + caap.stats['stamina']['max']);
                         tempST = caap.GetStatusNumbers(stamina + "/" + caap.stats['staminaT']['max']);
                         if (tempS) {
                             caap.stats['stamina'] = tempS;
                             caap.stats['staminaT'] = tempST;
                         } else {
-                            utility.warn("Unable to get stamina levels");
+                            $u.warn("Unable to get stamina levels");
                         }
                     }
 
@@ -4969,10 +4928,10 @@ caap = {
             });
 
             $j(window).unbind('resize', caap.windowResizeListener).bind('resize', caap.windowResizeListener);
-            utility.log(4, "Listeners added for caap_div");
+            $u.log(4, "Listeners added for caap_div");
             return true;
         } catch (err) {
-            utility.error("ERROR in AddListeners: " + err);
+            $u.error("ERROR in AddListeners: " + err);
             return false;
         }
     },
@@ -5119,23 +5078,23 @@ caap = {
 
             expDiv = $j("#app46755028429_st_2_5 strong");
             if (!expDiv.length) {
-                utility.warn("Unable to get experience array");
+                $u.warn("Unable to get experience array");
                 return false;
             }
 
             enlDiv = expDiv.find("#caap_enl");
             if (enlDiv.length) {
-                utility.log(5, "Experience to Next Level already displayed. Updating.");
+                $u.log(5, "Experience to Next Level already displayed. Updating.");
                 enlDiv.html(caap.stats['exp']['dif']);
             } else {
-                utility.log(5, "Prepending Experience to Next Level to display");
+                $u.log(5, "Prepending Experience to Next Level to display");
                 expDiv.prepend("(<span id='caap_enl' style='color:red'>" + (caap.stats['exp']['dif']) + "</span>) ");
             }
 
             caap.SetDivContent('exp_mess', "Experience to next level: " + caap.stats['exp']['dif']);
             return true;
         } catch (err) {
-            utility.error("ERROR in AddExpDisplay: " + err);
+            $u.error("ERROR in AddExpDisplay: " + err);
             return false;
         }
     },
@@ -5236,14 +5195,14 @@ caap = {
             }
 
             if (page && caap.pageList[page]) {
-                utility.log(2, 'Checking results for', page);
+                $u.log(2, 'Checking results for', page);
                 if (typeof caap[caap.pageList[page].CheckResultsFunction] === 'function') {
                     caap[caap.pageList[page].CheckResultsFunction](resultsText);
                 } else {
-                    utility.warn('Check Results function not found', caap.pageList[page]);
+                    $u.warn('Check Results function not found', caap.pageList[page]);
                 }
             } else {
-                utility.log(2, 'No results check defined for', page);
+                $u.log(2, 'No results check defined for', page);
             }
 
             monster.select();
@@ -5275,7 +5234,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults: " + err);
+            $u.error("ERROR in CheckResults: " + err);
             return false;
         }
     },
@@ -5297,7 +5256,7 @@ caap = {
             schedule.setItem("generals", gm.getItem("CheckGenerals", 24, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_generals: " + err);
+            $u.error("ERROR in CheckResults_generals: " + err);
             return false;
         }
     },
@@ -5326,7 +5285,7 @@ caap = {
                 'dif': txtArr[2].parseInt() - txtArr[1].parseInt()
             };
         } catch (err) {
-            utility.error("ERROR in GetStatusNumbers: " + err);
+            $u.error("ERROR in GetStatusNumbers: " + err);
             return false;
         }
     },
@@ -5515,13 +5474,13 @@ caap = {
         }
 
         $j.extend(true, caap.stats, Stats);
-        utility.log(4, "Stats", caap.stats);
+        $u.log(4, "Stats", caap.stats);
         state.setItem("UserDashUpdate", true);
     },
 
     SaveStats: function () {
         gm.setItem('stats.record', caap.stats);
-        utility.log(4, "Stats", caap.stats);
+        $u.log(4, "Stats", caap.stats);
         state.setItem("UserDashUpdate", true);
     },
 
@@ -5562,11 +5521,11 @@ caap = {
                     caap.stats['gold']['cash'] = temp;
                     caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
                 } else {
-                    utility.warn("Cash value is not a number", temp);
+                    $u.warn("Cash value is not a number", temp);
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get cashDiv");
+                $u.warn("Unable to get cashDiv");
                 passed = false;
             }
 
@@ -5579,11 +5538,11 @@ caap = {
                     caap.stats['energy'] = temp;
                     caap.stats['energyT'] = tempT;
                 } else {
-                    utility.warn("Unable to get energy levels");
+                    $u.warn("Unable to get energy levels");
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get energyDiv");
+                $u.warn("Unable to get energyDiv");
                 passed = false;
             }
 
@@ -5596,11 +5555,11 @@ caap = {
                     caap.stats['health'] = temp;
                     caap.stats['healthT'] = tempT;
                 } else {
-                    utility.warn("Unable to get health levels");
+                    $u.warn("Unable to get health levels");
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get healthDiv");
+                $u.warn("Unable to get healthDiv");
                 passed = false;
             }
 
@@ -5613,11 +5572,11 @@ caap = {
                     caap.stats['stamina'] = temp;
                     caap.stats['staminaT'] = tempT;
                 } else {
-                    utility.warn("Unable to get stamina values");
+                    $u.warn("Unable to get stamina values");
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get staminaDiv");
+                $u.warn("Unable to get staminaDiv");
                 passed = false;
             }
 
@@ -5628,11 +5587,11 @@ caap = {
                 if (temp) {
                     caap.stats['exp'] = temp;
                 } else {
-                    utility.warn("Unable to get experience values");
+                    $u.warn("Unable to get experience values");
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get expDiv");
+                $u.warn("Unable to get expDiv");
                 passed = false;
             }
 
@@ -5644,17 +5603,17 @@ caap = {
                 if (levelArray && levelArray.length === 2) {
                     newLevel = levelArray[1].parseInt();
                     if (newLevel > caap.stats['level']) {
-                        utility.log(2, 'New level. Resetting Best Land Cost.');
+                        $u.log(2, 'New level. Resetting Best Land Cost.');
                         caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
                         state.setItem('KeepLevelUpGeneral', true);
                         caap.stats['level'] = newLevel;
                     }
                 } else {
-                    utility.warn('levelArray incorrect');
+                    $u.warn('levelArray incorrect');
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get levelDiv");
+                $u.warn("Unable to get levelDiv");
                 passed = false;
             }
 
@@ -5669,15 +5628,15 @@ caap = {
                     if (temp >= 0 && temp <= 501) {
                         caap.stats['army']['capped'] = temp;
                     } else {
-                        utility.warn("Army count not in limits");
+                        $u.warn("Army count not in limits");
                         passed = false;
                     }
                 } else {
-                    utility.warn('armyArray incorrect');
+                    $u.warn('armyArray incorrect');
                     passed = false;
                 }
             } else {
-                utility.warn("Unable to get armyDiv");
+                $u.warn("Unable to get armyDiv");
                 passed = false;
             }
 
@@ -5689,7 +5648,7 @@ caap = {
                 if (pointsArray && pointsArray.length === 2) {
                     newPoints = pointsArray[1].parseInt();
                     if (newPoints > caap.stats['points']['skill']) {
-                        utility.log(2, 'New points. Resetting AutoStat.');
+                        $u.log(2, 'New points. Resetting AutoStat.');
                         state.setItem("statsMatch", true);
                     }
 
@@ -5698,7 +5657,7 @@ caap = {
                     caap.stats['points']['skill'] = 0;
                 }
             } else {
-                utility.warn("Unable to get pointsDiv");
+                $u.warn("Unable to get pointsDiv");
                 passed = false;
             }
 
@@ -5710,7 +5669,7 @@ caap = {
                 caap.stats['indicators']['hrtl'] = (caap.stats['exp']['dif'] - (caap.stats['stamina']['num'] * xS) - (caap.stats['energy']['num'] * xE)) / (12 * (xS + xE));
                 caap.stats['indicators']['enl'] = new Date().getTime() + Math.ceil(caap.stats['indicators']['hrtl'] * 3600000);
             } else {
-                utility.warn('Could not calculate time to next level. Missing experience stats!');
+                $u.warn('Could not calculate time to next level. Missing experience stats!');
                 passed = false;
             }
 
@@ -5719,14 +5678,14 @@ caap = {
             }
 
             if (!passed && caap.stats['energy']['max'] === 0 && caap.stats['health']['max'] === 0 && caap.stats['stamina']['max'] === 0) {
-                utility.alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>");
-                utility.warn("Paused as this account may have been disabled!", caap.stats);
+                $u.alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>");
+                $u.warn("Paused as this account may have been disabled!", caap.stats);
                 caap.PauseListener();
             }
 
             return passed;
         } catch (err) {
-            utility.error("ERROR GetStats: " + err);
+            $u.error("ERROR GetStats: " + err);
             return false;
         }
     },
@@ -5754,7 +5713,7 @@ caap = {
                 tArr           = [];
 
             if ($j(".keep_attribute_section").length) {
-                utility.log(8, "Getting new values from player keep");
+                $u.log(8, "Getting new values from player keep");
                 // rank
                 rankImg = $j("img[src*='gif/rank']");
                 if (rankImg.length) {
@@ -5763,7 +5722,7 @@ caap = {
                     tArr = tStr ? tStr.matchNum() : [];
                     caap.stats['rank']['battle'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
                 } else {
-                    utility.warn('Using stored rank.');
+                    $u.warn('Using stored rank.');
                 }
 
                 // PlayerName
@@ -5774,7 +5733,7 @@ caap = {
                     caap.stats['PlayerName'] = tArr.length === 2 ? tArr[1] : '';
                     state.setItem("PlayerName", caap.stats['PlayerName']);
                 } else {
-                    utility.warn('Using stored PlayerName.');
+                    $u.warn('Using stored PlayerName.');
                 }
 
                 if (caap.stats['level'] >= 100) {
@@ -5786,7 +5745,7 @@ caap = {
                         tArr = tStr ? tStr.matchNum() : [];
                         caap.stats['rank']['war'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
                     } else {
-                        utility.warn('Using stored warRank.');
+                        $u.warn('Using stored warRank.');
                     }
                 }
 
@@ -5799,7 +5758,7 @@ caap = {
                         tArr = tStr ? tStr.matchNum() : [];
                         caap.stats['energy'] = caap.GetStatusNumbers(caap.stats['energyT']['num'] + '/' + (tArr.length === 2 ? tArr[1] : '0'));
                     } else {
-                        utility.warn('Using stored energy value.');
+                        $u.warn('Using stored energy value.');
                     }
 
                     // Stamina
@@ -5809,7 +5768,7 @@ caap = {
                         tArr = tStr ? tStr.matchNum() : [];
                         caap.stats['stamina'] = caap.GetStatusNumbers(caap.stats['staminaT']['num'] + '/' + (tArr.length === 2 ? tArr[1] : '0'));
                     } else {
-                        utility.warn('Using stored stamina value.');
+                        $u.warn('Using stored stamina value.');
                     }
 
                     if (caap.stats['level'] >= 10) {
@@ -5820,7 +5779,7 @@ caap = {
                             tArr = tStr ? tStr.matchNum() : [];
                             caap.stats['attack'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
                         } else {
-                            utility.warn('Using stored attack value.');
+                            $u.warn('Using stored attack value.');
                         }
 
                         // Defense
@@ -5830,7 +5789,7 @@ caap = {
                             tArr = tStr ? tStr.matchNum() : [];
                             caap.stats['defense'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
                         } else {
-                            utility.warn('Using stored defense value.');
+                            $u.warn('Using stored defense value.');
                         }
                     }
 
@@ -5841,10 +5800,10 @@ caap = {
                         tArr = tStr ? tStr.matchNum() : [];
                         caap.stats['health'] = caap.GetStatusNumbers(caap.stats['healthT']['num'] + '/' + (tArr.length === 2 ? tArr[1] : '0'));
                     } else {
-                        utility.warn('Using stored health value.');
+                        $u.warn('Using stored health value.');
                     }
                 } else {
-                    utility.warn("Can't find stats containers! Using stored stats values.");
+                    $u.warn("Can't find stats containers! Using stored stats values.");
                 }
 
                 // Check for Gold Stored
@@ -5867,7 +5826,7 @@ caap = {
                         $j("input[name='get_gold']").val(caap.stats['gold']['bank']);
                     });
                 } else {
-                    utility.warn('Using stored inStore.');
+                    $u.warn('Using stored inStore.');
                 }
 
                 // Check for income
@@ -5876,7 +5835,7 @@ caap = {
                     tStr = income.text();
                     caap.stats['gold']['income'] = tStr ? tStr.numberOnly() : 0;
                 } else {
-                    utility.warn('Using stored income.');
+                    $u.warn('Using stored income.');
                 }
 
                 // Check for upkeep
@@ -5885,7 +5844,7 @@ caap = {
                     tStr = upkeep.text();
                     caap.stats['gold']['upkeep'] = tStr ? tStr.numberOnly() : 0;
                 } else {
-                    utility.warn('Using stored upkeep.');
+                    $u.warn('Using stored upkeep.');
                 }
 
                 // Cash Flow
@@ -5924,7 +5883,7 @@ caap = {
                     tStr = otherStats.text();
                     caap.stats['other']['qc'] = tStr ? tStr.parseInt() : 0;
                 } else {
-                    utility.warn('Using stored other.');
+                    $u.warn('Using stored other.');
                 }
 
                 // Battles/Wars Won
@@ -5933,7 +5892,7 @@ caap = {
                     tStr = otherStats.text();
                     caap.stats['other']['bww'] = tStr ? tStr.parseInt() : 0;
                 } else {
-                    utility.warn('Using stored other.');
+                    $u.warn('Using stored other.');
                 }
 
                 // Battles/Wars Lost
@@ -5942,7 +5901,7 @@ caap = {
                     tStr = otherStats.text();
                     caap.stats['other']['bwl'] = tStr ? tStr.parseInt() : 0;
                 } else {
-                    utility.warn('Using stored other.');
+                    $u.warn('Using stored other.');
                 }
 
                 // Times eliminated
@@ -5951,7 +5910,7 @@ caap = {
                     tStr = otherStats.text();
                     caap.stats['other']['te'] = tStr ? tStr.parseInt() : 0;
                 } else {
-                    utility.warn('Using stored other.');
+                    $u.warn('Using stored other.');
                 }
 
                 // Times you eliminated an enemy
@@ -5960,7 +5919,7 @@ caap = {
                     tStr = otherStats.text();
                     caap.stats['other']['tee'] = tStr ? tStr.parseInt() : 0;
                 } else {
-                    utility.warn('Using stored other.');
+                    $u.warn('Using stored other.');
                 }
 
                 // Win/Loss Ratio (WLR)
@@ -5994,9 +5953,9 @@ caap = {
                 if (anotherEl && anotherEl.length) {
                     tStr = anotherEl.attr("href");
                     tArr = tStr.matchUser();
-                    utility.log(2, "On another player's keep", tArr.length === 2 ? tArr[1].parseInt() : 0);
+                    $u.log(2, "On another player's keep", tArr.length === 2 ? tArr[1].parseInt() : 0);
                 } else {
-                    utility.warn("Attribute section not found and not identified as another player's keep!");
+                    $u.warn("Attribute section not found and not identified as another player's keep!");
                 }
             }
 
@@ -6006,7 +5965,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_keep: " + err);
+            $u.error("ERROR in CheckResults_keep: " + err);
             return false;
         }
     },
@@ -6023,28 +5982,28 @@ caap = {
                 text = favorDiv.text();
                 temp = text.match(new RegExp("\\s*You have zero favor points!\\s*"));
                 if (temp && temp.length === 1) {
-                    utility.log(2, 'Got number of Favor Points.');
+                    $u.log(2, 'Got number of Favor Points.');
                     caap.stats['points']['favor'] = 0;
                     save = true;
                 } else {
                     temp = text.match(new RegExp("\\s*You have a favor point!\\s*"));
                     if (temp && temp.length === 1) {
-                        utility.log(2, 'Got number of Favor Points.');
+                        $u.log(2, 'Got number of Favor Points.');
                         caap.stats['points']['favor'] = 1;
                         save = true;
                     } else {
                         temp = text.match(new RegExp("\\s*You have (\\d+) favor points!\\s*"));
                         if (temp && temp.length === 2) {
-                            utility.log(2, 'Got number of Favor Points.');
+                            $u.log(2, 'Got number of Favor Points.');
                             caap.stats['points']['favor'] = temp[1].parseInt();
                             save = true;
                         } else {
-                            utility.warn('Favor Points RegExp not matched.');
+                            $u.warn('Favor Points RegExp not matched.');
                         }
                     }
                 }
             } else {
-                utility.warn('Favor Points div not found.');
+                $u.warn('Favor Points div not found.');
             }
 
             if (save) {
@@ -6054,7 +6013,7 @@ caap = {
             schedule.setItem("oracle", gm.getItem("CheckOracle", 24, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_oracle: " + err);
+            $u.error("ERROR in CheckResults_oracle: " + err);
             return false;
         }
     },
@@ -6137,7 +6096,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_alchemy: " + err);
+            $u.error("ERROR in CheckResults_alchemy: " + err);
             return false;
         }
     },
@@ -6153,7 +6112,7 @@ caap = {
             schedule.setItem("soldiers", gm.getItem("CheckSoldiers", 72, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_soldiers: " + err);
+            $u.error("ERROR in CheckResults_soldiers: " + err);
             return false;
         }
     },
@@ -6169,7 +6128,7 @@ caap = {
             schedule.setItem("item", gm.getItem("CheckItem", 72, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_item: " + err);
+            $u.error("ERROR in CheckResults_item: " + err);
             return false;
         }
     },
@@ -6185,7 +6144,7 @@ caap = {
             schedule.setItem("magic", gm.getItem("CheckMagic", 72, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_magic: " + err);
+            $u.error("ERROR in CheckResults_magic: " + err);
             return false;
         }
     },
@@ -6198,7 +6157,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_goblin_emp: " + err);
+            $u.error("ERROR in CheckResults_goblin_emp: " + err);
             return false;
         }
     },
@@ -6209,7 +6168,7 @@ caap = {
             schedule.setItem("gift", gm.getItem("CheckGift", 72, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_gift: " + err);
+            $u.error("ERROR in CheckResults_gift: " + err);
             return false;
         }
     },
@@ -6227,20 +6186,20 @@ caap = {
                 text = rankDiv.text();
                 temp = text.match(new RegExp(".*with (.*) Battle Points.*"));
                 if (temp && temp.length === 2) {
-                    utility.log(2, 'Got Battle Rank Points.');
+                    $u.log(2, 'Got Battle Rank Points.');
                     caap.stats['rank']['battlePoints'] = temp[1] ? temp[1].numberOnly() : 0;
                     caap.SaveStats();
                 } else {
-                    utility.warn('Battle Rank Points RegExp not matched.');
+                    $u.warn('Battle Rank Points RegExp not matched.');
                 }
             } else {
-                utility.warn('Battle Rank Points div not found.');
+                $u.warn('Battle Rank Points div not found.');
             }
 
             schedule.setItem("battlerank", gm.getItem("CheckBattleRank", 48, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_battlerank: " + err);
+            $u.error("ERROR in CheckResults_battlerank: " + err);
             return false;
         }
     },
@@ -6256,20 +6215,20 @@ caap = {
                 text = rankDiv.text();
                 temp = text.match(new RegExp(".*with (.*) War Points.*"));
                 if (temp && temp.length === 2) {
-                    utility.log(2, 'Got War Rank Points.');
+                    $u.log(2, 'Got War Rank Points.');
                     caap.stats['rank']['warPoints'] = temp[1] ? temp[1].numberOnly() : 0;
                     caap.SaveStats();
                 } else {
-                    utility.warn('War Rank Points RegExp not matched.');
+                    $u.warn('War Rank Points RegExp not matched.');
                 }
             } else {
-                utility.warn('War Rank Points div not found.');
+                $u.warn('War Rank Points div not found.');
             }
 
             schedule.setItem("warrank", gm.getItem("CheckWarRank", 48, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_war_rank: " + err);
+            $u.error("ERROR in CheckResults_war_rank: " + err);
             return false;
         }
     },
@@ -6308,10 +6267,10 @@ caap = {
                         caap.stats['achievements']['battle']['duels']['ratio'] = Infinity;
                     }
                 } else {
-                    utility.warn('Battle Achievements problem.');
+                    $u.warn('Battle Achievements problem.');
                 }
             } else {
-                utility.warn('Battle Achievements not found.');
+                $u.warn('Battle Achievements not found.');
             }
 
             achDiv = $j("#app46755028429_achievements_3");
@@ -6347,10 +6306,10 @@ caap = {
                     tStr = tdDiv.eq(13).text();
                     caap.stats['achievements']['monster']['corvintheus'] = tStr ? tStr.numberOnly() : 0;
                 } else {
-                    utility.warn('Monster Achievements problem.');
+                    $u.warn('Monster Achievements problem.');
                 }
             } else {
-                utility.warn('Monster Achievements not found.');
+                $u.warn('Monster Achievements not found.');
             }
 
             achDiv = $j("#app46755028429_achievements_4");
@@ -6360,18 +6319,18 @@ caap = {
                     tStr = tdDiv.eq(0).text();
                     caap.stats['achievements']['other']['alchemy'] = tStr ? tStr.numberOnly() : 0;
                 } else {
-                    utility.warn('Other Achievements problem.');
+                    $u.warn('Other Achievements problem.');
                 }
 
                 caap.SaveStats();
             } else {
-                utility.warn('Other Achievements not found.');
+                $u.warn('Other Achievements not found.');
             }
 
             schedule.setItem("achievements", gm.getItem("CheckAchievements", 72, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_achievements: " + err);
+            $u.error("ERROR in CheckResults_achievements: " + err);
             return false;
         }
     },
@@ -6391,21 +6350,21 @@ caap = {
                         caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getPercent('width').dp(2);
                         tStr = monsterClass.children().eq(2).text();
                         caap.stats['character'][name]['level'] = tStr ? tStr.numberOnly() : 0;
-                        utility.log(2, "Got character class record", name, caap.stats['character'][name]);
+                        $u.log(2, "Got character class record", name, caap.stats['character'][name]);
                     } else {
-                        utility.warn("Problem character class name", name);
+                        $u.warn("Problem character class name", name);
                     }
                 });
 
                 caap.SaveStats();
             } else {
-                utility.warn("Problem with character class records", classDiv);
+                $u.warn("Problem with character class records", classDiv);
             }
 
             schedule.setItem("view_class_progress", gm.getItem("CheckClassProgress", 48, hiddenVar) * 3600, 300);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_view_class_progress: " + err);
+            $u.error("ERROR in CheckResults_view_class_progress: " + err);
             return false;
         }
     },
@@ -6422,7 +6381,7 @@ caap = {
         if (theGeneral !== 'Use Current') {
             maxIdleEnergy = general.GetEnergyMax(theGeneral);
             if (!maxIdleEnergy) {
-                utility.log(2, "Changing to idle general to get Max energy");
+                $u.log(2, "Changing to idle general to get Max energy");
                 if (general.Select('IdleGeneral')) {
                     return true;
                 }
@@ -6590,7 +6549,7 @@ caap = {
             var storeRetrieve = state.getItem('storeRetrieve', '');
             if (storeRetrieve) {
                 if (storeRetrieve === 'general') {
-                    utility.log(1, "storeRetrieve", storeRetrieve);
+                    $u.log(1, "storeRetrieve", storeRetrieve);
                     if (general.Select('BuyGeneral')) {
                         return true;
                     }
@@ -6654,7 +6613,7 @@ caap = {
                 }
 
                 caap.SetDivContent('quest_mess', 'Searching for quest.');
-                utility.log(1, "Searching for quest");
+                $u.log(1, "Searching for quest");
             } else {
                 var energyCheck = caap.CheckEnergy(state.getItem('AutoQuest', caap.newAutoQuest())['energy'], whenQuest, 'quest_mess');
                 if (!energyCheck) {
@@ -6671,7 +6630,7 @@ caap = {
                     return true;
                 }
 
-                utility.log(2, 'Using level up general');
+                $u.log(2, 'Using level up general');
             }
 
             switch (config.getItem('QuestArea', 'Quest')) {
@@ -6729,7 +6688,7 @@ caap = {
 
             var button = caap.CheckForImage('quick_switch_button.gif');
             if (button && !config.getItem('ForceSubGeneral', false)) {
-                utility.log(2, 'Clicking on quick switch general button.');
+                $u.log(2, 'Clicking on quick switch general button.');
                 caap.Click(button);
                 general.quickSwitch = true;
                 return true;
@@ -6743,7 +6702,7 @@ caap = {
             //Buy quest requires popup
             var itemBuyPopUp = $j("form[id*='itemBuy']");
             if (itemBuyPopUp && itemBuyPopUp.length) {
-                utility.log(1, 'itemBuy');
+                $u.log(1, 'itemBuy');
                 state.setItem('storeRetrieve', 'general');
                 if (general.Select('BuyGeneral')) {
                     return true;
@@ -6751,15 +6710,15 @@ caap = {
 
                 state.setItem('storeRetrieve', '');
                 costToBuy = itemBuyPopUp.text().replace(new RegExp(".*\\$"), '').replace(new RegExp("[^\\d]{3,}.*"), '').parseInt();
-                utility.log(2, "costToBuy", costToBuy);
+                $u.log(2, "costToBuy", costToBuy);
                 if (caap.stats['gold']['cash'] < costToBuy) {
                     //Retrieving from Bank
                     if (caap.stats['gold']['cash'] + (caap.stats['gold']['bank'] - config.getItem('minInStore', 0)) >= costToBuy) {
-                        utility.log(1, "Trying to retrieve", costToBuy - caap.stats['gold']['cash']);
+                        $u.log(1, "Trying to retrieve", costToBuy - caap.stats['gold']['cash']);
                         state.setItem("storeRetrieve", costToBuy - caap.stats['gold']['cash']);
                         return caap.RetrieveFromBank(costToBuy - caap.stats['gold']['cash']);
                     } else {
-                        utility.log(1, "Cant buy requires, stopping quest");
+                        $u.log(1, "Cant buy requires, stopping quest");
                         caap.ManualAutoQuest();
                         return false;
                     }
@@ -6767,18 +6726,18 @@ caap = {
 
                 button = caap.CheckForImage('quick_buy_button.jpg');
                 if (button) {
-                    utility.log(1, 'Clicking on quick buy button.');
+                    $u.log(1, 'Clicking on quick buy button.');
                     caap.Click(button);
                     return true;
                 }
 
-                utility.warn("Cant find buy button");
+                $u.warn("Cant find buy button");
                 return false;
             }
 
             button = caap.CheckForImage('quick_buy_button.jpg');
             if (button) {
-                utility.log(1, 'quick_buy_button');
+                $u.log(1, 'quick_buy_button');
                 state.setItem('storeRetrieve', 'general');
                 if (general.Select('BuyGeneral')) {
                     return true;
@@ -6788,21 +6747,21 @@ caap = {
                 costToBuy = button.previousElementSibling.previousElementSibling.previousElementSibling
                     .previousElementSibling.previousElementSibling.previousElementSibling.previousElementSibling
                     .firstChild.data.replace(new RegExp("[^0-9]", "g"), '');
-                utility.log(2, "costToBuy", costToBuy);
+                $u.log(2, "costToBuy", costToBuy);
                 if (caap.stats['gold']['cash'] < costToBuy) {
                     //Retrieving from Bank
                     if (caap.stats['gold']['cash'] + (caap.stats['gold']['bank'] - config.getItem('minInStore', 0)) >= costToBuy) {
-                        utility.log(1, "Trying to retrieve: ", costToBuy - caap.stats['gold']['cash']);
+                        $u.log(1, "Trying to retrieve: ", costToBuy - caap.stats['gold']['cash']);
                         state.setItem("storeRetrieve", costToBuy - caap.stats['gold']['cash']);
                         return caap.RetrieveFromBank(costToBuy - caap.stats['gold']['cash']);
                     } else {
-                        utility.log(1, "Cant buy General, stopping quest");
+                        $u.log(1, "Cant buy General, stopping quest");
                         caap.ManualAutoQuest();
                         return false;
                     }
                 }
 
-                utility.log(2, 'Clicking on quick buy general button.');
+                $u.log(2, 'Clicking on quick buy general button.');
                 caap.Click(button);
                 return true;
             }
@@ -6816,15 +6775,15 @@ caap = {
                 };
 
             autoQuestDivs = caap.CheckResults_quests(true);
-            //utility.log(1, 'autoQuestDivs/autoQuestName', autoQuestDivs, autoQuestName);
+            //$u.log(1, 'autoQuestDivs/autoQuestName', autoQuestDivs, autoQuestName);
             if (!autoQuestDivs.name) {
-                utility.log(1, 'Could not find AutoQuest.');
+                $u.log(1, 'Could not find AutoQuest.');
                 caap.SetDivContent('quest_mess', 'Could not find AutoQuest.');
                 return false;
             }
 
             if (autoQuestDivs.name !== autoQuestName) {
-                utility.log(1, 'New AutoQuest found.');
+                $u.log(1, 'New AutoQuest found.');
                 caap.SetDivContent('quest_mess', 'New AutoQuest found.');
                 return true;
             }
@@ -6833,29 +6792,29 @@ caap = {
             if (autoQuestDivs.tr && autoQuestDivs.tr.length) {
                 var background = autoQuestDivs.tr.find("div[style*='background-color']");
                 if (background && background.length && background.css("background-color") === 'rgb(158, 11, 15)') {
-                    utility.log(1, "Missing item", autoQuestDivs.tr);
+                    $u.log(1, "Missing item", autoQuestDivs.tr);
                     if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
-                        utility.log(1, "Cant buy Atlantis items, stopping quest");
+                        $u.log(1, "Cant buy Atlantis items, stopping quest");
                         caap.ManualAutoQuest();
                         return false;
                     }
 
-                    utility.log(2, "background.style.backgroundColor", background.css("background-color"));
+                    $u.log(2, "background.style.backgroundColor", background.css("background-color"));
                     state.setItem('storeRetrieve', 'general');
                     if (general.Select('BuyGeneral')) {
                         return true;
                     }
 
                     state.setItem('storeRetrieve', '');
-                    utility.log(2, "background.children().eq(0).children().eq(0).attr('title')", background.children().eq(0).children().eq(0).attr("title"));
+                    $u.log(2, "background.children().eq(0).children().eq(0).attr('title')", background.children().eq(0).children().eq(0).attr("title"));
                     if (background.children().eq(0).children().eq(0).attr("title")) {
-                        utility.log(2, "Clicking to buy", background.children().eq(0).children().eq(0).attr("title"));
+                        $u.log(2, "Clicking to buy", background.children().eq(0).children().eq(0).attr("title"));
                         caap.Click(background.children().eq(0).children().eq(0).get(0));
                         return true;
                     }
                 }
             } else {
-                utility.warn('Can not buy quest item');
+                $u.warn('Can not buy quest item');
                 return false;
             }
 
@@ -6870,21 +6829,21 @@ caap = {
                         return true;
                     }
 
-                    utility.log(2, 'Using level up general');
+                    $u.log(2, 'Using level up general');
                 } else {
                     if (autoQuestDivs.genDiv && autoQuestDivs.genDiv.length) {
-                        utility.log(2, 'Clicking on general', questGeneral);
+                        $u.log(2, 'Clicking on general', questGeneral);
                         caap.Click(autoQuestDivs.genDiv.get(0));
                         return true;
                     } else {
-                        utility.warn('Can not click on general', questGeneral);
+                        $u.warn('Can not click on general', questGeneral);
                         return false;
                     }
                 }
             }
 
             if (autoQuestDivs.click && autoQuestDivs.click) {
-                utility.log(2, 'Clicking auto quest', autoQuestName);
+                $u.log(2, 'Clicking auto quest', autoQuestName);
                 state.setItem('ReleaseControl', true);
                 caap.Click(autoQuestDivs.click.get(0));
                 caap.ShowAutoQuest();
@@ -6894,11 +6853,11 @@ caap = {
 
                 return true;
             } else {
-                utility.warn('Can not click auto quest', autoQuestName);
+                $u.warn('Can not click auto quest', autoQuestName);
                 return false;
             }
         } catch (err) {
-            utility.error("ERROR in Quests: " + err);
+            $u.error("ERROR in Quests: " + err);
             return false;
         }
     },
@@ -6921,15 +6880,15 @@ caap = {
                     var temp = '';
                     temp = $j(this).children().next().eq(1).children().children().next().text();
                     temp = temp ? temp.numberOnly() : '';
-                    if (utility.isNum(temp)) {
+                    if ($u.isNum(temp)) {
                         points.push(temp);
                     } else {
                         success = false;
-                        utility.warn('Demi-Power temp text problem', temp);
+                        $u.warn('Demi-Power temp text problem', temp);
                     }
                 });
 
-                utility.log(3, 'Points', points);
+                $u.log(3, 'Points', points);
                 if (success) {
                     caap.demi['ambrosia']['power']['total'] = points[0] ? points[0] : 0;
                     caap.demi['malekus']['power']['total'] = points[1] ? points[1] : 0;
@@ -6940,12 +6899,12 @@ caap = {
                     caap.SaveDemi();
                 }
             } else {
-                utility.warn("Demi demiDiv problem", demiDiv);
+                $u.warn("Demi demiDiv problem", demiDiv);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_symbolquests: " + err);
+            $u.error("ERROR in CheckResults_symbolquests: " + err);
             return false;
         }
     },
@@ -6967,13 +6926,13 @@ caap = {
 
             return found;
         } catch (err) {
-            utility.error("ERROR in isBossQuest: " + err);
+            $u.error("ERROR in isBossQuest: " + err);
             return false;
         }
     },
 
     symbolquestsListener: function (event) {
-        utility.log(3, "symbolquests");
+        $u.log(3, "symbolquests");
         state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/symbolquests.php');
         caap.CheckResults();
     },
@@ -6982,7 +6941,7 @@ caap = {
     /*jslint sub: true */
     CheckResults_quests: function (pickQuestTF) {
         try {
-            //utility.log(1, "CheckResults_quests pickQuestTF", pickQuestTF);
+            //$u.log(1, "CheckResults_quests pickQuestTF", pickQuestTF);
             pickQuestTF = pickQuestTF ? pickQuestTF : false;
             if ($j("#app46755028429_quest_map_container").length) {
                 $j("div[id*='app46755028429_meta_quest_']").each(function (index) {
@@ -7014,7 +6973,7 @@ caap = {
                 $j("div[id*='app46755028429_symbol_tab_symbolquests']").unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
                 ss = $j("div[id*='symbol_displaysymbolquest']");
                 if (!ss || !ss.length) {
-                    utility.warn("Failed to find symbol_displaysymbolquest");
+                    $u.warn("Failed to find symbol_displaysymbolquest");
                 }
 
                 ss.each(function () {
@@ -7031,7 +6990,7 @@ caap = {
 
             ss = div.find("div[class*='quests_background']");
             if (!ss || !ss.length) {
-                utility.warn("Failed to find quests_background");
+                $u.warn("Failed to find quests_background");
                 return false;
             }
 
@@ -7041,7 +7000,7 @@ caap = {
 
             questSubArea = config.getItem('QuestSubArea', 'Land of Fire');
             isTheArea = caap.CheckCurrentQuestArea(questSubArea);
-            utility.log(2, "Is quest area", questSubArea, isTheArea);
+            $u.log(2, "Is quest area", questSubArea, isTheArea);
             if (isTheArea && whyQuest !== 'Manual' && config.getItem('GetOrbs', false)) {
                 if ($j("input[alt='Perform Alchemy']").length) {
                     haveOrb = true;
@@ -7051,7 +7010,7 @@ caap = {
                     }
                 }
 
-                utility.log(2, "Have Orb for", questSubArea, haveOrb);
+                $u.log(2, "Have Orb for", questSubArea, haveOrb);
                 if (haveOrb && caap.isBossQuest(state.getItem('AutoQuest', caap.newAutoQuest())['name'])) {
                     state.setItem('AutoQuest', caap.newAutoQuest());
                 }
@@ -7096,7 +7055,7 @@ caap = {
                         tStr = expObj.text();
                         experience = tStr ? tStr.numberOnly() : 0;
                     } else {
-                        utility.warn("Can't find experience for", caap.questName);
+                        $u.warn("Can't find experience for", caap.questName);
                     }
                 }
 
@@ -7116,7 +7075,7 @@ caap = {
                 }
 
                 if (!energy) {
-                    utility.warn("Can't find energy for", caap.questName);
+                    $u.warn("Can't find energy for", caap.questName);
                     return true;
                 }
 
@@ -7136,13 +7095,13 @@ caap = {
                         rewardHigh = moneyM[2] ? moneyM[2].numberOnly() * 1000000 : 0;
                         reward = (rewardLow + rewardHigh) / 2;
                     } else {
-                        utility.warn('No money found for', caap.questName, divTxt);
+                        $u.warn('No money found for', caap.questName, divTxt);
                     }
                 }
 
                 var click = div.find("input[name*='Do Quest']");
                 if (!click || !click.length) {
-                    utility.warn('No button found for', caap.questName);
+                    $u.warn('No button found for', caap.questName);
                     return true;
                 }
 
@@ -7159,12 +7118,12 @@ caap = {
                     if (influenceList && influenceList.length === 2) {
                         influence = influenceList[1] ? influenceList[1].parseInt() : 0;
                     } else {
-                        utility.warn("Influence div not found.", influenceList);
+                        $u.warn("Influence div not found.", influenceList);
                     }
                 }
 
                 if (influence < 0) {
-                    utility.warn('No influence found for', caap.questName, divTxt);
+                    $u.warn('No influence found for', caap.questName, divTxt);
                 }
 
                 var general = 'none',
@@ -7188,7 +7147,7 @@ caap = {
                 }
 
                 caap.LabelQuests(div, energy, reward, experience, click);
-                utility.log(9, "QuestSubArea", questSubArea);
+                $u.log(9, "QuestSubArea", questSubArea);
                 if (isTheArea) {
                     if (config.getItem('GetOrbs', false) && questType === 'boss' && whyQuest !== 'Manual' && !haveOrb) {
                         caap.updateAutoQuest('name', caap.questName);
@@ -7204,7 +7163,7 @@ caap = {
                                 pickQuestTF = true;
                             }
                         } else {
-                            utility.warn("Can't find influence for", caap.questName, influence);
+                            $u.warn("Can't find influence for", caap.questName, influence);
                         }
 
                         break;
@@ -7215,7 +7174,7 @@ caap = {
                                 pickQuestTF = true;
                             }
                         } else {
-                            utility.warn("Can't find influence for", caap.questName, influence);
+                            $u.warn("Can't find influence for", caap.questName, influence);
                         }
 
                         break;
@@ -7241,14 +7200,14 @@ caap = {
                     if (isTheArea && state.getItem('AutoQuest', caap.newAutoQuest())['name'] === caap.questName) {
                         bestReward = rewardRatio;
                         var expRatio = experience / (energy ? energy : 1);
-                        utility.log(2, "Setting AutoQuest", caap.questName);
+                        $u.log(2, "Setting AutoQuest", caap.questName);
                         var tempAutoQuest = caap.newAutoQuest();
                         tempAutoQuest['name'] = caap.questName;
                         tempAutoQuest['energy'] = energy;
                         tempAutoQuest['general'] = general;
                         tempAutoQuest['expRatio'] = expRatio;
                         state.setItem('AutoQuest', tempAutoQuest);
-                        utility.log(3, "CheckResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
+                        $u.log(3, "CheckResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
                         caap.ShowAutoQuest();
                         autoQuestDivs.name = caap.questName;
                         autoQuestDivs.click = click;
@@ -7257,21 +7216,21 @@ caap = {
                     }
                 }
 
-                //utility.log(1, "End of run");
+                //$u.log(1, "End of run");
                 return true;
             });
 
-            //utility.log(1, "pickQuestTF", pickQuestTF);
+            //$u.log(1, "pickQuestTF", pickQuestTF);
             if (pickQuestTF) {
                 if (state.getItem('AutoQuest', caap.newAutoQuest())['name']) {
-                    //utility.log(2, "return autoQuestDivs", autoQuestDivs);
+                    //$u.log(2, "return autoQuestDivs", autoQuestDivs);
                     caap.ShowAutoQuest();
                     return autoQuestDivs;
                 }
 
                 //if not find quest, probably you already maxed the subarea, try another area
                 if ((whyQuest === 'Max Influence' || whyQuest === 'Advancement') && config.getItem('switchQuestArea', true)) {
-                    utility.log(9, "QuestSubArea", questSubArea);
+                    $u.log(9, "QuestSubArea", questSubArea);
                     if (questSubArea && caap.QuestAreaInfo[questSubArea] && caap.QuestAreaInfo[questSubArea].next) {
                         questSubArea = config.setItem('QuestSubArea', caap.QuestAreaInfo[questSubArea].next);
                         if (caap.QuestAreaInfo[questSubArea].area && caap.QuestAreaInfo[questSubArea].list) {
@@ -7279,23 +7238,23 @@ caap = {
                             caap.ChangeDropDownList('QuestSubArea', caap[caap.QuestAreaInfo[questSubArea].list]);
                         }
                     } else {
-                        utility.log(1, "Setting questing to manual");
+                        $u.log(1, "Setting questing to manual");
                         caap.ManualAutoQuest();
                     }
 
-                    utility.log(2, "UpdateQuestGUI: Setting drop down menus");
+                    $u.log(2, "UpdateQuestGUI: Setting drop down menus");
                     caap.SelectDropOption('QuestArea', config.getItem('QuestArea', 'Quest'));
                     caap.SelectDropOption('QuestSubArea', questSubArea);
                     return false;
                 }
 
-                utility.log(1, "Finished QuestArea.");
+                $u.log(1, "Finished QuestArea.");
                 caap.ManualAutoQuest();
             }
 
             return false;
         } catch (err) {
-            utility.error("ERROR in CheckResults_quests: " + err);
+            $u.error("ERROR in CheckResults_quests: " + err);
             caap.ManualAutoQuest();
             return false;
         }
@@ -7337,7 +7296,7 @@ caap = {
 
             return found;
         } catch (err) {
-            utility.error("ERROR in CheckCurrentQuestArea: " + err);
+            $u.error("ERROR in CheckCurrentQuestArea: " + err);
             return false;
         }
     },
@@ -7350,30 +7309,30 @@ caap = {
 
             item_title = questDiv.find("div[class*='quest_desc'],div[class*='quest_sub_title']");
             if (!item_title || !item_title.length) {
-                utility.log(2, "Can't find quest description or sub-title");
+                $u.log(2, "Can't find quest description or sub-title");
                 return false;
             }
 
             if (item_title.html().match(/LOCK/)) {
-                utility.log(2, "Quest locked", item_title);
+                $u.log(2, "Quest locked", item_title);
                 return false;
             }
 
             firstb = item_title.find("b").eq(0);
             if (!firstb || !firstb.length) {
-                utility.warn("Can't get bolded member out of", item_title.html());
+                $u.warn("Can't get bolded member out of", item_title.html());
                 return false;
             }
 
             caap.questName = firstb.text().trim();
             if (!caap.questName) {
-                utility.warn('No quest name for this row');
+                $u.warn('No quest name for this row');
                 return false;
             }
 
             return caap.questName;
         } catch (err) {
-            utility.error("ERROR in GetQuestName: " + err);
+            $u.error("ERROR in GetQuestName: " + err);
             return false;
         }
     },
@@ -7437,7 +7396,7 @@ caap = {
                 }
 
                 if (theGeneral !== 'Use Current' && !maxIdleEnergy) {
-                    utility.log(2, "Changing to idle general to get Max energy");
+                    $u.log(2, "Changing to idle general to get Max energy");
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
@@ -7449,7 +7408,7 @@ caap = {
 
                 if (caap.InLevelUpMode() && caap.stats['energy']['num'] >= energy) {
                     if (msgdiv) {
-                        utility.log(1, "Burning all energy to level up");
+                        $u.log(1, "Burning all energy to level up");
                         caap.SetDivContent(msgdiv, 'Burning all energy to level up');
                     }
 
@@ -7463,7 +7422,7 @@ caap = {
 
             return false;
         } catch (err) {
-            utility.error("ERROR in CheckEnergy: " + err);
+            $u.error("ERROR in CheckEnergy: " + err);
             return false;
         }
     },
@@ -7486,7 +7445,7 @@ caap = {
             //tempAutoQuest['expRatio'] = expRatio;
 
             caap.ManualAutoQuest(tempAutoQuest);
-            utility.log(5, 'LabelListener', sps, state.getItem('AutoQuest'));
+            $u.log(5, 'LabelListener', sps, state.getItem('AutoQuest'));
             if (caap.stats['level'] < 10 && caap.CheckForImage('quest_back_1.jpg')) {
                 config.setItem('QuestArea', 'Quest');
                 config.setItem('QuestSubArea', 'Land of Fire');
@@ -7514,13 +7473,13 @@ caap = {
                 }
             }
 
-            utility.log(1, 'Setting QuestSubArea to', config.getItem('QuestSubArea', 'Land Of Fire'));
+            $u.log(1, 'Setting QuestSubArea to', config.getItem('QuestSubArea', 'Land Of Fire'));
             caap.SelectDropOption('QuestSubArea', config.getItem('QuestSubArea', 'Land Of Fire'));
             caap.ShowAutoQuest();
             caap.CheckResults_quests();
             return true;
         } catch (err) {
-            utility.error("ERROR in LabelListener: " + err);
+            $u.error("ERROR in LabelListener: " + err);
             return false;
         }
     },
@@ -7566,7 +7525,7 @@ caap = {
             newdiv.style.right = "144px";
             click.parent().before(newdiv);
         } catch (err) {
-            utility.error("ERROR in LabelQuests: " + err);
+            $u.error("ERROR in LabelQuests: " + err);
         }
     },
 
@@ -7592,13 +7551,13 @@ caap = {
             hours = resultsText.regex(/(\d+) hour/);
             minutes = resultsText.regex(/(\d+) minute/);
             schedule.setItem('BlessingTimer', (hours * 60 + minutes) * 60, 300);
-            utility.log(2, 'Recorded Blessing Time. Scheduling next click!');
+            $u.log(2, 'Recorded Blessing Time. Scheduling next click!');
         }
 
         // Recieved Demi Blessing.  Wait 24 hours to try again.
         if (resultsText.match(/You have paid tribute to/)) {
             schedule.setItem('BlessingTimer', 86400, 300);
-            utility.log(2, 'Received blessing. Scheduling next click!');
+            $u.log(2, 'Received blessing. Scheduling next click!');
         }
     },
 
@@ -7621,7 +7580,7 @@ caap = {
 
         picSlice = $j("img[src*='deity_" + autoBless + "']");
         if (!picSlice || !picSlice.length) {
-            utility.warn('No diety pics for deity', autoBless);
+            $u.warn('No diety pics for deity', autoBless);
             return false;
         }
 
@@ -7631,17 +7590,17 @@ caap = {
 
         picSlice = $j("form[id*='_symbols_form_" + caap.deityTable[autoBless] + "']");
         if (!picSlice || !picSlice.length) {
-            utility.warn('No form for deity blessing.');
+            $u.warn('No form for deity blessing.');
             return false;
         }
 
         picSlice = caap.CheckForImage('demi_quest_bless', picSlice);
         if (!picSlice) {
-            utility.warn('No image for deity blessing.');
+            $u.warn('No image for deity blessing.');
             return false;
         }
 
-        utility.log(1, 'Click deity blessing for ', autoBless);
+        $u.log(1, 'Click deity blessing for ', autoBless);
         schedule.setItem('BlessingTimer', 3600, 300);
         caap.Click(picSlice);
         return true;
@@ -7708,7 +7667,7 @@ caap = {
                     var selects = $j();
                     selects = div.find("select");
                     if (!selects || !selects.length) {
-                        utility.warn(type + " select not found!");
+                        $u.warn(type + " select not found!");
                         return false;
                     }
 
@@ -7722,7 +7681,7 @@ caap = {
 
                     return true;
                 } catch (err) {
-                    utility.error("ERROR in SelectLands: " + err);
+                    $u.error("ERROR in SelectLands: " + err);
                     return false;
                 }
             }
@@ -7731,7 +7690,7 @@ caap = {
             caap.sellLand = {};
             ss = $j("#content tr[class*='land_buy_row']");
             if (!ss || !ss.length) {
-                utility.warn("Can't find land_buy_row");
+                $u.warn("Can't find land_buy_row");
                 return false;
             }
 
@@ -7744,25 +7703,25 @@ caap = {
                 SelectLands(row, 10);
                 infoDiv = row.find("div[class*='land_buy_info']");
                 if (!infoDiv || !infoDiv.length) {
-                    utility.warn("Can't find land_buy_info");
+                    $u.warn("Can't find land_buy_info");
                     return true;
                 }
 
                 strongs = infoDiv.find("strong");
                 if (strongs && strongs.length < 1) {
-                    utility.warn("Can't find strong");
+                    $u.warn("Can't find strong");
                     return true;
                 }
 
                 name = strongs.eq(0).text().trim();
                 if (!name) {
-                    utility.warn("Can't find land name");
+                    $u.warn("Can't find land name");
                     return true;
                 }
 
                 moneyss = row.find("strong[class*='gold']");
                 if (!moneyss || moneyss.length < 2) {
-                    utility.warn("Can't find 2 gold instances");
+                    $u.warn("Can't find 2 gold instances");
                     return true;
                 }
 
@@ -7774,7 +7733,7 @@ caap = {
                         tStr = incomeEl.text();
                         tStr = tStr ? tStr.regex(/([\d,]+)/) : '';
                         if (!tStr) {
-                            utility.warn('Cannot find income for ', name, tStr);
+                            $u.warn('Cannot find income for ', name, tStr);
                             return true;
                         }
                     } else {
@@ -7789,7 +7748,7 @@ caap = {
                 income = nums[0] ? nums[0] : 0;
                 cost = nums[1] ? nums[1] : 0;
                 if (!income || !cost) {
-                    utility.warn("Can't find income or cost for", name);
+                    $u.warn("Can't find income or cost for", name);
                     return true;
                 }
 
@@ -7834,9 +7793,9 @@ caap = {
                 div = infoDiv.find("strong");
                 tStr = div.eq(0).text();
                 div.eq(0).text(tStr + " | " + land.data['roi'] + "% per day.");
-                utility.log(3, "Land:", land.data['name']);
+                $u.log(3, "Land:", land.data['name']);
                 if (land.data['roi'] > 0 && land.data['roi'] > caap.bestLand['roi']) {
-                    utility.log(3, "Set Land:", land.data['name'], land.data);
+                    $u.log(3, "Set Land:", land.data['name'], land.data);
                     caap.bestLand = $j.extend(true, {}, land.data);
                 }
 
@@ -7847,10 +7806,10 @@ caap = {
             delete bestLandCost['row'];
             bestLandCost['set'] = true;
             state.setItem('BestLandCost', bestLandCost);
-            utility.log(2, "Best Land Cost: ", bestLandCost['name'], bestLandCost['cost'], bestLandCost);
+            $u.log(2, "Best Land Cost: ", bestLandCost['name'], bestLandCost['cost'], bestLandCost);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_land: " + err);
+            $u.error("ERROR in CheckResults_land: " + err);
             return false;
         }
     },
@@ -7881,37 +7840,37 @@ caap = {
                         caap.Click(button.get(0), 15000);
                         return true;
                     } else {
-                        utility.warn(type + " button not found!");
+                        $u.warn(type + " button not found!");
                         return false;
                     }
                 } catch (err) {
-                    utility.error("ERROR in BuySellLand: " + err);
+                    $u.error("ERROR in BuySellLand: " + err);
                     return false;
                 }
             }
 
             // Do we have lands above our max to sell?
             if (!$j.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
-                utility.log(2, "Selling land", caap.sellLand['name']);
+                $u.log(2, "Selling land", caap.sellLand['name']);
                 BuySellLand(caap.sellLand, 'Sell');
                 return true;
             }
 
             bestLandCost = state.getItem('BestLandCost', new caap.landRecord().data);
             if (!bestLandCost['set']) {
-                utility.log(2, "Going to land to get Best Land Cost");
+                $u.log(2, "Going to land to get Best Land Cost");
                 if (caap.NavigateTo('soldiers,land', caap.CheckForImage('tab_land_on.gif') ? '' : 'tab_land_on.gif')) {
                     return true;
                 }
             }
 
             if (bestLandCost['cost'] === 0) {
-                utility.log(2, "No lands to purchase");
+                $u.log(2, "No lands to purchase");
                 return false;
             }
 
             if (!caap.stats['gold']['bank'] && caap.stats['gold']['bank'] !== 0) {
-                utility.log(2, "Going to keep to get Stored Value");
+                $u.log(2, "Going to keep to get Stored Value");
                 if (caap.NavigateTo('keep')) {
                     return true;
                 }
@@ -7923,20 +7882,20 @@ caap = {
             theGeneral = config.getItem('IdleGeneral', 'Use Current');
             if ((cashTotAvail >= cashNeed) && (caap.stats['gold']['cash'] < cashNeed)) {
                 if (theGeneral !== 'Use Current') {
-                    utility.log(2, "Changing to idle general");
+                    $u.log(2, "Changing to idle general");
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
                 }
 
-                utility.log(2, "Trying to retrieve", cashNeed - caap.stats['gold']['cash']);
+                $u.log(2, "Trying to retrieve", cashNeed - caap.stats['gold']['cash']);
                 return caap.RetrieveFromBank(cashNeed - caap.stats['gold']['cash']);
             }
 
             // Need to check for enough moneys + do we have enough of the builton type that we already own.
             if (bestLandCost['cost'] && caap.stats['gold']['cash'] >= cashNeed) {
                 if (theGeneral !== 'Use Current') {
-                    utility.log(2, "Changing to idle general");
+                    $u.log(2, "Changing to idle general");
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
@@ -7945,7 +7904,7 @@ caap = {
                 caap.NavigateTo('soldiers,land');
                 if (caap.CheckForImage('tab_land_on.gif')) {
                     if (bestLandCost['buy']) {
-                        utility.log(2, "Buying land", caap.bestLand['name']);
+                        $u.log(2, "Buying land", caap.bestLand['name']);
                         if (BuySellLand(caap.bestLand)) {
                             return true;
                         }
@@ -7957,7 +7916,7 @@ caap = {
 
             return false;
         } catch (err) {
-            utility.error("ERROR in Lands: " + err);
+            $u.error("ERROR in Lands: " + err);
             return false;
         }
     },
@@ -7973,10 +7932,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, 'Visiting keep to get stats');
+            $u.log(2, 'Visiting keep to get stats');
             return caap.NavigateTo('keep', 'tab_stats_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckKeep: " + err);
+            $u.error("ERROR in CheckKeep: " + err);
             return false;
         }
     },
@@ -7987,10 +7946,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Checking Oracle for Favor Points");
+            $u.log(2, "Checking Oracle for Favor Points");
             return caap.NavigateTo('oracle', 'oracle_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckOracle: " + err);
+            $u.error("ERROR in CheckOracle: " + err);
             return false;
         }
     },
@@ -8003,10 +7962,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, 'Visiting Battle Rank to get stats');
+            $u.log(2, 'Visiting Battle Rank to get stats');
             return caap.NavigateTo('battle,battlerank', 'tab_battle_rank_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckBattleRank: " + err);
+            $u.error("ERROR in CheckBattleRank: " + err);
             return false;
         }
     },
@@ -8017,10 +7976,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, 'Visiting War Rank to get stats');
+            $u.log(2, 'Visiting War Rank to get stats');
             return caap.NavigateTo('battle,war_rank', 'tab_war_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckWar: " + err);
+            $u.error("ERROR in CheckWar: " + err);
             return false;
         }
     },
@@ -8032,10 +7991,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Visiting generals to get 'General' list");
+            $u.log(2, "Visiting generals to get 'General' list");
             return caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckGenerals: " + err);
+            $u.error("ERROR in CheckGenerals: " + err);
             return false;
         }
     },
@@ -8046,10 +8005,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Checking Soldiers");
+            $u.log(2, "Checking Soldiers");
             return caap.NavigateTo('soldiers', 'tab_soldiers_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckSoldiers: " + err);
+            $u.error("ERROR in CheckSoldiers: " + err);
             return false;
         }
     },
@@ -8061,10 +8020,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Checking Item");
+            $u.log(2, "Checking Item");
             return caap.NavigateTo('soldiers,item', 'tab_black_smith_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckItem: " + err);
+            $u.error("ERROR in CheckItem: " + err);
             return false;
         }
     },
@@ -8075,10 +8034,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Checking Magic");
+            $u.log(2, "Checking Magic");
             return caap.NavigateTo('soldiers,magic', 'tab_magic_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckMagic: " + err);
+            $u.error("ERROR in CheckMagic: " + err);
             return false;
         }
     },
@@ -8089,10 +8048,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, 'Visiting achievements to get stats');
+            $u.log(2, 'Visiting achievements to get stats');
             return caap.NavigateTo('keep,achievements', 'tab_achievements_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckAchievements: " + err);
+            $u.error("ERROR in CheckAchievements: " + err);
             return false;
         }
     },
@@ -8105,10 +8064,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Visiting symbolquests to get 'Demi-Power' points");
+            $u.log(2, "Visiting symbolquests to get 'Demi-Power' points");
             return caap.NavigateTo('quests,symbolquests', 'demi_quest_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckSymbolQuests: " + err);
+            $u.error("ERROR in CheckSymbolQuests: " + err);
             return false;
         }
     },
@@ -8119,10 +8078,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Checking Monster Class to get Character Class Stats");
+            $u.log(2, "Checking Monster Class to get Character Class Stats");
             return caap.NavigateTo('battle_monster,view_class_progress', 'nm_class_whole_progress_bar.jpg');
         } catch (err) {
-            utility.error("ERROR in CheckCharacterClasses: " + err);
+            $u.error("ERROR in CheckCharacterClasses: " + err);
             return false;
         }
     },
@@ -8134,10 +8093,10 @@ caap = {
                 return false;
             }
 
-            utility.log(2, "Checking Gift");
+            $u.log(2, "Checking Gift");
             return caap.NavigateTo('army,gift', 'tab_gifts_on.gif');
         } catch (err) {
-            utility.error("ERROR in CheckGift: " + err);
+            $u.error("ERROR in CheckGift: " + err);
             return false;
         }
     },
@@ -8170,18 +8129,18 @@ caap = {
                         state.setItem("notSafeCount", 0);
                         return true;
                     } else {
-                        utility.warn("target_id not found in battleForm");
+                        $u.warn("target_id not found in battleForm");
                     }
                 } else {
-                    utility.warn("form not found in battleButton");
+                    $u.warn("form not found in battleButton");
                 }
             } else {
-                utility.warn("battleButton not found");
+                $u.warn("battleButton not found");
             }
 
             return false;
         } catch (err) {
-            utility.error("ERROR in BattleUserId: " + err);
+            $u.error("ERROR in BattleUserId: " + err);
             return false;
         }
     },
@@ -8208,7 +8167,7 @@ caap = {
 
             if (caap.stats['level'] < 8) {
                 if (caap.battleWarnLevel) {
-                    utility.log(1, "Battle: Unlock at level 8");
+                    $u.log(1, "Battle: Unlock at level 8");
                     caap.battleWarnLevel = false;
                 }
 
@@ -8225,7 +8184,7 @@ caap = {
             case 'Stay Hidden' :
                 if (!caap.NeedToHide()) {
                     caap.SetDivContent('battle_mess', 'We Dont Need To Hide Yet');
-                    utility.log(1, 'We Dont Need To Hide Yet');
+                    $u.log(1, 'We Dont Need To Hide Yet');
                     return false;
                 }
 
@@ -8260,26 +8219,26 @@ caap = {
             }
 
             if (caap.stats['health']['num'] < 10) {
-                utility.log(5, 'Health is less than 10: ', caap.stats['health']['num']);
+                $u.log(5, 'Health is less than 10: ', caap.stats['health']['num']);
                 return false;
             }
 
             if (config.getItem("waitSafeHealth", false) && caap.stats['health']['num'] < 13) {
-                utility.log(5, 'Unsafe. Health is less than 13: ', caap.stats['health']['num']);
+                $u.log(5, 'Unsafe. Health is less than 13: ', caap.stats['health']['num']);
                 return false;
             }
 
             target = battle.getTarget(mode);
-            utility.log(5, 'Mode/Target', mode, target);
+            $u.log(5, 'Mode/Target', mode, target);
             if (!target) {
-                utility.log(1, 'No valid battle target');
+                $u.log(1, 'No valid battle target');
                 return false;
-            } else if (!utility.isNum(target)) {
+            } else if (!$u.isNum(target)) {
                 target = target.toLowerCase();
             }
 
             if (target === 'noraid') {
-                utility.log(5, 'No Raid To Attack');
+                $u.log(5, 'No Raid To Attack');
                 return false;
             }
 
@@ -8291,7 +8250,7 @@ caap = {
                 chainImg = 'battle_invade_again.gif';
                 if (general.LevelUpCheck(useGeneral)) {
                     useGeneral = 'LevelUpGeneral';
-                    utility.log(2, 'Using level up general');
+                    $u.log(2, 'Using level up general');
                 }
 
                 break;
@@ -8301,7 +8260,7 @@ caap = {
                 chainImg = 'battle_duel_again.gif';
                 if (general.LevelUpCheck(useGeneral)) {
                     useGeneral = 'LevelUpGeneral';
-                    utility.log(2, 'Using level up general');
+                    $u.log(2, 'Using level up general');
                 }
 
                 break;
@@ -8311,17 +8270,17 @@ caap = {
                 chainImg = 'battle_duel_again.gif';
                 if (general.LevelUpCheck(useGeneral)) {
                     useGeneral = 'LevelUpGeneral';
-                    utility.log(2, 'Using level up general');
+                    $u.log(2, 'Using level up general');
                 }
 
                 break;
             default :
-                utility.warn('Unknown battle type ', battletype);
+                $u.warn('Unknown battle type ', battletype);
                 return false;
             }
 
             if (!caap.CheckStamina('Battle', staminaReq)) {
-                utility.log(9, 'Not enough stamina for ', battletype);
+                $u.log(9, 'Not enough stamina for ', battletype);
                 return false;
             } else if (general.Select(useGeneral)) {
                 return true;
@@ -8333,7 +8292,7 @@ caap = {
                 battleChainId = state.getItem("BattleChainId", 0);
                 if (button && battleChainId) {
                     caap.SetDivContent('battle_mess', 'Chain Attack In Progress');
-                    utility.log(2, 'Chaining Target', battleChainId);
+                    $u.log(2, 'Chaining Target', battleChainId);
                     battle.click(button);
                     state.setItem("BattleChainId", 0);
                     return true;
@@ -8344,13 +8303,13 @@ caap = {
                 state.setItem("notSafeCount", 0);
             }
 
-            utility.log(2, 'Battle Target', target);
+            $u.log(2, 'Battle Target', target);
             targetType = config.getItem('TargetType', 'Invade');
             switch (target) {
             case 'raid' :
                 if (!schedule.check("RaidNoTargetDelay")) {
                     rejoinSecs = ((schedule.getItem("RaidNoTargetDelay").next - new Date().getTime()) / 1000).dp() + ' secs';
-                    utility.log(2, 'Rejoining the raid in', rejoinSecs);
+                    $u.log(2, 'Rejoining the raid in', rejoinSecs);
                     caap.SetDivContent('battle_mess', 'Joining the Raid in ' + rejoinSecs);
                     return true;
                 }
@@ -8365,7 +8324,7 @@ caap = {
                     monster.deleteItem(monster.completeButton['raid']['name']);
                     monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
                     caap.UpdateDashboard(true);
-                    utility.log(1, 'Cleared a completed raid');
+                    $u.log(1, 'Cleared a completed raid');
                     return true;
                 }
 
@@ -8377,7 +8336,7 @@ caap = {
                         return true;
                     }
 
-                    utility.warn('Unable to engage raid', raidName);
+                    $u.warn('Unable to engage raid', raidName);
                     return false;
                 }
 
@@ -8400,7 +8359,7 @@ caap = {
                         return true;
                     }
 
-                    utility.warn('Doing Raid UserID list, but no target');
+                    $u.warn('Doing Raid UserID list, but no target');
                     return false;
                 }
 
@@ -8426,7 +8385,7 @@ caap = {
                         return true;
                     }
 
-                    utility.warn('Doing Freshmeat UserID list, but no target');
+                    $u.warn('Doing Freshmeat UserID list, but no target');
                     return false;
                 }
 
@@ -8445,11 +8404,11 @@ caap = {
                         tempTime = battleRecord.warlostTime ? battleRecord.warlostTime : tempTime;
                         break;
                     default :
-                        utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
+                        $u.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
                     }
 
                     if (battleRecord && battleRecord.nameStr !== '' && !schedule.since(tempTime, 604800)) {
-                        utility.log(1, 'Avoiding Losing Target', target);
+                        $u.log(1, 'Avoiding Losing Target', target);
                         battle.nextTarget();
                         return true;
                     }
@@ -8465,11 +8424,11 @@ caap = {
                     return true;
                 }
 
-                utility.warn('Doing default UserID list, but no target');
+                $u.warn('Doing default UserID list, but no target');
                 return false;
             }
         } catch (err) {
-            utility.error("ERROR in Battle: " + err);
+            $u.error("ERROR in Battle: " + err);
             return false;
         }
     },
@@ -8493,7 +8452,7 @@ caap = {
                 caap.stats['guild']['id'] = guildIdDiv.attr("value");
                 save = true;
             } else {
-                utility.warn('Using stored guild_id.');
+                $u.warn('Using stored guild_id.');
             }
 
             guildTxt = $j("#app46755028429_guild_banner_section").text();
@@ -8501,7 +8460,7 @@ caap = {
                 caap.stats['guild']['name'] = guildTxt.trim();
                 save = true;
             } else {
-                utility.warn('Using stored guild name.');
+                $u.warn('Using stored guild name.');
             }
 
             guildMemDiv = $j("#app46755028429_cta_log div[style='padding-bottom: 5px;']");
@@ -8509,16 +8468,16 @@ caap = {
                 caap.stats['guild']['members'] = guildMemDiv.length;
                 save = true;
             } else {
-                utility.warn('Using stored guild member count.');
+                $u.warn('Using stored guild member count.');
             }
 
-            utility.log(3, "CheckResults_guild", caap.stats['guild']);
+            $u.log(3, "CheckResults_guild", caap.stats['guild']);
             if (save) {
                 caap.SaveStats();
             }
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_guild: " + err);
+            $u.error("ERROR in CheckResults_guild: " + err);
             return false;
         }
     },
@@ -8534,8 +8493,8 @@ caap = {
             tempDiv = $j("img[src*='guild_symbol']");
             if (tempDiv && tempDiv.length) {
                 tempDiv.each(function () {
-                    utility.log(5, "name", $j(this).parent().parent().next().text().trim());
-                    utility.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='dragon_list_btn_']"));
+                    $u.log(5, "name", $j(this).parent().parent().next().text().trim());
+                    $u.log(5, "button", $j(this).parent().parent().parent().next().find("input[src*='dragon_list_btn_']"));
                 });
             } else {
                 return false;
@@ -8543,7 +8502,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_guild_current_battles: " + err);
+            $u.error("ERROR in CheckResults_guild_current_battles: " + err);
             return false;
         }
     },
@@ -8568,7 +8527,7 @@ caap = {
             }
 
             if (!caap.stats['guild']['id']) {
-                utility.log(2, "Going to guild to get Guild Id");
+                $u.log(2, "Going to guild to get Guild Id");
                 if (caap.NavigateTo('guild')) {
                     return true;
                 }
@@ -8594,7 +8553,7 @@ caap = {
 
             record = guild_monster.getReview();
             if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
-                utility.log(1, "Reviewing Slot (" + record['slot'] + ") Name: " + record['name']);
+                $u.log(1, "Reviewing Slot (" + record['slot'] + ") Name: " + record['name']);
                 if (caap.stats['staminaT']['num'] > 0 && config.getItem("doGuildMonsterSiege", true)) {
                     objective = "&action=doObjective";
                 }
@@ -8610,10 +8569,10 @@ caap = {
             state.setItem('guildMonsterBattlesReview', false);
             state.setItem('guildMonsterReviewSlot', 0);
             guild_monster.select(true);
-            utility.log(1, 'Done with guild monster review.');
+            $u.log(1, 'Done with guild monster review.');
             return false;
         } catch (err) {
-            utility.error("ERROR in GuildMonsterReview: " + err);
+            $u.error("ERROR in GuildMonsterReview: " + err);
             return false;
         }
     },
@@ -8625,7 +8584,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_guild_current_monster_battles: " + err);
+            $u.error("ERROR in CheckResults_guild_current_monster_battles: " + err);
             return false;
         }
     },
@@ -8639,7 +8598,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_guild_battle_monster: " + err);
+            $u.error("ERROR in CheckResults_guild_battle_monster: " + err);
             return false;
         }
     },
@@ -8663,7 +8622,7 @@ caap = {
             }
 
             if (!caap.stats['guild']['id']) {
-                utility.log(2, "Going to guild to get Guild Id");
+                $u.log(2, "Going to guild to get Guild Id");
                 if (caap.NavigateTo('guild')) {
                     return true;
                 }
@@ -8671,7 +8630,7 @@ caap = {
 
             /*
             if (!caap.stats['guild']['id']) {
-                utility.log(2, "Going to keep to get Guild Id");
+                $u.log(2, "Going to keep to get Guild Id");
                 if (caap.NavigateTo('keep')) {
                     return true;
                 }
@@ -8745,7 +8704,7 @@ caap = {
                 }
 
                 if (!guild_monster.checkPage(record)) {
-                    utility.log(2, "Fighting Slot (" + record['slot'] + ") Name: " + record['name']);
+                    $u.log(2, "Fighting Slot (" + record['slot'] + ") Name: " + record['name']);
                     caap.SetDivContent('guild_monster_mess', "Fighting ("  + record['slot'] + ") " + record['name']);
                     url = "guild_battle_monster.php?twt2=" + guild_monster.info[record['name']].twt2 + "&guild_id=" + record['guildId'] + "&slot=" + record['slot'];
                     caap.ClickAjaxLinkSend(url);
@@ -8754,7 +8713,7 @@ caap = {
 
                 minion = guild_monster.getTargetMinion(record);
                 if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
-                    utility.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
+                    $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                     caap.SetDivContent('guild_monster_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                     key = $j("#app46755028429_attack_key_" + minion['target_id']);
                     if (key && key.length) {
@@ -8775,7 +8734,7 @@ caap = {
 
             return false;
         } catch (err) {
-            utility.error("ERROR in GuildMonster: " + err);
+            $u.error("ERROR in GuildMonster: " + err);
             return false;
         }
     },
@@ -8814,10 +8773,10 @@ caap = {
 
             state.setItem('ArenaRefresh', true);
             state.setItem('ArenaReview', false);
-            utility.log(1, 'Done with Arena review.');
+            $u.log(1, 'Done with Arena review.');
             return false;
         } catch (err) {
-            utility.error("ERROR in ArenaReview: " + err);
+            $u.error("ERROR in ArenaReview: " + err);
             return false;
         }
     },
@@ -8829,7 +8788,7 @@ caap = {
             arena.checkInfo();
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_arena: " + err);
+            $u.error("ERROR in CheckResults_arena: " + err);
             return false;
         }
     },
@@ -8839,7 +8798,7 @@ caap = {
             arena.onBattle();
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_arena_battle: " + err);
+            $u.error("ERROR in CheckResults_arena_battle: " + err);
             return false;
         }
     },
@@ -8920,7 +8879,7 @@ caap = {
                 state.setItem('ArenaRefresh', true);
                 state.setItem('ArenaReview', false);
                 enterButton = $j("input[src*='battle_enter_battle.gif']");
-                utility.log(1, "Enter battle", record, enterButton);
+                $u.log(1, "Enter battle", record, enterButton);
                 if (record['tokens'] > 0 && enterButton && enterButton.length) {
                     arena.clearMinions();
                     caap.Click(enterButton.get(0));
@@ -8930,7 +8889,7 @@ caap = {
 
             enterButton = $j("input[src*='guild_enter_battle_button.gif']");
             if (enterButton && enterButton.length) {
-                utility.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
+                $u.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
                 if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
                     state.setItem('ArenaJoined', true);
                     caap.Click(enterButton.get(0));
@@ -8946,7 +8905,7 @@ caap = {
 
             minion = arena.getTargetMinion(record);
             if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
-                utility.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
+                $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                 caap.SetDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                 key = $j("#app46755028429_attack_key_" + minion['target_id']);
                 if (key && key.length) {
@@ -8961,7 +8920,7 @@ caap = {
 
             return false;
         } catch (err) {
-            utility.error("ERROR in Arena: " + err);
+            $u.error("ERROR in Arena: " + err);
             return false;
         }
     },
@@ -8992,20 +8951,20 @@ caap = {
             summonDiv = $j("img[src*='mp_button_summon_']");
             buttonsDiv = $j("img[src*='dragon_list_btn_']");
             if ((!summonDiv || !summonDiv.length) && (!buttonsDiv || !buttonsDiv.length)) {
-                utility.log(2, "No buttons found");
+                $u.log(2, "No buttons found");
                 return false;
             }
 
             page = state.getItem('page', 'battle_monster');
             if (page === 'battle_monster' && (!buttonsDiv || !buttonsDiv.length)) {
-                utility.log(2, "No monsters to review");
+                $u.log(2, "No monsters to review");
                 state.setItem('reviewDone', true);
                 return true;
             }
 
             tempText = buttonsDiv.eq(0).parent().attr("href");
             if (state.getItem('pageUserCheck', '') && tempText && !(tempText.match('user=' + caap.stats['FBID']) || tempText.match(/alchemy\.php/))) {
-                utility.log(2, "On another player's keep.", state.getItem('pageUserCheck', ''));
+                $u.log(2, "On another player's keep.", state.getItem('pageUserCheck', ''));
                 return false;
             }
 
@@ -9077,7 +9036,7 @@ caap = {
             caap.UpdateDashboard(true);
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_fightList: " + err);
+            $u.error("ERROR in CheckResults_fightList: " + err);
             return false;
         }
     },
@@ -9137,21 +9096,21 @@ caap = {
                         tStr = tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text();
                         tempText += tStr ? (' ' + tStr.trim().replace("'s Life", "")) : '';
                     } else {
-                        utility.warn("Problem finding nm_bars");
+                        $u.warn("Problem finding nm_bars");
                         return;
                     }
                 } else {
-                    utility.warn("Problem finding dragon_title_owner and nm_top");
+                    $u.warn("Problem finding dragon_title_owner and nm_top");
                     return;
                 }
             }
 
             if (monsterDiv && monsterDiv.length && monsterDiv.find("img[uid='" + caap.stats['FBID'] + "']").length) {
-                utility.log(2, "Your monster found", tempText);
+                $u.log(2, "Your monster found", tempText);
                 tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
 
-            utility.log(2, "Monster name", tempText);
+            $u.log(2, "Monster name", tempText);
             currentMonster = monster.getItem(tempText);
             if (currentMonster['type'] === '') {
                 currentMonster['type'] = monster.type(currentMonster['name']);
@@ -9165,12 +9124,12 @@ caap = {
                     } else if (tempDiv.find("img[src*='raid_b1_large.jpg']").length) {
                         currentMonster['type'] = 'Raid II';
                     } else if (tempDiv.find("img[src*='raid_1_large_victory.jpg']").length) {
-                        utility.log(2, "Siege Victory!");
+                        $u.log(2, "Siege Victory!");
                     } else {
-                        utility.log(2, "Problem finding raid image! Probably finished.");
+                        $u.log(2, "Problem finding raid image! Probably finished.");
                     }
                 } else {
-                    utility.warn("Problem finding raid_back");
+                    $u.warn("Problem finding raid_back");
                     return;
                 }
             }
@@ -9181,11 +9140,11 @@ caap = {
             // Extract info
             tempDiv = caap.appBodyDiv.find("#app46755028429_monsterTicker");
             if (tempDiv && tempDiv.length) {
-                utility.log(4, "Monster ticker found");
+                $u.log(4, "Monster ticker found");
                 time = tempDiv.text().split(":");
             } else {
                 if (!caap.CheckForImage("dead.jpg")) {
-                    utility.warn("Could not locate Monster ticker.");
+                    $u.warn("Could not locate Monster ticker.");
                 }
             }
 
@@ -9202,7 +9161,7 @@ caap = {
                     if (tempDiv && tempDiv.length) {
                         currentMonster['fortify'] = (100 - tempDiv.parent().getPercent('width')).dp(2);
                     } else {
-                        utility.warn("Unable to find defense bar", monsterInfo.defense_img);
+                        $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
 
                     break;
@@ -9215,11 +9174,11 @@ caap = {
                             if (tempDiv && tempDiv.length) {
                                 currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.parent().getPercent('width')))).dp(2);
                             } else {
-                                utility.warn("Unable to find repair bar", monsterInfo.repair_img);
+                                $u.warn("Unable to find repair bar", monsterInfo.repair_img);
                             }
                         }
                     } else {
-                        utility.warn("Unable to find defense bar", monsterInfo.defense_img);
+                        $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
 
                     break;
@@ -9229,12 +9188,12 @@ caap = {
                         currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
                         currentMonster['strength'] = tempDiv.parent().parent().getPercent('width').dp(2);
                     } else {
-                        utility.warn("Unable to find defense bar", monsterInfo.defense_img);
+                        $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                     }
 
                     break;
                 default:
-                    utility.warn("No match for defense_img", monsterInfo.defense_img);
+                    $u.warn("No match for defense_img", monsterInfo.defense_img);
                 }
             }
 
@@ -9250,7 +9209,7 @@ caap = {
                         currentMonster['defended'] = tempArr[2] ? tempArr[2].numberOnly() : 0;
                         currentMonster['damage'] = currentMonster['attacked'] + currentMonster['defended'];
                     } else {
-                        utility.warn("Unable to get attacked and defended damage");
+                        $u.warn("Unable to get attacked and defended damage");
                     }
                 } else if (currentMonster['type'] === 'Siege' || (monsterInfo && monsterInfo.raid)) {
                     tStr = damageDiv.parent().siblings(":last").text();
@@ -9264,7 +9223,7 @@ caap = {
 
                 damageDiv.parents("tr").eq(0).css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
             } else {
-                utility.log(2, "Player hasn't done damage yet");
+                $u.log(2, "Player hasn't done damage yet");
             }
 
             if (/:ac\b/.test(currentMonster['conditions']) ||
@@ -9273,7 +9232,7 @@ caap = {
 
                 counter = state.getItem('monsterReviewCounter', -3);
                 if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($j("a[href*='&action=collectReward']").length || $j("input[alt*='Collect Reward']").length)) {
-                    utility.log(2, 'Collecting Reward');
+                    $u.log(2, 'Collecting Reward');
                     currentMonster['review'] = -1;
                     state.setItem('monsterReviewCounter', counter -= 1);
                     currentMonster['status'] = 'Collect Reward';
@@ -9297,16 +9256,16 @@ caap = {
             if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
                 currentMonster['time'] = time;
                 if (monsterDiv && monsterDiv.length) {
-                    utility.log(4, "Found monster health div");
+                    $u.log(4, "Found monster health div");
                     currentMonster['life'] = monsterDiv.parent().getPercent('width').dp(2);
                 } else {
-                    utility.warn("Could not find monster health div.");
+                    $u.warn("Could not find monster health div.");
                 }
 
                 if (currentMonster['life']) {
                     if (!monsterInfo) {
                         monster.setItem(currentMonster);
-                        utility.warn('Unknown monster');
+                        $u.warn('Unknown monster');
                         return;
                     }
                 }
@@ -9318,40 +9277,40 @@ caap = {
                         tStr = monsterDiv.children().eq(0).children().text();
                         tempText = tStr ? tStr.trim().innerTrim() : '';
                         if (tempText) {
-                            utility.log(4, "Character class text", tempText);
+                            $u.log(4, "Character class text", tempText);
                             tempArr = tempText.match(/Class: (\w+) /);
                             if (tempArr && tempArr.length === 2) {
                                 currentMonster['charClass'] = tempArr[1];
-                                utility.log(3, "character", currentMonster['charClass']);
+                                $u.log(3, "character", currentMonster['charClass']);
                             } else {
-                                utility.warn("Can't get character", tempArr);
+                                $u.warn("Can't get character", tempArr);
                             }
 
                             tempArr = tempText.match(/Tip: ([\w ]+) Status/);
                             if (tempArr && tempArr.length === 2) {
                                 currentMonster['tip'] = tempArr[1];
-                                utility.log(3, "tip", currentMonster['tip']);
+                                $u.log(3, "tip", currentMonster['tip']);
                             } else {
-                                utility.warn("Can't get tip", tempArr);
+                                $u.warn("Can't get tip", tempArr);
                             }
 
                             tempArr = tempText.match(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
                             if (tempArr && tempArr.length === 4) {
                                 currentMonster['stunTime'] = new Date().getTime() + (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
-                                utility.log(3, "statusTime", currentMonster['stunTime']);
+                                $u.log(3, "statusTime", currentMonster['stunTime']);
                             } else {
-                                utility.warn("Can't get statusTime", tempArr);
+                                $u.warn("Can't get statusTime", tempArr);
                             }
 
                             tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
                             if (tempDiv && tempDiv.length) {
                                 tempText = tempDiv.getPercent('width').dp(2);
-                                utility.log(4, "Stun bar percent text", tempText);
+                                $u.log(4, "Stun bar percent text", tempText);
                                 if (tempText >= 0) {
                                     currentMonster['stun'] = tempText;
-                                    utility.log(3, "stun", currentMonster['stun']);
+                                    $u.log(3, "stun", currentMonster['stun']);
                                 } else {
-                                    utility.warn("Can't get stun bar width");
+                                    $u.warn("Can't get stun bar width");
                                 }
                             } else {
                                 tempArr = currentMonster['tip'].split(" ");
@@ -9364,13 +9323,13 @@ caap = {
                                         } else if (tempText === tempArr[1]) {
                                             currentMonster['stun'] = currentMonster['health'];
                                         } else {
-                                            utility.warn("Expected strengthen or heal to match!", tempText);
+                                            $u.warn("Expected strengthen or heal to match!", tempText);
                                         }
                                     } else {
-                                        utility.warn("Expected strengthen or heal from tip!", tempText);
+                                        $u.warn("Expected strengthen or heal from tip!", tempText);
                                     }
                                 } else {
-                                    utility.warn("Can't get stun bar and unexpected tip!", currentMonster['tip']);
+                                    $u.warn("Can't get stun bar and unexpected tip!", currentMonster['tip']);
                                 }
                             }
 
@@ -9378,31 +9337,31 @@ caap = {
                                 currentMonster['stunDo'] = new RegExp(currentMonster['charClass']).test(currentMonster['tip']) && currentMonster['stun'] < 100;
                                 currentMonster['stunType'] = '';
                                 if (currentMonster['stunDo']) {
-                                    utility.log(2, "Do character specific attack", currentMonster['stunDo']);
+                                    $u.log(2, "Do character specific attack", currentMonster['stunDo']);
                                     tempArr = currentMonster['tip'].split(" ");
                                     if (tempArr && tempArr.length) {
                                         tempText = tempArr[tempArr.length - 1].toLowerCase();
                                         tempArr = ["strengthen", "cripple", "heal", "deflection"];
                                         if (tempText && tempArr.indexOf(tempText) >= 0) {
                                             currentMonster['stunType'] = tempText.replace("ion", '');
-                                            utility.log(2, "Character specific attack type", currentMonster['stunType']);
+                                            $u.log(2, "Character specific attack type", currentMonster['stunType']);
                                         } else {
-                                            utility.warn("Type does match list!", tempText);
+                                            $u.warn("Type does match list!", tempText);
                                         }
                                     } else {
-                                        utility.warn("Unable to get type from tip!", currentMonster);
+                                        $u.warn("Unable to get type from tip!", currentMonster);
                                     }
                                 } else {
-                                    utility.log(2, "Tip does not match class or stun maxed", currentMonster);
+                                    $u.log(2, "Tip does not match class or stun maxed", currentMonster);
                                 }
                             } else {
-                                utility.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
+                                $u.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
                             }
                         } else {
-                            utility.warn("Missing tempText");
+                            $u.warn("Missing tempText");
                         }
                     } else {
-                        utility.warn("Missing nm_bottom");
+                        $u.warn("Missing nm_bottom");
                     }
                 }
 
@@ -9439,7 +9398,7 @@ caap = {
                     currentMonster['t2k'] = monster.t2kCalc(currentMonster);
                 }
             } else {
-                utility.log(2, 'Monster is dead or fled');
+                $u.log(2, 'Monster is dead or fled');
                 currentMonster['color'] = 'grey';
                 if (currentMonster['status'] !== 'Complete' && currentMonster['status'] !== 'Collect Reward') {
                     currentMonster['status'] = "Dead or Fled";
@@ -9474,7 +9433,7 @@ caap = {
                 }
 
                 // Start of Keep On Budget (KOB) code Part 1 -- required variables
-                utility.log(2, 'Start of Keep On Budget (KOB) Code');
+                $u.log(2, 'Start of Keep On Budget (KOB) Code');
 
                 //default is disabled for everything
                 KOBenable = false;
@@ -9494,15 +9453,15 @@ caap = {
                 //create a temp variable so we don't need to call parseCondition more than once for each if statement
                 KOBtmp = monster.parseCondition('kob', currentMonster['conditions']);
                 if (isNaN(KOBtmp)) {
-                    utility.log(2, 'KOB NaN branch');
+                    $u.log(2, 'KOB NaN branch');
                     KOBenable = true;
                     KOBbiasHours = 0;
                 } else if (!KOBtmp) {
-                    utility.log(2, 'KOB false branch');
+                    $u.log(2, 'KOB false branch');
                     KOBenable = false;
                     KOBbiasHours = 0;
                 } else {
-                    utility.log(2, 'KOB passed value branch');
+                    $u.log(2, 'KOB passed value branch');
                     KOBenable = true;
                     KOBbiasHours = KOBtmp;
                 }
@@ -9518,28 +9477,28 @@ caap = {
                 }
 
                 if (KOBenable) {
-                    utility.log(2, 'Level Up Mode: ', caap.InLevelUpMode());
-                    utility.log(2, 'Stamina Avail: ', caap.stats['stamina']['num']);
-                    utility.log(2, 'Stamina Max: ', caap.stats['stamina']['max']);
+                    $u.log(2, 'Level Up Mode: ', caap.InLevelUpMode());
+                    $u.log(2, 'Stamina Avail: ', caap.stats['stamina']['num']);
+                    $u.log(2, 'Stamina Max: ', caap.stats['stamina']['max']);
 
                     //log results of previous two tests
-                    utility.log(2, 'KOBenable: ', KOBenable);
-                    utility.log(2, 'KOB Bias Hours: ', KOBbiasHours);
+                    $u.log(2, 'KOBenable: ', KOBenable);
+                    $u.log(2, 'KOB Bias Hours: ', KOBbiasHours);
                 }
 
                 //Total Time alotted for monster
                 KOBtotalMonsterTime = monsterInfo.duration;
                 if (KOBenable) {
-                    utility.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
+                    $u.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
 
                     //Total Damage remaining
-                    utility.log(2, 'HP left: ', currentMonster['life']);
+                    $u.log(2, 'HP left: ', currentMonster['life']);
                 }
 
                 //Time Left Remaining
                 KOBtimeLeft = time[0].parseInt() + (time[1].parseInt() * 0.0166);
                 if (KOBenable) {
-                    utility.log(2, 'TimeLeft: ', KOBtimeLeft);
+                    $u.log(2, 'TimeLeft: ', KOBtimeLeft);
                 }
 
                 //calculate the bias offset for time remaining
@@ -9554,7 +9513,7 @@ caap = {
                 //Percentage of time remaining for the currently selected monster
                 KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
                 if (KOBenable) {
-                    utility.log(2, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
+                    $u.log(2, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
                 }
 
                 // End of Keep On Budget (KOB) code Part 1 -- required variables
@@ -9570,7 +9529,7 @@ caap = {
                     KOBmax = true;
                     //used with kob debugging
                     if (KOBenable) {
-                        utility.log(2, 'KOB - max activated');
+                        $u.log(2, 'KOB - max activated');
                     }
 
                     if (isTarget) {
@@ -9582,7 +9541,7 @@ caap = {
                     KOBminFort = true;
                     //used with kob debugging
                     if (KOBenable) {
-                        utility.log(2, 'KOB - MinFort activated');
+                        $u.log(2, 'KOB - MinFort activated');
                     }
 
                     if (isTarget) {
@@ -9595,7 +9554,7 @@ caap = {
                     KOBach = true;
                     //used with kob debugging
                     if (KOBenable) {
-                        utility.log(2, 'KOB - achievement reached');
+                        $u.log(2, 'KOB - achievement reached');
                     }
 
                     if (isTarget && currentMonster['damage'] < achLevel) {
@@ -9611,12 +9570,12 @@ caap = {
                     currentMonster['over'] = 'max';
                     //used with kob debugging
                     if (KOBenable) {
-                        utility.log(2, 'KOB - budget reached');
+                        $u.log(2, 'KOB - budget reached');
                     }
 
                     if (isTarget) {
                         state.setItem('resetselectMonster', true);
-                        utility.log(1, 'This monster no longer a target due to kob');
+                        $u.log(1, 'This monster no longer a target due to kob');
                     }
                 } else {
                     if (!KOBmax && !KOBminFort && !KOBach) {
@@ -9638,7 +9597,7 @@ caap = {
                 }, 2000);
             }
         } catch (err) {
-            utility.error("ERROR in CheckResults_viewFight: " + err);
+            $u.error("ERROR in CheckResults_viewFight: " + err);
         }
     },
 
@@ -9678,7 +9637,7 @@ caap = {
                         return true;
                     }
                 } else {
-                    utility.log(1, "Monsters: Unlock at level 7");
+                    $u.log(1, "Monsters: Unlock at level 7");
                     state.setItem('reviewDone', true);
                 }
 
@@ -9696,7 +9655,7 @@ caap = {
                         return true;
                     }
                 } else {
-                    utility.log(1, "Raids: Unlock at level 8");
+                    $u.log(1, "Raids: Unlock at level 8");
                     state.setItem('reviewDone', true);
                 }
 
@@ -9734,7 +9693,7 @@ caap = {
                 }
 
                 tempTime = monster.records[counter]['review'] ? monster.records[counter]['review'] : -1;
-                utility.log(3, "Review", monster.records[counter], !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60));
+                $u.log(3, "Review", monster.records[counter], !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60));
                 if (monster.records[counter]['status'] === 'Complete' || !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
                     state.setItem('monsterReviewCounter', counter += 1);
                     state.setItem('monsterRepeatCount', 0);
@@ -9755,7 +9714,7 @@ caap = {
                     the conditions indicate we should not do sieges then we fix the link.
                     \-------------------------------------------------------------------------------------*/
                     isSiege = monster.records[counter]['type'].match(/Raid/) || monster.records[counter]['type'] === 'Siege';
-                    utility.log(3, "monster.records[counter]", monster.records[counter]);
+                    $u.log(3, "monster.records[counter]", monster.records[counter]);
                     if (((monster.records[counter]['conditions'] && /:ac\b/.test(monster.records[counter]['conditions'])) ||
                             (isSiege && config.getItem('raidCollectReward', false)) ||
                             (!isSiege && config.getItem('monsterCollectReward', false))) && monster.records[counter]['status'] === 'Collect Reward') {
@@ -9779,16 +9738,16 @@ caap = {
                                (!config.getItem('raidDoSiege', true) && isSiege) ||
                                (!config.getItem('monsterDoSiege', true) && !isSiege && monster.info[monster.records[counter]['type']].siege) ||
                                caap.stats['stamina']['num'] === 0) {
-                        utility.log(2, "Do not siege");
+                        $u.log(2, "Do not siege");
                         link = link.replace('&action=doObjective', '');
                     }
                     /*-------------------------------------------------------------------------------------\
                     Now we use ajaxSendLink to display the monsters page.
                     \-------------------------------------------------------------------------------------*/
-                    utility.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter]['name']);
+                    $u.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter]['name']);
                     state.setItem('ReleaseControl', true);
                     link = link.replace('http://apps.facebook.com/castle_age/', '').replace('?', '?twt2&');
-                    utility.log(5, "Link", link);
+                    $u.log(5, "Link", link);
                     caap.ClickAjaxLinkSend(link);
                     state.setItem('monsterRepeatCount', state.getItem('monsterRepeatCount', 0) + 1);
                     state.setItem('resetselectMonster', true);
@@ -9802,7 +9761,7 @@ caap = {
             schedule.setItem("monsterReview", gm.getItem('monsterReviewMins', 60, hiddenVar) * 60, 300);
             state.setItem('resetselectMonster', true);
             state.setItem('monsterReviewCounter', -3);
-            utility.log(1, 'Done with monster/raid review.');
+            $u.log(1, 'Done with monster/raid review.');
             caap.SetDivContent('monster_mess', '');
             caap.UpdateDashboard(true);
             if (state.getItem('CollectedRewards', false)) {
@@ -9812,7 +9771,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in MonsterReview: " + err);
+            $u.error("ERROR in MonsterReview: " + err);
             return false;
         }
     },
@@ -9827,7 +9786,7 @@ caap = {
             ///////////////// Reivew/Siege all monsters/raids \\\\\\\\\\\\\\\\\\\\\\
 
             if (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && caap.NeedToHide() && caap.CheckStamina('Monster', 1)) {
-                utility.log(1, "Stay Hidden Mode: We're not safe. Go battle.");
+                $u.log(1, "Stay Hidden Mode: We're not safe. Go battle.");
                 caap.SetDivContent('monster_mess', 'Not Safe For Monster. Battle!');
                 return false;
             }
@@ -9884,15 +9843,15 @@ caap = {
                 }
             }
 
-            utility.log(3, "Energy Required/Node", energyRequire, nodeNum);
+            $u.log(3, "Energy Required/Node", energyRequire, nodeNum);
             switch (config.getItem('FortifyGeneral', 'Use Current')) {
             case 'Orc King':
                 energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
-                utility.log(2, 'Monsters Fortify:Orc King', energyRequire);
+                $u.log(2, 'Monsters Fortify:Orc King', energyRequire);
                 break;
             case 'Barbarus':
                 energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
-                utility.log(2, 'Monsters Fortify:Barbarus', energyRequire);
+                $u.log(2, 'Monsters Fortify:Barbarus', energyRequire);
                 break;
             default:
             }
@@ -9951,7 +9910,7 @@ caap = {
                         buttonList.unshift("button_nm_s_");
                     }
 
-                    utility.log(3, "monster/button list", currentMonster, buttonList);
+                    $u.log(3, "monster/button list", currentMonster, buttonList);
                 } else if (state.getItem('MonsterStaminaReq', 1) === 1) {
                     // not power attack only normal attacks
                     buttonList = singleButtonList;
@@ -9965,15 +9924,15 @@ caap = {
                     }
 
                     if (tacticsValue !== false && currentMonster['fortify'] && currentMonster['fortify'] < tacticsValue) {
-                        utility.log(2, "Party health is below threshold value", currentMonster['fortify'], tacticsValue);
+                        $u.log(2, "Party health is below threshold value", currentMonster['fortify'], tacticsValue);
                         useTactics = false;
                     }
 
                     if (useTactics && caap.CheckForImage('nm_button_tactics.gif')) {
-                        utility.log(2, "Attacking monster using tactics buttons");
+                        $u.log(2, "Attacking monster using tactics buttons");
                         buttonList = ['nm_button_tactics.gif'].concat(singleButtonList);
                     } else {
-                        utility.log(2, "Attacking monster using regular buttons");
+                        $u.log(2, "Attacking monster using regular buttons");
                         useTactics = false;
                         // power attack or if not seamonster power attack or if not regular attack -
                         // need case for seamonster regular attack?
@@ -10017,13 +9976,13 @@ caap = {
                         attackMess = (state.getItem('MonsterStaminaReq', 1) >= 5 ? 'Power' : 'Single') + ' Attacking ' + monsterName;
                     }
 
-                    utility.log(1, attackMess);
+                    $u.log(1, attackMess);
                     caap.SetDivContent('monster_mess', attackMess);
                     state.setItem('ReleaseControl', true);
                     caap.Click(attackButton);
                     return true;
                 } else {
-                    utility.warn('No button to attack/fortify with.');
+                    $u.warn('No button to attack/fortify with.');
                     schedule.setItem('NotargetFrombattle_monster', 60);
                     return false;
                 }
@@ -10036,7 +9995,7 @@ caap = {
 
             buttonHref = $j("img[src*='dragon_list_btn_']").eq(0).parent().attr("href");
             if (state.getItem('pageUserCheck', '') && (!buttonHref || !buttonHref.match('user=' + caap.stats['FBID']) || !buttonHref.match(/alchemy\.php/))) {
-                utility.log(2, "On another player's keep.", state.getItem('pageUserCheck', ''));
+                $u.log(2, "On another player's keep.", state.getItem('pageUserCheck', ''));
                 return caap.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
             }
 
@@ -10045,7 +10004,7 @@ caap = {
                 monster.deleteItem(monster.completeButton['battle_monster']['name']);
                 monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
                 caap.UpdateDashboard(true);
-                utility.log(1, 'Cleared a completed monster');
+                $u.log(1, 'Cleared a completed monster');
                 return true;
             }
 
@@ -10055,11 +10014,11 @@ caap = {
                 return true;
             } else {
                 schedule.setItem('NotargetFrombattle_monster', 60);
-                utility.warn('No "Engage" button for ', monsterName);
+                $u.warn('No "Engage" button for ', monsterName);
                 return false;
             }
         } catch (err) {
-            utility.error("ERROR in Monsters: " + err);
+            $u.error("ERROR in Monsters: " + err);
             return false;
         }
     },
@@ -10135,13 +10094,13 @@ caap = {
         }
 
         $j.extend(true, caap.demi, demis);
-        utility.log(4, 'Demi', caap.demi);
+        $u.log(4, 'Demi', caap.demi);
         state.setItem("UserDashUpdate", true);
     },
 
     SaveDemi: function () {
         gm.setItem('demipoint.records', caap.demi);
-        utility.log(4, 'Demi', caap.demi);
+        $u.log(4, 'Demi', caap.demi);
         state.setItem("UserDashUpdate", true);
     },
 
@@ -10172,7 +10131,7 @@ caap = {
                         points.push(txt);
                     } else {
                         success = false;
-                        utility.warn('Demi temp text problem', txt);
+                        $u.warn('Demi temp text problem', txt);
                     }
                 });
 
@@ -10186,12 +10145,12 @@ caap = {
                     caap.SaveDemi();
                 }
             } else {
-                utility.warn('Demi symDiv problem', symDiv);
+                $u.warn('Demi symDiv problem', symDiv);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_battle: " + err);
+            $u.error("ERROR in CheckResults_battle: " + err);
             return false;
         }
     },
@@ -10221,7 +10180,7 @@ caap = {
                 return false;
             }
         } catch (err) {
-            utility.error("ERROR in DemiPoints: " + err);
+            $u.error("ERROR in DemiPoints: " + err);
             return false;
         }
     },
@@ -10256,14 +10215,14 @@ caap = {
             state.setItem("newLevelUpMode", false);
             return false;
         } catch (err) {
-            utility.error("ERROR in InLevelUpMode: " + err);
+            $u.error("ERROR in InLevelUpMode: " + err);
             return false;
         }
     },
 
     CheckStamina: function (battleOrMonster, attackMinStamina) {
         try {
-            utility.log(4, "CheckStamina", battleOrMonster, attackMinStamina);
+            $u.log(4, "CheckStamina", battleOrMonster, attackMinStamina);
             if (!attackMinStamina) {
                 attackMinStamina = 1;
             }
@@ -10324,7 +10283,7 @@ caap = {
                 }
 
                 if (theGeneral !== 'Use Current' && !maxIdleStamina) {
-                    utility.log(2, "Changing to idle general to get Max Stamina");
+                    $u.log(2, "Changing to idle general to get Max Stamina");
                     if (general.Select('IdleGeneral')) {
                         return true;
                     }
@@ -10351,7 +10310,7 @@ caap = {
             caap.SetDivContent(messDiv, "Waiting for more stamina: " + caap.stats['stamina']['num'] + "/" + attackMinStamina);
             return false;
         } catch (err) {
-            utility.error("ERROR in CheckStamina: " + err);
+            $u.error("ERROR in CheckStamina: " + err);
             return false;
         }
     },
@@ -10365,12 +10324,12 @@ caap = {
     NeedToHide: function () {
         try {
             if (config.getItem('WhenMonster', 'Never') === 'Never') {
-                utility.log(1, 'Stay Hidden Mode: Monster battle not enabled');
+                $u.log(1, 'Stay Hidden Mode: Monster battle not enabled');
                 return true;
             }
 
             if (!state.getItem('targetFrombattle_monster', '')) {
-                utility.log(1, 'Stay Hidden Mode: No monster to battle');
+                $u.log(1, 'Stay Hidden Mode: No monster to battle');
                 return true;
             }
         /*-------------------------------------------------------------------------------------\
@@ -10424,7 +10383,7 @@ caap = {
                 return true;
             }
         } catch (err) {
-            utility.error("ERROR in NeedToHide: " + err);
+            $u.error("ERROR in NeedToHide: " + err);
             return undefined;
         }
     },
@@ -10443,7 +10402,7 @@ caap = {
             }
 
             if (caap.stats['exp']['dif'] <= config.getItem("potionsExperience", 20)) {
-                utility.log(2, "AutoPotions, ENL condition. Delaying 10 minutes");
+                $u.log(2, "AutoPotions, ENL condition. Delaying 10 minutes");
                 schedule.setItem('AutoPotionTimerDelay', 600);
                 return false;
             }
@@ -10451,7 +10410,7 @@ caap = {
             function ConsumePotion(potion) {
                 try {
                     if (!$j(".statsTTitle").length) {
-                        utility.log(2, "Going to keep for potions");
+                        $u.log(2, "Going to keep for potions");
                         if (caap.NavigateTo('keep')) {
                             return true;
                         }
@@ -10465,24 +10424,24 @@ caap = {
                         formId = "app46755028429_consume_2";
                     }
 
-                    utility.log(1, "Consuming potion", potion);
+                    $u.log(1, "Consuming potion", potion);
                     potionDiv = $j("form[id='" + formId + "'] input[src*='potion_consume.gif']");
                     if (potionDiv && potionDiv.length) {
                         button = potionDiv.get(0);
                         if (button) {
                             caap.Click(button);
                         } else {
-                            utility.warn("Could not find consume button for", potion);
+                            $u.warn("Could not find consume button for", potion);
                             return false;
                         }
                     } else {
-                        utility.warn("Could not find consume form for", potion);
+                        $u.warn("Could not find consume form for", potion);
                         return false;
                     }
 
                     return true;
                 } catch (err) {
-                    utility.error("ERROR in ConsumePotion: " + err, potion);
+                    $u.error("ERROR in ConsumePotion: " + err, potion);
                     return false;
                 }
             }
@@ -10501,7 +10460,7 @@ caap = {
 
             return false;
         } catch (err) {
-            utility.error("ERROR in AutoPotion: " + err);
+            $u.error("ERROR in AutoPotion: " + err);
             return false;
         }
     },
@@ -10542,12 +10501,12 @@ caap = {
                             caap.Click(button.get(0));
                             return true;
                         } else {
-                            utility.warn('Cant find item tab', recipeDiv);
+                            $u.warn('Cant find item tab', recipeDiv);
                             return false;
                         }
                     }
                 } else {
-                    utility.warn('Cant find recipe list');
+                    $u.warn('Cant find recipe list');
                     return false;
                 }
     /*-------------------------------------------------------------------------------------\
@@ -10563,7 +10522,7 @@ caap = {
     \-------------------------------------------------------------------------------------*/
                 ss = $j("div[class='alchemyRecipeBack']");
                 if (!ss || !ss.length) {
-                    utility.log(2, 'No recipes found');
+                    $u.log(2, 'No recipes found');
                 }
 
                 ss.each(function () {
@@ -10572,14 +10531,14 @@ caap = {
     If we are missing an ingredient then skip it
     \-------------------------------------------------------------------------------------*/
                     if (recipeDiv.find("div[class*='missing']").length) {
-                        utility.log(2, 'Skipping Recipe');
+                        $u.log(2, 'Skipping Recipe');
                         return true;
                     }
     /*-------------------------------------------------------------------------------------\
     If we are skipping battle hearts then skip it
     \-------------------------------------------------------------------------------------*/
                     if (caap.CheckForImage('raid_hearts', recipeDiv) && !config.getItem('AutoAlchemyHearts', false)) {
-                        utility.log(2, 'Skipping Hearts');
+                        $u.log(2, 'Skipping Hearts');
                         return true;
                     }
     /*-------------------------------------------------------------------------------------\
@@ -10589,10 +10548,10 @@ caap = {
                     if (button && button.length) {
                         clicked = true;
                         caap.Click(button.get(0));
-                        utility.log(2, 'Clicked A Recipe', recipeDiv.find("img").attr("title"));
+                        $u.log(2, 'Clicked A Recipe', recipeDiv.find("img").attr("title"));
                         return false;
                     } else {
-                        utility.warn('Cant Find Item Image Button');
+                        $u.warn('Cant Find Item Image Button');
                     }
 
                     return true;
@@ -10610,7 +10569,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in Alchemy: " + err);
+            $u.error("ERROR in Alchemy: " + err);
             return false;
         }
     },
@@ -10660,17 +10619,17 @@ caap = {
 
             numberInput = $j("input[name='stash_gold']");
             if (!numberInput || !numberInput.length) {
-                utility.warn('Cannot find box to put in number for bank deposit.');
+                $u.warn('Cannot find box to put in number for bank deposit.');
                 return false;
             }
 
             deposit = numberInput.attr("value").parseInt() - minInCash;
             numberInput.attr("value", deposit);
-            utility.log(1, 'Depositing into bank:', deposit);
+            $u.log(1, 'Depositing into bank:', deposit);
             caap.Click(depositButton.get(0));
             return true;
         } catch (err) {
-            utility.error("ERROR in Bank: " + err);
+            $u.error("ERROR in Bank: " + err);
             return false;
         }
     },
@@ -10698,17 +10657,17 @@ caap = {
 
             numberInput = $j("input[name='get_gold']");
             if (!numberInput || !numberInput.length) {
-                utility.warn('Cannot find box to put in number for bank retrieve.');
+                $u.warn('Cannot find box to put in number for bank retrieve.');
                 return false;
             }
 
             numberInput.attr("value", num);
-            utility.log(1, 'Retrieving from bank:', num);
+            $u.log(1, 'Retrieving from bank:', num);
             state.setItem('storeRetrieve', '');
             caap.Click(retrieveButton.get(0));
             return true;
         } catch (err) {
-            utility.error("ERROR in RetrieveFromBank: " + err);
+            $u.error("ERROR in RetrieveFromBank: " + err);
             return false;
         }
     },
@@ -10724,12 +10683,12 @@ caap = {
 
             caap.SetDivContent('heal_mess', '');
             minToHeal = config.getItem('MinToHeal', 0);
-            if (minToHeal === "" || minToHeal < 0 || !utility.isNum(minToHeal)) {
+            if (minToHeal === "" || minToHeal < 0 || !$u.isNum(minToHeal)) {
                 return false;
             }
 
             minStamToHeal = config.getItem('MinStamToHeal', 0);
-            if (minStamToHeal === "" || minStamToHeal < 0 || !utility.isNum(minStamToHeal)) {
+            if (minStamToHeal === "" || minStamToHeal < 0 || !$u.isNum(minStamToHeal)) {
                 minStamToHeal = 0;
             }
 
@@ -10743,7 +10702,7 @@ caap = {
 
             if ((config.getItem('WhenBattle', 'Never') !== 'Never') || (config.getItem('WhenMonster', 'Never') !== 'Never')) {
                 if ((caap.InLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['staminaT']['max']) && caap.stats['health']['num'] < 10) {
-                    utility.log(1, 'Heal');
+                    $u.log(1, 'Heal');
                     return caap.NavigateTo('keep,heal_button.gif');
                 }
             }
@@ -10757,10 +10716,10 @@ caap = {
                 return false;
             }
 
-            utility.log(1, 'Heal');
+            $u.log(1, 'Heal');
             return caap.NavigateTo('keep,heal_button.gif');
         } catch (err) {
-            utility.error("ERROR in Heal: " + err);
+            $u.error("ERROR in Heal: " + err);
             return false;
         }
     },
@@ -10783,13 +10742,13 @@ caap = {
                 return false;
             }
 
-            utility.log(2, 'Elite Guard cycle');
+            $u.log(2, 'Elite Guard cycle');
             var MergeMyEliteTodo = function (list) {
-                utility.log(3, 'Elite Guard MergeMyEliteTodo list');
+                $u.log(3, 'Elite Guard MergeMyEliteTodo list');
                 var eliteArmyList = [];
                 eliteArmyList = config.getList('EliteArmyList', '');
                 if (eliteArmyList.length) {
-                    utility.log(3, 'Merge and save Elite Guard MyEliteTodo list');
+                    $u.log(3, 'Merge and save Elite Guard MyEliteTodo list');
                     var diffList = list.filter(function (todoID) {
                         return (eliteArmyList.indexOf(todoID) < 0);
                     });
@@ -10797,53 +10756,53 @@ caap = {
                     $j.merge(eliteArmyList, diffList);
                     state.setItem('MyEliteTodo', eliteArmyList);
                 } else {
-                    utility.log(3, 'Save Elite Guard MyEliteTodo list');
+                    $u.log(3, 'Save Elite Guard MyEliteTodo list');
                     state.setItem('MyEliteTodo', list);
                 }
             };
 
             var eliteList = state.getItem('MyEliteTodo', []);
             if (!$j.isArray(eliteList)) {
-                utility.warn('MyEliteTodo list is not expected format, deleting', eliteList);
+                $u.warn('MyEliteTodo list is not expected format, deleting', eliteList);
                 eliteList = state.setItem('MyEliteTodo', []);
             }
 
             if (window.location.href.indexOf('party.php')) {
-                utility.log(1, 'Checking Elite Guard status');
+                $u.log(1, 'Checking Elite Guard status');
                 var autoEliteFew = state.getItem('AutoEliteFew', false);
                 var autoEliteFull = $j('.result_body').text().match(/YOUR Elite Guard is FULL/i);
                 if (autoEliteFull || (autoEliteFew && state.getItem('AutoEliteEnd', '') === 'NoArmy')) {
                     if (autoEliteFull) {
-                        utility.log(1, 'Elite Guard is FULL');
+                        $u.log(1, 'Elite Guard is FULL');
                         if (eliteList.length) {
                             MergeMyEliteTodo(eliteList);
                         }
                     } else if (autoEliteFew && state.getItem('AutoEliteEnd', '') === 'NoArmy') {
-                        utility.log(1, 'Not enough friends to fill Elite Guard');
+                        $u.log(1, 'Not enough friends to fill Elite Guard');
                         state.setItem('AutoEliteFew', false);
                     }
 
-                    utility.log(3, 'Set Elite Guard AutoEliteGetList timer');
+                    $u.log(3, 'Set Elite Guard AutoEliteGetList timer');
                     schedule.setItem('AutoEliteGetList', 21600, 300);
                     state.setItem('AutoEliteEnd', 'Full');
-                    utility.log(1, 'Elite Guard done');
+                    $u.log(1, 'Elite Guard done');
                     return false;
                 }
             }
 
             if (!eliteList.length) {
-                utility.log(2, 'Elite Guard no MyEliteTodo cycle');
+                $u.log(2, 'Elite Guard no MyEliteTodo cycle');
                 var allowPass = false;
                 if (state.getItem(caap.friendListType.giftc.name + 'Requested', false) && state.getItem(caap.friendListType.giftc.name + 'Responded', false) === true) {
-                    utility.log(2, 'Elite Guard received 0 friend ids');
+                    $u.log(2, 'Elite Guard received 0 friend ids');
                     if (config.getList('EliteArmyList', '').length) {
-                        utility.log(2, 'Elite Guard has some defined friend ids');
+                        $u.log(2, 'Elite Guard has some defined friend ids');
                         allowPass = true;
                     } else {
                         schedule.setItem('AutoEliteGetList', 21600, 300);
-                        utility.log(2, 'Elite Guard has 0 defined friend ids');
+                        $u.log(2, 'Elite Guard has 0 defined friend ids');
                         state.setItem('AutoEliteEnd', 'Full');
-                        utility.log(1, 'Elite Guard done');
+                        $u.log(1, 'Elite Guard done');
                         return false;
                     }
                 }
@@ -10855,38 +10814,38 @@ caap = {
                 }
 
                 if (castleageList.length || (caap.stats['army']['capped'] <= 1) || allowPass) {
-                    utility.log(2, 'Elite Guard received a new friend list');
+                    $u.log(2, 'Elite Guard received a new friend list');
                     MergeMyEliteTodo(castleageList);
                     state.setItem(caap.friendListType.giftc.name + 'Responded', []);
                     state.setItem(caap.friendListType.giftc.name + 'Requested', false);
                     eliteList = state.getItem('MyEliteTodo', []);
                     if (eliteList.length === 0) {
-                        utility.log(1, 'WARNING! Elite Guard friend list is 0');
+                        $u.log(1, 'WARNING! Elite Guard friend list is 0');
                         state.setItem('AutoEliteFew', true);
                         schedule.setItem('AutoEliteGetList', 21600, 300);
                     } else if (eliteList.length < 50) {
-                        utility.log(1, 'WARNING! Elite Guard friend list is fewer than 50: ', eliteList.length);
+                        $u.log(1, 'WARNING! Elite Guard friend list is fewer than 50: ', eliteList.length);
                         state.setItem('AutoEliteFew', true);
                     }
                 }
             } else if (schedule.check('AutoEliteReqNext')) {
-                utility.log(2, 'Elite Guard has a MyEliteTodo list, shifting User ID');
+                $u.log(2, 'Elite Guard has a MyEliteTodo list, shifting User ID');
                 var user = eliteList.shift();
-                utility.log(1, 'Add Elite Guard ID: ', user);
+                $u.log(1, 'Add Elite Guard ID: ', user);
                 caap.ClickAjaxLinkSend('party.php?twt=jneg&jneg=true&user=' + user);
-                utility.log(2, 'Elite Guard sent request, saving shifted MyEliteTodo');
+                $u.log(2, 'Elite Guard sent request, saving shifted MyEliteTodo');
                 state.setItem('MyEliteTodo', eliteList);
                 schedule.setItem('AutoEliteReqNext', 7);
                 if (!eliteList.length) {
-                    utility.log(2, 'Army list exhausted');
+                    $u.log(2, 'Army list exhausted');
                     state.setItem('AutoEliteEnd', 'NoArmy');
                 }
             }
 
-            utility.log(1, 'Release Elite Guard cycle');
+            $u.log(1, 'Release Elite Guard cycle');
             return true;
         } catch (err) {
-            utility.error("ERROR in AutoElite: " + err);
+            $u.error("ERROR in AutoElite: " + err);
             return false;
         }
     },
@@ -10939,7 +10898,7 @@ caap = {
         listHref = caap.appBodyDiv.find("div[class='messages'] a[href*='army.php?act=ignore']");
         if (listHref && listHref.length) {
             if (autoGift) {
-                utility.log(1, 'We have a gift waiting!');
+                $u.log(1, 'We have a gift waiting!');
                 state.setItem('HaveGift', true);
             }
 
@@ -10953,7 +10912,7 @@ caap = {
             });
         } else {
             if (autoGift) {
-                utility.log(2, 'No gifts waiting.');
+                $u.log(2, 'No gifts waiting.');
                 state.setItem('HaveGift', false);
             }
         }
@@ -11035,7 +10994,7 @@ caap = {
                             list.push('You ' + (bp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + caap.makeCommaValue(Math.abs(bp)) + '</span> Battle Points.');
                             list.push('You ' + (wp >= 0 ? 'gained <span class="positive">' : 'lost <span class="negative">') + caap.makeCommaValue(Math.abs(wp)) + '</span> War Points.');
                             list.push('');
-                            user = sort.objectBy(user, function (a, b) {
+                            user = $u.sortObjectBy(user, function (a, b) {
                                     return (user[b].win + (user[b].lose / 100)) - (user[a].win + (user[a].lose / 100));
                                 });
 
@@ -11060,7 +11019,7 @@ caap = {
 
                     return true;
                 } catch (err) {
-                    utility.error("ERROR in News: " + err);
+                    $u.error("ERROR in News: " + err);
                     return false;
                 }
             }
@@ -11074,10 +11033,10 @@ caap = {
             // Send Gifts to Friends
             if (config.getItem('AutoGift', false)) {
                 if (resultsText && /Send Gifts to Friends/.test(resultsText)) {
-                    utility.log(1, 'We have a gift waiting!');
+                    $u.log(1, 'We have a gift waiting!');
                     state.setItem('HaveGift', true);
                 } else {
-                    utility.log(2, 'No gifts waiting.');
+                    $u.log(2, 'No gifts waiting.');
                     state.setItem('HaveGift', false);
                 }
 
@@ -11098,12 +11057,12 @@ caap = {
                 }
 
                 arena.setItem(arenaInfo);
-                utility.log(3, 'arenaInfo', arenaInfo);
+                $u.log(3, 'arenaInfo', arenaInfo);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in CheckResults_index: " + err);
+            $u.error("ERROR in CheckResults_index: " + err);
             return false;
         }
     },
@@ -11119,38 +11078,38 @@ caap = {
                 return false;
             }
 
-            utility.log(3, "Performing AjaxGiftCheck");
+            $u.log(3, "Performing AjaxGiftCheck");
 
             $j.ajax({
                 url: "http://apps.facebook.com/castle_age/army.php",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.error("AjaxGiftCheck.ajax", textStatus);
+                        $u.error("AjaxGiftCheck.ajax", textStatus);
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
                         try {
-                            utility.log(3, "AjaxGiftCheck.ajax: Checking data.");
+                            $u.log(3, "AjaxGiftCheck.ajax: Checking data.");
                             if ($j(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
-                                utility.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
+                                $u.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
                                 state.setItem('HaveGift', true);
                             } else {
-                                utility.log(2, 'AjaxGiftCheck.ajax: No gifts waiting.');
+                                $u.log(2, 'AjaxGiftCheck.ajax: No gifts waiting.');
                                 state.setItem('HaveGift', false);
                             }
 
-                            utility.log(3, "AjaxGiftCheck.ajax: Done.");
+                            $u.log(3, "AjaxGiftCheck.ajax: Done.");
                         } catch (err) {
-                            utility.error("ERROR in AjaxGiftCheck.ajax: " + err);
+                            $u.error("ERROR in AjaxGiftCheck.ajax: " + err);
                         }
                     }
             });
 
             schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
-            utility.log(3, "Completed AjaxGiftCheck");
+            $u.log(3, "Completed AjaxGiftCheck");
             return true;
         } catch (err) {
-            utility.error("ERROR in AjaxGiftCheck: " + err);
+            $u.error("ERROR in AjaxGiftCheck: " + err);
             return false;
         }
     },
@@ -11213,7 +11172,7 @@ caap = {
 
             if (!schedule.check("MaxGiftsExceeded")) {
                 if (caap.GiftExceedLog) {
-                    utility.log(1, 'Gifting limit exceeded, will try later');
+                    $u.log(1, 'Gifting limit exceeded, will try later');
                     caap.GiftExceedLog = false;
                 }
 
@@ -11234,14 +11193,14 @@ caap = {
                     if (tempDiv && tempDiv.length) {
                         tempText = tempDiv.attr("src").filepart();
                         if (tempText !== giftImg) {
-                            utility.log(3, "images", tempText, giftImg);
+                            $u.log(3, "images", tempText, giftImg);
                             return caap.NavigateTo(giftImg);
                         }
 
-                        utility.log(1, "Gift selected", giftChoice);
+                        $u.log(1, "Gift selected", giftChoice);
                     }
                 } else {
-                    utility.log(1, "Unknown gift, using first", giftChoice);
+                    $u.log(1, "Unknown gift, using first", giftChoice);
                 }
 
                 if (gifting.queue.chooseFriend(gm.getItem("NumberOfGifts", 5, hiddenVar))) {
@@ -11250,11 +11209,11 @@ caap = {
                         caap.Click(tempDiv.get(0));
                         return true;
                     } else {
-                        utility.warn("Send button not found!");
+                        $u.warn("Send button not found!");
                         return false;
                     }
                 } else {
-                    utility.log(1, "No friends chosen");
+                    $u.log(1, "No friends chosen");
                     return false;
                 }
             }
@@ -11265,7 +11224,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in AutoGift: " + err);
+            $u.error("ERROR in AutoGift: " + err);
             return false;
         }
     },
@@ -11310,7 +11269,7 @@ caap = {
 
             ajaxLoadIcon = $j('#app46755028429_AjaxLoadIcon');
             if (!ajaxLoadIcon.length || ajaxLoadIcon.css("display") !== 'none') {
-                utility.warn("Unable to find AjaxLoadIcon or page not loaded: Fail");
+                $u.warn("Unable to find AjaxLoadIcon or page not loaded: Fail");
                 return "Fail";
             }
 
@@ -11340,7 +11299,7 @@ caap = {
             }
 
             if (!button) {
-                utility.warn("Unable to locate upgrade button: Fail ", attribute);
+                $u.warn("Unable to locate upgrade button: Fail ", attribute);
                 return "Fail";
             }
 
@@ -11370,27 +11329,27 @@ caap = {
 
             if ((attribute === 'stamina') && (caap.stats['points']['skill'] < 2)) {
                 if (attrAdjustNew <= attrCurrent) {
-					utility.log(2, "Stamina at requirement: Next");
+					$u.log(2, "Stamina at requirement: Next");
 					return "Next";
                 } else if (config.getItem("StatSpendAll", false)) {
-                    utility.log(2, "Stamina requires 2 upgrade points: Next");
+                    $u.log(2, "Stamina requires 2 upgrade points: Next");
                     return "Next";
                 } else {
-                    utility.log(2, "Stamina requires 2 upgrade points: Save");
+                    $u.log(2, "Stamina requires 2 upgrade points: Save");
                     state.setItem("statsMatch", false);
                     return "Save";
                 }
             }
 
             if (attrAdjustNew > attrCurrent) {
-                utility.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
+                $u.log(2, "Status Before [" + attribute + "=" + attrCurrent + "]  Adjusting To [" + logTxt + "]");
                 caap.Click(button.get(0));
                 return "Click";
             }
 
             return "Next";
         } catch (err) {
-            utility.error("ERROR in IncreaseStat: " + err);
+            $u.error("ERROR in IncreaseStat: " + err);
             return "Error";
         }
     },
@@ -11475,7 +11434,7 @@ caap = {
             state.setItem("statsMatch", passed);
             return true;
         } catch (err) {
-            utility.error("ERROR in AutoStatCheck: " + err);
+            $u.error("ERROR in AutoStatCheck: " + err);
             return false;
         }
     },
@@ -11488,7 +11447,7 @@ caap = {
 
             if (!state.getItem("statsMatch", true)) {
                 if (state.getItem("autoStatRuleLog", true)) {
-                    utility.log(2, "User should possibly change their stats rules");
+                    $u.log(2, "User should possibly change their stats rules");
                     state.setItem("autoStatRuleLog", false);
                 }
 
@@ -11519,13 +11478,13 @@ caap = {
                 attrName = 'Attribute' + n;
                 attribute = config.getItem(attrName, '');
                 if (attribute === '') {
-                    utility.log(3, attrName + " is blank: continue");
+                    $u.log(3, attrName + " is blank: continue");
                     continue;
                 }
 
                 if (caap.stats['level'] < 10) {
                     if (attribute === 'Attack' || attribute === 'Defense' || attribute === 'Health') {
-                        utility.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
+                        $u.log(1, "Characters below level 10 can not increase Attack, Defense or Health: continue");
                         continue;
                     }
                 }
@@ -11534,22 +11493,22 @@ caap = {
                 returnIncreaseStat = caap.IncreaseStat(attribute, attrValue, atributeSlice);
                 switch (returnIncreaseStat) {
                 case "Next" :
-                    utility.log(3, attrName + " : next");
+                    $u.log(3, attrName + " : next");
                     continue;
                 case "Click" :
-                    utility.log(3, attrName + " : click");
+                    $u.log(3, attrName + " : click");
                     return true;
                 default :
-                    utility.log(3, attrName + " return value: " + returnIncreaseStat);
+                    $u.log(3, attrName + " return value: " + returnIncreaseStat);
                     return false;
                 }
             }
 
-            utility.log(1, "No rules match to increase stats");
+            $u.log(1, "No rules match to increase stats");
             state.setItem("statsMatch", false);
             return false;
         } catch (err) {
-            utility.error("ERROR in AutoStat: " + err);
+            $u.error("ERROR in AutoStat: " + err);
             return false;
         }
     },
@@ -11568,7 +11527,7 @@ caap = {
                 dataType: "html",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.warn("error ajaxCTA: ", theUrl, textStatus, errorThrown);
+                        $u.warn("error ajaxCTA: ", theUrl, textStatus, errorThrown);
                         var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
                         schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
                         state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
@@ -11582,29 +11541,29 @@ caap = {
                             newData   = '';
 
                         tempArr = data.match(fbcRegExp);
-                        utility.log(3, "ajaxCTA fbcontext", tempArr);
+                        $u.log(3, "ajaxCTA fbcontext", tempArr);
                         if (tempArr && tempArr.length !== 2) {
-                            utility.warn("ajaxCTA unable to find fbcontext");
+                            $u.warn("ajaxCTA unable to find fbcontext");
                             return data;
                         }
 
                         fbcontext = tempArr[1];
-                        utility.log(3, "ajaxCTA fbcontext", fbcontext, tempArr);
+                        $u.log(3, "ajaxCTA fbcontext", fbcontext, tempArr);
                         tempArr = data.split('<div style="padding: 10px 30px;">');
                         if (tempArr && tempArr.length !== 2) {
-                            utility.warn("ajaxCTA unable to do first split");
+                            $u.warn("ajaxCTA unable to do first split");
                             return data;
                         }
 
                         newData = tempArr[1];
                         tempArr = newData.split('<div id="app46755028429_guild_bg_bottom" fbcontext="' + fbcontext + '">');
                         if (tempArr && tempArr.length !== 2) {
-                            utility.warn("ajaxCTA unable to do second split");
+                            $u.warn("ajaxCTA unable to do second split");
                             return data;
                         }
 
                         newData = tempArr[0];
-                        utility.log(3, "ajaxCTA dataFilter", [newData, type]);
+                        $u.log(3, "ajaxCTA dataFilter", [newData, type]);
                         return newData;
                     },
                 success:
@@ -11612,10 +11571,10 @@ caap = {
                         var tempText = $j('<div></div>').html(data).find("#app46755028429_guild_battle_banner_section").text();
                         if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
                             schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
-                            utility.log(3, "ajaxCTA not done", theUrl);
+                            $u.log(3, "ajaxCTA not done", theUrl);
                         } else {
                             schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
-                            utility.log(3, "ajaxCTA done", theUrl);
+                            $u.log(3, "ajaxCTA done", theUrl);
                         }
 
                         state.setItem('ajaxCTABackOff' + theCount, 0);
@@ -11625,7 +11584,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in ajaxCTA: " + err);
+            $u.error("ERROR in ajaxCTA: " + err);
             return false;
         }
     },
@@ -11647,11 +11606,11 @@ caap = {
             }
 
             var count = state.getItem('ajaxCTACount', 0),
-                aes = new utility.Aes(gm.get_namespace());
+                aes = new $u.Aes(gm.get_namespace());
 
-            utility.log(3, "doCTAs", count, urls.length);
+            $u.log(3, "doCTAs", count, urls.length);
             if (count < urls.length) {
-                utility.log(3, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
+                $u.log(3, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
                 if (schedule.check('ajaxCTATimer' + count)) {
                     caap.waitAjaxCTA = true;
                     caap.ajaxCTA(aes.decrypt(urls[count]), count);
@@ -11665,7 +11624,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in doCTAs: " + err);
+            $u.error("ERROR in doCTAs: " + err);
             return false;
         }
     },
@@ -11696,14 +11655,14 @@ caap = {
 
     GetFriendList: function (listType, force) {
         try {
-            utility.log(3, "Entered GetFriendList and request is for: ", listType.name);
+            $u.log(3, "Entered GetFriendList and request is for: ", listType.name);
             if (force) {
                 state.setItem(listType.name + 'Requested', false);
                 state.setItem(listType.name + 'Responded', []);
             }
 
             if (!state.getItem(listType.name + 'Requested', false)) {
-                utility.log(3, "Getting Friend List: ", listType.name);
+                $u.log(3, "Getting Friend List: ", listType.name);
                 state.setItem(listType.name + 'Requested', true);
 
                 $j.ajax({
@@ -11711,12 +11670,12 @@ caap = {
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
                             state.setItem(listType.name + 'Requested', false);
-                            utility.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
+                            $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
-                                utility.log(3, "GetFriendList.ajax splitting data");
+                                $u.log(3, "GetFriendList.ajax splitting data");
                                 data = data.split('<div class="unselected_list">');
                                 if (data.length < 2) {
                                     throw "Could not locate 'unselected_list'";
@@ -11727,33 +11686,33 @@ caap = {
                                     throw "Could not locate 'selected_list'";
                                 }
 
-                                utility.log(3, "GetFriendList.ajax data split ok");
+                                $u.log(3, "GetFriendList.ajax data split ok");
                                 var friendList = [];
                                 $j('<div></div>').html(data[0]).find('input').each(function (index) {
                                     friendList.push($j(this).val().parseInt());
                                 });
 
-                                utility.log(3, "GetFriendList.ajax saving friend list of: ", friendList.length);
+                                $u.log(3, "GetFriendList.ajax saving friend list of: ", friendList.length);
                                 if (friendList.length) {
                                     state.setItem(listType.name + 'Responded', friendList);
                                 } else {
                                     state.setItem(listType.name + 'Responded', true);
                                 }
 
-                                utility.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
+                                $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
                             } catch (err) {
                                 state.setItem(listType.name + 'Requested', false);
-                                utility.error("ERROR in GetFriendList.ajax: " + err);
+                                $u.error("ERROR in GetFriendList.ajax: " + err);
                             }
                         }
                 });
             } else {
-                utility.log(3, "Already requested GetFriendList for: ", listType.name);
+                $u.log(3, "Already requested GetFriendList for: ", listType.name);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in GetFriendList(" + listType.name + "): " + err);
+            $u.error("ERROR in GetFriendList(" + listType.name + "): " + err);
             return false;
         }
     },
@@ -11777,7 +11736,7 @@ caap = {
                             caap.addFriendSpamCheck -= 1;
                         }
 
-                        utility.log(1, "AddFriend(" + id + "): ", textStatus);
+                        $u.log(1, "AddFriend(" + id + "): ", textStatus);
                     };
 
                     $j.ajax({
@@ -11788,7 +11747,7 @@ caap = {
 
                     return true;
                 } catch (err) {
-                    utility.error("ERROR in AddFriend(" + id + "): " + err);
+                    $u.error("ERROR in AddFriend(" + id + "): " + err);
                     return false;
                 }
             }
@@ -11796,12 +11755,12 @@ caap = {
             var armyCount = state.getItem("ArmyCount", 0);
             if (armyCount === 0) {
                 caap.SetDivContent('idle_mess', 'Filling Army');
-                utility.log(1, "Filling army");
+                $u.log(1, "Filling army");
             }
 
             if (state.getItem(caListType.name + 'Responded', false) === true || state.getItem(fbListType.name + 'Responded', false) === true) {
                 caap.SetDivContent('idle_mess', '<span style="font-weight: bold;">Fill Army Completed</span>');
-                utility.log(1, "Fill Army Completed: no friends found");
+                $u.log(1, "Fill Army Completed: no friends found");
                 window.setTimeout(function () {
                     caap.SetDivContent('idle_mess', '');
                 }, 5000);
@@ -11823,16 +11782,16 @@ caap = {
             }
 
             var castleageList = state.getItem(caListType.name + 'Responded', []);
-            utility.log(3, "gifList: ", castleageList);
+            $u.log(3, "gifList: ", castleageList);
             var facebookList = state.getItem(fbListType.name + 'Responded', []);
-            utility.log(3, "facebookList: ", facebookList);
+            $u.log(3, "facebookList: ", facebookList);
             if ((castleageList.length && facebookList.length) || fillArmyList.length) {
                 if (!fillArmyList.length) {
                     var diffList = facebookList.filter(function (facebookID) {
                         return (castleageList.indexOf(facebookID) >= 0);
                     });
 
-                    utility.log(3, "diffList: ", diffList);
+                    $u.log(3, "diffList: ", diffList);
                     fillArmyList = state.setItem('FillArmyList', diffList);
                     state.setItem(caListType.name + 'Responded', false);
                     state.setItem(fbListType.name + 'Responded', false);
@@ -11856,7 +11815,7 @@ caap = {
                 }
 
                 caap.SetDivContent('idle_mess', 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
-                utility.log(1, 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
+                $u.log(1, 'Filling Army, Please wait...' + armyCount + "/" + fillArmyList.length);
                 state.setItem("ArmyCount", armyCount);
                 if (armyCount >= fillArmyList.length) {
                     caap.SetDivContent('idle_mess', '<span style="font-weight: bold;">Fill Army Completed</span>');
@@ -11864,7 +11823,7 @@ caap = {
                         caap.SetDivContent('idle_mess', '');
                     }, 5000);
 
-                    utility.log(1, "Fill Army Completed");
+                    $u.log(1, "Fill Army Completed");
                     state.setItem('FillArmy', false);
                     state.setItem("ArmyCount", 0);
                     state.setItem('FillArmyList', []);
@@ -11873,7 +11832,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in AutoFillArmy: " + err);
+            $u.error("ERROR in AutoFillArmy: " + err);
             caap.SetDivContent('idle_mess', '<span style="font-weight: bold;">Fill Army Failed</span>');
             window.setTimeout(function () {
                 caap.SetDivContent('idle_mess', '');
@@ -11896,7 +11855,7 @@ caap = {
 
     Idle: function () {
         if (state.getItem('resetselectMonster', false)) {
-            utility.log(3, "resetselectMonster");
+            $u.log(3, "resetselectMonster");
             monster.select(true);
             state.setItem('resetselectMonster', false);
         }
@@ -12023,16 +11982,16 @@ caap = {
         }
 
         caap.reconhbest = JSON.hbest(caap.ReconRecordArray);
-        utility.log(2, "recon.records Hbest", caap.reconhbest);
+        $u.log(2, "recon.records Hbest", caap.reconhbest);
         state.setItem("ReconDashUpdate", true);
-        utility.log(4, "recon.records", caap.ReconRecordArray);
+        $u.log(4, "recon.records", caap.ReconRecordArray);
     },
 
     SaveRecon: function () {
         var compress = false;
         gm.setItem('recon.records', caap.ReconRecordArray, caap.reconhbest, compress);
         state.setItem("ReconDashUpdate", true);
-        utility.log(4, "recon.records", caap.ReconRecordArray);
+        $u.log(4, "recon.records", caap.ReconRecordArray);
     },
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -12052,13 +12011,13 @@ caap = {
             }
 
             caap.SetDivContent('idle_mess', 'Player Recon: In Progress');
-            utility.log(1, "Player Recon: In Progress");
+            $u.log(1, "Player Recon: In Progress");
 
             $j.ajax({
                 url: "http://apps.facebook.com/castle_age/battle.php",
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.error("ReconPlayers2.ajax", textStatus);
+                        $u.error("ReconPlayers2.ajax", textStatus);
                     },
                 success:
                     function (data, textStatus, XMLHttpRequest) {
@@ -12071,7 +12030,7 @@ caap = {
                                 reconLevel  = config.getItem('ReconPlayerLevel', 999),
                                 reconARBase = config.getItem('ReconPlayerARBase', 999);
 
-                            utility.log(3, "ReconPlayers.ajax: Checking data.");
+                            $u.log(3, "ReconPlayers.ajax: Checking data.");
 
                             $j(data).find("img[src*='symbol_']").not("[src*='symbol_tiny_']").each(function (index) {
                                 var UserRecord      = new caap.ReconRecord(),
@@ -12098,7 +12057,7 @@ caap = {
                                         if (caap.ReconRecordArray[i]['userID'] === UserRecord.data['userID']) {
                                             UserRecord.data = caap.ReconRecordArray[i];
                                             caap.ReconRecordArray.splice(i, 1);
-                                            utility.log(3, "UserRecord exists. Loaded and removed.", UserRecord);
+                                            $u.log(3, "UserRecord exists. Loaded and removed.", UserRecord);
                                             break;
                                         }
                                     }
@@ -12140,19 +12099,19 @@ caap = {
                                             }
 
                                             if (UserRecord.data['levelNum'] - caap.stats['level'] > reconLevel) {
-                                                utility.log(3, 'Level above reconLevel max', reconLevel, UserRecord);
+                                                $u.log(3, 'Level above reconLevel max', reconLevel, UserRecord);
                                                 goodTarget = false;
                                             } else if (caap.stats['rank']['battle'] - UserRecord.data['rankNum'] > reconRank) {
-                                                utility.log(3, 'Rank below reconRank min', reconRank, UserRecord);
+                                                $u.log(3, 'Rank below reconRank min', reconRank, UserRecord);
                                                 goodTarget = false;
                                             } else {
                                                 levelMultiplier = caap.stats['level'] / UserRecord.data['levelNum'];
                                                 armyRatio = reconARBase * levelMultiplier;
                                                 if (armyRatio <= 0) {
-                                                    utility.log(3, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
+                                                    $u.log(3, 'Recon unable to calculate army ratio', reconARBase, levelMultiplier);
                                                     goodTarget = false;
                                                 } else if (UserRecord.data['armyNum']  > (caap.stats['army']['capped'] * armyRatio)) {
-                                                    utility.log(3, 'Army above armyRatio adjustment', armyRatio, UserRecord);
+                                                    $u.log(3, 'Army above armyRatio adjustment', armyRatio, UserRecord);
                                                     goodTarget = false;
                                                 }
                                             }
@@ -12160,34 +12119,34 @@ caap = {
                                             if (goodTarget) {
                                                 while (caap.ReconRecordArray.length >= entryLimit) {
                                                     OldRecord = caap.ReconRecordArray.shift();
-                                                    utility.log(3, "Entry limit matched. Deleted an old record", OldRecord);
+                                                    $u.log(3, "Entry limit matched. Deleted an old record", OldRecord);
                                                 }
 
-                                                utility.log(3, "UserRecord", UserRecord);
+                                                $u.log(3, "UserRecord", UserRecord);
                                                 caap.ReconRecordArray.push(UserRecord.data);
                                                 found += 1;
                                             }
                                         } else {
-                                            utility.warn('Recon can not parse target text string', txt);
+                                            $u.warn('Recon can not parse target text string', txt);
                                         }
                                     } else {
-                                        utility.warn("Can't find txt in $tempObj", $tempObj);
+                                        $u.warn("Can't find txt in $tempObj", $tempObj);
                                     }
                                 } else {
-                                    utility.warn("$tempObj is empty");
+                                    $u.warn("$tempObj is empty");
                                 }
                             });
 
                             caap.SaveRecon();
                             caap.SetDivContent('idle_mess', 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
-                            utility.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
+                            $u.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
                             window.setTimeout(function () {
                                 caap.SetDivContent('idle_mess', '');
                             }, 5 * 1000);
 
-                            utility.log(3, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
+                            $u.log(3, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
                         } catch (err) {
-                            utility.error("ERROR in ReconPlayers.ajax: " + err);
+                            $u.error("ERROR in ReconPlayers.ajax: " + err);
                         }
                     }
             });
@@ -12195,7 +12154,7 @@ caap = {
             schedule.setItem('PlayerReconTimer', gm.getItem('PlayerReconRetry', 60, hiddenVar), 60);
             return true;
         } catch (err) {
-            utility.error("ERROR in ReconPlayers:" + err);
+            $u.error("ERROR in ReconPlayers:" + err);
             return false;
         }
     },
@@ -12240,7 +12199,7 @@ caap = {
         }
 
         if (lastAction !== thisAction) {
-            utility.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
+            $u.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
             state.setItem('LastAction', thisAction);
         }
     },
@@ -12303,7 +12262,7 @@ caap = {
     MakeActionsList: function () {
         try {
             if (caap.actionsList && caap.actionsList.length === 0) {
-                utility.log(2, "Loading a fresh Action List");
+                $u.log(2, "Loading a fresh Action List");
                 // actionOrder is a comma seperated string of action numbers as
                 // hex pairs and can be referenced in the Master Action List
                 // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12"
@@ -12314,7 +12273,7 @@ caap = {
                 if (actionOrderUser !== '') {
                     // We are using the user defined actionOrder set in the
                     // Advanced Hidden Options
-                    utility.log(2, "Trying user defined Action Order");
+                    $u.log(2, "Trying user defined Action Order");
                     // We take the User Action Order and convert it from a comma
                     // separated list into an array
                     actionOrderArray = actionOrderUser.split(",");
@@ -12323,23 +12282,23 @@ caap = {
                     for (action in caap.masterActionList) {
                         if (caap.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount += 1;
-                            utility.log(5, "Counting Action List", masterActionListCount);
+                            $u.log(5, "Counting Action List", masterActionListCount);
                         } else {
-                            utility.warn("Error Getting Master Action List length!");
-                            utility.warn("Skipping 'action' from masterActionList: ", action);
+                            $u.warn("Error Getting Master Action List length!");
+                            $u.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
                 } else {
                     // We are building the Action Order Array from the
                     // Master Action List
-                    utility.log(2, "Building the default Action Order");
+                    $u.log(2, "Building the default Action Order");
                     for (action in caap.masterActionList) {
                         if (caap.masterActionList.hasOwnProperty(action)) {
                             masterActionListCount = actionOrderArray.push(action);
-                            utility.log(5, "Action Added", action);
+                            $u.log(5, "Action Added", action);
                         } else {
-                            utility.warn("Error Building Default Action Order!");
-                            utility.warn("Skipping 'action' from masterActionList: ", action);
+                            $u.warn("Error Building Default Action Order!");
+                            $u.warn("Skipping 'action' from masterActionList: ", action);
                         }
                     }
                 }
@@ -12353,46 +12312,46 @@ caap = {
                 }
 
                 if (actionOrderArrayCount < masterActionListCount) {
-                    utility.warn("Warning! Action Order Array has fewer orders than default!");
+                    $u.warn("Warning! Action Order Array has fewer orders than default!");
                 }
 
                 if (actionOrderArrayCount > masterActionListCount) {
-                    utility.warn("Warning! Action Order Array has more orders than default!");
+                    $u.warn("Warning! Action Order Array has more orders than default!");
                 }
 
                 // We build the Action List
-                utility.log(8, "Building Action List ...");
+                $u.log(8, "Building Action List ...");
                 for (var itemCount = 0; itemCount !== actionOrderArrayCount; itemCount += 1) {
                     var actionItem = '';
                     if (actionOrderUser !== '') {
                         // We are using the user defined comma separated list of hex pairs
                         actionItem = caap.masterActionList[actionOrderArray[itemCount].parseInt(16)];
-                        utility.log(3, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
+                        $u.log(3, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
                     } else {
                         // We are using the Master Action List
                         actionItem = caap.masterActionList[actionOrderArray[itemCount]];
-                        utility.log(5, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
+                        $u.log(5, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
                     }
 
                     // Check the Action Item
                     if (actionItem.length > 0 && typeof(actionItem) === "string") {
                         // We add the Action Item to the Action List
                         caap.actionsList.push(actionItem);
-                        utility.log(5, "Added action to the list", actionItem);
+                        $u.log(5, "Added action to the list", actionItem);
                     } else {
-                        utility.warn("Error! Skipping actionItem");
-                        utility.warn("Action Item(" + itemCount + "): ", actionItem);
+                        $u.warn("Error! Skipping actionItem");
+                        $u.warn("Action Item(" + itemCount + "): ", actionItem);
                     }
                 }
 
                 if (actionOrderUser !== '') {
-                    utility.log(1, "Get Action List: ", caap.actionsList);
+                    $u.log(1, "Get Action List: ", caap.actionsList);
                 }
             }
             return true;
         } catch (err) {
             // Something went wrong, log it and use the emergency Action List.
-            utility.error("ERROR in MakeActionsList: " + err);
+            $u.error("ERROR in MakeActionsList: " + err);
             /*
             caap.actionsList = [
                 "AutoElite",
@@ -12451,7 +12410,7 @@ caap = {
     ErrorCheck: function () {
         // assorted errors...
         if (window.location.href.indexOf('/common/error.html') >= 0 || window.location.href.indexOf('/sorry.php') >= 0) {
-            utility.log(1, 'detected error page, waiting to go back to previous page.');
+            $u.log(1, 'detected error page, waiting to go back to previous page.');
             window.setTimeout(function () {
                 window.history.go(-1);
             }, 30 * 1000);
@@ -12460,7 +12419,7 @@ caap = {
         }
 
         if ($j('#try_again_button').length) {
-            utility.log(1, 'detected Try Again message, waiting to reload');
+            $u.log(1, 'detected Try Again message, waiting to reload');
             // error
             window.setTimeout(function () {
                 if (typeof window.location.reload === 'function') {
@@ -12503,7 +12462,7 @@ caap = {
             button = $j("a[class*='undo_link']");
             if (button && button.length) {
                 caap.Click(button.get(0));
-                utility.log(1, 'Undoing notification');
+                $u.log(1, 'Undoing notification');
             }
 
             caapDisabled = config.getItem('Disabled', false);
@@ -12523,7 +12482,7 @@ caap = {
                     caap.ReloadCastleAge();
                 }
 
-                utility.log(1, 'Page no-load count: ', noWindowLoad);
+                $u.log(1, 'Page no-load count: ', noWindowLoad);
                 caap.pageLoadOK = caap.GetStats();
                 caap.WaitMainLoop();
                 return true;
@@ -12548,13 +12507,13 @@ caap = {
 
             if (caap.waitingForDomLoad) {
                 if (schedule.since('clickedOnSomething', 45)) {
-                    utility.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
+                    $u.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
                     caap.ReloadCastleAge();
                 }
 
                 ajaxLoadIcon = $j('#app46755028429_AjaxLoadIcon');
                 if (ajaxLoadIcon && ajaxLoadIcon.length && ajaxLoadIcon.css("display") !== "none") {
-                    utility.log(1, 'Waiting for page load ...');
+                    $u.log(1, 'Waiting for page load ...');
                     caap.WaitMainLoop();
                     return true;
                 }
@@ -12571,7 +12530,7 @@ caap = {
             if (state.getItem('ReleaseControl', false)) {
                 state.setItem('ReleaseControl', false);
             } else {
-                utility.log(3, "ReleaseControl to unshift LastAction");
+                $u.log(3, "ReleaseControl to unshift LastAction");
                 actionsListCopy.unshift(state.getItem('LastAction', 'Idle'));
             }
 
@@ -12585,7 +12544,7 @@ caap = {
             caap.WaitMainLoop();
             return true;
         } catch (err) {
-            utility.error("ERROR in MainLoop: " + err);
+            $u.error("ERROR in MainLoop: " + err);
             return false;
         }
     },
@@ -12594,7 +12553,7 @@ caap = {
 
     WaitMainLoop: function () {
         try {
-            utility.log(5, 'waitMilliSecs', caap.waitMilliSecs);
+            $u.log(5, 'waitMilliSecs', caap.waitMilliSecs);
             function timeout() {
                 caap.waitMilliSecs = 5000;
                 if (caap.flagReload) {
@@ -12607,7 +12566,7 @@ caap = {
             window.setTimeout(timeout, caap.waitMilliSecs * (1 + Math.random() * 0.2));
             return true;
         } catch (err) {
-            utility.error("ERROR in WaitMainLoop: " + err);
+            $u.error("ERROR in WaitMainLoop: " + err);
             return false;
         }
     },
@@ -12621,7 +12580,7 @@ caap = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in ReloadCastleAge: " + err);
+            $u.error("ERROR in ReloadCastleAge: " + err);
             return false;
         }
     },
@@ -12635,7 +12594,7 @@ caap = {
 
             function timeout() {
                 if (schedule.since('clickedOnSomething', 5 * 60) || caap.pageLoadCounter > 40) {
-                    utility.log(1, 'Reloading if not paused after inactivity');
+                    $u.log(1, 'Reloading if not paused after inactivity');
                     caap.flagReload = true;
                 }
 
@@ -12645,7 +12604,7 @@ caap = {
             window.setTimeout(timeout, 60000 * reloadMin + (reloadMin * 60000 * Math.random()));
             return true;
         } catch (err) {
-            utility.error("ERROR in ReloadOccasionally: " + err);
+            $u.error("ERROR in ReloadOccasionally: " + err);
             return false;
         }
     }

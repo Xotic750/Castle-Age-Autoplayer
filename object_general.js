@@ -33,33 +33,21 @@ general = {
             'healthMax'  : 0
         };
     },
-    /*jslint sub: true */
 
     copy2sortable: function () {
         try {
-            var order = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
-
-            $j.extend(true, order, state.getItem("GeneralsSort", order));
+            var order = new sort.order();
+            $j.extend(true, order.data, state.getItem("GeneralsSort", order.data));
             general.recordsSortable = [];
             $j.merge(general.recordsSortable, general.records);
-            general.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+            general.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
             return true;
         } catch (err) {
-            utility.error("ERROR in general.copy2sortable: " + err);
+            $u.error("ERROR in general.copy2sortable: " + err);
             return false;
         }
     },
+    /*jslint sub: false */
 
     hbest: false,
 
@@ -73,12 +61,12 @@ general = {
             general.copy2sortable();
             general.BuildlLists();
             general.hbest = JSON.hbest(general.records);
-            utility.log(2, "general.load Hbest", general.hbest);
+            $u.log(2, "general.load Hbest", general.hbest);
             state.setItem("GeneralsDashUpdate", true);
-            utility.log(5, "general.load", general.records);
+            $u.log(5, "general.load", general.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in general.load: " + err);
+            $u.error("ERROR in general.load: " + err);
             return false;
         }
     },
@@ -88,10 +76,10 @@ general = {
             var compress = false;
             gm.setItem('general.records', general.records, general.hbest, compress);
             state.setItem("GeneralsDashUpdate", true);
-            utility.log(5, "general.save", general.records);
+            $u.log(5, "general.save", general.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in general.save: " + err);
+            $u.error("ERROR in general.save: " + err);
             return false;
         }
     },
@@ -112,13 +100,13 @@ general = {
             }
 
             if (!found) {
-                utility.warn("Unable to find 'General' record");
+                $u.warn("Unable to find 'General' record");
                 return false;
             }
 
             return general.records[it];
         } catch (err) {
-            utility.error("ERROR in general.find: " + err);
+            $u.error("ERROR in general.find: " + err);
             return false;
         }
     },
@@ -135,7 +123,7 @@ general = {
 
             return names.sort();
         } catch (err) {
-            utility.error("ERROR in general.GetNames: " + err);
+            $u.error("ERROR in general.GetNames: " + err);
             return false;
         }
     },
@@ -145,7 +133,7 @@ general = {
             var genImg = general.find(generalName);
 
             if (genImg === false) {
-                utility.warn("Unable to find 'General' image");
+                $u.warn("Unable to find 'General' image");
                 genImg = '';
             } else {
                 genImg = genImg['img'];
@@ -153,7 +141,7 @@ general = {
 
             return genImg;
         } catch (err) {
-            utility.error("ERROR in general.GetImage: " + err);
+            $u.error("ERROR in general.GetImage: " + err);
             return false;
         }
     },
@@ -163,7 +151,7 @@ general = {
             var genStamina = general.find(generalName);
 
             if (genStamina === false) {
-                utility.warn("Unable to find 'General' stamina");
+                $u.warn("Unable to find 'General' stamina");
                 genStamina = 0;
             } else {
                 genStamina = genStamina['staminaMax'];
@@ -171,7 +159,7 @@ general = {
 
             return genStamina;
         } catch (err) {
-            utility.error("ERROR in general.GetStaminaMax: " + err);
+            $u.error("ERROR in general.GetStaminaMax: " + err);
             return false;
         }
     },
@@ -181,7 +169,7 @@ general = {
             var genEnergy = general.find(generalName);
 
             if (genEnergy === false) {
-                utility.warn("Unable to find 'General' energy");
+                $u.warn("Unable to find 'General' energy");
                 genEnergy = 0;
             } else {
                 genEnergy = genEnergy['energyMax'];
@@ -189,7 +177,7 @@ general = {
 
             return genEnergy;
         } catch (err) {
-            utility.error("ERROR in general.GetEnergyMax: " + err);
+            $u.error("ERROR in general.GetEnergyMax: " + err);
             return false;
         }
     },
@@ -199,7 +187,7 @@ general = {
             var genHealth = general.find(generalName);
 
             if (genHealth === false) {
-                utility.warn("Unable to find 'General' health");
+                $u.warn("Unable to find 'General' health");
                 genHealth = 0;
             } else {
                 genHealth = genHealth['healthMax'];
@@ -207,7 +195,7 @@ general = {
 
             return genHealth;
         } catch (err) {
-            utility.error("ERROR in general.GetHealthMax: " + err);
+            $u.error("ERROR in general.GetHealthMax: " + err);
             return false;
         }
     },
@@ -217,7 +205,7 @@ general = {
             var genLevel = general.find(generalName);
 
             if (genLevel === false) {
-                utility.warn("Unable to find 'General' level");
+                $u.warn("Unable to find 'General' level");
                 genLevel = 1;
             } else {
                 genLevel = genLevel['lvl'];
@@ -225,7 +213,7 @@ general = {
 
             return genLevel;
         } catch (err) {
-            utility.error("ERROR in general.GetLevel: " + err);
+            $u.error("ERROR in general.GetLevel: " + err);
             return false;
         }
     },
@@ -244,7 +232,7 @@ general = {
 
             return names;
         } catch (err) {
-            utility.error("ERROR in general.GetLevelUpNames: " + err);
+            $u.error("ERROR in general.GetLevelUpNames: " + err);
             return false;
         }
     },
@@ -274,7 +262,7 @@ general = {
 
     BuildlLists: function () {
         try {
-            utility.log(3, 'Building Generals Lists');
+            $u.log(3, 'Building Generals Lists');
             general.List = [
                 'Use Current',
                 'Under Level 4'
@@ -312,7 +300,7 @@ general = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in general.BuildlLists: " + err);
+            $u.error("ERROR in general.BuildlLists: " + err);
             return false;
         }
     },
@@ -330,14 +318,14 @@ general = {
             }
 
             if (!generalName) {
-                utility.warn("Couldn't get current 'General'. Will use current 'General'", generalName);
+                $u.warn("Couldn't get current 'General'. Will use current 'General'", generalName);
                 return 'Use Current';
             }
 
-            utility.log(4, "Current General", generalName);
+            $u.log(4, "Current General", generalName);
             return generalName;
         } catch (err) {
-            utility.error("ERROR in general.GetCurrent: " + err);
+            $u.error("ERROR in general.GetCurrent: " + err);
             return 'Use Current';
         }
     },
@@ -370,7 +358,7 @@ general = {
                         tStr = tempObj.text();
                         name = tStr ? tStr.stripTRN().stripStar() : '';
                     } else {
-                        utility.warn("Unable to find 'name' container", index);
+                        $u.warn("Unable to find 'name' container", index);
                     }
 
                     tempObj = container.find(".imgButton");
@@ -378,7 +366,7 @@ general = {
                         tStr = tempObj.attr("src");
                         img = tStr ? tStr.filepart() : '';
                     } else {
-                        utility.warn("Unable to find 'image' container", index);
+                        $u.warn("Unable to find 'image' container", index);
                     }
 
                     tempObj = container.children().eq(3);
@@ -386,7 +374,7 @@ general = {
                         tStr = tempObj.text();
                         level = tStr ? tStr.replace(/Level /gi, '').stripTRN().parseInt() : 0;
                     } else {
-                        utility.warn("Unable to find 'level' container", index);
+                        $u.warn("Unable to find 'level' container", index);
                     }
 
                     tempObj = container.children().eq(4);
@@ -396,7 +384,7 @@ general = {
                         tStr = $j(tStr).text();
                         special = tStr ? tStr.trim() : '';
                     } else {
-                        utility.warn("Unable to find 'special' container", index);
+                        $u.warn("Unable to find 'special' container", index);
                     }
 
                     tempObj = container.find(".generals_indv_stats_padding div");
@@ -406,7 +394,7 @@ general = {
                         tStr = tempObj.eq(1).text();
                         def = tStr ? tStr.parseInt() : 0;
                     } else {
-                        utility.warn("Unable to find 'attack and defence' containers", index);
+                        $u.warn("Unable to find 'attack and defence' containers", index);
                     }
 
                     if (name && img && level && !isNaN(atk) && !isNaN(def) && special) {
@@ -429,14 +417,14 @@ general = {
                         if (it < len) {
                             general.records[it] = newGeneral.data;
                         } else {
-                            utility.log(1, "Adding new 'General'", newGeneral.data['name']);
+                            $u.log(1, "Adding new 'General'", newGeneral.data['name']);
                             general.records.push(newGeneral.data);
                             update = true;
                         }
 
                         save = true;
                     } else {
-                        utility.warn("Missing required 'General' attribute", index);
+                        $u.warn("Missing required 'General' attribute", index);
                     }
                 });
 
@@ -451,12 +439,12 @@ general = {
                     }
                 }
 
-                utility.log(3, "general.GetGenerals", general.records);
+                $u.log(3, "general.GetGenerals", general.records);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in general.GetGenerals: " + err);
+            $u.error("ERROR in general.GetGenerals: " + err);
             return false;
         }
     },
@@ -468,7 +456,7 @@ general = {
                 len = 0;
 
             general.BuildlLists();
-            utility.log(2, "Updating 'General' Drop Down Lists");
+            $u.log(2, "Updating 'General' Drop Down Lists");
             for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                 caap.ChangeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
             }
@@ -480,19 +468,19 @@ general = {
             caap.ChangeDropDownList('LevelUpGeneral', general.List, config.getItem('LevelUpGeneral', 'Use Current'));
             return true;
         } catch (err) {
-            utility.error("ERROR in general.UpdateDropDowns: " + err);
+            $u.error("ERROR in general.UpdateDropDowns: " + err);
             return false;
         }
     },
 
     Clear: function (whichGeneral) {
         try {
-            utility.log(1, 'Setting ' + whichGeneral + ' to "Use Current"');
+            $u.log(1, 'Setting ' + whichGeneral + ' to "Use Current"');
             config.setItem(whichGeneral, 'Use Current');
             general.UpdateDropDowns();
             return true;
         } catch (err) {
-            utility.error("ERROR in general.Clear: " + err);
+            $u.error("ERROR in general.Clear: " + err);
             return false;
         }
     },
@@ -508,13 +496,13 @@ general = {
             generalType = whichGeneral ? whichGeneral.replace(/General/i, '').trim() : '';
             if ((caap.stats['staminaT']['num'] > caap.stats['stamina']['max'] || caap.stats['energyT']['num'] > caap.stats['energy']['max']) && state.getItem('KeepLevelUpGeneral', false)) {
                 if (config.getItem(generalType + 'LevelUpGeneral', false)) {
-                    utility.log(2, "Keep Level Up General");
+                    $u.log(2, "Keep Level Up General");
                     keepGeneral = true;
                 } else {
-                    utility.warn("User opted out of keep level up general for", generalType);
+                    $u.warn("User opted out of keep level up general for", generalType);
                 }
             } else if (state.getItem('KeepLevelUpGeneral', false)) {
-                utility.log(1, "Clearing Keep Level Up General flag");
+                $u.log(1, "Clearing Keep Level Up General flag");
                 state.setItem('KeepLevelUpGeneral', false);
             }
 
@@ -526,7 +514,7 @@ general = {
 
             return use;
         } catch (err) {
-            utility.error("ERROR in general.LevelUpCheck: " + err);
+            $u.error("ERROR in general.LevelUpCheck: " + err);
             return undefined;
         }
     },
@@ -542,7 +530,7 @@ general = {
 
             if (levelUp) {
                 whichGeneral = 'LevelUpGeneral';
-                utility.log(2, 'Using level up general');
+                $u.log(2, 'Using level up general');
             }
 
             generalName = config.getItem(whichGeneral, 'Use Current');
@@ -572,7 +560,7 @@ general = {
                 return false;
             }
 
-            utility.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
+            $u.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
             if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                 return true;
             }
@@ -583,14 +571,14 @@ general = {
             }
 
             caap.SetDivContent('Could not find ' + generalName);
-            utility.warn('Could not find', generalName, generalImage);
+            $u.warn('Could not find', generalName, generalImage);
             if (config.getItem('ignoreGeneralImage', true)) {
                 return false;
             } else {
                 return general.Clear(whichGeneral);
             }
         } catch (err) {
-            utility.error("ERROR in general.Select: " + err);
+            $u.error("ERROR in general.Select: " + err);
             return false;
         }
     },
@@ -613,7 +601,7 @@ general = {
                 return false;
             }
 
-            utility.log(2, "Equipped 'General'", generalName);
+            $u.log(2, "Equipped 'General'", generalName);
             for (it = 0, len = general.records.length; it < len; it += 1) {
                 if (general.records[it]['name'] === generalName) {
                     break;
@@ -621,7 +609,7 @@ general = {
             }
 
             if (it >= len) {
-                utility.warn("Unable to find 'General' record");
+                $u.warn("Unable to find 'General' record");
                 return false;
             }
 
@@ -637,10 +625,10 @@ general = {
                         general.records[it]['edef'] = tStr ? tStr.parseInt() : 0;
                         success = true;
                     } else {
-                        utility.warn("Unable to get 'General' defense object");
+                        $u.warn("Unable to get 'General' defense object");
                     }
                 } else {
-                    utility.warn("Unable to get 'General' attack object");
+                    $u.warn("Unable to get 'General' attack object");
                 }
 
                 if (success) {
@@ -653,17 +641,17 @@ general = {
                     general.records[it]['last'] = new Date().getTime();
                     general.save();
                     general.copy2sortable();
-                    utility.log(3, "Got 'General' stats", general.records[it]);
+                    $u.log(3, "Got 'General' stats", general.records[it]);
                 } else {
-                    utility.warn("Unable to get 'General' stats");
+                    $u.warn("Unable to get 'General' stats");
                 }
             } else {
-                utility.warn("Unable to get equipped 'General' divs", generalDiv);
+                $u.warn("Unable to get equipped 'General' divs", generalDiv);
             }
 
             return general.records[it];
         } catch (err) {
-            utility.error("ERROR in general.GetEquippedStats: " + err);
+            $u.error("ERROR in general.GetEquippedStats: " + err);
             return false;
         }
     },
@@ -687,10 +675,10 @@ general = {
 
             if (it >= len) {
                 schedule.setItem("allGenerals", gm.getItem("GetAllGenerals", 168, hiddenVar) * 3600, 300);
-                utility.log(2, "Finished visiting all Generals for their stats");
+                $u.log(2, "Finished visiting all Generals for their stats");
                 theGeneral = config.getItem('IdleGeneral', 'Use Current');
                 if (theGeneral !== 'Use Current') {
-                    utility.log(2, "Changing to idle general");
+                    $u.log(2, "Changing to idle general");
                     return general.Select('IdleGeneral');
                 }
 
@@ -698,21 +686,21 @@ general = {
             }
 
             if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
-                utility.log(2, "Visiting generals to get 'General' stats");
+                $u.log(2, "Visiting generals to get 'General' stats");
                 return true;
             }
 
             generalImage = general.GetImage(general.records[it]['name']);
             if (caap.CheckForImage(generalImage)) {
                 if (general.GetCurrent() !== general.records[it]['name']) {
-                    utility.log(2, "Visiting 'General'", general.records[it]['name']);
+                    $u.log(2, "Visiting 'General'", general.records[it]['name']);
                     return caap.NavigateTo(generalImage);
                 }
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in general.GetAllStats: " + err);
+            $u.error("ERROR in general.GetAllStats: " + err);
             return false;
         }
     },
@@ -731,7 +719,7 @@ general = {
 
             return owned;
         } catch (err) {
-            utility.error("ERROR in general.owned: " + err);
+            $u.error("ERROR in general.owned: " + err);
             return undefined;
         }
     }

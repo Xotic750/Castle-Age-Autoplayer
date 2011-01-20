@@ -31,10 +31,10 @@ function caap_WaitForutility() {
     if (typeof utility !== 'undefined') {
         caap_log("utility ready ...");
         caap_log(typeof utility);
-        utility.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
-        utility.jQueryExtend();
-        gm = new utility.storage({'namespace': 'caap'});
-        ss = new utility.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
+        $u.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
+        $u.jQueryExtend();
+        gm = new $u.storage({'namespace': 'caap'});
+        ss = new $u.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
         jQuery(caap.start());
     } else {
         caap_log("Waiting for utility ...");
@@ -48,7 +48,7 @@ function caap_WaitForrison() {
         caap_log("rison ready ...");
         if (typeof utility === 'undefined') {
             caap_log("Inject utility.");
-            injectScript('http://castle-age-auto-player.googlecode.com/files/utility.min.js?' + new Date().getTime());
+            injectScript('http://castle-age-auto-player.googlecode.com/files/$u.min.js?' + new Date().getTime());
         }
 
         caap_WaitForutility();

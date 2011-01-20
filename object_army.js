@@ -28,33 +28,21 @@ army = {
             'color'      : 'black'
         };
     },
-    /*jslint sub: true */
 
     copy2sortable: function () {
         try {
-            var order = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
-
-            $j.extend(true, order, state.getItem("ArmySort", order));
+            var order = new sort.order();
+            $j.extend(true, order.data, state.getItem("ArmySort", order.data));
             army.recordsSortable = [];
             $j.merge(army.recordsSortable, army.records);
-            army.recordsSortable.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
             return true;
         } catch (err) {
-            utility.error("ERROR in army.copy2sortable: " + err);
+            $u.error("ERROR in army.copy2sortable: " + err);
             return false;
         }
     },
+    /*jslint sub: false */
 
     hbest: 3,
 
@@ -67,12 +55,12 @@ army = {
 
             army.copy2sortable();
             //army.hbest = JSON.hbest(army.records);
-            utility.log(2, "army.load Hbest", army.hbest);
+            $u.log(2, "army.load Hbest", army.hbest);
             state.setItem("ArmyDashUpdate", true);
-            utility.log(5, "army.load", army.records);
+            $u.log(5, "army.load", army.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in army.load: " + err);
+            $u.error("ERROR in army.load: " + err);
             return false;
         }
     },
@@ -82,10 +70,10 @@ army = {
             var compress = true;
             gm.setItem('army.records', army.records, army.hbest, compress);
             state.setItem("ArmyDashUpdate", true);
-            utility.log(5, "army.save", army.records);
+            $u.log(5, "army.save", army.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in army.save: " + err);
+            $u.error("ERROR in army.save: " + err);
             return false;
         }
     },
@@ -97,10 +85,10 @@ army = {
                 army.recordsTemp = ss.setItem('army.recordsTemp', []);
             }
 
-            utility.log(5, "army.loadTemp", army.recordsTemp);
+            $u.log(5, "army.loadTemp", army.recordsTemp);
             return true;
         } catch (err) {
-            utility.error("ERROR in army.loadTemp: " + err);
+            $u.error("ERROR in army.loadTemp: " + err);
             return false;
         }
     },
@@ -108,10 +96,10 @@ army = {
     saveTemp: function () {
         try {
             ss.setItem('army.recordsTemp', army.recordsTemp);
-            utility.log(5, "army.saveTemp", army.recordsTemp);
+            $u.log(5, "army.saveTemp", army.recordsTemp);
             return true;
         } catch (err) {
-            utility.error("ERROR in army.saveTemp: " + err);
+            $u.error("ERROR in army.saveTemp: " + err);
             return false;
         }
     },
@@ -132,14 +120,16 @@ army = {
         army.pageDone = true;
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     page: function (number) {
         try {
-            utility.log(1, "army.page number", number);
+            $u.log(1, "army.page number", number);
             $j.ajax({
                 url: "http://apps.facebook.com/castle_age/army_member.php?page=" + number,
                 error:
                     function (XMLHttpRequest, textStatus, errorThrown) {
-                        utility.error("army.page ajax", textStatus);
+                        $u.error("army.page ajax", textStatus);
                         army.onError();
                     },
                 success:
@@ -186,7 +176,7 @@ army = {
                                 if (record.data['userId']) {
                                     army.recordsTemp.push(record.data);
                                 } else {
-                                    utility.log(1, "army.page skipping record", record.data);
+                                    $u.log(1, "army.page skipping record", record.data);
                                 }
                             });
 
@@ -210,10 +200,10 @@ army = {
                                 }
                             }
 
-                            utility.log(1, "army.page ajax", pCount, army.recordsTemp);
+                            $u.log(1, "army.page ajax", pCount, army.recordsTemp);
                             army.pageDone = true;
                         } catch (err) {
-                            utility.error("ERROR in army.page ajax: " + err);
+                            $u.error("ERROR in army.page ajax: " + err);
                             army.onError();
                         }
                     }
@@ -221,7 +211,7 @@ army = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in AjaxGiftCheck: " + err);
+            $u.error("ERROR in AjaxGiftCheck: " + err);
             army.onError();
             return false;
         }
@@ -248,7 +238,7 @@ army = {
                 army.pageDone = false;
                 army.merge();
                 ss.setItem("army.currentPage", 1);
-                utility.log(1, "army.run", expectedPageCount, caap.stats['army']['actual'] - 1, army.recordsTemp);
+                $u.log(1, "army.run", expectedPageCount, caap.stats['army']['actual'] - 1, army.recordsTemp);
                 schedule.setItem("army_member", 604800, 300);
                 return false;
             } else if (currentPage === 1) {
@@ -266,7 +256,7 @@ army = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in army.run: " + err);
+            $u.error("ERROR in army.run: " + err);
             return false;
         }
     },
@@ -285,13 +275,13 @@ army = {
             }
 
             if (!found) {
-                utility.log(1, "Unable to find 'userId'", userId);
+                $u.log(1, "Unable to find 'userId'", userId);
                 return false;
             }
 
             return army.records[it];
         } catch (err) {
-            utility.error("ERROR in army.find: " + err);
+            $u.error("ERROR in army.find: " + err);
             return false;
         }
     },
@@ -307,7 +297,7 @@ army = {
                 if (record) {
                     if (army.recordsTemp[it]['lvl'] > record['lvl']) {
                         army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                        utility.log(1, "Changed level", army.recordsTemp[it]);
+                        $u.log(1, "Changed level", army.recordsTemp[it]);
                     }
                 }
             }
@@ -317,8 +307,9 @@ army = {
             army.copy2sortable();
             return true;
         } catch (err) {
-            utility.error("ERROR in army.merge: " + err);
+            $u.error("ERROR in army.merge: " + err);
             return false;
         }
     }
+    /*jslint sub: false */
 };

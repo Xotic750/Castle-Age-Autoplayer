@@ -14,10 +14,10 @@ state = {
                 state.flags = gm.setItem('state.flags', {});
             }
 
-            utility.log(5, "state.load", state.flags);
+            $u.log(5, "state.load", state.flags);
             return true;
         } catch (err) {
-            utility.error("ERROR in state.load: " + err);
+            $u.error("ERROR in state.load: " + err);
             return false;
         }
     },
@@ -31,11 +31,11 @@ state = {
             }
 
             gm.setItem('state.flags', state.flags);
-            utility.log(5, "state.save", state.flags);
+            $u.log(5, "state.save", state.flags);
             schedule.setItem('StateSave', 1);
             return true;
         } catch (err) {
-            utility.error("ERROR in state.save: " + err);
+            $u.error("ERROR in state.save: " + err);
             return false;
         }
     },
@@ -54,7 +54,7 @@ state = {
             state.save();
             return value;
         } catch (err) {
-            utility.error("ERROR in state.setItem: " + err);
+            $u.error("ERROR in state.setItem: " + err);
             return undefined;
         }
     },
@@ -72,12 +72,12 @@ state = {
             }
 
             if (item === undefined || item === null) {
-                utility.warn("state.getItem returned 'undefined' or 'null' for", name);
+                $u.warn("state.getItem returned 'undefined' or 'null' for", name);
             }
 
             return item;
         } catch (err) {
-            utility.error("ERROR in state.getItem: " + err);
+            $u.error("ERROR in state.getItem: " + err);
             return undefined;
         }
     },
@@ -89,13 +89,13 @@ state = {
             }
 
             if (state.flags[name] === undefined || state.flags[name] === null) {
-                utility.warn("state.deleteItem - Invalid or non-existant flag: ", name);
+                $u.warn("state.deleteItem - Invalid or non-existant flag: ", name);
             }
 
             delete state.flags[name];
             return true;
         } catch (err) {
-            utility.error("ERROR in state.deleteItem: " + err);
+            $u.error("ERROR in state.deleteItem: " + err);
             return false;
         }
     }

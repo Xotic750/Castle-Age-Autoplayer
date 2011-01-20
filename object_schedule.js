@@ -14,10 +14,10 @@ schedule = {
                 schedule.timers = gm.setItem('schedule.timers', {});
             }
 
-            utility.log(5, "schedule.load", schedule.timers);
+            $u.log(5, "schedule.load", schedule.timers);
             return true;
         } catch (err) {
-            utility.error("ERROR in schedule.load: " + err);
+            $u.error("ERROR in schedule.load: " + err);
             return false;
         }
     },
@@ -25,10 +25,10 @@ schedule = {
     save: function (force) {
         try {
             gm.setItem('schedule.timers', schedule.timers);
-            utility.log(5, "schedule.save", schedule.timers);
+            $u.log(5, "schedule.save", schedule.timers);
             return true;
         } catch (err) {
-            utility.error("ERROR in schedule.save: " + err);
+            $u.error("ERROR in schedule.save: " + err);
             return false;
         }
     },
@@ -40,11 +40,11 @@ schedule = {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
-            if (!utility.isNum(seconds) || seconds < 0) {
+            if (!$u.isNum(seconds) || seconds < 0) {
                 throw "Invalid number of seconds supplied for (" + name + ") (" + seconds + ")";
             }
 
-            if (!utility.isNum(randomSecs) || randomSecs < 0) {
+            if (!$u.isNum(randomSecs) || randomSecs < 0) {
                 randomSecs = 0;
             }
 
@@ -57,7 +57,7 @@ schedule = {
             schedule.save();
             return schedule.timers[name];
         } catch (err) {
-            utility.error("ERROR in schedule.setItem: " + err);
+            $u.error("ERROR in schedule.setItem: " + err);
             return undefined;
         }
     },
@@ -69,13 +69,13 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                utility.warn("Invalid or non-existant timer!", name);
+                $u.warn("Invalid or non-existant timer!", name);
                 return 0;
             }
 
             return schedule.timers[name];
         } catch (err) {
-            utility.error("ERROR in schedule.getItem: " + err);
+            $u.error("ERROR in schedule.getItem: " + err);
             return undefined;
         }
     },
@@ -87,13 +87,13 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                utility.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
+                $u.warn("schedule.deleteItem - Invalid or non-existant timer: ", name);
             }
 
             delete schedule.timers[name];
             return true;
         } catch (err) {
-            utility.error("ERROR in schedule.deleteItem: " + err);
+            $u.error("ERROR in schedule.deleteItem: " + err);
             return false;
         }
     },
@@ -108,8 +108,8 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                if (utility.get_log_level > 2) {
-                    utility.warn("Invalid or non-existant timer!", name);
+                if ($u.get_log_level > 2) {
+                    $u.warn("Invalid or non-existant timer!", name);
                 }
 
                 scheduled = true;
@@ -119,7 +119,7 @@ schedule = {
 
             return scheduled;
         } catch (err) {
-            utility.error("ERROR in schedule.check: " + err);
+            $u.error("ERROR in schedule.check: " + err);
             return false;
         }
     },
@@ -133,8 +133,8 @@ schedule = {
                 }
 
                 if (!$j.isPlainObject(schedule.timers[name_or_number])) {
-                    if (utility.get_log_level > 2) {
-                        utility.warn("Invalid or non-existant timer!", name_or_number);
+                    if ($u.get_log_level > 2) {
+                        $u.warn("Invalid or non-existant timer!", name_or_number);
                     }
                 } else {
                     value = schedule.timers[name_or_number]['last'];
@@ -145,7 +145,7 @@ schedule = {
 
             return (value < (new Date().getTime() - 1000 * seconds));
         } catch (err) {
-            utility.error("ERROR in schedule.since: " + err, arguments.callee.caller);
+            $u.error("ERROR in schedule.since: " + err, arguments.callee.caller);
             return false;
         }
     },
@@ -161,7 +161,7 @@ schedule = {
             state.setItem('reset' + funcName, false);
             return true;
         } catch (err) {
-            utility.error("ERROR in schedule.oneMinuteUpdate: " + err);
+            $u.error("ERROR in schedule.oneMinuteUpdate: " + err);
             return undefined;
         }
     },
@@ -207,7 +207,7 @@ schedule = {
                 return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
             }
         } catch (err) {
-            utility.error("ERROR in FormatTime: " + err);
+            $u.error("ERROR in FormatTime: " + err);
             return "Time Err";
         }
     },
@@ -222,8 +222,8 @@ schedule = {
             }
 
             if (!$j.isPlainObject(schedule.timers[name])) {
-                if (utility.get_log_level > 2) {
-                    utility.warn("Invalid or non-existant timer!", name);
+                if ($u.get_log_level > 2) {
+                    $u.warn("Invalid or non-existant timer!", name);
                 }
 
                 formatted = schedule.FormatTime(new Date());
@@ -233,7 +233,7 @@ schedule = {
 
             return formatted;
         } catch (err) {
-            utility.error("ERROR in schedule.display: " + err);
+            $u.error("ERROR in schedule.display: " + err);
             return false;
         }
     }

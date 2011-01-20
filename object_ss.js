@@ -68,16 +68,16 @@ ss = {
 
             compress = (typeof compress !== 'boolean') ? false : compress;
             if (compress) {
-                compressor = new utility.LZ77();
+                compressor = new $u.LZ77();
                 storageStr = "LZ77 " + compressor.compress(stringified);
-                utility.log(2, "Compressed storage", name, ((storageStr.length / stringified.length) * 100).dp(2));
+                $u.log(2, "Compressed storage", name, ((storageStr.length / stringified.length) * 100).dp(2));
             } else {
                 storageStr = stringified;
             }
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+            if ($u.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 sessionStorage.setItem(ss.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
             } else {
                 GM_setValue(ss.namespace + "." + caap.stats['FBID'] + "." + name, storageStr);
@@ -86,7 +86,7 @@ ss = {
 
             return value;
         } catch (error) {
-            utility.error("ERROR in ss.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
+            $u.error("ERROR in ss.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
             return undefined;
         }
     },
@@ -103,7 +103,7 @@ ss = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+            if ($u.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 storageStr = sessionStorage.getItem(ss.namespace + "." + caap.stats['FBID'] + "." + name);
             } else {
                 storageStr = GM_getValue(ss.namespace + "." + caap.stats['FBID'] + "." + name);
@@ -112,9 +112,9 @@ ss = {
 
             if (storageStr) {
                 if (storageStr.match(/^LZ77 /)) {
-                    compressor = new utility.LZ77();
+                    compressor = new $u.LZ77();
                     storageStr = compressor.decompress(storageStr.slice(5));
-                    utility.log(2, "Decompressed storage", name);
+                    $u.log(2, "Decompressed storage", name);
                 }
 
                 if (storageStr) {
@@ -132,13 +132,13 @@ ss = {
 
             if (jsObj === undefined || jsObj === null) {
                 if (!hidden) {
-                    utility.warn("ss.getItem parsed string returned 'undefined' or 'null' for ", name);
+                    $u.warn("ss.getItem parsed string returned 'undefined' or 'null' for ", name);
                 }
 
                 if (value !== undefined && value !== null) {
                     hidden = (typeof hidden !== 'boolean') ? false : hidden;
                     if (!hidden) {
-                        utility.warn("ss.getItem using default value ", value);
+                        $u.warn("ss.getItem using default value ", value);
                     }
 
                     jsObj = value;
@@ -149,7 +149,7 @@ ss = {
 
             return jsObj;
         } catch (error) {
-            utility.error("ERROR in ss.getItem: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.getItem: " + error, arguments.callee.caller);
             if (error.match(/Invalid JSON/)) {
                 if (value !== undefined && value !== null) {
                     ss.setItem(name, value);
@@ -171,7 +171,7 @@ ss = {
 
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
-            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+            if ($u.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 sessionStorage.removeItem(ss.namespace + "." + caap.stats['FBID'] + "." + name);
             } else {
                 GM_deleteValue(ss.namespace + "." + caap.stats['FBID'] + "." + name);
@@ -180,7 +180,7 @@ ss = {
 
             return true;
         } catch (error) {
-            utility.error("ERROR in ss.deleteItem: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.deleteItem: " + error, arguments.callee.caller);
             return false;
         }
     },
@@ -193,8 +193,8 @@ ss = {
                 done        = false,
                 nameRegExp  = new RegExp(ss.namespace);
 
-            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
-                if (utility.is_firefox) {
+            if ($u.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+                if ($u.is_firefox) {
                     while (!done) {
                         try {
                             if (sessionStorage.key(key) && sessionStorage.key(key).match(nameRegExp)) {
@@ -224,7 +224,7 @@ ss = {
 
             return true;
         } catch (error) {
-            utility.error("ERROR in ss.clear: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.clear: " + error, arguments.callee.caller);
             return false;
         }
     },
@@ -237,8 +237,8 @@ ss = {
                 done        = false,
                 nameRegExp  = new RegExp(ss.namespace + "\\.0\\.");
 
-            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
-                if (utility.is_firefox) {
+            if ($u.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+                if ($u.is_firefox) {
                     while (!done) {
                         try {
                             if (sessionStorage.key(key) && sessionStorage.key(key).match(nameRegExp)) {
@@ -268,14 +268,14 @@ ss = {
 
             return true;
         } catch (error) {
-            utility.error("ERROR in ss.clear0: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.clear0: " + error, arguments.callee.caller);
             return false;
         }
     },
 
     used: function () {
         try {
-            if (utility.is_html5_sessionStorage && !ss.fireFoxUseGM) {
+            if ($u.is_html5_sessionStorage && !ss.fireFoxUseGM) {
                 var key         = 0,
                     len         = 0,
                     charsCaap   = 0,
@@ -286,7 +286,7 @@ ss = {
                     done        = false,
                     nameRegExp  = new RegExp(ss.namespace + "\\.");
 
-                if (utility.is_firefox) {
+                if ($u.is_firefox) {
                     while (!done) {
                         try {
                             chars += sessionStorage.getItem(sessionStorage.key(key)).length;
@@ -310,26 +310,26 @@ ss = {
                 }
 
                 caapPerc = ((charsCaap * 2.048 / 5242880) * 100).dp();
-                utility.log(1, "CAAP sessionStorage used: " + caapPerc + "%");
+                $u.log(1, "CAAP sessionStorage used: " + caapPerc + "%");
                 totalPerc = ((chars * 2.048 / 5242880) * 100).dp();
                 if (totalPerc >= 90) {
-                    utility.warn("Total sessionStorage used: " + totalPerc + "%");
+                    $u.warn("Total sessionStorage used: " + totalPerc + "%");
                     message = "<div style='text-align: center;'>";
                     message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
                     message += "sessionStorage usage for domain: " + totalPerc + "%<br />";
                     message += "CAAP is using: " + totalPerc + "%";
                     message += "</div>";
                     window.setTimeout(function () {
-                        utility.alert(message, "sessionStorage");
+                        $u.alert(message, "sessionStorage");
                     }, 5000);
                 } else {
-                    utility.log(1, "Total sessionStorage used: " + totalPerc + "%");
+                    $u.log(1, "Total sessionStorage used: " + totalPerc + "%");
                 }
             }
 
             return true;
         } catch (error) {
-            utility.error("ERROR in ss.used: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.used: " + error, arguments.callee.caller);
             return false;
         }
     }

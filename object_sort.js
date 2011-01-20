@@ -5,85 +5,29 @@
 /////////////////////////////////////////////////////////////////////
 
 sort = {
-    by: function (reverse, name, minor) {
-        return function (o, p) {
-            try {
-                var a, b;
-                if ($j.type(o) === 'object' && $j.type(p) === 'object' && o && p) {
-                    a = o[name];
-                    b = p[name];
-                    if (a === b) {
-                        return $j.type(minor) === 'function' ? minor(o, p) : o;
-                    }
-
-                    if ($j.type(a) === $j.type(b)) {
-                        if (reverse) {
-                            return a < b ? 1 : -1;
-                        } else {
-                            return a < b ? -1 : 1;
-                        }
-                    }
-
-                    if (reverse) {
-                        return $j.type(a) < $j.type(b) ? 1 : -1;
-                    } else {
-                        return $j.type(a) < $j.type(b) ? -1 : 1;
-                    }
-                } else {
-                    throw {
-                        name: 'Error',
-                        message: 'Expected an object when sorting by ' + name
-                    };
-                }
-            } catch (err) {
-                utility.error("ERROR in sort.by: " + err);
-                return undefined;
+    order: function () {
+        this.data = {
+            'reverse': {
+                'a': false,
+                'b': false,
+                'c': false
+            },
+            'value': {
+                'a': '',
+                'b': '',
+                'c': ''
             }
         };
-    },
-
-    objectBy: function (obj, sortfunc, deep) {
-        try {
-            var list   = [],
-                output = {},
-                i      = 0,
-                j      = '',
-                len    = 0;
-
-            if (typeof deep === 'undefined') {
-                deep = false;
-            }
-
-            for (j in obj) {
-                if (obj.hasOwnProperty(j)) {
-                    list.push(j);
-                }
-            }
-
-            list.sort(sortfunc);
-            for (i = 0, len = list.length; i < len; i += 1) {
-                if (deep && $j.isPlainObject(obj[list[i]])) {
-                    output[list[i]] = caap.SortObject(obj[list[i]], sortfunc, deep);
-                } else {
-                    output[list[i]] = obj[list[i]];
-                }
-            }
-
-            return output;
-        } catch (err) {
-            utility.error("ERROR in sort.objectBy: " + err);
-            return undefined;
-        }
     },
 
     dialog: {},
 
     form: function (id, list, records) {
         try {
-            var html      = '',
-                it        = 0,
-                it1       = 0,
-                len1      = 0;
+            var html = '',
+                it   = 0,
+                it1  = 0,
+                len1 = 0;
 
             if (!sort.dialog[id] || !sort.dialog[id].length) {
                 list.unshift("");
@@ -129,79 +73,58 @@ sort = {
             sort.updateForm(id);
             return true;
         } catch (err) {
-            utility.error("ERROR in sort.form: " + err);
+            $u.error("ERROR in sort.form: " + err);
             return false;
         }
     },
 
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
     getForm: function (id, records) {
         try {
-            var order = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
-
+            var order = new sort.order();
             if (sort.dialog[id] && sort.dialog[id].length) {
-                order.reverse.a = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.reverse.b = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.reverse.c = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
-                order.value.a = $j("#select0 option:selected", sort.dialog[id]).val();
-                order.value.b = $j("#select1 option:selected", sort.dialog[id]).val();
-                order.value.c = $j("#select2 option:selected", sort.dialog[id]).val();
-                records.sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+                order.data['reverse']['a'] = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.data['reverse']['b'] = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.data['reverse']['c'] = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
+                order.data['value']['a'] = $j("#select0 option:selected", sort.dialog[id]).val();
+                order.data['value']['b'] = $j("#select1 option:selected", sort.dialog[id]).val();
+                order.data['value']['c'] = $j("#select2 option:selected", sort.dialog[id]).val();
+                records.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
                 state.setItem(id + "Sort", order);
                 state.setItem(id + "DashUpdate", true);
                 caap.UpdateDashboard(true);
             } else {
-                utility.warn("Dialog for getForm not found", id);
+                $u.warn("Dialog for getForm not found", id);
             }
 
-            return order;
+            return order.data;
         } catch (err) {
-            utility.error("ERROR in sort.getForm: " + err);
+            $u.error("ERROR in sort.getForm: " + err);
             return undefined;
         }
     },
 
     updateForm: function (id) {
         try {
-            var order = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
-
+            var order = new sort.order();
             if (sort.dialog[id] && sort.dialog[id].length) {
-                $j.extend(true, order, state.getItem(id + "Sort", order));
-                $j("#form0 input", sort.dialog[id]).val([order.reverse.a]);
-                $j("#form1 input", sort.dialog[id]).val([order.reverse.b]);
-                $j("#form2 input", sort.dialog[id]).val([order.reverse.c]);
-                $j("#select0", sort.dialog[id]).val(order.value.a);
-                $j("#select1", sort.dialog[id]).val(order.value.b);
-                $j("#select2", sort.dialog[id]).val(order.value.c);
+                $j.extend(true, order.data, state.getItem(id + "Sort", order));
+                $j("#form0 input", sort.dialog[id]).val([order.data['reverse']['a']]);
+                $j("#form1 input", sort.dialog[id]).val([order.data['reverse']['b']]);
+                $j("#form2 input", sort.dialog[id]).val([order.data['reverse']['c']]);
+                $j("#select0", sort.dialog[id]).val(order.data['value']['a']);
+                $j("#select1", sort.dialog[id]).val(order.data['value']['b']);
+                $j("#select2", sort.dialog[id]).val(order.data['value']['c']);
             } else {
-                utility.warn("Dialog for updateForm not found", id, sort.dialog[id]);
+                $u.warn("Dialog for updateForm not found", id, sort.dialog[id]);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in sort.updateForm: " + err);
+            $u.error("ERROR in sort.updateForm: " + err);
             return false;
         }
     }
+    /*jslint sub: false */
 };

@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512, onevar: true */
-/*global window,unsafeWindow,$,jQuery,GM_log,console,GM_getValue,GM_setValue,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,XPathResult,GM_deleteValue,GM_listValues,GM_addStyle,localStorage,sessionStorage,rison */
+/*global window,jQuery,console,GM_getValue,GM_setValue,GM_deleteValue,GM_listValues,localStorage,sessionStorage,rison */
 /*jslint maxlen: 250 */
 
 ////////////////////////////////////////////////////////////////////
@@ -830,7 +830,7 @@
                     l = 0;
 
                 type = type ? type : "log";
-                type = typeof console[type] !== undefined ? type : typeof console.log !== undefined ? type : '';
+                type = typeof console[type] !== 'undefined' ? type : typeof console.log !== 'undefined' ? type : '';
                 if (type) {
                     if (arguments.length === 4) {
                         for (i = 0, l = arguments[3].length; i < l; i += 1) {
@@ -866,6 +866,74 @@
                 utility.log_common("error", 1, text, Array.prototype.slice.call(arguments, 1));
             } else {
                 utility.log_common("error", 1, text);
+            }
+        },
+
+        sortBy: function (reverse, name, minor) {
+            return function (o, p) {
+                try {
+                    var a, b;
+                    if (jQuery.type(o) === 'object' && jQuery.type(p) === 'object' && o && p) {
+                        a = o[name];
+                        b = p[name];
+                        if (a === b) {
+                            return jQuery.type(minor) === 'function' ? minor(o, p) : o;
+                        }
+
+                        if (jQuery.type(a) === jQuery.type(b)) {
+                            if (reverse) {
+                                return a < b ? 1 : -1;
+                            } else {
+                                return a < b ? -1 : 1;
+                            }
+                        }
+
+                        if (reverse) {
+                            return jQuery.type(a) < jQuery.type(b) ? 1 : -1;
+                        } else {
+                            return jQuery.type(a) < jQuery.type(b) ? -1 : 1;
+                        }
+                    } else {
+                        throw {
+                            name: 'Error',
+                            message: 'Expected an object when sorting by ' + name
+                        };
+                    }
+                } catch (err) {
+                    utility.error("ERROR in utility.sortBy: " + err);
+                    return undefined;
+                }
+            };
+        },
+
+        sortObjectBy: function (obj, sortfunc, deep) {
+            try {
+                var list   = [],
+                    output = {},
+                    i      = 0,
+                    j      = '',
+                    len    = 0;
+
+                deep = deep ? deep : false;
+                for (j in obj) {
+                    if (obj.hasOwnProperty(j)) {
+                        list.push(j);
+                    }
+                }
+
+                list.sort(sortfunc);
+                for (i = 0, len = list.length; i < len; i += 1) {
+                    if (deep && jQuery.isPlainObject(obj[list[i]])) {
+                        output[list[i]] = utility.sortObjectBy(obj[list[i]], sortfunc, deep);
+                    } else {
+                        output[list[i]] = obj[list[i]];
+                    }
+                }
+
+                return output;
+            } catch (err) {
+                utility.error("ERROR in utility.sortObjectBy: " + err);
+                return undefined;
             }
         },
 
@@ -2068,7 +2136,7 @@
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
     if (!window['utility']) {
-        window['utility'] = window.utility = window.$u = utility;
+        window['utility'] = window.utility = window['$u'] = window.$u = utility;
         utility['jQueryExtend'] = utility.jQueryExtend;
         utility['is_chrome'] = utility.is_chrome;
         utility['is_firefox'] = utility.is_firefox;
@@ -2085,6 +2153,8 @@
         utility['log'] = utility.log;
         utility['warn'] = utility.warn;
         utility['error'] = utility.error;
+        utility['sortBy'] = utility.sortBy;
+        utility['sortObjectBy'] = utility.sortObjectBy;
         utility['charPrintables'] = utility.charPrintables;
         utility['charNonPrintables'] = utility.charNonPrintables;
         utility['testMD5'] = utility.testMD5;

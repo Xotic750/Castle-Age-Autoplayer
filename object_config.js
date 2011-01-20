@@ -14,10 +14,10 @@ config = {
                 config.options = gm.setItem('config.options', {});
             }
 
-            utility.log(5, "config.load", config.options);
+            $u.log(5, "config.load", config.options);
             return true;
         } catch (err) {
-            utility.error("ERROR in config.load: " + err);
+            $u.error("ERROR in config.load: " + err);
             return false;
         }
     },
@@ -25,10 +25,10 @@ config = {
     save: function (force) {
         try {
             gm.setItem('config.options', config.options);
-            utility.log(5, "config.save", config.options);
+            $u.log(5, "config.save", config.options);
             return true;
         } catch (err) {
-            utility.error("ERROR in config.save: " + err);
+            $u.error("ERROR in config.save: " + err);
             return false;
         }
     },
@@ -47,7 +47,7 @@ config = {
             config.save();
             return value;
         } catch (err) {
-            utility.error("ERROR in config.setItem: " + err);
+            $u.error("ERROR in config.setItem: " + err);
             return undefined;
         }
     },
@@ -65,12 +65,12 @@ config = {
             }
 
             if (item === undefined || item === null) {
-                utility.warn("config.getItem returned 'undefined' or 'null' for", name);
+                $u.warn("config.getItem returned 'undefined' or 'null' for", name);
             }
 
             return item;
         } catch (err) {
-            utility.error("ERROR in config.getItem: " + err);
+            $u.error("ERROR in config.getItem: " + err);
             return undefined;
         }
     },
@@ -85,7 +85,7 @@ config = {
             item = config.getItem(name, value).toArray();
             return item;
         } catch (err) {
-            utility.error("ERROR in config.getArray: " + err);
+            $u.error("ERROR in config.getArray: " + err);
             return undefined;
         }
     },
@@ -97,13 +97,13 @@ config = {
             }
 
             if (config.options[name] === undefined || config.options[name] === null) {
-                utility.warn("config.deleteItem - Invalid or non-existant flag: ", name);
+                $u.warn("config.deleteItem - Invalid or non-existant flag: ", name);
             }
 
             delete config.options[name];
             return true;
         } catch (err) {
-            utility.error("ERROR in config.deleteItem: " + err);
+            $u.error("ERROR in config.deleteItem: " + err);
             return false;
         }
     }

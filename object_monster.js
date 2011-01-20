@@ -420,10 +420,10 @@ monster = {
             }
 
             state.setItem("MonsterDashUpdate", true);
-            utility.log(5, "monster.load", monster.records);
+            $u.log(5, "monster.load", monster.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.load: " + err);
+            $u.error("ERROR in monster.load: " + err);
             return false;
         }
     },
@@ -432,10 +432,10 @@ monster = {
         try {
             gm.setItem('monster.records', monster.records);
             state.setItem("MonsterDashUpdate", true);
-            utility.log(5, "monster.save", monster.records);
+            $u.log(5, "monster.save", monster.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.save: " + err);
+            $u.error("ERROR in monster.save: " + err);
             return false;
         }
     },
@@ -461,7 +461,7 @@ monster = {
 
             return value;
         } catch (err) {
-            utility.error("ERROR in monster.parseCondition: " + err);
+            $u.error("ERROR in monster.parseCondition: " + err);
             return false;
         }
     },
@@ -472,7 +472,7 @@ monster = {
                 count = 0;
 
             if (typeof name !== 'string') {
-                utility.warn("name", name);
+                $u.warn("name", name);
                 throw "Invalid identifying name!";
             }
 
@@ -481,7 +481,7 @@ monster = {
             }
 
             words = name.split(" ");
-            utility.log(3, "Words", words);
+            $u.log(3, "Words", words);
             count = words.length - 1;
             if (count >= 4) {
                 if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
@@ -498,7 +498,7 @@ monster = {
 
             return words[count];
         } catch (err) {
-            utility.error("ERROR in monster.type: " + err, arguments.callee.caller);
+            $u.error("ERROR in monster.type: " + err, arguments.callee.caller);
             return false;
         }
     },
@@ -513,7 +513,7 @@ monster = {
                 newRecord = {};
 
             if (typeof name !== 'string') {
-                utility.warn("name", name);
+                $u.warn("name", name);
                 throw "Invalid identifying name!";
             }
 
@@ -529,16 +529,16 @@ monster = {
             }
 
             if (success) {
-                utility.log(3, "Got monster record", name, monster.records[it]);
+                $u.log(3, "Got monster record", name, monster.records[it]);
                 return monster.records[it];
             } else {
                 newRecord = new monster.record();
                 newRecord.data['name'] = name;
-                utility.log(3, "New monster record", name, newRecord.data);
+                $u.log(3, "New monster record", name, newRecord.data);
                 return newRecord.data;
             }
         } catch (err) {
-            utility.error("ERROR in monster.getItem: " + err, arguments.callee.caller);
+            $u.error("ERROR in monster.getItem: " + err, arguments.callee.caller);
             return false;
         }
     },
@@ -550,7 +550,7 @@ monster = {
             }
 
             if (typeof record['name'] !== 'string' || record['name'] === '') {
-                utility.warn("name", record['name']);
+                $u.warn("name", record['name']);
                 throw "Invalid identifying name!";
             }
 
@@ -567,16 +567,16 @@ monster = {
 
             if (success) {
                 monster.records[it] = record;
-                utility.log(3, "Updated monster record", record, monster.records);
+                $u.log(3, "Updated monster record", record, monster.records);
             } else {
                 monster.records.push(record);
-                utility.log(3, "Added monster record", record, monster.records);
+                $u.log(3, "Added monster record", record, monster.records);
             }
 
             monster.save();
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.setItem: " + err);
+            $u.error("ERROR in monster.setItem: " + err);
             return false;
         }
     },
@@ -588,7 +588,7 @@ monster = {
                 success   = false;
 
             if (typeof name !== 'string' || name === '') {
-                utility.warn("name", name);
+                $u.warn("name", name);
                 throw "Invalid identifying name!";
             }
 
@@ -602,14 +602,14 @@ monster = {
             if (success) {
                 monster.records.splice(it, 1);
                 monster.save();
-                utility.log(3, "Deleted monster record", name, monster.records);
+                $u.log(3, "Deleted monster record", name, monster.records);
                 return true;
             } else {
-                utility.warn("Unable to delete monster record", name, monster.records);
+                $u.warn("Unable to delete monster record", name, monster.records);
                 return false;
             }
         } catch (err) {
-            utility.error("ERROR in monster.deleteItem: " + err);
+            $u.error("ERROR in monster.deleteItem: " + err);
             return false;
         }
     },
@@ -621,7 +621,7 @@ monster = {
             state.setItem("MonsterDashUpdate", true);
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.clear: " + err);
+            $u.error("ERROR in monster.clear: " + err);
             return false;
         }
     },
@@ -658,18 +658,18 @@ monster = {
             damageDone = (100 - record['life']) / 100 * boss.hp;
             hpLeft = boss.hp - damageDone;
             for (s = 0, len = boss.siegeClicks.length; s < len; s += 1) {
-                utility.log(5, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
+                $u.log(5, 's ', s, ' T2K ', T2K, ' hpLeft ', hpLeft);
                 if (s < siegeStage || record['miss'] === 0) {
                     totalSiegeDamage += boss.siegeDam[s];
                     totalSiegeClicks += boss.siegeClicks[s];
                 } else if (s === siegeStage) {
                     attackDamPerHour = (damageDone - totalSiegeDamage) / timeUsed;
                     clicksPerHour = (totalSiegeClicks + boss.siegeClicks[s] - record['miss']) / timeUsed;
-                    utility.log(5, 'Attack Damage Per Hour: ', attackDamPerHour);
-                    utility.log(5, 'Damage Done: ', damageDone);
-                    utility.log(5, 'Total Siege Damage: ', totalSiegeDamage);
-                    utility.log(5, 'Time Used: ', timeUsed);
-                    utility.log(5, 'Clicks Per Hour: ', clicksPerHour);
+                    $u.log(5, 'Attack Damage Per Hour: ', attackDamPerHour);
+                    $u.log(5, 'Damage Done: ', damageDone);
+                    $u.log(5, 'Total Siege Damage: ', totalSiegeDamage);
+                    $u.log(5, 'Time Used: ', timeUsed);
+                    $u.log(5, 'Clicks Per Hour: ', clicksPerHour);
                 } else if (s >= siegeStage) {
                     clicksToNextSiege = (s === siegeStage) ? record['miss'] : boss.siegeClicks[s];
                     nextSiegeAttackPlusSiegeDamage = boss.siegeDam[s] + clicksToNextSiege / clicksPerHour * attackDamPerHour;
@@ -685,11 +685,11 @@ monster = {
 
             siegeImpacts = (record['life'] / (100 - record['life']) * timeLeft).dp(2);
             T2K = T2K.dp(2);
-            utility.log(3, 'T2K based on siege: ', caap.decHours2HoursMin(T2K));
-            utility.log(3, 'T2K estimate without calculating siege impacts: ', caap.decHours2HoursMin(siegeImpacts));
+            $u.log(3, 'T2K based on siege: ', caap.decHours2HoursMin(T2K));
+            $u.log(3, 'T2K estimate without calculating siege impacts: ', caap.decHours2HoursMin(siegeImpacts));
             return T2K;
         } catch (err) {
-            utility.error("ERROR in monster.t2kCalc: " + err);
+            $u.error("ERROR in monster.t2kCalc: " + err);
             return 0;
         }
     },
@@ -710,7 +710,7 @@ monster = {
             state.setItem('monsterReviewCounter', -3);
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.flagReview: " + err);
+            $u.error("ERROR in monster.flagReview: " + err);
             return false;
         }
     },
@@ -724,7 +724,7 @@ monster = {
             caap.UpdateDashboard(true);
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.flagFullReview: " + err);
+            $u.error("ERROR in monster.flagFullReview: " + err);
             return false;
         }
     },
@@ -744,7 +744,7 @@ monster = {
                 return false;
             }
 
-            utility.log(2, 'Selecting monster');
+            $u.log(2, 'Selecting monster');
             var monsterList  = {
                     'battle_monster' : [],
                     'raid'           : [],
@@ -793,7 +793,7 @@ monster = {
 
                 if (monster.info[monster.records[it]['type']] && monster.info[monster.records[it]['type']].alpha) {
                     if (monster.records[it]['damage'] !== -1 && monster.records[it]['color'] !== 'grey' && schedule.since(monster.records[it]['stunTime'], 0)) {
-                        utility.log(2, "Review monster due to class timer", monster.records[it]['name']);
+                        $u.log(2, "Review monster due to class timer", monster.records[it]['name']);
                         monster.records[it]['review'] = -1;
                         monster.flagReview();
                     }
@@ -820,7 +820,7 @@ monster = {
                 selectTypes = ['battle_monster', 'raid'];
             }
 
-            utility.log(3, 'records/monsterList/selectTypes', monster.records, monsterList, selectTypes);
+            $u.log(3, 'records/monsterList/selectTypes', monster.records, monsterList, selectTypes);
             // We loop through for each selection type (only once if serialized between the two)
             // We then read in the users attack order list
             for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
@@ -849,7 +849,7 @@ monster = {
                     attackOrderList = config.getList('order' + selectTypes[s], '').concat('your', "'");
                 }
 
-                utility.log(5, 'attackOrderList', attackOrderList);
+                $u.log(5, 'attackOrderList', attackOrderList);
                 // Next we step through the users list getting the name and conditions
                 for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
                     if (!attackOrderList[p].trim()) {
@@ -884,18 +884,18 @@ monster = {
                             continue;
                         }
 
-                        utility.log(3, 'Current monster being checked', monsterObj);
+                        $u.log(3, 'Current monster being checked', monsterObj);
                         // checkMonsterDamage would have set our 'color' and 'over' values. We need to check
                         // these to see if this is the monster we should select
                         if (!firstUnderMax && monsterObj['color'] !== 'purple') {
                             if (monsterObj['over'] === 'ach') {
                                 if (!firstOverAch) {
                                     firstOverAch = monsterList[selectTypes[s]][m];
-                                    utility.log(3, 'firstOverAch', firstOverAch);
+                                    $u.log(3, 'firstOverAch', firstOverAch);
                                 }
                             } else if (monsterObj['over'] !== 'max') {
                                 firstUnderMax = monsterList[selectTypes[s]][m];
-                                utility.log(3, 'firstUnderMax', firstUnderMax);
+                                $u.log(3, 'firstUnderMax', firstUnderMax);
                             }
                         }
 
@@ -907,11 +907,11 @@ monster = {
                                     if (monsterObj['over'] === 'ach') {
                                         if (!firstFortOverAch) {
                                             firstFortOverAch = monsterList[selectTypes[s]][m];
-                                            utility.log(3, 'firstFortOverAch', firstFortOverAch);
+                                            $u.log(3, 'firstFortOverAch', firstFortOverAch);
                                         }
                                     } else if (monsterObj['over'] !== 'max') {
                                         firstFortUnderMax = monsterList[selectTypes[s]][m];
-                                        utility.log(3, 'firstFortUnderMax', firstFortUnderMax);
+                                        $u.log(3, 'firstFortUnderMax', firstFortUnderMax);
                                     }
                                 }
                             }
@@ -922,11 +922,11 @@ monster = {
                                         if (monsterObj['over'] === 'ach') {
                                             if (!firstStrengthOverAch) {
                                                 firstStrengthOverAch = monsterList[selectTypes[s]][m];
-                                                utility.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
+                                                $u.log(3, 'firstStrengthOverAch', firstStrengthOverAch);
                                             }
                                         } else if (monsterObj['over'] !== 'max') {
                                             firstStrengthUnderMax = monsterList[selectTypes[s]][m];
-                                            utility.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
+                                            $u.log(3, 'firstStrengthUnderMax', firstStrengthUnderMax);
                                         }
                                     }
                                 }
@@ -935,11 +935,11 @@ monster = {
                                     if (monsterObj['over'] === 'ach') {
                                         if (!firstStunOverAch) {
                                             firstStunOverAch = monsterList[selectTypes[s]][m];
-                                            utility.log(3, 'firstStunOverAch', firstStunOverAch);
+                                            $u.log(3, 'firstStunOverAch', firstStunOverAch);
                                         }
                                     } else if (monsterObj['over'] !== 'max') {
                                         firstStunUnderMax = monsterList[selectTypes[s]][m];
-                                        utility.log(3, 'firstStunUnderMax', firstStunUnderMax);
+                                        $u.log(3, 'firstStunUnderMax', firstStunUnderMax);
                                     }
                                 }
                             }
@@ -958,7 +958,7 @@ monster = {
                     if (strengthTarget) {
                         energyTarget.data['name'] = strengthTarget;
                         energyTarget.data['type'] = 'Strengthen';
-                        utility.log(2, 'Strengthen target ', energyTarget.data['name']);
+                        $u.log(2, 'Strengthen target ', energyTarget.data['name']);
                     }
 
                     fortifyTarget = firstFortUnderMax;
@@ -969,7 +969,7 @@ monster = {
                     if (fortifyTarget) {
                         energyTarget.data['name'] = fortifyTarget;
                         energyTarget.data['type'] = 'Fortify';
-                        utility.log(2, 'Fortify replaces strengthen ', energyTarget.data['name']);
+                        $u.log(2, 'Fortify replaces strengthen ', energyTarget.data['name']);
                     }
 
                     stunTarget = firstStunUnderMax;
@@ -980,12 +980,12 @@ monster = {
                     if (stunTarget) {
                         energyTarget.data['name'] = stunTarget;
                         energyTarget.data['type'] = 'Stun';
-                        utility.log(2, 'Stun target replaces fortify ', energyTarget.data['name']);
+                        $u.log(2, 'Stun target replaces fortify ', energyTarget.data['name']);
                     }
 
                     state.setItem('targetFromfortify', energyTarget.data);
                     if (energyTarget.data['name']) {
-                        utility.log(1, 'Energy target', energyTarget.data);
+                        $u.log(1, 'Energy target', energyTarget.data);
                     }
                 }
 
@@ -1026,11 +1026,11 @@ monster = {
                         switch (config.getItem('MonsterGeneral', 'Use Current')) {
                         case 'Orc King':
                             state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
-                            utility.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
+                            $u.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
                             break;
                         case 'Barbarus':
                             state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
-                            utility.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
+                            $u.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
                             break;
                         default:
                         }
@@ -1050,7 +1050,7 @@ monster = {
             caap.UpdateDashboard(true);
             return true;
         } catch (err) {
-            utility.error("ERROR in monster.select: " + err);
+            $u.error("ERROR in monster.select: " + err);
             return false;
         }
     },
@@ -1077,28 +1077,28 @@ monster = {
                         tStr = tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text();
                         tempText += ' ' + (tStr ? tStr.trim().replace("'s Life", "") : '');
                     } else {
-                        utility.warn("Problem finding nm_bars");
+                        $u.warn("Problem finding nm_bars");
                         return false;
                     }
                 } else {
-                    utility.warn("Problem finding dragon_title_owner and nm_top");
+                    $u.warn("Problem finding dragon_title_owner and nm_top");
                     return false;
                 }
             }
 
             if (monsterDiv.find("img[uid='" + caap.stats['FBID'] + "']").length) {
-                utility.log(2, "You monster found");
+                $u.log(2, "You monster found");
                 tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
             }
 
             if (monsterName !== tempText) {
-                utility.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
+                $u.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
                 return caap.NavigateTo('keep,' + monster.getItem(monsterName).page);
             }
 
             return false;
         } catch (err) {
-            utility.error("ERROR in monster.ConfirmRightPage: " + err);
+            $u.error("ERROR in monster.ConfirmRightPage: " + err);
             return false;
         }
     }

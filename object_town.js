@@ -46,40 +46,28 @@ town = {
             'mpi'    : 0
         };
     },
-    /*jslint sub: false */
 
     types: ['soldiers', 'item', 'magic'],
 
     copy2sortable: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to copy2sortable: ", type);
+                $u.warn("Type passed to copy2sortable: ", type);
                 throw "Invalid type value!";
             }
 
-            var order = {
-                    reverse: {
-                        a: false,
-                        b: false,
-                        c: false
-                    },
-                    value: {
-                        a: '',
-                        b: '',
-                        c: ''
-                    }
-                };
-
-            $j.extend(true, order, state.getItem(type.ucFirst() + "Sort", order));
+            var order = new sort.order();
+            $j.extend(true, order.data, state.getItem(type.ucFirst() + "Sort", order.data));
             town[type + 'Sortable'] = [];
             $j.merge(town[type + 'Sortable'], town[type]);
-            town[type + 'Sortable'].sort(sort.by(order.reverse.a, order.value.a, sort.by(order.reverse.b, order.value.b, sort.by(order.reverse.c, order.value.c))));
+            town[type + 'Sortable'].sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
             return true;
         } catch (err) {
-            utility.error("ERROR in town.copy2sortable: " + err);
+            $u.error("ERROR in town.copy2sortable: " + err);
             return false;
         }
     },
+    /*jslint sub: false */
 
     soldiershbest: false,
 
@@ -90,7 +78,7 @@ town = {
     load: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to load: ", type);
+                $u.warn("Type passed to load: ", type);
                 throw "Invalid type value!";
             }
 
@@ -100,13 +88,13 @@ town = {
             }
 
             town[type + "hbest"] = JSON.hbest(town[type]);
-            utility.log(2, "town.load " + type + " Hbest", town[type + "hbest"]);
+            $u.log(2, "town.load " + type + " Hbest", town[type + "hbest"]);
             town.copy2sortable(type);
             state.setItem(type.ucFirst() + "DashUpdate", true);
-            utility.log(type, 5, "town.load", type, town[type]);
+            $u.log(type, 5, "town.load", type, town[type]);
             return true;
         } catch (err) {
-            utility.error("ERROR in town.load: " + err);
+            $u.error("ERROR in town.load: " + err);
             return false;
         }
     },
@@ -114,17 +102,17 @@ town = {
     save: function (type) {
         try {
             if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to save: ", type);
+                $u.warn("Type passed to save: ", type);
                 throw "Invalid type value!";
             }
 
             var compress = false;
             gm.setItem(type + '.records', town[type], town[type + "hbest"], compress);
             state.setItem(type.ucFirst() + "DashUpdate", true);
-            utility.log(type, 5, "town.save", type, town[type]);
+            $u.log(type, 5, "town.save", type, town[type]);
             return true;
         } catch (err) {
-            utility.error("ERROR in town.save: " + err);
+            $u.error("ERROR in town.save: " + err);
             return false;
         }
     },
@@ -156,7 +144,7 @@ town = {
 
             return theType;
         } catch (err) {
-            utility.error("ERROR in town.getItemType: " + err);
+            $u.error("ERROR in town.getItemType: " + err);
             return undefined;
         }
     },
@@ -173,7 +161,7 @@ town = {
                 save    = false;
 
             if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
-                utility.warn("Type passed to load: ", type);
+                $u.warn("Type passed to load: ", type);
                 throw "Invalid type value!";
             }
 
@@ -189,7 +177,7 @@ town = {
                         current.data['name'] = tStr ? tStr.trim() : '';
                         current.data['type'] = town.getItemType(current.data['name']);
                     } else {
-                        utility.warn("Unable to get item name in", type);
+                        $u.warn("Unable to get item name in", type);
                         passed = false;
                     }
 
@@ -199,7 +187,7 @@ town = {
                             tStr = tempDiv.attr("src");
                             current.data['image'] = tStr ? tStr.filepart() : '';
                         } else {
-                            utility.log(4, "No image found for", type, current.data['name']);
+                            $u.log(4, "No image found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_txt_int'] span[class='negative']");
@@ -207,7 +195,7 @@ town = {
                             tStr = tempDiv.text();
                             current.data['upkeep'] = tStr ? tStr.numberOnly() : 0;
                         } else {
-                            utility.log(4, "No upkeep found for", type, current.data.name);
+                            $u.log(4, "No upkeep found for", type, current.data.name);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_stats_int'] div");
@@ -220,7 +208,7 @@ town = {
                             current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                             current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
                         } else {
-                            utility.warn("No atk/def found for", type, current.data['name']);
+                            $u.warn("No atk/def found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_costs_int'] strong[class='gold']");
@@ -228,7 +216,7 @@ town = {
                             tStr = tempDiv.text();
                             current.data['cost'] = tStr ? tStr.numberOnly() : 0;
                         } else {
-                            utility.log(4, "No cost found for", type, current.data['name']);
+                            $u.log(4, "No cost found for", type, current.data['name']);
                         }
 
                         tempDiv = row.find("div[class='eq_buy_costs_int'] tr:last td").eq(0);
@@ -237,7 +225,7 @@ town = {
                             current.data['owned'] = tStr ? tStr.numberOnly() : 0;
                             current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                         } else {
-                            utility.warn("No number owned found for", type, current.data['name']);
+                            $u.warn("No number owned found for", type, current.data['name']);
                         }
 
                         town[type].push(current.data);
@@ -249,14 +237,14 @@ town = {
             if (save) {
                 town.save(type);
                 town.copy2sortable(type);
-                utility.log(2, "Got town details for", type);
+                $u.log(2, "Got town details for", type);
             } else {
-                utility.log(1, "Nothing to save for", type);
+                $u.log(1, "Nothing to save for", type);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in town.GetItems: " + err);
+            $u.error("ERROR in town.GetItems: " + err);
             return false;
         }
     },
@@ -273,7 +261,7 @@ town = {
 
             for (it = 0, len = town.magic.length; it < len; it += 1) {
                 if (town.magic[it]['name'] === name) {
-                    utility.log(3, "town.haveOrb", town.magic[it]);
+                    $u.log(3, "town.haveOrb", town.magic[it]);
                     if (town.magic[it]['owned']) {
                         haveIt = true;
                     }
@@ -284,7 +272,7 @@ town = {
 
             return haveIt;
         } catch (err) {
-            utility.error("ERROR in town.haveOrb: " + err);
+            $u.error("ERROR in town.haveOrb: " + err);
             return undefined;
         }
     },
@@ -321,7 +309,7 @@ town = {
 
             return owned;
         } catch (err) {
-            utility.error("ERROR in town.getCount: " + err);
+            $u.error("ERROR in town.getCount: " + err);
             return undefined;
         }
     }

@@ -100,12 +100,12 @@ battle = {
             }
 
             battle.hbest = JSON.hbest(battle.records);
-            utility.log(2, "battle.load Hbest", battle.hbest);
+            $u.log(2, "battle.load Hbest", battle.hbest);
             state.setItem("BattleDashUpdate", true);
-            utility.log(5, "battle.load", battle.records);
+            $u.log(5, "battle.load", battle.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.load: " + err);
+            $u.error("ERROR in battle.load: " + err);
             return false;
         }
     },
@@ -115,10 +115,10 @@ battle = {
             var compress = false;
             gm.setItem('battle.records', battle.records, battle.hbest, compress);
             state.setItem("BattleDashUpdate", true);
-            utility.log(5, "battle.save", battle.records);
+            $u.log(5, "battle.save", battle.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.save: " + err);
+            $u.error("ERROR in battle.save: " + err);
             return false;
         }
     },
@@ -129,7 +129,7 @@ battle = {
             state.setItem("BattleDashUpdate", true);
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.clear: " + err);
+            $u.error("ERROR in battle.clear: " + err);
             return false;
         }
     },
@@ -144,7 +144,7 @@ battle = {
                 newRecord = null;
 
             if (userId === '' || isNaN(userId) || userId < 1) {
-                utility.warn("userId", userId);
+                $u.warn("userId", userId);
                 throw "Invalid identifying userId!";
             }
 
@@ -156,16 +156,16 @@ battle = {
             }
 
             if (success) {
-                utility.log(3, "Got battle record", userId, battle.records[it]);
+                $u.log(3, "Got battle record", userId, battle.records[it]);
                 return battle.records[it];
             } else {
                 newRecord = new battle.record();
                 newRecord.data['userId'] = userId;
-                utility.log(3, "New battle record", userId, newRecord.data);
+                $u.log(3, "New battle record", userId, newRecord.data);
                 return newRecord.data;
             }
         } catch (err) {
-            utility.error("ERROR in battle.getItem: " + err, arguments.callee.caller);
+            $u.error("ERROR in battle.getItem: " + err, arguments.callee.caller);
             return false;
         }
     },
@@ -177,7 +177,7 @@ battle = {
             }
 
             if (record['userId'] === '' || isNaN(record['userId']) || record['userId'] < 1) {
-                utility.warn("userId", record['userId']);
+                $u.warn("userId", record['userId']);
                 throw "Invalid identifying userId!";
             }
 
@@ -194,16 +194,16 @@ battle = {
 
             if (success) {
                 battle.records[it] = record;
-                utility.log(3, "Updated battle record", record, battle.records);
+                $u.log(3, "Updated battle record", record, battle.records);
             } else {
                 battle.records.push(record);
-                utility.log(3, "Added battle record", record, battle.records);
+                $u.log(3, "Added battle record", record, battle.records);
             }
 
             battle.save();
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.setItem: " + err, record, arguments.callee.caller);
+            $u.error("ERROR in battle.setItem: " + err, record, arguments.callee.caller);
             return false;
         }
     },
@@ -215,7 +215,7 @@ battle = {
                 success   = false;
 
             if (userId === '' || isNaN(userId) || userId < 1) {
-                utility.warn("userId", userId);
+                $u.warn("userId", userId);
                 throw "Invalid identifying userId!";
             }
 
@@ -229,14 +229,14 @@ battle = {
             if (success) {
                 battle.records.splice(it, 1);
                 battle.save();
-                utility.log(3, "Deleted battle record", userId, battle.records);
+                $u.log(3, "Deleted battle record", userId, battle.records);
                 return true;
             } else {
-                utility.warn("Unable to delete battle record", userId, battle.records);
+                $u.warn("Unable to delete battle record", userId, battle.records);
                 return false;
             }
         } catch (err) {
-            utility.error("ERROR in battle.deleteItem: " + err);
+            $u.error("ERROR in battle.deleteItem: " + err);
             return false;
         }
     },
@@ -256,14 +256,14 @@ battle = {
             }
 
             if (record['userId'] === '' || isNaN(record['userId']) || record['userId'] < 1) {
-                utility.warn("userId", record);
+                $u.warn("userId", record);
                 throw "Invalid identifying userId!";
             }
 
             hash = (record['userId'].toString().SHA1() + record['nameStr']).SHA1();
             return (hashes.indexOf(hash) >= 0);
         } catch (err) {
-            utility.error("ERROR in battle.hashCheck: " + err);
+            $u.error("ERROR in battle.hashCheck: " + err);
             return false;
         }
     },
@@ -305,16 +305,16 @@ battle = {
                     tempText = tempText ? tempText.trim() : '';
                     if (tempText && tempText.match(/Your opponent is hiding, please try again/)) {
                         result.hiding = true;
-                        utility.log(1, "Your opponent is hiding");
+                        $u.log(1, "Your opponent is hiding");
                         return result;
                     } else {
                         result.unknown = true;
-                        utility.warn("Unable to determine won, lost or hiding!");
+                        $u.warn("Unable to determine won, lost or hiding!");
                         return result;
                     }
                 } else {
                     result.unknown = true;
-                    utility.warn("Unable to determine won or lost!");
+                    $u.warn("Unable to determine won or lost!");
                     return result;
                 }
             }
@@ -332,13 +332,13 @@ battle = {
                             if (tempArr && tempArr.length === 2) {
                                 result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
                             } else {
-                                utility.warn("Unable to match war points", tempText);
+                                $u.warn("Unable to match war points", tempText);
                             }
                         } else {
-                            utility.warn("Unable to find war points text in", tempDiv.parent());
+                            $u.warn("Unable to find war points text in", tempDiv.parent());
                         }
                     } else {
-                        utility.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
+                        $u.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
                     }
 
                     tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
@@ -348,10 +348,10 @@ battle = {
                         if (tempText) {
                             result.gold = tempText ? tempText.numberOnly() : 0;
                         } else {
-                            utility.warn("Unable to find gold text in", tempDiv);
+                            $u.warn("Unable to find gold text in", tempDiv);
                         }
                     } else {
-                        utility.warn("Unable to find gold element in", resultsDiv);
+                        $u.warn("Unable to find gold element in", resultsDiv);
                     }
 
                     tempDiv = resultsDiv.find("input[name='target_id']").eq(0);
@@ -360,11 +360,11 @@ battle = {
                         if (tempText) {
                             result.userId = tempText ? tempText.numberOnly() : 0;
                         } else {
-                            utility.warn("No value in", tempDiv);
+                            $u.warn("No value in", tempDiv);
                             throw "Unable to get userId!";
                         }
                     } else {
-                        utility.warn("Unable to find target_id in", resultsDiv);
+                        $u.warn("Unable to find target_id in", resultsDiv);
                         throw "Unable to get userId!";
                     }
 
@@ -375,13 +375,13 @@ battle = {
                         if (tempText) {
                             result.userName = tempText.replace("'s Defense", '');
                         } else {
-                            utility.warn("Unable to match user's name in", tempText);
+                            $u.warn("Unable to match user's name in", tempText);
                         }
                     } else {
-                        utility.warn("Unable to find ", warWinLoseImg);
+                        $u.warn("Unable to find ", warWinLoseImg);
                     }
                 } else {
-                    utility.warn("Unable to find result div");
+                    $u.warn("Unable to find result div");
                     throw "Unable to get userId!";
                 }
             } else {
@@ -416,17 +416,17 @@ battle = {
                                         if (tempArr && tempArr.length === 2) {
                                             result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
                                         } else {
-                                            utility.warn("Unable to match battle points", tempText);
+                                            $u.warn("Unable to match battle points", tempText);
                                         }
                                     } else {
-                                        utility.warn("Unable to find battle points text in", tempDiv.parent().parent());
+                                        $u.warn("Unable to find battle points text in", tempDiv.parent().parent());
                                     }
                                 }
                             } else {
-                                utility.warn("Unable to find battle points text in", tempDiv.parent());
+                                $u.warn("Unable to find battle points text in", tempDiv.parent());
                             }
                         } else {
-                            utility.log(3, "Unable to find battle_rank_small_icon in", resultsDiv);
+                            $u.log(3, "Unable to find battle_rank_small_icon in", resultsDiv);
                         }
 
                         tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
@@ -436,10 +436,10 @@ battle = {
                             if (tempText) {
                                 result.gold = tempText ? tempText.numberOnly() : 0;
                             } else {
-                                utility.warn("Unable to find gold text in", tempDiv);
+                                $u.warn("Unable to find gold text in", tempDiv);
                             }
                         } else {
-                            utility.warn("Unable to find gold element in", resultsDiv);
+                            $u.warn("Unable to find gold element in", resultsDiv);
                         }
 
                         tempDiv = resultsDiv.find("a[href*='keep.php?casuser=']").eq(0);
@@ -450,7 +450,7 @@ battle = {
                                 if (tempArr && tempArr.length === 2) {
                                     result.userId = tempArr[1] ? tempArr[1].parseInt() : 0;
                                 } else {
-                                    utility.warn("Unable to match user's id in", tempText);
+                                    $u.warn("Unable to match user's id in", tempText);
                                     throw "Unable to get userId!";
                                 }
 
@@ -459,31 +459,31 @@ battle = {
                                 if (tempText) {
                                     result.userName = tempText;
                                 } else {
-                                    utility.warn("Unable to match user's name in", tempText);
+                                    $u.warn("Unable to match user's name in", tempText);
                                 }
                             } else {
-                                utility.warn("No href text in", tempDiv);
+                                $u.warn("No href text in", tempDiv);
                                 throw "Unable to get userId!";
                             }
                         } else {
-                            utility.warn("Unable to find keep.php?casuser= in", resultsDiv);
+                            $u.warn("Unable to find keep.php?casuser= in", resultsDiv);
                             throw "Unable to get userId!";
                         }
                     } else {
-                        utility.warn("Unable to find result div");
+                        $u.warn("Unable to find result div");
                         throw "Unable to get userId!";
                     }
                 } else {
-                    utility.warn("Unable to determine battle type");
+                    $u.warn("Unable to determine battle type");
                     throw "Unable to get userId!";
                 }
             }
 
             battleRecord = battle.getItem(result.userId);
-            utility.log(1, "battleRecord", battleRecord, result);
+            $u.log(1, "battleRecord", battleRecord, result);
             battleRecord['attackTime'] = new Date().getTime();
             if (result.userName && result.userName !== battleRecord['nameStr']) {
-                utility.log(1, "Updating battle record user name, from/to", battleRecord['nameStr'], result.userName);
+                $u.log(1, "Updating battle record user name, from/to", battleRecord['nameStr'], result.userName);
                 battleRecord['nameStr'] = result.userName;
             }
 
@@ -513,26 +513,26 @@ battle = {
 
                 break;
             case 'War' :
-                utility.log(1, "War Result");
+                $u.log(1, "War Result");
                 if (result.win) {
                     battleRecord['warwinsNum'] += 1;
-                    utility.log(1, "War Win", battleRecord['warwinsNum']);
+                    $u.log(1, "War Win", battleRecord['warwinsNum']);
                 } else {
                     battleRecord['warlossesNum'] += 1;
                     battleRecord['warLostTime'] = new Date().getTime();
-                    utility.log(1, "War Loss", battleRecord['userId'], battleRecord);
+                    $u.log(1, "War Loss", battleRecord['userId'], battleRecord);
                 }
 
                 break;
             default :
-                utility.warn("Battle type unknown!", result.battleType);
+                $u.warn("Battle type unknown!", result.battleType);
             }
 
             battle.setItem(battleRecord);
-            utility.log(1, "getResult returning", result, battleRecord);
+            $u.log(1, "getResult returning", result, battleRecord);
             return result;
         } catch (err) {
-            utility.error("ERROR in battle.getResult: " + err);
+            $u.error("ERROR in battle.getResult: " + err);
             return false;
         }
     },
@@ -554,7 +554,7 @@ battle = {
                 resultsText = resultsText ? resultsText.trim() : '';
                 if (resultsText) {
                     if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
-                        utility.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
+                        $u.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
                         if ($j.isPlainObject(battleRecord) && !$j.isEmptyObject(battleRecord)) {
                             battleRecord['deadTime'] = new Date().getTime();
                         }
@@ -566,7 +566,7 @@ battle = {
                         battleRecord['unknownTime'] = new Date().getTime();
                     }
 
-                    utility.warn("Unable to determine if user is dead!", resultsDiv);
+                    $u.warn("Unable to determine if user is dead!", resultsDiv);
                     dead = null;
                 }
             } else {
@@ -574,7 +574,7 @@ battle = {
                     battleRecord['unknownTime'] = new Date().getTime();
                 }
 
-                utility.warn("Unable to find any results!");
+                $u.warn("Unable to find any results!");
                 dead = null;
             }
 
@@ -584,7 +584,7 @@ battle = {
 
             return dead;
         } catch (err) {
-            utility.error("ERROR in battle.deadCheck: " + err);
+            $u.error("ERROR in battle.deadCheck: " + err);
             return undefined;
         }
     },
@@ -602,7 +602,7 @@ battle = {
                 return true;
             }
 
-            utility.log(2, "Checking Battle Results");
+            $u.log(2, "Checking Battle Results");
             battle.flagResult = false;
             state.setItem("BattleChainId", 0);
             if (battle.deadCheck() !== false) {
@@ -610,7 +610,7 @@ battle = {
             }
 
             result = battle.getResult();
-            utility.log(2, "result", result);
+            $u.log(2, "result", result);
             if (!result || result.hiding === true) {
                 return true;
             }
@@ -627,7 +627,7 @@ battle = {
 
             battleRecord = battle.getItem(result.userId);
             if (result.win) {
-                utility.log(1, "We Defeated ", result.userName);
+                $u.log(1, "We Defeated ", result.userName);
                 //Test if we should chain this guy
                 tempTime = battleRecord['chainTime'] ? battleRecord['chainTime'] : 0;
                 chainBP = config.getItem('ChainBP', '');
@@ -636,7 +636,7 @@ battle = {
                     if (chainBP !== '' && !isNaN(chainBP) && chainBP >= 0) {
                         if (result.points >= chainBP) {
                             state.setItem("BattleChainId", result.userId);
-                            utility.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
+                            $u.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
                         } else {
                             battleRecord['ignoreTime'] = new Date().getTime();
                         }
@@ -645,7 +645,7 @@ battle = {
                     if (chainGold !== '' && !isNaN(chainGold) && chainGold >= 0) {
                         if (result.gold >= chainGold) {
                             state.setItem("BattleChainId", result.userId);
-                            utility.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
+                            $u.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
                         } else {
                             battleRecord['ignoreTime'] = new Date().getTime();
                         }
@@ -659,12 +659,12 @@ battle = {
                 }
 
                 if (battleRecord['chainCount'] >= maxChains) {
-                    utility.log(1, "Lets give this guy a break. Chained", battleRecord['chainCount']);
+                    $u.log(1, "Lets give this guy a break. Chained", battleRecord['chainCount']);
                     battleRecord['chainTime'] = new Date().getTime();
                     battleRecord['chainCount'] = 0;
                 }
             } else {
-                utility.log(1, "We Were Defeated By ", result.userName);
+                $u.log(1, "We Were Defeated By ", result.userName);
                 battleRecord['chainCount'] = 0;
                 battleRecord['chainTime'] = 0;
             }
@@ -672,7 +672,7 @@ battle = {
             battle.setItem(battleRecord);
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.checkResults: " + err);
+            $u.error("ERROR in battle.checkResults: " + err);
             return false;
         }
     },
@@ -747,7 +747,7 @@ battle = {
 
             return targets[battleUpto];
         } catch (err) {
-            utility.error("ERROR in battle.getTarget: " + err);
+            $u.error("ERROR in battle.getTarget: " + err);
             return false;
         }
     },
@@ -760,7 +760,7 @@ battle = {
             caap.Click(battleButton);
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.click: " + err);
+            $u.error("ERROR in battle.click: " + err);
             return false;
         }
     },
@@ -803,7 +803,7 @@ battle = {
 
             return demiPointsDone;
         } catch (err) {
-            utility.error("ERROR in battle.selectedDemisDone: " + err);
+            $u.error("ERROR in battle.selectedDemisDone: " + err);
             return undefined;
         }
     },
@@ -837,10 +837,10 @@ battle = {
                 lastBattleID    = 0,
                 engageButton    = null;
 
-            utility.log(3, 'target img', battle.battles[type][config.getItem('BattleType', 'Invade')]);
+            $u.log(3, 'target img', battle.battles[type][config.getItem('BattleType', 'Invade')]);
             inputDiv = caap.appBodyDiv.find("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']");
             if (!inputDiv || !inputDiv.length) {
-                utility.warn('Not on battlepage');
+                $u.warn('Not on battlepage');
                 caap.NavigateTo(caap.battlePage);
                 return false;
             }
@@ -849,41 +849,41 @@ battle = {
             state.setItem('BattleChainId', '');
             // Lets get our Freshmeat user settings
             minRank = config.getItem("FreshMeatMinRank", 99);
-            utility.log(3, "FreshMeatMinRank", minRank);
+            $u.log(3, "FreshMeatMinRank", minRank);
             if (minRank === '' || isNaN(minRank)) {
                 if (minRank !== '') {
-                    utility.warn("FreshMeatMinRank is NaN, using default", 99);
+                    $u.warn("FreshMeatMinRank is NaN, using default", 99);
                 }
 
                 minRank = 99;
             }
 
             maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
-            utility.log(3, "FreshMeatMaxLevel", maxLevel);
+            $u.log(3, "FreshMeatMaxLevel", maxLevel);
             if (maxLevel === '' || isNaN(maxLevel)) {
                 maxLevel = 99999;
-                utility.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
+                $u.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
             }
 
             ARBase = config.getItem("FreshMeatARBase", 0.5);
-            utility.log(3, "FreshMeatARBase", ARBase);
+            $u.log(3, "FreshMeatARBase", ARBase);
             if (ARBase === '' || isNaN(ARBase)) {
                 ARBase = 0.5;
-                utility.warn("FreshMeatARBase is NaN, using default", ARBase);
+                $u.warn("FreshMeatARBase is NaN, using default", ARBase);
             }
 
             ARMax = gm.getItem("FreshMeatARMax", 99999, hiddenVar);
-            utility.log(3, "FreshMeatARMax", ARMax);
+            $u.log(3, "FreshMeatARMax", ARMax);
             if (ARMax === '' || isNaN(ARMax)) {
                 ARMax = 99999;
-                utility.warn("FreshMeatARMax is NaN, using default", ARMax);
+                $u.warn("FreshMeatARMax is NaN, using default", ARMax);
             }
 
             ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
-            utility.log(3, "FreshMeatARMin", ARMin);
+            $u.log(3, "FreshMeatARMin", ARMin);
             if (ARMin === '' || isNaN(ARMin)) {
                 ARMin = 0;
-                utility.warn("FreshMeatARMin is NaN, using default", ARMin);
+                $u.warn("FreshMeatARMin is NaN, using default", ARMin);
             }
 
             for (it = 0, len = inputDiv.length; it < len; it += 1) {
@@ -900,7 +900,7 @@ battle = {
                     txt = txt ? txt.trim() : '';
                     levelm = battle.battles['Raid']['regex1'].exec(txt);
                     if (!levelm || !levelm.length) {
-                        utility.warn("Can't match Raid regex in ", txt);
+                        $u.warn("Can't match Raid regex in ", txt);
                         continue;
                     }
 
@@ -912,7 +912,7 @@ battle = {
                 } else {
                     tr = tempRecord.data['button'].parents("tr").eq(0);
                     if (!tr || !tr.length) {
-                        utility.warn("Can't find parent tr in", tempRecord.data['button']);
+                        $u.warn("Can't find parent tr in", tempRecord.data['button']);
                         continue;
                     }
 
@@ -924,26 +924,26 @@ battle = {
                             if (tempRecord.data['deityNum'] >= 0 && tempRecord.data['deityNum'] <= 4) {
                                 tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                             } else {
-                                utility.warn("Demi number is not between 0 and 4", tempRecord.data['deityNum']);
+                                $u.warn("Demi number is not between 0 and 4", tempRecord.data['deityNum']);
                                 tempRecord.data['deityNum'] = 0;
                                 tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                             }
                         } else {
-                            utility.warn("Unable to match demi number in txt", txt);
+                            $u.warn("Unable to match demi number in txt", txt);
                         }
                     } else {
-                        utility.warn("Unable to find demi image in tr", tr);
+                        $u.warn("Unable to find demi image in tr", tr);
                     }
 
                     // If looking for demi points, and already full, continue
                     if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
                         if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0 || !config.getItem('DemiPoint' + tempRecord.data['deityNum'], true)) {
-                            utility.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
+                            $u.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
                             continue;
                         }
                     } else if (config.getItem('WhenBattle', 'Never') === "Demi Points Only") {
                         if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0) {
-                            utility.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
+                            $u.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
                             continue;
                         }
                     }
@@ -951,7 +951,7 @@ battle = {
                     txt = tr.text();
                     txt = txt ? txt.trim() : '';
                     if (txt === '') {
-                        utility.warn("Can't find txt in tr");
+                        $u.warn("Can't find txt in tr");
                         continue;
                     }
 
@@ -970,7 +970,7 @@ battle = {
                     }
 
                     if (!levelm) {
-                        utility.warn("Can't match Freshmeat regex in ", txt);
+                        $u.warn("Can't match Freshmeat regex in ", txt);
                         continue;
                     }
 
@@ -992,7 +992,7 @@ battle = {
 
                 inp = tr.find("input[name='target_id']");
                 if (!inp || !inp.length) {
-                    utility.warn("Could not find 'target_id' input");
+                    $u.warn("Could not find 'target_id' input");
                     continue;
                 }
 
@@ -1007,40 +1007,40 @@ battle = {
                 armyRatio = Math.min(armyRatio, ARMax);
                 armyRatio = Math.max(armyRatio, ARMin);
                 if (armyRatio <= 0) {
-                    utility.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
+                    $u.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
                     continue;
                 }
 
                 if (tempRecord.data['levelNum'] - caap.stats['level'] > maxLevel) {
-                    utility.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'minRank': minRank});
+                    $u.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'minRank': minRank});
                     continue;
                 }
 
                 if (config.getItem("BattleType", 'Invade') === "War" && battle.battles['Freshmeat']['warLevel']) {
                     if (caap.stats['rank']['war'] && (caap.stats['rank']['war'] - tempRecord.data['warRankNum'] > minRank)) {
-                        utility.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['rankNum'], 'minRank': minRank});
+                        $u.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['rankNum'], 'minRank': minRank});
                         continue;
                     }
                 } else {
                     if (caap.stats['rank']['battle'] && (caap.stats['rank']['battle'] - tempRecord.data['rankNum'] > minRank)) {
-                        utility.log(2, "Greater than battle minRank", {'rankDif': caap.stats['rank']['battle'] - tempRecord.data['rankNum'], 'minRank': minRank});
+                        $u.log(2, "Greater than battle minRank", {'rankDif': caap.stats['rank']['battle'] - tempRecord.data['rankNum'], 'minRank': minRank});
                         continue;
                     }
                 }
 
                 // if we know our army size, and this one is larger than armyRatio, don't battle
                 if (caap.stats['army']['capped'] && (tempRecord.data['armyNum'] > (caap.stats['army']['capped'] * armyRatio))) {
-                    utility.log(2, "Greater than armyRatio", {'armyRatio': armyRatio.dp(2), 'armyNum': tempRecord.data['armyNum'], 'armyMax': (caap.stats['army']['capped'] * armyRatio).dp()});
+                    $u.log(2, "Greater than armyRatio", {'armyRatio': armyRatio.dp(2), 'armyNum': tempRecord.data['armyNum'], 'armyMax': (caap.stats['army']['capped'] * armyRatio).dp()});
                     continue;
                 }
 
                 if (config.getItem("BattleType", 'Invade') === "War" && battle.battles['Freshmeat']['warLevel']) {
-                    utility.log(1, "ID: " + tempRecord.data['userId'].toString().rpad(" ", 15) +
+                    $u.log(1, "ID: " + tempRecord.data['userId'].toString().rpad(" ", 15) +
                                 " Level: " + tempRecord.data['levelNum'].toString().rpad(" ", 4) +
                                 " War Rank: " + tempRecord.data['warRankNum'].toString().rpad(" ", 2) +
                                 " Army: " + tempRecord.data['armyNum']);
                 } else {
-                    utility.log(1, "ID: " + tempRecord.data['userId'].toString().rpad(" ", 15) +
+                    $u.log(1, "ID: " + tempRecord.data['userId'].toString().rpad(" ", 15) +
                                 " Level: " + tempRecord.data['levelNum'].toString().rpad(" ", 4) +
                                 " Battle Rank: " + tempRecord.data['rankNum'].toString().rpad(" ", 2) +
                                 " Army: " + tempRecord.data['armyNum']);
@@ -1049,7 +1049,7 @@ battle = {
                 // don't battle people we lost to in the last week
                 battleRecord = battle.getItem(tempRecord.data['userId']);
                 if (!$j.isEmptyObject(battleRecord)) {
-                    utility.log(1, "We have a battle record", battleRecord);
+                    $u.log(1, "We have a battle record", battleRecord);
                 }
 
                 if (!config.getItem("IgnoreBattleLoss", false)) {
@@ -1064,11 +1064,11 @@ battle = {
                         tempTime = battleRecord['warlostTime'] ? battleRecord['warlostTime'] : 0;
                         break;
                     default :
-                        utility.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
+                        $u.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
                     }
 
                     if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 604800)) {
-                        utility.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId'], battleRecord);
+                        $u.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId'], battleRecord);
                         continue;
                     }
                 }
@@ -1076,28 +1076,28 @@ battle = {
                 // don't battle people that results were unknown in the last hour
                 tempTime = battleRecord['unknownTime'] ? battleRecord['unknownTime'] : 0;
                 if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 3600)) {
-                    utility.log(1, "User was battled but results unknown in the last hour: ", tempRecord.data['userId']);
+                    $u.log(1, "User was battled but results unknown in the last hour: ", tempRecord.data['userId']);
                     continue;
                 }
 
                 // don't battle people that were dead or hiding in the last hour
                 tempTime = battleRecord['deadTime'] ? battleRecord['deadTime']: 0;
                 if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 3600)) {
-                    utility.log(1, "User was dead in the last hour: ", tempRecord.data['userId']);
+                    $u.log(1, "User was dead in the last hour: ", tempRecord.data['userId']);
                     continue;
                 }
 
                 // don't battle people we've already chained to max in the last 2 days
                 tempTime = battleRecord['chainTime'] ? battleRecord['chainTime'] : 0;
                 if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 86400)) {
-                    utility.log(1, "We chained user within 2 days: ", tempRecord.data['userId']);
+                    $u.log(1, "We chained user within 2 days: ", tempRecord.data['userId']);
                     continue;
                 }
 
                 // don't battle people that didn't meet chain gold or chain points in the last week
                 tempTime = battleRecord['ignoreTime'] ? battleRecord['ignoreTime'] : 0;
                 if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 604800)) {
-                    utility.log(1, "User didn't meet chain requirements this week: ", tempRecord.data['userId']);
+                    $u.log(1, "User didn't meet chain requirements this week: ", tempRecord.data['userId']);
                     continue;
                 }
 
@@ -1107,7 +1107,7 @@ battle = {
                 }
 
                 tempRecord.data['targetNumber'] = it + 1;
-                utility.log(3, "tempRecord/levelm", tempRecord.data, levelm);
+                $u.log(3, "tempRecord/levelm", tempRecord.data, levelm);
                 safeTargets.push(tempRecord.data);
                 tempRecord = null;
                 if (it === 0 && type === 'Raid') {
@@ -1115,15 +1115,15 @@ battle = {
                 }
             }
 
-            safeTargets.sort(sort.by(true, "score"));
-            utility.log(3, "safeTargets", safeTargets);
+            safeTargets.sort($u.sortBy(true, "score"));
+            $u.log(3, "safeTargets", safeTargets);
             if (safeTargets && safeTargets.length) {
                 if (chainAttack) {
                     form = inputDiv.eq(0).parent().parent();
                     inp = form.find("input[name='target_id']");
                     if (inp && inp.length) {
                         inp.attr("value", chainId);
-                        utility.log(1, "Chain attacking: ", chainId);
+                        $u.log(1, "Chain attacking: ", chainId);
                         battle.click(inputDiv.eq(0).get(0), type);
                         state.setItem("lastBattleID", chainId);
                         caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
@@ -1131,7 +1131,7 @@ battle = {
                         return true;
                     }
 
-                    utility.warn("Could not find 'target_id' input");
+                    $u.warn("Could not find 'target_id' input");
                 } else if (config.getItem('PlusOneKills', false) && type === 'Raid') {
                     if (plusOneSafe) {
                         form = inputDiv.eq(0).parent().parent();
@@ -1140,7 +1140,7 @@ battle = {
                             txt = inp.attr("value");
                             firstId = txt ? txt.parseInt() : 0;
                             inp.attr("value", '200000000000001');
-                            utility.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
+                            $u.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
                             battle.click(inputDiv.eq(0).get(0), type);
                             state.setItem("lastBattleID", firstId);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
@@ -1148,9 +1148,9 @@ battle = {
                             return true;
                         }
 
-                        utility.warn("Could not find 'target_id' input");
+                        $u.warn("Could not find 'target_id' input");
                     } else {
-                        utility.log(1, "Not safe for +1 kill.");
+                        $u.log(1, "Not safe for +1 kill.");
                     }
                 } else {
                     lastBattleID = state.getItem("lastBattleID", 0);
@@ -1160,7 +1160,7 @@ battle = {
                         }
 
                         if (safeTargets[it]['button'] !== null || safeTargets[it]['button'] !== undefined) {
-                            utility.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
+                            $u.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
                             battle.click(safeTargets[it]['button'].get(0), type);
                             delete safeTargets[it]['score'];
                             delete safeTargets[it]['targetNumber'];
@@ -1169,14 +1169,14 @@ battle = {
                             safeTargets[it]['aliveTime'] = new Date().getTime();
                             battleRecord = battle.getItem(safeTargets[it]['userId']);
                             $j.extend(true, battleRecord, safeTargets[it]);
-                            utility.log(3, "battleRecord", battleRecord);
+                            $u.log(3, "battleRecord", battleRecord);
                             battle.setItem(battleRecord);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                             state.setItem("notSafeCount", 0);
                             return true;
                         }
 
-                        utility.warn('Attack button is null');
+                        $u.warn('Attack button is null');
                     }
                 }
             }
@@ -1185,13 +1185,13 @@ battle = {
             // add a schedule here for 5 mins or so
             if (state.getItem("notSafeCount", 0) > 100) {
                 caap.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
-                utility.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
+                $u.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
                 state.setItem("notSafeCount", 0);
                 return false;
             }
 
             caap.SetDivContent('battle_mess', 'No targets matching criteria');
-            utility.log(1, 'No safe targets: ', state.getItem("notSafeCount", 0));
+            $u.log(1, 'No safe targets: ', state.getItem("notSafeCount", 0));
 
             if (type === 'Raid') {
                 engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
@@ -1207,7 +1207,7 @@ battle = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in battle.freshmeat: " + err);
+            $u.error("ERROR in battle.freshmeat: " + err);
             return false;
         }
     }

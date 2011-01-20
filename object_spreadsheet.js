@@ -24,7 +24,7 @@ spreadsheet = {
                     url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                     dataType: "json",
                     success: function (msg) {
-                        utility.log(2, "msg", msg);
+                        $u.log(2, "msg", msg);
                         var rows       = [],
                             row        = 0,
                             rowsLen    = 0,
@@ -51,7 +51,7 @@ spreadsheet = {
                             newRecord = {};
                             for (column = 0; column < headersLen; column += 1) {
                                 if (headersArr[column] === null || headersArr[column] === undefined || headersArr[column] === '') {
-                                    utility.warn("Spreadsheet column is empty", column);
+                                    $u.warn("Spreadsheet column is empty", column);
                                     continue;
                                 }
 
@@ -60,7 +60,7 @@ spreadsheet = {
                                     cell = null;
                                 } else if (isNaN(cell)) {
                                     if (headersArr[column] === "attack" || headersArr[column] === "defense") {
-                                        utility.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
+                                        $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
                                     }
 
                                     cell = cell.replace(/"/g, "");
@@ -75,18 +75,18 @@ spreadsheet = {
                         }
 
                         //spreadsheet.hbest = JSON.hbest(spreadsheet.records);
-                        utility.log(2, "spreadsheet.records Hbest", spreadsheet.hbest);
+                        $u.log(2, "spreadsheet.records Hbest", spreadsheet.hbest);
                         ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
-                        utility.log(2, "spreadsheet.records", spreadsheet.records);
+                        $u.log(2, "spreadsheet.records", spreadsheet.records);
                     }
                 });
             } else {
-                utility.log(2, "spreadsheet.records", spreadsheet.records);
+                $u.log(2, "spreadsheet.records", spreadsheet.records);
             }
 
             return true;
         } catch (err) {
-            utility.error("ERROR in spreadsheet.load: " + err);
+            $u.error("ERROR in spreadsheet.load: " + err);
             return false;
         }
     },
@@ -94,10 +94,10 @@ spreadsheet = {
     save: function () {
         try {
             spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
-            utility.log(1, "spreadsheet.save", spreadsheet.records);
+            $u.log(1, "spreadsheet.save", spreadsheet.records);
             return true;
         } catch (err) {
-            utility.error("ERROR in spreadsheet.save: " + err);
+            $u.error("ERROR in spreadsheet.save: " + err);
             return false;
         }
     },
@@ -181,7 +181,7 @@ spreadsheet = {
 
             return {title: titleStr, opacity: opacity, hide: hide};
         } catch (err) {
-            utility.error("ERROR in spreadsheet.getTitle: " + err);
+            $u.error("ERROR in spreadsheet.getTitle: " + err);
             return undefined;
         }
     },
@@ -225,7 +225,7 @@ spreadsheet = {
 
             return true;
         } catch (err) {
-            utility.error("ERROR in spreadsheet.doTitles: " + err);
+            $u.error("ERROR in spreadsheet.doTitles: " + err);
             return false;
         }
     },
@@ -255,7 +255,7 @@ spreadsheet = {
 
             return summon;
         } catch (err) {
-            utility.error("ERROR in spreadsheet.isSummon: " + err);
+            $u.error("ERROR in spreadsheet.isSummon: " + err);
             return undefined;
         }
     }
