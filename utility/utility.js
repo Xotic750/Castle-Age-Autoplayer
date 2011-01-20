@@ -6,7 +6,6 @@
 //                          utility library
 // Small functions called a lot to reduce duplicate code
 /////////////////////////////////////////////////////////////////////
-
 (function () {
     ///////////////////////////
     //       Prototypes
@@ -740,12 +739,16 @@
     };
     /*jslint sub: false */
 
+
     ///////////////////////////
     //       utility
     ///////////////////////////
+
     var log_version = '',
         log_level = 1,
-        utility = {
+        utility = {};
+
+    utility = {
         jQueryExtend: function (url) {
             ///////////////////////////
             //       Extend jQuery

@@ -21530,9 +21530,9 @@ function caap_WaitForutility() {
 function caap_WaitForrison() {
     if (typeof rison !== 'undefined') {
         caap_log("rison ready ...");
-        if (typeof rison === 'undefined') {
+        if (typeof utility === 'undefined') {
             caap_log("Inject utility.");
-            injectScript('http://castle-age-auto-player.googlecode.com/files/utility.js?' + new Date().getTime());
+            injectScript('http://castle-age-auto-player.googlecode.com/files/utility.min.js?' + new Date().getTime());
         }
 
         caap_WaitForutility();
