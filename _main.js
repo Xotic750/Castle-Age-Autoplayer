@@ -28,7 +28,7 @@ function caap_DomTimeOut() {
 }
 
 function caap_WaitForutility() {
-    if (typeof utility !== 'undefined') {
+    if (typeof window.utility !== 'undefined') {
         caap_log("utility ready ...");
         utility.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
         utility.jQueryExtend();
