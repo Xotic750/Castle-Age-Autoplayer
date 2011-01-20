@@ -9,7 +9,7 @@
 // @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0
 // @license        GPL version 3 or any later version; http://www.gnu.org/copyleft/gpl.html
-// @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+, Opera 11+, Safari 5+
+// @compatability  Firefox 3.0+, Google Chrome 4+, Chromium 4+, Flock 2.0+, Opera 11+, Safari 5+, IE 9+
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
@@ -8675,13 +8675,14 @@
         pageLoadOK          : false,
         caapDivObject       : {},
         caapTopObject       : {},
-        documentTitle       : document.title,
+        documentTitle       : '',
         newVersionAvailable : false,
         appBodyDiv          : {},
 
         start: function () {
             $u.log(1, 'Full page load completed');
             window.clearTimeout(caap_timeout);
+            caap.documentTitle = document.title;
 
             var FBID      = 0,
                 idOk      = false,
@@ -8828,8 +8829,9 @@
         lsUsed: function () {
             try {
                 var count = {
-                        'match' : 0,
-                        'total' : 0
+                        'ffmode' : false,
+                        'match'  : 0,
+                        'total'  : 0
                     },
                     perc = {
                         caap  : 0,
@@ -8838,21 +8840,26 @@
                     message = '';
 
                 count = gm.used();
-                perc.caap = ((count['match'] * 2.048 / 5242880) * 100).dp();
-                $u.log(1, "CAAP localStorage used: " + perc.caap + "%");
-                perc.total = ((count['total'] * 2.048 / 5242880) * 100).dp();
-                if (perc.total >= 90) {
-                    $u.warn("Total localStorage used: " + perc.total + "%");
-                    message = "<div style='text-align: center;'>";
-                    message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
-                    message += "localStorage usage for domain: " + perc.total + "%<br />";
-                    message += "CAAP is using: " + perc.total + "%";
-                    message += "</div>";
-                    window.setTimeout(function () {
-                        $u.alert(message);
-                    }, 5000);
+                if (!count['ffmode']) {
+                    perc.caap = ((count['match'] * 2.048 / 5242880) * 100).dp();
+                    $u.log(1, "CAAP localStorage used: " + perc.caap + "%");
+                    perc.total = ((count['total'] * 2.048 / 5242880) * 100).dp();
+                    if (perc.total >= 90) {
+                        $u.warn("Total localStorage used: " + perc.total + "%");
+                        message = "<div style='text-align: center;'>";
+                        message += "<span style='color: red; font-size: 14px; font-weight: bold;'>WARNING!</span><br />";
+                        message += "localStorage usage for domain: " + perc.total + "%<br />";
+                        message += "CAAP is using: " + perc.total + "%";
+                        message += "</div>";
+                        window.setTimeout(function () {
+                            $u.alert(message);
+                        }, 5000);
+                    } else {
+                        $u.log(1, "Total localStorage used: " + perc.total + "%");
+                    }
                 } else {
-                    $u.log(1, "Total localStorage used: " + perc.total + "%");
+                    $u.log(1, "CAAP GM storage used (chars): " + count['match']);
+                    $u.log(1, "GM storage used (chars): " + count['total']);
                 }
 
                 return true;
@@ -9062,7 +9069,10 @@
                     caap.waitingForDomLoad = true;
                 }
 
-                window.location.href = url;
+                if (!config.getItem('bookmarkMode', false)) {
+                    window.location.href = url;
+                }
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in caap.VisitUrl: " + err);
@@ -9431,8 +9441,11 @@
         /*jslint sub: true */
         SetDivContent: function (idName, mess) {
             try {
-                if (config.getItem('SetTitle', false) && config.getItem('SetTitleAction', false) && idName === "activity_mess") {
-                    var DocumentTitle = mess.replace("Activity: ", '') + " - ";
+                if (config.getItem('SetTitle', false) && idName === "activity_mess") {
+                    var DocumentTitle = '';
+                    if (config.getItem('SetTitleAction', false)) {
+                        DocumentTitle += mess.replace("Activity: ", '') + " - ";
+                    }
 
                     if (config.getItem('SetTitleName', false)) {
                         DocumentTitle += caap.stats['PlayerName'] + " - ";
@@ -10611,6 +10624,7 @@
                     alchemyShrinkInstructions = "Reduces the size of the item images and shrinks the recipe layout on the Alchemy pages.",
                     recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
                     recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
+                    bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.",
                     styleList = [
                         'CA Skin',
                         'Original',
@@ -10642,7 +10656,6 @@
                 htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
                 htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, '', hideAdsIframeInstructions);
                 htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, '', hideFBChatInstructions);
-                //htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, '', newsSummaryInstructions);
                 htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, '', newsSummaryInstructions) + '</table>';
                 htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
                 htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" +
@@ -10662,18 +10675,15 @@
                 htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
                     caap.MakeNumberForm('StyleOpacityDark', '0 ~ 1', 1, "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
                 htmlCode += "</div>";
-
                 htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                //htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false, 'ChangeLogLevelControl', '', true) + '</table>';
+                htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, '', bookmarkModeInstructions);
                 htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false, 'ChangeLogLevelControl', '', true);
                 htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
                 htmlCode += "<tr><td style='padding-left: 10px'>Log Level</td><td style='text-align: right'>" +
                     caap.MakeNumberForm('DebugLevel', '', 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
                 htmlCode += '</div>';
-
                 htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
                 htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' /></td></tr></table>";
-                htmlCode += '</div>';
                 htmlCode += "<hr/></div>";
                 return htmlCode;
             } catch (err) {
@@ -19739,7 +19749,7 @@
 
         AjaxGiftCheck: function () {
             try {
-                if (!config.getItem('AutoGift', false) || !schedule.check("ajaxGiftCheck")) {
+                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || !schedule.check("ajaxGiftCheck")) {
                     return false;
                 }
 
@@ -19805,7 +19815,7 @@
 
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
-                if (!config.getItem('AutoGift', false) || (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
+                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
                     return false;
                 }
                 /*jslint sub: false */
@@ -21347,7 +21357,7 @@
         var inject = document.createElement('script');
         inject.setAttribute('type', 'text/javascript');
         inject.setAttribute('src', url);
-        document.head.appendChild(inject);
+        (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
     }
 
     function caap_DomTimeOut() {

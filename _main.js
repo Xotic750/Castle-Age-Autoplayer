@@ -13,7 +13,7 @@
         var inject = document.createElement('script');
         inject.setAttribute('type', 'text/javascript');
         inject.setAttribute('src', url);
-        document.head.appendChild(inject);
+        (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
     }
 
     function caap_DomTimeOut() {

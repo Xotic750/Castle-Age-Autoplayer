@@ -13,10 +13,6 @@
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
-    if (!document['head']) {
-        document['head'] = document.head = document.getElementsByTagName('head')[0];
-    }
-
     String.prototype['ucFirst'] = String.prototype.ucFirst = function () {
         return this.charAt(0).toUpperCase() + this.substr(1);
     };
@@ -784,7 +780,7 @@
                 var inject = document.createElement('script');
                 inject.setAttribute('type', 'text/javascript');
                 inject.setAttribute('src', url);
-                document.head.appendChild(inject);
+                (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
                 return true;
             } catch (err) {
                 utility.error("ERROR in utility.injectScript: " + err);
@@ -2080,6 +2076,7 @@
                             len         = 0,
                             charCnt     = 0,
                             chars       = 0,
+                            ffmode      = false,
                             done        = false,
                             storage_ref = (namespace ? namespace + "." : '') + (id ? id : (storage_id ? storage_id + "." : '')),
                             nameRegExp  = new RegExp(storage_ref);
@@ -2108,6 +2105,7 @@
                                 }
                             }
                         } else {
+                            ffmode = true;
                             storageKeys = GM_listValues();
                             for (key = 0, len = storageKeys.length; key < len; key += 1) {
                                 chars += GM_getValue(storageKeys[key]).length;
@@ -2117,7 +2115,7 @@
                             }
                         }
 
-                        return {'match': charCnt, 'total': chars};
+                        return {'ffmode': ffmode, 'match': charCnt, 'total': chars};
                     } catch (error) {
                         utility.error("ERROR in utility.storage.used: " + error, arguments.callee.caller);
                         return undefined;
