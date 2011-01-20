@@ -30,6 +30,7 @@ function caap_DomTimeOut() {
 function caap_WaitForutility() {
     if (typeof utility !== 'undefined') {
         caap_log("utility ready ...");
+        caap_log(typeof utility);
         utility.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
         utility.jQueryExtend();
         gm = new utility.storage({'namespace': 'caap'});
@@ -37,7 +38,7 @@ function caap_WaitForutility() {
         jQuery(caap.start());
     } else {
         caap_log("Waiting for utility ...");
-        caap_log(utility);
+        caap_log(typeof utility);
         window.setTimeout(caap_WaitForutility, 100);
     }
 }
