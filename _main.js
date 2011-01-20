@@ -48,7 +48,7 @@ function caap_WaitForrison() {
         caap_log("rison ready ...");
         if (typeof rison === 'undefined') {
             caap_log("Inject utility.");
-            injectScript('http://castle-age-auto-player.googlecode.com/files/utility.min.js');
+            injectScript('http://castle-age-auto-player.googlecode.com/files/utility.js?' + new Date().getTime());
         }
 
         caap_WaitForutility();
