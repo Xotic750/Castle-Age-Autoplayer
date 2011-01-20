@@ -1,5 +1,5 @@
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512, onevar: true */
-/*global window,jQuery,console,GM_getValue,GM_setValue,GM_deleteValue,GM_listValues,localStorage,sessionStorage,rison */
+/*global window,jQuery,GM_getValue,GM_setValue,GM_deleteValue,GM_listValues,localStorage,sessionStorage,rison */
 /*jslint maxlen: 250 */
 
 ////////////////////////////////////////////////////////////////////
