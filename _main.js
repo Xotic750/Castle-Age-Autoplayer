@@ -31,6 +31,7 @@ function caap_WaitForutility() {
     if (typeof utility !== 'undefined') {
         caap_log("utility ready ...");
         utility.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
+        utility.jQueryExtend();
         gm = new utility.storage({'namespace': 'caap'});
         ss = new utility.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
         jQuery(caap.start());
@@ -118,7 +119,6 @@ function caap_WaitForjQueryUI() {
 function caap_WaitForjQuery() {
     if (typeof window.jQuery === 'function') {
         caap_log("jQuery ready ...");
-        utility.jQueryExtend();
         $j = jQuery.noConflict();
         if (typeof $j.ui !== 'object') {
             caap_log("Inject jQueryUI.");
