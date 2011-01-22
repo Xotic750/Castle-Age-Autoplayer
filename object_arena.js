@@ -132,7 +132,7 @@
                     len       = 0,
                     success   = false;
 
-                if (typeof slot !== 'number' || slot <= 0) {
+                if (!$u.isNumber(slot) || slot <= 0) {
                     $u.warn("slot", slot);
                     throw "Invalid identifying slot!";
                 }
@@ -404,12 +404,12 @@
 
         navigate_to_main_refresh: function () {
             var button = caap.CheckForImage("tab_arena_on.gif");
-            if (button) {
+            if ($u.hasContent(button)) {
                 caap.Click(button);
             }
 
             state.setItem('ArenaRefresh', false);
-            return button ? true : false;
+            return $u.hasContent(button);
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -599,8 +599,8 @@
                                 $u.log(1, "You didn't have enough battle tokens");
                             } else if (resultsTxt.regex(/(does not have any health left to battle)/i)) {
                                 $u.log(1, "Minion had no health left");
-                            } else if (resultsTxt.regex(/(you tripped)/i)) {
-                                $u.log(1, "oops, you tripped");
+                            } else if (resultsTxt.regex(/(You tried to attack but tripped while running)/i)) {
+                                $u.log(1, "Oops, you tripped");
                             } else {
                                 $u.log(1, "Unknown win or loss or result");
                             }
@@ -656,13 +656,13 @@
                                         if (targetIdDiv && targetIdDiv.length) {
                                             memberRecord['target_id'] = targetIdDiv.attr("value") ? targetIdDiv.attr("value").parseInt() : 0;
                                             won = arena.getWin(currentRecord['wins'], memberRecord['target_id']);
-                                            if (won) {
+                                            if ($j.isPlainObject(won)) {
                                                 memberRecord['won'] = true;
                                                 memberRecord['last_ap'] = won['ap'] ? won['ap'] : 0;
                                             }
 
                                             loss = arena.checkLoss(currentRecord['losses'], memberRecord['target_id']);
-                                            if (typeof loss === 'boolean') {
+                                            if ($u.isBoolean(loss)) {
                                                 memberRecord['lost'] = loss;
                                             }
                                         } else {
@@ -806,7 +806,7 @@
                     $u.log(3, "currentRecord", currentRecord);
                     arena.setItem(currentRecord);
                     if (currentRecord['state'] === 'Collect' && collectDiv.length) {
-                        caap.Click(collectDiv.get(0));
+                        caap.Click(collectDiv);
                     }
                 } else {
                     $u.warn("Not on arena battle page");

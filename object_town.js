@@ -51,7 +51,7 @@
 
         copy2sortable: function (type) {
             try {
-                if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || town.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to copy2sortable: ", type);
                     throw "Invalid type value!";
                 }
@@ -77,7 +77,7 @@
 
         load: function (type) {
             try {
-                if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || town.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
@@ -101,7 +101,7 @@
 
         save: function (type) {
             try {
-                if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || town.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to save: ", type);
                     throw "Invalid type value!";
                 }
@@ -160,7 +160,7 @@
                     passed  = true,
                     save    = false;
 
-                if (typeof type !== 'string' || type === '' || town.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || town.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
@@ -251,7 +251,7 @@
 
         haveOrb: function (name) {
             try {
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name!";
                 }
 

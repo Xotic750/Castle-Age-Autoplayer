@@ -30,15 +30,9 @@
     function caap_WaitForutility() {
         if (typeof utility !== 'undefined') {
             caap_log("utility ready ...");
-            caap_log(typeof utility);
-            $u.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
-            $u.jQueryExtend();
-            gm = new $u.storage({'namespace': 'caap'});
-            ss = new $u.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
-            jQuery(caap.start());
+            jQuery(caap.start);
         } else {
             caap_log("Waiting for utility ...");
-            caap_log(typeof utility);
             window.setTimeout(caap_WaitForutility, 100);
         }
     }
@@ -74,7 +68,7 @@
     }
 
     function caap_WaitForjson2() {
-        if (typeof JSON.stringify === 'function') {
+        if (typeof JSON.stringify === 'function' && typeof JSON.parse === 'function') {
             caap_log("json2 ready ...");
             if (typeof JSON.hpack !== 'function') {
                 caap_log("Inject json.hpack.");
@@ -124,7 +118,7 @@
             $j = jQuery.noConflict();
             if (typeof $j.ui !== 'object') {
                 caap_log("Inject jQueryUI.");
-                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/jquery-ui.min.js');
+                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.8/jquery-ui.min.js');
             }
 
             caap_WaitForjQueryUI();
@@ -138,7 +132,7 @@
     //                         Begin
     /////////////////////////////////////////////////////////////////////
 
-    caap_log("Starting ... waiting page load");
+    caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (typeof window.jQuery !== 'function') {
         caap_log("Inject jQuery");

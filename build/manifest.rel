@@ -5,11 +5,12 @@
                          "http*://*.facebook.com/common/error.html*",
                          "http*://apps.facebook.com/sorry.php*" ],
       "js": [ "jquery-1.4.4.min.js",
-              "jquery-ui-1.8.6.custom.min.js",
+              "jquery-ui-1.8.8.custom.min.js",
               "farbtastic.min.js",
               "json2.js",
               "json.hpack.min.js",
               "rison.js",
+              "utility.min.js",
               "Castle-Age-Autoplayer.user.js" ],
       "matches": [ "http://*/*",
                    "https://*/*" ]

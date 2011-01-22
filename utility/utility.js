@@ -17,6 +17,12 @@
         return this.charAt(0).toUpperCase() + this.substr(1);
     };
 
+    String.prototype['ucWords'] = String.prototype.ucWords = function () {
+        return this.replace(new RegExp("^(.)|\\s(.)", "g"), function ($1) {
+            return $1.toUpperCase();
+        });
+    };
+
     String.prototype['stripHTML'] = String.prototype.stripHTML = function () {
         return this.replace(new RegExp("<[^>]+>", "g"), '').replace(/&nbsp;/g, '');
     };
@@ -59,6 +65,10 @@
 
     String.prototype['numberOnly'] = String.prototype.numberOnly = function () {
         return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
+    };
+
+    String.prototype['html_escape'] = String.prototype.html_escape = function () {
+        return this.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
     String.prototype['parseTimer'] = String.prototype.parseTimer = function () {
@@ -112,6 +122,52 @@
         return this;
     };
 
+    String.prototype['pathpart'] = String.prototype.pathpart = function () {
+        var x = this.lastIndexOf('/');
+        if (x >= 0) {
+            return this.substr(0, x + 1);
+        }
+
+        return this;
+    };
+
+    String.prototype['regex'] = String.prototype.regex = function (r) {
+        var a  = this.match(r),
+            i  = 0,
+            l  = 0,
+            rx;
+
+        if (a) {
+            if (r.global) {
+                // Try to match '(blah' but not '\(blah' or '(?:blah' - ignore invalid regexp
+                if (new RegExp("(^|[^\\\\]|[^\\\\](\\\\\\\\)*)\\([^?]").test(r.source)) {
+                    rx = new RegExp(r.source, (r.ignoreCase ? 'i' : '') + (r.multiline ? 'm' : ''));
+                }
+            } else {
+                a.shift();
+            }
+
+            l = a.length;
+            for (i = l - 1; i >= 0; i -= 1) {
+                if (a[i]) {
+                    if (rx) {
+                        a[i] = arguments.callee.call(a[i], rx);
+                    } else {
+                        if (a[i].search(/^[\-+]?\d*\.?\d+$/) >= 0) {
+                            a[i] = parseFloat(a[i]);
+                        }
+                    }
+                }
+            }
+
+            if (!rx && l === 1) {
+                return a[0];
+            }
+        }
+        return a;
+    };
+
+    /*
     String.prototype['regex'] = String.prototype.regex = function (r) {
         var a = this.match(r),
             i = 0,
@@ -120,7 +176,7 @@
         if (a) {
             a.shift();
             l = a.length;
-            for (i = 0 ; i < l; i += 1) {
+            for (i = 0; i < l; i += 1) {
                 if (a[i] && a[i].search(/^[\-+]?[\d]*\.?[\d]*$/) >= 0) {
                     a[i] = parseFloat(a[i].replace('+', ''));
                 }
@@ -133,6 +189,7 @@
 
         return a;
     };
+    */
 
     // Turns text delimeted with new lines and commas into an array.
     // Primarily for use with user input text boxes.
@@ -721,6 +778,43 @@
         return this === y && this.toString() === y.toString();
     };
 
+    Number.prototype['SI'] = Number.prototype.SI = function () {
+        var a = Math.abs(this);
+        if (a >= 1e12) {
+            return (this / 1e12).toFixed(1) + ' T';
+        }
+
+        if (a >= 1e9) {
+            return (this / 1e9).toFixed(1) + ' B';
+        }
+
+        if (a >= 1e6) {
+            return (this / 1e6).toFixed(1) + ' M';
+        }
+
+        if (a >= 1e3) {
+            return (this / 1e3).toFixed(1) + ' k';
+        }
+
+        return this;
+    };
+
+    // Add commas to a number, optionally converting to a Fixed point number
+    Number.prototype['addCommas'] = Number.prototype.addCommas = function (x) {
+        var n  = typeof x === 'number' ? this.toFixed(x) : this.toString(),
+            rx = new RegExp("^(.*\\s)?(\\d+)(\\d{3}\\b)");
+
+        return n === (n = n.replace(rx, '$1$2,$3')) ? n : arguments.callee.call(n);
+    };
+
+    String.prototype['hasIndexOf'] = String.prototype.hasIndexOf = function (o) {
+        return this.indexOf(o) >= 0 ? true : false;
+    };
+
+    Array.prototype['hasIndexOf'] = Array.prototype.hasIndexOf = function (o) {
+        return this.indexOf(o) >= 0 ? true : false;
+    };
+
     Array.prototype['pushCopy'] = Array.prototype.pushCopy = function (o) {
         switch (jQuery.type(o)) {
         case "object":
@@ -732,6 +826,26 @@
         default:
             this.push(o);
         }
+    };
+
+    // Return an array with no duplicates
+    Array.prototype['unique'] = Array.prototype.unique = function () {
+        var o = {},
+            i = 0,
+            l = this.length,
+            r = [];
+
+        for (i = 0; i < l; i += 1) {
+            o[this[i]] = this[i];
+        }
+
+        for (i in o) {
+            if (o.hasOwnProperty(i)) {
+                r.push(o[i]);
+            }
+        }
+
+        return r;
     };
     /*jslint sub: false */
 
@@ -788,8 +902,103 @@
             }
         },
 
-        isNum: function (value) {
-            return typeof value === 'number';
+        isArray: function (o) {
+            return jQuery.type(o) === 'array';
+        },
+
+        isObject: function (o) {
+            return jQuery.type(o) === 'object';
+        },
+
+        isBoolean: function (o) {
+            return jQuery.type(o) === 'boolean';
+        },
+
+        isFunction: function (o) {
+            return jQuery.type(o) === 'function';
+        },
+
+        isDate: function (o) {
+            return jQuery.type(o) === 'date';
+        },
+
+        isRegExp: function (o) {
+            return jQuery.type(o) === 'regexp';
+        },
+
+        isNumber: function (o) {
+            return jQuery.type(o) === 'number';
+        },
+
+        isString: function (o) {
+            return jQuery.type(o) === 'string';
+        },
+
+        isUndefined: function (o) {
+            return jQuery.type(o) === 'undefined';
+        },
+
+        isNull: function (o) {
+            return jQuery.type(o) === 'null';
+        },
+
+        isDefined: function (o) {
+            return !utility.isUndefined(o) && !utility.isNull(o);
+        },
+
+        hasContent: function (o) {
+            var h = false;
+            switch (jQuery.type(o)) {
+            case "string":
+                h = o.length ? true : false;
+                break;
+            case "number":
+                h = true;
+                break;
+            case "object":
+                if (utility.isDefined(o.length)) {
+                    h = o.length ? true : false;
+                } else {
+                    h = !jQuery.isEmptyObject(o);
+                }
+
+                break;
+            case "array":
+                h = o.length ? true : false;
+                break;
+            case "boolean":
+                h = true;
+                break;
+            case "function":
+                h = true;
+                break;
+            case "regexp":
+                h = true;
+                break;
+            case "date":
+                h = true;
+                break;
+            default:
+            }
+
+            return h;
+        },
+
+        plural: function (i) {
+            return (i === 1 ? '' : 's');
+        },
+
+        setContent: function (o, v) {
+            return utility.hasContent(o) ? o : v;
+        },
+
+        // Removes matching elements from an array
+        deleteElement: function (a, v) {
+            if (jQuery.isArray(a)) {
+                while (v in a) {
+                    a.splice(a.indexOf(v), 1);
+                }
+            }
         },
 
         alert: function (html) {
@@ -803,7 +1012,7 @@
         },
 
         set_log_version: function (text) {
-            log_version = text;
+            log_version = utility.isString(text) ? text : (utility.isNumber(text) ? text.toString() : '');
         },
 
         get_log_version: function () {
@@ -811,7 +1020,7 @@
         },
 
         set_log_level: function (level) {
-            log_level = level;
+            log_level = utility.isNumber(level) ? level : (!isNaN(level) ? parseInt(level, 10) : 1);
         },
 
         get_log_level: function () {
@@ -826,7 +1035,7 @@
                     l = 0;
 
                 type = type ? type : "log";
-                type = typeof console[type] !== 'undefined' ? type : typeof console.log !== 'undefined' ? type : '';
+                type = utility.isDefined(console[type]) ? type : (utility.isDefined(console.log) ? type : '');
                 if (type) {
                     if (arguments.length === 4) {
                         for (i = 0, l = arguments[3].length; i < l; i += 1) {
@@ -869,11 +1078,11 @@
             return function (o, p) {
                 try {
                     var a, b;
-                    if (jQuery.type(o) === 'object' && jQuery.type(p) === 'object' && o && p) {
+                    if (utility.isObject(o) && utility.isObject(p) && o && p) {
                         a = o[name];
                         b = p[name];
                         if (a === b) {
-                            return jQuery.type(minor) === 'function' ? minor(o, p) : o;
+                            return utility.isFunction(minor) ? minor(o, p) : o;
                         }
 
                         if (jQuery.type(a) === jQuery.type(b)) {
@@ -1825,7 +2034,7 @@
                     storage_type = settings['storage_type'] ? settings['storage_type'] : 'localStorage';
 
                 this['set_namespace'] = this.set_namespace = function (text) {
-                    namespace = text;
+                    namespace = utility.isString(text) ? text : (utility.isNumber(text) ? text.toString() : '');
                 };
 
                 this['get_namespace'] = this.get_namespace = function () {
@@ -1833,7 +2042,7 @@
                 };
 
                 this['set_storage_id'] = this.set_storage_id = function (text) {
-                    storage_id = text;
+                    storage_id = utility.isString(text) ? text : (utility.isNumber(text) ? text.toString() : '');
                 };
 
                 this['get_storage_id'] = this.get_storage_id = function () {
@@ -1841,7 +2050,7 @@
                 };
 
                 this['set_fireFoxUseGM'] = this.set_fireFoxUseGM = function (bool) {
-                    fireFoxUseGM = bool;
+                    fireFoxUseGM = utility.isBoolean(bool) ? bool : false;
                 };
 
                 this['get_fireFoxUseGM'] = this.get_fireFoxUseGM = function () {
@@ -1849,7 +2058,7 @@
                 };
 
                 this['set_useRison'] = this.set_useRison = function (bool) {
-                    useRison = bool;
+                    useRison = utility.isBoolean(bool) ? bool : true;
                 };
 
                 this['get_useRison'] = this.get_useRison = function () {
@@ -1859,6 +2068,15 @@
                 // use these to set/get values in a way that prepends the game's name
                 this['setItem'] = this.setItem = function (name, value, hpack, compress) {
                     try {
+                        name = utility.isString(name) ? name : (utility.isNumber(name) ? name.toString() : '');
+                        if (!utility.hasContent(name)) {
+                            throw "Invalid identifying name! (" + name + ")";
+                        }
+
+                        if (!utility.isDefined(value)) {
+                            throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
+                        }
+
                         var stringified = '',
                             compressor  = null,
                             storageStr  = '',
@@ -1866,28 +2084,21 @@
                             reportEnc   = 'JSON.stringify',
                             storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
 
-                        if (typeof name !== 'string' || name === '') {
-                            throw "Invalid identifying name! (" + name + ")";
-                        }
-
-                        if (value === undefined || value === null) {
-                            throw "Value supplied is 'undefined' or 'null'! (" + value + ")";
-                        }
-
                         if (useRison) {
                             reportEnc = "rison.encode";
                         }
 
-                        hpack = (typeof hpack !== 'number') ? false : hpack;
+                        hpack = utility.isNumber(hpack) ? hpack : false;
                         if (hpack !== false && hpack >= 0 && hpack <= 3) {
                             hpackArr = JSON.hpack(value, hpack);
+                            hpackArr = utility.isArray(hpackArr) ? hpackArr : [];
                             if (useRison) {
                                 stringified = rison.encode(hpackArr);
                             } else {
                                 stringified = JSON.stringify(hpackArr);
                             }
 
-                            if (stringified === undefined || stringified === null) {
+                            if (!utility.isDefined(stringified)) {
                                 throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
                             }
 
@@ -1903,7 +2114,7 @@
                                 stringified = JSON.stringify(value);
                             }
 
-                            if (stringified === undefined || stringified === null) {
+                            if (!utility.isDefined(stringified)) {
                                 throw reportEnc + " returned 'undefined' or 'null'! (" + stringified + ")";
                             }
 
@@ -1912,7 +2123,7 @@
                             }
                         }
 
-                        compress = (typeof compress !== 'boolean') ? false : compress;
+                        compress = utility.isBoolean(compress) ? compress : false;
                         if (compress) {
                             compressor = new utility.LZ77();
                             storageStr = "LZ77 " + compressor.compress(stringified);
@@ -1936,14 +2147,15 @@
 
                 this['getItem'] = this.getItem = function (name, value, hidden) {
                     try {
+                        name = utility.isString(name) ? name : (utility.isNumber(name) ? name.toString() : '');
+                        if (!utility.hasContent(name)) {
+                            throw "Invalid identifying name! (" + name + ")";
+                        }
+
                         var jsObj       = null,
                             compressor  = null,
                             storageStr  = '',
                             storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
-
-                        if (typeof name !== 'string' || name === '') {
-                            throw "Invalid identifying name! (" + name + ")";
-                        }
 
                         if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
                             storageStr = window[storage_type].getItem(storage_ref + name);
@@ -1951,14 +2163,14 @@
                             storageStr = GM_getValue(storage_ref + name);
                         }
 
-                        if (storageStr) {
+                        if (utility.isString(storageStr)) {
                             if (storageStr.match(/^LZ77 /)) {
                                 compressor = new utility.LZ77();
                                 storageStr = compressor.decompress(storageStr.slice(5));
                                 utility.log(2, "Decompressed storage", name);
                             }
 
-                            if (storageStr) {
+                            if (utility.isString(storageStr)) {
                                 if (storageStr.match(/^R-HPACK /)) {
                                     jsObj = JSON.hunpack(rison.decode(storageStr.slice(8)));
                                 } else if (storageStr.match(/^RISON /)) {
@@ -1971,13 +2183,13 @@
                             }
                         }
 
-                        if (jsObj === undefined || jsObj === null) {
+                        if (!utility.isDefined(jsObj)) {
                             if (!hidden) {
                                 utility.warn("utility.storage.getItem parsed string returned 'undefined' or 'null' for ", name);
                             }
 
-                            if (value !== undefined && value !== null) {
-                                hidden = (typeof hidden !== 'boolean') ? false : hidden;
+                            if (utility.isDefined(value)) {
+                                hidden = utility.isBoolean(hidden) ? hidden : false;
                                 if (!hidden) {
                                     utility.warn("utility.storage.getItem using default value ", value);
                                 }
@@ -1992,10 +2204,10 @@
                     } catch (error) {
                         utility.error("ERROR in utility.storage.getItem: " + error, arguments.callee.caller);
                         if (error.match(/Invalid JSON/)) {
-                            if (value !== undefined && value !== null) {
+                            if (utility.isString(name) && utility.hasContent(name) && utility.isDefined(value)) {
                                 utility.storage.setItem(name, value);
                                 return value;
-                            } else {
+                            } else if (utility.isString(name) && utility.hasContent(name)) {
                                 utility.storage.deleteItem(name);
                             }
                         }
@@ -2006,11 +2218,12 @@
 
                 this['deleteItem'] = this.deleteItem = function (name) {
                     try {
-                        var storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
-                        if (typeof name !== 'string' || name === '') {
+                        name = utility.isString(name) ? name : (utility.isNumber(name) ? name.toString() : '');
+                        if (!utility.hasContent(name)) {
                             throw "Invalid identifying name! (" + name + ")";
                         }
 
+                        var storage_ref = (namespace ? namespace + "." : '') + (storage_id ? storage_id + "." : '');
                         if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
                             window[storage_type].removeItem(storage_ref + name);
                         } else {
@@ -2026,6 +2239,7 @@
 
                 this['clear'] = this.clear = function (id) {
                     try {
+                        id = utility.isString(id) ? id : (utility.isNumber(id) ? id.toString() : '');
                         var storageKeys = [],
                             key         = 0,
                             len         = 0,
@@ -2071,6 +2285,7 @@
 
                 this['used'] = this.used = function (id) {
                     try {
+                        id = utility.isString(id) ? id : (utility.isNumber(id) ? id.toString() : '');
                         var storageKeys = [],
                             key         = 0,
                             len         = 0,
@@ -2142,6 +2357,8 @@
         utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
         utility['injectScript'] = utility.injectScript;
         utility['isNum'] = utility.isNum;
+        utility['plural'] = utility.plural;
+        utility['deleteElement'] = utility.deleteElement;
         utility['alert'] = utility.alert;
         utility['set_log_version'] = utility.set_log_version;
         utility['get_log_version'] = utility.get_log_version;
@@ -2167,6 +2384,19 @@
         utility['Aes'] = utility.Aes;
         utility['LZ77'] = utility.LZ77;
         utility['storage'] = utility.storage;
+        utility['isArray'] = utility.isArray;
+        utility['isObject'] = utility.isObject;
+        utility['isBoolean'] = utility.isBoolean;
+        utility['isFunction'] = utility.isFunction;
+        utility['isDate'] = utility.isDate;
+        utility['isRegExp'] = utility.isRegExp;
+        utility['isNumber'] = utility.isNumber;
+        utility['isString'] = utility.isString;
+        utility['isUndefined'] = utility.isUndefined;
+        utility['isNull'] = utility.isNull;
+        utility['isDefined'] = utility.isDefined;
+        utility['hasContent'] = utility.hasContent;
+        utility['setContent'] = utility.setContent;
     }
     /*jslint sub: false */
 }());

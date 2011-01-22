@@ -471,7 +471,7 @@
                 var words = [],
                     count = 0;
 
-                if (typeof name !== 'string') {
+                if (!$u.isString(name)) {
                     $u.warn("name", name);
                     throw "Invalid identifying name!";
                 }
@@ -512,7 +512,7 @@
                     success   = false,
                     newRecord = {};
 
-                if (typeof name !== 'string') {
+                if (!$u.isString(name)) {
                     $u.warn("name", name);
                     throw "Invalid identifying name!";
                 }
@@ -549,7 +549,7 @@
                     throw "Not passed a record";
                 }
 
-                if (typeof record['name'] !== 'string' || record['name'] === '') {
+                if (!$u.isString(record['name']) || record['name'] === '') {
                     $u.warn("name", record['name']);
                     throw "Invalid identifying name!";
                 }
@@ -587,7 +587,7 @@
                     len       = 0,
                     success   = false;
 
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     $u.warn("name", name);
                     throw "Invalid identifying name!";
                 }

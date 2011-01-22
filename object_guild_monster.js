@@ -110,7 +110,7 @@
                     success   = false,
                     newRecord = {};
 
-                if (typeof slot !== 'number') {
+                if (!$u.isNumber(slot)) {
                     $u.warn("slot", slot);
                     throw "Invalid identifying slot!";
                 }
@@ -147,7 +147,7 @@
                     throw "Not passed a record";
                 }
 
-                if (typeof record['slot'] !== 'number' || record['slot'] <= 0) {
+                if (!$u.isNumber(record['slot']) || record['slot'] <= 0) {
                     $u.warn("slot", record['slot']);
                     throw "Invalid identifying slot!";
                 }
@@ -185,7 +185,7 @@
                     len       = 0,
                     success   = false;
 
-                if (typeof slot !== 'number' || slot <= 0) {
+                if (!$u.isNumber(slot) || slot <= 0) {
                     $u.warn("slot", slot);
                     throw "Invalid identifying slot!";
                 }
@@ -233,12 +233,12 @@
 
         navigate_to_battles_refresh: function () {
             var button = caap.CheckForImage("guild_monster_tab_on.jpg");
-            if (button) {
+            if ($u.hasContent(button)) {
                 caap.Click(button);
             }
 
             state.setItem('guildMonsterBattlesRefresh', false);
-            return button ? true : false;
+            return $u.hasContent(button);
         },
 
         navigate_to_battles: function () {
@@ -268,7 +268,7 @@
                         if (form && form.length) {
                             slot = form.find("input[name='slot']").eq(0).attr("value");
                             slot = slot ? slot.parseInt() : 0;
-                            if (typeof slot === 'number' && slot > 0 && slot <= 5) {
+                            if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                                 $u.log(3, "slot", slot);
                                 slotArr.push(slot);
                                 currentRecord = guild_monster.getItem(slot);
@@ -379,7 +379,7 @@
                 bannerDiv = $j("#app46755028429_guild_battle_banner_section");
                 myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
                 myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
-                if (typeof slot === 'number' && slot > 0 && slot <= 5) {
+                if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                     $u.log(3, "slot", slot);
                     currentRecord = guild_monster.getItem(slot);
                     currentRecord['minions'] = [];
@@ -497,12 +497,12 @@
                     $u.log(2, "currentRecord", currentRecord);
                     guild_monster.setItem(currentRecord);
                     if (collect) {
-                        caap.Click(collectDiv.get(0));
+                        caap.Click(collectDiv);
                     }
                 } else {
                     if (bannerDiv.children().eq(0).text().indexOf("You do not have an on going guild monster battle. Have your Guild initiate more!") >= 0) {
                         slot = state.getItem('guildMonsterReviewSlot', 0);
-                        if (typeof slot === 'number' && slot > 0 && slot <= 5) {
+                        if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                             $u.log(1, "monster expired", slot);
                             guild_monster.deleteItem(slot);
                         } else {
@@ -587,7 +587,7 @@
                 }
 
                 minHealth = config.getItem('IgnoreMinionsBelow', 0);
-                if (typeof minHealth !== 'number') {
+                if (!$u.isNumber(minHealth)) {
                     minHealth = 0;
                 }
 

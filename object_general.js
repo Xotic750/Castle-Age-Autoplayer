@@ -566,7 +566,7 @@
                 }
 
                 generalImage = general.GetImage(generalName);
-                if (caap.CheckForImage(generalImage)) {
+                if (caap.HasImage(generalImage)) {
                     return caap.NavigateTo(generalImage);
                 }
 
@@ -691,7 +691,7 @@
                 }
 
                 generalImage = general.GetImage(general.records[it]['name']);
-                if (caap.CheckForImage(generalImage)) {
+                if (caap.HasImage(generalImage)) {
                     if (general.GetCurrent() !== general.records[it]['name']) {
                         $u.log(2, "Visiting 'General'", general.records[it]['name']);
                         return caap.NavigateTo(generalImage);

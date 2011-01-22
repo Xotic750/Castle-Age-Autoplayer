@@ -36,15 +36,15 @@
         setItem: function (name, seconds, randomSecs) {
             try {
                 var now = 0;
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name! (" + name + ")";
                 }
 
-                if (!$u.isNum(seconds) || seconds < 0) {
+                if (!$u.isNumber(seconds) || seconds < 0) {
                     throw "Invalid number of seconds supplied for (" + name + ") (" + seconds + ")";
                 }
 
-                if (!$u.isNum(randomSecs) || randomSecs < 0) {
+                if (!$u.isNumber(randomSecs) || randomSecs < 0) {
                     randomSecs = 0;
                 }
 
@@ -64,7 +64,7 @@
 
         getItem: function (name) {
             try {
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name! (" + name + ")";
                 }
 
@@ -82,7 +82,7 @@
 
         deleteItem: function (name) {
             try {
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name! (" + name + ")";
                 }
 
@@ -103,7 +103,7 @@
         check: function (name) {
             try {
                 var scheduled = false;
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name! (" + name + ")";
                 }
 
@@ -128,7 +128,7 @@
             try {
                 var value = 0;
                 if (isNaN(name_or_number)) {
-                    if (typeof name_or_number !== 'string' || name_or_number === '') {
+                    if (!$u.isString(name_or_number) || name_or_number === '') {
                         throw "Invalid identifying name! (" + name_or_number + ")";
                     }
 
@@ -217,7 +217,7 @@
         display: function (name) {
             try {
                 var formatted = '';
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name!";
                 }
 

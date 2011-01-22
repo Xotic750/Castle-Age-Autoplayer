@@ -20,7 +20,7 @@ ss = {
                 hpackArr    = [],
                 reportEnc   = 'JSON.stringify';
 
-            if (typeof name !== 'string' || name === '') {
+            if (!$u.isString(name) || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
@@ -97,7 +97,7 @@ ss = {
                 compressor = null,
                 storageStr = '';
 
-            if (typeof name !== 'string' || name === '') {
+            if (!$u.isString(name) || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 
@@ -165,7 +165,7 @@ ss = {
 
     deleteItem: function (name) {
         try {
-            if (typeof name !== 'string' || name === '') {
+            if (!$u.isString(name) || name === '') {
                 throw "Invalid identifying name! (" + name + ")";
             }
 

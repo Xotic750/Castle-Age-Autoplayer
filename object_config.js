@@ -35,7 +35,7 @@
 
         setItem: function (name, value) {
             try {
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name!";
                 }
 
@@ -55,7 +55,7 @@
         getItem: function (name, value) {
             try {
                 var item;
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name!";
                 }
 
@@ -78,7 +78,7 @@
         getList: function (name, value) {
             try {
                 var item = [];
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name!";
                 }
 
@@ -92,7 +92,7 @@
 
         deleteItem: function (name) {
             try {
-                if (typeof name !== 'string' || name === '') {
+                if (!$u.isString(name) || name === '') {
                     throw "Invalid identifying name!";
                 }
 

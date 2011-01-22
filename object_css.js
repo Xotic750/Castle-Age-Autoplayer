@@ -22,7 +22,7 @@
 
                 return true;
             } catch (err) {
-                css.error("ERROR in AddCSS: " + err);
+                $u.error("ERROR in AddCSS: " + err);
                 return false;
             }
         },

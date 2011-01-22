@@ -1124,7 +1124,7 @@
                         if (inp && inp.length) {
                             inp.attr("value", chainId);
                             $u.log(1, "Chain attacking: ", chainId);
-                            battle.click(inputDiv.eq(0).get(0), type);
+                            battle.click(inputDiv.eq(0), type);
                             state.setItem("lastBattleID", chainId);
                             caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                             state.setItem("notSafeCount", 0);
@@ -1141,7 +1141,7 @@
                                 firstId = txt ? txt.parseInt() : 0;
                                 inp.attr("value", '200000000000001');
                                 $u.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
-                                battle.click(inputDiv.eq(0).get(0), type);
+                                battle.click(inputDiv.eq(0), type);
                                 state.setItem("lastBattleID", firstId);
                                 caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                                 state.setItem("notSafeCount", 0);
@@ -1161,7 +1161,7 @@
 
                             if (safeTargets[it]['button'] !== null || safeTargets[it]['button'] !== undefined) {
                                 $u.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
-                                battle.click(safeTargets[it]['button'].get(0), type);
+                                battle.click(safeTargets[it]['button'], type);
                                 delete safeTargets[it]['score'];
                                 delete safeTargets[it]['targetNumber'];
                                 delete safeTargets[it]['button'];

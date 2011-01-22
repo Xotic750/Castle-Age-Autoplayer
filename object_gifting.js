@@ -11,7 +11,7 @@
 
         load: function (type) {
             try {
-                if (typeof type !== 'string' || type === '' || gifting.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || gifting.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
@@ -34,7 +34,7 @@
 
         save: function (type) {
             try {
-                if (typeof type !== 'string' || type === '' || gifting.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || gifting.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
@@ -52,7 +52,7 @@
 
         clear: function (type) {
             try {
-                if (typeof type !== 'string' || type === '' || gifting.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || gifting.types.indexOf(type) < 0)  {
                     $u.warn("Type passed to clear: ", type);
                     throw "Invalid type value!";
                 }
@@ -297,10 +297,10 @@
                                 giftEntry['checked'] = true;
                                 gifting.setCurrent(giftEntry);
                                 schedule.setItem('ClickedFacebookURL', 35);
-                                caap.Click(inputDiv.get(0));
+                                caap.Click(inputDiv);
                                 return false;
                             } else {
-                                $u.warn("No input found in ", giftRequest.get(0));
+                                $u.warn("No input found in ", giftRequest);
                             }
 
                             return true;
@@ -338,7 +338,7 @@
             try {
                 var giftEntry = gifting.getCurrent();
                 if (!$j.isEmptyObject(giftEntry)) {
-                    if (force || caap.CheckForImage("gift_yes.gif")) {
+                    if (force || caap.HasImage("gift_yes.gif")) {
                         if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
                             gifting.queue.setItem(giftEntry);
                         }
@@ -369,14 +369,14 @@
                     tempDiv = popDiv.find("input[name='sendit']");
                     if (tempDiv && tempDiv.length) {
                         $u.log(1, 'Sending gifts to Facebook');
-                        caap.Click(tempDiv.get(0));
+                        caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = popDiv.find("input[name='skip_ci_btn']");
                     if (tempDiv && tempDiv.length) {
                         $u.log(1, 'Denying Email Nag For Gift Send');
-                        caap.Click(tempDiv.get(0));
+                        caap.Click(tempDiv);
                         return true;
                     }
 
@@ -395,7 +395,7 @@
                             $u.warn('Popup message but no text found', tempDiv);
                         }
 
-                        caap.Click(tempDiv.get(0));
+                        caap.Click(tempDiv);
                         return tryAgain;
                     }
 
@@ -447,7 +447,7 @@
                         len   = 0,
                         gift  = false;
 
-                    if (typeof name !== 'string' || name === '') {
+                    if (!$u.isString(name) || name === '') {
                         $u.warn("name", name);
                         throw "Invalid identifying name!";
                     }
@@ -472,7 +472,7 @@
                         len   = 0,
                         image = '';
 
-                    if (typeof name !== 'string' || name === '') {
+                    if (!$u.isString(name) || name === '') {
                         $u.warn("name", name);
                         throw "Invalid identifying name!";
                     }
@@ -681,6 +681,7 @@
                                 }
 
                                 found = true;
+                                $u.log(2, "found in queue", gifting.queue.records[it]);
                                 break;
                             }
                         }
@@ -941,7 +942,7 @@
                                 id = tStr ? tStr.parseInt() : 0;
                                 if (!/none/.test(unsel.parent().attr("style"))) {
                                     caap.waitingForDomLoad = false;
-                                    caap.Click(unsel.get(0));
+                                    caap.Click(unsel);
                                     $u.log(2, "Id clicked:", id);
                                     clickedList.push(id);
                                 } else {

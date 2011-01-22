@@ -1712,7 +1712,7 @@
     utility['is_html5_localStorage'] = $u.is_html5_localStorage;
     utility['is_html5_sessionStorage'] = $u.is_html5_sessionStorage;
     utility['injectScript'] = $u.injectScript;
-    utility['isNum'] = $u.isNum;
+    utility['isNum'] = $u.isNumber;
     utility['alert'] = $u.alert;
     utility['log_version'] = $u.log_version;
     utility['log_level'] = $u.get_log_level;
