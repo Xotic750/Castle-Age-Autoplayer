@@ -104,7 +104,7 @@
         return t;
     };
 
-    String.prototype.filepart = function () {
+    String.prototype.basename = function () {
         var x = this.lastIndexOf('/');
         if (x >= 0) {
             return this.substr(x + 1);

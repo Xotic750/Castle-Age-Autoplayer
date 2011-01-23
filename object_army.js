@@ -126,7 +126,7 @@
             try {
                 $u.log(1, "army.page number", number);
                 $j.ajax({
-                    url: "http://apps.facebook.com/castle_age/army_member.php?page=" + number,
+                    url: "http://" + caap.domain.url[caap.domain.which] + "/army_member.php?page=" + number,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
                             $u.error("army.page ajax", textStatus);

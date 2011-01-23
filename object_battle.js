@@ -276,9 +276,7 @@
                     resultsDiv    = $j(),
                     tempDiv       = $j(),
                     tempText      = '',
-                    tStr          = '',
                     tempArr       = [],
-                    tempNum       = 0,
                     battleRecord  = {},
                     warWinLoseImg = '',
                     result        = {
@@ -292,7 +290,7 @@
                         unknown    : false
                     };
 
-                wrapperDiv = $j("#app46755028429_results_main_wrapper");
+                wrapperDiv = $j("#" +  caap.domain.id[caap.domain.which] + "results_main_wrapper");
                 if (wrapperDiv.find("img[src*='battle_victory.gif']").length) {
                     warWinLoseImg = 'war_win_left.jpg';
                     result.win = true;
@@ -756,7 +754,7 @@
             try {
                 state.setItem('ReleaseControl', true);
                 battle.flagResult = true;
-                state.setItem('clickUrl', 'http://apps.facebook.com/castle_age/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
+                state.setItem('clickUrl', 'http://' +  caap.domain.url[caap.domain.which] + '/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
                 caap.Click(battleButton);
                 return true;
             } catch (err) {

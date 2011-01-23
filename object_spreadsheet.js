@@ -189,7 +189,7 @@
 
         doTitles: function (goblin) {
             try {
-                var images = $j("#app46755028429_globalContainer img");
+                var images = $j("#" + caap.domain.id[caap.domain.which] + "globalContainer img");
                 if (images && images.length) {
                     images.each(function () {
                         var img   = $j(this),
@@ -201,7 +201,7 @@
 
                         title = img.attr("title");
                         if (title) {
-                            image = img.attr("src").filepart();
+                            image = img.attr("src").basename();
                             tMes = spreadsheet.getTitle(title, image);
                             if (tMes && $j.isPlainObject(tMes) && !$j.isEmptyObject(tMes) && tMes.title) {
                                 img.attr("title", tMes.title);

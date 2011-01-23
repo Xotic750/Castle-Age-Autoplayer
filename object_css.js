@@ -8,7 +8,7 @@
         AddCSS: function () {
             try {
                 var href = window.location.href;
-                if (href.indexOf('apps.facebook.com/castle_age') >= 0 || href.indexOf('apps.facebook.com/reqs.php') >= 0) {
+                if (caap.domain.which >= 0 || href.indexOf('apps.facebook.com/reqs.php') >= 0) {
                     if (!$j('link[href*="jquery-ui.css"').length) {
                         $j("<link>").appendTo("head").attr({
                             rel: "stylesheet",

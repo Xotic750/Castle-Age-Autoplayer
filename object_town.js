@@ -185,7 +185,7 @@
                             tempDiv = row.find("img");
                             if (tempDiv && tempDiv.length === 1) {
                                 tStr = tempDiv.attr("src");
-                                current.data['image'] = tStr ? tStr.filepart() : '';
+                                current.data['image'] = tStr ? tStr.basename() : '';
                             } else {
                                 $u.log(4, "No image found for", type, current.data['name']);
                             }

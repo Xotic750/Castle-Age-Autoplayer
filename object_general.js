@@ -311,14 +311,14 @@
                     tStr        = '',
                     nameObj     = $j();
 
-                nameObj = $j("#app46755028429_equippedGeneralContainer .general_name_div3");
-                if (nameObj) {
+                nameObj = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3");
+                if (nameObj && nameObj.length) {
                     tStr = nameObj.text();
                     generalName = tStr ? tStr.trim().stripTRN().stripStar() : '';
                 }
 
                 if (!generalName) {
-                    $u.warn("Couldn't get current 'General'. Will use current 'General'", generalName);
+                    $u.warn("Couldn't get current 'General'. Will use current 'General'", generalName, nameObj);
                     return 'Use Current';
                 }
 
@@ -364,7 +364,7 @@
                         tempObj = container.find(".imgButton");
                         if (tempObj && tempObj.length) {
                             tStr = tempObj.attr("src");
-                            img = tStr ? tStr.filepart() : '';
+                            img = tStr ? tStr.basename() : '';
                         } else {
                             $u.warn("Unable to find 'image' container", index);
                         }
@@ -613,7 +613,7 @@
                     return false;
                 }
 
-                generalDiv = $j("#app46755028429_equippedGeneralContainer .generals_indv_stats div");
+                generalDiv = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div");
                 if (generalDiv && generalDiv.length === 2) {
                     tempObj = generalDiv.eq(0);
                     if (tempObj && tempObj.length) {

@@ -5,6 +5,7 @@
 // @version        !version!
 // @dev            !dev!
 // @include        http*://apps.*facebook.com/castle_age/*
+// @include        http://web3.castleagegame.com/castle_ws/*
 // @include        http*://*.facebook.com/common/error.html*
 // @include        http*://apps.facebook.com/sorry.php*
 // @include        http*://apps.facebook.com/reqs.php#confirm_46755028429_0

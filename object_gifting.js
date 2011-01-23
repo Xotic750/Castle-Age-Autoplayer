@@ -325,7 +325,7 @@
                     $u.log(1, 'Unable to find gift', giftEntry);
                 }
 
-                caap.VisitUrl("http://apps.facebook.com/castle_age/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+                caap.VisitUrl("http://" + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
                 return true;
             } catch (err) {
                 $u.error("ERROR in gifting.collect: " + err);
@@ -508,7 +508,7 @@
                         tempArr  = [],
                         update   = false;
 
-                    giftDiv = $j("#app46755028429_giftContainer div[id*='app46755028429_gift']");
+                    giftDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']");
                     if (giftDiv && giftDiv.length) {
                         gifting.clear("gifts");
                         giftDiv.each(function () {
@@ -532,7 +532,7 @@
                             tempDiv = theGift.find("img[class*='imgButton']");
                             if (tempDiv && tempDiv.length) {
                                 tStr = tempDiv.attr("src");
-                                tempText = tStr ? tStr.filepart() : '';
+                                tempText = tStr ? tStr.basename() : '';
                                 if (tempText) {
                                     newGift.data['image'] = tempText;
                                 } else {
@@ -1017,7 +1017,7 @@
                         sentok     = false;
 
                     if (window.location.href.indexOf('act=create') >= 0) {
-                        resultDiv = $j('#app46755028429_results_main_wrapper');
+                        resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper');
                         if (resultDiv && resultDiv.length) {
                             resultText = resultDiv.text();
                             if (resultText) {

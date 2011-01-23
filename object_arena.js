@@ -367,7 +367,6 @@
         cleanWins: function () {
             try {
                 var arenaInfo = {},
-                    wins      = [],
                     it        = 0,
                     len       = 0,
                     found     = false;
@@ -420,7 +419,6 @@
                     timerSpan   = $j(),
                     daysDiv     = $j(),
                     bottomDiv   = $j(),
-                    enterButton = null,
                     tStr        = '',
                     tStr2       = '',
                     tNum        = 0,
@@ -429,16 +427,16 @@
                 arenaInfo = arena.getItem();
                 arenaInfo['reviewed'] = new Date().getTime();
 
-                tokenSpan = $j("span[id='app46755028429_guild_token_current_value']");
+                tokenSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_current_value']");
                 tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
                 arenaInfo['tokens'] = tStr ? tStr.parseInt() : 0;
 
-                timerSpan = $j("span[id='app46755028429_guild_token_time_value']");
+                timerSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_time_value']");
                 tStr = timerSpan.length ? timerSpan.text().trim() : '';
                 tStr = tStr ? tStr.regex(/(\d+:\d+)/) : '';
                 arenaInfo['tokenTime'] = tStr ? tStr : '';
 
-                daysDiv = $j("#app46755028429_arena_banner").children().eq(0).children().eq(0);
+                daysDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_banner").children().eq(0).children().eq(0);
                 tStr = daysDiv.length ? daysDiv.text().trim() : '';
                 arenaInfo['days'] = tStr ? tStr.regex(/(\d+) DAYS/) : 0;
 
@@ -500,7 +498,6 @@
                     health        = $j(),
                     healthGuild   = $j(),
                     healthEnemy   = $j(),
-                    allowedDiv    = $j(),
                     bannerDiv     = $j(),
                     collectDiv    = $j(),
                     enterDiv      = $j(),
@@ -508,14 +505,12 @@
                     timerSpan     = $j(),
                     resultBody    = $j(),
                     imgDiv        = $j(),
-                    collect       = false,
                     myStatsTxt    = '',
                     myStatsArr    = [],
                     index         = 0,
                     currentRecord = {},
                     minions       = [],
                     tStr          = '',
-                    checkStr      = '',
                     tNum          = 0,
                     resultsTxt    = '',
                     lastAttacked  = {},
@@ -608,7 +603,7 @@
                     }
                 }
 
-                bannerDiv = $j("#app46755028429_arena_battle_banner_section");
+                bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "arena_battle_banner_section");
                 myStatsTxt = bannerDiv.text();
                 myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
                 notStarted = myStatsTxt.regex(/(This Battle Has Not Started Yet)/);
@@ -623,9 +618,9 @@
                     currentRecord['teamHealth'] = 0;
                     currentRecord['enemyHealth'] = 0;
                     if (!notStarted) {
-                        gates = $j("div[id*='app46755028429_enemy_guild_member_list_']");
+                        gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']");
                         if (!gates || !gates.length) {
-                            tabs = $j("div[id*='app46755028429_your_arena_tab']");
+                            tabs = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "your_arena_tab']");
                             if (!tabs || !tabs.length) {
                                 $u.warn("No gates found");
                             }
@@ -739,7 +734,7 @@
                     enterDiv = $j("input[src*='guild_enter_battle_button.gif']");
                     if (currentRecord['ticker'] && !notStarted && !battleOver && !collectDiv.length  && !enterDiv.length) {
                         currentRecord['state'] = 'Alive';
-                        tStr = $j("span[id='app46755028429_monsterTicker']").text();
+                        tStr = $j("span[id='" +  caap.domain.id[caap.domain.which] + "monsterTicker']").text();
                         currentRecord['ticker'] = tStr ? tStr.trim() : '';
                         if (myStatsTxt) {
                             $u.log(3, "myStatsTxt", myStatsTxt);
@@ -754,15 +749,15 @@
                             }
                         }
 
-                        tokenSpan = $j("span[id='app46755028429_guild_token_current_value']");
+                        tokenSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_current_value']");
                         tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
                         currentRecord['tokens'] = tStr ? tStr.parseInt() : 0;
 
-                        timerSpan = $j("span[id='app46755028429_guild_token_time_value']");
+                        timerSpan = $j("span[id='" +  caap.domain.id[caap.domain.which] + "guild_token_time_value']");
                         tStr = timerSpan.length ? timerSpan.text().trim() : '';
                         currentRecord['tokenTime'] = tStr ? tStr.regex(/(\d+:\d+)/) : '0:00';
 
-                        health = $j("#app46755028429_guild_battle_health");
+                        health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health");
                         if (health && health.length) {
                             healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                             if (healthEnemy && healthEnemy.length) {
@@ -835,9 +830,7 @@
         getMinion: function (index) {
             try {
                 var arenaInfo = {},
-                    minion    = {},
-                    it        = 0,
-                    len       = 0;
+                    minion    = {};
 
                 if (index === '' || isNaN(index) || index < 0 || index > 40) {
                     $u.warn("index", index);
@@ -915,11 +908,9 @@
                     observeHealth     = false,
                     attackSuicide     = false,
                     chainStrict       = false,
-                    chainSearch       = false,
                     doPoly            = false,
                     stunnedPoly       = false,
                     roguePoly         = false,
-                    stunnedAttack     = false,
                     attackOrderList   = [],
                     defaultOrderList  = [],
                     typeOrderList     = [],
@@ -946,7 +937,6 @@
                     try {
                         var nDiff   = 0,
                             cDiff   = 0,
-                            lvlDif  = 0,
                             higherLevel  = false,
                             lowerLevel = false,
                             knownWin = false,

@@ -295,7 +295,7 @@
                                     passed = false;
                                 }
 
-                                imageName = button.attr("src").filepart();
+                                imageName = button.attr("src").basename();
                                 if (imageName) {
                                     switch (imageName) {
                                     case "dragon_list_btn_3.jpg":
@@ -373,10 +373,10 @@
                     currentRecord = {},
                     minionRegEx   = new RegExp("(.*) Level (\\d+) Class: (.*) Health: (.+)/(.+) Status: (.*)");
 
-                caap.chatLink(caap.appBodyDiv, "#app46755028429_guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
+                caap.chatLink(caap.appBodyDiv, "#" +  caap.domain.id[caap.domain.which] + "guild_war_chat_log div[style*='border-bottom: 1px'] div[style*='font-size: 15px']");
                 slot = $j("input[name='slot']").eq(0).attr("value");
                 slot = slot ? slot.parseInt() : 0;
-                bannerDiv = $j("#app46755028429_guild_battle_banner_section");
+                bannerDiv = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_banner_section");
                 myStatsTxt = bannerDiv.children().eq(2).children().eq(0).children().eq(1).text();
                 myStatsTxt = myStatsTxt ? myStatsTxt.trim().innerTrim() : '';
                 if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
@@ -387,7 +387,7 @@
                     currentRecord['guildHealth'] = 0;
                     currentRecord['enemyHealth'] = 0;
                     if (!bannerDiv.attr("style").match(/_dead/)) {
-                        currentRecord['ticker'] = $j("#app46755028429_monsterTicker").text();
+                        currentRecord['ticker'] = $j("#" +  caap.domain.id[caap.domain.which] + "monsterTicker").text();
                         currentRecord['ticker'] = currentRecord['ticker'] ? currentRecord['ticker'].trim() : '';
                         if (myStatsTxt) {
                             $u.log(3, "myStatsTxt", myStatsTxt);
@@ -401,7 +401,7 @@
                             }
                         }
 
-                        allowedDiv = $j("#app46755028429_allowedAttacks");
+                        allowedDiv = $j("#" +  caap.domain.id[caap.domain.which] + "allowedAttacks");
                         if (allowedDiv && allowedDiv.length) {
                             currentRecord['attacks'] = allowedDiv.attr("value") ? allowedDiv.attr("value").parseInt() : 1;
                             if (currentRecord['attacks'] < 1 || currentRecord['attacks'] > 5) {
@@ -412,7 +412,7 @@
                             $u.warn("Could not find allowedAttacks");
                         }
 
-                        health = $j("#app46755028429_guild_battle_health");
+                        health = $j("#" +  caap.domain.id[caap.domain.which] + "guild_battle_health");
                         if (health && health.length) {
                             healthEnemy = health.find("div[style*='guild_battle_bar_enemy.gif']").eq(0);
                             if (healthEnemy && healthEnemy.length) {
@@ -431,7 +431,7 @@
                             $u.warn("guild_battle_health error");
                         }
 
-                        gates = $j("div[id*='app46755028429_enemy_guild_member_list_']");
+                        gates = $j("div[id*='" +  caap.domain.id[caap.domain.which] + "enemy_guild_member_list_']");
                         if (!gates || !gates.length) {
                             $u.warn("No gates found");
                         } else if (gates && gates.length !== 4) {
@@ -574,7 +574,6 @@
                     firstSpecial    = -1,
                     ignoreClerics   = false,
                     attackOrderList = [],
-                    firstAttack     = 0,
                     isSpecial       = false,
                     isMatch         = false,
                     attackNorth     = config.getItem('attackGateNorth', true),

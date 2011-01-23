@@ -113,22 +113,65 @@
         return t;
     };
 
-    String.prototype['filepart'] = String.prototype.filepart = function () {
-        var x = this.lastIndexOf('/');
-        if (x >= 0) {
-            return this.substr(x + 1);
-        }
+    String.prototype['getUrlQuery'] = String.prototype.getUrlQuery = function () {
+        var t = this.toString(),
+            q = -1,
+            x = -1;
 
-        return this;
+        x = t.indexOf('?');
+        q = x >= 0 ? x : q;
+        x = t.indexOf('&');
+        q = x >= 0 && (q < 0 || ( q >= 0 && x < q)) ? x : q;
+        x = t.indexOf('#');
+        q = x >= 0 && (q < 0 || ( q >= 0 && x < q)) ? x : q;
+        t = q >= 0 ? t.substr(q) : '';
+        return t;
     };
 
-    String.prototype['pathpart'] = String.prototype.pathpart = function () {
-        var x = this.lastIndexOf('/');
-        if (x >= 0) {
-            return this.substr(0, x + 1);
-        }
+    String.prototype['stripUrlQuery'] = String.prototype.stripUrlQuery = function () {
+        var t = this.toString(),
+            x = -1;
 
-        return this;
+        x = t.indexOf('?');
+        t = x >= 0 ? t.substr(0, x) : t;
+        x = t.indexOf('&');
+        t = x >= 0 ? t.substr(0, x) : t;
+        x = t.indexOf('#');
+        t = x >= 0 ? t.substr(0, x) : t;
+        return t;
+    };
+
+    String.prototype['basename'] = String.prototype.basename = function (s) {
+        var t = this.toString(),
+            x = -1;
+
+        t = t[t.length - 1] === '/' ? t.substr(0, t.length - 1) : t;
+        x = t.stripUrlQuery().lastIndexOf('/');
+        t = x >= 0 ? t.substr(x + 1) : t;
+        x = typeof s !== 'undefined' && s !== null && typeof s.toString !== 'undefined' ? t.lastIndexOf(s.toString()) : -1;
+        t = x >= 0 ? t.substr(0, x) : t;
+        return t;
+    };
+
+    String.prototype['dirname'] = String.prototype.dirname = function () {
+        var t = this.toString(),
+            x = -1;
+
+        t = t.stripUrlQuery();
+        x = t.lastIndexOf('/');
+        t = x >= 0 ? t.substr(0, x + 1) : t;
+        return t;
+    };
+
+    String.prototype['fileext'] = String.prototype.fileext = function () {
+        var t = this.toString(),
+            x = -1;
+
+        t = t.basename();
+        t = t.stripUrlQuery();
+        x = t.lastIndexOf('.');
+        t = x >= 0 ? t.substr(x) : '';
+        return t;
     };
 
     String.prototype['regex'] = String.prototype.regex = function (r) {
@@ -1444,6 +1487,53 @@
             }
         },
 
+        testUrlStuff: function (url) {
+            try {
+                var test = [
+                        "http://abc/def/ghi.html?tuv&123#xyz",
+                        "http://abc/def/ghi.html?tuv#xyz&123",
+                        "http://abc/def/ghi.php&123#xyz?tuv",
+                        "http://abc/def/ghi.html&123?tuv#xyz",
+                        "http://abc/def/ghi.css#xyz?tuv&123",
+                        "http://abc/def/ghi.html#xyz?&123tuv",
+                        "http://abc/def/ghi.js?tuv&123",
+                        "http://abc/def/ghi.html&123?tuv",
+                        "http://abc/def/ghi.png?tuv#xyz",
+                        "http://abc/def/ghi.html#xyz?tuv",
+                        "http://abc/def/ghi.jpg#xyz&123",
+                        "http://abc/def/ghi.html&123#xyz",
+                        "http://abc/def/ghi.html?tuv",
+                        "http://abc/def/ghi.bmp&123",
+                        "http://abc/def/ghi.html#xyz",
+                        "http://abc/def/ghi.html",
+                        "http://abc/def/ghi.jk.html",
+                        "http://abc/def/ghi.html?tuv=\"/abc.d\"",
+                        "http://abc/def/ghi.html?tuv=\"/abc.d?abc\"",
+                        "http://abc/def/ghi.html?tuv=\"/abc.d#cde\"",
+                        "http://abc/def/ghi.html?tuv=\"/abc.d&fgh\"",
+                        "http://abc/def/ghi",
+                        "http://abc/def/ghi/",
+                        "abc",
+                        "abc.html",
+                        "/abc",
+                        "/abc.html"
+                    ],
+                    x = 0,
+                    l = 0;
+
+                test = utility.isString(url) ? [url] : test;
+                for (x = 0, l = test.length; x < test.length; x += 1) {
+                    utility.log(2, 'Url     : ', test[x]);
+                    utility.log(2, 'dirname : ', test[x].dirname());
+                    utility.log(2, 'filename: ', test[x].basename(test[x].fileext()));
+                    utility.log(2, 'fileext : ', test[x].fileext(), test[x].getUrlQuery());
+                    utility.log(2, 'urlquery: ', test[x].getUrlQuery());
+                }
+            } catch (err) {
+                utility.error("ERROR in utility.testUrlStuff: " + err);
+            }
+        },
+
         testsRun: function (run) {
             try {
                 var p = true;
@@ -2380,6 +2470,7 @@
         utility['testAes'] = utility.testAes;
         utility['testLZ77'] = utility.testLZ77;
         utility['testAes'] = utility.testAes;
+        utility['testUrlStuff'] = utility.testUrlStuff;
         utility['testsRun'] = utility.testsRun;
         utility['Aes'] = utility.Aes;
         utility['LZ77'] = utility.LZ77;
