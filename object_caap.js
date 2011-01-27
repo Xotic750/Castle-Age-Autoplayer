@@ -2676,7 +2676,7 @@
                     for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
                         html += "<tr>";
                         color = army.recordsSortable[i]['color'];
-                        for (pp = 0; pp < values.length; pp += 1) {
+                        for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === "last" || values[pp] === "change") {
                                 html += caap.makeTd({
                                     text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
