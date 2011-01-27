@@ -691,7 +691,7 @@
                                             }
                                         }
 
-                                        nameDiv = member.find("div[style='font-size: 19px; padding-bottom: 3px;']");
+                                        nameDiv = member.find("div[style='font-size: 19px; padding-bottom: 3px;'], div[style='font-size:19px; padding-bottom:3px;']");
                                         if (nameDiv && nameDiv.length === 1) {
                                             if (memberRecord['won']) {
                                                 tStr = '<div style="float: left; width: 220px; font-size: 11px;"><span style="float: left;" title="Won - Last Points: ' + memberRecord['last_ap'];

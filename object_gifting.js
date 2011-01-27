@@ -211,7 +211,7 @@
                     }
 
                     schedule.setItem('ClickedFacebookURL', 30);
-                    caap.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
+                    caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/reqs.php#confirm_46755028429_0");
                     return true;
                 }
 
@@ -325,7 +325,7 @@
                     $u.log(1, 'Unable to find gift', giftEntry);
                 }
 
-                caap.VisitUrl("http://" + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+                caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
                 return true;
             } catch (err) {
                 $u.error("ERROR in gifting.collect: " + err);

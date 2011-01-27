@@ -70,6 +70,12 @@
                 special1 : [0, 25, 50, 75],
                 special2 : [1, 2, 3, 4],
                 health   : [500, 1000, 2000, 4000]
+            },
+            "Giant Arachnid": {
+                twt2     : "giant_arachnid",
+                special1 : [0],
+                special2 : [1],
+                health   : [100, 200, 400, 800]
             }
         },
 

@@ -166,50 +166,16 @@
             }
         },
 
-        FormatTime: function (time) {
-            try {
-                var d_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                    t_day   = time.getDay(),
-                    t_hour  = time.getHours(),
-                    t_min   = time.getMinutes(),
-                    a_p     = "PM";
+        str12: "D d M g:i A",
 
-                if (config.getItem("use24hr", true)) {
-                    t_hour = t_hour + "";
-                    if (t_hour && t_hour.length === 1) {
-                        t_hour = "0" + t_hour;
-                    }
+        str24: "D d M H:i",
 
-                    t_min = t_min + "";
-                    if (t_min && t_min.length === 1) {
-                        t_min = "0" + t_min;
-                    }
+        sStr12: "D g:i A",
 
-                    return d_names[t_day] + " " + t_hour + ":" + t_min;
-                } else {
-                    if (t_hour < 12) {
-                        a_p = "AM";
-                    }
+        sStr24: "D H:i",
 
-                    if (t_hour === 0) {
-                        t_hour = 12;
-                    }
-
-                    if (t_hour > 12) {
-                        t_hour = t_hour - 12;
-                    }
-
-                    t_min = t_min + "";
-                    if (t_min && t_min.length === 1) {
-                        t_min = "0" + t_min;
-                    }
-
-                    return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
-                }
-            } catch (err) {
-                $u.error("ERROR in FormatTime: " + err);
-                return "Time Err";
-            }
+        timeStr: function (Short) {
+            return config.getItem("use24hr", true) ? (Short ? schedule.sStr24 : schedule.str24) : (Short ? schedule.sStr12 : schedule.str12);
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -226,9 +192,9 @@
                         $u.warn("Invalid or non-existant timer!", name);
                     }
 
-                    formatted = schedule.FormatTime(new Date());
+                    formatted = $u.makeTime(new Date(), schedule.timeStr(true));
                 } else {
-                    formatted = schedule.FormatTime(new Date(schedule.timers[name]['next']));
+                    formatted = $u.makeTime(schedule.timers[name]['next'], schedule.timeStr(true));
                 }
 
                 return formatted;

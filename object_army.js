@@ -57,7 +57,7 @@
                 //army.hbest = JSON.hbest(army.records);
                 $u.log(2, "army.load Hbest", army.hbest);
                 state.setItem("ArmyDashUpdate", true);
-                $u.log(5, "army.load", army.records);
+                $u.log(2, "army.load", army.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.load: " + err);
@@ -70,7 +70,7 @@
                 var compress = true;
                 gm.setItem('army.records', army.records, army.hbest, compress);
                 state.setItem("ArmyDashUpdate", true);
-                $u.log(5, "army.save", army.records);
+                $u.log(3, "army.save", army.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.save: " + err);
@@ -85,7 +85,7 @@
                     army.recordsTemp = ss.setItem('army.recordsTemp', []);
                 }
 
-                $u.log(5, "army.loadTemp", army.recordsTemp);
+                $u.log(2, "army.loadTemp", army.recordsTemp);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.loadTemp: " + err);
@@ -96,7 +96,20 @@
         saveTemp: function () {
             try {
                 ss.setItem('army.recordsTemp', army.recordsTemp);
-                $u.log(5, "army.saveTemp", army.recordsTemp);
+                $u.log(3, "army.saveTemp", army.recordsTemp);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.saveTemp: " + err);
+                return false;
+            }
+        },
+
+        deleteTemp: function () {
+            try {
+                ss.deleteItem('army.recordsTemp');
+                ss.deleteItem('army.currentPage');
+                army.recordsTemp = [];
+                $u.log(3, "army.deleteTemp deleted");
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.saveTemp: " + err);
@@ -126,7 +139,7 @@
             try {
                 $u.log(1, "army.page number", number);
                 $j.ajax({
-                    url: "http://" + caap.domain.url[caap.domain.which] + "/army_member.php?page=" + number,
+                    url: caap.domain.link + "/army_member.php?page=" + number,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
                             $u.error("army.page ajax", textStatus);
@@ -159,12 +172,17 @@
                                 search = jData.find("a[href*='comments.php?casuser=']");
                                 search.each(function () {
                                     var el    = $j(this),
+                                        tEl   = null,
                                         tStr1 = '';
 
                                     record = new army.record();
                                     tStr1 = el.attr("href");
                                     tNum = tStr1.regex(/casuser=(\d+)/);
                                     record.data['userId'] = tNum ? tNum : 0;
+
+                                    //tEl = el.parents("tr").eq(0).get(0).getElementsByTagName("a");
+                                    //$u.log(1, "class", tEl);
+
                                     tStr1 = el.parents("tr").eq(0).text().trim().innerTrim();
                                     tTxt = tStr1.regex('(.+) "');
                                     record.data['user'] = (tTxt !== undefined && tTxt !== null) ? tTxt.toString() : '';
@@ -236,10 +254,17 @@
                 if (currentPage > expectedPageCount) {
                     army.saveTemp();
                     army.pageDone = false;
-                    army.merge();
-                    ss.setItem("army.currentPage", 1);
-                    $u.log(1, "army.run", expectedPageCount, caap.stats['army']['actual'] - 1, army.recordsTemp);
-                    schedule.setItem("army_member", 604800, 300);
+                    //ss.setItem("army.currentPage", 1);
+                    $u.log(1, "army.run", expectedPageCount);
+                    if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
+                        $u.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
+                        schedule.setItem("army_member", 1800, 300);
+                    } else {
+                        army.merge();
+                        schedule.setItem("army_member", 604800, 300);
+                        $u.log(2, "Army merge complete. Next schedule set 1 week.", army.records);
+                    }
+
                     return false;
                 } else if (currentPage === 1) {
                     army.recordsTemp = [];
@@ -297,7 +322,15 @@
                     if (record) {
                         if (army.recordsTemp[it]['lvl'] > record['lvl']) {
                             army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                            $u.log(1, "Changed level", army.recordsTemp[it]);
+                            $u.log(2, "Changed level", army.recordsTemp[it]);
+                        } else {
+                            if ($u.hasContent(record['change']) && record['change'] > 0) {
+                                army.recordsTemp[it]['change'] = record['change'];
+                                $u.log(3, "Copy change", army.recordsTemp[it]);
+                            } else {
+                                army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
+                                $u.log(3, "Set change", army.recordsTemp[it]);
+                            }
                         }
                     }
                 }
@@ -305,10 +338,30 @@
                 army.records = army.recordsTemp.slice();
                 army.save();
                 army.copy2sortable();
+                army.deleteTemp();
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.merge: " + err);
                 return false;
+            }
+        },
+
+        getIdList: function () {
+            try {
+                var it   = 0,
+                    len  = 0,
+                    list = [];
+
+                for (it = 0, len = army.records.length; it < len; it += 1) {
+                    if ($u.hasContent(army.recordsTemp[it]['userId']) && army.recordsTemp[it]['userId'] > 0) {
+                        list.push(army.recordsTemp[it]['userId']);
+                    }
+                }
+
+                return list;
+            } catch (err) {
+                $u.error("ERROR in army.getIdList: " + err);
+                return undefined;
             }
         }
         /*jslint sub: false */

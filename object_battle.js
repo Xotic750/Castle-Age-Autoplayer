@@ -754,7 +754,7 @@
             try {
                 state.setItem('ReleaseControl', true);
                 battle.flagResult = true;
-                state.setItem('clickUrl', 'http://' +  caap.domain.url[caap.domain.which] + '/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
+                state.setItem('clickUrl', caap.domain.link + '/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
                 caap.Click(battleButton);
                 return true;
             } catch (err) {

@@ -15,7 +15,7 @@
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
 /*global window,jQuery,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,rison,utility,$u */
-/*jslint maxlen: 255 */
+/*jslint maxlen: 280 */
 
 //////////////////////////////////
 //       Globals
@@ -1288,50 +1288,16 @@
             }
         },
 
-        FormatTime: function (time) {
-            try {
-                var d_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-                    t_day   = time.getDay(),
-                    t_hour  = time.getHours(),
-                    t_min   = time.getMinutes(),
-                    a_p     = "PM";
+        str12: "D d M g:i A",
 
-                if (config.getItem("use24hr", true)) {
-                    t_hour = t_hour + "";
-                    if (t_hour && t_hour.length === 1) {
-                        t_hour = "0" + t_hour;
-                    }
+        str24: "D d M H:i",
 
-                    t_min = t_min + "";
-                    if (t_min && t_min.length === 1) {
-                        t_min = "0" + t_min;
-                    }
+        sStr12: "D g:i A",
 
-                    return d_names[t_day] + " " + t_hour + ":" + t_min;
-                } else {
-                    if (t_hour < 12) {
-                        a_p = "AM";
-                    }
+        sStr24: "D H:i",
 
-                    if (t_hour === 0) {
-                        t_hour = 12;
-                    }
-
-                    if (t_hour > 12) {
-                        t_hour = t_hour - 12;
-                    }
-
-                    t_min = t_min + "";
-                    if (t_min && t_min.length === 1) {
-                        t_min = "0" + t_min;
-                    }
-
-                    return d_names[t_day] + " " + t_hour + ":" + t_min + " " + a_p;
-                }
-            } catch (err) {
-                $u.error("ERROR in FormatTime: " + err);
-                return "Time Err";
-            }
+        timeStr: function (Short) {
+            return config.getItem("use24hr", true) ? (Short ? schedule.sStr24 : schedule.str24) : (Short ? schedule.sStr12 : schedule.str12);
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -1348,9 +1314,9 @@
                         $u.warn("Invalid or non-existant timer!", name);
                     }
 
-                    formatted = schedule.FormatTime(new Date());
+                    formatted = $u.makeTime(new Date(), schedule.timeStr(true));
                 } else {
-                    formatted = schedule.FormatTime(new Date(schedule.timers[name]['next']));
+                    formatted = $u.makeTime(schedule.timers[name]['next'], schedule.timeStr(true));
                 }
 
                 return formatted;
@@ -3266,6 +3232,12 @@
                 special1 : [0, 25, 50, 75],
                 special2 : [1, 2, 3, 4],
                 health   : [500, 1000, 2000, 4000]
+            },
+            "Giant Arachnid": {
+                twt2     : "giant_arachnid",
+                special1 : [0],
+                special2 : [1],
+                health   : [100, 200, 400, 800]
             }
         },
 
@@ -4830,7 +4802,7 @@
                                             }
                                         }
 
-                                        nameDiv = member.find("div[style='font-size: 19px; padding-bottom: 3px;']");
+                                        nameDiv = member.find("div[style='font-size: 19px; padding-bottom: 3px;'], div[style='font-size:19px; padding-bottom:3px;']");
                                         if (nameDiv && nameDiv.length === 1) {
                                             if (memberRecord['won']) {
                                                 tStr = '<div style="float: left; width: 220px; font-size: 11px;"><span style="float: left;" title="Won - Last Points: ' + memberRecord['last_ap'];
@@ -6054,7 +6026,7 @@
             try {
                 state.setItem('ReleaseControl', true);
                 battle.flagResult = true;
-                state.setItem('clickUrl', 'http://' +  caap.domain.url[caap.domain.which] + '/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
+                state.setItem('clickUrl', caap.domain.link + '/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
                 caap.Click(battleButton);
                 return true;
             } catch (err) {
@@ -6541,7 +6513,7 @@
             'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
             'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
         },
-        /*jslint maxlen: 255 */
+        /*jslint maxlen: 280 */
 
         record: function () {
             this.data = {
@@ -7304,7 +7276,7 @@
                     }
 
                     schedule.setItem('ClickedFacebookURL', 30);
-                    caap.VisitUrl("http://apps.facebook.com/reqs.php#confirm_46755028429_0");
+                    caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/reqs.php#confirm_46755028429_0");
                     return true;
                 }
 
@@ -7418,7 +7390,7 @@
                     $u.log(1, 'Unable to find gift', giftEntry);
                 }
 
-                caap.VisitUrl("http://" + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+                caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
                 return true;
             } catch (err) {
                 $u.error("ERROR in gifting.collect: " + err);
@@ -8394,7 +8366,7 @@
                 //army.hbest = JSON.hbest(army.records);
                 $u.log(2, "army.load Hbest", army.hbest);
                 state.setItem("ArmyDashUpdate", true);
-                $u.log(5, "army.load", army.records);
+                $u.log(2, "army.load", army.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.load: " + err);
@@ -8407,7 +8379,7 @@
                 var compress = true;
                 gm.setItem('army.records', army.records, army.hbest, compress);
                 state.setItem("ArmyDashUpdate", true);
-                $u.log(5, "army.save", army.records);
+                $u.log(3, "army.save", army.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.save: " + err);
@@ -8422,7 +8394,7 @@
                     army.recordsTemp = ss.setItem('army.recordsTemp', []);
                 }
 
-                $u.log(5, "army.loadTemp", army.recordsTemp);
+                $u.log(2, "army.loadTemp", army.recordsTemp);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.loadTemp: " + err);
@@ -8433,7 +8405,20 @@
         saveTemp: function () {
             try {
                 ss.setItem('army.recordsTemp', army.recordsTemp);
-                $u.log(5, "army.saveTemp", army.recordsTemp);
+                $u.log(3, "army.saveTemp", army.recordsTemp);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in army.saveTemp: " + err);
+                return false;
+            }
+        },
+
+        deleteTemp: function () {
+            try {
+                ss.deleteItem('army.recordsTemp');
+                ss.deleteItem('army.currentPage');
+                army.recordsTemp = [];
+                $u.log(3, "army.deleteTemp deleted");
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.saveTemp: " + err);
@@ -8463,7 +8448,7 @@
             try {
                 $u.log(1, "army.page number", number);
                 $j.ajax({
-                    url: "http://" + caap.domain.url[caap.domain.which] + "/army_member.php?page=" + number,
+                    url: caap.domain.link + "/army_member.php?page=" + number,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
                             $u.error("army.page ajax", textStatus);
@@ -8496,12 +8481,17 @@
                                 search = jData.find("a[href*='comments.php?casuser=']");
                                 search.each(function () {
                                     var el    = $j(this),
+                                        tEl   = null,
                                         tStr1 = '';
 
                                     record = new army.record();
                                     tStr1 = el.attr("href");
                                     tNum = tStr1.regex(/casuser=(\d+)/);
                                     record.data['userId'] = tNum ? tNum : 0;
+
+                                    //tEl = el.parents("tr").eq(0).get(0).getElementsByTagName("a");
+                                    //$u.log(1, "class", tEl);
+
                                     tStr1 = el.parents("tr").eq(0).text().trim().innerTrim();
                                     tTxt = tStr1.regex('(.+) "');
                                     record.data['user'] = (tTxt !== undefined && tTxt !== null) ? tTxt.toString() : '';
@@ -8573,10 +8563,17 @@
                 if (currentPage > expectedPageCount) {
                     army.saveTemp();
                     army.pageDone = false;
-                    army.merge();
-                    ss.setItem("army.currentPage", 1);
-                    $u.log(1, "army.run", expectedPageCount, caap.stats['army']['actual'] - 1, army.recordsTemp);
-                    schedule.setItem("army_member", 604800, 300);
+                    //ss.setItem("army.currentPage", 1);
+                    $u.log(1, "army.run", expectedPageCount);
+                    if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
+                        $u.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
+                        schedule.setItem("army_member", 1800, 300);
+                    } else {
+                        army.merge();
+                        schedule.setItem("army_member", 604800, 300);
+                        $u.log(2, "Army merge complete. Next schedule set 1 week.", army.records);
+                    }
+
                     return false;
                 } else if (currentPage === 1) {
                     army.recordsTemp = [];
@@ -8634,7 +8631,15 @@
                     if (record) {
                         if (army.recordsTemp[it]['lvl'] > record['lvl']) {
                             army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                            $u.log(1, "Changed level", army.recordsTemp[it]);
+                            $u.log(2, "Changed level", army.recordsTemp[it]);
+                        } else {
+                            if ($u.hasContent(record['change']) && record['change'] > 0) {
+                                army.recordsTemp[it]['change'] = record['change'];
+                                $u.log(3, "Copy change", army.recordsTemp[it]);
+                            } else {
+                                army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
+                                $u.log(3, "Set change", army.recordsTemp[it]);
+                            }
                         }
                     }
                 }
@@ -8642,10 +8647,30 @@
                 army.records = army.recordsTemp.slice();
                 army.save();
                 army.copy2sortable();
+                army.deleteTemp();
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.merge: " + err);
                 return false;
+            }
+        },
+
+        getIdList: function () {
+            try {
+                var it   = 0,
+                    len  = 0,
+                    list = [];
+
+                for (it = 0, len = army.records.length; it < len; it += 1) {
+                    if ($u.hasContent(army.recordsTemp[it]['userId']) && army.recordsTemp[it]['userId'] > 0) {
+                        list.push(army.recordsTemp[it]['userId']);
+                    }
+                }
+
+                return list;
+            } catch (err) {
+                $u.error("ERROR in army.getIdList: " + err);
+                return undefined;
             }
         }
         /*jslint sub: false */
@@ -8668,9 +8693,13 @@
         newVersionAvailable : false,
         appBodyDiv          : {},
         domain              : {
-            which : -1,
-            url   : ["apps.facebook.com/castle_age", "apps.facebook.com/reqs.php#confirm_46755028429_0", "web3.castleagegame.com/castle_ws"],
-            id    : ["app46755028429_", "", ""]
+            which    : -1,
+            protocol : ["http://", "https://"],
+            ptype    : 0,
+            url      : ["apps.facebook.com/castle_age", "apps.facebook.com/reqs.php#confirm_46755028429_0", "web3.castleagegame.com/castle_ws"],
+            id       : ["app46755028429_", "", ""],
+            ajax     : ["a46755028429_", "", ""],
+            link     : "http://apps.facebook.com/castle_age"
         },
 
         start: function () {
@@ -8688,7 +8717,16 @@
                 return;
             }
 
-            $u.log(1, 'Domain', caap.domain.which, caap.domain.url[caap.domain.which]);
+            if (window.location.href.hasIndexOf('http://')) {
+                caap.domain.ptype = 0;
+            } else if (window.location.href.hasIndexOf('https://')) {
+                caap.domain.ptype = 1;
+            } else {
+                $u.warn('Unknown protocol! Using default.', caap.domain.protocol[caap.domain.ptype]);
+            }
+
+            caap.domain.link = caap.domain.protocol[caap.domain.ptype] + caap.domain.url[caap.domain.which];
+            $u.log(1, 'Domain', caap.domain.which, caap.domain.protocol[caap.domain.ptype], caap.domain.url[caap.domain.which]);
             caap.documentTitle = document.title;
             $u.jQueryExtend();
             gm = new $u.storage({'namespace': 'caap'});
@@ -8748,16 +8786,16 @@
                         }
                     }
                 }
-                /*jslint sub: false */
             } else {
                 accountEl = $j("img[src*='graph.facebook.com']");
                 tempText = accountEl.attr("src");
-                FBID = $u.hasContent(tempText) ? tempText.regex(/facebook.com\/(\d+)\//) : 0;
+                FBID = $u.hasContent(tempText) ? tempText.regex(new RegExp("facebook.com\\/(\\d+)\\/")) : 0;
                 if ($u.isNumber(FBID) && FBID > 0) {
                     caap.stats['FBID'] = FBID;
                     idOk = true;
                 }
             }
+            /*jslint sub: false */
 
             if (!idOk) {
                 // Force reload without retrying
@@ -9035,6 +9073,7 @@
                 town.load('soldiers');
                 town.load('item');
                 town.load('magic');
+                army.init();
                 spreadsheet.load();
                 caap.AddControl();
                 caap.AddColorWheels();
@@ -9043,7 +9082,6 @@
                 caap.AddDBListener();
                 caap.CheckResults();
                 caap.AutoStatCheck();
-                army.init();
                 caap.bestLand = new caap.landRecord().data;
                 caap.sellLand = {};
                 //schedule.deleteItem("army_member");
@@ -9124,7 +9162,7 @@
 
                 caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
                 if (!state.getItem('clickUrl', '').hasIndexOf(link)) {
-                    state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/' + link);
+                    state.setItem('clickUrl', caap.domain.link + '/' + link);
                 }
 
                 if (caap.waitingForDomLoad === false) {
@@ -9133,7 +9171,7 @@
                 }
 
                 var jss = "javascript";
-                window.location.href = jss + ":void(" + caap.domain.id[caap.domain.which] + "ajaxLinkSend('globalContainer', '" + link + "'))";
+                window.location.href = jss + ":void(" + caap.domain.ajax[caap.domain.which] + "ajaxLinkSend('globalContainer', '" + link + "'))";
                 return true;
             } catch (err) {
                 $u.error("ERROR in caap.ClickAjaxLinkSend: " + err);
@@ -9149,7 +9187,7 @@
 
                 caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
                 if (!state.getItem('clickUrl', '').hasIndexOf(link)) {
-                    state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/' + link);
+                    state.setItem('clickUrl', caap.domain.link + '/' + link);
                 }
 
                 if (caap.waitingForDomLoad === false) {
@@ -9175,8 +9213,7 @@
                     imageTest = '',
                     img       = $j();
 
-                content = $j(caap.domain.which === 0 ? "#content" : "#globalContainer");
-                if (!$u.hasContent(content)) {
+                if (!$u.hasContent(caap.globalContainer)) {
                     $u.warn('No content to Navigate to', imageOnPage, pathToPage);
                     return false;
                 }
@@ -9187,7 +9224,7 @@
 
                 pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
                 for (s = pathList.length - 1; s >= 0; s -= 1) {
-                    a = content.find("a[href*='" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
+                    a = caap.globalContainer.find("a[href*='" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
                     if ($u.hasContent(a)) {
                         $u.log(2, 'Go to', pathList[s]);
                         caap.Click(a);
@@ -9269,6 +9306,7 @@
         MakeDropDown: function (idName, dropDownList, instructions, formatParms, defaultValue) {
             try {
                 var selectedItem = config.getItem(idName, 'defaultValue'),
+                    style        = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 10px; width: 100%;",
                     htmlCode     = '',
                     item         = 0,
                     len          = 0;
@@ -9281,7 +9319,7 @@
                     }
                 }
 
-                htmlCode = "<select id='caap_" + idName + "' " + (instructions[item] ? " title='" + instructions[item] + "' " : '') + $u.setContent(formatParms, '') + ">";
+                htmlCode = "<select style=\"" + style + "\" id='caap_" + idName + "' " + (instructions[item] ? " title='" + instructions[item] + "' " : '') + $u.setContent(formatParms, '') + ">";
                 htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
                 for (item = 0; item < len; item += 1) {
                     htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem === dropDownList[item]) ? " selected='selected'" : '');
@@ -9295,27 +9333,48 @@
             }
         },
 
-        MakeCheckBox: function (idName, defaultValue, varClass, instructions, tableTF) {
+        startTR: function (id, css) {
+            try {
+                return "<div" + (id ? " id='" + id  + "'" : '') + (css ? " style=\"width: 100%;" + css + "\"" : '') + ">";
+            } catch (err) {
+                $u.error("ERROR in startTR: " + err);
+                return '';
+            }
+        },
+
+        endTR: "</div>",
+
+        MakeTD: function (text, indent, right, css, params) {
+            try {
+                var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;" + (indent ? "padding-left: 5%;" : '') + (right ? "text-align: right;" : '') + $u.setContent(css, '');
+                return "<div" + ($u.hasContent(params) ? ' ' + params : '') + " style=\"" + style + "\">" + text + caap.endTD;
+            } catch (err) {
+                $u.error("ERROR in MakeTD: " + err);
+                return '';
+            }
+        },
+
+        endTD: "</div>",
+
+        MakeCheckBox: function (idName, defaultValue, instructions, css) {
             try {
                 var checkItem = config.getItem(idName, 'defaultValue'),
-                    htmlCode  = '';
+                    style     = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;" + $u.setContent(css, '');
 
                 checkItem = checkItem !== 'defaultValue' ? checkItem : (config.setItem(idName, $u.setContent(defaultValue, false)));
-                htmlCode = "<input type='checkbox' id='caap_" + idName + "' title=" + '"' + ($u.hasContent(instructions) ? instructions : '') + '"' + ($u.hasContent(varClass) ? " class='" + varClass + "'" : '') + (checkItem ? 'checked' : '') + ' />';
-                htmlCode += $u.hasContent(varClass) ? (tableTF ? "</td></tr></table>" : "<br />") : '';
-                htmlCode += $u.hasContent(varClass) ? "<div id='caap_" + varClass + "' style='display: " + (checkItem ? 'block' : 'none') + "'>" : '';
-                return htmlCode;
+                return "<input style=\"" + style + "\" type='checkbox' id='caap_" + idName + "' title='" + ($u.hasContent(instructions) ? instructions + "'" : "'") + (checkItem ? ' checked' : '') + ' />';
             } catch (err) {
                 $u.error("ERROR in MakeCheckBox: " + err);
                 return '';
             }
         },
 
-        MakeNumberForm: function (idName, instructions, initDefault, formatParms, subtype) {
+        MakeNumberForm: function (idName, instructions, initDefault, formatParms, subtype, css) {
             try {
-                var value     = config.getItem(idName, 'defaultValue'),
-                    stNum     = false,
-                    htmlCode  = '';
+                var value    = config.getItem(idName, 'defaultValue'),
+                    stNum    = false,
+                    style    = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 10px; text-align: right;" + $u.setContent(css, ''),
+                    htmlCode = '';
 
                 subtype = $u.setContent(subtype, 'number');
                 stNum = subtype === 'number';
@@ -9326,18 +9385,20 @@
 
                 value = value !== 'defaultValue' ? value : config.setItem(idName, initDefault);
                 formatParms = $u.setContent(formatParms, "size='4'");
-                htmlCode = "<input type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + value + "' />";
-                return htmlCode;
+                return "<input style=\"" + style + "\" type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + value + "' />";
             } catch (err) {
                 $u.error("ERROR in MakeNumberForm: " + err);
                 return '';
             }
         },
 
-        MakeCheckTR: function (text, idName, defaultValue, varClass, instructions, tableTF) {
+        MakeCheckTR: function (text, idName, defaultValue, instructions, indent, right, css) {
             try {
-                var htmlCode = "<tr><td style='width: 90%'>" + text + "</td><td style='width: 10%; text-align: right'>";
-                htmlCode += caap.MakeCheckBox(idName, defaultValue, varClass, instructions, tableTF) + (tableTF ? '' : "</td></tr>");
+                var htmlCode = '';
+                htmlCode = caap.startTR();
+                htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 85 : 90) + "%; display: inline-block;");
+                htmlCode += caap.MakeTD(caap.MakeCheckBox(idName, defaultValue, instructions, css), false, true, "width: 10%; display: inline-block;");
+                htmlCode += caap.endTR;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in MakeCheckTR: " + err);
@@ -9345,36 +9406,99 @@
             }
         },
 
-        ToggleControl: function (controlId, staticText) {
+        startCheckHide: function (idName, not) {
             try {
-                var currentDisplay = state.getItem('Control_' + controlId, "none"),
-                    displayChar    = currentDisplay === "none" ? "+" : "-",
-                    toggleCode     = '<a style="font-weight: bold;" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
-
-                toggleCode += displayChar + ' ' + staticText + '</a><br />' + "<div id='caap_" + controlId + "' style='display: " + currentDisplay + "'>";
-                return toggleCode;
+                return "<div id='caap_" + idName + (not ? '_not' : '') + "_hide' style='display: " + (config.getItem(idName, false) ? (not ? 'none' : 'block') : (not ? 'block' : 'none')) + ";'>";
             } catch (err) {
-                $u.error("ERROR in ToggleControl: " + err);
+                $u.error("ERROR in startCheckHide: " + err);
                 return '';
             }
         },
 
-        MakeTextBox: function (idName, instructions, initDefault, formatParms) {
+        endCheckHide: function () {
+            try {
+                return "</div>";
+            } catch (err) {
+                $u.error("ERROR in endCheckHide: " + err);
+                return '';
+            }
+        },
+
+        MakeNumberFormTR: function (text, idName, instructions, initDefault, formatParms, subtype, indent, right, width) {
+            try {
+                var htmlCode = '';
+                htmlCode = caap.startTR();
+                htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
+                htmlCode += caap.MakeTD(caap.MakeNumberForm(idName, instructions, initDefault, formatParms, subtype, ''), false, true, "width: " + width + "%; display: inline-block;");
+                htmlCode += caap.endTR;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in MakeNumberFormTR: " + err);
+                return '';
+            }
+        },
+
+        MakeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width) {
+            try {
+                var htmlCode = '';
+                htmlCode = caap.startTR();
+                htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
+                htmlCode += caap.MakeTD(caap.MakeDropDown(idName, dropDownList, instructions, formatParms, defaultValue), false, true, "width: " + width + "%; display: inline-block;");
+                htmlCode += caap.endTR;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in MakeDropDownTR: " + err);
+                return '';
+            }
+        },
+
+        startDropHide: function (idName, idPlus, test, not) {
+            try {
+                var value = config.getItem(idName, 'Never'),
+                    result = not ? value !== test : value === test;
+
+                return "<div id='caap_" + idName + idPlus + "_hide' style='display: " + (result ? 'block' : 'none') + ";'>";
+            } catch (err) {
+                $u.error("ERROR in startDropHide: " + err);
+                return '';
+            }
+        },
+
+        endDropHide: function () {
+            try {
+                return "</div>";
+            } catch (err) {
+                $u.error("ERROR in endDropHide: " + err);
+                return '';
+            }
+        },
+
+        startToggle: function (controlId, staticText) {
+            try {
+                var currentDisplay = state.getItem('Control_' + controlId, "none"),
+                    displayChar    = currentDisplay === "none" ? "+" : "-",
+                    style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
+                    toggleCode     = '';
+
+                toggleCode = '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
+                toggleCode += displayChar + ' ' + staticText + '</a><br />' + "<div id='caap_" + controlId + "' style='display: " + currentDisplay + ";'>";
+                return toggleCode;
+            } catch (err) {
+                $u.error("ERROR in startToggle: " + err);
+                return '';
+            }
+        },
+
+        endToggle: "<hr /></div>",
+
+        MakeTextBox: function (idName, instructions, initDefault) {
             try {
                 initDefault = $u.setContent(initDefault, '');
-                if (config.getItem(idName, 'defaultValue') === 'defaultValue') {
-                    config.setItem(idName, initDefault);
-                }
+                var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
+                    value = config.getItem(idName, 'defaultValue');
 
-                if (formatParms === '') {
-                    if ($u.is_chrome) {
-                        formatParms = " rows='3' cols='25'";
-                    } else {
-                        formatParms = " rows='3' cols='21'";
-                    }
-                }
-
-                return ("<textarea title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + formatParms + ">" + config.getItem(idName) + "</textarea>");
+                value = value === 'defaultValue' ? config.setItem(idName, initDefault) : value;
+                return "<textarea style=\"" + style + "\" title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + ($u.is_chrome ? " rows='3' cols='25'" : " rows='3' cols='21'") + ">" + value + "</textarea>";
             } catch (err) {
                 $u.error("ERROR in MakeTextBox: " + err);
                 return '';
@@ -9391,7 +9515,7 @@
                     document.title = DocumentTitle + caap.documentTitle;
                 }
 
-                caap.caapDivObject.find('#caap_' + idName).html(mess);
+                $j('#caap_' + idName, caap.caapDivObject).html(mess);
             } catch (err) {
                 $u.error("ERROR in SetDivContent: " + err);
             }
@@ -9619,7 +9743,7 @@
                     ];
 
                 for (divID = 0, len = divList.length; divID < len; divID += 1) {
-                    caapDiv += "<div id='caap_" + divList[divID] + "'></div>";
+                    caapDiv += "<div width='100%' id='caap_" + divList[divID] + "'></div>";
                 }
 
                 //caapDiv += '<applet code="http://castle-age-auto-player.googlecode.com/files/localfile.class" archive="http://castle-age-auto-player.googlecode.com/files/localfile.jar" width="10" height="10"></applet>';
@@ -9627,9 +9751,10 @@
                 caapDiv += "</div>";
                 caap.controlXY.x = state.getItem('caap_div_menuLeft', '');
                 caap.controlXY.y = state.getItem('caap_div_menuTop', $j(caap.controlXY.selector).offset().top);
-                //caap.controlXY.y = state.getItem('caap_div_menuTop', $j("#globalcss").offset().top);
                 styleXY = caap.GetControlXY();
                 $j(caapDiv).css({
+                    'font-family'           : "'lucida grande', tahoma, verdana, arial, sans-serif",
+                    'font-size'             : '11px',
                     width                   : '180px',
                     background              : config.getItem('StyleBackgroundLight', '#E0C691'),
                     opacity                 : config.getItem('StyleOpacityLight', 1),
@@ -9668,11 +9793,7 @@
                 caap.SetDivContent('control', htmlCode);
 
                 caap.CheckLastAction(state.getItem('LastAction', 'Idle'));
-                $j("#caap_resetElite").button();
-                $j("#caap_StartedColourSelect").button();
-                $j("#caap_StopedColourSelect").button();
-                $j("#caap_FillArmy").button();
-                $j("#caap_ResetMenuLocation").button();
+                $j("input[type='button']", caap.caapDivObject).button();
                 return true;
             } catch (err) {
                 $u.error("ERROR in AddControl: " + err);
@@ -9685,7 +9806,7 @@
                 return "<div id='caapPaused' style='font-weight: bold; display: " + state.getItem('caapPause', 'block') + "'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />";
             } catch (err) {
                 $u.error("ERROR in AddPauseMenu: " + err);
-                return "<div id='caapPaused' style='font-weight: bold; display: block'>Paused on mouse click.<br /><a href='javascript:;' id='caapRestart' >Click here to restart</a></div><hr />";
+                return '';
             }
         },
 
@@ -9694,8 +9815,8 @@
                 var autoRunInstructions = "Disable auto running of CAAP. Stays persistent even on page reload and the autoplayer will not autoplay.",
                     htmlCode = '';
 
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Disable Autoplayer", 'Disabled', false, '', autoRunInstructions) + '</table><hr />';
+                htmlCode += caap.MakeCheckTR("Disable Autoplayer", 'Disabled', false, autoRunInstructions);
+                htmlCode += '<hr />';
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddDisableMenu: " + err);
@@ -9715,22 +9836,16 @@
                     autosellInstructions = "Automatically sell off any excess lands above your level allowance.",
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('CashandHealth', 'CASH and HEALTH');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Bank Immediately", 'BankImmed', false, '', bankImmedInstructions);
-                htmlCode += caap.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, '', autobuyInstructions);
-                htmlCode += caap.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, '', autosellInstructions) + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Keep In Bank</td><td style='text-align: right'>$" + caap.MakeNumberForm('minInStore', bankInstructions0, 100000, "size='12' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Bank Above</td><td style='text-align: right'>$" + caap.MakeNumberForm('MaxInCash', bankInstructions2, '', "size='7' style='font-size: 10px; text-align: right'") + "</td></tr>";
-                htmlCode += "<tr><td style='padding-left: 10px'>But Keep On Hand</td><td style='text-align: right'>$" +
-                    caap.MakeNumberForm('MinInCash', bankInstructions1, '', "size='7' style='font-size: 10px; text-align: right'") + "</td></tr></table>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Heal If Health Below</td><td style='text-align: right'>" + caap.MakeNumberForm('MinToHeal', healthInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + "</td></tr>";
-                htmlCode += "<tr><td style='padding-left: 10px'>But Not If Stamina Below</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('MinStamToHeal', healthStamInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "<hr/></div>";
+                htmlCode = caap.startToggle('CashandHealth', 'CASH and HEALTH');
+                htmlCode += caap.MakeCheckTR("Bank Immediately", 'BankImmed', false, bankImmedInstructions);
+                htmlCode += caap.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, autobuyInstructions);
+                htmlCode += caap.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, autosellInstructions);
+                htmlCode += caap.MakeNumberFormTR("Keep In Bank", 'minInStore', bankInstructions0, 100000, "size='12'", '', false, false, 60);
+                htmlCode += caap.MakeNumberFormTR("Bank Above", 'MaxInCash', bankInstructions2, '', "size='7'", '', false, false, 40);
+                htmlCode += caap.MakeNumberFormTR("But Keep On Hand", 'MinInCash', bankInstructions1, '', "size='7'", '', true, false, 40);
+                htmlCode += caap.MakeNumberFormTR("Heal If Health Below", 'MinToHeal', healthInstructions, '', "size='2'", '', false, false, 25);
+                htmlCode += caap.MakeNumberFormTR("But Not If Stamina Below", 'MinStamToHeal', healthStamInstructions, '', "size='2'", '', true, false, 25);
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddCashHealthMenu: " + err);
@@ -9782,46 +9897,35 @@
                     autoQuestName = state.getItem('AutoQuest', caap.newAutoQuest())['name'],
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Quests', 'QUEST');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td width=80>Quest When</td><td style='text-align: right; width: 60%'>" + caap.MakeDropDown('WhenQuest', questWhenList, questWhenInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
-                htmlCode += "<div id='caap_WhenQuestHide' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-                htmlCode += "<div id='caap_WhenQuestXEnergy' style='display: " + (config.getItem('WhenQuest', 'Never') !== 'At X Energy' ? 'none' : 'block') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Start At Or Above Energy</td><td style='text-align: right'>" + caap.MakeNumberForm('XQuestEnergy', XQuestInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Stop At Or Below Energy</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('XMinQuestEnergy', XMinQuestInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Quest Area</td><td style='text-align: right; width: 60%'>" + caap.MakeDropDown('QuestArea', questAreaList, '', "style='font-size: 10px; width: 100%'") + '</td></tr>';
-                htmlCode += "<tr id='trQuestSubArea' style='display: table-row'><td>&nbsp;&nbsp;&nbsp;Sub Area</td><td style='text-align: right; width: 60%'>";
+                htmlCode = caap.startToggle('Quests', 'QUEST');
+                htmlCode += caap.MakeDropDownTR("Quest When", 'WhenQuest', questWhenList, questWhenInst, '', 'Never', false, false, 60);
+                htmlCode += caap.startDropHide('WhenQuest', '', 'Never', true);
+                htmlCode += caap.startDropHide('WhenQuest', 'XEnergy', 'At X Energy', false);
+                htmlCode += caap.MakeNumberFormTR("Start At Or Above Energy", 'XQuestEnergy', XQuestInstructions, 1, "size='3'", '', false, false, 25);
+                htmlCode += caap.MakeNumberFormTR("Stop At Or Below Energy", 'XMinQuestEnergy', XMinQuestInstructions, 0, "size='3'", '', false, false, 25);
+                htmlCode += caap.endDropHide('WhenQuest', 'XEnergy');
+                htmlCode += caap.MakeDropDownTR("Quest Area", 'QuestArea', questAreaList, '', '', '', false, false, 60);
                 switch (config.getItem('QuestArea', questAreaList[0])) {
-                case 'Quest' :
-                    htmlCode += caap.MakeDropDown('QuestSubArea', caap.landQuestList, '', "style='font-size: 10px; width: 100%'");
+                case 'Quest':
+                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.landQuestList, '', '', '', false, false, 60);
                     break;
-                case 'Demi Quests' :
-                    htmlCode += caap.MakeDropDown('QuestSubArea', caap.demiQuestList, '', "style='font-size: 10px; width: 100%'");
+                case 'Demi Quests':
+                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.demiQuestList, '', '', '', false, false, 60);
                     break;
-                default :
-                    htmlCode += caap.MakeDropDown('QuestSubArea', caap.atlantisQuestList, '', "style='font-size: 10px; width: 100%'");
+                default:
+                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.atlantisQuestList, '', '', '', false, false, 60);
                     break;
                 }
 
-                htmlCode += '</td></tr>';
-                htmlCode += "<tr><td>Quest For</td><td style='text-align: right; width: 60%'>" + caap.MakeDropDown('WhyQuest', questForList, questForListInstructions, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Switch Quest Area", 'switchQuestArea', true, '', 'Allows switching quest area after Advancement or Max Influence');
-                htmlCode += caap.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, '', forceSubGen);
-                htmlCode += caap.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, '', 'Perform the Boss quest in the selected land for orbs you do not have.') + "</table>";
-                htmlCode += "</div>";
-                if (autoQuestName) {
-                    htmlCode += "<a id='stopAutoQuest' style='display: block' href='javascript:;' title='" + stopInstructions + "'>Stop auto quest: " + autoQuestName +
-                                " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest())['energy'] + ")" + "</a>";
-                } else {
-                    htmlCode += "<a id='stopAutoQuest' style='display: none' href='javascript:;' title='" + stopInstructions + "'></a>";
-                }
-
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.MakeDropDownTR("Quest For", 'WhyQuest', questForList, questForListInstructions, '', '', false, false, 60);
+                htmlCode += caap.MakeCheckTR("Switch Quest Area", 'switchQuestArea', true, 'Allows switching quest area after Advancement or Max Influence');
+                htmlCode += caap.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, forceSubGen);
+                htmlCode += caap.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, 'Perform the Boss quest in the selected land for orbs you do not have.');
+                htmlCode += "<a id='stopAutoQuest' style='display: " + (autoQuestName ? "block" : "none") + "' href='javascript:;' title='" + stopInstructions + "'>";
+                htmlCode += (autoQuestName ? "Stop auto quest: " + autoQuestName + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest())['energy'] + ")" : '');
+                htmlCode += "</a>";
+                htmlCode += caap.endDropHide('WhenQuest');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddQuestMenu: " + err);
@@ -9905,55 +10009,45 @@
                         "will cause Demi Points Only to observe the Demi Points requested in the case where No Attack If % Under is triggered.",
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Battling', 'BATTLE');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Battle When</td><td style='text-align: right; width: 65%'>" + caap.MakeDropDown('WhenBattle', battleList, battleInst, "style='font-size: 10px; width: 100%'", 'Never') + '</td></tr></table>';
-                htmlCode += "<div id='caap_WhenBattleStayHidden1' style='color: red; font-weight: bold; display: " +
-                    (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>Warning: Monster Not Set To 'Stay Hidden'";
+                htmlCode = caap.startToggle('Battling', 'BATTLE');
+                htmlCode += caap.MakeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.startDropHide('WhenBattle', '', 'Never', true);
+                htmlCode += "<div id='caap_WhenBattleStayHidden_hide' style='color: red; font-weight: bold; display: ";
+                htmlCode += (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
+                htmlCode += "Warning: Monster Not Set To 'Stay Hidden'";
                 htmlCode += "</div>";
-                htmlCode += "<div id='caap_WhenBattleXStamina' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Start Battles When Stamina</td><td style='text-align: right'>" + caap.MakeNumberForm('XBattleStamina', XBattleInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('XMinBattleStamina', XMinBattleInstructions, 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<div id='caap_WhenBattleDemiOnly' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Demi Points Only' ? 'none' : 'block') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, '', observeDemiFirstInstructions) + '</table>';
-                htmlCode += "</div>";
-                htmlCode += "<div id='caap_WhenBattleHide' style='display: " + (config.getItem('WhenBattle', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Battle Type</td><td style='text-align: right; width: 40%'>" + caap.MakeDropDown('BattleType', typeList, typeInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, '', safeHealthInstructions);
-                htmlCode += caap.MakeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, '', dosiegeInstructions);
-                htmlCode += caap.MakeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, '', collectRewardInstructions);
-                htmlCode += caap.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '', '');
-                htmlCode += caap.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, '', ignorebattlelossInstructions);
-                htmlCode += "<tr><td>Chain:Battle Points Won</td><td style='text-align: right'>" + caap.MakeNumberForm('ChainBP', chainBPInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td>Chain:Gold Won</td><td style='text-align: right'>" + caap.MakeNumberForm('ChainGold', chainGoldInstructions, '', "size='5' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td>Max Chains</td><td style='text-align: right'>" + caap.MakeNumberForm('MaxChains', maxChainsInstructions, 4, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Target Type</td><td style='text-align: right; width: 50%'>" + caap.MakeDropDown('TargetType', targetList, targetInst, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-                htmlCode += "<div id='caap_FreshmeatSub' style='display: " + (config.getItem('TargetType', 'Never') !== 'Userid List' ? 'block' : 'none') + "'>";
-                htmlCode += "Attack targets that are:";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('FreshMeatMinRank', FMRankInstructions, '', "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('FreshMeatARBase', FMARBaseInstructions, 0.5, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<div id='caap_RaidSub' style='display: " + (config.getItem('TargetType', 'Invade') === 'Raid' ? 'block' : 'none') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, '', plusonekillsInstructions) + '</table>';
-                htmlCode += "Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
-                htmlCode += caap.MakeTextBox('orderraid', raidOrderInstructions, '', '');
-                htmlCode += "</div>";
-                htmlCode += "<div align=right id='caap_UserIdsSub' style='display: " + (config.getItem('TargetType', 'Invade') === 'Userid List' ? 'block' : 'none') + "'>";
-                htmlCode += caap.MakeTextBox('BattleTargets', userIdInstructions, '', '');
-                htmlCode += "</div>";
-                htmlCode += "</div>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startDropHide('WhenBattle', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.MakeNumberFormTR("Start Battles When Stamina", 'XBattleStamina', XBattleInstructions, 1, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinBattleStamina', XMinBattleInstructions, 0, "size='2'", '', false, false, 20);
+                htmlCode += caap.endDropHide('WhenBattle', 'XStamina');
+                htmlCode += caap.startDropHide('WhenBattle', 'DemiOnly', 'Demi Points Only', false);
+                htmlCode += caap.MakeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, observeDemiFirstInstructions);
+                htmlCode += caap.endDropHide('WhenBattle', 'DemiOnly');
+                htmlCode += caap.MakeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 60);
+                htmlCode += caap.MakeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, safeHealthInstructions);
+                htmlCode += caap.MakeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
+                htmlCode += caap.MakeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
+                htmlCode += caap.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
+                htmlCode += caap.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
+                htmlCode += caap.MakeNumberFormTR("Chain:Battle Points Won", 'ChainBP', chainBPInstructions, '', "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Chain:Gold Won", 'ChainGold', chainGoldInstructions, '', "size='5'", '', false, false, 30);
+                htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 60);
+                htmlCode += caap.startDropHide('TargetType', 'Freshmeat', 'Freshmeat', false);
+                htmlCode += caap.MakeTD("Attack targets that are:");
+                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'FreshMeatARBase', FMARBaseInstructions, 0.5, "size='2'", '', false, false, 20);
+                htmlCode += caap.endDropHide('TargetType', 'Freshmeat');
+                htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
+                htmlCode += caap.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions);
+                htmlCode += caap.MakeTD("Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a>");
+                htmlCode += caap.MakeTextBox('orderraid', raidOrderInstructions, '');
+                htmlCode += caap.endDropHide('TargetType', 'Raid');
+                htmlCode += caap.startDropHide('TargetType', 'UserId', 'Userid List', false);
+                htmlCode += caap.MakeTextBox('BattleTargets', userIdInstructions, '');
+                htmlCode += caap.endDropHide('TargetType', 'UserId');
+                htmlCode += caap.endDropHide('WhenBattle');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddBattleMenu: " + err);
@@ -10006,63 +10100,53 @@
                         'Azeron'
                     ],
                     demiPtItem = 0,
+                    subCode = '',
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Monster', 'MONSTER');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
-                htmlCode += "<div id='caap_WhenMonsterStayHidden1' style='color: red; font-weight: bold; display: " +
-                    (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>Warning: Battle Not Set To 'Stay Hidden'";
+                htmlCode += caap.startToggle('Monster', 'MONSTER');
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenMonster', mbattleList, mbattleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.startDropHide('WhenMonster', '', 'Never', true);
+                htmlCode += "<div id='caap_WhenMonsterStayHidden_hide' style='color: red; font-weight: bold; display: ";
+                htmlCode += (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
+                htmlCode += "Warning: Battle Not Set To 'Stay Hidden'";
                 htmlCode += "</div>";
-                htmlCode += "<div id='caap_WhenMonsterXStamina' style='display: " + (config.getItem('WhenMonster', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Battle When Stamina</td><td style='text-align: right'>" + caap.MakeNumberForm('XMonsterStamina', XMonsterInstructions, 1, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Keep This Stamina</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('XMinMonsterStamina', XMinMonsterInstructions, 0, "size='3' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<div id='caap_WhenMonsterHide' style='display: " + (config.getItem('WhenMonster', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Monster delay secs</td><td style='text-align: right'>" + caap.MakeNumberForm('seedTime', monsterDelayInstructions, 300, "size='3' style='font-size: 10px; text-align: right'") + "</td></tr>";
-                htmlCode += caap.MakeCheckTR("Use Tactics", 'UseTactics', false, 'UseTactics_Adv', useTacticsInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>&nbsp;&nbsp;&nbsp;Health threshold</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('TacticsThreshold', useTacticsThresholdInstructions, 75, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Power Attack Only", 'PowerAttack', true, 'PowerAttack_Adv', powerattackInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Power Attack Max", 'PowerAttackMax', false, '', powerattackMaxInstructions) + "</table>";
-                htmlCode += "</div>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, '', powerfortifyMaxInstructions);
-                htmlCode += caap.MakeCheckTR("Siege Weapon Assist Monsters", 'monsterDoSiege', true, '', dosiegeInstructions);
-                htmlCode += caap.MakeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, '', collectRewardInstructions);
-                htmlCode += caap.MakeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '', '');
-                htmlCode += caap.MakeCheckTR("Achievement Mode", 'AchievementMode', true, '', monsterachieveInstructions);
-                htmlCode += caap.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, 'DemiList', demiPointsFirstInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<span style='white-space: nowrap;'>";
+                htmlCode += caap.startDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.MakeNumberFormTR("Battle When Stamina", 'XMonsterStamina', XMonsterInstructions, 1, "size='3'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinMonsterStamina', XMinMonsterInstructions, 0, "size='3'", '', false, false, 20);
+                htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.MakeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
+                htmlCode += caap.startCheckHide('UseTactics');
+                htmlCode += caap.MakeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, "size='2'", '', true, false, 20);
+                htmlCode += caap.endCheckHide('UseTactics');
+                htmlCode += caap.MakeCheckTR("Power Attack Only", 'PowerAttack', true, powerattackInstructions);
+                htmlCode += caap.startCheckHide('PowerAttack');
+                htmlCode += caap.MakeCheckTR("Power Attack Max", 'PowerAttackMax', false, powerattackMaxInstructions, true);
+                htmlCode += caap.endCheckHide('PowerAttack');
+                htmlCode += caap.MakeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, powerfortifyMaxInstructions);
+                htmlCode += caap.MakeCheckTR("Siege Weapon Assist Monsters", 'monsterDoSiege', true, dosiegeInstructions);
+                htmlCode += caap.MakeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, collectRewardInstructions);
+                htmlCode += caap.MakeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '');
+                htmlCode += caap.MakeCheckTR("Achievement Mode", 'AchievementMode', true, monsterachieveInstructions);
+                htmlCode += caap.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, demiPointsFirstInstructions);
+                htmlCode += caap.startCheckHide('DemiPointsFirst');
                 for (demiPtItem = 0; demiPtItem < demiPoint.length; demiPtItem += 1) {
-                    htmlCode += "<span title='" + demiPoint[demiPtItem] + "'><img alt='" + demiPoint[demiPtItem] + "' src='data:image/jpg;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>" +
-                        caap.MakeCheckBox('DemiPoint' + demiPtItem, true, '', '') + "</span>";
+                    subCode += "<span title='" + demiPoint[demiPtItem] + "'>";
+                    subCode += "<img alt='" + demiPoint[demiPtItem] + "' src='data:image/jpg;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>";
+                    subCode += caap.MakeCheckBox('DemiPoint' + demiPtItem, true);
+                    subCode += "</span>";
                 }
 
-                htmlCode += "</span>";
-                htmlCode += "</table>";
-                htmlCode += "</div>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>Fortify If % Under</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('MaxToFortify', fortifyInstructions, 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Quest If % Over</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('MaxHealthtoQuest', questFortifyInstructions, 60, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td>No Attack If % Under</td><td style='text-align: right'>" + caap.MakeNumberForm('MinFortToAttack', stopAttackInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, '', strengthenTo100Instructions) + '</table>';
-                htmlCode += "Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a><br />";
+                htmlCode += caap.MakeTD(subCode, false, false, "white-space: nowrap;");
+                htmlCode += caap.endCheckHide('DemiPointsFirst');
+                htmlCode += caap.MakeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
+                htmlCode += caap.MakeTD("Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a>");
                 htmlCode += caap.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
-                htmlCode += "</div>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.endDropHide('WhenMonster');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddMonsterMenu: " + err);
@@ -10087,39 +10171,30 @@
                     ],
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('GuildMonsters', 'GUILD MONSTERS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenGuildMonster', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
-                htmlCode += "<div id='caap_WhenGuildMonsterHide' style='display: " + (config.getItem('WhenGuildMonster', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-                htmlCode += "<div id='caap_WhenGuildMonsterXStamina' style='display: " + (config.getItem('WhenGuildMonster', 'Never') !== 'At X Stamina' ? 'none' : 'block') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 0px'>Max Stamina To Fight</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('MaxStaminaToGMonster', '', 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('MinStaminaToGMonster', '', 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, '', 'Prioritise the classic monsters and raids before Guild Monsters.');
-                htmlCode += caap.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, '', 'Perform siege assists when visiting your Guild Monster.');
-                htmlCode += caap.MakeCheckTR('Collect Rewards', 'guildMonsterCollect', false, '', 'Collect the rewards of your completed Guild Monsters.');
-                htmlCode += caap.MakeCheckTR("Don't Attack Clerics", 'ignoreClerics', false, '', "Do not attack Guild Monster's Clerics. Does not include the Gate minions e.g. Azriel") + '</table>';
-                htmlCode += "Attack Gates<br />";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'><tr>";
-                htmlCode += "<td style='text-align: right;'>N" + caap.MakeCheckBox('attackGateNorth', true, '', '') + "</td>";
-                htmlCode += "<td style='text-align: right;'>W" + caap.MakeCheckBox('attackGateWest', true, '', '') + "</td>";
-                htmlCode += "<td style='text-align: right;'>E" + caap.MakeCheckBox('attackGateEast', true, '', '') + "</td>";
-                htmlCode += "<td style='text-align: right;'>S" + caap.MakeCheckBox('attackGateSouth', true, '', '') + "</td></tr></table>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 0px'>Ignore Minions Below Health</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('IgnoreMinionsBelow', "Don't attack monster minions that have a health below this value.", 0, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('&nbsp;&nbsp;&nbsp;Choose First Alive', 'chooseIgnoredMinions', false, '', 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.') + '</table>';
-                htmlCode += "Attack Monsters in this order<br />";
+                htmlCode += caap.startToggle('GuildMonsters', 'GUILD MONSTERS');
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.startDropHide('WhenGuildMonster', '', 'Never', true);
+                htmlCode += caap.startDropHide('WhenGuildMonster', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.MakeNumberFormTR("Max Stamina To Fight", 'MaxStaminaToGMonster', '', 0, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep Stamina", 'MinStaminaToGMonster', '', 0, "size='2'", '', true, false, 20);
+                htmlCode += caap.endDropHide('WhenGuildMonster', 'XStamina');
+                htmlCode += caap.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, 'Prioritise the classic monsters and raids before Guild Monsters.');
+                htmlCode += caap.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, 'Perform siege assists when visiting your Guild Monster.');
+                htmlCode += caap.MakeCheckTR('Collect Rewards', 'guildMonsterCollect', false, 'Collect the rewards of your completed Guild Monsters.');
+                htmlCode += caap.MakeCheckTR("Don't Attack Clerics", 'ignoreClerics', false, "Do not attack Guild Monster's Clerics. Does not include the Gate minions e.g. Azriel");
+                htmlCode += caap.MakeTD("Attack Gates");
+                htmlCode += caap.MakeTD("N" + caap.MakeCheckBox('attackGateNorth', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.MakeTD("W" + caap.MakeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.MakeTD("E" + caap.MakeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.MakeTD("S" + caap.MakeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.MakeNumberFormTR("Ignore Minions Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
+                htmlCode += caap.MakeTD("Attack Monsters in this order");
                 htmlCode += caap.MakeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
-                htmlCode += "Attack Minions in this order<br />";
+                htmlCode += caap.MakeTD("Attack Minions in this order");
                 htmlCode += caap.MakeTextBox('orderGuildMinion', 'Attack your guild minions in this order. Uses the minion name.', '', '');
-                htmlCode += "</div>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.endDropHide('WhenGuildMonster');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddGuildMonstersMenu: " + err);
@@ -10151,35 +10226,27 @@
                     ],
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Arena', 'ARENA');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 35%'>Attack When</td><td style='text-align: right'>" + caap.MakeDropDown('WhenArena', mbattleList, mbattleInst, "style='font-size: 10px; width: 100%;'", 'Never') + '</td></tr></table>';
-                htmlCode += "<div id='caap_WhenArenaHide' style='display: " + (config.getItem('WhenArena', 'Never') !== 'Never' ? 'block' : 'none') + "'>";
-                htmlCode += "Attack Classes in this order<br />";
+                htmlCode += caap.startToggle('Arena', 'ARENA');
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.startDropHide('WhenArena', '', 'Never', true);
+                htmlCode += caap.MakeTD("Attack Classes in this order");
                 htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 0px'>Ignore Health &lt;=</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 0px'>Ignore Your Level Plus &gt;=</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, '', "Attack Clerics that are not stunned.");
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, 'ChangePolyControl', "Attack polymorphed players.", true) + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Priority Polymorphed", 'attackPoly', false, '', "Attack polymorphed players first.");
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Attack Polymorphed If Rogue", 'roguePoly', true, '', "Only attack polymorphed players if you are class Rogue.");
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Stunned Ignore Polymorphed", 'stunnedPoly', true, '', "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.") + '</table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Suicide", 'attackSuicide', false, '', "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.") + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 35%'>Chain</td><td style='text-align: right'>" + caap.MakeDropDown('chainArena', chainList, chainListInst, "style='font-size: 10px; width: 50%;'", '160') + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, '', "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.") + '</table>';
-                //htmlCode += caap.MakeCheckTR("Chain Strict", 'chainStrict', false, '', "When chaining, if current target did not match the chain value then ignore and move to next target.") + '</table>';
-                htmlCode += "</div>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Ignore Your Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
+                htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
+                htmlCode += caap.startCheckHide('doPoly');
+                htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
+                htmlCode += caap.MakeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
+                htmlCode += caap.MakeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
+                htmlCode += caap.endCheckHide('doPoly');
+                htmlCode += caap.MakeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
+                htmlCode += caap.MakeDropDownTR("Chain", 'chainArena', chainList, chainListInst, '', '160', false, false, 35);
+                htmlCode += caap.startDropHide('chainArena', '', '0', true);
+                htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
+                htmlCode += caap.endDropHide('chainArena');
+                htmlCode += caap.endDropHide('WhenArena');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddArenaMenu: " + err);
@@ -10209,22 +10276,16 @@
                         "an army half the size of your army or less. Default 1.",
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Recon', 'RECON');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, 'PlayerReconControl', PReconInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 0px'>Limit Target Records</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('LimitTargets', 'Maximum number of records to hold.', 100, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += 'Find battle targets that are:';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 10px'>Not Lower Than Rank Minus</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('ReconPlayerRank', PRRankInstructions, 3, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than Level Plus</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('ReconPlayerLevel', PRLevelInstructions, 10, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Not Higher Than X*Army</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('ReconPlayerARBase', PRARBaseInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startToggle('Recon', 'RECON');
+                htmlCode += caap.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, PReconInstructions);
+                htmlCode += caap.startCheckHide('DoPlayerRecon');
+                htmlCode += caap.MakeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeTD('Find battle targets that are:');
+                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'ReconPlayerRank', PRRankInstructions, 3, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than Level Plus", 'ReconPlayerLevel', PRLevelInstructions, 10, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'ReconPlayerARBase', PRARBaseInstructions, 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.endCheckHide('DoPlayerRecon');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddReconMenu: " + err);
@@ -10260,40 +10321,35 @@
                     dropDownItem = 0,
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Generals', 'GENERALS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', true, '', ignoreGeneralImage) + "</table>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
+                htmlCode += caap.startToggle('Generals', 'GENERALS');
+                htmlCode += caap.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
                 for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
-                    htmlCode += '<tr><td>' + general.StandardList[dropDownItem] + "</td><td style='text-align: right'>" +
-                        caap.MakeDropDown(general.StandardList[dropDownItem] + 'General', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
+                    htmlCode += caap.MakeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 60);
                 }
 
-                htmlCode += "<tr><td>Buy</td><td style='text-align: right'>" + caap.MakeDropDown('BuyGeneral', general.BuyList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-                htmlCode += "<tr><td>Collect</td><td style='text-align: right'>" + caap.MakeDropDown('CollectGeneral', general.CollectList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-                htmlCode += "<tr><td>Income</td><td style='text-align: right'>" + caap.MakeDropDown('IncomeGeneral', general.IncomeList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-                htmlCode += "<tr><td>Banking</td><td style='text-align: right'>" + caap.MakeDropDown('BankingGeneral', general.BankingList, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr>';
-                htmlCode += "<tr><td>Level Up</td><td style='text-align: right'>" + caap.MakeDropDown('LevelUpGeneral', general.List, '', "style='font-size: 10px; min-width: 110px; max-width: 110px; width: 110px;'") + '</td></tr></table>';
-                htmlCode += "<div id='caap_LevelUpGeneralHide' style='display: " + (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' ? 'block' : 'none') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td>&nbsp;&nbsp;&nbsp;Exp To Use Gen </td><td style='text-align: right'>" + caap.MakeNumberForm('LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Idle", 'IdleLevelUpGeneral', true, '', LevelUpGenInstructions1);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Monsters", 'MonsterLevelUpGeneral', true, '', LevelUpGenInstructions2);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, '', LevelUpGenInstructions12);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Fortify", 'FortifyLevelUpGeneral', true, '', LevelUpGenInstructions3);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Invades", 'InvadeLevelUpGeneral', true, '', LevelUpGenInstructions4);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Duels", 'DuelLevelUpGeneral', true, '', LevelUpGenInstructions5);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Wars", 'WarLevelUpGeneral', true, '', LevelUpGenInstructions6);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For Arena", 'ArenaLevelUpGeneral', true, '', LevelUpGenInstructions13);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For SubQuests", 'SubQuestLevelUpGeneral', true, '', LevelUpGenInstructions7);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Gen For MainQuests", 'QuestLevelUpGeneral', false, '', LevelUpGenInstructions8);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Don't Bank After", 'NoBankAfterLvl', true, '', LevelUpGenInstructions9);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Don't Income After", 'NoIncomeAfterLvl', true, '', LevelUpGenInstructions10);
-                htmlCode += caap.MakeCheckTR("&nbsp;&nbsp;&nbsp;Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, '', LevelUpGenInstructions11);
-                htmlCode += "</table></div>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, '', reverseGenInstructions) + "</table>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.MakeDropDownTR("Buy", 'BuyGeneral', general.BuyList, '', '', 'Use Current', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Collect", 'CollectGeneral', general.CollectList, '', '', 'Use Current', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Banking", 'BankingGeneral', general.BankingList, '', '', 'Use Current', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Level Up", 'LevelUpGeneral', general.List, '', '', 'Use Current', false, false, 60);
+                htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
+                htmlCode += caap.MakeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Fortify", 'FortifyLevelUpGeneral', true, LevelUpGenInstructions3, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Invades", 'InvadeLevelUpGeneral', true, LevelUpGenInstructions4, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
+                htmlCode += caap.MakeCheckTR("Gen For MainQuests", 'QuestLevelUpGeneral', false, LevelUpGenInstructions8, true, false);
+                htmlCode += caap.MakeCheckTR("Don't Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
+                htmlCode += caap.MakeCheckTR("Don't Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
+                htmlCode += caap.MakeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
+                htmlCode += caap.endDropHide('LevelUpGeneral');
+                htmlCode += caap.MakeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddGeneralsMenu: " + err);
@@ -10320,53 +10376,39 @@
                         'Stamina',
                         'Health'
                     ],
+                    it = 0,
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Status', 'UPGRADE SKILL POINTS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, 'AutoStat_Adv', statusInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR("Spend All Possible", 'StatSpendAll', false, '', statSpendAllInstructions);
-                htmlCode += caap.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, '', statImmedInstructions);
-                htmlCode += caap.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, '', statusAdvInstructions) + "</table>";
-                htmlCode += "<div id='caap_Status_Normal' style='display: " + (config.getItem('AutoStatAdv', false) ? 'none' : 'block') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute0', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                    caap.MakeNumberForm('AttrValue0', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute1', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                    caap.MakeNumberForm('AttrValue1', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute2', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                    caap.MakeNumberForm('AttrValue2', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute3', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                    caap.MakeNumberForm('AttrValue3', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute4', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 5%; text-align: center'>to</td><td style='width: 20%; text-align: right'>" +
-                    caap.MakeNumberForm('AttrValue4', statusInstructions, 0, "size='3' style='font-size: 10px; text-align: right'", 'text') + " </td></tr></table>";
-                htmlCode += "</div>";
-                htmlCode += "<div id='caap_Status_Adv' style='display: " + (config.getItem('AutoStatAdv', false) ? 'block' : 'none') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Increase</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute5', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%; text-align: left'>using</td></tr>";
-                htmlCode += "<tr><td colspan='3'>" + caap.MakeNumberForm('AttrValue5', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute6', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-                htmlCode += "<tr><td colspan='3'>" + caap.MakeNumberForm('AttrValue6', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute7', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-                htmlCode += "<tr><td colspan='3'>" + caap.MakeNumberForm('AttrValue7', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute8', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-                htmlCode += "<tr><td colspan='3'>" + caap.MakeNumberForm('AttrValue8', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr>";
-                htmlCode += "<tr><td style='width: 25%; text-align: right'>Then</td><td style='width: 50%; text-align: center'>" +
-                    caap.MakeDropDown('Attribute9', attrList, '', "style='font-size: 10px'") + "</td><td style='width: 25%'>using</td></tr>";
-                htmlCode += "<tr><td colspan='3'>" + caap.MakeNumberForm('AttrValue9', statusInstructions, 0, "size='7' style='font-size: 10px; width : 98%'", 'text') + " </td></tr></table>";
-                htmlCode += "</div>";
-                htmlCode += "</table></div>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startToggle('Status', 'UPGRADE SKILL POINTS');
+                htmlCode += caap.MakeCheckTR("Auto Add Upgrade Points", 'AutoStat', false, statusInstructions);
+                htmlCode += caap.startCheckHide('AutoStat');
+                htmlCode += caap.MakeCheckTR("Spend All Possible", 'StatSpendAll', false, statSpendAllInstructions);
+                htmlCode += caap.MakeCheckTR("Upgrade Immediately", 'StatImmed', false, statImmedInstructions);
+                htmlCode += caap.MakeCheckTR("Advanced Settings <a href='http://userscripts.org/posts/207279' target='_blank' style='color: blue'>(INFO)</a>", 'AutoStatAdv', false, statusAdvInstructions);
+                htmlCode += caap.startCheckHide('AutoStatAdv', true);
+                for (it = 0; it < 5; it += 1) {
+                    htmlCode += caap.startTR();
+                    htmlCode += caap.MakeTD("Increase", false, false, "width: 25%; display: inline-block;");
+                    htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 45%; display: inline-block;");
+                    htmlCode += caap.MakeTD("to", false, true, "width: 10%; display: inline-block;");
+                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, 0, "size='4'", 'text'), false, true, "width: 20%; display: inline-block;");
+                    htmlCode += caap.endTR;
+                }
+
+                htmlCode += caap.endCheckHide('AutoStatAdv', true);
+                htmlCode += caap.startCheckHide('AutoStatAdv');
+                for (it = 5; it < 10; it += 1) {
+                    htmlCode += caap.startTR();
+                    htmlCode += it === 5 ? caap.MakeTD("Increase", false, false, "width: 25%; display: inline-block;") : caap.MakeTD("Then", false, false, "width: 25%; display: inline-block;");
+                    htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%; display: inline-block;");
+                    htmlCode += caap.MakeTD("using", true, false, "width: 25%; display: inline-block;");
+                    htmlCode += caap.endTR;
+                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 98%;'), false, false, '');
+                }
+
+                htmlCode += caap.endCheckHide('AutoStatAdv');
+                htmlCode += caap.endCheckHide('AutoStat');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddSkillPointsMenu: " + err);
@@ -10384,31 +10426,32 @@
                     giftReturnOnlyOneInstructions = "Only return 1 gift to a person in 24 hours even if you received many from that person.",
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Gifting', 'GIFTING OPTIONS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Auto Gifting', 'AutoGift', false, 'GiftControl', giftInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, '', giftQueueUniqueInstructions);
-                htmlCode += caap.MakeCheckTR('Collect Only', 'CollectOnly', false, 'CollectOnly_Adv', giftCollectOnlyInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('&nbsp;&nbsp;&nbsp;And Queue', 'CollectAndQueue', false, '', giftCollectAndQueueInstructions) + '</table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 25%'>Give</td><td style='text-align: right'>" +
-                    caap.MakeDropDown('GiftChoice', gifting.gifts.list(), '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, '', giftReturnOnlyOneInstructions);
-                htmlCode += caap.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, 'FilterReturnIdControl', "Don't return gifts to a list of UserIDs", true) + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += '<tr><td>' + caap.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', '') + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, 'FilterReturnGiftControl', "Don't return gifts for a list of certain gifts recieved", true) + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += '<tr><td>' + caap.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', '') + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += '</div>';
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startToggle('Gifting', 'GIFTING OPTIONS');
+                htmlCode += caap.MakeCheckTR('Auto Gifting', 'AutoGift', false, giftInstructions);
+                htmlCode += caap.startCheckHide('AutoGift');
+                htmlCode += caap.MakeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, giftQueueUniqueInstructions);
+                htmlCode += caap.MakeCheckTR('Collect Only', 'CollectOnly', false, giftCollectOnlyInstructions);
+                htmlCode += caap.MakeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions);
+                htmlCode += caap.MakeDropDownTR("Give", 'GiftChoice', gifting.gifts.list(), '', '', '', false, false, 80);
+                htmlCode += caap.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
+                htmlCode += caap.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Don't return gifts to a list of UserIDs");
+                htmlCode += caap.startCheckHide('FilterReturnId');
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD(caap.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', ''));
+                htmlCode += caap.endTR;
+
+                htmlCode += caap.endCheckHide('FilterReturnId');
+                htmlCode += caap.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Don't return gifts for a list of certain gifts recieved");
+                htmlCode += caap.startCheckHide('FilterReturnGift');
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD(caap.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', ''));
+                htmlCode += caap.endTR;
+
+                htmlCode += caap.endCheckHide('FilterReturnGift');
+                htmlCode += caap.endCheckHide('AutoGift');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddGiftingOptionsMenu: " + err);
@@ -10426,16 +10469,21 @@
                         "Auto Elite to run on its timer only.",
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Elite', 'ELITE GUARD OPTIONS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Auto Elite Army', 'AutoElite', false, 'AutoEliteControl', autoEliteInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Timed Only', 'AutoEliteIgnore', false, '', autoEliteIgnoreInstructions) + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td><input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' /></tr></td>";
-                htmlCode += '<tr><td>' + caap.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', '') + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startToggle('Elite', 'ELITE GUARD OPTIONS');
+                htmlCode += caap.MakeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
+                htmlCode += caap.startCheckHide('AutoElite');
+                htmlCode += caap.MakeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD(caap.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
+                htmlCode += caap.endTR;
+
+                htmlCode += caap.endCheckHide('AutoElite');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddEliteGuardOptionsMenu: " + err);
@@ -10479,30 +10527,21 @@
                     ],
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Auto', 'AUTO OPTIONS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, 'AutoAlchemy_Adv', autoAlchemyInstructions1, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('&nbsp;&nbsp;&nbsp;Do Battle Hearts', 'AutoAlchemyHearts', false, '', autoAlchemyInstructions2) + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Auto Potions', 'AutoPotions', false, 'AutoPotions_Adv', autoPotionsInstructions0, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 10px'>Spend Stamina Potions At</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Keep Stamina Potions</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Spend Energy Potions At</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Keep Energy Potions</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px'>Wait If Exp. To Level</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('potionsExperience', autoPotionsInstructions5, 20, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-                htmlCode += "<tr><td style='width: 50%'>Auto bless</td><td style='text-align: right'>" +
-                    caap.MakeDropDown('AutoBless', autoBlessList, autoBlessListInstructions, "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startToggle('Auto', 'AUTO OPTIONS');
+                htmlCode += caap.MakeDropDownTR("Auto bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 60);
+                htmlCode += caap.MakeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
+                htmlCode += caap.startCheckHide('AutoPotions');
+                htmlCode += caap.MakeNumberFormTR("Spend Stamina Potions At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep Stamina Potions", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Spend Energy Potions At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep Energy Potions", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, "size='2'", '', true, false, 20);
+                htmlCode += caap.endCheckHide('AutoPotions');
+                htmlCode += caap.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, autoAlchemyInstructions1);
+                htmlCode += caap.startCheckHide('AutoAlchemy');
+                htmlCode += caap.MakeCheckTR('Do Battle Hearts', 'AutoAlchemyHearts', false, autoAlchemyInstructions2, true);
+                htmlCode += caap.endCheckHide('AutoAlchemy');
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddAutoOptionsMenu: " + err);
@@ -10537,58 +10576,57 @@
                     ],
                     htmlCode = '';
 
-                htmlCode += caap.ToggleControl('Other', 'OTHER OPTIONS');
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Display Item Titles', 'enableTitles', true, '', itemTitlesInstructions);
-                htmlCode += caap.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, '', goblinHintingInstructions);
-                htmlCode += caap.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, '', ingredientsHideInstructions);
-                htmlCode += caap.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, '', alchemyShrinkInstructions);
-                htmlCode += caap.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, 'enableRecipeClean_Adv', recipeCleanInstructions, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 10px'>Recipe Count</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('recipeCleanCount', recipeCleanCountInstructions, 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, '', bannerInstructions);
-                htmlCode += caap.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, '', timeInstructions);
-                htmlCode += caap.MakeCheckTR('Set Title', 'SetTitle', false, 'SetTitle_Adv', titleInstructions0, true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('&nbsp;&nbsp;&nbsp;Display Action', 'SetTitleAction', false, '', titleInstructions1);
-                htmlCode += caap.MakeCheckTR('&nbsp;&nbsp;&nbsp;Display Name', 'SetTitleName', false, '', titleInstructions2) + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, '', hideAdsInstructions);
-                htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, '', hideAdsIframeInstructions);
-                htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, '', hideFBChatInstructions);
-                htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, '', newsSummaryInstructions) + '</table>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-                htmlCode += "<tr><td style='width: 50%'>Style</td><td style='text-align: right'>" +
-                    caap.MakeDropDown('DisplayStyle', styleList, '', "style='font-size: 10px; width: 100%'") + '</td></tr></table>';
-                htmlCode += "<div id='caap_DisplayStyleHide' style='display: " + (config.getItem('DisplayStyle', 'CA Skin') === 'Custom' ? 'block' : 'none') + "'>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 10px; font-weight: bold;'>Started</td><td style='text-align: right'>" +
-                    "<input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
-                htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('StyleBackgroundLight', '#FFF or #FFFFFF', '#E0C691', "size='5' style='font-size: 10px; text-align: right'", 'text') + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('StyleOpacityLight', '0 ~ 1', 1, "size='5' style='vertical-align: middle; font-size: 10px; text-align: right'") + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 10px; font-weight: bold;'>Stoped</td><td style='text-align: right'>" +
-                    "<input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px' /></td></tr>";
-                htmlCode += "<tr><td style='padding-left: 20px'>RGB Color</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('StyleBackgroundDark', '#FFF or #FFFFFF', '#B09060', "size='5' style='font-size: 10px; text-align: right'", 'text') + '</td></tr>';
-                htmlCode += "<tr><td style='padding-left: 20px'>Transparency</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('StyleOpacityDark', '0 ~ 1', 1, "size='5' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += "</div>";
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, '', bookmarkModeInstructions);
-                htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false, 'ChangeLogLevelControl', '', true);
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='padding-left: 10px'>Log Level</td><td style='text-align: right'>" +
-                    caap.MakeNumberForm('DebugLevel', '', 1, "size='2' style='font-size: 10px; text-align: right'") + '</td></tr></table>';
-                htmlCode += '</div>';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px' style='margin-top: 3px'>";
-                htmlCode += "<tr><td><input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' /></td></tr></table>";
-                htmlCode += "<hr/></div>";
+                htmlCode += caap.startToggle('Other', 'OTHER OPTIONS');
+                htmlCode += caap.MakeCheckTR('Display Item Titles', 'enableTitles', true, itemTitlesInstructions);
+                htmlCode += caap.MakeCheckTR('Do Goblin Hinting', 'goblinHinting', true, goblinHintingInstructions);
+                htmlCode += caap.MakeCheckTR('Hide Recipe Ingredients', 'enableIngredientsHide', false, ingredientsHideInstructions);
+                htmlCode += caap.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
+                htmlCode += caap.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
+                htmlCode += caap.startCheckHide('enableRecipeClean');
+                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.endCheckHide('enableRecipeClean');
+                htmlCode += caap.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
+                htmlCode += caap.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
+                htmlCode += caap.MakeCheckTR('Set Title', 'SetTitle', false, titleInstructions0);
+                htmlCode += caap.startCheckHide('SetTitle');
+                htmlCode += caap.MakeCheckTR('Display Action', 'SetTitleAction', false, titleInstructions1, true);
+                htmlCode += caap.MakeCheckTR('Display Name', 'SetTitleName', false, titleInstructions2, true);
+                htmlCode += caap.endCheckHide('SetTitle');
+                htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
+                htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
+                htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
+
+                htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', '', false, false, 60);
+                htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("Started", true, false, "font-weight:bold; width: 60%; display: inline-block;");
+                htmlCode += caap.MakeTD("<input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px;' />", false, true, 'width: 35%; display: inline-block;');
+                htmlCode += caap.endTR;
+
+                htmlCode += caap.MakeNumberFormTR("RGB Color", 'StyleBackgroundLight', '#FFF or #FFFFFF', '#E0C691', "size='9'", '', true, false, 50);
+                htmlCode += caap.MakeNumberFormTR("Transparency", 'StyleOpacityLight', '0 ~ 1', 1, "size='2'", '', true, false, 20);
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("Stopped", true, false, "font-weight:bold; width: 60%; display: inline-block;");
+                htmlCode += caap.MakeTD("<input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px;' />", false, true, 'width: 35%; display: inline-block;');
+                htmlCode += caap.endTR;
+
+                htmlCode += caap.MakeNumberFormTR("RGB Color", 'StyleBackgroundDark', '#FFF or #FFFFFF', '#B09060', "size='9'", '', true, false, 50);
+                htmlCode += caap.MakeNumberFormTR("Transparency", 'StyleOpacityDark', "0 ~ 1", 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.endDropHide('DisplayStyle');
+
+                htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions);
+                htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false);
+                htmlCode += caap.startCheckHide('ChangeLogLevel');
+                htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.endCheckHide('ChangeLogLevel');
+
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
+                htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in AddOtherOptionsMenu: " + err);
@@ -10599,19 +10637,20 @@
         AddFooterMenu: function () {
             try {
                 var htmlCode = '';
-                htmlCode += "<table width='180px' cellpadding='0px' cellspacing='0px'>";
-                htmlCode += "<tr><td style='width: 90%'>Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' /></td>" +
-                    "<td style='width: 10%; text-align: right'><input type='checkbox' id='unlockMenu' /></td></tr></table>";
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("Unlock Menu <input type='button' id='caap_ResetMenuLocation' value='Reset' style='padding: 0; font-size: 10px; height: 18px' />", false, false, "width: 90%; display: inline-block;");
+                htmlCode += caap.MakeTD("<input type='checkbox' id='unlockMenu' />", false, true, "width: 10%; display: inline-block;");
+                htmlCode += caap.endTR;
 
                 if (!devVersion) {
-                    htmlCode += "Version: " + caapVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a><br />";
+                    htmlCode += caap.MakeTD("Version: " + caapVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a>");
                     if (caap.newVersionAvailable) {
-                        htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>";
+                        htmlCode += caap.MakeTD("<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>");
                     }
                 } else {
-                    htmlCode += "Version: " + caapVersion + " d" + devVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a><br />";
+                    htmlCode += caap.MakeTD("Version: " + caapVersion + " d" + devVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a>");
                     if (caap.newVersionAvailable) {
-                        htmlCode += "<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version')  + "!</a>";
+                        htmlCode += caap.MakeTD("<a href='http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + " d" + state.getItem('DEV_remote_version')  + "!</a>");
                     }
                 }
 
@@ -10674,7 +10713,7 @@
                  container and position it within the main container.
                 \-------------------------------------------------------------------------------------*/
                 var layout      = "<div id='caap_top'>",
-                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldier Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', 'Arena'],
+                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldier Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', 'Arena', 'Army'],
                     styleXY = {
                         x: 0,
                         y: 0
@@ -10741,6 +10780,12 @@
                 layout += "<div id='caap_buttonGiftQueue' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'>";
                 layout += "<input type='button' id='caap_clearGiftQueue' value='Clear Gift Queue' style='padding: 0; font-size: 9px; height: 18px' /></div>";
                 /*-------------------------------------------------------------------------------------\
+                 Next we put in the Clear Gifting Stats button which will only show when we have
+                 selected the Target List display
+                \-------------------------------------------------------------------------------------*/
+                layout += "<div id='caap_buttonArmy' style='position:absolute;top:0px;left:250px;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'>";
+                layout += "<input type='button' id='caap_getArmy' value='Get Army' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+                /*-------------------------------------------------------------------------------------\
                  Next we put in the Advanced Sort Buttons which will only show when we have
                  selected the appropriate display
                 \-------------------------------------------------------------------------------------*/
@@ -10777,6 +10822,7 @@
                 layout += "<div id='caap_magicStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Magic Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
+                layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_arena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena' ? 'block' : 'none') + "'></div>";
                 layout += "</div>";
                 /*-------------------------------------------------------------------------------------\
@@ -10786,6 +10832,8 @@
                 caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top - 10);
                 styleXY = caap.GetDashboardXY();
                 $j(layout).css({
+                    'font-family'           : "'lucida grande', tahoma, verdana, arial, sans-serif",
+                    'font-size'             : '11px',
                     background              : config.getItem("StyleBackgroundLight", "white"),
                     padding                 : "5px",
                     height                  : "185px",
@@ -10811,6 +10859,7 @@
                 caap.caapTopObject.find("#caap_sortSoldiers").button();
                 caap.caapTopObject.find("#caap_sortItem").button();
                 caap.caapTopObject.find("#caap_sortMagic").button();
+                caap.caapTopObject.find("#caap_getArmy").button();
                 return true;
             } catch (err) {
                 $u.error("ERROR in AddDashboard: " + err);
@@ -11061,7 +11110,7 @@
                                 visitMonsterLink.mname = e.target.attributes[i].nodeValue;
                             } else if (e.target.attributes[i].nodeName === 'rlink') {
                                 visitMonsterLink.rlink = e.target.attributes[i].nodeValue;
-                                visitMonsterLink.arlink = visitMonsterLink.rlink.replace("http://" + caap.domain.url[caap.domain.which] + "/", "");
+                                visitMonsterLink.arlink = visitMonsterLink.rlink.replace(caap.domain.link + "/", "");
                             }
                         }
 
@@ -11085,7 +11134,7 @@
                                 monsterRemove.mname = e.target.attributes[i].nodeValue;
                             } else if (e.target.attributes[i].nodeName === 'rlink') {
                                 monsterRemove.rlink = e.target.attributes[i].nodeValue;
-                                monsterRemove.arlink = monsterRemove.rlink.replace("http://" + caap.domain.url[caap.domain.which] + "/", "");
+                                monsterRemove.arlink = monsterRemove.rlink.replace(caap.domain.link + "/", "");
                             }
                         }
 
@@ -11139,7 +11188,7 @@
                         }
 
                         data = {
-                            text  : '<a href="http://' + caap.domain.url[caap.domain.which] + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 +
+                            text  : '<a href="' + caap.domain.link + '/guild_battle_monster.php?twt2=' + guild_monster.info[guild_monster.records[i]['name']].twt2 +
                                     '&guild_id=' + guild_monster.records[i]['guildId'] + '&action=doObjective&slot=' + guild_monster.records[i]['slot'] + '&ref=nf">Link</a>',
                             color : 'blue',
                             id    : '',
@@ -11261,6 +11310,67 @@
                 }
 
                 /*-------------------------------------------------------------------------------------\
+                Next we build the HTML to be included into the 'caap_army' div. We set our
+                table and then build the header row.
+                \-------------------------------------------------------------------------------------*/
+                if (state.getItem("ArmyDashUpdate", true)) {
+                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
+                    headers = ['UserId', 'User', 'Name', 'Level', 'Change'];
+                    values  = ['userId', 'user', 'name', 'lvl',   'change'];
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        switch (headers[pp]) {
+                        case 'UserId':
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '15%'});
+                            break;
+                        case 'User':
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '25%'});
+                            break;
+                        case 'Name':
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '35%'});
+                            break;
+                        case 'Level':
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '10%'});
+                            break;
+                        case 'Change':
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '15%'});
+                            break;
+                        default:
+                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                        }
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
+                        html += "<tr>";
+                        color = army.recordsSortable[i]['color'];
+                        for (pp = 0; pp < values.length; pp += 1) {
+                            if (values[pp] === "last" || values[pp] === "change") {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
+                                    color : color,
+                                    id    : '',
+                                    title : ''
+                                });
+                            } else {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
+                                    color : color,
+                                    id    : '',
+                                    title : ''
+                                });
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    caap.caapTopObject.find("#caap_army").html(html);
+
+                    state.setItem("ArmyDashUpdate", false);
+                }
+
+                /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
@@ -11278,7 +11388,7 @@
                         for (pp = 0; pp < values.length; pp += 1) {
                             if (/userID/.test(values[pp])) {
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + caap.ReconRecordArray[i][values[pp]];
-                                userIdLink = "http://" + caap.domain.url[caap.domain.which] + "/keep.php?casuser=" + caap.ReconRecordArray[i][values[pp]];
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + caap.ReconRecordArray[i][values[pp]];
                                 data = {
                                     text  : '<span id="caap_targetrecon_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                             '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + caap.ReconRecordArray[i][values[pp]] + '</span>',
@@ -11322,7 +11432,7 @@
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'rlink') {
                                 visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://" + caap.domain.url[caap.domain.which] + "/", "");
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
                             }
                         }
 
@@ -11351,7 +11461,7 @@
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (/userId/.test(values[pp])) {
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + battle.records[i][values[pp]];
-                                userIdLink = "http://" + caap.domain.url[caap.domain.which] + "/keep.php?casuser=" + battle.records[i][values[pp]];
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + battle.records[i][values[pp]];
                                 data = {
                                     text  : '<span id="caap_battle_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                             '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + battle.records[i][values[pp]] + '</span>',
@@ -11387,7 +11497,7 @@
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'rlink') {
                                 visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://" + caap.domain.url[caap.domain.which] + "/", "");
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
                             }
                         }
 
@@ -11559,7 +11669,7 @@
 
                     html += "<tr>";
                     html += caap.makeTd({text: 'Expected Next Level (ENL)', color: titleCol, id: '', title: ''});
-                    html += caap.makeTd({text: schedule.FormatTime(new Date(caap.stats['indicators']['enl'])), color: valueCol, id: '', title: ''});
+                    html += caap.makeTd({text: $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr()), color: valueCol, id: '', title: ''});
                     html += caap.makeTd({text: 'Attack Power Index (API)', color: titleCol, id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['api'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
@@ -12023,7 +12133,7 @@
                             str = $u.setContent(gifting.history.records[i][values[pp]], '');
                             if (/userId/.test(values[pp])) {
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = "http://" + caap.domain.url[caap.domain.which] + "/keep.php?casuser=" + str;
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
                                 data = {
                                     text  : '<span id="caap_targetgift_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
                                             '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
@@ -12055,7 +12165,7 @@
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'rlink') {
                                 visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://" + caap.domain.url[caap.domain.which] + "/", "");
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
                             }
                         }
 
@@ -12085,7 +12195,7 @@
                             str = $u.setContent(gifting.queue.records[i][values[pp]], '');
                             if (/userId/.test(values[pp])) {
                                 userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
-                                userIdLink = "http://' + caap.domain.url[caap.domain.which] + '/keep.php?casuser=" + str;
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
 
                                 data = {
                                     text  : '<span id="caap_targetgiftq_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
@@ -12129,7 +12239,7 @@
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'rlink') {
                                 visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
-                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace("http://" + caap.domain.url[caap.domain.which] + "/", "");
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
                             }
                         }
 
@@ -12178,6 +12288,7 @@
             caap.SetDisplay("caapTopObject", 'infoMonster', false);
             caap.SetDisplay("caapTopObject", 'guildMonster', false);
             caap.SetDisplay("caapTopObject", 'arena', false);
+            caap.SetDisplay("caapTopObject", 'army', false);
             caap.SetDisplay("caapTopObject", 'infoTargets1', false);
             caap.SetDisplay("caapTopObject", 'infoBattle', false);
             caap.SetDisplay("caapTopObject", 'userStats', false);
@@ -12197,6 +12308,7 @@
             caap.SetDisplay("caapTopObject", 'buttonSortSoldiers', false);
             caap.SetDisplay("caapTopObject", 'buttonSortItem', false);
             caap.SetDisplay("caapTopObject", 'buttonSortMagic', false);
+            caap.SetDisplay("caapTopObject", 'buttonArmy', false);
             switch (value) {
             case "Target List" :
                 caap.SetDisplay("caapTopObject", 'infoTargets1', true);
@@ -12243,6 +12355,10 @@
                 break;
             case "Arena" :
                 caap.SetDisplay("caapTopObject", 'arena', true);
+                break;
+            case "Army" :
+                caap.SetDisplay("caapTopObject", 'army', true);
+                caap.SetDisplay("caapTopObject", 'buttonArmy', true);
                 break;
             default :
             }
@@ -12314,6 +12430,11 @@
             /*jslint sub: false */
         },
 
+        getArmyButtonListener: function (e) {
+            schedule.deleteItem("army_member");
+            army.deleteTemp();
+        },
+
         AddDBListener: function () {
             try {
                 $u.log(3, "Adding listeners for caap_top");
@@ -12333,6 +12454,7 @@
                 caap.caapTopObject.find('#caap_sortSoldiers').click(caap.sortSoldiersButtonListener);
                 caap.caapTopObject.find('#caap_sortItem').click(caap.sortItemButtonListener);
                 caap.caapTopObject.find('#caap_sortMagic').click(caap.sortMagicButtonListener);
+                caap.caapTopObject.find('#caap_getArmy').click(caap.getArmyButtonListener);
                 $u.log(8, "Listeners added for caap_top");
                 return true;
             } catch (err) {
@@ -12346,36 +12468,22 @@
         // Watch for changes and update the controls
         /////////////////////////////////////////////////////////////////////
 
-        SetDisplay: function (area, idName, display) {
+        SetDisplay: function (area, idName, display, quiet) {
             try {
-                if (idName === null || idName === undefined) {
+                if (!$u.hasContent(idName) || (!$u.isString(idName) && !$u.isNumber(idName))) {
                     $u.warn("idName", idName);
                     throw "Bad idName!";
                 }
 
-                var areaDiv = $j();
-                switch (area) {
-                case "caapDivObject":
-                    areaDiv = caap.caapDivObject.find('#caap_' + idName);
-                    break;
-                case "caapTopObject":
-                    areaDiv = caap.caapTopObject.find('#caap_' + idName);
-                    break;
-                default:
-                    $u.warn("area", area);
-                    throw "Unknown area!";
+                var areaDiv = caap[area];
+                if (!$u.hasContent(areaDiv)) {
+                    areaDiv = $j(document.body);
+                    $u.warn("Unknown area. Using document.body", area);
                 }
 
-                if (!areaDiv || areaDiv.length === 0) {
-                    $u.warn("idName/area", idName, area);
-                    throw "Unable to find idName in area!";
-                }
-
-                display = (display === true) ? true : false;
-                if (display) {
-                    areaDiv.css('display', 'block');
-                } else {
-                    areaDiv.css('display', 'none');
+                areaDiv = $j('#caap_' + idName, areaDiv).css('display', display === true ? 'block' : 'none');
+                if (!$u.hasContent(areaDiv) && !quiet) {
+                    $u.warn("Unable to find idName in area!", idName, area);
                 }
 
                 return true;
@@ -12396,6 +12504,8 @@
 
                 $u.log(1, "Change: setting '" + idName + "' to ", e.target.checked);
                 config.setItem(idName, e.target.checked);
+                caap.SetDisplay("caapDivObject", idName + '_hide', e.target.checked, true);
+                caap.SetDisplay("caapDivObject", idName + '_not_hide', !e.target.checked, true);
                 if (e.target.className) {
                     caap.SetDisplay("caapDivObject", e.target.className, e.target.checked);
                 }
@@ -12403,59 +12513,31 @@
                 switch (idName) {
                 case "AutoStatAdv" :
                     $u.log(9, "AutoStatAdv");
-                    if (e.target.checked) {
-                        caap.SetDisplay("caapDivObject", 'Status_Normal', false);
-                        caap.SetDisplay("caapDivObject", 'Status_Adv', true);
-                    } else {
-                        caap.SetDisplay("caapDivObject", 'Status_Normal', true);
-                        caap.SetDisplay("caapDivObject", 'Status_Adv', false);
-                    }
-
                     state.setItem("statsMatch", true);
                     break;
                 case "HideAds" :
                     $u.log(9, "HideAds");
-                    if (e.target.checked) {
-                        $j('.UIStandardFrame_SidebarAds').css('display', 'none');
-                    } else {
-                        $j('.UIStandardFrame_SidebarAds').css('display', 'block');
-                    }
-
+                    $j('.UIStandardFrame_SidebarAds').css('display', e.target.checked ? 'none' : 'block');
                     break;
                 case "HideAdsIframe" :
                     $u.log(9, "HideAdsIframe");
-                    if (e.target.checked) {
-                        $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
-                    } else {
-                        $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'block');
-                    }
-
+                    $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', e.target.checked ? 'none' : 'block');
                     caap.dashboardXY.x = state.getItem('caap_top_menuLeft', '');
                     caap.dashboardXY.y = state.getItem('caap_top_menuTop', $j(caap.dashboardXY.selector).offset().top - 10);
                     styleXY = caap.GetDashboardXY();
                     caap.caapTopObject.css({
-                        top                     : styleXY.y + 'px',
-                        left                    : styleXY.x + 'px'
+                        top  : styleXY.y + 'px',
+                        left : styleXY.x + 'px'
                     });
 
                     break;
                 case "HideFBChat" :
                     $u.log(9, "HideFBChat");
-                    if (e.target.checked) {
-                        $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', 'none');
-                    } else {
-                        $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', 'block');
-                    }
-
+                    $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', e.target.checked ? 'none' : 'block');
                     break;
                 case "BannerDisplay" :
                     $u.log(9, "BannerDisplay");
-                    if (e.target.checked) {
-                        caap.caapDivObject.find('#caap_BannerHide').css('display', 'block');
-                    } else {
-                        caap.caapDivObject.find('#caap_BannerHide').css('display', 'none');
-                    }
-
+                    caap.SetDisplay("caapDivObject", idName, e.target.checked);
                     break;
                 case "IgnoreBattleLoss" :
                     $u.log(9, "IgnoreBattleLoss");
@@ -12470,7 +12552,7 @@
                     $u.log(9, idName);
                     if (e.target.checked) {
                         if (config.getItem('SetTitleAction', false)) {
-                            d = caap.caapDivObject.find('#caap_activity_mess').html();
+                            d = $j('#caap_activity_mess', caap.caapDivObject).html();
                             if (d) {
                                 DocumentTitle += d.replace("Activity: ", '') + " - ";
                             }
@@ -12489,8 +12571,8 @@
                 case "unlockMenu" :
                     $u.log(9, "unlockMenu");
                     if (e.target.checked) {
-                        caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: true});
-                        caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: true});
+                        $j(":input[id^='caap_']", caap.caapDivObject).attr({disabled: true});
+                        $j(":input[id^='caap_']", caap.caapTopObject).attr({disabled: true});
                         caap.caapDivObject.css('cursor', 'move').draggable({
                             stop: function () {
                                 caap.SaveControlXY();
@@ -12505,8 +12587,8 @@
                     } else {
                         caap.caapDivObject.css('cursor', '').draggable("destroy");
                         caap.caapTopObject.css('cursor', '').draggable("destroy");
-                        caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: false});
-                        caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: false});
+                        $j(":input[id^='caap_']", caap.caapDivObject).attr({disabled: false});
+                        $j(":input[id^='caap_']", caap.caapTopObject).attr({disabled: false});
                     }
 
                     break;
@@ -12560,20 +12642,13 @@
                 var idName = e.target.id.stripCaap();
 
                 $u.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
-                if (/Style+/.test(idName)) {
+                if (/StyleBackground+/.test(idName)) {
+                    e.target.value = e.target.value.substr(0, 1) !== '#' ? '#' + e.target.value : e.target.value;
                     switch (idName) {
                     case "StyleBackgroundLight" :
-                        if (e.target.value.substr(0, 1) !== '#') {
-                            e.target.value = '#' + e.target.value;
-                        }
-
                         state.setItem("CustStyleBackgroundLight", e.target.value);
                         break;
                     case "StyleBackgroundDark" :
-                        if (e.target.value.substr(0, 1) !== '#') {
-                            e.target.value = '#' + e.target.value;
-                        }
-
                         state.setItem("CustStyleBackgroundDark", e.target.value);
                         break;
                     default :
@@ -12605,14 +12680,11 @@
                     $u.alert(message);
                     number = '';
                 } else {
-                    number = e.target.value.parseFloat();
-                    if (isNaN(number)) {
-                        number = '';
-                    }
+                    number = isNaN(e.target.value) ? '' : e.target.value.parseFloat();
                 }
 
                 $u.log(1, 'Change: setting "' + idName + '" to ', number);
-                if (/Style+/.test(idName)) {
+                if (/StyleOpacity+/.test(idName)) {
                     switch (idName) {
                     case "StyleOpacityLight" :
                         state.setItem("CustStyleOpacityLight", e.target.value);
@@ -12649,21 +12721,22 @@
                 if (e.target.selectedIndex > 0) {
                     var idName = e.target.id.stripCaap(),
                         value  = e.target.options[e.target.selectedIndex].value,
-                        title  = e.target.options[e.target.selectedIndex].title;
+                        title  = e.target.options[e.target.selectedIndex].title,
+                        ret    = false;
 
                     $u.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                     config.setItem(idName, value);
                     e.target.title = title;
-                    if (idName.indexOf('When') >= 0) {
-                        caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Never'));
-                        if (idName.indexOf('Quest') < 0) {
-                            if (idName.indexOf('Arena') < 0) {
-                                caap.SetDisplay("caapDivObject", idName + 'XStamina', (value === 'At X Stamina'));
+                    if (idName.hasIndexOf('When')) {
+                        caap.SetDisplay("caapDivObject", idName + '_hide', value !== 'Never');
+                        if (!idName.hasIndexOf('Quest')) {
+                            if (!idName.hasIndexOf('Arena')) {
+                                caap.SetDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
                             }
 
-                            caap.SetDisplay("caapDivObject", 'WhenBattleStayHidden1', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
-                            caap.SetDisplay("caapDivObject", 'WhenMonsterStayHidden1', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
-                            caap.SetDisplay("caapDivObject", 'WhenBattleDemiOnly', (config.getItem('WhenBattle', 'Never') === 'Demi Points Only'));
+                            caap.SetDisplay("caapDivObject", 'WhenBattleStayHidden_hide', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
+                            caap.SetDisplay("caapDivObject", 'WhenMonsterStayHidden_hide', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
+                            caap.SetDisplay("caapDivObject", 'DemiPointsFirst_hide', (config.getItem('WhenBattle', 'Never') === 'Demi Points Only'));
                             switch (idName) {
                             case 'WhenBattle':
                                 if (value === 'Never') {
@@ -12699,10 +12772,8 @@
                                 break;
                             default:
                             }
-                        }
-
-                        if (idName === 'WhenQuest') {
-                            caap.SetDisplay("caapDivObject", idName + 'XEnergy', (value === 'At X Energy'));
+                        } else {
+                            caap.SetDisplay("caapDivObject", idName + 'XEnergy_hide', value === 'At X Energy');
                         }
                     } else if (idName === 'QuestArea' || idName === 'QuestSubArea' || idName === 'WhyQuest') {
                         state.setItem('AutoQuest', caap.newAutoQuest());
@@ -12710,15 +12781,12 @@
                         if (idName === 'QuestArea') {
                             switch (value) {
                             case "Quest" :
-                                caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                                 caap.ChangeDropDownList('QuestSubArea', caap.landQuestList);
                                 break;
                             case "Demi Quests" :
-                                caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                                 caap.ChangeDropDownList('QuestSubArea', caap.demiQuestList);
                                 break;
                             case "Atlantis" :
-                                caap.caapDivObject.find("#trQuestSubArea").css('display', 'table-row');
                                 caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                                 break;
                             default :
@@ -12730,33 +12798,17 @@
                         schedule.setItem('BlessingTimer', 0);
                     } else if (idName === 'TargetType') {
                         state.getItem('BattleChainId', 0);
-                        switch (value) {
-                        case "Freshmeat" :
-                            caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
-                            caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
-                            caap.SetDisplay("caapDivObject", 'RaidSub', false);
-                            break;
-                        case "Userid List" :
-                            caap.SetDisplay("caapDivObject", 'FreshmeatSub', false);
-                            caap.SetDisplay("caapDivObject", 'UserIdsSub', true);
-                            caap.SetDisplay("caapDivObject", 'RaidSub', false);
-                            break;
-                        case "Raid" :
-                            caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
-                            caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
-                            caap.SetDisplay("caapDivObject", 'RaidSub', true);
-                            break;
-                        default :
-                            caap.SetDisplay("caapDivObject", 'FreshmeatSub', true);
-                            caap.SetDisplay("caapDivObject", 'UserIdsSub', false);
-                            caap.SetDisplay("caapDivObject", 'RaidSub', false);
-                        }
+                        caap.SetDisplay("caapDivObject", 'TargetTypeFreshmeat_hide', value === "Freshmeat");
+                        caap.SetDisplay("caapDivObject", 'TargetTypeUserId_hide', value === "Userid List");
+                        caap.SetDisplay("caapDivObject", 'TargetTypeRaid_hide', value === "Raid");
                     } else if (idName === 'LevelUpGeneral') {
-                        caap.SetDisplay("caapDivObject", idName + 'Hide', (value !== 'Use Current'));
+                        caap.SetDisplay("caapDivObject", idName + '_hide', value !== 'Use Current');
                     } else if (/Attribute?/.test(idName)) {
                         state.setItem("statsMatch", true);
+                    } else if (idName === 'chainArena') {
+                        caap.SetDisplay("caapDivObject", idName + '_hide', value !== '0');
                     } else if (idName === 'DisplayStyle') {
-                        caap.SetDisplay("caapDivObject", idName + 'Hide', (value === 'Custom'));
+                        caap.SetDisplay("caapDivObject", idName + '_hide', value === 'Custom');
                         switch (value) {
                         case "CA Skin" :
                             config.setItem("StyleBackgroundLight", "#E0C691");
@@ -12805,7 +12857,7 @@
         TextAreaListener: function (e) {
             try {
                 var idName = e.target.id.stripCaap(),
-                    value = e.target.value;
+                    value  = e.target.value;
 
                 function commas() {
                     // Change the boolean from false to true to enable BoJangles patch or
@@ -12924,7 +12976,7 @@
 
         FoldingBlockListener: function (e) {
             try {
-                var subId = e.target.id.replace(/_Switch/i, ''),
+                var subId  = e.target.id.replace(/_Switch/i, ''),
                     subDiv = document.getElementById(subId);
 
                 if (subDiv.style.display === "block") {
@@ -12971,20 +13023,15 @@
         whatFriendBox: function (event) {
             try {
                 var obj    = event.target,
-                    userID = [],
-                    txt    = '';
+                    userID = 0;
 
                 while (obj && !obj.id) {
                     obj = obj.parentNode;
                 }
 
                 if (obj && obj.id && obj.onclick) {
-                    userID = obj.onclick.toString().match(/friendKeepBrowse\('(\d+)'/);
-                    if (userID && userID.length === 2) {
-                        txt = "?casuser=" + userID[1];
-                    }
-
-                    state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/keep.php' + txt);
+                    userID = obj.onclick.toString().regex(/friendKeepBrowse\('(\d+)'/);
+                    state.setItem('clickUrl', caap.domain.link + '/keep.php' + ($u.isNumber(userID) && userID > 0 ? "?casuser=" + userID : ''));
                     schedule.setItem('clickedOnSomething', 0);
                     caap.waitingForDomLoad = true;
                 }
@@ -12995,7 +13042,7 @@
 
         arenaEngageListener: function (event) {
             $u.log(3, "engage arena_battle.php");
-            state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/arena_battle.php');
+            state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
         },
@@ -13009,14 +13056,14 @@
             minion = arena.getMinion(index);
             minion = !$j.isEmptyObject(minion) ? minion : {};
             state.setItem('ArenaMinionAttacked', minion);
-            state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/arena_battle.php');
+            state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
         },
 
         guildMonsterEngageListener: function (event) {
             $u.log(3, "engage guild_battle_monster.php");
-            state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/guild_battle_monster.php');
+            state.setItem('clickUrl', caap.domain.link + '/guild_battle_monster.php');
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
         },
@@ -13031,6 +13078,59 @@
             }
         },
 
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        goldTimeListener: function (e) {
+            var tTxt = $j(e.target).text();
+
+            if (tTxt === '') {
+                return;
+            }
+
+            caap.stats['gold']['ticker'] = tTxt ? tTxt.regex(/(\d+):(\d+)/) : [];
+            $u.log(3, "goldTimeListenerr", tTxt);
+        },
+
+        energyListener: function (e) {
+            var tTxt = $j(e.target).text(),
+                num  = tTxt ? tTxt.parseInt() : -1;
+
+            if (num < 0) {
+                return;
+            }
+
+            caap.stats['energy'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['energy']['max']), caap.stats['energy']);
+            caap.stats['energyT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['energyT']['max']), caap.stats['energy']);
+            $u.log(3, "energyListener", num);
+        },
+
+        healthListener: function (e) {
+            var tTxt = $j(e.target).text(),
+                num  = tTxt ? tTxt.parseInt() : -1;
+
+            if (num < 0) {
+                return;
+            }
+
+            caap.stats['health'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['health']['max']), caap.stats['health']);
+            caap.stats['healthT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['healthT']['max']), caap.stats['healthT']);
+            $u.log(3, "healthListener", num);
+        },
+
+        staminaListener: function (e) {
+            var tTxt = $j(e.target).text(),
+                num  = tTxt ? tTxt.parseInt() : -1;
+
+            if (num < 0) {
+                return;
+            }
+
+            caap.stats['stamina'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['stamina']['max']), caap.stats['stamina']);
+            caap.stats['staminaT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
+            $u.log(3, "staminaListener", num);
+        },
+        /*jslint sub: false */
+
         targetList: [
             "app_body",
             "index",
@@ -13040,7 +13140,6 @@
             "battle",
             "battlerank",
             "battle_train",
-            "arena",
             "quests",
             "raid",
             "symbolquests",
@@ -13142,12 +13241,16 @@
                     $j(this).attr("id", index).bind('click', caap.arenaDualListener);
                 });
                 caap.globalContainer.find("input[src*='guild_duel_button']").bind('click', caap.guildMonsterEngageListener);
+                caap.globalContainer.find("span[id*='gold_time_value']").bind('DOMSubtreeModified', caap.goldTimeListener);
+                caap.globalContainer.find("span[id*='energy_current_value']").bind('DOMSubtreeModified', caap.energyListener);
+                caap.globalContainer.find("span[id*='stamina_current_value']").bind('DOMSubtreeModified', caap.staminaListener);
+                caap.globalContainer.find("span[id*='health_current_value']").bind('DOMSubtreeModified', caap.healthListener);
+
                 caap.globalContainer.bind('DOMNodeInserted', function (event) {
-                    var tId = event.target.id.replace('app46755028429_', ''),
-                        tTxt = $j(event.target).text(),
-                        num  = 0;
+                    var tId = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id;
 
                     // Uncomment this to see the id of domNodes that are inserted
+
                     /*
                     if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/i) && !event.target.id.match(/ticker/i) && !event.target.id.match(/caap/i)) {
                         caap.SetDivContent('debug2_mess', tId);
@@ -13155,45 +13258,27 @@
                     }
                     */
 
-                    if (config.getItem('HideAdsIframe', false)) {
-                        $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
-                    }
-
-                    if ($j.inArray(tId, caap.targetList) !== -1) {
+                    if (caap.targetList.hasIndexOf(tId)) {
                         $u.log(3, "Refreshing DOM Listeners", event.target.id);
                         caap.waitingForDomLoad = false;
                         caap.globalContainer.find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
                         caap.globalContainer.find("div[id*='friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
+                        caap.globalContainer.find("span[id*='gold_time_value']").unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
+                        caap.globalContainer.find("span[id*='energy_current_value']").unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
+                        caap.globalContainer.find("span[id*='stamina_current_value']").unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
+                        caap.globalContainer.find("span[id*='health_current_value']").unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
                         caap.IncrementPageLoadCounter();
+                        if (config.getItem('HideAdsIframe', false)) {
+                            $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
+                        }
+
                         window.setTimeout(function () {
                             caap.CheckResults();
                         }, 100);
                     }
 
-                    switch (tId) {
-                    case "gold_time_value":
-                        caap.stats['gold']['ticker'] = tTxt ? tTxt.regex(/(\d+):(\d+)/) : [];
-                        break;
-                    case "energy_current_value":
-                        num = tTxt ? tTxt.parseInt() : 0;
-                        caap.stats['energy'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['energy']['max']), caap.stats['energy']);
-                        caap.stats['energyT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['energyT']['max']), caap.stats['energy']);
-                        break;
-                    case "health_current_value":
-                        num = tTxt ? tTxt.parseInt() : 0;
-                        caap.stats['health'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['health']['max']), caap.stats['health']);
-                        caap.stats['healthT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['healthT']['max']), caap.stats['healthT']);
-                        break;
-                    case "stamina_current_value":
-                        num = tTxt ? tTxt.parseInt() : 0;
-                        caap.stats['stamina'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['stamina']['max']), caap.stats['stamina']);
-                        caap.stats['staminaT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
-                        break;
-                    default:
-                    }
-
                     // Reposition the dashboard
-                    if (event.target.id === caap.dashboardXY.selector) {
+                    if (event.target.id === caap.dashboardXY.selector.replace("#", '')) {
                         caap.caapTopObject.css('left', caap.GetDashboardXY().x + 'px');
                     }
                 });
@@ -13378,7 +13463,7 @@
 
                 caap.pageLoadOK = caap.GetStats();
                 caap.AddExpDisplay();
-                caap.SetDivContent('level_mess', 'Expected next level: ' + schedule.FormatTime(new Date(caap.stats['indicators']['enl'])));
+                caap.SetDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr(true)));
                 demiPointsFirst = config.getItem('DemiPointsFirst', false);
                 whenMonster = config.getItem('WhenMonster', 'Never');
                 if ((demiPointsFirst && whenMonster !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
@@ -13681,8 +13766,10 @@
                 'name'    : '',
                 'id'      : '',
                 'mPoints' : 0,
+                'mRank'   : '',
                 'bPoints' : 0,
-                'members' : 0
+                'bRank'   : '',
+                'members' : []
             }
         },
 
@@ -15158,7 +15245,7 @@
 
         symbolquestsListener: function (event) {
             $u.log(3, "symbolquests");
-            state.setItem('clickUrl', 'http://' + caap.domain.url[caap.domain.which] + '/symbolquests.php');
+            state.setItem('clickUrl', caap.domain.link + '/symbolquests.php');
             caap.CheckResults();
         },
 
@@ -15811,7 +15898,7 @@
                 return caap.NavigateTo('deity_' + autoBless);
             }
 
-            picSlice = $j("form[id*='_symbols_form_" + caap.deityTable[autoBless] + "']");
+            picSlice = $j("form[id*='" + caap.domain.id[caap.domain.which] + "symbols_form_" + caap.deityTable[autoBless] + "']");
             if (!picSlice || !picSlice.length) {
                 $u.warn('No form for deity blessing.');
                 return false;
@@ -15847,7 +15934,8 @@
                 'maxAllowed'  : 0,
                 'buy'         : 0,
                 'roi'         : 0,
-                'set'         : 0
+                'set'         : 0,
+                'last'        : 0
             };
         },
         /*jslint sub: false */
@@ -15907,7 +15995,7 @@
 
                 caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
                 caap.sellLand = {};
-                ss = $j("#content tr[class*='land_buy_row']");
+                ss = $j("tr[class*='land_buy_row']", caap.globalContainer);
                 if (!ss || !ss.length) {
                     $u.warn("Can't find land_buy_row");
                     return false;
@@ -15920,13 +16008,13 @@
                     }
 
                     SelectLands(row, 10);
-                    infoDiv = row.find("div[class*='land_buy_info']");
+                    infoDiv = $j("div[class*='land_buy_info']", row);
                     if (!infoDiv || !infoDiv.length) {
                         $u.warn("Can't find land_buy_info");
                         return true;
                     }
 
-                    strongs = infoDiv.find("strong");
+                    strongs = $j("strong", infoDiv);
                     if (strongs && strongs.length < 1) {
                         $u.warn("Can't find strong");
                         return true;
@@ -15938,7 +16026,7 @@
                         return true;
                     }
 
-                    moneyss = row.find("strong[class*='gold']");
+                    moneyss = $j("strong[class*='gold']", row);
                     if (!moneyss || moneyss.length < 2) {
                         $u.warn("Can't find 2 gold instances");
                         return true;
@@ -15996,7 +16084,7 @@
                     land.data['buy'] = (maxAllowed - owned) > 10 ? 10 : maxAllowed - owned;
                     land.data['totalCost'] = land.data['buy'] * cost;
                     roi = (((income / cost) * 240000) / 100).dp(2);
-                    if (!row.find("input[name='Buy']").length) {
+                    if (!$j("input[name='Buy']", row).length) {
                         roi = 0;
                         // If we own more than allowed we will set land and selection
                         for (s = 2; s >= 0; s -= 1) {
@@ -16009,7 +16097,7 @@
                     }
 
                     land.data['roi'] = roi ? roi : 0;
-                    div = infoDiv.find("strong");
+                    div = $j("strong", infoDiv);
                     tStr = div.eq(0).text();
                     div.eq(0).text(tStr + " | " + land.data['roi'] + "% per day.");
                     $u.log(3, "Land:", land.data['name']);
@@ -16024,6 +16112,7 @@
                 $j.extend(true, bestLandCost, caap.bestLand);
                 delete bestLandCost['row'];
                 bestLandCost['set'] = true;
+                bestLandCost['last'] = new Date().getTime();
                 state.setItem('BestLandCost', bestLandCost);
                 $u.log(2, "Best Land Cost: ", bestLandCost['name'], bestLandCost['cost'], bestLandCost);
                 return true;
@@ -16032,6 +16121,8 @@
                 return false;
             }
         },
+
+        noLandsLog: true,
 
         Lands: function () {
             try {
@@ -16048,7 +16139,7 @@
                     try {
                         type = type ? type : 'Buy';
                         var button = $j();
-                        button = land['row'].find("input[name='" + type + "']");
+                        button = $j("input[name='" + type + "']", land['row']);
                         if (button && button.length) {
                             if (type === 'Buy') {
                                 caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
@@ -16084,7 +16175,11 @@
                 }
 
                 if (bestLandCost['cost'] === 0) {
-                    $u.log(2, "No lands to purchase");
+                    if (caap.noLandsLog) {
+                        $u.log(2, "No lands to purchase");
+                        caap.noLandsLog = false;
+                    }
+
                     return false;
                 }
 
@@ -16661,39 +16756,67 @@
         CheckResults_guild: function () {
             try {
                 // Guild
-                var guildIdDiv  = $j(),
-                    guildMemDiv = $j(),
-                    guildTxt    = '',
-                    save        = false;
+                var guildCount = 0,
+                    guildTxt   = '',
+                    guildDiv   = $j(),
+                    tStr       = '',
+                    members    = [],
+                    save       = false;
 
-                guildIdDiv = $j("#" + caap.domain.id[caap.domain.which] + "guild_blast input[name='guild_id']");
-                if (guildIdDiv && guildIdDiv.length) {
-                    caap.stats['guild']['id'] = guildIdDiv.attr("value");
+                guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_achievement", caap.globalContainer).text().trim().innerTrim();
+                if ($u.hasContent(guildTxt)) {
+                    tStr = guildTxt.regex(/Monster ([\d,]+)/);
+                    caap.stats['guild']['mPoints'] = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
+                    tStr = guildTxt.regex(/Battle ([\d,]+)/);
+                    caap.stats['guild']['bPoints'] = $u.hasContent(tStr) ? ($u.isString(tStr) ? tStr.numberOnly() : tStr) : 0;
+                    tStr = guildTxt.regex(/Monster [\d,]+ points \(Top (\d+\-\d+%)\)/);
+                    caap.stats['guild']['mRank'] = $u.hasContent(tStr) ? tStr : '';
+                    tStr = guildTxt.regex(/Battle [\d,]+ points \(Top (\d+\-\d+%)\)/);
+                    caap.stats['guild']['bRank'] = $u.hasContent(tStr) ? tStr : '';
+                    save = true;
+                } else {
+                    $u.warn('Using stored guild Monster and Battle points.');
+                }
+
+                guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_blast input[name='guild_id']", caap.globalContainer).attr("value");
+                if ($u.hasContent(guildTxt)) {
+                    caap.stats['guild']['id'] = guildTxt;
                     save = true;
                 } else {
                     $u.warn('Using stored guild_id.');
                 }
 
-                guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_banner_section").text();
-                if (guildTxt) {
-                    caap.stats['guild']['name'] = guildTxt.trim();
+                guildTxt = $j("#" + caap.domain.id[caap.domain.which] + "guild_banner_section", caap.globalContainer).text().trim();
+                if ($u.hasContent(guildTxt)) {
+                    caap.stats['guild']['name'] = guildTxt;
                     save = true;
                 } else {
                     $u.warn('Using stored guild name.');
                 }
 
-                guildMemDiv = $j("#" + caap.domain.id[caap.domain.which] + "cta_log div[style='padding-bottom: 5px;']");
-                if (guildMemDiv && guildMemDiv.length) {
-                    caap.stats['guild']['members'] = guildMemDiv.length;
+                guildDiv = $j("#" + caap.domain.id[caap.domain.which] + "cta_log div[style*='guild_main_score_middle'] a[href*='keep.php?casuser']", caap.globalContainer);
+                if ($u.hasContent(guildDiv)) {
+                    guildDiv.each(function () {
+                        var t = $j(this),
+                            uid = t.attr("href").regex(/casuser=(\d+)/),
+                            name = t.text().trim();
+
+                        if (uid !== caap.stats['FBID']) {
+                            members.push({'userId': uid, 'name': name});
+                        }
+                    });
+
+                    caap.stats['guild']['members'] = members.slice();
                     save = true;
                 } else {
                     $u.warn('Using stored guild member count.');
                 }
 
-                $u.log(3, "CheckResults_guild", caap.stats['guild']);
+                $u.log(2, "CheckResults_guild", caap.stats['guild']);
                 if (save) {
                     caap.SaveStats();
                 }
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in CheckResults_guild: " + err);
@@ -17048,7 +17171,7 @@
                 }
 
                 record = arena.getItem();
-                nextTime = (record['reviewed'] && record['nextTime']) ? "Next Arena: " + schedule.FormatTime(new Date((record['reviewed'] + (record['nextTime'].parseTimer() * 1000)))) : '';
+                nextTime = (record['reviewed'] && record['nextTime']) ? "Next Arena: " + $u.makeTime(record['reviewed'] + (record['nextTime'].parseTimer() * 1000), schedule.timeStr(true)) : '';
                 nextTime = record['startTime'] ? "Next Arena: " + record['startTime'] + " seconds" : nextTime;
                 tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
                 tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
@@ -17243,7 +17366,7 @@
                         siege = "&action=doObjective";
                     }
 
-                    monsterReviewed['link'] = "<a href='http://" + caap.domain.url[caap.domain.which] + "/" + page + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + siege + "'>Link</a>";
+                    monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + page + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + siege + "'>Link</a>";
                     monster.setItem(monsterReviewed);
                 }
 
@@ -17971,7 +18094,7 @@
                         \-------------------------------------------------------------------------------------*/
                         $u.log(1, 'Reviewing ' + (counter + 1) + '/' + monster.records.length + ' ' + monster.records[counter]['name']);
                         state.setItem('ReleaseControl', true);
-                        link = link.replace('http://' + caap.domain.url[caap.domain.which] + '/', '').replace('?', '?twt2&');
+                        link = link.replace(caap.domain.link + '/', '').replace('?', '?twt2&');
 
                         $u.log(5, "Link", link);
                         caap.ClickAjaxLinkSend(link);
@@ -19308,7 +19431,7 @@
                 }
 
                 $u.log(3, "Performing AjaxGiftCheck");
-                var theUrl = 'http://' + caap.domain.url[caap.domain.which] + '/army.php';
+                var theUrl = caap.domain.link + '/army.php';
 
                 $j.ajax({
                     url: theUrl,
@@ -19867,19 +19990,19 @@
         friendListType: {
             facebook: {
                 name: "facebook",
-                url: 'http://apps.facebook.com/castle_age/army.php?app_friends=false&giftSelection=1'
+                url: '/army.php?app_friends=false&giftSelection=1'
             },
             gifta: {
                 name: "gifta",
-                url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=a&giftSelection=1'
+                url: '/gift.php?app_friends=a&giftSelection=1'
             },
             giftb: {
                 name: "giftb",
-                url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=b&giftSelection=1'
+                url: '/gift.php?app_friends=b&giftSelection=1'
             },
             giftc: {
                 name: "giftc",
-                url: 'http://apps.facebook.com/castle_age/gift.php?app_friends=c&giftSelection=1'
+                url: '/gift.php?app_friends=c&giftSelection=1'
             }
         },
 
@@ -19895,47 +20018,61 @@
                     $u.log(3, "Getting Friend List: ", listType.name);
                     state.setItem(listType.name + 'Requested', true);
 
-                    $j.ajax({
-                        url: listType.url,
-                        error:
-                            function (XMLHttpRequest, textStatus, errorThrown) {
-                                state.setItem(listType.name + 'Requested', false);
-                                $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
-                            },
-                        success:
-                            function (data, textStatus, XMLHttpRequest) {
-                                try {
-                                    $u.log(3, "GetFriendList.ajax splitting data");
-                                    data = data.split('<div class="unselected_list">');
-                                    if (data.length < 2) {
-                                        throw "Could not locate 'unselected_list'";
-                                    }
-
-                                    data = data[1].split('</div><div class="selected_list">');
-                                    if (data.length < 2) {
-                                        throw "Could not locate 'selected_list'";
-                                    }
-
-                                    $u.log(3, "GetFriendList.ajax data split ok");
-                                    var friendList = [];
-                                    $j('<div></div>').html(data[0]).find('input').each(function (index) {
-                                        friendList.push($j(this).val().parseInt());
-                                    });
-
-                                    $u.log(3, "GetFriendList.ajax saving friend list of: ", friendList.length);
-                                    if (friendList.length) {
-                                        state.setItem(listType.name + 'Responded', friendList);
-                                    } else {
-                                        state.setItem(listType.name + 'Responded', true);
-                                    }
-
-                                    $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
-                                } catch (err) {
-                                    state.setItem(listType.name + 'Requested', false);
-                                    $u.error("ERROR in GetFriendList.ajax: " + err);
-                                }
+                    if (caap.domain.which > 1) {
+                        if (listType.name === "giftc") {
+                            var armyList = army.getIdList();
+                            $u.log(2, "armyList", armyList);
+                            if (armyList.length) {
+                                state.setItem(listType.name + 'Responded', army.getIdList());
+                            } else {
+                                state.setItem(listType.name + 'Responded', true);
                             }
-                    });
+                        } else {
+                            state.setItem(listType.name + 'Responded', true);
+                        }
+                    } else {
+                        $j.ajax({
+                            url: caap.domain.link + listType.url,
+                            error:
+                                function (XMLHttpRequest, textStatus, errorThrown) {
+                                    state.setItem(listType.name + 'Requested', false);
+                                    $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
+                                },
+                            success:
+                                function (data, textStatus, XMLHttpRequest) {
+                                    try {
+                                        $u.log(3, "GetFriendList.ajax splitting data");
+                                        data = data.split('<div class="unselected_list">');
+                                        if (data.length < 2) {
+                                            throw "Could not locate 'unselected_list'";
+                                        }
+
+                                        data = data[1].split('</div><div class="selected_list">');
+                                        if (data.length < 2) {
+                                            throw "Could not locate 'selected_list'";
+                                        }
+
+                                        $u.log(3, "GetFriendList.ajax data split ok");
+                                        var friendList = [];
+                                        $j('<div></div>').html(data[0]).find('input').each(function (index) {
+                                            friendList.push($j(this).val().parseInt());
+                                        });
+
+                                        $u.log(3, "GetFriendList.ajax saving friend list of: ", friendList.length);
+                                        if (friendList.length) {
+                                            state.setItem(listType.name + 'Responded', friendList);
+                                        } else {
+                                            state.setItem(listType.name + 'Responded', true);
+                                        }
+
+                                        $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
+                                    } catch (err) {
+                                        state.setItem(listType.name + 'Requested', false);
+                                        $u.error("ERROR in GetFriendList.ajax: " + err);
+                                    }
+                                }
+                        });
+                    }
                 } else {
                     $u.log(3, "Already requested GetFriendList for: ", listType.name);
                 }
@@ -19955,7 +20092,7 @@
 
         AutoFillArmy: function (caListType, fbListType) {
             try {
-                if (!state.getItem('FillArmy', false)) {
+                if (!state.getItem('FillArmy', false) || caap.domain.which > 1) {
                     return false;
                 }
 
@@ -19970,7 +20107,7 @@
                             $u.log(1, "AddFriend(" + id + "): ", textStatus);
                         };
 
-                        theUrl = 'http://' + caap.domain.url[caap.domain.which] + '/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf';
+                        theUrl = caap.domain.link + '/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf';
 
                         $j.ajax({
                             url: theUrl,
@@ -20149,11 +20286,9 @@
                 return true;
             }
 
-            /*
             if (army.run()) {
                 return true;
             }
-            */
 
             if (caap.doCTAs()) {
                 return true;
@@ -20246,7 +20381,7 @@
                 var theUrl = '';
                 caap.SetDivContent('idle_mess', 'Player Recon: In Progress');
                 $u.log(1, "Player Recon: In Progress");
-                theUrl = 'http://' + caap.domain.url[caap.domain.which] + '/battle.php';
+                theUrl = caap.domain.link + '/battle.php';
 
                 $j.ajax({
                     url: theUrl,
@@ -20687,7 +20822,7 @@
                     return true;
                 }
 
-                if (window.location.href.indexOf('apps.facebook.com/reqs.php#confirm_46755028429_0') >= 0) {
+                if (caap.domain.which === 1) {
                     gifting.collect();
                     caap.WaitMainLoop();
                     return true;
@@ -20810,7 +20945,7 @@
             try {
                 // better than reload... no prompt on forms!
                 if (!config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
-                    caap.VisitUrl("http://" + caap.domain.url[caap.domain.which] + "/index.php?bm=1&ref=bookmarks&count=0");
+                    caap.VisitUrl(caap.domain.link + "/index.php?bm=1&ref=bookmarks&count=0");
                 }
 
                 return true;
