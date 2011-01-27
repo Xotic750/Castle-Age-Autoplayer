@@ -409,6 +409,27 @@
                 staMax       : [5, 10, 20, 50],
                 nrgMax       : [10, 20, 40, 100],
                 defense_img  : 'nm_green.jpg'
+            },
+            'Air Elemental' : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 630000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/water_siege_small',
+                    '/graphics/alpha_bahamut_siege_blizzard_small',
+                    '/graphics/azriel_siege_inferno_small',
+                    '/graphics/war_siege_holy_smite_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg'
             }
         },
 
@@ -498,7 +519,7 @@
 
                 return words[count];
             } catch (err) {
-                $u.error("ERROR in monster.type: " + err, arguments.callee.caller);
+                $u.error("ERROR in monster.type: " + err);
                 return false;
             }
         },
@@ -538,7 +559,7 @@
                     return newRecord.data;
                 }
             } catch (err) {
-                $u.error("ERROR in monster.getItem: " + err, arguments.callee.caller);
+                $u.error("ERROR in monster.getItem: " + err);
                 return false;
             }
         },

@@ -24,7 +24,7 @@
                         url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFFXX2xCc0x3RjJpN1VNbER5dkVvTXc%26hl%3Den%26output%3Dcsv'&format=json",
                         dataType: "json",
                         success: function (msg) {
-                            $u.log(2, "msg", msg);
+                            $u.log(3, "msg", msg);
                             var rows       = [],
                                 row        = 0,
                                 rowsLen    = 0,
@@ -74,14 +74,14 @@
                                 spreadsheet.records.push(newRecord);
                             }
 
-                            //spreadsheet.hbest = JSON.hbest(spreadsheet.records);
-                            $u.log(2, "spreadsheet.records Hbest", spreadsheet.hbest);
+                            spreadsheet.hbest = spreadsheet.hbest === false ? JSON.hbest(spreadsheet.records) : spreadsheet.hbest;
+                            $u.log(3, "spreadsheet.records Hbest", spreadsheet.hbest);
                             ss.setItem('spreadsheet.records', spreadsheet.records, spreadsheet.hbest, spreadsheet.compress);
-                            $u.log(2, "spreadsheet.records", spreadsheet.records);
+                            $u.log(3, "spreadsheet.records", spreadsheet.records);
                         }
                     });
                 } else {
-                    $u.log(2, "spreadsheet.records", spreadsheet.records);
+                    $u.log(3, "spreadsheet.records", spreadsheet.records);
                 }
 
                 return true;
@@ -94,7 +94,7 @@
         save: function () {
             try {
                 spreadsheet.setItem('spreadsheet.records', spreadsheet.records);
-                $u.log(1, "spreadsheet.save", spreadsheet.records);
+                $u.log(3, "spreadsheet.save", spreadsheet.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in spreadsheet.save: " + err);
@@ -102,6 +102,18 @@
             }
         },
 
+        clear: function () {
+            try {
+                ss.deleteItem('spreadsheet.records');
+                spreadsheet.records = [];
+                $u.log(3, "spreadsheet.clear", spreadsheet.records);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in spreadsheet.clear: " + err);
+                return false;
+            }
+        },
+        
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         getTitle: function (title, image) {

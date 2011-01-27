@@ -529,8 +529,7 @@
 
         NavigateTo: function (pathToPage, imageOnPage) {
             try {
-                var content   = $j(),
-                    pathList  = [],
+                var pathList  = [],
                     s         = 0,
                     a         = $j(),
                     imageTest = '',
@@ -696,8 +695,7 @@
             try {
                 var value    = config.getItem(idName, 'defaultValue'),
                     stNum    = false,
-                    style    = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 10px; text-align: right;" + $u.setContent(css, ''),
-                    htmlCode = '';
+                    style    = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 10px; text-align: right;" + $u.setContent(css, '');
 
                 subtype = $u.setContent(subtype, 'number');
                 stNum = subtype === 'number';
@@ -2638,28 +2636,40 @@
                 \-------------------------------------------------------------------------------------*/
                 if (state.getItem("ArmyDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['UserId', 'User', 'Name', 'Level', 'Change'];
+                    headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Delete'];
                     values  = ['userId', 'user', 'name', 'lvl',   'change'];
                     for (pp = 0; pp < headers.length; pp += 1) {
+                        header = {
+                            text  : '<span id="caap_army_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : '',
+                            width : ''
+                        };
+                            
                         switch (headers[pp]) {
                         case 'UserId':
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '15%'});
+                            header.width = '20%';
                             break;
                         case 'User':
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '25%'});
+                            header.width = '25%';
                             break;
                         case 'Name':
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '35%'});
+                            header.width = '30%';
                             break;
                         case 'Level':
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '10%'});
+                            header.width = '10%';
                             break;
                         case 'Change':
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: '15%'});
+                            header.width = '10%';
                             break;
                         default:
-                            html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                            header.text = headers[pp];
+                            header.width = '5%';
+                            header.color = '';
                         }
+                        
+                        html += caap.makeTh(header);
                     }
 
                     html += '</tr>';
@@ -2674,6 +2684,19 @@
                                     id    : '',
                                     title : ''
                                 });
+                            } else if (values[pp] === "userId") {
+                                str = $u.setContent(army.recordsSortable[i][values[pp]], '');
+                                userIdLinkInstructions = "Clicking this link will take you to the user keep of " + str;
+                                userIdLink = caap.domain.link + "/keep.php?casuser=" + str;
+                                data = {
+                                    text  : '<span id="caap_targetarmy_' + i + '" title="' + userIdLinkInstructions + '" rlink="' + userIdLink +
+                                            '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + str + '</span>',
+                                    color : 'blue',
+                                    id    : '',
+                                    title : ''
+                                };
+                                
+                                html += caap.makeTd(data);
                             } else {
                                 html += caap.makeTd({
                                     text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
@@ -2683,13 +2706,87 @@
                                 });
                             }
                         }
+                        
+                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'] + " from your army!";
+                        data = {
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['user'] + '" mname="' + army.recordsSortable[i]['user'] +
+                                    '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
 
+                        html += caap.makeTd(data);
+                        
                         html += '</tr>';
                     }
 
                     html += '</table>';
                     caap.caapTopObject.find("#caap_army").html(html);
 
+                    handler = function (e) {
+                        var visitUserIdLink = {
+                                rlink     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitUserIdLink.rlink = e.target.attributes[i].nodeValue;
+                                visitUserIdLink.arlink = visitUserIdLink.rlink.replace(caap.domain.link + "/", "");
+                            }
+                        }
+
+                        caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
+                    };
+
+                    caap.caapTopObject.find("span[id*='caap_targetarmy_']").unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var mname  = '',
+                            userid = '',
+                            i      = 0,
+                            len    = 0,
+                            resp   = false;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'userid') {
+                                userid = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'mname') {
+                                mname = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        resp = confirm("Are you sure you want to remove " + mname + " from your army?");
+                        if (resp === true) {
+                            caap.ClickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid)
+                        }
+                    };
+
+                    caap.caapTopObject.find("span[id*='caap_removearmy_']").unbind('click', handler).click(handler);
+
+                    handler = function (e) {
+                        var clicked  = '',
+                            order    = new sort.order(),
+                            oldOrder = state.getItem("ArmySort", order.data);
+
+                        clicked = $u.hasContent(e.target.id) ? e.target.id.replace("caap_army_", '') : null;
+                        if ($u.hasContent(clicked)) {
+                            order.data['value']['a'] = clicked;
+                            order.data['reverse']['a'] = oldOrder['value']['a'] === clicked ? !oldOrder['reverse']['a'] : (clicked !== 'user' && clicked !== 'name ' ? true : false);
+                            order.data['value']['b'] = clicked !== 'user' ? "user" : '';
+                            army.recordsSortable.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'])));
+                            state.setItem("ArmySort", order.data);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.UpdateDashboard(true);
+                            sort.updateForm("Army");
+                        }
+                    };
+
+                    caap.caapTopObject.find("span[id*='caap_army_']").unbind('click', handler).click(handler);
+                    
                     state.setItem("ArmyDashUpdate", false);
                 }
 
@@ -3154,6 +3251,13 @@
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['corvintheus'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
+                    html += "<tr>";
+                    html += caap.makeTd({text: "Valhalla, The Air Elemental Slain", color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: caap.stats['achievements']['monster']['valhalla'].addCommas(), color: valueCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                    html += '</tr>';
+                    
                     html += "<tr>";
                     html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
@@ -3939,6 +4043,7 @@
                 case "enableTitles" :
                 case "goblinHinting" :
                     if (e.target.checked) {
+                        spreadsheet.clear();
                         spreadsheet.load();
                     }
 
@@ -4044,8 +4149,7 @@
                 if (e.target.selectedIndex > 0) {
                     var idName = e.target.id.stripCaap(),
                         value  = e.target.options[e.target.selectedIndex].value,
-                        title  = e.target.options[e.target.selectedIndex].title,
-                        ret    = false;
+                        title  = e.target.options[e.target.selectedIndex].title;
 
                     $u.log(1, 'Change: setting "' + idName + '" to "' + value + '" with title "' + title + '"');
                     config.setItem(idName, value);
@@ -5045,7 +5149,8 @@
                     'genesis'     : 0,
                     'gehenna'     : 0,
                     'aurelius'    : 0,
-                    'corvintheus' : 0
+                    'corvintheus' : 0,
+                    'valhalla'    : 0
                 },
                 'other' : {
                     'alchemy' : 0
@@ -5121,40 +5226,29 @@
         /*jslint sub: true */
         GetStats: function () {
             try {
-                var cashDiv     = $j(),
-                    energyDiv   = $j(),
-                    healthDiv   = $j(),
-                    staminaDiv  = $j(),
-                    expDiv      = $j(),
-                    levelDiv    = $j(),
-                    armyDiv     = $j(),
-                    pointsDiv   = $j(),
+                var tempDiv     = $j(),
                     passed      = true,
-                    temp        = null,
-                    tempT       = null,
+                    tempT       = {},
                     tStr        = '',
-                    levelArray  = [],
-                    newLevel    = 0,
-                    newPoints   = 0,
-                    armyArray   = [],
-                    pointsArray = [],
+                    tNum        = 0,
                     xS          = 0,
                     xE          = 0,
                     ststbDiv    = $j(),
                     bntpDiv     = $j();
 
-                ststbDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_ststb");
-                bntpDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bntp");
+                ststbDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_ststb", caap.globalContainer);
+                bntpDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bntp", caap.globalContainer);
+
                 // gold
-                cashDiv = ststbDiv.find("#" + caap.domain.id[caap.domain.which] + "gold_current_value");
-                if (cashDiv.length) {
-                    tStr = cashDiv.text();
-                    temp = tStr ? tStr.numberOnly() : tStr;
-                    if (!isNaN(temp)) {
-                        caap.stats['gold']['cash'] = temp;
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "gold_current_value", ststbDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tNum = tStr ? tStr.numberOnly() : null;
+                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                        caap.stats['gold']['cash'] = tNum;
                         caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
                     } else {
-                        $u.warn("Cash value is not a number", temp);
+                        $u.warn("Cash value is not a number", tStr);
                         passed = false;
                     }
                 } else {
@@ -5163,12 +5257,12 @@
                 }
 
                 // energy
-                energyDiv = ststbDiv.find("#" + caap.domain.id[caap.domain.which] + "st_2_2");
-                if (energyDiv.length) {
-                    tempT = caap.GetStatusNumbers(energyDiv.text());
-                    temp = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['energy']['max']);
-                    if (temp && tempT) {
-                        caap.stats['energy'] = temp;
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_2", ststbDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
+                    if ($u.hasContent(tempT)) {
+                        caap.stats['energy'] = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['energy']['max']);
                         caap.stats['energyT'] = tempT;
                     } else {
                         $u.warn("Unable to get energy levels");
@@ -5180,12 +5274,12 @@
                 }
 
                 // health
-                healthDiv = ststbDiv.find("#" + caap.domain.id[caap.domain.which] + "st_2_3");
-                if (healthDiv.length) {
-                    tempT = caap.GetStatusNumbers(healthDiv.text());
-                    temp = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['health']['max']);
-                    if (temp && tempT) {
-                        caap.stats['health'] = temp;
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_3", ststbDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
+                    if ($u.hasContent(tempT)) {
+                        caap.stats['health'] = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['health']['max']);
                         caap.stats['healthT'] = tempT;
                     } else {
                         $u.warn("Unable to get health levels");
@@ -5197,12 +5291,12 @@
                 }
 
                 // stamina
-                staminaDiv = ststbDiv.find("#" + caap.domain.id[caap.domain.which] + "st_2_4");
-                if (staminaDiv.length) {
-                    tempT = caap.GetStatusNumbers(staminaDiv.text());
-                    temp = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['stamina']['max']);
-                    if (temp && tempT) {
-                        caap.stats['stamina'] = temp;
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_4", ststbDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
+                    if ($u.hasContent(tempT)) {
+                        caap.stats['stamina'] = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['stamina']['max']);
                         caap.stats['staminaT'] = tempT;
                     } else {
                         $u.warn("Unable to get stamina values");
@@ -5214,11 +5308,12 @@
                 }
 
                 // experience
-                expDiv = ststbDiv.find("#" + caap.domain.id[caap.domain.which] + "st_2_5");
-                if (expDiv.length) {
-                    temp = caap.GetStatusNumbers(expDiv.text());
-                    if (temp) {
-                        caap.stats['exp'] = temp;
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_5", ststbDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
+                    if ($u.hasContent(tempT)) {
+                        caap.stats['exp'] = tempT;
                     } else {
                         $u.warn("Unable to get experience values");
                         passed = false;
@@ -5229,20 +5324,19 @@
                 }
 
                 // level
-                levelDiv = ststbDiv.find("#" + caap.domain.id[caap.domain.which] + "st_5");
-                if (levelDiv.length) {
-                    tStr = levelDiv.text();
-                    levelArray = tStr ? tStr.matchNum() : [];
-                    if (levelArray && levelArray.length === 2) {
-                        newLevel = levelArray[1].parseInt();
-                        if (newLevel > caap.stats['level']) {
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_5", ststbDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tNum = tStr ? tStr.regex(/(\d+)/) : null;
+                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                        if (tNum > caap.stats['level']) {
                             $u.log(2, 'New level. Resetting Best Land Cost.');
                             caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
                             state.setItem('KeepLevelUpGeneral', true);
-                            caap.stats['level'] = newLevel;
+                            caap.stats['level'] = tNum;
                         }
                     } else {
-                        $u.warn('levelArray incorrect');
+                        $u.warn('newLevel incorrect');
                         passed = false;
                     }
                 } else {
@@ -5251,21 +5345,21 @@
                 }
 
                 // army
-                armyDiv = bntpDiv.find("a[href*='army.php']");
-                if (armyDiv.length) {
-                    tStr = armyDiv.text();
-                    armyArray = tStr ? tStr.matchNum() : [];
-                    if (armyArray && armyArray.length === 2) {
-                        caap.stats['army']['actual'] = armyArray[1].parseInt();
-                        temp = Math.min(caap.stats['army']['actual'], 501);
-                        if (temp >= 0 && temp <= 501) {
-                            caap.stats['army']['capped'] = temp;
+                tempDiv = $j("a[href*='army.php']", bntpDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tNum = tStr ? tStr.regex(/(\d+)/) : null;
+                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                        caap.stats['army']['actual'] = tNum;
+                        tNum = Math.min(caap.stats['army']['actual'], 501);
+                        if (tNum >= 0 && tNum <= 501) {
+                            caap.stats['army']['capped'] = tNum;
                         } else {
                             $u.warn("Army count not in limits");
                             passed = false;
                         }
                     } else {
-                        $u.warn('armyArray incorrect');
+                        $u.warn('armyNum incorrect');
                         passed = false;
                     }
                 } else {
@@ -5274,18 +5368,17 @@
                 }
 
                 // upgrade points
-                pointsDiv = bntpDiv.find("a[href*='keep.php']");
-                if (pointsDiv.length) {
-                    tStr = pointsDiv.text();
-                    pointsArray = tStr ? tStr.matchNum() : [];
-                    if (pointsArray && pointsArray.length === 2) {
-                        newPoints = pointsArray[1].parseInt();
-                        if (newPoints > caap.stats['points']['skill']) {
+                tempDiv = $j("a[href*='keep.php']", bntpDiv);
+                if ($u.hasContent(tempDiv)) {
+                    tStr = tempDiv.text();
+                    tNum = tStr ? tStr.regex(/(\d+)/) : null;
+                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                        if (tNum > caap.stats['points']['skill']) {
                             $u.log(2, 'New points. Resetting AutoStat.');
                             state.setItem("statsMatch", true);
                         }
 
-                        caap.stats['points']['skill'] = newPoints;
+                        caap.stats['points']['skill'] = tNum;
                     } else {
                         caap.stats['points']['skill'] = 0;
                     }
@@ -5325,113 +5418,99 @@
 
         CheckResults_keep: function () {
             try {
-                var rankImg        = null,
-                    warRankImg     = null,
-                    atlantisImg    = null,
-                    playerName     = null,
-                    moneyStored    = null,
-                    income         = null,
-                    upkeep         = null,
-                    energyPotions  = null,
-                    staminaPotions = null,
-                    otherStats     = null,
-                    energy         = null,
-                    stamina        = null,
-                    attack         = null,
-                    defense        = null,
-                    health         = null,
-                    statCont       = null,
-                    anotherEl      = null,
-                    tStr           = '',
-                    tArr           = [];
+                var attrDiv    = $j(),
+                    statsTB    = $j(),
+                    keepTable1 = $j(),
+                    statCont   = $j(),
+                    tempDiv    = $j(),
+                    tStr       = '',
+                    tNum       = 0;
 
-                if ($j(".keep_attribute_section").length) {
+                attrDiv = $j(".keep_attribute_section", caap.globalContainer);
+                if ($u.hasContent(attrDiv)) {
                     $u.log(8, "Getting new values from player keep");
                     // rank
-                    rankImg = $j("img[src*='gif/rank']");
-                    if (rankImg.length) {
-                        tStr = rankImg.attr("src");
-                        tStr = tStr ? tStr.basename() : '';
-                        tArr = tStr ? tStr.matchNum() : [];
-                        caap.stats['rank']['battle'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
+                    tempDiv = $j("img[src*='gif/rank']", caap.globalContainer);
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.attr("src");
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        caap.stats['rank']['battle'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored rank.');
                     }
 
                     // PlayerName
-                    playerName = $j(".keep_stat_title_inc");
-                    if (playerName.length) {
-                        tStr = playerName.text();
-                        tArr = tStr ? tStr.match(new RegExp("\"(.+)\",")) : [];
-                        caap.stats['PlayerName'] = tArr.length === 2 ? tArr[1] : '';
-                        state.setItem("PlayerName", caap.stats['PlayerName']);
+                    tempDiv = $j(".keep_stat_title_inc", attrDiv);
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tStr = tStr ? tStr.regex(new RegExp("\"(.+)\",")) : null;
+                        caap.stats['PlayerName'] = $u.setContent(tStr, '');
                     } else {
                         $u.warn('Using stored PlayerName.');
                     }
 
+                    // war rank
                     if (caap.stats['level'] >= 100) {
-                        // war rank
-                        warRankImg = $j("img[src*='war_rank_']");
-                        if (warRankImg.length) {
-                            tStr = warRankImg.attr("src");
-                            tStr = tStr ? tStr.basename() : '';
-                            tArr = tStr ? tStr.matchNum() : [];
-                            caap.stats['rank']['war'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
+                        tempDiv = $j("img[src*='war_rank_']", caap.globalContainer);
+                        if ($u.hasContent(tempDiv)) {
+                            tStr = tempDiv.attr("src");
+                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                            caap.stats['rank']['war'] = $u.setContent(tNum, 0);
                         } else {
                             $u.warn('Using stored warRank.');
                         }
                     }
 
-                    statCont = $j(".attribute_stat_container");
-                    if (statCont.length === 6) {
+                    statCont = $j(".attribute_stat_container", attrDiv);
+                    if ($u.hasContent(statCont) && statCont.length === 6) {
                         // Energy
-                        energy = statCont.eq(0);
-                        if (energy.length) {
-                            tStr = energy.text();
-                            tArr = tStr ? tStr.matchNum() : [];
-                            caap.stats['energy'] = caap.GetStatusNumbers(caap.stats['energyT']['num'] + '/' + (tArr.length === 2 ? tArr[1] : '0'));
+                        tempDiv = statCont.eq(0);
+                        if ($u.hasContent(tempDiv)) {
+                            tStr = tempDiv.text();
+                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                            caap.stats['energy'] = caap.GetStatusNumbers(caap.stats['energyT']['num'] + '/' + $u.setContent(tNum, 0));
                         } else {
                             $u.warn('Using stored energy value.');
                         }
 
                         // Stamina
-                        stamina = statCont.eq(1);
-                        if (stamina.length) {
-                            tStr = stamina.text();
-                            tArr = tStr ? tStr.matchNum() : [];
-                            caap.stats['stamina'] = caap.GetStatusNumbers(caap.stats['staminaT']['num'] + '/' + (tArr.length === 2 ? tArr[1] : '0'));
+                        tempDiv = statCont.eq(1);
+                        if ($u.hasContent(tempDiv)) {
+                            tStr = tempDiv.text();
+                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                            caap.stats['stamina'] = caap.GetStatusNumbers(caap.stats['staminaT']['num'] + '/' + $u.setContent(tNum, 0));
                         } else {
                             $u.warn('Using stored stamina value.');
                         }
 
                         if (caap.stats['level'] >= 10) {
                             // Attack
-                            attack = statCont.eq(2);
-                            if (attack.length) {
-                                tStr = attack.text();
-                                tArr = tStr ? tStr.matchNum() : [];
-                                caap.stats['attack'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
+                            tempDiv = statCont.eq(2);
+                            if ($u.hasContent(tempDiv)) {
+                                tStr = tempDiv.text();
+                                tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                                caap.stats['attack'] = $u.setContent(tNum, 0);
                             } else {
                                 $u.warn('Using stored attack value.');
                             }
 
                             // Defense
-                            defense = statCont.eq(3);
-                            if (defense.length) {
-                                tStr = defense.text();
-                                tArr = tStr ? tStr.matchNum() : [];
-                                caap.stats['defense'] = tArr.length === 2 ? tArr[1].parseInt() : 0;
+                            tempDiv = statCont.eq(3);
+                            if ($u.hasContent(tempDiv)) {
+                                tStr = tempDiv.text();
+                                tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                                caap.stats['defense'] = $u.setContent(tNum, 0);
                             } else {
                                 $u.warn('Using stored defense value.');
                             }
                         }
 
                         // Health
-                        health = statCont.eq(4);
-                        if (health.length) {
-                            tStr = health.text();
-                            tArr = tStr ? tStr.matchNum() : [];
-                            caap.stats['health'] = caap.GetStatusNumbers(caap.stats['healthT']['num'] + '/' + (tArr.length === 2 ? tArr[1] : '0'));
+                        tempDiv = statCont.eq(4);
+                        if ($u.hasContent(tempDiv)) {
+                            tStr = tempDiv.text();
+                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                            caap.stats['health'] = caap.GetStatusNumbers(caap.stats['healthT']['num'] + '/' + $u.setContent(tNum, 0));
                         } else {
                             $u.warn('Using stored health value.');
                         }
@@ -5440,12 +5519,14 @@
                     }
 
                     // Check for Gold Stored
-                    moneyStored = $j(".statsTB .money");
-                    if (moneyStored.length) {
-                        tStr = moneyStored.text();
-                        caap.stats['gold']['bank'] = tStr ? tStr.numberOnly() : 0;
+                    statsTB = $j(".statsTB", caap.globalContainer);
+                    tempDiv = $j(".money", statsTB);
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.numberOnly() : null;
+                        caap.stats['gold']['bank'] = $u.setContent(tNum, 0);
                         caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
-                        moneyStored.attr({
+                        tempDiv.attr({
                             title : "Click to copy value to retrieve",
                             style : "color: blue;"
                         }).hover(
@@ -5456,26 +5537,28 @@
                                 caap.style.cursor = 'default';
                             }
                         ).click(function () {
-                            $j("input[name='get_gold']").val(caap.stats['gold']['bank']);
+                            $j("input[name='get_gold']", caap.globalContainer).val(caap.stats['gold']['bank']);
                         });
                     } else {
                         $u.warn('Using stored inStore.');
                     }
-
+                    
                     // Check for income
-                    income = $j(".statsTB .positive").eq(0);
-                    if (income.length) {
-                        tStr = income.text();
-                        caap.stats['gold']['income'] = tStr ? tStr.numberOnly() : 0;
+                    tempDiv = $j(".positive", statsTB).eq(0);
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.numberOnly() : null;
+                        caap.stats['gold']['income'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored income.');
                     }
 
                     // Check for upkeep
-                    upkeep = $j(".statsTB .negative");
-                    if (upkeep.length) {
-                        tStr = upkeep.text();
-                        caap.stats['gold']['upkeep'] = tStr ? tStr.numberOnly() : 0;
+                    tempDiv = $j(".negative", statsTB);
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.numberOnly() : null;
+                        caap.stats['gold']['upkeep'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored upkeep.');
                     }
@@ -5484,73 +5567,76 @@
                     caap.stats['gold']['flow'] = caap.stats['gold']['income'] - caap.stats['gold']['upkeep'];
 
                     // Energy potions
-                    energyPotions = $j("img[title='Energy Potion']");
-                    if (energyPotions.length) {
-                        tStr = energyPotions.parent().next().text();
-                        caap.stats['potions']['energy'] = tStr ? tStr.numberOnly() : 0;
+                    tempDiv = $j("img[title='Energy Potion']", caap.globalContainer).parent().next();
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.numberOnly() : null;
+                        caap.stats['potions']['energy'] = $u.setContent(tNum, 0);
                     } else {
                         caap.stats['potions']['energy'] = 0;
                     }
 
                     // Stamina potions
-                    staminaPotions = $j("img[title='Stamina Potion']");
-                    if (staminaPotions.length) {
-                        tStr = staminaPotions.parent().next().text();
-                        caap.stats['potions']['stamina'] = tStr ? tStr.numberOnly() : 0;
+                    tempDiv = $j("img[title='Stamina Potion']", caap.globalContainer).parent().next();
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.numberOnly() : null;
+                        caap.stats['potions']['stamina'] = $u.setContent(tNum, 0);
                     } else {
                         caap.stats['potions']['stamina'] = 0;
                     }
 
                     // Other stats
                     // Atlantis Open
-                    atlantisImg = caap.CheckForImage("seamonster_map_finished.jpg");
-                    if ($u.hasContent(atlantisImg)) {
-                        caap.stats['other'].atlantis = true;
-                    } else {
-                        caap.stats['other'].atlantis = false;
-                    }
-
+                    caap.stats['other'].atlantis = $u.hasContent(caap.CheckForImage("seamonster_map_finished.jpg")) ? true : false;
+   
+                    keepTable1 = $j(".keepTable1 tr", statsTB);
                     // Quests Completed
-                    otherStats = $j(".statsTB .keepTable1 tr:eq(0) td:last");
-                    if (otherStats.length) {
-                        tStr = otherStats.text();
-                        caap.stats['other']['qc'] = tStr ? tStr.parseInt() : 0;
+                    tempDiv = $j("td:last", keepTable1.eq(0));
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        caap.stats['other']['qc'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
-
+                    
                     // Battles/Wars Won
-                    otherStats = $j(".statsTB .keepTable1 tr:eq(1) td:last");
-                    if (otherStats.length) {
-                        tStr = otherStats.text();
-                        caap.stats['other']['bww'] = tStr ? tStr.parseInt() : 0;
+                    tempDiv = $j("td:last", keepTable1.eq(1));
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        caap.stats['other']['bww'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
 
                     // Battles/Wars Lost
-                    otherStats = $j(".statsTB .keepTable1 tr:eq(2) td:last");
-                    if (otherStats.length) {
-                        tStr = otherStats.text();
-                        caap.stats['other']['bwl'] = tStr ? tStr.parseInt() : 0;
+                    tempDiv = $j("td:last", keepTable1.eq(2));
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        caap.stats['other']['bwl'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
 
                     // Times eliminated
-                    otherStats = $j(".statsTB .keepTable1 tr:eq(3) td:last");
-                    if (otherStats.length) {
-                        tStr = otherStats.text();
-                        caap.stats['other']['te'] = tStr ? tStr.parseInt() : 0;
+                    tempDiv = $j("td:last", keepTable1.eq(3));
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        caap.stats['other']['te'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
 
                     // Times you eliminated an enemy
-                    otherStats = $j(".statsTB .keepTable1 tr:eq(4) td:last");
-                    if (otherStats.length) {
-                        tStr = otherStats.text();
-                        caap.stats['other']['tee'] = tStr ? tStr.parseInt() : 0;
+                    tempDiv = $j("td:last", keepTable1.eq(4));
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.text();
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        caap.stats['other']['tee'] = $u.setContent(tNum, 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
@@ -5582,11 +5668,11 @@
                     schedule.setItem("keep", gm.getItem("CheckKeep", 1, hiddenVar) * 3600, 300);
                     caap.SaveStats();
                 } else {
-                    anotherEl = $j("a[href*='keep.php?user=']");
-                    if (anotherEl && anotherEl.length) {
-                        tStr = anotherEl.attr("href");
-                        tArr = tStr.matchUser();
-                        $u.log(2, "On another player's keep", tArr.length === 2 ? tArr[1].parseInt() : 0);
+                    tempDiv = $j("a[href*='keep.php?user=']", caap.globalContainer);
+                    if ($u.hasContent(tempDiv)) {
+                        tStr = tempDiv.attr("href");
+                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
+                        $u.log(2, "On another player's keep", $u.setContent(tNum, 0));
                     } else {
                         $u.warn("Attribute section not found and not identified as another player's keep!");
                     }
@@ -5909,7 +5995,7 @@
                 achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3");
                 if (achDiv && achDiv.length) {
                     tdDiv = achDiv.find("td div");
-                    if (tdDiv && tdDiv.length === 14) {
+                    if (tdDiv && tdDiv.length === 15) {
                         tStr = tdDiv.eq(0).text();
                         caap.stats['achievements']['monster']['gildamesh'] = tStr ? tStr.numberOnly() : 0;
                         tStr = tdDiv.eq(1).text();
@@ -5938,6 +6024,8 @@
                         caap.stats['achievements']['monster']['aurelius'] = tStr ? tStr.numberOnly() : 0;
                         tStr = tdDiv.eq(13).text();
                         caap.stats['achievements']['monster']['corvintheus'] = tStr ? tStr.numberOnly() : 0;
+                        tStr = tdDiv.eq(14).text();
+                        caap.stats['achievements']['monster']['valhalla'] = tStr ? tStr.numberOnly() : 0;
                     } else {
                         $u.warn('Monster Achievements problem.');
                     }
@@ -6716,13 +6804,13 @@
                         rewardLow  = 0,
                         rewardHigh = 0;
 
-                    moneyM = divTxt ? divTxt.removeHtmlJunk().match(moneyRegExp) : [];
+                    moneyM = divTxt ? divTxt.stripHtmlJunk().match(moneyRegExp) : [];
                     if (moneyM && moneyM.length === 3) {
                         rewardLow  = moneyM[1] ? moneyM[1].numberOnly() : 0;
                         rewardHigh = moneyM[2] ? moneyM[2].numberOnly() : 0;
                         reward = (rewardLow + rewardHigh) / 2;
                     } else {
-                        moneyM = divTxt ? divTxt.removeHtmlJunk().match(money2RegExp) : [];
+                        moneyM = divTxt ? divTxt.stripHtmlJunk().match(money2RegExp) : [];
                         if (moneyM && moneyM.length === 3) {
                             rewardLow  = moneyM[1] ? moneyM[1].numberOnly() * 1000000 : 0;
                             rewardHigh = moneyM[2] ? moneyM[2].numberOnly() * 1000000 : 0;
@@ -8079,8 +8167,7 @@
         CheckResults_guild: function () {
             try {
                 // Guild
-                var guildCount = 0,
-                    guildTxt   = '',
+                var guildTxt   = '',
                     guildDiv   = $j(),
                     tStr       = '',
                     members    = [],
@@ -10156,7 +10243,7 @@
                 }
 
                 if (!schedule.check('AlchemyTimer')) {
-                    //return false;
+                    return false;
                 }
         /*-------------------------------------------------------------------------------------\
         Now we navigate to the Alchemy Recipe page.
@@ -11672,17 +11759,17 @@
                 caap.ReconRecordArray = gm.setItem('recon.records', []);
             }
 
-            caap.reconhbest = JSON.hbest(caap.ReconRecordArray);
+            caap.reconhbest = caap.reconhbest === false ? JSON.hbest(caap.ReconRecordArray) : caap.reconhbest;
             $u.log(2, "recon.records Hbest", caap.reconhbest);
             state.setItem("ReconDashUpdate", true);
-            $u.log(4, "recon.records", caap.ReconRecordArray);
+            $u.log(3, "recon.records", caap.ReconRecordArray);
         },
 
         SaveRecon: function () {
             var compress = false;
             gm.setItem('recon.records', caap.ReconRecordArray, caap.reconhbest, compress);
             state.setItem("ReconDashUpdate", true);
-            $u.log(4, "recon.records", caap.ReconRecordArray);
+            $u.log(3, "recon.records", caap.ReconRecordArray);
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -11740,12 +11827,14 @@
                                         tStr            = '';
 
                                     if ($tempObj.length) {
-                                        tStr = $tempObj.find("a").eq(0).attr("href");
-                                        tempArray = tStr ? tStr.matchUser() : [];
-                                        if (tempArray && tempArray.length === 2) {
-                                            UserRecord.data['userID'] = tempArray[1].parseInt();
+                                        tStr = $j("a", $tempObj).eq(0).attr("href");
+                                        i = tStr ? tStr.regex(/user=(\d+)/) : null;
+                                        if (!$u.hasContent(i) || i <= 0) {
+                                            $u.log(2, "ReconPlayers: No userId, skipping");
+                                            return true;
                                         }
 
+                                        UserRecord.data['userID'] = i;
                                         for (i = 0, len = caap.ReconRecordArray.length; i < len; i += 1) {
                                             if (caap.ReconRecordArray[i]['userID'] === UserRecord.data['userID']) {
                                                 UserRecord.data = caap.ReconRecordArray[i];
@@ -11828,6 +11917,8 @@
                                     } else {
                                         $u.warn("$tempObj is empty");
                                     }
+                                    
+                                    return true;
                                 });
 
                                 caap.SaveRecon();

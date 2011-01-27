@@ -31,3 +31,11 @@
         army          = {},
         caap          = {},
         $j            = {};
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
+        return this.replace(/caap_/i, '');
+    };
+    /*jslint sub: false */
+    

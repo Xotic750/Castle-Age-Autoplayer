@@ -86,7 +86,7 @@ gm = {
 
             return value;
         } catch (error) {
-            $u.error("ERROR in gm.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
+            $u.error("ERROR in gm.setItem: " + error, {'name': name, 'value': value});
             return undefined;
         }
     },
@@ -149,7 +149,7 @@ gm = {
 
             return jsObj;
         } catch (error) {
-            $u.error("ERROR in gm.getItem: " + error, arguments.callee.caller);
+            $u.error("ERROR in gm.getItem: " + error);
             if (error.match(/Invalid JSON/)) {
                 if (value !== undefined && value !== null) {
                     gm.setItem(name, value);
@@ -180,7 +180,7 @@ gm = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in gm.deleteItem: " + error, arguments.callee.caller);
+            $u.error("ERROR in gm.deleteItem: " + error);
             return false;
         }
     },
@@ -224,7 +224,7 @@ gm = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in gm.clear: " + error, arguments.callee.caller);
+            $u.error("ERROR in gm.clear: " + error);
             return false;
         }
     },
@@ -268,7 +268,7 @@ gm = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in gm.clear0: " + error, arguments.callee.caller);
+            $u.error("ERROR in gm.clear0: " + error);
             return false;
         }
     },
@@ -329,7 +329,7 @@ gm = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in gm.used: " + error, arguments.callee.caller);
+            $u.error("ERROR in gm.used: " + error);
             return false;
         }
     }

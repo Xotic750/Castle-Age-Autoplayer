@@ -86,7 +86,7 @@ ss = {
 
             return value;
         } catch (error) {
-            $u.error("ERROR in ss.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
+            $u.error("ERROR in ss.setItem: " + error, {'name': name, 'value': value});
             return undefined;
         }
     },
@@ -149,7 +149,7 @@ ss = {
 
             return jsObj;
         } catch (error) {
-            $u.error("ERROR in ss.getItem: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.getItem: " + error);
             if (error.match(/Invalid JSON/)) {
                 if (value !== undefined && value !== null) {
                     ss.setItem(name, value);
@@ -180,7 +180,7 @@ ss = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in ss.deleteItem: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.deleteItem: " + error);
             return false;
         }
     },
@@ -224,7 +224,7 @@ ss = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in ss.clear: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.clear: " + error);
             return false;
         }
     },
@@ -268,7 +268,7 @@ ss = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in ss.clear0: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.clear0: " + error);
             return false;
         }
     },
@@ -329,7 +329,7 @@ ss = {
 
             return true;
         } catch (error) {
-            $u.error("ERROR in ss.used: " + error, arguments.callee.caller);
+            $u.error("ERROR in ss.used: " + error);
             return false;
         }
     }

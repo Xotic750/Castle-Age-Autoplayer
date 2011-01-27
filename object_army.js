@@ -54,10 +54,10 @@
                 }
 
                 army.copy2sortable();
-                //army.hbest = JSON.hbest(army.records);
-                $u.log(2, "army.load Hbest", army.hbest);
+                army.hbest = army.hbest === false ? JSON.hbest(army.records) : army.hbest;
+                $u.log(3, "army.load Hbest", army.hbest);
                 state.setItem("ArmyDashUpdate", true);
-                $u.log(2, "army.load", army.records);
+                $u.log(3, "army.load", army.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.load: " + err);
@@ -85,7 +85,7 @@
                     army.recordsTemp = ss.setItem('army.recordsTemp', []);
                 }
 
-                $u.log(2, "army.loadTemp", army.recordsTemp);
+                $u.log(3, "army.loadTemp", army.recordsTemp);
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.loadTemp: " + err);

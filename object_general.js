@@ -49,7 +49,7 @@
         },
         /*jslint sub: false */
 
-        hbest: false,
+        hbest: 0,
 
         load: function () {
             try {
@@ -60,10 +60,10 @@
 
                 general.copy2sortable();
                 general.BuildlLists();
-                general.hbest = JSON.hbest(general.records);
-                $u.log(2, "general.load Hbest", general.hbest);
+                general.hbest = general.hbest === false ? JSON.hbest(general.records) : general.hbest;
+                $u.log(3, "general.load Hbest", general.hbest);
                 state.setItem("GeneralsDashUpdate", true);
-                $u.log(5, "general.load", general.records);
+                $u.log(3, "general.load", general.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.load: " + err);
@@ -76,7 +76,7 @@
                 var compress = false;
                 gm.setItem('general.records', general.records, general.hbest, compress);
                 state.setItem("GeneralsDashUpdate", true);
-                $u.log(5, "general.save", general.records);
+                $u.log(3, "general.save", general.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.save: " + err);
@@ -314,7 +314,7 @@
                 nameObj = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3");
                 if (nameObj && nameObj.length) {
                     tStr = nameObj.text();
-                    generalName = tStr ? tStr.trim().stripTRN().stripStar() : '';
+                    generalName = tStr ? tStr.trim().stripTRN().replace(/\*/g, '') : '';
                 }
 
                 if (!generalName) {
@@ -356,7 +356,7 @@
                         tempObj = container.find(".general_name_div3");
                         if (tempObj && tempObj.length) {
                             tStr = tempObj.text();
-                            name = tStr ? tStr.stripTRN().stripStar() : '';
+                            name = tStr ? tStr.stripTRN().replace(/\*/g, '') : '';
                         } else {
                             $u.warn("Unable to find 'name' container", index);
                         }

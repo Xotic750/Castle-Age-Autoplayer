@@ -99,10 +99,10 @@
                     battle.records = gm.setItem('battle.records', []);
                 }
 
-                battle.hbest = JSON.hbest(battle.records);
+                battle.hbest = battle.hbest === false ? JSON.hbest(battle.records) : battle.hbest;
                 $u.log(2, "battle.load Hbest", battle.hbest);
                 state.setItem("BattleDashUpdate", true);
-                $u.log(5, "battle.load", battle.records);
+                $u.log(3, "battle.load", battle.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in battle.load: " + err);
@@ -115,7 +115,7 @@
                 var compress = false;
                 gm.setItem('battle.records', battle.records, battle.hbest, compress);
                 state.setItem("BattleDashUpdate", true);
-                $u.log(5, "battle.save", battle.records);
+                $u.log(3, "battle.save", battle.records);
                 return true;
             } catch (err) {
                 $u.error("ERROR in battle.save: " + err);
@@ -165,7 +165,7 @@
                     return newRecord.data;
                 }
             } catch (err) {
-                $u.error("ERROR in battle.getItem: " + err, arguments.callee.caller);
+                $u.error("ERROR in battle.getItem: " + err);
                 return false;
             }
         },
@@ -203,7 +203,7 @@
                 battle.save();
                 return true;
             } catch (err) {
-                $u.error("ERROR in battle.setItem: " + err, record, arguments.callee.caller);
+                $u.error("ERROR in battle.setItem: " + err, record);
                 return false;
             }
         },

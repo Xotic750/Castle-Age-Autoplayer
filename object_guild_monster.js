@@ -142,7 +142,7 @@
                     return newRecord.data;
                 }
             } catch (err) {
-                $u.error("ERROR in guild_monster.getItem: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.getItem: " + err);
                 return false;
             }
         },
@@ -529,8 +529,7 @@
         getReview: function () {
             try {
                 var it     = 0,
-                    len    = 0,
-                    record = {};
+                    len    = 0;
 
                 for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
                     if (guild_monster.records[it]['state'] === 'Completed') {
@@ -541,13 +540,12 @@
                         continue;
                     }
 
-                    record = guild_monster.records[it];
                     break;
                 }
 
-                return record;
+                return guild_monster.records[it];
             } catch (err) {
-                $u.error("ERROR in guild_monster.getReview: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.getReview: " + err);
                 return undefined;
             }
         },
@@ -563,7 +561,7 @@
                 slot = slot ? slot.parseInt() : 0;
                 return (record['slot'] === slot);
             } catch (err) {
-                $u.error("ERROR in guild_monster.checkPage: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.checkPage: " + err);
                 return undefined;
             }
         },
@@ -704,7 +702,7 @@
                 $u.log(2, "Target minion", minion);
                 return minion;
             } catch (err) {
-                $u.error("ERROR in guild_monster.getTargetMinion: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.getTargetMinion: " + err);
                 return undefined;
             }
         },
@@ -748,7 +746,7 @@
 
                 for (ol = 0, len1 = attackOrderList.length; ol < len1; ol += 1) {
                     conditions = attackOrderList[ol].replace(new RegExp("^[^:]+"), '').toString().trim();
-                    for (it = 0, len = guild_monster.records.length ; it < len; it += 1) {
+                    for (it = 0, len = guild_monster.records.length; it < len; it += 1) {
                         if (guild_monster.records[it]['state'] !== 'Alive') {
                             guild_monster.records[it]['color'] = "grey";
                             continue;
@@ -819,7 +817,7 @@
 
                 return state.setItem('targetGuildMonster', target);
             } catch (err) {
-                $u.error("ERROR in guild_monster.select: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.select: " + err);
                 return undefined;
             }
         },
@@ -904,7 +902,7 @@
                 $u.log(2, 'getAttackValue', attack);
                 return attack;
             } catch (err) {
-                $u.error("ERROR in guild_monster.getAttackValue: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.getAttackValue: " + err);
                 return undefined;
             }
         },
@@ -942,7 +940,7 @@
                 $u.log(2, 'getStaminaValue', stamina);
                 return stamina;
             } catch (err) {
-                $u.error("ERROR in guild_monster.getStaminaValue: " + err, arguments.callee.caller);
+                $u.error("ERROR in guild_monster.getStaminaValue: " + err);
                 return undefined;
             }
         }

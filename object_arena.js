@@ -105,7 +105,7 @@
             try {
                 return (arena.records.length ? arena.records[0] : new arena.record().data);
             } catch (err) {
-                $u.error("ERROR in arena.getItem: " + err, arguments.callee.caller);
+                $u.error("ERROR in arena.getItem: " + err);
                 return false;
             }
         },
@@ -212,7 +212,7 @@
 
                 return records;
             } catch (err) {
-                $u.error("ERROR in arena.setWin: " + err, won, records, arguments.callee.caller);
+                $u.error("ERROR in arena.setWin: " + err, won, records);
                 return false;
             }
         },
@@ -247,7 +247,7 @@
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in arena.getWin: " + err, userId, records, arguments.callee.caller);
+                $u.error("ERROR in arena.getWin: " + err, userId, records);
                 return false;
             }
         },
@@ -283,7 +283,7 @@
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in arena.delWin: " + err, userId, records, arguments.callee.caller);
+                $u.error("ERROR in arena.delWin: " + err, userId, records);
                 return false;
             }
         },
@@ -308,7 +308,7 @@
 
                 return records;
             } catch (err) {
-                $u.error("ERROR in arena.setLoss: " + err, userId, records, arguments.callee.caller);
+                $u.error("ERROR in arena.setLoss: " + err, userId, records);
                 return false;
             }
         },
@@ -332,7 +332,7 @@
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in arena.checkLoss: " + err, userId, records, arguments.callee.caller);
+                $u.error("ERROR in arena.checkLoss: " + err, userId, records);
                 return undefined;
             }
         },
@@ -359,7 +359,7 @@
                     return false;
                 }
             } catch (err) {
-                $u.error("ERROR in arena.delLoss: " + err, userId, records, arguments.callee.caller);
+                $u.error("ERROR in arena.delLoss: " + err, userId, records);
                 return false;
             }
         },
@@ -390,7 +390,7 @@
 
                 return true;
             } catch (err) {
-                $u.error("ERROR in arena.cleanWins: " + err, arguments.callee.caller);
+                $u.error("ERROR in arena.cleanWins: " + err);
                 return false;
             }
         },
@@ -822,7 +822,7 @@
                 arena.setItem(currentRecord);
                 return true;
             } catch (err) {
-                $u.error("ERROR in arena.clearMinions: " + err, arguments.callee.caller);
+                $u.error("ERROR in arena.clearMinions: " + err);
                 return false;
             }
         },
@@ -846,7 +846,7 @@
 
                 return minion;
             } catch (err) {
-                $u.error("ERROR in arena.getTarget: " + err, arguments.callee.caller);
+                $u.error("ERROR in arena.getTarget: " + err);
                 return false;
             }
         },
@@ -1155,7 +1155,7 @@
 
                 return minion;
             } catch (err) {
-                $u.error("ERROR in arena.getTargetMinion: " + err, arguments.callee.caller);
+                $u.error("ERROR in arena.getTargetMinion: " + err);
                 return undefined;
             }
         }

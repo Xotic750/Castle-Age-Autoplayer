@@ -145,7 +145,7 @@
 
                 return (value < (new Date().getTime() - 1000 * seconds));
             } catch (err) {
-                $u.error("ERROR in schedule.since: " + err, arguments.callee.caller);
+                $u.error("ERROR in schedule.since: " + err);
                 return false;
             }
         },

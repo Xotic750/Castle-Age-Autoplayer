@@ -21,9 +21,9 @@
                     gifting[type].records = gm.setItem("gifting." + type, []);
                 }
 
-                gifting[type].hbest = JSON.hbest(gifting[type].records);
+                gifting[type].hbest = gifting[type].hbest === false ? JSON.hbest(gifting[type].records) : gifting[type].hbest;
                 $u.log(2, "gifting." + type + " Hbest", gifting[type].hbest);
-                $u.log(5, "gifting.load", type, gifting[type].records);
+                $u.log(3, "gifting.load", type, gifting[type].records);
                 state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
                 return true;
             } catch (err) {
@@ -41,7 +41,7 @@
 
                 var compress = false;
                 gm.setItem("gifting." + type, gifting[type].records, gifting[type].hbest, compress);
-                $u.log(5, "gifting.save", type, gifting[type].records);
+                $u.log(3, "gifting.save", type, gifting[type].records);
                 state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
                 return true;
             } catch (err) {
@@ -428,7 +428,7 @@
         gifts: {
             options: ['Same Gift As Received', 'Random Gift'],
 
-            hbest: false,
+            hbest: 0,
 
             records: [],
 

@@ -1,4 +1,4 @@
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512, onevar: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true, strict: true, maxlen: 512, onevar: true */
 /*global window,jQuery,GM_getValue,GM_setValue,GM_deleteValue,GM_listValues,localStorage,sessionStorage,rison */
 /*jslint maxlen: 280 */
 
@@ -7,6 +7,8 @@
 // Small functions called a lot to reduce duplicate code
 /////////////////////////////////////////////////////////////////////
 (function () {
+    "use strict";
+    
     ///////////////////////////
     //       Prototypes
     ///////////////////////////
@@ -27,28 +29,24 @@
         return this.replace(new RegExp("<[^>]+>", "g"), '').replace(/&nbsp;/g, '');
     };
 
-    String.prototype['stripCaap'] = String.prototype.stripCaap = function () {
-        return this.replace(/caap_/i, '');
+    String.prototype['stripHtmlJunk'] = String.prototype.stripHtmlJunk = function () {
+        return this.replace(new RegExp("\\&[^;]+;", "g"), '');
     };
 
     String.prototype['stripTRN'] = String.prototype.stripTRN = function () {
         return this.replace(/[\t\r\n]/g, '');
     };
 
-    String.prototype['stripStar'] = String.prototype.stripStar = function () {
-        return this.replace(/\*/g, '');
+    String.prototype['html_escape'] = String.prototype.html_escape = function () {
+        return this.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
     String.prototype['innerTrim'] = String.prototype.innerTrim = function () {
         return this.replace(/\s+/g, ' ');
     };
-
-    String.prototype['matchUser'] = String.prototype.matchUser = function () {
-        return this.match(/user=(\d+)/);
-    };
-
-    String.prototype['matchNum'] = String.prototype.matchNum = function () {
-        return this.match(/(\d+)/);
+    
+    String.prototype['trim'] = String.prototype.trim = function () {
+        return this.replace(/^\s+|\s+$/g, '');
     };
 
     String.prototype['parseFloat'] = String.prototype.parseFloat = function (x) {
@@ -58,17 +56,9 @@
     String.prototype['parseInt'] = String.prototype.parseInt = function (x) {
         return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
     };
-
-    String.prototype['trim'] = String.prototype.trim = function () {
-        return this.replace(/^\s+|\s+$/g, '');
-    };
-
+    
     String.prototype['numberOnly'] = String.prototype.numberOnly = function () {
         return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
-    };
-
-    String.prototype['html_escape'] = String.prototype.html_escape = function () {
-        return this.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
     String.prototype['parseTimer'] = String.prototype.parseTimer = function () {
@@ -87,10 +77,6 @@
         }
 
         return b;
-    };
-
-    String.prototype['removeHtmlJunk'] = String.prototype.removeHtmlJunk = function () {
-        return this.replace(new RegExp("\\&[^;]+;", "g"), '');
     };
 
     //pads left
@@ -178,7 +164,7 @@
         var a  = this.match(r),
             i  = 0,
             l  = 0,
-            rx;
+            rx = null;
 
         if (a) {
             if (r.global) {
@@ -194,7 +180,7 @@
             for (i = l - 1; i >= 0; i -= 1) {
                 if (a[i]) {
                     if (rx) {
-                        a[i] = arguments.callee.call(a[i], rx);
+                        a[i] = String.prototype.regex.call(a[i], rx);
                     } else {
                         if (a[i].search(/^[\-+]?\d*\.?\d+$/) >= 0) {
                             a[i] = parseFloat(a[i]);
@@ -202,37 +188,10 @@
                     }
                 }
             }
-
-            if (!rx && l === 1) {
-                return a[0];
-            }
         }
-        return a;
+        
+        return !rx && l === 1 ? a[0] : a;
     };
-
-    /*
-    String.prototype['regex'] = String.prototype.regex = function (r) {
-        var a = this.match(r),
-            i = 0,
-            l = 0;
-
-        if (a) {
-            a.shift();
-            l = a.length;
-            for (i = 0; i < l; i += 1) {
-                if (a[i] && a[i].search(/^[\-+]?[\d]*\.?[\d]*$/) >= 0) {
-                    a[i] = parseFloat(a[i].replace('+', ''));
-                }
-            }
-
-            if (l === 1) {
-                return a[0];
-            }
-        }
-
-        return a;
-    };
-    */
 
     // Turns text delimeted with new lines and commas into an array.
     // Primarily for use with user input text boxes.
@@ -259,12 +218,12 @@
         var s = '';
         s = this.replace(/[\u0080-\u07ff]/g, function (c) {
             var cc = c.charCodeAt(0);
-            return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f);
+            return String.fromCharCode(0xc0 | cc >> 6, 0x80 | cc & 0x3f);
         });
 
         s = s.replace(/[\u0800-\uffff]/g, function (c) {
             var cc = c.charCodeAt(0);
-            return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f);
+            return String.fromCharCode(0xe0 | cc >> 12, 0x80 | cc >> 6 & 0x3F, 0x80 | cc & 0x3f);
         });
 
         return s;
@@ -273,11 +232,11 @@
     String.prototype['Utf8decode'] = String.prototype.Utf8decode = function () {
         var s = '';
         s = this.replace(/[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g, function (c) {
-            return String.fromCharCode(((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | (c.charCodeAt(2)&0x3f));
+            return String.fromCharCode(((c.charCodeAt(0) & 0x0f) << 12) | ((c.charCodeAt(1) & 0x3f) << 6) | (c.charCodeAt(2) & 0x3f));
         });
 
         s = s.replace(/[\u00c0-\u00df][\u0080-\u00bf]/g, function (c) {
-            return String.fromCharCode((c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f);
+            return String.fromCharCode((c.charCodeAt(0) & 0x1f) << 6 | c.charCodeAt(1) & 0x3f);
         });
 
         return s;
@@ -308,10 +267,10 @@
             o1 = plain.charCodeAt(c);
             o2 = plain.charCodeAt(c + 1);
             o3 = plain.charCodeAt(c + 2);
-            bits = o1<<16 | o2<<8 | o3;
-            h1 = bits>>18 & 0x3f;
-            h2 = bits>>12 & 0x3f;
-            h3 = bits>>6 & 0x3f;
+            bits = o1 << 16 | o2 << 8 | o3;
+            h1 = bits >> 18 & 0x3f;
+            h2 = bits >> 12 & 0x3f;
+            h3 = bits >> 6 & 0x3f;
             h4 = bits & 0x3f;
             e[c / 3] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
         }
@@ -336,9 +295,9 @@
             h2 = b64.indexOf(coded.charAt(c + 1));
             h3 = b64.indexOf(coded.charAt(c + 2));
             h4 = b64.indexOf(coded.charAt(c + 3));
-            bits = h1<<18 | h2<<12 | h3<<6 | h4;
-            o1 = bits>>>16 & 0xff;
-            o2 = bits>>>8 & 0xff;
+            bits = h1 << 18 | h2 << 12 | h3 << 6 | h4;
+            o1 = bits >>> 16 & 0xff;
+            o2 = bits >>> 8 & 0xff;
             o3 = bits & 0xff;
             d[c / 4] = String.fromCharCode(o1, o2, o3);
             if (h4 === 0x40) {
@@ -355,7 +314,7 @@
     };
 
     String.prototype['MD5'] = String.prototype.MD5 = function (utf8encode) {
-        function AddUnsigned(lX, lY) {
+        function addUnsigned(lX, lY) {
             var lX4     = (lX & 0x40000000),
                 lY4     = (lY & 0x40000000),
                 lX8     = (lX & 0x80000000),
@@ -377,75 +336,75 @@
             }
         }
 
-        function F(x, y, z) {
+        function fF(x, y, z) {
             return (x & y) | ((~x) & z);
         }
 
-        function G(x, y, z) {
+        function fG(x, y, z) {
             return (x & z) | (y & (~z));
         }
 
-        function H(x, y, z) {
+        function fH(x, y, z) {
             return (x ^ y ^ z);
         }
 
-        function I(x, y, z) {
+        function fI(x, y, z) {
             return (y ^ (x | (~z)));
         }
 
-        function FF(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(F(b, c, d), x), ac));
-            return AddUnsigned(a.ROTL(s), b);
+        function fFF(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(fF(b, c, d), x), ac));
+            return addUnsigned(a.ROTL(s), b);
         }
 
-        function GG(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(G(b, c, d), x), ac));
-            return AddUnsigned(a.ROTL(s), b);
+        function fGG(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(fG(b, c, d), x), ac));
+            return addUnsigned(a.ROTL(s), b);
         }
 
-        function HH(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(H(b, c, d), x), ac));
-            return AddUnsigned(a.ROTL(s), b);
+        function fHH(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(fH(b, c, d), x), ac));
+            return addUnsigned(a.ROTL(s), b);
         }
 
-        function II(a, b, c, d, x, s, ac) {
-            a = AddUnsigned(a, AddUnsigned(AddUnsigned(I(b, c, d), x), ac));
-            return AddUnsigned(a.ROTL(s), b);
+        function fII(a, b, c, d, x, s, ac) {
+            a = addUnsigned(a, addUnsigned(addUnsigned(fI(b, c, d), x), ac));
+            return addUnsigned(a.ROTL(s), b);
         }
 
-        function ConvertToWordArray(textMsg) {
+        function convertToWordArray(textMsg) {
             var lWordCount           = 0,
                 lMessageLength       = textMsg.length,
                 lNumberOfWords_temp1 = lMessageLength + 8,
                 lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64,
                 lNumberOfWords       = (lNumberOfWords_temp2 + 1) * 16,
-                lWordArray           = Array(lNumberOfWords - 1),
+                lWordArray           = [], //Array(lNumberOfWords - 1),
                 lBytePosition        = 0,
                 lByteCount           = 0;
 
             while (lByteCount < lMessageLength) {
                 lWordCount = (lByteCount - (lByteCount % 4)) / 4;
                 lBytePosition = (lByteCount % 4) * 8;
-                lWordArray[lWordCount] = (lWordArray[lWordCount] | (textMsg.charCodeAt(lByteCount)<<lBytePosition));
+                lWordArray[lWordCount] = (lWordArray[lWordCount] | (textMsg.charCodeAt(lByteCount) << lBytePosition));
                 lByteCount += 1;
             }
 
             lWordCount = (lByteCount - (lByteCount % 4)) / 4;
             lBytePosition = (lByteCount % 4) * 8;
-            lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80<<lBytePosition);
-            lWordArray[lNumberOfWords - 2] = lMessageLength<<3;
-            lWordArray[lNumberOfWords - 1] = lMessageLength>>>29;
+            lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80 << lBytePosition);
+            lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
+            lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
             return lWordArray;
         }
 
-        function WordToHex(lValue) {
+        function wordToHex(lValue) {
             var WordToHexValue      = "",
                 WordToHexValue_temp = "",
                 lByte               = 0,
                 lCount              = 0;
 
             for (lCount = 0; lCount <= 3; lCount += 1) {
-                lByte = (lValue>>>(lCount * 8)) & 255;
+                lByte = (lValue >>> (lCount * 8)) & 255;
                 WordToHexValue_temp = "0" + lByte.toString(16);
                 WordToHexValue += WordToHexValue_temp.substr(WordToHexValue_temp.length - 2, 2);
             }
@@ -484,83 +443,83 @@
 
         utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
         msg = utf8encode ? this.Utf8encode() : this;
-        x = ConvertToWordArray(msg);
+        x = convertToWordArray(msg);
         for (k = 0, l = x.length; k < l; k += 16) {
             AA = a;
             BB = b;
             CC = c;
             DD = d;
-            a = FF(a, b, c, d, x[k + 0],  S11, 0xD76AA478);
-            d = FF(d, a, b, c, x[k + 1],  S12, 0xE8C7B756);
-            c = FF(c, d, a, b, x[k + 2],  S13, 0x242070DB);
-            b = FF(b, c, d, a, x[k + 3],  S14, 0xC1BDCEEE);
-            a = FF(a, b, c, d, x[k + 4],  S11, 0xF57C0FAF);
-            d = FF(d, a, b, c, x[k + 5],  S12, 0x4787C62A);
-            c = FF(c, d, a, b, x[k + 6],  S13, 0xA8304613);
-            b = FF(b, c, d, a, x[k + 7],  S14, 0xFD469501);
-            a = FF(a, b, c, d, x[k + 8],  S11, 0x698098D8);
-            d = FF(d, a, b, c, x[k + 9],  S12, 0x8B44F7AF);
-            c = FF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
-            b = FF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
-            a = FF(a, b, c, d, x[k + 12], S11, 0x6B901122);
-            d = FF(d, a, b, c, x[k + 13], S12, 0xFD987193);
-            c = FF(c, d, a, b, x[k + 14], S13, 0xA679438E);
-            b = FF(b, c, d, a, x[k + 15], S14, 0x49B40821);
-            a = GG(a, b, c, d, x[k + 1],  S21, 0xF61E2562);
-            d = GG(d, a, b, c, x[k + 6],  S22, 0xC040B340);
-            c = GG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
-            b = GG(b, c, d, a, x[k + 0],  S24, 0xE9B6C7AA);
-            a = GG(a, b, c, d, x[k + 5],  S21, 0xD62F105D);
-            d = GG(d, a, b, c, x[k + 10], S22, 0x2441453);
-            c = GG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
-            b = GG(b, c, d, a, x[k + 4],  S24, 0xE7D3FBC8);
-            a = GG(a, b, c, d, x[k + 9],  S21, 0x21E1CDE6);
-            d = GG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
-            c = GG(c, d, a, b, x[k + 3],  S23, 0xF4D50D87);
-            b = GG(b, c, d, a, x[k + 8],  S24, 0x455A14ED);
-            a = GG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
-            d = GG(d, a, b, c, x[k + 2],  S22, 0xFCEFA3F8);
-            c = GG(c, d, a, b, x[k + 7],  S23, 0x676F02D9);
-            b = GG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
-            a = HH(a, b, c, d, x[k + 5],  S31, 0xFFFA3942);
-            d = HH(d, a, b, c, x[k + 8],  S32, 0x8771F681);
-            c = HH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
-            b = HH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
-            a = HH(a, b, c, d, x[k + 1],  S31, 0xA4BEEA44);
-            d = HH(d, a, b, c, x[k + 4],  S32, 0x4BDECFA9);
-            c = HH(c, d, a, b, x[k + 7],  S33, 0xF6BB4B60);
-            b = HH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
-            a = HH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
-            d = HH(d, a, b, c, x[k + 0],  S32, 0xEAA127FA);
-            c = HH(c, d, a, b, x[k + 3],  S33, 0xD4EF3085);
-            b = HH(b, c, d, a, x[k + 6],  S34, 0x4881D05);
-            a = HH(a, b, c, d, x[k + 9],  S31, 0xD9D4D039);
-            d = HH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
-            c = HH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
-            b = HH(b, c, d, a, x[k + 2],  S34, 0xC4AC5665);
-            a = II(a, b, c, d, x[k + 0],  S41, 0xF4292244);
-            d = II(d, a, b, c, x[k + 7],  S42, 0x432AFF97);
-            c = II(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
-            b = II(b, c, d, a, x[k + 5],  S44, 0xFC93A039);
-            a = II(a, b, c, d, x[k + 12], S41, 0x655B59C3);
-            d = II(d, a, b, c, x[k + 3],  S42, 0x8F0CCC92);
-            c = II(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
-            b = II(b, c, d, a, x[k + 1],  S44, 0x85845DD1);
-            a = II(a, b, c, d, x[k + 8],  S41, 0x6FA87E4F);
-            d = II(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
-            c = II(c, d, a, b, x[k + 6],  S43, 0xA3014314);
-            b = II(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
-            a = II(a, b, c, d, x[k + 4],  S41, 0xF7537E82);
-            d = II(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
-            c = II(c, d, a, b, x[k + 2],  S43, 0x2AD7D2BB);
-            b = II(b, c, d, a, x[k + 9],  S44, 0xEB86D391);
-            a = AddUnsigned(a, AA);
-            b = AddUnsigned(b, BB);
-            c = AddUnsigned(c, CC);
-            d = AddUnsigned(d, DD);
+            a = fFF(a, b, c, d, x[k + 0],  S11, 0xD76AA478);
+            d = fFF(d, a, b, c, x[k + 1],  S12, 0xE8C7B756);
+            c = fFF(c, d, a, b, x[k + 2],  S13, 0x242070DB);
+            b = fFF(b, c, d, a, x[k + 3],  S14, 0xC1BDCEEE);
+            a = fFF(a, b, c, d, x[k + 4],  S11, 0xF57C0FAF);
+            d = fFF(d, a, b, c, x[k + 5],  S12, 0x4787C62A);
+            c = fFF(c, d, a, b, x[k + 6],  S13, 0xA8304613);
+            b = fFF(b, c, d, a, x[k + 7],  S14, 0xFD469501);
+            a = fFF(a, b, c, d, x[k + 8],  S11, 0x698098D8);
+            d = fFF(d, a, b, c, x[k + 9],  S12, 0x8B44F7AF);
+            c = fFF(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1);
+            b = fFF(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+            a = fFF(a, b, c, d, x[k + 12], S11, 0x6B901122);
+            d = fFF(d, a, b, c, x[k + 13], S12, 0xFD987193);
+            c = fFF(c, d, a, b, x[k + 14], S13, 0xA679438E);
+            b = fFF(b, c, d, a, x[k + 15], S14, 0x49B40821);
+            a = fGG(a, b, c, d, x[k + 1],  S21, 0xF61E2562);
+            d = fGG(d, a, b, c, x[k + 6],  S22, 0xC040B340);
+            c = fGG(c, d, a, b, x[k + 11], S23, 0x265E5A51);
+            b = fGG(b, c, d, a, x[k + 0],  S24, 0xE9B6C7AA);
+            a = fGG(a, b, c, d, x[k + 5],  S21, 0xD62F105D);
+            d = fGG(d, a, b, c, x[k + 10], S22, 0x2441453);
+            c = fGG(c, d, a, b, x[k + 15], S23, 0xD8A1E681);
+            b = fGG(b, c, d, a, x[k + 4],  S24, 0xE7D3FBC8);
+            a = fGG(a, b, c, d, x[k + 9],  S21, 0x21E1CDE6);
+            d = fGG(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+            c = fGG(c, d, a, b, x[k + 3],  S23, 0xF4D50D87);
+            b = fGG(b, c, d, a, x[k + 8],  S24, 0x455A14ED);
+            a = fGG(a, b, c, d, x[k + 13], S21, 0xA9E3E905);
+            d = fGG(d, a, b, c, x[k + 2],  S22, 0xFCEFA3F8);
+            c = fGG(c, d, a, b, x[k + 7],  S23, 0x676F02D9);
+            b = fGG(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+            a = fHH(a, b, c, d, x[k + 5],  S31, 0xFFFA3942);
+            d = fHH(d, a, b, c, x[k + 8],  S32, 0x8771F681);
+            c = fHH(c, d, a, b, x[k + 11], S33, 0x6D9D6122);
+            b = fHH(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+            a = fHH(a, b, c, d, x[k + 1],  S31, 0xA4BEEA44);
+            d = fHH(d, a, b, c, x[k + 4],  S32, 0x4BDECFA9);
+            c = fHH(c, d, a, b, x[k + 7],  S33, 0xF6BB4B60);
+            b = fHH(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+            a = fHH(a, b, c, d, x[k + 13], S31, 0x289B7EC6);
+            d = fHH(d, a, b, c, x[k + 0],  S32, 0xEAA127FA);
+            c = fHH(c, d, a, b, x[k + 3],  S33, 0xD4EF3085);
+            b = fHH(b, c, d, a, x[k + 6],  S34, 0x4881D05);
+            a = fHH(a, b, c, d, x[k + 9],  S31, 0xD9D4D039);
+            d = fHH(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+            c = fHH(c, d, a, b, x[k + 15], S33, 0x1FA27CF8);
+            b = fHH(b, c, d, a, x[k + 2],  S34, 0xC4AC5665);
+            a = fII(a, b, c, d, x[k + 0],  S41, 0xF4292244);
+            d = fII(d, a, b, c, x[k + 7],  S42, 0x432AFF97);
+            c = fII(c, d, a, b, x[k + 14], S43, 0xAB9423A7);
+            b = fII(b, c, d, a, x[k + 5],  S44, 0xFC93A039);
+            a = fII(a, b, c, d, x[k + 12], S41, 0x655B59C3);
+            d = fII(d, a, b, c, x[k + 3],  S42, 0x8F0CCC92);
+            c = fII(c, d, a, b, x[k + 10], S43, 0xFFEFF47D);
+            b = fII(b, c, d, a, x[k + 1],  S44, 0x85845DD1);
+            a = fII(a, b, c, d, x[k + 8],  S41, 0x6FA87E4F);
+            d = fII(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+            c = fII(c, d, a, b, x[k + 6],  S43, 0xA3014314);
+            b = fII(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+            a = fII(a, b, c, d, x[k + 4],  S41, 0xF7537E82);
+            d = fII(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+            c = fII(c, d, a, b, x[k + 2],  S43, 0x2AD7D2BB);
+            b = fII(b, c, d, a, x[k + 9],  S44, 0xEB86D391);
+            a = addUnsigned(a, AA);
+            b = addUnsigned(b, BB);
+            c = addUnsigned(c, CC);
+            d = addUnsigned(d, DD);
         }
 
-        return WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d);
+        return wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d);
     };
 
     String.prototype['SHA1'] = String.prototype.SHA1 = function (utf8encode) {
@@ -677,27 +636,27 @@
     };
 
     String.prototype['SHA256'] = String.prototype.SHA256 = function (utf8encode) {
-        function Sigma0(x) {
+        function fSigma0(x) {
             return Number(2).ROTR(x) ^ Number(13).ROTR(x) ^ Number(22).ROTR(x);
         }
 
-        function Sigma1(x) {
+        function fSigma1(x) {
             return Number(6).ROTR(x) ^ Number(11).ROTR(x) ^ Number(25).ROTR(x);
         }
 
         function sigma0(x) {
-            return Number(7).ROTR(x) ^ Number(18).ROTR(x) ^ (x>>>3);
+            return Number(7).ROTR(x) ^ Number(18).ROTR(x) ^ (x >>> 3);
         }
 
         function sigma1(x) {
-            return Number(17).ROTR(x) ^ Number(19).ROTR(x) ^ (x>>>10);
+            return Number(17).ROTR(x) ^ Number(19).ROTR(x) ^ (x >>> 10);
         }
 
-        function Ch(x, y, z)  {
+        function fCh(x, y, z)  {
             return (x & y) ^ (~x & z);
         }
 
-        function Maj(x, y, z) {
+        function fMaj(x, y, z) {
             return (x & y) ^ (x & z) ^ (y & z);
         }
 
@@ -718,26 +677,35 @@
             j = 0,
             W = [],
             t = 0,
-            a, b, c, d, e, f, g, h, T1, T2;
+            a = 0,
+            b = 0,
+            c = 0,
+            d = 0,
+            e = 0,
+            f = 0,
+            g = 0,
+            h = 0,
+            T1 = 0,
+            T2 = 0;
 
         utf8encode = (typeof utf8encode === 'undefined') ? true : utf8encode;
         msg = utf8encode ? this.Utf8encode() : this;
         msg += String.fromCharCode(0x80);
         l = msg.length / 4 + 2;
         N = Math.ceil(l / 16);
-        M = new Array(N);
+        M = [];
 
         for (i = 0; i < N; i += 1) {
-            M[i] = new Array(16);
+            M[i] = [];
             for (j = 0; j < 16; j += 1) {
-                M[i][j] = (msg.charCodeAt(i * 64 + j * 4)<<24) | (msg.charCodeAt(i * 64 + j * 4 + 1)<<16) | (msg.charCodeAt(i * 64 + j * 4 + 2)<<8) | (msg.charCodeAt(i * 64 + j * 4 + 3));
+                M[i][j] = (msg.charCodeAt(i * 64 + j * 4) << 24) | (msg.charCodeAt(i * 64 + j * 4 + 1) << 16) | (msg.charCodeAt(i * 64 + j * 4 + 2) << 8) | (msg.charCodeAt(i * 64 + j * 4 + 3));
             }
         }
 
         M[N - 1][14] = ((msg.length - 1) * 8) / Math.pow(2, 32);
         M[N - 1][14] = Math.floor(M[N - 1][14]);
         M[N - 1][15] = ((msg.length - 1) * 8) & 0xffffffff;
-        W = new Array(64);
+        W = [];
         for (i = 0; i < N; i += 1) {
             for (t = 0; t < 16; t += 1) {
                 W[t] = M[i][t];
@@ -756,8 +724,8 @@
             g = H[6];
             h = H[7];
             for (t = 0; t < 64; t += 1) {
-                T1 = h + Sigma1(e) + Ch(e, f, g) + K[t] + W[t];
-                T2 = Sigma0(a) + Maj(a, b, c);
+                T1 = h + fSigma1(e) + fCh(e, f, g) + K[t] + W[t];
+                T2 = fSigma0(a) + fMaj(a, b, c);
                 h = g;
                 g = f;
                 f = e;
@@ -778,8 +746,7 @@
             H[7] = (H[7] + h) & 0xffffffff;
         }
 
-        return H[0].toHexStr() + H[1].toHexStr() + H[2].toHexStr() + H[3].toHexStr() +
-               H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
+        return H[0].toHexStr() + H[1].toHexStr() + H[2].toHexStr() + H[3].toHexStr() + H[4].toHexStr() + H[5].toHexStr() + H[6].toHexStr() + H[7].toHexStr();
     };
 
     Number.prototype['dp'] = Number.prototype.dp = function (x) {
@@ -844,10 +811,21 @@
 
     // Add commas to a number, optionally converting to a Fixed point number
     Number.prototype['addCommas'] = Number.prototype.addCommas = function (x) {
-        var n  = typeof x === 'number' ? this.toFixed(x) : this.toString(),
-            rx = new RegExp("^(.*\\s)?(\\d+)(\\d{3}\\b)");
-
-        return n === (n = n.replace(rx, '$1$2,$3')) ? n : arguments.callee.call(n);
+        var n = typeof x === 'number' ? this.toFixed(x) : this.toString(),
+            d = n.indexOf('.'),
+            e = '',
+            r = /(\d+)(\d{3})/;
+            
+        if (d !== -1) {
+            e = '.' + n.substring(d + 1, n.length);
+            n = n.substring(0, d);
+        }
+        
+        while (r.test(n)) {
+            n = n.replace(r, '$1' + ',' + '$2');
+        }
+        
+        return n + e;
     };
 
     String.prototype['hasIndexOf'] = String.prototype.hasIndexOf = function (o) {
@@ -1085,9 +1063,10 @@
 
     var log_version = '',
         log_level = 1,
-        utility = {};
+        utility = {},
+        $u = {};
 
-    utility = {
+    utility = $u = {
         jQueryExtend: function (url) {
             ///////////////////////////
             //       Extend jQuery
@@ -1817,7 +1796,7 @@
                 }
 
                 function shiftRows(s, Nb) {
-                    var t = new Array(4),
+                    var t = [],
                         r = 1,
                         c = 0;
 
@@ -1841,11 +1820,11 @@
                         i = 0;
 
                     for (c = 0; c < 4; c += 1) {
-                        a = new Array(4);
-                        b = new Array(4);
+                        a = [];
+                        b = [];
                         for (i = 0; i < 4; i += 1) {
                             a[i] = s[i][c];
-                            b[i] = s[i][c]&0x80 ? s[i][c]<<1 ^ 0x011b : s[i][c]<<1;
+                            b[i] = s[i][c] & 0x80 ? s[i][c] << 1 ^ 0x011b : s[i][c] << 1;
                         }
 
                         s[0][c] = b[0] ^ a[1] ^ b[1] ^ a[2] ^ a[3];
@@ -1893,7 +1872,7 @@
                     state = subBytes(state, Nb);
                     state = shiftRows(state, Nb);
                     state = addRoundKey(state, w, Nr, Nb);
-                    output = new Array(4 * Nb);
+                    output = [];
                     for (i = 0; i < 4 * Nb; i += 1) {
                         output[i] = state[i % 4][Math.floor(i / 4)];
                     }
@@ -1902,7 +1881,8 @@
                 }
 
                 function subWord(w) {
-                    for (var i = 0; i < 4; i += 1) {
+                    var i = 0;
+                    for (i = 0; i < 4; i += 1) {
                         w[i] = sBox[w[i]];
                     }
 
@@ -1925,8 +1905,8 @@
                     var Nb   = 4,
                         Nk   = key.length / 4,
                         Nr   = Nk + 6,
-                        w    = new Array(Nb * (Nr + 1)),
-                        temp = new Array(4),
+                        w    = [],
+                        temp = [],
                         i    = 0,
                         t    = 0;
 
@@ -1935,7 +1915,7 @@
                     }
 
                     for (i = Nk; i < (Nb * (Nr + 1)); i += 1) {
-                        w[i] = new Array(4);
+                        w[i] = [];
                         for (t = 0; t < 4; t += 1) {
                             temp[t] = w[i - 1][t];
                         }
@@ -1966,10 +1946,10 @@
                         plaintext = utf8encode ? plaintext.Utf8encode() : plaintext;
                         var blockSize    = 16,
                             nBytes       = nBits / 8,
-                            pwBytes      = new Array(nBytes),
+                            pwBytes      = [],
                             i            = 0,
-                            counterBlock = new Array(blockSize),
-                            nonce        = new Date().getTime(),
+                            counterBlock = [],
+                            nonce        = [],
                             nonceSec     = Math.floor(nonce / 1000),
                             nonceMs      = nonce % 1000,
                             key          = [],
@@ -2004,7 +1984,7 @@
 
                         keySchedule = keyExpansion(key);
                         blockCount = Math.ceil(plaintext.length / blockSize);
-                        ciphertxt = new Array(blockCount);
+                        ciphertxt = [];
                         for (b = 0; b < blockCount; b += 1) {
                             for (c = 0; c < 4; c += 1) {
                                 counterBlock[15 - c] = (b >>> c * 8) & 0xff;
@@ -2016,7 +1996,7 @@
 
                             cipherCntr = cipher(counterBlock, keySchedule);
                             blockLength = b < blockCount - 1 ? blockSize : (plaintext.length - 1) % blockSize + 1;
-                            cipherChar = new Array(blockLength);
+                            cipherChar = [];
                             for (i = 0; i < blockLength; i += 1) {
                                 cipherChar[i] = cipherCntr[i] ^ plaintext.charCodeAt(b * blockSize + i);
                                 cipherChar[i] = String.fromCharCode(cipherChar[i]);
@@ -2042,7 +2022,7 @@
                         ciphertext = ciphertext.Base64decode();
                         var blockSize    = 16,
                             nBytes       = nBits / 8,
-                            pwBytes      = new Array(nBytes),
+                            pwBytes      = [],
                             i            = 0,
                             key          = [],
                             counterBlock = [],
@@ -2063,7 +2043,7 @@
 
                         key = cipher(pwBytes, keyExpansion(pwBytes));
                         key = key.concat(key.slice(0, nBytes - 16));
-                        counterBlock = new Array(8);
+                        counterBlock = [];
                         ctrTxt = ciphertext.slice(0, 8);
                         for (i = 0; i < 8; i += 1) {
                             counterBlock[i] = ctrTxt.charCodeAt(i);
@@ -2071,13 +2051,13 @@
 
                         keySchedule = keyExpansion(key);
                         nBlocks = Math.ceil((ciphertext.length - 8) / blockSize);
-                        ct = new Array(nBlocks);
+                        ct = [];
                         for (b = 0; b < nBlocks; b += 1) {
                             ct[b] = ciphertext.slice(8 + b * blockSize, 8 + b * blockSize + blockSize);
                         }
 
                         ciphertext = ct;
-                        plaintxt = new Array(ciphertext.length);
+                        plaintxt = [];
 
                         for (b = 0; b < nBlocks; b += 1) {
                             for (c = 0; c < 4; c += 1) {
@@ -2089,7 +2069,7 @@
                             }
 
                             cipherCntr = cipher(counterBlock, keySchedule);
-                            plaintxtByte = new Array(ciphertext[b].length);
+                            plaintxtByte = []; // new Array(ciphertext[b].length);
                             for (i = 0; i < ciphertext[b].length; i += 1) {
                                 plaintxtByte[i] = cipherCntr[i] ^ ciphertext[b].charCodeAt(i);
                                 plaintxtByte[i] = String.fromCharCode(plaintxtByte[i]);
@@ -2416,12 +2396,14 @@
                         if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
                             window[storage_type].setItem(storage_ref + name, storageStr);
                         } else {
+                            /*jslint newcap: false */
                             GM_setValue(storage_ref + name, storageStr);
+                            /*jslint newcap: true */
                         }
 
                         return value;
                     } catch (error) {
-                        utility.error("ERROR in utility.storage.setItem: " + error, {'name': name, 'value': value}, arguments.callee.caller);
+                        utility.error("ERROR in utility.storage.setItem: " + error, {'name': name, 'value': value});
                         return undefined;
                     }
                 };
@@ -2441,7 +2423,9 @@
                         if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
                             storageStr = window[storage_type].getItem(storage_ref + name);
                         } else {
+                            /*jslint newcap: false */
                             storageStr = GM_getValue(storage_ref + name);
+                            /*jslint newcap: true */
                         }
 
                         if (utility.isString(storageStr)) {
@@ -2483,7 +2467,7 @@
 
                         return jsObj;
                     } catch (error) {
-                        utility.error("ERROR in utility.storage.getItem: " + error, arguments.callee.caller);
+                        utility.error("ERROR in utility.storage.getItem: " + error);
                         if (error.match(/Invalid JSON/)) {
                             if (utility.isString(name) && utility.hasContent(name) && utility.isDefined(value)) {
                                 utility.storage.setItem(name, value);
@@ -2508,12 +2492,14 @@
                         if (utility["is_html5_" + storage_type] && !fireFoxUseGM) {
                             window[storage_type].removeItem(storage_ref + name);
                         } else {
+                            /*jslint newcap: false */
                             GM_deleteValue(storage_ref + name);
+                            /*jslint newcap: true */
                         }
 
                         return true;
                     } catch (error) {
-                        utility.error("ERROR in utility.storage.deleteItem: " + error, arguments.callee.caller);
+                        utility.error("ERROR in utility.storage.deleteItem: " + error);
                         return false;
                     }
                 };
@@ -2549,17 +2535,21 @@
                                 }
                             }
                         } else {
+                            /*jslint newcap: false */
                             storageKeys = GM_listValues();
+                            /*jslint newcap: true */
                             for (key = 0, len = storageKeys.length; key < len; key += 1) {
                                 if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
+                                    /*jslint newcap: false */
                                     GM_deleteValue(storageKeys[key]);
+                                    /*jslint newcap: true */
                                 }
                             }
                         }
 
                         return true;
                     } catch (error) {
-                        utility.error("ERROR in utility.storage.clear: " + error, arguments.callee.caller);
+                        utility.error("ERROR in utility.storage.clear: " + error);
                         return false;
                     }
                 };
@@ -2602,18 +2592,24 @@
                             }
                         } else {
                             ffmode = true;
+                            /*jslint newcap: false */
                             storageKeys = GM_listValues();
+                            /*jslint newcap: true */
                             for (key = 0, len = storageKeys.length; key < len; key += 1) {
+                                /*jslint newcap: false */
                                 chars += GM_getValue(storageKeys[key]).length;
+                                /*jslint newcap: true */
                                 if (storageKeys[key] && storageKeys[key].match(nameRegExp)) {
+                                    /*jslint newcap: false */
                                     charCnt += GM_getValue(storageKeys[key]).length;
+                                    /*jslint newcap: true */
                                 }
                             }
                         }
 
                         return {'ffmode': ffmode, 'match': charCnt, 'total': chars};
                     } catch (error) {
-                        utility.error("ERROR in utility.storage.used: " + error, arguments.callee.caller);
+                        utility.error("ERROR in utility.storage.used: " + error);
                         return undefined;
                     }
                 };
@@ -2629,57 +2625,58 @@
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
+    utility['jQueryExtend'] = utility.jQueryExtend;
+    utility['is_chrome'] = utility.is_chrome;
+    utility['is_firefox'] = utility.is_firefox;
+    utility['is_html5_localStorage'] = utility.is_html5_localStorage;
+    utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
+    utility['injectScript'] = utility.injectScript;
+    utility['isNum'] = utility.isNum;
+    utility['plural'] = utility.plural;
+    utility['deleteElement'] = utility.deleteElement;
+    utility['alert'] = utility.alert;
+    utility['set_log_version'] = utility.set_log_version;
+    utility['get_log_version'] = utility.get_log_version;
+    utility['set_log_level'] = utility.set_log_level;
+    utility['get_log_level'] = utility.get_log_level;
+    utility['log_common'] = utility.log_common;
+    utility['log'] = utility.log;
+    utility['warn'] = utility.warn;
+    utility['error'] = utility.error;
+    utility['sortBy'] = utility.sortBy;
+    utility['sortObjectBy'] = utility.sortObjectBy;
+    utility['charPrintables'] = utility.charPrintables;
+    utility['charNonPrintables'] = utility.charNonPrintables;
+    utility['testMD5'] = utility.testMD5;
+    utility['testSHA1'] = utility.testSHA1;
+    utility['testSHA256'] = utility.testSHA256;
+    utility['testUTF8'] = utility.testUTF8;
+    utility['testBase64'] = utility.testBase64;
+    utility['testAes'] = utility.testAes;
+    utility['testLZ77'] = utility.testLZ77;
+    utility['testAes'] = utility.testAes;
+    utility['testUrlStuff'] = utility.testUrlStuff;
+    utility['testsRun'] = utility.testsRun;
+    utility['Aes'] = utility.Aes;
+    utility['LZ77'] = utility.LZ77;
+    utility['storage'] = utility.storage;
+    utility['isArray'] = utility.isArray;
+    utility['isObject'] = utility.isObject;
+    utility['isBoolean'] = utility.isBoolean;
+    utility['isFunction'] = utility.isFunction;
+    utility['isDate'] = utility.isDate;
+    utility['isRegExp'] = utility.isRegExp;
+    utility['isNumber'] = utility.isNumber;
+    utility['isString'] = utility.isString;
+    utility['isUndefined'] = utility.isUndefined;
+    utility['isNull'] = utility.isNull;
+    utility['isDefined'] = utility.isDefined;
+    utility['hasContent'] = utility.hasContent;
+    utility['setContent'] = utility.setContent;
+    utility['makeTime'] = utility.makeTime;
+    
     if (!window['utility']) {
         window['utility'] = window.utility = window['$u'] = window.$u = utility;
-        utility['jQueryExtend'] = utility.jQueryExtend;
-        utility['is_chrome'] = utility.is_chrome;
-        utility['is_firefox'] = utility.is_firefox;
-        utility['is_html5_localStorage'] = utility.is_html5_localStorage;
-        utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
-        utility['injectScript'] = utility.injectScript;
-        utility['isNum'] = utility.isNum;
-        utility['plural'] = utility.plural;
-        utility['deleteElement'] = utility.deleteElement;
-        utility['alert'] = utility.alert;
-        utility['set_log_version'] = utility.set_log_version;
-        utility['get_log_version'] = utility.get_log_version;
-        utility['set_log_level'] = utility.set_log_level;
-        utility['get_log_level'] = utility.get_log_level;
-        utility['log_common'] = utility.log_common;
-        utility['log'] = utility.log;
-        utility['warn'] = utility.warn;
-        utility['error'] = utility.error;
-        utility['sortBy'] = utility.sortBy;
-        utility['sortObjectBy'] = utility.sortObjectBy;
-        utility['charPrintables'] = utility.charPrintables;
-        utility['charNonPrintables'] = utility.charNonPrintables;
-        utility['testMD5'] = utility.testMD5;
-        utility['testSHA1'] = utility.testSHA1;
-        utility['testSHA256'] = utility.testSHA256;
-        utility['testUTF8'] = utility.testUTF8;
-        utility['testBase64'] = utility.testBase64;
-        utility['testAes'] = utility.testAes;
-        utility['testLZ77'] = utility.testLZ77;
-        utility['testAes'] = utility.testAes;
-        utility['testUrlStuff'] = utility.testUrlStuff;
-        utility['testsRun'] = utility.testsRun;
-        utility['Aes'] = utility.Aes;
-        utility['LZ77'] = utility.LZ77;
-        utility['storage'] = utility.storage;
-        utility['isArray'] = utility.isArray;
-        utility['isObject'] = utility.isObject;
-        utility['isBoolean'] = utility.isBoolean;
-        utility['isFunction'] = utility.isFunction;
-        utility['isDate'] = utility.isDate;
-        utility['isRegExp'] = utility.isRegExp;
-        utility['isNumber'] = utility.isNumber;
-        utility['isString'] = utility.isString;
-        utility['isUndefined'] = utility.isUndefined;
-        utility['isNull'] = utility.isNull;
-        utility['isDefined'] = utility.isDefined;
-        utility['hasContent'] = utility.hasContent;
-        utility['setContent'] = utility.setContent;
-        utility['makeTime'] = utility.makeTime;
     }
     /*jslint sub: false */
 }());

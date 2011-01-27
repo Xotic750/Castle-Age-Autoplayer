@@ -69,11 +69,11 @@
         },
         /*jslint sub: false */
 
-        soldiershbest: false,
+        soldiershbest: 3,
 
-        itemhbest: false,
+        itemhbest: 2,
 
-        magichbest: false,
+        magichbest: 2,
 
         load: function (type) {
             try {
@@ -87,11 +87,11 @@
                     town[type] = gm.setItem(type + '.records', []);
                 }
 
-                town[type + "hbest"] = JSON.hbest(town[type]);
-                $u.log(2, "town.load " + type + " Hbest", town[type + "hbest"]);
+                town[type + "hbest"] = town[type + "hbest"] === false ? JSON.hbest(town[type]) : town[type + "hbest"];
+                $u.log(3, "town.load " + type + " Hbest", town[type + "hbest"]);
                 town.copy2sortable(type);
                 state.setItem(type.ucFirst() + "DashUpdate", true);
-                $u.log(type, 5, "town.load", type, town[type]);
+                $u.log(3, "town.load", type, town[type]);
                 return true;
             } catch (err) {
                 $u.error("ERROR in town.load: " + err);
@@ -109,7 +109,7 @@
                 var compress = false;
                 gm.setItem(type + '.records', town[type], town[type + "hbest"], compress);
                 state.setItem(type.ucFirst() + "DashUpdate", true);
-                $u.log(type, 5, "town.save", type, town[type]);
+                $u.log(3, "town.save", type, town[type]);
                 return true;
             } catch (err) {
                 $u.error("ERROR in town.save: " + err);
