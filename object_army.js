@@ -24,8 +24,7 @@
                 'userId'     : '',
                 'lvl'        : 0,
                 'last'       : 0,
-                'change'     : 0,
-                'color'      : 'black'
+                'change'     : 0
             };
         },
 
@@ -122,17 +121,6 @@
             army.load();
         },
 
-        onError: function () {
-            var currentPage = 0;
-
-            currentPage = ss.getItem("army.currentPage", 1);
-            if (currentPage > 1) {
-                ss.setItem("army.currentPage", currentPage - 1);
-            }
-
-            army.pageDone = true;
-        },
-
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         page: function (number) {
@@ -143,7 +131,7 @@
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
                             $u.error("army.page ajax", textStatus);
-                            army.onError();
+                            army.pageDone = true;
                         },
                     success:
                         function (data, textStatus, XMLHttpRequest) {
@@ -172,7 +160,7 @@
                                 search = jData.find("a[href*='comments.php?casuser=']");
                                 search.each(function () {
                                     var el    = $j(this),
-                                        tEl   = null,
+                                        //tEl   = null,
                                         tStr1 = '';
 
                                     record = new army.record();
@@ -208,7 +196,7 @@
                                             tNum = tTxt.regex(/Extra members x(\d+)/);
                                             for (it = 1; it <= tNum; it += 1) {
                                                 record = new army.record();
-                                                record.data['userId'] = 900000000000000 + it;
+                                                record.data['userId'] = 0 - it;
                                                 record.data['name'] = "Extra member " + it;
                                                 record.data['lvl'] = 0;
                                                 record.data['last'] = new Date().getTime();
@@ -218,11 +206,12 @@
                                     }
                                 }
 
-                                $u.log(1, "army.page ajax", pCount, army.recordsTemp);
+                                ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
+                                $u.log(1, "army.page ajax", number, pCount, army.recordsTemp);
                                 army.pageDone = true;
                             } catch (err) {
                                 $u.error("ERROR in army.page ajax: " + err);
-                                army.onError();
+                                army.pageDone = true;
                             }
                         }
                 });
@@ -230,7 +219,7 @@
                 return true;
             } catch (err) {
                 $u.error("ERROR in AjaxGiftCheck: " + err);
-                army.onError();
+                army.pageDone = true;
                 return false;
             }
         },
@@ -252,31 +241,22 @@
                 }
 
                 if (currentPage > expectedPageCount) {
-                    army.saveTemp();
                     army.pageDone = false;
-                    //ss.setItem("army.currentPage", 1);
                     $u.log(1, "army.run", expectedPageCount);
                     if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
                         $u.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
                         schedule.setItem("army_member", 1800, 300);
                     } else {
                         army.merge();
-                        schedule.setItem("army_member", 604800, 300);
-                        $u.log(2, "Army merge complete. Next schedule set 1 week.", army.records);
+                        schedule.setItem("army_member", gm.getItem("ArmyScanDays", 7, hiddenVar) * 86400, 300);
+                        $u.log(2, "Army merge complete. Next schedule set " + gm.getItem("ArmyScanDays", 7, hiddenVar) + " days.", army.records);
                     }
 
+                    army.deleteTemp();
                     return false;
-                } else if (currentPage === 1) {
-                    army.recordsTemp = [];
-                    army.saveTemp();
-                    army.pageDone = false;
-                    army.page(currentPage);
-                    ss.setItem("army.currentPage", 2);
                 } else if (army.pageDone) {
-                    army.saveTemp();
                     army.pageDone = false;
                     army.page(currentPage);
-                    ss.setItem("army.currentPage", currentPage + 1);
                 }
 
                 return true;
@@ -338,7 +318,6 @@
                 army.records = army.recordsTemp.slice();
                 army.save();
                 army.copy2sortable();
-                army.deleteTemp();
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.merge: " + err);

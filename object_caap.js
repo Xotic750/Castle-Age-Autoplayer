@@ -2200,27 +2200,26 @@
         },
 
         makeTh: function (obj) {
-            var header = {text: '', color: '', id: '', title: '', width: ''},
+            var header = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
                 html   = '<th';
 
             header = obj;
             header.color = $u.setContent(header.color, 'black');
             html += $u.hasContent(header.id) ? " id='" + header.id + "'" : '';
             html += $u.hasContent(header.title) ? " title='" + header.title + "'" : '';
-            html += $u.hasContent(header.width) ? " width='" + header.width + "'" : '';
-            html += " style='color:" + header.color + ";font-size:10px;font-weight:bold;text-align:left'>" + header.text + "</th>";
+            html += " style='color:" + header.color + ";font-size:10px;font-weight:bold;text-align:left;" + ($u.hasContent(header.bgcolor) ? "background-color:" + header.bgcolor + ";" : '') + ($u.hasContent(header.width) ? "width:" + header.width + ";" : '') + "'>" + header.text + "</th>";
             return html;
         },
 
         makeTd: function (obj) {
-            var data = {text: '', color: '', id: '',  title: ''},
+            var data = {text: '', color: '', bgcolor: '', id: '',  title: ''},
                 html = '<td';
 
             data = obj;
             data.color = $u.setContent(data.color, 'black');
             html += $u.hasContent(data.id) ? " id='" + data.id + "'" : '';
             html += $u.hasContent(data.title) ? " title='" + data.title + "'" : '';
-            html += " style='color:" + data.color + ";font-size:10px;text-align:left'>" + data.text + "</td>";
+            html += " style='color:" + data.color + ";font-size:10px;text-align:left;" + ($u.hasContent(data.bgcolor) ? "background-color:" + data.bgcolor + ";" : '') + "'>" + data.text + "</td>";
             return html;
         },
 
@@ -2253,14 +2252,12 @@
                     townValues               = [],
                     pp                       = 0,
                     i                        = 0,
-                    newTime                  = new Date(),
                     count                    = 0,
                     monsterObjLink           = '',
                     visitMonsterLink         = '',
                     visitMonsterInstructions = '',
                     removeLink               = '',
                     removeLinkInstructions   = '',
-                    shortMonths              = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                     userIdLink               = '',
                     userIdLinkInstructions   = '',
                     id                       = '',
@@ -2275,8 +2272,8 @@
                     len1                     = 0,
                     len2                     = 0,
                     str                      = '',
-                    header                   = {text: '', color: '', id: '', title: '', width: ''},
-                    data                     = {text: '', color: '', id: '', title: ''},
+                    header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                    data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
                     linkRegExp               = new RegExp("'(http:.+)'"),
                     statsRegExp              = new RegExp("caap_.*Stats_"),
                     handler                  = function (e) {};
@@ -2642,6 +2639,7 @@
                         header = {
                             text  : '<span id="caap_army_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
                             color : 'blue',
+                            bgcolor : '',
                             id    : '',
                             title : '',
                             width : ''
@@ -2666,7 +2664,6 @@
                         default:
                             header.text = headers[pp];
                             header.width = '5%';
-                            header.color = '';
                         }
                         
                         html += caap.makeTh(header);
@@ -2675,12 +2672,24 @@
                     html += '</tr>';
                     for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
                         html += "<tr>";
-                        color = army.recordsSortable[i]['color'];
+                        if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays4", 28, hiddenVar) * 86400)) {
+                            color = gm.getItem("ArmyAgeDaysColor4", 'red', hiddenVar);
+                        } else if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays3", 21, hiddenVar) * 86400)) {
+                            color = gm.getItem("ArmyAgeDaysColor3", 'darkorange', hiddenVar);
+                        } else if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays2", 14, hiddenVar) * 86400)) {
+                            color = gm.getItem("ArmyAgeDaysColor2", 'gold', hiddenVar);
+                        } else if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays1", 7, hiddenVar) * 86400)) {
+                            color = gm.getItem("ArmyAgeDaysColor1", 'greenyellow', hiddenVar);
+                        } else {
+                            color = gm.getItem("ArmyAgeDaysColor0", 'green', hiddenVar);
+                        }
+                                
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
-                            if (values[pp] === "last" || values[pp] === "change") {
+                            if (values[pp] === "change") {
                                 html += caap.makeTd({
                                     text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
-                                    color : color,
+                                    bgcolor : color,
+                                    color : '',
                                     id    : '',
                                     title : ''
                                 });
@@ -2700,16 +2709,16 @@
                             } else {
                                 html += caap.makeTd({
                                     text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? army.recordsSortable[i][values[pp]] : '',
-                                    color : color,
+                                    color : '',
                                     id    : '',
                                     title : ''
                                 });
                             }
                         }
                         
-                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'] + " from your army!";
+                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].html_escape() + " from your army!";
                         data = {
-                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['user'] + '" mname="' + army.recordsSortable[i]['user'] +
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].html_escape() +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -2761,7 +2770,7 @@
 
                         resp = confirm("Are you sure you want to remove " + mname + " from your army?");
                         if (resp === true) {
-                            caap.ClickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid)
+                            caap.ClickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
                         }
                     };
 
@@ -2821,9 +2830,8 @@
                             } else if (/\S+Num/.test(values[pp])) {
                                 html += caap.makeTd({text: caap.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
                             } else if (/\S+Time/.test(values[pp])) {
-                                newTime = new Date(caap.ReconRecordArray[i][values[pp]]);
                                 data = {
-                                    text  : newTime.getDate() + '-' + shortMonths[newTime.getMonth()] + ' ' + newTime.getHours() + ':' + (newTime.getMinutes() < 10 ? '0' : '') + newTime.getMinutes(),
+                                    text  : $u.makeTime(caap.ReconRecordArray[i][values[pp]], "d M H:i"),
                                     color : 'black',
                                     id    : '',
                                     title : ''
