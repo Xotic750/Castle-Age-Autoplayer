@@ -1,6 +1,6 @@
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true, strict: true, maxlen: 512, onevar: true */
-/*global window,jQuery,GM_getValue,GM_setValue,GM_deleteValue,GM_listValues,localStorage,sessionStorage,rison */
-/*jslint maxlen: 280 */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true, strict: true, onevar: true, maxerr: 50, maxlen: 280, indent: 4 */
+/*global window,GM_getValue,GM_setValue,GM_deleteValue,GM_listValues,localStorage,sessionStorage,rison */
+/*jslint maxlen: 310 */
 
 ////////////////////////////////////////////////////////////////////
 //                          utility library
@@ -8,7 +8,28 @@
 /////////////////////////////////////////////////////////////////////
 (function () {
     "use strict";
-    
+
+    var log_version = '',
+        log_level = 1,
+        JSON2 = {},
+        RISON = {},
+        utility = {},
+        b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+        cx = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        escapable = /[\\\"\x00-\x1f\x7f-\x9f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
+        gap,
+        indent,
+        meta = {    // table of character substitutions
+            '\b': '\\b',
+            '\t': '\\t',
+            '\n': '\\n',
+            '\f': '\\f',
+            '\r': '\\r',
+            '"' : '\\"',
+            '\\': '\\\\'
+        },
+        rep;
+
     ///////////////////////////
     //       Prototypes
     ///////////////////////////
@@ -41,13 +62,151 @@
         return this.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     };
 
-    String.prototype['innerTrim'] = String.prototype.innerTrim = function () {
-        return this.replace(/\s+/g, ' ');
+    // outerTrim recognises more Unicode whitespaces than native trim implimentations
+    // see ECMA-262 5th edition about BOM as whitespace
+    // trim lookup table
+    String['whiteSpace'] = String.whiteSpace = {
+        0x0009 : 1, // Tab
+        0x000a : 1, // Line Feed
+        0x000b : 1, // Vertical Tab
+        0x000c : 1, // Form Feed
+        0x000d : 1, // Carriage Return
+        0x0020 : 1, // Space
+        0x0085 : 1, // Next line
+        0x00a0 : 1, // No-break space
+        0x1680 : 1, // Ogham space mark
+        0x180e : 1, // Mongolian vowel separator
+        0x2000 : 1, // En quad
+        0x2001 : 1, // Em quad
+        0x2002 : 1, // En space
+        0x2003 : 1, // Em space
+        0x2004 : 1, // Three-per-em space
+        0x2005 : 1, // Four-per-em space
+        0x2006 : 1, // Six-per-em space
+        0x2007 : 1, // Figure space
+        0x2008 : 1, // Punctuation space
+        0x2009 : 1, // Thin space
+        0x200a : 1, // Hair space
+        0x200b : 1, // Zero width space
+        0x2028 : 1, // Line separator
+        0x2029 : 1, // Paragraph separator
+        0x202f : 1, // Narrow no-break space
+        0x205f : 1, // Medium mathematical space
+        0x3000 : 1, // Ideographic space
+        0xfeff : 1  // Byte Order Mark
     };
-    
-    String.prototype['trim'] = String.prototype.trim = function () {
-        return this.replace(/^\s+|\s+$/g, '');
+
+    String['whiteSpaceRX'] = String.whiteSpaceRX = "\\u0009\\u000a\\u000b\\u000c\\u000d\\u0020\\u0085\\u00a0\\u1680\\u180e\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u200b\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff";
+
+    // Emulates a native trim plus options.
+    // arg.rx is set to true, then a RegExp is used
+    // arg.end takes 'both' (default), left', 'right'
+    // arg.list takes an array of character code strings to trim otherwise the default is used
+    // e.g arg.list = ["0009", "000a", "000b", "000c"]
+    String.prototype['outerTrim'] = String.prototype.outerTrim = function (arg) {
+        arg = arg ? arg : {};
+        var s = '',
+            b = 0,
+            c = this.length,
+            e = c - 1,
+            l,
+            r,
+            w,
+            i = 0;
+
+        if (e > -1) {
+            if (arg['rx']) {
+                if (arg['list']) {
+                    w = '';
+                    for (i = arg['list'].length - 1; i >= 0; i -= 1) {
+                        w += "\\u" + arg['list'][i];
+                    }
+                } else {
+                    w = String.whiteSpaceRX;
+                }
+
+                l = new RegExp("^[" + w + "]*");
+                r = new RegExp("[" + w + "]*$");
+                switch (arg['end']) {
+                case 'left':
+                    s = this.replace(l, '');
+                    break;
+                case 'right':
+                    s = this.replace(r, '');
+                    break;
+                default:
+                    s = this.replace(l, '').replace(r, '');
+                }
+            } else {
+                if (arg['list']) {
+                    w = {};
+                    for (i = arg['list'].length - 1; i >= 0; i -= 1) {
+                        w[parseInt(arg['list'][i], 16)] = 1;
+                    }
+                } else {
+                    w = String.whiteSpace;
+                }
+
+                // trim end
+                while (w[this.charCodeAt(e)]) {
+                    e -= 1;
+                }
+
+                // trim start
+                e += 1;
+                if (e) {
+                    while (w[this.charCodeAt(b)]) {
+                        b += 1;
+                    }
+                }
+
+                switch (arg['end']) {
+                case 'left':
+                    s = this.substring(b, c);
+                    break;
+                case 'right':
+                    s = this.substring(0, e);
+                    break;
+                default:
+                    s = this.substring(b, e);
+                }
+            }
+        }
+
+        return s;
     };
+
+    // No native trimRight then use outerTrim
+    if (!String.prototype['trimLeft']) {
+        String.prototype['trimLeft'] = String.prototype.trimLeft = function (arg) {
+            arg = arg ? arg : {};
+            arg['end'] = 'left';
+            return this.outerTrim(arg);
+        };
+    }
+
+    // No native trimRight then use outerTrim
+    if (!String.prototype['trimRight']) {
+        String.prototype['trimRight'] = String.prototype.trimRight = function (arg) {
+            arg = arg ? arg : {};
+            arg['end'] = 'right';
+            return this.outerTrim(arg);
+        };
+    }
+
+    // Trims all inner whitespace to just a single space
+    String.prototype['innerTrim'] = String.prototype.innerTrim = function (arg) {
+        arg = arg ? arg : {};
+        arg['end'] = 'both';
+        delete arg['list'];
+        var i = this.outerTrim(arg);
+        return this.replace(i, i.replace(new RegExp("[" + String.whiteSpaceRX + "]+", "g"), ' '));
+    };
+
+    // No native trim then use outerTrim
+    if (!String.prototype['trim']) {
+        String.prototype['trim'] = String.prototype.outerTrim;
+    }
 
     String.prototype['parseFloat'] = String.prototype.parseFloat = function (x) {
         return x >= 0 ? parseFloat(parseFloat(this).toFixed(x >= 0 && x <= 20 ? x : 20)) : parseFloat(this);
@@ -56,7 +215,7 @@
     String.prototype['parseInt'] = String.prototype.parseInt = function (x) {
         return parseInt(this, (x >= 2 && x <= 36) ? x : 10);
     };
-    
+
     String.prototype['numberOnly'] = String.prototype.numberOnly = function () {
         return parseFloat(this.replace(new RegExp("[^\\d\\.]", "g"), ''));
     };
@@ -189,7 +348,7 @@
                 }
             }
         }
-        
+
         return !rx && l === 1 ? a[0] : a;
     };
 
@@ -249,7 +408,6 @@
             plain = '',
             e     = [],
             pad   = '',
-            b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
             nChar = String.fromCharCode(0);
 
         utf8encode = (typeof utf8encode === 'undefined') ? false : utf8encode;
@@ -285,7 +443,6 @@
             d     = [],
             plain = '',
             coded = '',
-            b64   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
             c     = 0;
 
         utf8decode = (typeof utf8decode === 'undefined') ? false : utf8decode;
@@ -815,16 +972,16 @@
             d = n.indexOf('.'),
             e = '',
             r = /(\d+)(\d{3})/;
-            
+
         if (d !== -1) {
             e = '.' + n.substring(d + 1, n.length);
             n = n.substring(0, d);
         }
-        
+
         while (r.test(n)) {
             n = n.replace(r, '$1' + ',' + '$2');
         }
-        
+
         return n + e;
     };
 
@@ -832,22 +989,7 @@
         return this.indexOf(o) >= 0 ? true : false;
     };
 
-    Array.prototype['hasIndexOf'] = Array.prototype.hasIndexOf = function (o) {
-        return this.indexOf(o) >= 0 ? true : false;
-    };
-
-    Array.prototype['pushCopy'] = Array.prototype.pushCopy = function (o) {
-        switch (jQuery.type(o)) {
-        case "object":
-            this.push(jQuery.extend(true, {}, o));
-            break;
-        case "array":
-            this.push(o.slice());
-            break;
-        default:
-            this.push(o);
-        }
-    };
+    Array.prototype['hasIndexOf'] = Array.prototype.hasIndexOf = String.prototype['hasIndexOf'];
 
     // Return an array with no duplicates
     Array.prototype['unique'] = Array.prototype.unique = function () {
@@ -1055,40 +1197,1528 @@
 
         return s;
     };
+
+    // JSON.hpack
+    if (!Array.prototype['indexOf']) {
+        Array.prototype['indexOf'] = Array.prototype.indexOf = function (v) {
+            var i = 0,
+                l = this.length - 1;
+
+            for (i = 0; i < l; i += 1) {
+                if (this[i] === v) {
+                    return i;
+                }
+            }
+
+            return -1;
+        };
+    }
+
+    ///////////////////////////
+    //       JSON2
+    ///////////////////////////
+
+    /*
+    Modification is based on
+    http://www.JSON.org/json2.js
+    2010-03-20
+    Public Domain.
+
+    Creates a global JSON2 object containing two methods: stringify and parse.
+    Copied to JSON object if it does not exist natively in the browser.
+
+        JSON2.stringify(value, replacer, space)
+            value       any JavaScript value, usually an object or array.
+
+            replacer    an optional parameter that determines how object
+                        values are stringified for objects. It can be a
+                        function or an array of strings.
+
+            space       an optional parameter that specifies the indentation
+                        of nested structures. If it is omitted, the text will
+                        be packed without extra whitespace. If it is a number,
+                        it will specify the number of spaces to indent at each
+                        level. If it is a string (such as '\t' or '&nbsp;'),
+                        it contains the characters used to indent at each level.
+
+            This method produces a JSON text from a JavaScript value.
+
+            When an object value is found, if the object contains a toJSON
+            method, its toJSON method will be called and the result will be
+            stringified. A toJSON method does not serialize: it returns the
+            value represented by the name/value pair that should be serialized,
+            or undefined if nothing should be serialized. The toJSON method
+            will be passed the key associated with the value, and this will be
+            bound to the value
+
+            For example, this would serialize Dates as ISO strings.
+
+                Date.prototype.toJSON2 = function (key) {
+                    function f(n) {
+                        // Format integers to have at least two digits.
+                        return n < 10 ? '0' + n : n;
+                    }
+
+                    function g(n) {
+                        // Format integers to have at least three digits.
+                        return n < 100 ? '0' + n : n;
+                    }
+
+                    return isFinite(this.valueOf()) ?
+                        this.getUTCFullYear()        + '-' +
+                        f(this.getUTCMonth() + 1)    + '-' +
+                        f(this.getUTCDate())         + 'T' +
+                        f(this.getUTCHours())        + ':' +
+                        f(this.getUTCMinutes())      + ':' +
+                        f(this.getUTCSeconds())      + '.' +
+                        g(this.getUTCMilliseconds()) + 'Z' : null;
+                };
+
+            You can provide an optional replacer method. It will be passed the
+            key and value of each member, with this bound to the containing
+            object. The value that is returned from your method will be
+            serialized. If your method returns undefined, then the member will
+            be excluded from the serialization.
+
+            If the replacer parameter is an array of strings, then it will be
+            used to select the members to be serialized. It filters the results
+            such that only members with keys listed in the replacer array are
+            stringified.
+
+            Values that do not have JSON representations, such as undefined or
+            functions, will not be serialized. Such values in objects will be
+            dropped; in arrays they will be replaced with null. You can use
+            a replacer function to replace those with JSON values.
+            JSON.stringify(undefined) returns undefined.
+
+            The optional space parameter produces a stringification of the
+            value that is filled with line breaks and indentation to make it
+            easier to read.
+
+            If the space parameter is a non-empty string, then that string will
+            be used for indentation. If the space parameter is a number, then
+            the indentation will be that many spaces.
+
+            Example:
+
+            text = JSON2.stringify(['e', {pluribus: 'unum'}]);
+            // text is '["e",{"pluribus":"unum"}]'
+
+
+            text = JSON2.stringify(['e', {pluribus: 'unum'}], null, '\t');
+            // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+            text = JSON2.stringify([new Date()], function (key, value) {
+                return this[key] instanceof Date ?
+                    'Date(' + this[key] + ')' : value;
+            });
+            // text is '["Date(---current time---)"]'
+
+
+        JSON2.parse(text, reviver)
+            This method parses a JSON text to produce an object or array.
+            It can throw a SyntaxError exception.
+
+            The optional reviver parameter is a function that can filter and
+            transform the results. It receives each of the keys and values,
+            and its return value is used instead of the original value.
+            If it returns what it received, then the structure is not modified.
+            If it returns undefined then the member is deleted.
+
+            Example:
+
+            // Parse the text. Values that look like ISO date strings will
+            // be converted to Date objects.
+
+            myData = JSON2.parse(text, function (key, value) {
+                var a;
+                if (typeof value === 'string') {
+                    a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                    if (a) {
+                        return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4], +a[5], +a[6]));
+                    }
+                }
+                return value;
+            });
+
+            myData = JSON2.parse('["Date(09/09/2001)"]', function (key, value) {
+                var d;
+                if (typeof value === 'string' && value.slice(0, 5) === 'Date(' && value.slice(-1) === ')') {
+                    d = new Date(value.slice(5, -1));
+                    if (d) {
+                        return d;
+                    }
+                }
+                return value;
+            });
+    */
+
+    Date.prototype['toJSON2'] = Date.prototype.toJSON2 = function (key) {
+        function f(n) {
+            // Format integers to have at least two digits.
+            return n < 10 ? '0' + n : n;
+        }
+
+        function g(n) {
+            // Format integers to have at least three digits.
+            return n < 100 ? '0' + n : n;
+        }
+
+        return isFinite(this.valueOf()) ?
+            this.getUTCFullYear()        + '-' +
+            f(this.getUTCMonth() + 1)    + '-' +
+            f(this.getUTCDate())         + 'T' +
+            f(this.getUTCHours())        + ':' +
+            f(this.getUTCMinutes())      + ':' +
+            f(this.getUTCSeconds())      + '.' +
+            g(this.getUTCMilliseconds()) + 'Z' : null;
+    };
+
+    String.prototype['toJSON2'] = String.prototype.toJSON2 = Number.prototype['toJSON2'] = Number.prototype.toJSON2 = Boolean.prototype['toJSON2'] = Boolean.prototype.toJSON2 = function (key) {
+        return this.valueOf();
+    };
+
+    if (typeof Date.prototype['toJSON'] !== 'function') {
+        Date.prototype['toJSON'] = Date.prototype.toJSON = Date.prototype['toJSON2'];
+        String.prototype['toJSON'] = String.prototype.toJSON = String.prototype['toJSON2'];
+        Number.prototype['toJSON'] = Number.prototype.toJSON = Number.prototype['toJSON2'];
+        Boolean.prototype['toJSON'] = Boolean.prototype.toJSON = Boolean.prototype['toJSON2'];
+    }
+    /*jslint sub: false */
+
+    // If the string contains no control characters, no quote characters, and no
+    // backslash characters, then we can safely slap some quotes around it.
+    // Otherwise we must also replace the offending characters with safe escape
+    // sequences.
+    function quote(string) {
+        escapable.lastIndex = 0;
+        return escapable.test(string) ?
+            '"' + string.replace(escapable, function (a) {
+                var c = meta[a];
+                return typeof c === 'string' ? c : '\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+            }) + '"' :
+            '"' + string + '"';
+    }
+
+    // Produce a string from holder[key].
+    function str(key, holder) {
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+        // If the value has a toJSON method, call it to obtain a replacement value.
+        if (value && typeof value === 'object' && typeof value.toJSON2 === 'function') {
+            value = value.toJSON2(key);
+        }
+
+        // If we were called with a replacer function, then call the replacer to
+        // obtain a replacement value.
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+        // What happens next depends on the value's type.
+        switch (typeof value) {
+        case 'string':
+            return quote(value);
+        case 'number':
+            // JSON numbers must be finite. Encode non-finite numbers as null.
+            return isFinite(value) ? String(value) : 'null';
+        case 'boolean':
+        case 'null':
+            // If the value is a boolean or null, convert it to a string. Note:
+            // typeof null does not produce 'null'. The case is included here in
+            // the remote chance that this gets fixed someday.
+            return String(value);
+        case 'object':
+            // If the type is 'object', we might be dealing with an object or an array or null.
+            // Due to a specification blunder in ECMAScript, typeof null is 'object',
+            // so watch out for that case.
+            if (!value) {
+                return 'null';
+            }
+
+            // Make an array to hold the partial results of stringifying this object value.
+            gap += indent;
+            partial = [];
+            // Is the value an array?
+            if (Object.prototype.toString.apply(value) === '[object Array]') {
+                // The value is an array. Stringify every element. Use null as a placeholder
+                // for non-JSON values.
+                length = value.length;
+                for (i = 0; i < length; i += 1) {
+                    partial[i] = str(i, value) || 'null';
+                }
+
+                // Join all of the elements together, separated with commas, and wrap them in brackets.
+                v = partial.length === 0 ? '[]' : gap ? '[\n' + gap + partial.join(',\n' + gap) + '\n' + mind + ']' : '[' + partial.join(',') + ']';
+                gap = mind;
+                return v;
+            }
+
+            // If the replacer is an array, use it to select the members to be stringified.
+            if (rep && typeof rep === 'object') {
+                length = rep.length;
+                for (i = 0; i < length; i += 1) {
+                    k = rep[i];
+                    if (typeof k === 'string') {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            // Otherwise, iterate through all of the keys in the object.
+            } else {
+                for (k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        v = str(k, value);
+                        if (v) {
+                            partial.push(quote(k) + (gap ? ': ' : ':') + v);
+                        }
+                    }
+                }
+            }
+
+            // Join all of the member texts together, separated with commas, and wrap them in braces.
+            v = partial.length === 0 ? '{}' : gap ? '{\n' + gap + partial.join(',\n' + gap) + '\n' + mind + '}' : '{' + partial.join(',') + '}';
+            gap = mind;
+            return v;
+        }
+
+        return undefined;
+    }
+
+    JSON2 = {
+        // The stringify method takes a value and an optional replacer, and an optional
+        // space parameter, and returns a JSON text. The replacer can be a function
+        // that can replace values, or an array of strings that will select the keys.
+        // A default replacer method can be provided. Use of the space parameter can
+        // produce text that is more easily readable.
+        stringify: function (value, replacer, space) {
+            var i;
+            gap = '';
+            indent = '';
+
+            // If the space parameter is a number, make an indent string containing that many spaces.
+            if (typeof space === 'number') {
+                for (i = 0; i < space; i += 1) {
+                    indent += ' ';
+                }
+            } else if (typeof space === 'string') {
+                indent = space;
+            }
+
+            // If there is a replacer, it must be a function or an array. Otherwise, throw an error.
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' && (typeof replacer !== 'object' || typeof replacer.length !== 'number')) {
+                throw new Error('JSON2.stringify');
+            }
+
+            // Make a fake root object containing our value under the key of ''. Return the result of stringifying the value.
+            return str('', {'': value});
+        },
+
+        // The parse method takes a text and an optional reviver function, and returns
+        // a JavaScript value if the text is a valid JSON text.
+        parse: function (text, reviver) {
+            var j,
+                rx1 = new RegExp("^[\\],:{}\\s]*$"),
+                rx2 = new RegExp("\\\\(?:[\"\\\\\\/bfnrt]|u[0-9a-fA-F]{4})", "g"),
+                rx3 = new RegExp("\"[^\"\\\\\\n\\r]*\"|true|false|null|-?\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?", "g"),
+                rx4 = new RegExp("(?:^|:|,)(?:\\s*\\[)+", "g");
+
+            // The walk method is used to recursively walk the resulting structure so
+            // that modifications can be made.
+            function walk(holder, key) {
+                var k, v, value = holder[key];
+                if (value && typeof value === 'object') {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = walk(value, k);
+                            if (v !== undefined) {
+                                value[k] = v;
+                            } else {
+                                delete value[k];
+                            }
+                        }
+                    }
+                }
+                return reviver.call(holder, key, value);
+            }
+
+            // Parsing happens in four stages. In the first stage, we replace certain
+            // Unicode characters with escape sequences. JavaScript handles many characters
+            // incorrectly, either silently deleting them, or treating them as line endings.
+            text = String(text);
+            cx.lastIndex = 0;
+            if (cx.test(text)) {
+                text = text.replace(cx, function (a) {
+                    return '", "\\u' + ('0000' + a.charCodeAt(0).toString(16)).slice(-4);
+                });
+            }
+
+            // In the second stage, we run the text against regular expressions that look
+            // for non-JSON patterns. We are especially concerned with '()' and 'new'
+            // because they can cause invocation, and '=' because it can cause mutation.
+            // But just to be safe, we want to reject all unexpected forms.
+
+            // We split the second stage into 4 regexp operations in order to work around
+            // crippling inefficiencies in IE's and Safari's regexp engines. First we
+            // replace the JSON backslash pairs with '@' (a non-JSON character). Second, we
+            // replace all simple value tokens with ']' characters. Third, we delete all
+            // open brackets that follow a colon or comma or that begin the text. Finally,
+            // we look to see that the remaining characters are only whitespace or ']' or
+            // ',' or ':' or '{' or '}'. If that is so, then the text is safe for eval.
+            if (rx1.test(text.replace(rx2, '@').replace(rx3, ']').replace(rx4, ''))) {
+                // In the third stage we use the eval function to compile the text into a
+                // JavaScript structure. The '{' operator is subject to a syntactic ambiguity
+                // in JavaScript: it can begin a block or an object literal. We wrap the text
+                // in parens to eliminate the ambiguity.
+                /*jslint evil: true */
+                j = eval('(' + text + ')');
+                /*jslint evil: false */
+                // In the optional fourth stage, we recursively walk the new structure, passing
+                // each name/value pair to a reviver function for possible transformation.
+                return typeof reviver === 'function' ? walk({'': j}, '') : j;
+            }
+
+            // If the text is not JSON parseable, then a SyntaxError is thrown.
+            throw new SyntaxError('JSON2.parse');
+        }
+    };
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    JSON2['stringify'] = JSON2.stringify;
+    JSON2['parse'] = JSON2.parse;
+
+    // Create a JSON2 object only if one does not already exist.
+    if (!window['JSON2']) {
+        window['JSON2'] = window.JSON2 = JSON2;
+    }
+
+    // Create a JSON object only if one does not already exist.
+    if (!window['JSON']) {
+        window['JSON'] = window.JSON = JSON2;
+    }
+    /*jslint sub: false */
+
+    ///////////////////////////
+    //       JSON.hpack
+    ///////////////////////////
+
+    /** json.hpack
+     * @description JSON Homogeneous Collection Packer
+     * @version     1.0.1
+     * @author      Andrea Giammarchi
+     * @license     Mit Style License
+     * @project     http://github.com/WebReflection/json.hpack/tree/master
+     * @blog        http://webreflection.blogspot.com/
+     */
+
+    // @author  Andrea Giammarchi
+    (function (cache) {
+        /** JSON.hpack(homogeneousCollection:Array[, compression:Number]):Array
+         * @param   Array       mono dimensional homogeneous collection of objects to pack
+         * @param   [Number]    optional compression level from 0 to 4 - default 0
+         * @return  Array       optimized collection
+         */
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        JSON['hpack'] = JSON.hpack = function (collection, compression) {
+        /*jslint sub: false */
+            var i       = 0,
+                indexOf = Array.prototype.indexOf,
+                header  = [],
+                index   = 0,
+                k       = 0,
+                length  = 0,
+                len     = 0,
+                row     = [],
+                j       = 0,
+                l       = 0,
+                value,
+                item,
+                key,
+                first,
+                result;
+
+            if (3 < compression) {    // try evey compression level and returns the best option
+                i = JSON.hbest(collection);
+                result = cache[i];
+                cache = [];
+            } else {                // compress via specified level (default 0)
+                result = [header];
+                first = collection[0];
+                // create list of property names
+                for (key in first) {
+                    if (first.hasOwnProperty(key)) {
+                        header[index] = key;
+                        index += 1;
+                    }
+                }
+
+                len = index;
+                index = 0;
+                // replace objects using arrays respecting header indexes order
+                for (i = 0, length = collection.length; i < length; i += 1) {
+                    item = collection[i];
+                    row = [];
+                    for (j = 0; j < len; j += 1) {
+                        row[j] = item[header[j]];
+                    }
+
+                    index += 1;
+                    result[index] = row;
+                }
+
+                index += 1;
+                // compression 1, 2 or 3
+                if (0 < compression) {
+                    // create a fixed enum type for each property (except numbers)
+                    row = result[1];
+                    for (j = 0; j < len; j += 1) {
+                        if (typeof row[j] !== "number") {
+                            first = [];
+                            header[j] = [header[j], first];
+                            first.indexOf = indexOf;
+                            // replace property values with enum index (create entry in enum list if not present)
+                            for (i = 1; i < index; i += 1) {
+                                value = result[i][j];
+                                l = first.indexOf(value);
+                                result[i][j] = l < 0 ? first.push(value) - 1 : l;
+                            }
+                        }
+                    }
+                }
+
+                // compression 3 only
+                if (2 < compression) {
+                    // Second Attemp:
+                    // This compression is quite expensive.
+                    // It calculates the length of all indexes plus the lenght
+                    // of the enum against the length of values rather than indexes and without enum for each column
+                    // In this way the manipulation will be hibryd but hopefully worthy in certain situation.
+                    // not truly suitable for old client CPUs cause it could cost too much
+                    for (j = 0; j < len; j += 1) {
+                        if (header[j] instanceof Array) {
+                            row = header[j][1];
+                            value = [];
+                            first = [];
+                            k = 0;
+                            for (i = 1; i < index; i += 1) {
+                                first[k] = result[i][j];
+                                value[k] = row[first[k]];
+                                k += 1;
+                            }
+
+                            if (JSON.stringify(value).length < JSON.stringify(first.concat(row)).length) {
+                                k = 0;
+                                for (i = 1; i < index; i += 1) {
+                                    result[i][j] = value[k];
+                                    k += 1;
+                                }
+
+                                header[j] = header[j][0];
+                            }
+                        }
+                    }
+                } else if (1 < compression) { // compression 2 only
+                    // compare the lenght of the entire collection with the length of the enum, if present
+                    length -= Math.floor(length / 2);
+                    for (j = 0; j < len; j += 1) {
+                        if (header[j] instanceof Array) {
+                            // if the collection length - (collection lenght / 2) is lower than enum length
+                            // maybe it does not make sense to create extra characters in the string for each
+                            // index representation
+                            first = header[j][1];
+                            if (length < first.length) {
+                                for (i = 1; i < index; i += 1) {
+                                    value = result[i][j];
+                                    result[i][j] = first[value];
+                                }
+
+                                header[j] = header[j][0];
+                            }
+                        }
+                    }
+                }
+
+                // if compression is at least greater than 0
+                if (0 < compression) {
+                    // flat the header Array to remove useless brackets
+                    for (j = 0; j < len; j += 1) {
+                        if (header[j] instanceof Array) {
+                            header.splice(j, 1, header[j][0], header[j][1]);
+                            len += 1;
+                            j += 1;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        };
+
+        /** JSON.hunpack(packedCollection:Array):Array
+         * @param   Array       optimized collection to unpack
+         * @return  Array       original  mono dimensional homogeneous collection of objects
+         */
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        JSON['hunpack'] = JSON.hunpack = function (collection) {
+        /*jslint sub: false */
+            var result = [],
+                keys   = [],
+                header = collection[0],
+                len    = header.length,
+                length = collection.length,
+                index  = -1,
+                k      = -1,
+                i      = 0,
+                l      = 0,
+                j,
+                row,
+                anonymous;
+
+            // compatible with every hpack compressed array
+            // simply swaps arrays with key/values objects
+            for (i = 0; i < len; i += 1) {
+                // list of keys
+                k += 1;
+                keys[k] = header[i];
+                // if adjacent value is an array (enum)
+                if (typeof header[i + 1] === "object") {
+                    i += 1;
+                    // replace indexes in the column
+                    // using enum as collection
+                    for (j = 1; j < length; j += 1) {
+                        row = collection[j];
+                        row[l] = header[i][row[l]];
+                    }
+                }
+
+                l += 1;
+            }
+
+            for (i = 0, len = keys.length; i < len; i += 1) {
+                // replace keys with assignment operation ( test becomes o["test"]=a[index]; )
+                // make properties safe replacing " char
+                keys[i] = 'o["'.concat(keys[i].replace('"', "\\x22"), '"]=a[', i, '];');
+            }
+
+            // one shot anonymous function with "precompiled replacements"
+            /*jslint evil: true */
+            anonymous = new Function("o,a", keys.join("") + "return o;");
+            /*jslint evil: false */
+            for (j = 1; j < length; j += 1) {
+                // replace each item with runtime key/value pairs object
+                index += 1;
+                result[index] = anonymous({}, collection[j]);
+            }
+
+            return result;
+        };
+
+        /** JSON.hclone(packedCollection:Array):Array
+         * @param   Array       optimized collection to clone
+         * @return  Array       a clone of the original collection
+         */
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        JSON['hclone'] = JSON.hclone = function (collection) {
+        /*jslint sub: false */
+            var clone  = [],
+                i      = 0,
+                length = collection.length;
+
+            // avoid array modifications
+            // it could be useful but not that frequent in "real life cases"
+            for (i = 0; i < length; i += 1) {
+                clone[i] = collection[i].slice(0);
+            }
+
+            return clone;
+        };
+
+        /** JSON.hbest(packedCollection:Array):Number
+         * @param   Array       optimized collection to clone
+         * @return  Number      best compression option
+         */
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        JSON['hbest'] = JSON.hbest = function (collection) {
+        /*jslint sub: false */
+            var i      = 0,
+                j      = 0,
+                len    = 0,
+                length = 0;
+
+            // for each compression level [0-4] ...
+            for (i = 0; i < 4; i += 1) {
+                // cache result
+                cache[i] = JSON.hpack(collection, i);
+                // retrieve the JSON length
+                len = JSON.stringify(cache[i]).length;
+                if (length === 0) {
+                    length = len;
+                } else if (len < length) { // choose which one is more convenient
+                    length = len;
+                    j = i;
+                }
+            }
+
+            // return most convenient convertion
+            // please note that with small amount of data
+            // native JSON convertion could be smaller
+            // [{"k":0}] ==> [["k"],[0]] (9 chars against 11)
+            // above example is not real life example and as soon
+            // as the list will have more than an object
+            // hpack will start to make the difference:
+            // [{"k":0},{"k":0}] ==> [["k"],[0],[0]] (17 chars against 15)
+            return j;
+        };
+
+    }([]));
+
+    ///////////////////////////
+    //       RISON
+    ///////////////////////////
+
+    /*
+    Modification is based on
+    http://www.RISON.org/RISON.js
+    2010-03-20
+    Public Domain.
+
+    Creates a global RISON object containing two methods: stringify and parse.
+    Copied to RISON object if it does not exist natively in the browser.
+
+        RISON.stringify(value, replacer, space)
+            value       any JavaScript value, usually an object or array.
+
+            replacer    an optional parameter that determines how object
+                        values are stringified for objects. It can be a
+                        function or an array of strings.
+
+            space       an optional parameter that specifies the indentation
+                        of nested structures. If it is omitted, the text will
+                        be packed without extra whitespace. If it is a number,
+                        it will specify the number of spaces to indent at each
+                        level. If it is a string (such as '\t' or '&nbsp;'),
+                        it contains the characters used to indent at each level.
+
+            This method produces a RISON text from a JavaScript value.
+
+            When an object value is found, if the object contains a toRISON
+            method, its toRISON method will be called and the result will be
+            stringified. A toRISON method does not serialize: it returns the
+            value represented by the name/value pair that should be serialized,
+            or undefined if nothing should be serialized. The toRISON method
+            will be passed the key associated with the value, and this will be
+            bound to the value
+
+            For example, this would serialize Dates as ISO strings.
+
+                Date.prototype.toRISON = function (key) {
+                    function f(n) {
+                        // Format integers to have at least two digits.
+                        return n < 10 ? '0' + n : n;
+                    }
+
+                    function g(n) {
+                        // Format integers to have at least three digits.
+                        return n < 100 ? '0' + n : n;
+                    }
+
+                    return isFinite(this.valueOf()) ?
+                        this.getUTCFullYear()        + '-' +
+                        f(this.getUTCMonth() + 1)    + '-' +
+                        f(this.getUTCDate())         + 'T' +
+                        f(this.getUTCHours())        + ':' +
+                        f(this.getUTCMinutes())      + ':' +
+                        f(this.getUTCSeconds())      + '.' +
+                        g(this.getUTCMilliseconds()) + 'Z' : null;
+                };
+
+            You can provide an optional replacer method. It will be passed the
+            key and value of each member, with this bound to the containing
+            object. The value that is returned from your method will be
+            serialized. If your method returns undefined, then the member will
+            be excluded from the serialization.
+
+            If the replacer parameter is an array of strings, then it will be
+            used to select the members to be serialized. It filters the results
+            such that only members with keys listed in the replacer array are
+            stringified.
+
+            Values that do not have RISON representations, such as undefined or
+            functions, will not be serialized. Such values in objects will be
+            dropped; in arrays they will be replaced with null. You can use
+            a replacer function to replace those with RISON values.
+            RISON.stringify(undefined) returns undefined.
+
+            The optional space parameter produces a stringification of the
+            value that is filled with line breaks and indentation to make it
+            easier to read.
+
+            If the space parameter is a non-empty string, then that string will
+            be used for indentation. If the space parameter is a number, then
+            the indentation will be that many spaces.
+
+            Example:
+
+            text = RISON.stringify(['e', {pluribus: 'unum'}]);
+            // text is '["e",{"pluribus":"unum"}]'
+
+
+            text = RISON.stringify(['e', {pluribus: 'unum'}], null, '\t');
+            // text is '[\n\t"e",\n\t{\n\t\t"pluribus": "unum"\n\t}\n]'
+
+            text = RISON.stringify([new Date()], function (key, value) {
+                return this[key] instanceof Date ?
+                    'Date(' + this[key] + ')' : value;
+            });
+            // text is '["Date(---current time---)"]'
+
+
+        RISON.parse(text, reviver)
+            This method parses a RISON text to produce an object or array.
+            It can throw a SyntaxError exception.
+
+            The optional reviver parameter is a function that can filter and
+            transform the results. It receives each of the keys and values,
+            and its return value is used instead of the original value.
+            If it returns what it received, then the structure is not modified.
+            If it returns undefined then the member is deleted.
+
+            Example:
+
+            // Parse the text. Values that look like ISO date strings will
+            // be converted to Date objects.
+
+            myData = RISON.parse(text, function (key, value) {
+                var a;
+                if (typeof value === 'string') {
+                    a = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)Z$/.exec(value);
+                    if (a) {
+                        return new Date(Date.UTC(+a[1], +a[2] - 1, +a[3], +a[4], +a[5], +a[6]));
+                    }
+                }
+                return value;
+            });
+
+            myData = RISON.parse('["Date(09/09/2001)"]', function (key, value) {
+                var d;
+                if (typeof value === 'string' && value.slice(0, 5) === 'Date(' && value.slice(-1) === ')') {
+                    d = new Date(value.slice(5, -1));
+                    if (d) {
+                        return d;
+                    }
+                }
+                return value;
+            });
+    */
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    Date.prototype['toRISON'] = Date.prototype.toRISON = Date.prototype['toJSON'];
+    String.prototype['toRISON'] = String.prototype.toRISON = Number.prototype['toRISON'] = Number.prototype.toRISON = Boolean.prototype['toRISON'] = Boolean.prototype.toRISON = String.prototype['toJSON'];
+    /*jslint sub: false */
+
+    // If the string contains no control characters, no quote characters, and no
+    // backslash characters, then we can safely slap some quotes around it.
+    // Otherwise we must also replace the offending characters with safe escape
+    // sequences.
+    function quoteRison(string) {
+        if (string.length === 0) {
+            return "''";
+        }
+
+        // Check if it's a valid ident
+        if (RISON.id_ok.test(string)) {
+            return string;
+        }
+
+        // Escape special chars
+        string = string.replace(/(['!])/mg, '!$1');
+        return "'" + string + "'";
+    }
+
+    // Produce a string from holder[key].
+    function encodeRison(key, holder) {
+        var i,          // The loop counter.
+            k,          // The member key.
+            v,          // The member value.
+            length,
+            mind = gap,
+            partial,
+            value = holder[key];
+
+        // If the value has a toRISON method, call it to obtain a replacement value.
+        if (value && typeof value === 'object' && typeof value.toRISON === 'function') {
+            value = value.toRISON(key);
+        }
+
+        // If we were called with a replacer function, then call the replacer to
+        // obtain a replacement value.
+        if (typeof rep === 'function') {
+            value = rep.call(holder, key, value);
+        }
+
+        // What happens next depends on the value's type.
+        switch (typeof value) {
+        case 'string':
+            return quoteRison(value);
+        case 'number':
+            // RISON numbers must be finite. Encode non-finite numbers as null.
+            // strip '+' out of exponent, '-' is ok though
+            return isFinite(value) ? String(value).replace('+', '') : '!n';
+        case 'boolean':
+            return value ? '!t' : '!f';
+        case 'null':
+            return '!n';
+        case 'object':
+            // If the type is 'object', we might be dealing with an object or an array or null.
+            // Due to a specification blunder in ECMAScript, typeof null is 'object',
+            // so watch out for that case.
+            if (!value) {
+                return '!n';
+            }
+
+            // Make an array to hold the partial results of stringifying this object value.
+            //gap += indent;
+            partial = [];
+            // Is the value an array?
+            if (Object.prototype.toString.apply(value) === '[object Array]') {
+                // The value is an array. Stringify every element. Use null as a placeholder
+                // for non-RISON values.
+                length = value.length;
+                for (i = 0; i < length; i += 1) {
+                    partial[i] = encodeRison(i, value) || '!n';
+                }
+
+                // Join all of the elements together, separated with commas, and wrap them in brackets.
+                v = partial.length === 0 ? '!()' : '!(' + partial.join(',') + ')';
+                //gap = mind;
+                return v;
+            }
+
+            // If the replacer is an array, use it to select the members to be stringified.
+            if (rep && typeof rep === 'object') {
+                length = rep.length;
+                for (i = 0; i < length; i += 1) {
+                    k = rep[i];
+                    if (typeof k === 'string') {
+                        v = encodeRison(k, value);
+                        if (v) {
+                            partial.push(quoteRison(k) + ':' + v);
+                        }
+                    }
+                }
+            // Otherwise, iterate through all of the keys in the object.
+            } else {
+                for (k in value) {
+                    if (Object.hasOwnProperty.call(value, k)) {
+                        v = encodeRison(k, value);
+                        if (v) {
+                            partial.push(quoteRison(k) + ':' + v);
+                        }
+                    }
+                }
+            }
+
+            // The RISON spec recommends to sort the dictionaries by its keys to improve caching
+            partial.sort(function (a, b) {
+                a = a.split(':')[0];
+                b = b.split(':')[0];
+                return (a > b) - (a < b);
+            });
+
+            // Join all of the member texts together, separated with commas, and wrap them in braces.
+            v = partial.length === 0 ? '()' : '(' + partial.join(',') + ')';
+            //gap = mind;
+            return v;
+        }
+
+        return undefined;
+    }
+
+    RISON = {
+        // The stringify method takes a value and an optional replacer, and returns a RISON text.
+        // The replacer can be a function that can replace values, or an array of strings that will select the keys.
+        // A default replacer method can be provided.
+        stringify: function (value, replacer) {
+            // If there is a replacer, it must be a function or an array. Otherwise, throw an error.
+            rep = replacer;
+            if (replacer && typeof replacer !== 'function' && (typeof replacer !== 'object' || typeof replacer.length !== 'number')) {
+                throw new Error('RISON.stringify');
+            }
+
+            // Make a fake root object containing our value under the key of ''. Return the result of stringifying the value.
+            return encodeRison('', {'': value});
+        },
+
+        // The parse method takes a text and an optional reviver function, and returns
+        // a JavaScript value if the text is a valid JSON text.
+        parse: function (text, reviver) {
+            var j;
+            // The walk method is used to recursively walk the resulting structure so
+            // that modifications can be made.
+            function walk(holder, key) {
+                var k, v, value = holder[key];
+                if (value && typeof value === 'object') {
+                    for (k in value) {
+                        if (Object.hasOwnProperty.call(value, k)) {
+                            v = walk(value, k);
+                            if (v !== undefined) {
+                                value[k] = v;
+                            } else {
+                                delete value[k];
+                            }
+                        }
+                    }
+                }
+
+                return reviver.call(holder, key, value);
+            }
+
+            j = RISON.decode(text);
+            if (typeof j !== 'undefined') {
+                return typeof reviver === 'function' ? walk({'': j}, '') : j;
+            }
+
+            throw new SyntaxError('RISON.parse');
+        },
+
+        /*
+         * we divide the uri-safe glyphs into three sets
+         *   <rison> - used by rison                         ' ! : ( ) ,
+         *   <reserved> - not common in strings, reserved    * @ $ & ; =
+         *
+         * we define <identifier> as anything that's not forbidden
+         */
+
+        /**
+         * characters that are illegal as the start of an id
+         * this is so ids can't look like numbers.
+         */
+        not_idstart: "-0123456789",
+
+        /*
+        not_idchar: risonList,
+
+        id_ok: new RegExp('^[^\\-\\d' + risonList + '][^' + risonList + ']*$'),
+
+        next_id: new RegExp('[^\\-\\d' + risonList + '][^' + risonList + ']*', 'g'),
+        */
+
+        /**
+         *  rules for an uri encoder that is more tolerant than encodeURIComponent
+         *
+         *  encodeURIComponent passes  ~!*()-_.'
+         *
+         *  we also allow              ,:@$/
+         *
+         */
+        uri_ok: {  // ok in url paths and in form query args
+            '~': true,
+            '!': true,
+            '*': true,
+            '(': true,
+            ')': true,
+            '-': true,
+            '_': true,
+            '.': true,
+            ',': true,
+            ':': true,
+            '@': true,
+            '$': true,
+            "'": true,
+            '/': true
+        },
+
+        /**
+         * this is like encodeURIComponent() but quotes fewer characters.
+         *
+         * @see RISON.uri_ok
+         *
+         * encodeURIComponent passes   ~!*()-_.'
+         * RISON.quote also passes   ,:@$/
+         *   and quotes " " as "+" instead of "%20"
+         */
+        quote: function (x) {
+            if (/^[\-A-Za-z0-9~!*()_.',:@$\/]*$/.test(x)) {
+                return x;
+            }
+
+            return encodeURIComponent(x)
+                .replace('%2C', ',', 'g')
+                .replace('%3A', ':', 'g')
+                .replace('%40', '@', 'g')
+                .replace('%24', '$', 'g')
+                .replace('%2F', '/', 'g')
+                .replace('%20', '+', 'g');
+        },
+
+        /**
+         * RISON-encode a javascript object without surrounding parens
+         *
+         */
+        encode_object: function (v) {
+            if (typeof v !== 'object' || v === null || v instanceof Array) {
+                throw new Error("RISON.encode_object expects an object argument");
+            }
+
+            var r = encodeRison('', {'': v});
+            return r.substring(1, r.length - 1);
+        },
+
+        /**
+         * RISON-encode a javascript array without surrounding parens
+         *
+         */
+        encode_array: function (v) {
+            if (!(v instanceof Array)) {
+                throw new Error("RISON.encode_array expects an array argument");
+            }
+
+            var r = encodeRison('', {'': v});
+            return r.substring(2, r.length - 1);
+        },
+
+        /**
+         * RISON-encode and uri-encode a javascript structure
+         *
+         */
+        encode_uri: function (v) {
+            return RISON.quote(encodeRison('', {'': v}));
+        },
+
+        /**
+         * parse a RISON string into a javascript structure.
+         *
+         * this is the simplest decoder entry point.
+         *
+         *  based on Oliver Steele's OpenLaszlo-JSON
+         *     http://osteele.com/sources/openlaszlo/json
+         */
+        decode: function (r) {
+            var errcb = function (e) {
+                    throw new Error('RISON decoder error: ' + e);
+                },
+                p = new RISON.parser(errcb);
+
+            return p.parse(r);
+        },
+
+        /**
+         * parse an o-RISON string into a javascript structure.
+         *
+         * this simply adds parentheses around the string before parsing.
+         */
+        decode_object: function (r) {
+            return RISON.decode('(' + r + ')');
+        },
+
+        /**
+         * parse an a-RISON string into a javascript structure.
+         *
+         * this simply adds array markup around the string before parsing.
+         */
+        decode_array: function (r) {
+            return RISON.decode('!(' + r + ')');
+        }
+    };
+
+    (function () {
+        var l  = [],
+            hi = 0,
+            lo = 0,
+            c  = '';
+
+        for (hi = 0; hi < 16; hi += 1) {
+            for (lo = 0; lo < 16; lo += 1) {
+                if (hi + lo === 0) {
+                    continue;
+                }
+
+                c = String.fromCharCode(hi * 16 + lo);
+                if (! /\w|[\-_.\/~]/.test(c)) {
+                    l.push('\\u00' + hi.toString(16) + lo.toString(16));
+                }
+            }
+        }
+        /**
+         * characters that are illegal inside ids.
+         * <rison> and <reserved> classes are illegal in ids.
+         *
+         */
+        RISON.not_idchar = l.join('');
+    }());
+
+    RISON.not_idchar = " '!:(),*@$";
+
+    (function () {
+        var idrx = '[^' + RISON.not_idstart.replace("-", "\\-") + RISON.not_idchar + '][^' + RISON.not_idchar + ']*';
+        RISON.id_ok = new RegExp('^' + idrx + '$');
+        // regexp to find the end of an id when parsing
+        // g flag on the regexp is necessary for iterative regexp.exec()
+        RISON.next_id = new RegExp(idrx, 'g');
+    }());
+
+    /**
+     * construct a new parser object for reuse.
+     *
+     * @constructor
+     * @class A Rison parser class.  You should probably
+     *        use RISON.decode instead.
+     * @see RISON.decode
+     */
+    RISON.parser = function (errcb) {
+        this.errorHandler = errcb;
+    };
+
+    /**
+     * a string containing acceptable whitespace characters.
+     * by default the RISON decoder tolerates no whitespace.
+     * to accept whitespace set RISON.parser.WHITESPACE = " \t\n\r\f";
+     */
+    RISON.parser.WHITESPACE = "";
+
+    // expose this as-is?
+    RISON.parser.prototype.setOptions = function (options) {
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        if (options['errorHandler']) {
+            this.errorHandler = options['errorHandler'];
+        }
+        /*jslint sub: true */
+    };
+
+    /**
+     * parse a RISON string into a javascript structure.
+     */
+    RISON.parser.prototype.parse = function (str) {
+        this.string = str;
+        this.index = 0;
+        this.message = null;
+        var value = this.readValue();
+        if (!this.message && this.next()) {
+            value = this.error("unable to parse string as RISON: '" + RISON.encode(str) + "'");
+        }
+
+        if (this.message && this.errorHandler) {
+            this.errorHandler(this.message, this.index);
+        }
+
+        return value;
+    };
+
+    RISON.parser.prototype.error = function (message) {
+        if (typeof console !== 'undefined') {
+            console.log('RISON parser error: ', message);
+        }
+
+        this.message = message;
+        return undefined;
+    };
+
+    RISON.parser.prototype.readValue = function () {
+        var c = this.next(),
+            fn = c && this.table[c],
+            s,
+            i,
+            m,
+            id;
+
+        if (fn) {
+            return fn.apply(this);
+        }
+
+        // fell through table, parse as an id
+
+        s = this.string;
+        i = this.index - 1;
+
+        // Regexp.lastIndex may not work right in IE before 5.5?
+        // g flag on the regexp is also necessary
+        RISON.next_id.lastIndex = i;
+        m = RISON.next_id.exec(s);
+
+        // console.log('matched id', i, r.lastIndex);
+
+        if (m.length > 0) {
+            id = m[0];
+            this.index = i + id.length;
+            return id;  // a string
+        }
+
+        if (c) {
+            return this.error("invalid character: '" + c + "'");
+        }
+
+        return this.error("empty expression");
+    };
+
+    RISON.parser.parse_array = function (parser) {
+        var ar = [],
+            c,
+            n;
+
+        while ((c = parser.next()) !== ')') {
+            if (!c) {
+                return parser.error("unmatched '!('");
+            }
+
+            if (ar.length) {
+                if (c !== ',') {
+                    parser.error("missing ','");
+                }
+            } else if (c === ',') {
+                return parser.error("extra ','");
+            } else {
+                parser.index -= 1;
+            }
+
+            n = parser.readValue();
+            if (typeof n === "undefined") {
+                return undefined;
+            }
+
+            ar.push(n);
+        }
+
+        return ar;
+    };
+
+    RISON.parser.bangs = {
+        t: true,
+        f: false,
+        n: null,
+        '(': RISON.parser.parse_array
+    };
+
+    RISON.parser.prototype.table = {
+        '!': function () {
+            var s = this.string,
+                c = s.charAt(this.index),
+                x;
+
+            this.index += 1;
+            if (!c) {
+                return this.error('"!" at end of input');
+            }
+
+            x = RISON.parser.bangs[c];
+            if (typeof x === 'function') {
+                return x.call(null, this);
+            } else if (typeof x === 'undefined') {
+                return this.error('unknown literal: "!' + c + '"');
+            }
+
+            return x;
+        },
+        '(': function () {
+            var o = {},
+                c,
+                count = 0,
+                k,
+                v;
+
+            while ((c = this.next()) !== ')') {
+                if (count) {
+                    if (c !== ',') {
+                        this.error("missing ','");
+                    }
+                } else if (c === ',') {
+                    return this.error("extra ','");
+                } else {
+                    this.index -= 1;
+                }
+
+                k = this.readValue();
+                if (typeof k === "undefined") {
+                    return undefined;
+                }
+
+                if (this.next() !== ':') {
+                    return this.error("missing ':'");
+                }
+
+                v = this.readValue();
+                if (typeof v === "undefined") {
+                    return undefined;
+                }
+
+                o[k] = v;
+                count += 1;
+            }
+
+            return o;
+        },
+        "'": function () {
+            var s = this.string,
+                i = this.index,
+                start = i,
+                segments = [],
+                c = s.charAt(i);
+
+            i += 1;
+            while (c !== "'") {
+                //if (i == s.length) return this.error('unmatched "\'"');
+                if (!c) {
+                    return this.error('unmatched "\'"');
+                }
+
+                if (c === '!') {
+                    if (start < i - 1) {
+                        segments.push(s.slice(start, i - 1));
+                    }
+
+                    c = s.charAt(i);
+                    i += 1;
+                    if ("!'".indexOf(c) >= 0) {
+                        segments.push(c);
+                    } else {
+                        return this.error('invalid string escape: "!' + c + '"');
+                    }
+
+                    start = i;
+                }
+
+                c = s.charAt(i);
+                i += 1;
+            }
+
+            if (start < i - 1) {
+                segments.push(s.slice(start, i - 1));
+            }
+
+            this.index = i;
+            return segments.length === 1 ? segments[0] : segments.join('');
+        },
+        // Also any digit.  The statement that follows this table
+        // definition fills in the digits.
+        '-': function () {
+            var s = this.string,
+                i = this.index,
+                start = i - 1,
+                state = 'int',
+                permittedSigns = '-',
+                transitions = {
+                    'int+.': 'frac',
+                    'int+e': 'exp',
+                    'frac+e': 'exp'
+                },
+                c;
+
+            do {
+                c = s.charAt(i);
+                i += 1;
+                if (!c) {
+                    break;
+                }
+
+                if ('0' <= c && c <= '9') {
+                    continue;
+                }
+
+                if (permittedSigns.indexOf(c) >= 0) {
+                    permittedSigns = '';
+                    continue;
+                }
+
+                state = transitions[state + '+' + c.toLowerCase()];
+                if (state === 'exp') {
+                    permittedSigns = '-';
+                }
+            } while (state);
+
+            i -= 1;
+            this.index = i;
+            s = s.slice(start, i);
+            if (s === '-') {
+                return this.error("invalid number");
+            }
+
+            return Number(s);
+        }
+    };
+
+    // copy table['-'] to each of table[i] | i <- '0'..'9':
+    (function (table) {
+        var i = 0;
+        for (i = 0; i <= 9; i += 1) {
+            table[String(i)] = table['-'];
+        }
+    }(RISON.parser.prototype.table));
+
+    // return the next non-whitespace character, or undefined
+    RISON.parser.prototype.next = function () {
+        var s = this.string,
+            i = this.index,
+            c;
+
+        do {
+            if (i === s.length) {
+                return undefined;
+            }
+
+            c = s.charAt(i);
+            i += 1;
+        } while (RISON.parser.WHITESPACE.indexOf(c) >= 0);
+        this.index = i;
+        return c;
+    };
+
+    /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+    /*jslint sub: true */
+    RISON['stringify'] = RISON.stringify;
+    RISON['parse'] = RISON.parse;
+    RISON['uri_ok'] = RISON.uri_ok;
+    RISON['not_idchar'] = RISON.not_idchar;
+    RISON['not_idstart'] = RISON.not_idstart;
+    RISON['next_id'] = RISON.next_id;
+    RISON['quote'] = RISON.quote;
+    RISON['encode'] = RISON.encode = RISON['stringify'];
+    RISON['encode_object'] = RISON.encode_object;
+    RISON['encode_array'] = RISON.encode_array;
+    RISON['encode_uri'] = RISON.encode_uri;
+    RISON['decode'] = RISON.decode;
+    RISON['decode_object'] = RISON.decode_object;
+    RISON['decode_array'] = RISON.decode_array;
+    RISON['parser'] = RISON.parser;
+    RISON['parser']['WHITESPACE'] = RISON.parser.WHITESPACE;
+    RISON['parser']['prototype']['setOptions'] = RISON.parser.prototype.setOptions;
+    RISON['parser']['prototype']['parse'] = RISON.parser.prototype.parse;
+    RISON['parser']['prototype']['error'] = RISON.parser.prototype.error;
+    RISON['parser']['prototype']['readValue'] = RISON.parser.prototype.readValue;
+    RISON['parser']['parse_array'] = RISON.parser.parse_array;
+    RISON['parser']['bangs'] = RISON.parser.bangs;
+    RISON['parser']['prototype']['table'] = RISON.parser.prototype.table;
+    RISON['parser']['prototype']['next'] = RISON.parser.prototype.next;
+
+    // Create a RISON object only if one does not already exist.
+    if (!window['RISON']) {
+        window['RISON'] = window.RISON = RISON;
+    }
+
+    if (!window['rison']) {
+        window['rison'] = window.rison = RISON;
+    }
     /*jslint sub: false */
 
     ///////////////////////////
     //       utility
     ///////////////////////////
 
-    var log_version = '',
-        log_level = 1,
-        utility = {},
-        $u = {};
-
-    utility = $u = {
-        jQueryExtend: function (url) {
-            ///////////////////////////
-            //       Extend jQuery
-            ///////////////////////////
-
-            (function ($) {
-                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-                /*jslint sub: true */
-                $.fn['getPercent'] = $.fn.getPercent = function (type) {
-                /*jslint sub: false */
-                    var t = [];
-                    if (!type || type === 'width') {
-                        t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
-                    } else if (!type || type === 'height') {
-                        t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
-                    }
-
-                    return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
-                };
-            }(jQuery));
-        },
-
+    utility = {
         is_chrome: navigator.userAgent.toLowerCase().indexOf('chrome') !== -1 ? true : false,
 
         is_firefox: navigator.userAgent.toLowerCase().indexOf('firefox') !== -1  ? true : false,
@@ -1097,12 +2727,82 @@
 
         is_html5_sessionStorage: ('sessionStorage' in window) && window.sessionStorage !== null,
 
-        injectScript: function (url) {
+        plural: function (i) {
+            return (i === 1 ? '' : 's');
+        },
+
+        cutHex: function (h) {
+            try {
+                return h.charAt(0) === "#" ? h.substring(1, 7) : h;
+            } catch (err) {
+                utility.error("ERROR in utility.cutHex: " + err);
+                return undefined;
+            }
+        },
+
+        addHex: function (h) {
+            try {
+                return h.charAt(0) === "#" ? h : "#" + h;
+            } catch (err) {
+                utility.error("ERROR in utility.addHex: " + err);
+                return undefined;
+            }
+        },
+
+        hexToRGB: function (h) {
+            try {
+                h = utility.cutHex(h);
+                var r = parseInt(h.substring(0, 2), 16),
+                    g = parseInt(h.substring(2, 4), 16),
+                    b = parseInt(h.substring(4, 6), 16);
+
+                return {'r': r, 'g': g, 'b': b, 'rgb': [r, g, b], 'color': 'rgb(' + r + ', ' + g + ', ' + b + ')'};
+            } catch (err) {
+                utility.error("ERROR in utility.hexToRGB: " + err);
+                return undefined;
+            }
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        brightness: function (h) {
+            try {
+                var rgb = utility.hexToRGB(h);
+                return (rgb['r'] * 299 + rgb['g'] * 587 + rgb['b'] * 114) / 1000;
+            } catch (err) {
+                utility.error("ERROR in utility.brightness: " + err);
+                return undefined;
+            }
+        },
+        /*jslint sub: false */
+
+        bestTextColor: function (h, d, l) {
+            try {
+                var r = '';
+                if (utility.brightness(h) > 125) {
+                    r = d ? d : '#000000';
+                } else {
+                    r = l ? l : '#FFFFFF';
+                }
+
+                return r;
+            } catch (err) {
+                utility.error("ERROR in utility.bestTextColor: " + err);
+                return undefined;
+            }
+        },
+
+        injectScript: function (url, body) {
             try {
                 var inject = document.createElement('script');
                 inject.setAttribute('type', 'text/javascript');
                 inject.setAttribute('src', url);
-                (document.head || document.getElementsByTagName('head')[0]).appendChild(inject);
+                if (body) {
+                    document.body.appendChild(inject);
+                } else {
+                    (document.head || document.getElementsByTagName('head')[0] || document.documentElement).appendChild(inject);
+                }
+
                 return true;
             } catch (err) {
                 utility.error("ERROR in utility.injectScript: " + err);
@@ -1110,90 +2810,166 @@
             }
         },
 
-        isArray: function (o) {
-            return jQuery.type(o) === 'array';
+        class2type: {
+            "[object Boolean]"  : 'boolean',
+            "[object Number]"   : 'number',
+            "[object String]"   : 'string',
+            "[object Function]" : 'function',
+            "[object Array]"    : 'array',
+            "[object Date]"     : 'date',
+            "[object RegExp]"   : 'regexp',
+            "[object Object]"   : 'object'
+        },
+
+        type: function (o) {
+            try {
+                return o === null || o === undefined ? String(o) : utility.class2type[Object.prototype.toString.call(o)] || "object";
+            } catch (err) {
+                utility.error("ERROR in utility.type: " + err);
+                return undefined;
+            }
+        },
+
+        // A crude way of determining if an object is a window
+        isWindow: function (o) {
+            return o && typeof o === "object" && "setInterval" in o;
+        },
+
+        isNaN: function (o) {
+            return o === null || !/\d/.test(o) || isNaN(o);
+        },
+
+        isArray: Array.isArray || function (o) {
+            return utility.type(o) === 'array';
         },
 
         isObject: function (o) {
-            return jQuery.type(o) === 'object';
+            return utility.type(o) === 'object';
         },
 
         isBoolean: function (o) {
-            return jQuery.type(o) === 'boolean';
+            return utility.type(o) === 'boolean';
         },
 
         isFunction: function (o) {
-            return jQuery.type(o) === 'function';
+            return utility.type(o) === 'function';
         },
 
         isDate: function (o) {
-            return jQuery.type(o) === 'date';
+            return utility.type(o) === 'date';
         },
 
         isRegExp: function (o) {
-            return jQuery.type(o) === 'regexp';
+            return utility.type(o) === 'regexp';
         },
 
         isNumber: function (o) {
-            return jQuery.type(o) === 'number';
+            return utility.type(o) === 'number';
         },
 
         isString: function (o) {
-            return jQuery.type(o) === 'string';
+            return utility.type(o) === 'string';
         },
 
         isUndefined: function (o) {
-            return jQuery.type(o) === 'undefined';
+            return utility.type(o) === 'undefined';
         },
 
         isNull: function (o) {
-            return jQuery.type(o) === 'null';
+            return utility.type(o) === 'null';
         },
 
         isDefined: function (o) {
             return !utility.isUndefined(o) && !utility.isNull(o);
         },
 
-        hasContent: function (o) {
-            var h = false;
-            switch (jQuery.type(o)) {
-            case "string":
-                h = o.length ? true : false;
-                break;
-            case "number":
-                h = true;
-                break;
-            case "object":
-                if (utility.isDefined(o.length)) {
-                    h = o.length ? true : false;
-                } else {
-                    h = !jQuery.isEmptyObject(o);
+        isPlainObject: function (o) {
+            try {
+                // Must be an Object.
+                // Because of IE, we also have to check the presence of the constructor property.
+                // Make sure that DOM nodes and window objects don't pass through, as well
+                if (!o || utility.type(o) !== "object" || o.nodeType || utility.isWindow(o)) {
+                    return false;
                 }
 
-                break;
-            case "array":
-                h = o.length ? true : false;
-                break;
-            case "boolean":
-                h = true;
-                break;
-            case "function":
-                h = true;
-                break;
-            case "regexp":
-                h = true;
-                break;
-            case "date":
-                h = true;
-                break;
-            default:
-            }
+                // Not own constructor property must be Object
+                if (o.constructor && !Object.prototype.hasOwnProperty.call(o, "constructor") && !Object.prototype.hasOwnProperty.call(o.constructor.prototype, "isPrototypeOf")) {
+                    return false;
+                }
 
-            return h;
+                // Own properties are enumerated firstly, so to speed up,
+                // if last one is own, then all properties are own.
+                var key;
+                for (key in o) {
+                    if (o.hasOwnProperty(key)) {
+                        continue;
+                    }
+                }
+
+                return key === undefined || Object.prototype.hasOwnProperty.call(o, key);
+            } catch (err) {
+                utility.error("ERROR in utility.isPlainObject: " + err);
+                return undefined;
+            }
         },
 
-        plural: function (i) {
-            return (i === 1 ? '' : 's');
+        isEmptyObject: function (o) {
+            try {
+                var n;
+                for (n in o) {
+                    if (o.hasOwnProperty(n)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            } catch (err) {
+                utility.error("ERROR in utility.isEmptyObject: " + err);
+                return undefined;
+            }
+        },
+
+        hasContent: function (o) {
+            try {
+                var h = false;
+                switch (utility.type(o)) {
+                case "string":
+                    h = o.length ? true : false;
+                    break;
+                case "number":
+                    h = true;
+                    break;
+                case "object":
+                    if (utility.isDefined(o.length)) {
+                        h = o.length ? true : false;
+                    } else {
+                        h = !utility.isEmptyObject(o);
+                    }
+
+                    break;
+                case "array":
+                    h = o.length ? true : false;
+                    break;
+                case "boolean":
+                    h = true;
+                    break;
+                case "function":
+                    h = true;
+                    break;
+                case "regexp":
+                    h = true;
+                    break;
+                case "date":
+                    h = true;
+                    break;
+                default:
+                }
+
+                return h;
+            } catch (err) {
+                utility.error("ERROR in utility.hasContent: " + err);
+                return false;
+            }
         },
 
         setContent: function (o, v) {
@@ -1202,21 +2978,90 @@
 
         // Removes matching elements from an array
         deleteElement: function (a, v) {
-            if (jQuery.isArray(a)) {
-                while (v in a) {
-                    a.splice(a.indexOf(v), 1);
+            try {
+                if (utility.isArray(a)) {
+                    while (v in a) {
+                        a.splice(a.indexOf(v), 1);
+                    }
                 }
+
+                return true;
+            } catch (err) {
+                utility.error("ERROR in utility.deleteElement: " + err);
+                return false;
             }
         },
 
-        alert: function (html) {
-            jQuery('<div id="alert_' + new Date().getTime() + '" title="Alert!">' + (html ? html : '') + '</div>').appendTo(window.document.body).dialog({
-                buttons: {
-                    "Ok": function () {
-                        jQuery(this).dialog("destroy").remove();
+        extend: function () {
+            try {
+                var options, name, src, copy, copyIsArray, clone,
+                    target = arguments[0] || {},
+                    i = 1,
+                    length = arguments.length,
+                    deep = false;
+
+                // Handle a deep copy situation
+                if (utility.isBoolean(target)) {
+                    deep = target;
+                    target = arguments[1] || {};
+                    // skip the boolean and the target
+                    i = 2;
+                }
+
+                // Handle case when target is a string or something (possible in deep copy)
+                if (!utility.isObject(target) && !utility.isFunction(target)) {
+                    target = {};
+                }
+
+                // extend jQuery itself if only one argument is passed
+                if (length === i) {
+                    target = this;
+                    i -= 1;
+                }
+
+                for (i; i < length; i += 1) {
+                    // Only deal with non-null/undefined values
+                    options = arguments[i];
+                    if (utility.isDefined(options)) {
+                        // Extend the base object
+                        for (name in options) {
+                            if (options.hasOwnProperty(name)) {
+                                src = target[name];
+                                copy = options[name];
+
+                                // Prevent never-ending loop
+                                if (target === copy) {
+                                    continue;
+                                }
+
+                                // Recurse if we're merging plain objects or arrays
+                                copyIsArray = utility.isArray(copy);
+                                if (deep && copy && (utility.isPlainObject(copy) || copyIsArray)) {
+                                    if (copyIsArray) {
+                                        copyIsArray = false;
+                                        clone = src && utility.isArray(src) ? src : [];
+                                    } else {
+                                        clone = src && utility.isPlainObject(src) ? src : {};
+                                    }
+
+                                    // Never move original objects, clone them
+                                    target[name] = utility.extend(deep, clone, copy);
+
+                                // Don't bring in undefined values
+                                } else if (!utility.isUndefined(copy)) {
+                                    target[name] = copy;
+                                }
+                            }
+                        }
                     }
                 }
-            });
+
+                // Return the modified object
+                return target;
+            } catch (err) {
+                utility.error("ERROR in utility.extend: " + err);
+                return undefined;
+            }
         },
 
         set_log_version: function (text) {
@@ -1235,6 +3080,22 @@
             return log_level;
         },
 
+        log_copy: function (o) {
+            var c;
+            switch (utility.type(o)) {
+            case "object":
+                c = utility.extend(true, {}, o);
+                break;
+            case "array":
+                c = o.slice();
+                break;
+            default:
+                c = o;
+            }
+
+            return c;
+        },
+
         log_common: function (type, level, text) {
             if (log_level && !isNaN(level) && log_level >= level) {
                 var m = log_version + ' |' + (new Date()).toLocaleTimeString() + '| ' + text,
@@ -1247,7 +3108,8 @@
                 if (type) {
                     if (arguments.length === 4) {
                         for (i = 0, l = arguments[3].length; i < l; i += 1) {
-                            t.pushCopy(arguments[3][i]);
+                            //t.pushCopy(arguments[3][i]);
+                            t.push(utility.log_copy(arguments[3][i]));
                         }
 
                         console[type](m, t);
@@ -1283,40 +3145,45 @@
         },
 
         sortBy: function (reverse, name, minor) {
-            return function (o, p) {
-                try {
-                    var a, b;
-                    if (utility.isObject(o) && utility.isObject(p) && o && p) {
-                        a = o[name];
-                        b = p[name];
-                        if (a === b) {
-                            return utility.isFunction(minor) ? minor(o, p) : o;
-                        }
-
-                        if (jQuery.type(a) === jQuery.type(b)) {
-                            if (reverse) {
-                                return a < b ? 1 : -1;
-                            } else {
-                                return a < b ? -1 : 1;
+            try {
+                return function (o, p) {
+                    try {
+                        var a, b;
+                        if (utility.isObject(o) && utility.isObject(p) && o && p) {
+                            a = o[name];
+                            b = p[name];
+                            if (a === b) {
+                                return utility.isFunction(minor) ? minor(o, p) : o;
                             }
-                        }
 
-                        if (reverse) {
-                            return jQuery.type(a) < jQuery.type(b) ? 1 : -1;
+                            if (utility.type(a) === utility.type(b)) {
+                                if (reverse) {
+                                    return a < b ? 1 : -1;
+                                } else {
+                                    return a < b ? -1 : 1;
+                                }
+                            }
+
+                            if (reverse) {
+                                return utility.type(a) < utility.type(b) ? 1 : -1;
+                            } else {
+                                return utility.type(a) < utility.type(b) ? -1 : 1;
+                            }
                         } else {
-                            return jQuery.type(a) < jQuery.type(b) ? -1 : 1;
+                            throw {
+                                name: 'Error',
+                                message: 'Expected an object when sorting by ' + name
+                            };
                         }
-                    } else {
-                        throw {
-                            name: 'Error',
-                            message: 'Expected an object when sorting by ' + name
-                        };
+                    } catch (err) {
+                        utility.error("ERROR in inner function utility.sortBy: " + err);
+                        return undefined;
                     }
-                } catch (err) {
-                    utility.error("ERROR in utility.sortBy: " + err);
-                    return undefined;
-                }
-            };
+                };
+            } catch (err) {
+                utility.error("ERROR in utility.sortBy: " + err);
+                return undefined;
+            }
         },
 
         sortObjectBy: function (obj, sortfunc, deep) {
@@ -1336,7 +3203,7 @@
 
                 list.sort(sortfunc);
                 for (i = 0, len = list.length; i < len; i += 1) {
-                    if (deep && jQuery.isPlainObject(obj[list[i]])) {
+                    if (deep && utility.isPlainObject(obj[list[i]])) {
                         output[list[i]] = utility.sortObjectBy(obj[list[i]], sortfunc, deep);
                     } else {
                         output[list[i]] = obj[list[i]];
@@ -1351,396 +3218,44 @@
         },
 
         makeTime: function (time, format) {
-            var d = new Date(time);
-            return d.format(format !== undefined && format ? format : 'l g:i a');
-        },
-
-        charPrintables: function () {
             try {
-                var t = '',
-                    i = 0;
-
-                for (i = 32; i <= 126; i += 1) {
-                    t += String.fromCharCode(i);
-                }
-
-                return t;
+                var d = new Date(time);
+                return d.format(format !== undefined && format ? format : 'l g:i a');
             } catch (err) {
-                utility.error("ERROR in utility.charPrintables: " + err);
+                utility.error("ERROR in utility.makeTime: " + err);
                 return undefined;
             }
         },
 
-        charNonPrintables: function () {
+        minutes2hours : function (num) {
             try {
-                var t = '',
-                    i = 0;
+                num = utility.isNaN(num) ? 0 : num;
+                num = utility.isString(num) ? num.parseFloat() : num;
+                var h = Math.floor(num),
+                    m = Math.floor((num - h) * 60),
+                    s = h + ':' + (m < 10 ? '0' + m : m);
 
-                for (i = 0; i <= 255; i += 1) {
-                    t += String.fromCharCode(i);
-                }
-
-                return t;
+                return s;
             } catch (err) {
-                utility.error("ERROR in utility.charNonPrintables: " + err);
+                utility.error("ERROR in utility.minutes2hours: " + err);
                 return undefined;
             }
         },
 
-        testMD5: function () {
+        refreshPage: function () {
             try {
-                var t = '',
-                    r = '',
-                    c = 'e5df5a39f2b8cb71b24e1d8038f93131',
-                    d = 'e1cb1402564d3f0d07fc946196789c81',
-                    p = true;
-
-                t = utility.charPrintables();
-                r = t.MD5();
-                if (r !== c) {
-                    p = false;
-                }
-
-                t = utility.charNonPrintables();
-                r = t.MD5();
-                if (r !== d) {
-                    p = false;
-                }
-
-
-                if (p) {
-                    utility.log(1, "MD5 Passed");
+                if (utility.isFunction(window.location.reload)) {
+                    window.location.reload();
+                } else if (utility.isFunction(history.go)) {
+                    history.go(0);
                 } else {
-                    utility.warn("MD5 Failed");
+                    window.location.href = window.location.href;
                 }
 
-                return p;
+                return true;
             } catch (err) {
-                utility.error("ERROR in utility.testMD5: " + err);
-                return undefined;
-            }
-        },
-
-        testSHA1: function () {
-            try {
-                var t = '',
-                    r = '',
-                    c = 'e4f8188cdca2a68b074005e2ccab5b67842c6fc7',
-                    d = 'ae79896181f7034c2c11a57bd211ec3dea276625',
-                    p = true;
-
-                t = utility.charPrintables();
-                r = t.SHA1();
-                if (r !== c) {
-                    p = false;
-                }
-
-                t = utility.charNonPrintables();
-                r = t.SHA1();
-                if (r !== d) {
-                    p = false;
-                }
-
-                if (p) {
-                    utility.log(1, "SHA1 Passed");
-                } else {
-                    utility.warn("SHA1 Failed");
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testSHA1: " + err);
-                return undefined;
-            }
-        },
-
-        testSHA256: function () {
-            try {
-                var t = '',
-                    r = '',
-                    c = 'cb2a9233adc1225c5c495c46e62cf6308223c5e241ef33ad109f03141b57966a',
-                    d = '9799e3eb6096a48f515a94324200b7af24251a4131eccf9a2cd65d012a1f5c71',
-                    p = true;
-
-                t = utility.charPrintables();
-                r = t.SHA256();
-                if (r !== c) {
-                    p = false;
-                }
-
-                t = utility.charNonPrintables();
-                r = t.SHA256();
-                if (r !== d) {
-                    p = false;
-                }
-
-                if (p) {
-                    utility.log(1, "SHA256 Passed");
-                } else {
-                    utility.warn("SHA256 Failed");
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testSHA256: " + err);
-                return undefined;
-            }
-        },
-
-        testUTF8: function () {
-            try {
-                var t = '',
-                    r = '',
-                    s = '',
-                    p = true;
-
-                t = utility.charNonPrintables();
-                r = t.Utf8encode();
-                s = r.Utf8decode();
-                if (s !== t) {
-                    p = false;
-                }
-
-                if (p) {
-                    utility.log(1, "Utf8 Passed");
-                } else {
-                    utility.warn("Utf8 Failed");
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testUTF8: " + err);
-                return undefined;
-            }
-        },
-
-        testBase64: function () {
-            try {
-                var t = '',
-                    c = "/9j/4AAQSkZJRgABAgAAZABkAAD/7AARRHVja3kAAQAEAAAAVQAA/+4ADkFkb2JlAGTAAAAAAf/" +
-                        "bAIQAAgEBAQEBAgEBAgMCAQIDAwICAgIDAwMDAwMDAwQDBAQEBAMEBAUGBgYFBAcHCAgHBwoKCg" +
-                        "oKDAwMDAwMDAwMDAECAgIEAwQHBAQHCggHCAoMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMD" +
-                        "AwMDAwMDAwMDAwMDAwMDAwMDAwM/8AAEQgAFgAWAwERAAIRAQMRAf/EAGsAAQEAAAAAAAAAAAAA" +
-                        "AAAAAAgJAQEBAQAAAAAAAAAAAAAAAAABAgMQAAEDAgUCBAYDAAAAAAAAAAIBAwQFBhESEwcIABQ" +
-                        "xIhUJIUEyQmIWM0QXEQEBAQADAAAAAAAAAAAAAAABABEhQQL/2gAMAwEAAhEDEQA/AI58ethnb+" +
-                        "kS7muKYUSgQybdmTnm+67dJJuJGjx4zhgD0p9GjNEcXTbbTOSEpCPUgZUtQmkeyg5upxKp3J7ba" +
-                        "7JFZ20lNKNZkxKhT6y9bcgSVsm6zRXKZAJsRVMSKM6mAqhCuCoqmkQKkcMNzInKuPxvbZYW5Jb5" +
-                        "xXAOe8FLBoI3qQzxl4K6UE4grJT4auQTb/kHFVCRml7Hd+bQ29cb8vda2ot47bNSDC8qBLjsSXD" +
-                        "oNaokOjJPjg+ipnhS6caIqYKhYChCpovQmkdyZ5Pcsmvbkvxqwfb8u+3K9wfuejzQl0ZuSFWkTp" +
-                        "tRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUf" +
-                        "H5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYY" +
-                        "ZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGq" +
-                        "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z",
-                    r = '',
-                    s = '',
-                    p = true;
-
-                t = utility.charNonPrintables();
-                r = t.Base64encode();
-                s = r.Base64decode();
-                if (s !== t) {
-                    p = false;
-                }
-
-                r = c.Base64decode();
-                s = r.Base64encode();
-                if (s !== c) {
-                    p = false;
-                }
-
-                if (p) {
-                    utility.log(1, "Base64 Passed");
-                } else {
-                    utility.warn("Base64 Failed");
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testBase64: " + err);
-                return undefined;
-            }
-        },
-
-        testAes: function () {
-            try {
-                var t = '',
-                    r = '',
-                    s = '',
-                    c = new utility.Aes("password"),
-                    d = new utility.Aes("test"),
-                    e = 'YWQ1TWVlZWXr+E1tVWIBV0wzwzwdzTiH/YEHUjpWgt7sx9NcneHZHQ==',
-                    f = "pssst ... đon’t tell anyøne!",
-                    p = true;
-
-                t = utility.charNonPrintables();
-                r = c.encrypt(t);
-                s = c.decrypt(r);
-                if (s !== t) {
-                    p = false;
-                }
-
-                r = d.decrypt(e);
-                if (r !== f) {
-                    p = false;
-                }
-
-                if (p) {
-                    utility.log(1, "Aes Passed");
-                } else {
-                    utility.warn("Aes Failed");
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testAes: " + err);
-                return undefined;
-            }
-        },
-
-        testLZ77: function () {
-            try {
-                var t = '',
-                    r = '',
-                    s = '',
-                    c = new utility.LZ77(),
-                    p = true;
-
-                t = utility.charNonPrintables();
-                r = c.compress(t);
-                s = c.decompress(r);
-                if (s !== t) {
-                    p = false;
-                }
-
-                t = "LZ77 algorithms achieve compression by replacing portions of the data with references";
-                t += " to matching data that have already passed through both encoder and decoder. A match";
-                t += " is encoded by a pair of numbers called a length-distance pair, which is equivalent to";
-                t += " the statement \"each of the next length characters is equal to the character exactly ";
-                t += "distance characters behind it in the uncompressed stream.\" (The \"distance\" is sometimes";
-                t += " called the \"offset\" instead.)\n";
-                t += "The encoder and decoder must both keep track of some amount of the most recent data, such";
-                t += " as the last 2 kB, 4 kB, or 32 kB. The structure in which this data is held is called a ";
-                t += "sliding window, which is why LZ77 is sometimes called sliding window compression. The ";
-                t += "encoder needs to keep this data to look for matches, and the decoder needs to keep this data";
-                t += " to interpret the matches the encoder refers to. This is why the encoder can use a smaller ";
-                t += "size sliding window than the decoder, but not vice-versa.\n";
-                t += "Many documents which talk about LZ77 algorithms describe a length-distance pair as a command ";
-                t += "to \"copy\" data from the sliding window: \"Go back distance characters in the buffer and ";
-                t += "copy length characters, starting from that point.\" While those used to imperative programming";
-                t += " may find this model intuitive, it may also make it hard to understand a feature of LZ77 ";
-                t += "encoding: namely, that it is not only acceptable but frequently useful to have a length-distance";
-                t += " pair where the length actually exceeds the distance. As a copy command, this is puzzling: \"Go ";
-                t += "back one character in the buffer and copy seven characters, starting from that point.\" How can";
-                t += " seven characters be copied from the buffer when only one of the specified characters is actually";
-                t += " in the buffer? Looking at a length-distance pair as a statement of identity, however, clarifies ";
-                t += "the confusion: each of the next seven characters is identical to the character that comes one ";
-                t += "before it. This means that each character can be determined by looking back in the buffer – even ";
-                t += "if the character looked back to was not in the buffer when the decoding of the current pair began. ";
-                t += "Since by definition a pair like this will be repeating a sequence of distance characters multiple ";
-                t += "times, it means that LZ77 incorporates a flexible and easy form of run-length encoding.";
-                r = c.compress(t);
-                s = c.decompress(r);
-                if (s !== t) {
-                    p = false;
-                }
-
-                if (p) {
-                    utility.log(1, "LZ77 Passed", ((r.length / t.length) * 100).dp(2));
-                } else {
-                    utility.warn("LZ77 Failed");
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testLZ77: " + err);
-                return undefined;
-            }
-        },
-
-        testUrlStuff: function (url) {
-            try {
-                var test = [
-                        "http://abc/def/ghi.html?tuv&123#xyz",
-                        "http://abc/def/ghi.html?tuv#xyz&123",
-                        "http://abc/def/ghi.php&123#xyz?tuv",
-                        "http://abc/def/ghi.html&123?tuv#xyz",
-                        "http://abc/def/ghi.css#xyz?tuv&123",
-                        "http://abc/def/ghi.html#xyz?&123tuv",
-                        "http://abc/def/ghi.js?tuv&123",
-                        "http://abc/def/ghi.html&123?tuv",
-                        "http://abc/def/ghi.png?tuv#xyz",
-                        "http://abc/def/ghi.html#xyz?tuv",
-                        "http://abc/def/ghi.jpg#xyz&123",
-                        "http://abc/def/ghi.html&123#xyz",
-                        "http://abc/def/ghi.html?tuv",
-                        "http://abc/def/ghi.bmp&123",
-                        "http://abc/def/ghi.html#xyz",
-                        "http://abc/def/ghi.html",
-                        "http://abc/def/ghi.jk.html",
-                        "http://abc/def/ghi.html?tuv=\"/abc.d\"",
-                        "http://abc/def/ghi.html?tuv=\"/abc.d?abc\"",
-                        "http://abc/def/ghi.html?tuv=\"/abc.d#cde\"",
-                        "http://abc/def/ghi.html?tuv=\"/abc.d&fgh\"",
-                        "http://abc/def/ghi",
-                        "http://abc/def/ghi/",
-                        "abc",
-                        "abc.html",
-                        "/abc",
-                        "/abc.html"
-                    ],
-                    x = 0,
-                    l = 0;
-
-                test = utility.isString(url) ? [url] : test;
-                for (x = 0, l = test.length; x < test.length; x += 1) {
-                    utility.log(2, 'Url     : ', test[x]);
-                    utility.log(2, 'dirname : ', test[x].dirname());
-                    utility.log(2, 'filename: ', test[x].basename(test[x].fileext()));
-                    utility.log(2, 'fileext : ', test[x].fileext(), test[x].getUrlQuery());
-                    utility.log(2, 'urlquery: ', test[x].getUrlQuery());
-                }
-            } catch (err) {
-                utility.error("ERROR in utility.testUrlStuff: " + err);
-            }
-        },
-
-        testsRun: function (run) {
-            try {
-                var p = true;
-                if (run) {
-                    if (!utility.testMD5()) {
-                        p = false;
-                    }
-
-                    if (!utility.testSHA1()) {
-                        p = false;
-                    }
-
-                    if (!utility.testSHA256()) {
-                        p = false;
-                    }
-
-                    if (!utility.testUTF8()) {
-                        p = false;
-                    }
-
-                    if (!utility.testBase64()) {
-                        p = false;
-                    }
-
-                    if (!utility.testAes()) {
-                        p = false;
-                    }
-
-                    if (!utility.testLZ77()) {
-                        p = false;
-                    }
-                }
-
-                return p;
-            } catch (err) {
-                utility.error("ERROR in utility.testsRun: " + err);
-                return undefined;
+                utility.error("ERROR in utility.refreshPage: " + err);
+                return false;
             }
         },
 
@@ -2289,8 +3804,8 @@
             try {
                 settings = settings || {};
                 var namespace = settings['namespace'] ? settings['namespace'] : '',
-                    fireFoxUseGM = settings['fireFoxUseGM'] ? settings['fireFoxUseGM'] : false,
-                    useRison = settings['useRison'] ? settings['useRison'] : true,
+                    fireFoxUseGM = settings['fireFoxUseGM'] ? settings['fireFoxUseGM'] : (!utility.is_html5_localStorage && utility.is_firefox ? true : false),
+                    useRison = settings['useRison'] ? settings['useRison'] : (utility.isUndefined(rison) ? false : true),
                     storage_id = settings['storage_id'] ? settings['storage_id'] : '',
                     storage_type = settings['storage_type'] ? settings['storage_type'] : 'localStorage';
 
@@ -2625,41 +4140,34 @@
 
     /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
     /*jslint sub: true */
-    utility['jQueryExtend'] = utility.jQueryExtend;
     utility['is_chrome'] = utility.is_chrome;
     utility['is_firefox'] = utility.is_firefox;
     utility['is_html5_localStorage'] = utility.is_html5_localStorage;
     utility['is_html5_sessionStorage'] = utility.is_html5_sessionStorage;
     utility['injectScript'] = utility.injectScript;
-    utility['isNum'] = utility.isNum;
     utility['plural'] = utility.plural;
     utility['deleteElement'] = utility.deleteElement;
-    utility['alert'] = utility.alert;
     utility['set_log_version'] = utility.set_log_version;
     utility['get_log_version'] = utility.get_log_version;
     utility['set_log_level'] = utility.set_log_level;
     utility['get_log_level'] = utility.get_log_level;
+    utility['extend'] = utility.extend;
+    utility['log_copy'] = utility.log_copy;
     utility['log_common'] = utility.log_common;
     utility['log'] = utility.log;
     utility['warn'] = utility.warn;
     utility['error'] = utility.error;
     utility['sortBy'] = utility.sortBy;
     utility['sortObjectBy'] = utility.sortObjectBy;
-    utility['charPrintables'] = utility.charPrintables;
-    utility['charNonPrintables'] = utility.charNonPrintables;
-    utility['testMD5'] = utility.testMD5;
-    utility['testSHA1'] = utility.testSHA1;
-    utility['testSHA256'] = utility.testSHA256;
-    utility['testUTF8'] = utility.testUTF8;
-    utility['testBase64'] = utility.testBase64;
-    utility['testAes'] = utility.testAes;
-    utility['testLZ77'] = utility.testLZ77;
-    utility['testAes'] = utility.testAes;
-    utility['testUrlStuff'] = utility.testUrlStuff;
-    utility['testsRun'] = utility.testsRun;
     utility['Aes'] = utility.Aes;
     utility['LZ77'] = utility.LZ77;
     utility['storage'] = utility.storage;
+    utility['class2type'] = utility.class2type;
+    utility['type'] = utility.type;
+    utility['isNaN'] = utility.isNaN;
+    utility['isPlainObject'] = utility.isPlainObject;
+    utility['isEmptyObject'] = utility.isEmptyObject;
+    utility['isWindow'] = utility.isWindow;
     utility['isArray'] = utility.isArray;
     utility['isObject'] = utility.isObject;
     utility['isBoolean'] = utility.isBoolean;
@@ -2674,7 +4182,14 @@
     utility['hasContent'] = utility.hasContent;
     utility['setContent'] = utility.setContent;
     utility['makeTime'] = utility.makeTime;
-    
+    utility['minutes2hours'] = utility.minutes2hours;
+    utility['refreshPage'] = utility.refreshPage;
+    utility['hexToRGB'] = utility.hexToRGB;
+    utility['cutHex'] = utility.cutHex;
+    utility['addHex'] = utility.addHex;
+    utility['brightness'] = utility.brightness;
+    utility['bestTextColor'] = utility.bestTextColor;
+
     if (!window['utility']) {
         window['utility'] = window.utility = window['$u'] = window.$u = utility;
     }

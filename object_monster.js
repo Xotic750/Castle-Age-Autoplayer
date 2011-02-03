@@ -463,7 +463,7 @@
 
         parseCondition: function (type, conditions) {
             try {
-                if (!conditions || conditions.toLowerCase().indexOf(':' + type) < 0) {
+                if (!$u.hasContent(type) || !$u.hasContent(conditions) || !conditions.toLowerCase().hasIndexOf(':' + type)) {
                     return false;
                 }
 
@@ -473,8 +473,8 @@
                     second = false;
 
                 str = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
-                value = str ? str.parseFloat() : 0;
-                if (/k$/i.test(str) || /m$/i.test(str)) {
+                value = !$u.isNaN(str) ? str.parseFloat() : 0;
+                if (str && (/k$/i.test(str) || /m$/i.test(str))) {
                     first = /\d+k/i.test(str);
                     second = /\d+m/i.test(str);
                     value = value * 1000 * (first + second * 1000);
@@ -706,8 +706,8 @@
 
                 siegeImpacts = (record['life'] / (100 - record['life']) * timeLeft).dp(2);
                 T2K = T2K.dp(2);
-                $u.log(3, 'T2K based on siege: ', caap.decHours2HoursMin(T2K));
-                $u.log(3, 'T2K estimate without calculating siege impacts: ', caap.decHours2HoursMin(siegeImpacts));
+                $u.log(3, 'T2K based on siege: ', $u.minutes2hours(T2K));
+                $u.log(3, 'T2K estimate without calculating siege impacts: ', $u.minutes2hours(siegeImpacts));
                 return T2K;
             } catch (err) {
                 $u.error("ERROR in monster.t2kCalc: " + err);
@@ -893,7 +893,7 @@
                             // If this monster does not match, skip to next one
                             // Or if this monster is dead, skip to next one
                             // Or if this monster is not the correct type, skip to next one
-                            if (monsterList[selectTypes[s]][m].toLowerCase().indexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) < 0 || (selectTypes[s] !== 'any' && monsterObj['page'] !== selectTypes[s])) {
+                            if (!monsterList[selectTypes[s]][m].toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) || (selectTypes[s] !== 'any' && monsterObj['page'] !== selectTypes[s])) {
                                 continue;
                             }
 
@@ -922,7 +922,7 @@
 
                             monstType = monster.type(monsterList[selectTypes[s]][m]);
                             if (monstType && monster.info[monstType]) {
-                                if (!monster.info[monstType].alpha || (monster.info[monstType].alpha && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].indexOf('Heal') >= 0)) {
+                                if (!monster.info[monstType].alpha || (monster.info[monstType].alpha && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Heal'))) {
                                     maxToFortify = (monster.parseCondition('f%', monsterConditions) !== false) ? monster.parseCondition('f%', monsterConditions) : config.getItem('MaxToFortify', 0);
                                     if (monster.info[monstType].fort && !firstFortUnderMax && monsterObj['fortify'] < maxToFortify) {
                                         if (monsterObj['over'] === 'ach') {
@@ -938,7 +938,7 @@
                                 }
 
                                 if (monster.info[monstType].alpha) {
-                                    if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].indexOf('Strengthen') >= 0) {
+                                    if (config.getItem("StrengthenTo100", true) && monster.characterClass[monsterObj['charClass']] && monster.characterClass[monsterObj['charClass']].hasIndexOf('Strengthen')) {
                                         if (!firstStrengthUnderMax && monsterObj['strength'] < 100) {
                                             if (monsterObj['over'] === 'ach') {
                                                 if (!firstStrengthOverAch) {

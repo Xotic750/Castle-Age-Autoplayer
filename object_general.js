@@ -269,7 +269,7 @@
                 ].concat(general.GetNames());
 
                 var crossList = function (checkItem) {
-                    return (general.List.indexOf(checkItem) >= 0);
+                    return general.List.hasIndexOf(checkItem);
                 };
 
                 general.BuyList = [
@@ -397,7 +397,7 @@
                             $u.warn("Unable to find 'attack and defence' containers", index);
                         }
 
-                        if (name && img && level && !isNaN(atk) && !isNaN(def) && special) {
+                        if (name && img && level && !$u.isNaN(atk) && !$u.isNaN(def) && special) {
                             for (it = 0, len = general.records.length; it < len; it += 1) {
                                 if (general.records[it]['name'] === name) {
                                     newGeneral.data = general.records[it];
@@ -506,7 +506,7 @@
                     state.setItem('KeepLevelUpGeneral', false);
                 }
 
-                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (general.StandardList.indexOf(generalType) >= 0 || generalType === 'Quest')) {
+                if (config.getItem('LevelUpGeneral', 'Use Current') !== 'Use Current' && (general.StandardList.hasIndexOf(generalType) || generalType === 'Quest')) {
                     if (keepGeneral || (config.getItem(generalType + 'LevelUpGeneral', false) && caap.stats['exp']['dif'] && caap.stats['exp']['dif'] <= config.getItem('LevelUpGeneralExp', 0))) {
                         use = true;
                     }
@@ -556,7 +556,7 @@
                 }
 
                 currentGeneral = getCurrentGeneral;
-                if (generalName.indexOf(currentGeneral) >= 0) {
+                if (generalName.hasIndexOf(currentGeneral)) {
                     return false;
                 }
 

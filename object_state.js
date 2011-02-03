@@ -46,7 +46,7 @@
                     throw "Invalid identifying name!";
                 }
 
-                if (value === undefined || value === null) {
+                if (!$u.isDefined(value)) {
                     throw "Value supplied is 'undefined' or 'null'!";
                 }
 
@@ -67,11 +67,11 @@
                 }
 
                 item = state.flags[name];
-                if ((item === undefined || item === null) && value !== undefined && value !== null) {
+                if (!$u.isDefined(item) && $u.isDefined(value)) {
                     item = value;
                 }
 
-                if (item === undefined || item === null) {
+                if (!$u.isDefined(item)) {
                     $u.warn("state.getItem returned 'undefined' or 'null' for", name);
                 }
 
@@ -88,7 +88,7 @@
                     throw "Invalid identifying name!";
                 }
 
-                if (state.flags[name] === undefined || state.flags[name] === null) {
+                if (!$u.isDefined(state.flags[name])) {
                     $u.warn("state.deleteItem - Invalid or non-existant flag: ", name);
                 }
 

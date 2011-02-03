@@ -127,7 +127,7 @@
         since: function (name_or_number, seconds) {
             try {
                 var value = 0;
-                if (isNaN(name_or_number)) {
+                if ($u.isNaN(name_or_number)) {
                     if (!$u.isString(name_or_number) || name_or_number === '') {
                         throw "Invalid identifying name! (" + name_or_number + ")";
                     }

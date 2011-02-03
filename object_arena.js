@@ -186,7 +186,7 @@
                     throw "Not passed a win";
                 }
 
-                if (won['userId'] === '' || isNaN(won['userId']) || won['userId'] < 1) {
+                if (won['userId'] === '' || $u.isNaN(won['userId']) || won['userId'] < 1) {
                     $u.warn("userId", won['userId']);
                     throw "Invalid identifying userId!";
                 }
@@ -223,7 +223,7 @@
                     throw "Not passed records";
                 }
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
@@ -258,7 +258,7 @@
                     throw "Not passed records";
                 }
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
@@ -294,12 +294,12 @@
                     throw "Not passed records";
                 }
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
-                if (records.indexOf(userId) >= 0) {
+                if (records.hasIndexOf(userId)) {
                     $u.log(3, "userId exists", userId, records);
                 } else {
                     records.push(userId);
@@ -319,12 +319,12 @@
                     throw "Not passed records";
                 }
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
 
-                if (records.indexOf(userId) >= 0) {
+                if (records.hasIndexOf(userId)) {
                     $u.log(3, "userId exists", userId, records);
                     return true;
                 } else {
@@ -343,7 +343,7 @@
                     throw "Not passed records";
                 }
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
@@ -374,7 +374,7 @@
                 arenaInfo = arena.getItem();
                 if (!$j.isEmptyObject(arenaInfo)) {
                     for (it = 0, len = arenaInfo['wins'].length; it < len; it += 1) {
-                        if (arenaInfo['losses'].indexOf(arenaInfo['wins'][it]['userId']) >= 0) {
+                        if (arenaInfo['losses'].hasIndexOf(arenaInfo['wins'][it]['userId'])) {
                             $u.log(1, "Found win in losses: delete", arenaInfo['wins'][it]);
                             arenaInfo['wins'].splice(it, 1);
                             found = true;
@@ -832,7 +832,7 @@
                 var arenaInfo = {},
                     minion    = {};
 
-                if (index === '' || isNaN(index) || index < 0 || index > 40) {
+                if (index === '' || $u.isNaN(index) || index < 0 || index > 40) {
                     $u.warn("index", index);
                     throw "Invalid identifying index!";
                 }
@@ -1134,7 +1134,7 @@
                     for (ot = 0, lenOt = attackOrderList.length; ot < lenOt; ot += 1) {
                         uOrder = attackOrderList[ot].toString().toLowerCase().ucFirst();
                         $u.log(3, "uOrder", uOrder);
-                        if (defaultOrderList.indexOf(uOrder) < 0) {
+                        if (!defaultOrderList.hasIndexOf(uOrder)) {
                             continue;
                         }
 

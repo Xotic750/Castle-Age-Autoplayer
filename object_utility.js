@@ -73,7 +73,7 @@
             b = b * 60 + parseInt(a[i], 10);
         }
 
-        if (isNaN(b)) {
+        if ($u.isNaN(b)) {
             b = -1;
         }
 
@@ -147,7 +147,7 @@
         if (t && t.length) {
             for (i = 0, l = t.length; i < l; i += 1) {
                 if (t[i] !== '') {
-                    a.push(isNaN(t[i]) ? t[i].trim() : parseFloat(t[i]));
+                    a.push($u.isNaN(t[i]) ? t[i].trim() : parseFloat(t[i]));
                 }
             }
         }
@@ -715,7 +715,7 @@
 
     Number.prototype.isInt = function () {
         var y = parseInt(this, 10);
-        if (isNaN(y)) {
+        if ($u.isNaN(y)) {
             return false;
         }
 
@@ -799,7 +799,7 @@
         log_level: 1,
 
         log_common: function (type, level, text) {
-            if ($u.get_log_level && !isNaN(level) && $u.get_log_level >= level) {
+            if ($u.get_log_level && !$u.isNaN(level) && $u.get_log_level >= level) {
                 var m = $u.log_version + ' |' + (new Date()).toLocaleTimeString() + '| ' + text,
                     t = [],
                     i = 0,
@@ -1392,7 +1392,7 @@
                             ciphertext   = '';
 
                         for (i = 0; i < nBytes; i += 1) {
-                            pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
+                            pwBytes[i] = $u.isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
                         }
 
                         key = cipher(pwBytes, keyExpansion(pwBytes));
@@ -1462,7 +1462,7 @@
                             plaintext    = '';
 
                         for (i = 0; i < nBytes; i += 1) {
-                            pwBytes[i] = isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
+                            pwBytes[i] = $u.isNaN(password.charCodeAt(i)) ? 0 : password.charCodeAt(i);
                         }
 
                         key = cipher(pwBytes, keyExpansion(pwBytes));

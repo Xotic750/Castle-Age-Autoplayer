@@ -18,13 +18,7 @@
 
     function caap_DomTimeOut() {
         caap_log("DOM onload timeout!!! Reloading ...");
-        if (typeof window.location.reload === 'function') {
-            window.location.reload();
-        } else if (typeof history.go === 'function') {
-            history.go(0);
-        } else {
-            window.location.href = window.location.href;
-        }
+        $u.refreshPage();
     }
 
     function caap_WaitForutility() {
@@ -52,45 +46,15 @@
         }
     }
 
-    function caap_WaitForjsonhpack() {
-        if (typeof JSON.hpack === 'function') {
-            caap_log("json.hpack ready ...");
+    function caap_WaitForFarbtastic() {
+        if (typeof jQuery.farbtastic === 'function') {
+            caap_log("farbtastic ready ...");
             if (typeof rison === 'undefined') {
                 caap_log("Inject rison.");
                 injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
             }
 
             caap_WaitForrison();
-        } else {
-            caap_log("Waiting for json.hpack ...");
-            window.setTimeout(caap_WaitForjsonhpack, 100);
-        }
-    }
-
-    function caap_WaitForjson2() {
-        if (typeof JSON.stringify === 'function' && typeof JSON.parse === 'function') {
-            caap_log("json2 ready ...");
-            if (typeof JSON.hpack !== 'function') {
-                caap_log("Inject json.hpack.");
-                injectScript('http://castle-age-auto-player.googlecode.com/files/json.hpack.min.js');
-            }
-
-            caap_WaitForjsonhpack();
-        } else {
-            caap_log("Waiting for json2 ...");
-            window.setTimeout(caap_WaitForjson2, 100);
-        }
-    }
-
-    function caap_WaitForFarbtastic() {
-        if (typeof jQuery.farbtastic === 'function') {
-            caap_log("farbtastic ready ...");
-            if (typeof JSON.stringify !== 'function') {
-                caap_log("Inject json2.");
-                injectScript('http://castle-age-auto-player.googlecode.com/files/json2.js');
-            }
-
-            caap_WaitForjson2();
         } else {
             caap_log("Waiting for farbtastic ...");
             window.setTimeout(caap_WaitForFarbtastic, 100);

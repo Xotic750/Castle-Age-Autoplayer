@@ -22,7 +22,7 @@
                 'enemyHealth' : 0,
                 'guildHealth' : 0,
                 'conditions'  : '',
-                'color'       : 'black'
+                'color'       : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"))
             };
         },
 
@@ -305,7 +305,7 @@
                                 if (imageName) {
                                     switch (imageName) {
                                     case "dragon_list_btn_3.jpg":
-                                        currentRecord['color'] = "black";
+                                        currentRecord['color'] = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
                                         currentRecord['state'] = "Alive";
                                         break;
                                     case "dragon_list_btn_2.jpg":
@@ -344,7 +344,7 @@
                     });
 
                     for (it = guild_monster.records.length - 1; it >= 0; it -= 1) {
-                        if (slotArr.indexOf(guild_monster.records[it]['slot']) < 0) {
+                        if (!slotArr.hasIndexOf(guild_monster.records[it]['slot'])) {
                             guild_monster.deleteItem(guild_monster.records[it]['slot']);
                         }
                     }
@@ -506,7 +506,7 @@
                         caap.Click(collectDiv);
                     }
                 } else {
-                    if (bannerDiv.children().eq(0).text().indexOf("You do not have an on going guild monster battle. Have your Guild initiate more!") >= 0) {
+                    if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
                         slot = state.getItem('guildMonsterReviewSlot', 0);
                         if ($u.isNumber(slot) && slot > 0 && slot <= 5) {
                             $u.log(1, "monster expired", slot);
@@ -629,19 +629,19 @@
                             continue;
                         }
 
-                        isSpecial = specialTargets.indexOf(it);
                         if (attackOrderList[ol] === String.fromCharCode(0)) {
                             isMatch = true;
                         } else {
-                            isMatch = ((record['minions'][it]['name'].toLowerCase()).indexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) < 0) ? false : true;
+                            isMatch = !record['minions'][it]['name'].toLowerCase().hasIndexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase());
                         }
 
                         if (isMatch) {
                             $u.log(2, "Minion matched", it, record['minions'][it]);
                         }
 
+                        isSpecial = specialTargets.hasIndexOf(it);
                         if (record['minions'][it]['status'] === 'Stunned') {
-                            if (isSpecial >= 0 && isNaN(record['minions'][it]['healthNum'])) {
+                            if (isSpecial && $u.isNaN(record['minions'][it]['healthNum'])) {
                                 specialTargets.pop();
                                 if (isMatch) {
                                     $u.log(2, "Special minion stunned", specialTargets);
@@ -653,8 +653,8 @@
                             continue;
                         }
 
-                        if (isSpecial >= 0) {
-                            if (!isNaN(record['minions'][it]['healthNum'])) {
+                        if (isSpecial) {
+                            if (!$u.isNaN(record['minions'][it]['healthNum'])) {
                                 specialTargets.pop();
                                 $u.log(2, "Not special minion", it, specialTargets);
                                 if (ignoreClerics && record['minions'][it]['mclass'] === "Cleric") {
@@ -669,7 +669,7 @@
                             }
                         }
 
-                        if (minHealth && isSpecial < 0) {
+                        if (minHealth && !isSpecial) {
                             if (record['minions'][it]['healthNum'] < minHealth) {
                                 if (!alive) {
                                     alive = it;
@@ -741,7 +741,7 @@
 
                     attackOrderList.push(guild_monster.records[it]['slot'].toString());
                     guild_monster.records[it]['conditions'] = 'none';
-                    guild_monster.records[it]['color'] = "black";
+                    guild_monster.records[it]['color'] = $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
                 }
 
                 for (ol = 0, len1 = attackOrderList.length; ol < len1; ol += 1) {
@@ -762,18 +762,18 @@
                         }
 
                         if (attackOrderList[ol] !== String.fromCharCode(0)) {
-                            if ((guild_monster.records[it]['slot'] + " " + guild_monster.records[it]['name'].toLowerCase()).indexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) < 0) {
+                            if (!(guild_monster.records[it]['slot'] + " " + guild_monster.records[it]['name'].toLowerCase()).hasIndexOf(attackOrderList[ol].match(new RegExp("^[^:]+")).toString().trim().toLowerCase())) {
                                 continue;
                             }
                         }
 
                         if (conditions) {
                             guild_monster.records[it]['conditions'] = conditions;
-                            if (conditions.indexOf("ach") >= 0) {
+                            if (conditions.hasIndexOf("ach")) {
                                 ach = monster.parseCondition('ach', conditions);
                             }
 
-                            if (conditions.indexOf("max") >= 0) {
+                            if (conditions.hasIndexOf("max")) {
                                 max = monster.parseCondition('max', conditions);
                             }
                         }
@@ -843,7 +843,7 @@
                     recordInfo     = guild_monster.info[record['name']],
                     specialTargets = recordInfo.special2.slice();
 
-                if (specialTargets.indexOf(minion['target_id']) >= 0 && isNaN(minion['healthNum'])) {
+                if (specialTargets.hasIndexOf(minion['target_id']) && $u.isNaN(minion['healthNum'])) {
                     if (caap.stats['staminaT']['num'] < 5) {
                         attack = 1;
                     } else if (caap.stats['staminaT']['num'] < 10) {
@@ -918,7 +918,7 @@
                     recordInfo     = guild_monster.info[record['name']],
                     specialTargets = recordInfo.special2.slice();
 
-                if (specialTargets.indexOf(minion['target_id']) >= 0 && isNaN(minion['healthNum'])) {
+                if (specialTargets.hasIndexOf(minion['target_id']) && $u.isNaN(minion['healthNum'])) {
                     stamina = 50;
                 } else if (minion['healthNum'] < recordInfo.health[0]) {
                     stamina = 1;

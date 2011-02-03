@@ -50,15 +50,15 @@
                             for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
                                 newRecord = {};
                                 for (column = 0; column < headersLen; column += 1) {
-                                    if (headersArr[column] === null || headersArr[column] === undefined || headersArr[column] === '') {
+                                    if (!$u.isDefined(headersArr[column]) || headersArr[column] === '') {
                                         $u.warn("Spreadsheet column is empty", column);
                                         continue;
                                     }
 
                                     cell = rows[row]["col" + column];
-                                    if (cell === null || cell === undefined || cell === '') {
+                                    if (!$u.isDefined(cell) || cell === '') {
                                         cell = null;
-                                    } else if (isNaN(cell)) {
+                                    } else if ($u.isNaN(cell)) {
                                         if (headersArr[column] === "attack" || headersArr[column] === "defense") {
                                             $u.warn("Spreadsheet " + headersArr[column] + " cell is NaN", cell);
                                         }
@@ -113,7 +113,7 @@
                 return false;
             }
         },
-        
+
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         getTitle: function (title, image) {
@@ -136,18 +136,18 @@
 
                 if (tempIt > -1) {
                     titleStr = spreadsheet.records[tempIt]['name'] + ": " + spreadsheet.records[tempIt]['type'];
-                    if (spreadsheet.records[tempIt]['attack'] !== null && spreadsheet.records[tempIt]['attack'] !== undefined && spreadsheet.records[tempIt]['defense'] !== null && spreadsheet.records[tempIt]['defense'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['attack']) && $u.isDefined(spreadsheet.records[tempIt]['defense'])) {
                         titleStr += ", " + spreadsheet.records[tempIt]['attack'] + "atk," + spreadsheet.records[tempIt]['defense'] + "def";
                     }
 
-                    if (spreadsheet.records[tempIt]['hero'] !== null && spreadsheet.records[tempIt]['hero'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['hero'])) {
                         titleStr += ", Hero: " + spreadsheet.records[tempIt]['hero'];
                         owned = general.owned(spreadsheet.records[tempIt]['hero']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if (spreadsheet.records[tempIt]['recipe1'] !== null && spreadsheet.records[tempIt]['recipe1'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe1'])) {
                         titleStr += ", Recipe1: " + spreadsheet.records[tempIt]['recipe1'];
                         if (spreadsheet.records[tempIt]['recipe1'] === "Map of Atlantis") {
                             owned = caap.stats['other']['atlantis'];
@@ -160,33 +160,33 @@
                         }
                     }
 
-                    if (spreadsheet.records[tempIt]['recipe2'] !== null && spreadsheet.records[tempIt]['recipe2'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe2'])) {
                         titleStr += ", Recipe2: " + spreadsheet.records[tempIt]['recipe2'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe2'], spreadsheet.records[tempIt]['recipe2image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if (spreadsheet.records[tempIt]['recipe3'] !== null && spreadsheet.records[tempIt]['recipe3'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe3'])) {
                         titleStr += ", Recipe3: " + spreadsheet.records[tempIt]['recipe3'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe3'], spreadsheet.records[tempIt]['recipe3image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if (spreadsheet.records[tempIt]['recipe4'] !== null && spreadsheet.records[tempIt]['recipe4'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe4'])) {
                         titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if (spreadsheet.records[tempIt]['summon'] !== null && spreadsheet.records[tempIt]['summon'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['summon'])) {
                         titleStr += ", Summon: " + spreadsheet.records[tempIt]['summon'];
                         opacity = true;
                     }
 
-                    if (spreadsheet.records[tempIt]['comment'] !== null && spreadsheet.records[tempIt]['comment'] !== undefined) {
+                    if ($u.isDefined(spreadsheet.records[tempIt]['comment'])) {
                         titleStr += ", Comment: " + spreadsheet.records[tempIt]['comment'];
                     }
                 }
@@ -220,14 +220,8 @@
                                 if (goblin && (tMes.opacity || tMes.hide)) {
                                     div = img.parent().parent();
                                     style = div.attr("style");
-                                    if (tMes.opacity) {
-                                        style += " opacity: 0.3;";
-                                    }
-
-                                    if (tMes.hide) {
-                                        style += " display: none;";
-                                    }
-
+                                    style += tMes.opacity ? " opacity: 0.3;" : '';
+                                    style += tMes.hide ? " display: none;" : '';
                                     div.attr("style", style);
                                 }
                             }
@@ -247,8 +241,7 @@
         isSummon: function (title, image) {
             try {
                 var it     = 0,
-                    tempIt = -1,
-                    summon = false;
+                    tempIt = -1;
 
                 for (it = spreadsheet.records.length - 1; it >= 0; it -= 1) {
                     if (spreadsheet.records[it]['name'] && spreadsheet.records[it]['name'] === title) {
@@ -259,13 +252,7 @@
                     }
                 }
 
-                if (tempIt > -1) {
-                    if (spreadsheet.records[tempIt]['summon'] !== null && spreadsheet.records[tempIt]['summon'] !== undefined) {
-                        summon = true;
-                    }
-                }
-
-                return summon;
+                return tempIt > -1 && $u.isDefined(spreadsheet.records[tempIt]['summon']) ? true : false;
             } catch (err) {
                 $u.error("ERROR in spreadsheet.isSummon: " + err);
                 return undefined;

@@ -9,6 +9,7 @@
         pageLoadCounter     : 0,
         flagReload          : false,
         waitingForDomLoad   : false,
+        delayMain           : false,
         pageLoadOK          : false,
         caapDivObject       : {},
         caapTopObject       : {},
@@ -51,7 +52,7 @@
             caap.domain.link = caap.domain.protocol[caap.domain.ptype] + caap.domain.url[caap.domain.which];
             $u.log(1, 'Domain', caap.domain.which, caap.domain.protocol[caap.domain.ptype], caap.domain.url[caap.domain.which]);
             caap.documentTitle = document.title;
-            $u.jQueryExtend();
+            caap.jQueryExtend();
             gm = new $u.storage({'namespace': 'caap'});
             ss = new $u.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
 
@@ -123,14 +124,7 @@
             if (!idOk) {
                 // Force reload without retrying
                 $u.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-                if ($u.isFunction(window.location.reload)) {
-                    window.location.reload();
-                } else if ($u.isFunction(history.go)) {
-                    history.go(0);
-                } else {
-                    window.location.href = window.location.href;
-                }
-
+                $u.refresh();
                 return;
             }
 
@@ -138,7 +132,6 @@
             ss.set_storage_id(FBID.toString());
             config.load();
             $u.set_log_level(config.getItem('DebugLevel', $u.get_log_level()));
-            $u.testsRun($u.get_log_level() >= 2 ? true : false);
             css.AddCSS();
             caap.lsUsed();
             schedule.load();
@@ -217,7 +210,7 @@
                         msg += "CAAP is using: " + perc.total + "%";
                         msg += "</div>";
                         window.setTimeout(function () {
-                            $u.alert(msg);
+                            $j().alert(msg);
                         }, 5000);
                     } else {
                         $u.log(1, "Total localStorage used: " + perc.total + "%");
@@ -399,7 +392,6 @@
                 army.init();
                 spreadsheet.load();
                 caap.AddControl();
-                caap.AddColorWheels();
                 caap.AddDashboard();
                 caap.AddListeners();
                 caap.AddDBListener();
@@ -573,7 +565,7 @@
 
         CheckForImage: function (image, webSlice, subDocument, nodeNum) {
             try {
-                nodeNum = $u.isNumber(nodeNum) ? nodeNum : (isNaN(nodeNum) ? 0 : nodeNum.parseInt());
+                nodeNum = $u.isNumber(nodeNum) ? nodeNum : ($u.isNaN(nodeNum) ? 0 : nodeNum.parseInt());
                 webSlice = $u.setContent(webSlice, ($u.isDefined(subDocument) && $u.isDefined(subDocument.body) ? subDocument.body : window.document.body));
                 webSlice = webSlice.jquery ? webSlice : $j(webSlice);
                 return webSlice.find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
@@ -625,10 +617,11 @@
             }
         },
 
-        MakeDropDown: function (idName, dropDownList, instructions, formatParms, defaultValue) {
+        MakeDropDown: function (idName, dropDownList, instructions, formatParms, defaultValue, css) {
             try {
                 var selectedItem = config.getItem(idName, 'defaultValue'),
-                    style        = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 10px; width: 100%;",
+                    id           = idName ? " id='caap_" + idName + "'" : '',
+                    title        = '',
                     htmlCode     = '',
                     item         = 0,
                     len          = 0;
@@ -641,14 +634,17 @@
                     }
                 }
 
-                htmlCode = "<select style=\"" + style + "\" id='caap_" + idName + "' " + (instructions[item] ? " title='" + instructions[item] + "' " : '') + $u.setContent(formatParms, '') + ">";
+                title = instructions[item] ? " title='" + instructions[item] + "'" : '';
+                css = css ? " style='" + css + "'" : '';
+                formatParms = formatParms ? ' ' + formatParms : '';
+                htmlCode = "<select class='caap_ff caap_fs caap_ww'" + id + css + title + formatParms + ">";
                 htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
                 for (item = 0; item < len; item += 1) {
-                    htmlCode += "<option value='" + dropDownList[item] + "'" + ((selectedItem === dropDownList[item]) ? " selected='selected'" : '');
-                    htmlCode += ($u.hasContent(instructions[item]) ? " title='" + instructions[item] + "'" : '') + ">" + $u.setContent(dropDownList[item], '') + "</option>";
+                    htmlCode += "<option value='" + dropDownList[item] + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item] + "</option>";
                 }
 
-                return htmlCode + '</select>';
+                htmlCode += "</select>";
+                return htmlCode;
             } catch (err) {
                 $u.error("ERROR in MakeDropDown: " + err);
                 return '';
@@ -657,7 +653,10 @@
 
         startTR: function (id, css) {
             try {
-                return "<div" + (id ? " id='" + id  + "'" : '') + (css ? " style=\"width: 100%;" + css + "\"" : '') + ">";
+                id = id ? " id='" + id  + "'" : '';
+                css = css ? " style='" + css + "'" : '';
+                var cls = " class='caap_ff caap_fn caap_ww'";
+                return "<div" + cls + id + css + ">";
             } catch (err) {
                 $u.error("ERROR in startTR: " + err);
                 return '';
@@ -666,25 +665,27 @@
 
         endTR: "</div>",
 
-        MakeTD: function (text, indent, right, css, params) {
+        MakeTD: function (text, indent, right, css) {
             try {
-                var style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;" + (indent ? "padding-left: 5%;" : '') + (right ? "text-align: right;" : '') + $u.setContent(css, '');
-                return "<div" + ($u.hasContent(params) ? ' ' + params : '') + " style=\"" + style + "\">" + text + caap.endTD;
+                var cls = " class='caap_ff caap_fn" + (indent ? " caap_in" : '') + (right ? " caap_tr" : '') + "'";
+                css = css ? " style='" + css + "'" : '';
+                return "<div" + cls + css + ">" + text + "</div>";
             } catch (err) {
                 $u.error("ERROR in MakeTD: " + err);
                 return '';
             }
         },
 
-        endTD: "</div>",
-
         MakeCheckBox: function (idName, defaultValue, instructions, css) {
             try {
-                var checkItem = config.getItem(idName, 'defaultValue'),
-                    style     = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;" + $u.setContent(css, '');
+                var id    = idName ? " id='caap_" + idName  + "'" : '',
+                    title = instructions ? " title='" + instructions + "'" : '',
+                    check = config.getItem(idName, 'defaultValue');
 
-                checkItem = checkItem !== 'defaultValue' ? checkItem : (config.setItem(idName, $u.setContent(defaultValue, false)));
-                return "<input style=\"" + style + "\" type='checkbox' id='caap_" + idName + "' title='" + ($u.hasContent(instructions) ? instructions + "'" : "'") + (checkItem ? ' checked' : '') + ' />';
+                check = check !== 'defaultValue' ? check : config.setItem(idName, $u.setContent(defaultValue, false));
+                check = check ? " checked" : '';
+                css = css ? " style='" + css + "'" : '';
+                return "<input class='caap_ff caap_fn' type='checkbox'" + id + css + title + check + ' />';
             } catch (err) {
                 $u.error("ERROR in MakeCheckBox: " + err);
                 return '';
@@ -693,20 +694,24 @@
 
         MakeNumberForm: function (idName, instructions, initDefault, formatParms, subtype, css) {
             try {
-                var value    = config.getItem(idName, 'defaultValue'),
-                    stNum    = false,
-                    style    = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 10px; text-align: right;" + $u.setContent(css, '');
+                var value = config.getItem(idName, 'defaultValue'),
+                    stNum = false,
+                    id    = idName ? " id='caap_" + idName + "'" : '',
+                    title = instructions ? " title='" + instructions + "'" : '';
 
                 subtype = $u.setContent(subtype, 'number');
+                css += subtype === 'color' ? 'background-color:' + value + '; color:' + $u.bestTextColor(value) + ';' : '';
+                css = css ? " style='" + css + "'" : '';
+                subtype = subtype ? " data-subtype='" + subtype + "'" : '';
                 stNum = subtype === 'number';
-                initDefault = stNum && $u.isNumber(initDefault) ? initDefault : (stNum && $u.hasContent(initDefault) && $u.isString(initDefault) && !isNaN(initDefault) ? initDefault.parseFloat() : (!stNum && $u.isString(initDefault) ? initDefault : ''));
-                if (stNum && $u.hasContent(initDefault) && isNaN(initDefault)) {
+                initDefault = stNum && $u.isNumber(initDefault) ? initDefault : (stNum && $u.hasContent(initDefault) && $u.isString(initDefault) && !$u.isNaN(initDefault) ? initDefault.parseFloat() : (!stNum && $u.isString(initDefault) ? initDefault : ''));
+                if (stNum && $u.hasContent(initDefault) && $u.isNaN(initDefault)) {
                     $u.warn("MakeNumberForm - default value is not a number!", idName, initDefault);
                 }
 
                 value = value !== 'defaultValue' ? value : config.setItem(idName, initDefault);
-                formatParms = $u.setContent(formatParms, "size='4'");
-                return "<input style=\"" + style + "\" type='text' data-subtype='" + subtype + "' id='caap_" + idName + "' " + formatParms + " title=" + '"' + instructions + '" ' + "value='" + value + "' />";
+                formatParms = $u.setContent(formatParms, '');
+                return "<input class='caap_ff caap_fs caap_tr caap_ww' type='text'" + subtype + id + css + formatParms + title + " value='" + value + "' />";
             } catch (err) {
                 $u.error("ERROR in MakeNumberForm: " + err);
                 return '';
@@ -729,7 +734,10 @@
 
         startCheckHide: function (idName, not) {
             try {
-                return "<div id='caap_" + idName + (not ? '_not' : '') + "_hide' style='display: " + (config.getItem(idName, false) ? (not ? 'none' : 'block') : (not ? 'block' : 'none')) + ";'>";
+                var id  = idName ? " id='caap_" + idName + (not ? "_not" : '') + "_hide'" : '',
+                    css = " style='display: " + (config.getItem(idName, false) ? (not ? 'none' : 'block') : (not ? 'block' : 'none')) + ";'";
+
+                return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
             } catch (err) {
                 $u.error("ERROR in startCheckHide: " + err);
                 return '';
@@ -749,7 +757,7 @@
             try {
                 var htmlCode = '';
                 htmlCode = caap.startTR();
-                htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
+                htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 92 - width : 97 - width) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeNumberForm(idName, instructions, initDefault, formatParms, subtype, ''), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
                 return htmlCode;
@@ -759,12 +767,12 @@
             }
         },
 
-        MakeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width) {
+        MakeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css) {
             try {
                 var htmlCode = '';
                 htmlCode = caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
-                htmlCode += caap.MakeTD(caap.MakeDropDown(idName, dropDownList, instructions, formatParms, defaultValue), false, true, "width: " + width + "%; display: inline-block;");
+                htmlCode += caap.MakeTD(caap.MakeDropDown(idName, dropDownList, instructions, formatParms, defaultValue, css), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
                 return htmlCode;
             } catch (err) {
@@ -775,10 +783,12 @@
 
         startDropHide: function (idName, idPlus, test, not) {
             try {
-                var value = config.getItem(idName, 'Never'),
-                    result = not ? value !== test : value === test;
+                var value  = config.getItem(idName, 'Never'),
+                    result = not ? value !== test : value === test,
+                    id     = " id='caap_" + idName + idPlus + "_hide'",
+                    css    = " style='display: " + (result ? 'block' : 'none') + ";'";
 
-                return "<div id='caap_" + idName + idPlus + "_hide' style='display: " + (result ? 'block' : 'none') + ";'>";
+                return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
             } catch (err) {
                 $u.error("ERROR in startDropHide: " + err);
                 return '';
@@ -1041,6 +1051,7 @@
                         x: 0,
                         y: 0
                     },
+                    bgc = state.getItem('StyleBackgroundLight', '#E0C691'),
                     htmlCode = '',
                     banner   = '',
                     divList  = [
@@ -1064,7 +1075,7 @@
                     ];
 
                 for (divID = 0, len = divList.length; divID < len; divID += 1) {
-                    caapDiv += "<div width='100%' id='caap_" + divList[divID] + "'></div>";
+                    caapDiv += "<div class='caap_ww' id='caap_" + divList[divID] + "'></div>";
                 }
 
                 //caapDiv += '<applet code="http://castle-age-auto-player.googlecode.com/files/localfile.class" archive="http://castle-age-auto-player.googlecode.com/files/localfile.jar" width="10" height="10"></applet>';
@@ -1077,15 +1088,16 @@
                     'font-family'           : "'lucida grande', tahoma, verdana, arial, sans-serif",
                     'font-size'             : '11px',
                     width                   : '180px',
-                    background              : config.getItem('StyleBackgroundLight', '#E0C691'),
+                    background              : bgc,
                     opacity                 : config.getItem('StyleOpacityLight', 1),
-                    color                   : '#000',
+                    color                   : $u.bestTextColor(bgc),
                     padding                 : "4px",
                     border                  : "2px solid #444",
                     top                     : styleXY.y + 'px',
                     left                    : styleXY.x + 'px',
                     zIndex                  : state.getItem('caap_div_zIndex', '2'),
                     position                : 'absolute',
+                    '-moz-border-radius'    : '5px',
                     'border-radius'         : '5px'
                 }).appendTo(document.body);
 
@@ -1107,10 +1119,12 @@
                 htmlCode += caap.AddGeneralsMenu();
                 htmlCode += caap.AddSkillPointsMenu();
                 htmlCode += caap.AddEliteGuardOptionsMenu();
+                htmlCode += caap.AddArmyOptionsMenu();
                 htmlCode += caap.AddGiftingOptionsMenu();
                 htmlCode += caap.AddAutoOptionsMenu();
                 htmlCode += caap.AddOtherOptionsMenu();
                 htmlCode += caap.AddFooterMenu();
+
                 caap.SetDivContent('control', htmlCode);
 
                 caap.CheckLastAction(state.getItem('LastAction', 'Idle'));
@@ -1161,11 +1175,11 @@
                 htmlCode += caap.MakeCheckTR("Bank Immediately", 'BankImmed', false, bankImmedInstructions);
                 htmlCode += caap.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, autobuyInstructions);
                 htmlCode += caap.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, autosellInstructions);
-                htmlCode += caap.MakeNumberFormTR("Keep In Bank", 'minInStore', bankInstructions0, 100000, "size='12'", '', false, false, 60);
-                htmlCode += caap.MakeNumberFormTR("Bank Above", 'MaxInCash', bankInstructions2, '', "size='7'", '', false, false, 40);
-                htmlCode += caap.MakeNumberFormTR("But Keep On Hand", 'MinInCash', bankInstructions1, '', "size='7'", '', true, false, 40);
-                htmlCode += caap.MakeNumberFormTR("Heal If Health Below", 'MinToHeal', healthInstructions, '', "size='2'", '', false, false, 25);
-                htmlCode += caap.MakeNumberFormTR("But Not If Stamina Below", 'MinStamToHeal', healthStamInstructions, '', "size='2'", '', true, false, 25);
+                htmlCode += caap.MakeNumberFormTR("Keep In Bank", 'minInStore', bankInstructions0, 100000, '', '', false, false, 60);
+                htmlCode += caap.MakeNumberFormTR("Bank Above", 'MaxInCash', bankInstructions2, '', '', '', false, false, 40);
+                htmlCode += caap.MakeNumberFormTR("But Keep On Hand", 'MinInCash', bankInstructions1, '', '', '', true, false, 40);
+                htmlCode += caap.MakeNumberFormTR("Heal If Health Below", 'MinToHeal', healthInstructions, '', '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("But Not If Stamina Below", 'MinStamToHeal', healthStamInstructions, '', '', '', true, false, 20);
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -1222,8 +1236,8 @@
                 htmlCode += caap.MakeDropDownTR("Quest When", 'WhenQuest', questWhenList, questWhenInst, '', 'Never', false, false, 60);
                 htmlCode += caap.startDropHide('WhenQuest', '', 'Never', true);
                 htmlCode += caap.startDropHide('WhenQuest', 'XEnergy', 'At X Energy', false);
-                htmlCode += caap.MakeNumberFormTR("Start At Or Above Energy", 'XQuestEnergy', XQuestInstructions, 1, "size='3'", '', false, false, 25);
-                htmlCode += caap.MakeNumberFormTR("Stop At Or Below Energy", 'XMinQuestEnergy', XMinQuestInstructions, 0, "size='3'", '', false, false, 25);
+                htmlCode += caap.MakeNumberFormTR("Start At Or Above Energy", 'XQuestEnergy', XQuestInstructions, 1, '', '', false, false, 25);
+                htmlCode += caap.MakeNumberFormTR("Stop At Or Below Energy", 'XMinQuestEnergy', XMinQuestInstructions, 0, '', '', false, false, 25);
                 htmlCode += caap.endDropHide('WhenQuest', 'XEnergy');
                 htmlCode += caap.MakeDropDownTR("Quest Area", 'QuestArea', questAreaList, '', '', '', false, false, 60);
                 switch (config.getItem('QuestArea', questAreaList[0])) {
@@ -1338,8 +1352,8 @@
                 htmlCode += "Warning: Monster Not Set To 'Stay Hidden'";
                 htmlCode += "</div>";
                 htmlCode += caap.startDropHide('WhenBattle', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Start Battles When Stamina", 'XBattleStamina', XBattleInstructions, 1, "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinBattleStamina', XMinBattleInstructions, 0, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Start Battles When Stamina", 'XBattleStamina', XBattleInstructions, 1, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinBattleStamina', XMinBattleInstructions, 0, '', '', false, false, 20);
                 htmlCode += caap.endDropHide('WhenBattle', 'XStamina');
                 htmlCode += caap.startDropHide('WhenBattle', 'DemiOnly', 'Demi Points Only', false);
                 htmlCode += caap.MakeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, observeDemiFirstInstructions);
@@ -1350,14 +1364,14 @@
                 htmlCode += caap.MakeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
                 htmlCode += caap.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
                 htmlCode += caap.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
-                htmlCode += caap.MakeNumberFormTR("Chain:Battle Points Won", 'ChainBP', chainBPInstructions, '', "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Chain:Gold Won", 'ChainGold', chainGoldInstructions, '', "size='5'", '', false, false, 30);
-                htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Chain:Battle Points Won", 'ChainBP', chainBPInstructions, '', '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Chain:Gold Won", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
+                htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '', false, false, 20);
                 htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 60);
                 htmlCode += caap.startDropHide('TargetType', 'Freshmeat', 'Freshmeat', false);
                 htmlCode += caap.MakeTD("Attack targets that are:");
-                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'FreshMeatARBase', FMARBaseInstructions, 0.5, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '', false, false, 20);
                 htmlCode += caap.endDropHide('TargetType', 'Freshmeat');
                 htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
                 htmlCode += caap.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions);
@@ -1432,13 +1446,13 @@
                 htmlCode += "Warning: Battle Not Set To 'Stay Hidden'";
                 htmlCode += "</div>";
                 htmlCode += caap.startDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Battle When Stamina", 'XMonsterStamina', XMonsterInstructions, 1, "size='3'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinMonsterStamina', XMinMonsterInstructions, 0, "size='3'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Battle When Stamina", 'XMonsterStamina', XMonsterInstructions, 1, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', false, false, 20);
                 htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '', false, false, 20);
                 htmlCode += caap.MakeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
                 htmlCode += caap.startCheckHide('UseTactics');
-                htmlCode += caap.MakeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, '', '', true, false, 20);
                 htmlCode += caap.endCheckHide('UseTactics');
                 htmlCode += caap.MakeCheckTR("Power Attack Only", 'PowerAttack', true, powerattackInstructions);
                 htmlCode += caap.startCheckHide('PowerAttack');
@@ -1460,9 +1474,9 @@
 
                 htmlCode += caap.MakeTD(subCode, false, false, "white-space: nowrap;");
                 htmlCode += caap.endCheckHide('DemiPointsFirst');
-                htmlCode += caap.MakeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '', false, false, 20);
                 htmlCode += caap.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
                 htmlCode += caap.MakeTD("Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a>");
                 htmlCode += caap.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
@@ -1496,8 +1510,8 @@
                 htmlCode += caap.MakeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 60);
                 htmlCode += caap.startDropHide('WhenGuildMonster', '', 'Never', true);
                 htmlCode += caap.startDropHide('WhenGuildMonster', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Max Stamina To Fight", 'MaxStaminaToGMonster', '', 0, "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep Stamina", 'MinStaminaToGMonster', '', 0, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Max Stamina To Fight", 'MaxStaminaToGMonster', '', 0, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep Stamina", 'MinStaminaToGMonster', '', 0, '', '', true, false, 20);
                 htmlCode += caap.endDropHide('WhenGuildMonster', 'XStamina');
                 htmlCode += caap.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, 'Prioritise the classic monsters and raids before Guild Monsters.');
                 htmlCode += caap.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, 'Perform siege assists when visiting your Guild Monster.');
@@ -1508,7 +1522,7 @@
                 htmlCode += caap.MakeTD("W" + caap.MakeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.MakeTD("E" + caap.MakeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.MakeTD("S" + caap.MakeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
-                htmlCode += caap.MakeNumberFormTR("Ignore Minions Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Ignore Minions Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, '', '', false, false, 20);
                 htmlCode += caap.MakeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
                 htmlCode += caap.MakeTD("Attack Monsters in this order");
                 htmlCode += caap.MakeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
@@ -1552,8 +1566,8 @@
                 htmlCode += caap.startDropHide('WhenArena', '', 'Never', true);
                 htmlCode += caap.MakeTD("Attack Classes in this order");
                 htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
-                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, "size='2'", '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Ignore Your Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Ignore Your Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '', false, false, 20);
                 htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
                 htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
                 htmlCode += caap.startCheckHide('doPoly');
@@ -1600,11 +1614,11 @@
                 htmlCode += caap.startToggle('Recon', 'RECON');
                 htmlCode += caap.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, PReconInstructions);
                 htmlCode += caap.startCheckHide('DoPlayerRecon');
-                htmlCode += caap.MakeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, "size='2'", '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, '', '', false, false, 20);
                 htmlCode += caap.MakeTD('Find battle targets that are:');
-                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'ReconPlayerRank', PRRankInstructions, 3, "size='2'", '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Not Higher Than Level Plus", 'ReconPlayerLevel', PRLevelInstructions, 10, "size='2'", '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'ReconPlayerARBase', PRARBaseInstructions, 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'ReconPlayerRank', PRRankInstructions, 3, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than Level Plus", 'ReconPlayerLevel', PRLevelInstructions, 10, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'ReconPlayerARBase', PRARBaseInstructions, 1, '', '', true, false, 20);
                 htmlCode += caap.endCheckHide('DoPlayerRecon');
                 htmlCode += caap.endToggle;
                 return htmlCode;
@@ -1654,7 +1668,7 @@
                 htmlCode += caap.MakeDropDownTR("Banking", 'BankingGeneral', general.BankingList, '', '', 'Use Current', false, false, 60);
                 htmlCode += caap.MakeDropDownTR("Level Up", 'LevelUpGeneral', general.List, '', '', 'Use Current', false, false, 60);
                 htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
-                htmlCode += caap.MakeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, '', '', true, false, 20);
                 htmlCode += caap.MakeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
@@ -1709,10 +1723,10 @@
                 htmlCode += caap.startCheckHide('AutoStatAdv', true);
                 for (it = 0; it < 5; it += 1) {
                     htmlCode += caap.startTR();
-                    htmlCode += caap.MakeTD("Increase", false, false, "width: 25%; display: inline-block;");
-                    htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 45%; display: inline-block;");
-                    htmlCode += caap.MakeTD("to", false, true, "width: 10%; display: inline-block;");
-                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, 0, "size='4'", 'text'), false, true, "width: 20%; display: inline-block;");
+                    htmlCode += caap.MakeTD("Increase", false, false, "width: 27%; display: inline-block;");
+                    htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 40%; display: inline-block;");
+                    htmlCode += caap.MakeTD("to", false, false, "text-align: center; width: 10%; display: inline-block;");
+                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, 0, '', 'text'), false, true, "width: 20%; display: inline-block;");
                     htmlCode += caap.endTR;
                 }
 
@@ -1724,7 +1738,7 @@
                     htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%; display: inline-block;");
                     htmlCode += caap.MakeTD("using", true, false, "width: 25%; display: inline-block;");
                     htmlCode += caap.endTR;
-                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 98%;'), false, false, '');
+                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'), false, false, '');
                 }
 
                 htmlCode += caap.endCheckHide('AutoStatAdv');
@@ -1812,6 +1826,38 @@
             }
         },
 
+        AddArmyOptionsMenu: function () {
+            try {
+                // Other controls
+                var armyInstructions = "Enable or disable the Army functions. Required when using CA's alternative URL.",
+                    armyScanInstructions = "Scan the army pages every X days.",
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
+                htmlCode += caap.MakeCheckTR('Enable Army Functions', 'EnableArmy', true, armyInstructions);
+                htmlCode += caap.startCheckHide('EnableArmy');
+                htmlCode += caap.MakeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '', false, false, 20);
+                htmlCode += caap.MakeCheckTR('Change Indicators', 'ArmyIndicators', false, '');
+                htmlCode += caap.startCheckHide('ArmyIndicators');
+                htmlCode += caap.MakeNumberFormTR("Recent", 'ArmyAgeDaysColor0', '', '#008000', '', 'color', false, false, 50);
+                htmlCode += caap.MakeNumberFormTR("Warn 1 (days)", 'ArmyAgeDays1', '', 7, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 2", 'ArmyAgeDaysColor1', '', '#ADFF2F', '', 'color', false, false, 50);
+                htmlCode += caap.MakeNumberFormTR("Warn 2 (days)", 'ArmyAgeDays2', '', 14, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 3", 'ArmyAgeDaysColor2', '', '#FFD700', '', 'color', false, false, 50);
+                htmlCode += caap.MakeNumberFormTR("Warn 3 (days)", 'ArmyAgeDays3', '', 21, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 4", 'ArmyAgeDaysColor3', '', '#FF8C00', '', 'color', false, false, 50);
+                htmlCode += caap.MakeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
+                htmlCode += caap.endCheckHide('ArmyIndicators');
+                htmlCode += caap.endCheckHide('EnableArmy');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in AddArmyOptionsMenu: " + err);
+                return '';
+            }
+        },
+
         AddAutoOptionsMenu: function () {
             try {
                 // Other controls
@@ -1852,11 +1898,11 @@
                 htmlCode += caap.MakeDropDownTR("Auto bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 60);
                 htmlCode += caap.MakeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
                 htmlCode += caap.startCheckHide('AutoPotions');
-                htmlCode += caap.MakeNumberFormTR("Spend Stamina Potions At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, "size='2'", '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep Stamina Potions", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, "size='2'", '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Spend Energy Potions At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, "size='2'", '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep Energy Potions", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, "size='2'", '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Spend Stamina Potions At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep Stamina Potions", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Spend Energy Potions At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Keep Energy Potions", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, '', '', true, false, 20);
                 htmlCode += caap.endCheckHide('AutoPotions');
                 htmlCode += caap.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, autoAlchemyInstructions1);
                 htmlCode += caap.startCheckHide('AutoAlchemy');
@@ -1889,6 +1935,7 @@
                     recipeCleanInstructions = "CAAP will try to hide recipes that are no longer required on the Alchemy page and therefore shrink the list further.",
                     recipeCleanCountInstructions = "The number of items to be owned before cleaning the recipe item from the Alchemy page.",
                     bookmarkModeInstructions = "Enable this if you are running CAAP from a bookmark. Disables refreshes and gifting. Note: not recommended for long term operation.",
+                    levelupModeInstructions = "Calculates approx. how many XP points you will get from your current stamina and energy and when you have enough of each to level up it will start using them down to 0.",
                     styleList = [
                         'CA Skin',
                         'Original',
@@ -1904,7 +1951,7 @@
                 htmlCode += caap.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
                 htmlCode += caap.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
                 htmlCode += caap.startCheckHide('enableRecipeClean');
-                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true, false, 20);
                 htmlCode += caap.endCheckHide('enableRecipeClean');
                 htmlCode += caap.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
                 htmlCode += caap.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
@@ -1913,37 +1960,26 @@
                 htmlCode += caap.MakeCheckTR('Display Action', 'SetTitleAction', false, titleInstructions1, true);
                 htmlCode += caap.MakeCheckTR('Display Name', 'SetTitleName', false, titleInstructions2, true);
                 htmlCode += caap.endCheckHide('SetTitle');
+                htmlCode += caap.MakeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
                 htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
                 htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
                 htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
                 htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
-
-                htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', '', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 60);
                 htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
-
-                htmlCode += caap.startTR();
-                htmlCode += caap.MakeTD("Started", true, false, "font-weight:bold; width: 60%; display: inline-block;");
-                htmlCode += caap.MakeTD("<input type='button' id='caap_StartedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px;' />", false, true, 'width: 35%; display: inline-block;');
-                htmlCode += caap.endTR;
-
-                htmlCode += caap.MakeNumberFormTR("RGB Color", 'StyleBackgroundLight', '#FFF or #FFFFFF', '#E0C691', "size='9'", '', true, false, 50);
-                htmlCode += caap.MakeNumberFormTR("Transparency", 'StyleOpacityLight', '0 ~ 1', 1, "size='2'", '', true, false, 20);
-
-                htmlCode += caap.startTR();
-                htmlCode += caap.MakeTD("Stopped", true, false, "font-weight:bold; width: 60%; display: inline-block;");
-                htmlCode += caap.MakeTD("<input type='button' id='caap_StopedColorSelect' value='Select' style='padding: 0; font-size: 10px; height: 18px;' />", false, true, 'width: 35%; display: inline-block;');
-                htmlCode += caap.endTR;
-
-                htmlCode += caap.MakeNumberFormTR("RGB Color", 'StyleBackgroundDark', '#FFF or #FFFFFF', '#B09060', "size='9'", '', true, false, 50);
-                htmlCode += caap.MakeNumberFormTR("Transparency", 'StyleOpacityDark', "0 ~ 1", 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeTD("Running:");
+                htmlCode += caap.MakeNumberFormTR("Background Color", 'CustStyleBackgroundLight', '#FFFFFF', '#E0C691', '', 'color', true, false, 40);
+                htmlCode += caap.MakeNumberFormTR("Background Transparency", 'CustStyleOpacityLight', '0 ~ 1', 1, '', '', true, false, 20);
+                htmlCode += caap.MakeTD("Paused:");
+                htmlCode += caap.MakeNumberFormTR("Background Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
+                htmlCode += caap.MakeNumberFormTR("Background Transparency", 'CustStyleOpacityDark', "0 ~ 1", 1, '', '', true, false, 20);
                 htmlCode += caap.endDropHide('DisplayStyle');
-
+                htmlCode += caap.MakeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions);
                 htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions);
                 htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false);
                 htmlCode += caap.startCheckHide('ChangeLogLevel');
-                htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, "size='2'", '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false, 20);
                 htmlCode += caap.endCheckHide('ChangeLogLevel');
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
                 htmlCode += caap.endTR;
@@ -1982,51 +2018,6 @@
             }
         },
 
-        AddColorWheels: function () {
-            try {
-                function fb1call(color) {
-                    $j('#caap_ColorSelectorDiv1').css({'background-color': color});
-                    $j('#caap_StyleBackgroundLight').val(color);
-                    config.setItem("StyleBackgroundLight", color);
-                    state.setItem("CustStyleBackgroundLight", color);
-                }
-
-                $j.farbtastic($j("<div id='caap_ColorSelectorDiv1'></div>").css({
-                    background : config.getItem("StyleBackgroundLight", "#E0C691"),
-                    padding    : "5px",
-                    border     : "2px solid #000",
-                    top        : (window.innerHeight / 2) - 100 + 'px',
-                    left       : (window.innerWidth / 2) - 290 + 'px',
-                    zIndex     : '1337',
-                    position   : 'fixed',
-                    display    : 'none'
-                }).appendTo(document.body), fb1call).setColor(config.getItem("StyleBackgroundLight", "#E0C691"));
-
-                function fb2call(color) {
-                    $j('#caap_ColorSelectorDiv2').css({'background-color': color});
-                    $j('#caap_StyleBackgroundDark').val(color);
-                    config.setItem("StyleBackgroundDark", color);
-                    state.setItem("CustStyleBackgroundDark", color);
-                }
-
-                $j.farbtastic($j("<div id='caap_ColorSelectorDiv2'></div>").css({
-                    background : config.getItem("StyleBackgroundDark", "#B09060"),
-                    padding    : "5px",
-                    border     : "2px solid #000",
-                    top        : (window.innerHeight / 2) - 100 + 'px',
-                    left       : (window.innerWidth / 2) + 'px',
-                    zIndex     : '1337',
-                    position   : 'fixed',
-                    display    : 'none'
-                }).appendTo(document.body), fb2call).setColor(config.getItem("StyleBackgroundDark", "#B09060"));
-
-                return true;
-            } catch (err) {
-                $u.error("ERROR in AddColorWheels: " + err);
-                return false;
-            }
-        },
-
         AddDashboard: function () {
             try {
                 /*-------------------------------------------------------------------------------------\
@@ -2038,7 +2029,8 @@
                     styleXY = {
                         x: 0,
                         y: 0
-                    };
+                    },
+                    bgc = state.getItem("StyleBackgroundLight", "#E0C961");
 
                 /*-------------------------------------------------------------------------------------\
                 DBDropDown is used to make our drop down boxes for dash board controls.  These require
@@ -2155,7 +2147,8 @@
                 $j(layout).css({
                     'font-family'           : "'lucida grande', tahoma, verdana, arial, sans-serif",
                     'font-size'             : '11px',
-                    background              : config.getItem("StyleBackgroundLight", "white"),
+                    background              : bgc,
+                    color                   : $u.bestTextColor(bgc),
                     padding                 : "5px",
                     height                  : "185px",
                     width                   : "610px",
@@ -2165,6 +2158,7 @@
                     left                    : styleXY.x + 'px',
                     zIndex                  : state.getItem('caap_top_zIndex', 1),
                     position                : 'absolute',
+                    '-moz-border-radius'    : '5px',
                     'border-radius'         : '5px'
                 }).appendTo(document.body);
 
@@ -2192,34 +2186,32 @@
         //                      MONSTERS DASHBOARD
         // Display the current monsters and stats
         /////////////////////////////////////////////////////////////////////
-        decHours2HoursMin : function (decHours) {
-            var hours   = Math.floor(decHours),
-                minutes = Math.floor((decHours - hours) * 60);
-
-            return hours + ':' + minutes < 10 ? '0' + minutes : minutes;
-        },
 
         makeTh: function (obj) {
             var header = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
+                type   = " data-type='bestcolor'",
                 html   = '<th';
 
             header = obj;
-            header.color = $u.setContent(header.color, 'black');
+            type = $u.hasContent(header.color) ? '' : type;
+            header.color = $u.setContent(header.color, $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961")));
             html += $u.hasContent(header.id) ? " id='" + header.id + "'" : '';
             html += $u.hasContent(header.title) ? " title='" + header.title + "'" : '';
-            html += " style='color:" + header.color + ";font-size:10px;font-weight:bold;text-align:left;" + ($u.hasContent(header.bgcolor) ? "background-color:" + header.bgcolor + ";" : '') + ($u.hasContent(header.width) ? "width:" + header.width + ";" : '') + "'>" + header.text + "</th>";
+            html += type + " style='color:" + header.color + ";font-size:10px;font-weight:bold;text-align:left;" + ($u.hasContent(header.bgcolor) ? "background-color:" + header.bgcolor + ";" : '') + ($u.hasContent(header.width) ? "width:" + header.width + ";" : '') + "'>" + header.text + "</th>";
             return html;
         },
 
         makeTd: function (obj) {
             var data = {text: '', color: '', bgcolor: '', id: '',  title: ''},
+                type = " data-type='bestcolor'",
                 html = '<td';
 
             data = obj;
-            data.color = $u.setContent(data.color, 'black');
+            type = $u.hasContent(data.color) ? '' : type;
+            data.color = $u.setContent(data.color, $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961")));
             html += $u.hasContent(data.id) ? " id='" + data.id + "'" : '';
             html += $u.hasContent(data.title) ? " title='" + data.title + "'" : '';
-            html += " style='color:" + data.color + ";font-size:10px;text-align:left;" + ($u.hasContent(data.bgcolor) ? "background-color:" + data.bgcolor + ";" : '') + "'>" + data.text + "</td>";
+            html += type + " style='color:" + data.color + ";font-size:10px;text-align:left;" + ($u.hasContent(data.bgcolor) ? "background-color:" + data.bgcolor + ";" : '') + "'>" + data.text + "</td>";
             return html;
         },
 
@@ -2265,7 +2257,6 @@
                     monsterConditions        = '',
                     achLevel                 = 0,
                     maxDamage                = 0,
-                    titleCol                 = 'black',
                     valueCol                 = 'red',
                     it                       = 0,
                     len                      = 0,
@@ -2299,8 +2290,8 @@
                         }
 
                         monsterConditions = monsterObj['conditions'];
-                        achLevel = $u.hasContent(monsterConditions) ? monster.parseCondition('ach', monsterConditions) : 0;
-                        maxDamage = $u.hasContent(monsterConditions) ? monster.parseCondition('max', monsterConditions) : 0;
+                        achLevel = monster.parseCondition('ach', monsterConditions);
+                        maxDamage = monster.parseCondition('max', monsterConditions);
                         monsterObjLink = monsterObj['link'];
                         if (monsterObjLink) {
                             visitMonsterLink = monsterObjLink.replace("&action=doObjective", "").match(linkRegExp);
@@ -2326,7 +2317,7 @@
                             } else {
                                 value = monsterObj[displayItem];
                                 if (value !== '' && (value >= 0 || value.length)) {
-                                    if (!isNaN(value) && value > 999) {
+                                    if (!$u.isNaN(value) && value > 999) {
                                         value = value.addCommas();
                                     }
 
@@ -2352,7 +2343,7 @@
 
                                         break;
                                     case 't2k' :
-                                        value = caap.decHours2HoursMin(value);
+                                        value = $u.minutes2hours(value);
                                         title = "Estimated Time To Kill: " + value + " hours:mins";
                                         break;
                                     case 'life' :
@@ -2581,7 +2572,7 @@
                         };
 
                         html += caap.makeTd(data);
-                        color = arena.records[i]['state'] === 'Alive' ? 'green' : 'black';
+                        color = arena.records[i]['state'] === 'Alive' ? 'green' : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
                         color = arena.records[i]['state'] === 'Alive' && arena.records[i]['enemyHealth'] === arena.records[i]['teamHealth'] ? 'purple' : color;
                         color = arena.records[i]['enemyHealth'] > arena.records[i]['teamHealth'] ? 'red' : color;
                         for (pp = 0; pp < values.length; pp += 1) {
@@ -2633,7 +2624,7 @@
                 \-------------------------------------------------------------------------------------*/
                 if (state.getItem("ArmyDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Delete'];
+                    headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', 'Delete'];
                     values  = ['userId', 'user', 'name', 'lvl',   'change'];
                     for (pp = 0; pp < headers.length; pp += 1) {
                         header = {
@@ -2644,10 +2635,10 @@
                             title : '',
                             width : ''
                         };
-                            
+
                         switch (headers[pp]) {
                         case 'UserId':
-                            header.width = '20%';
+                            header.width = '18%';
                             break;
                         case 'User':
                             header.width = '25%';
@@ -2656,7 +2647,7 @@
                             header.width = '30%';
                             break;
                         case 'Level':
-                            header.width = '10%';
+                            header.width = '7%';
                             break;
                         case 'Change':
                             header.width = '10%';
@@ -2664,32 +2655,33 @@
                         default:
                             header.text = headers[pp];
                             header.width = '5%';
+                            header.color = '';
                         }
-                        
+
                         html += caap.makeTh(header);
                     }
 
                     html += '</tr>';
                     for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
                         html += "<tr>";
-                        if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays4", 28, hiddenVar) * 86400)) {
-                            color = gm.getItem("ArmyAgeDaysColor4", 'red', hiddenVar);
-                        } else if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays3", 21, hiddenVar) * 86400)) {
-                            color = gm.getItem("ArmyAgeDaysColor3", 'darkorange', hiddenVar);
-                        } else if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays2", 14, hiddenVar) * 86400)) {
-                            color = gm.getItem("ArmyAgeDaysColor2", 'gold', hiddenVar);
-                        } else if (schedule.since(army.recordsSortable[i]['change'], gm.getItem("ArmyAgeDays1", 7, hiddenVar) * 86400)) {
-                            color = gm.getItem("ArmyAgeDaysColor1", 'greenyellow', hiddenVar);
+                        if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor4", 'red');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays3", 21) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor3", 'darkorange');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays2", 14) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor2", 'gold');
+                        } else if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays1", 7) * 86400)) {
+                            color = config.getItem("ArmyAgeDaysColor1", 'greenyellow');
                         } else {
-                            color = gm.getItem("ArmyAgeDaysColor0", 'green', hiddenVar);
+                            color = config.getItem("ArmyAgeDaysColor0", 'green');
                         }
-                                
+
                         for (pp = 0, len1 = values.length; pp < len1; pp += 1) {
                             if (values[pp] === "change") {
                                 html += caap.makeTd({
                                     text  : $u.hasContent(army.recordsSortable[i][values[pp]]) && ($u.isString(army.recordsSortable[i][values[pp]]) || army.recordsSortable[i][values[pp]] > 0) ? $u.makeTime(army.recordsSortable[i][values[pp]], "d-m-Y") : '',
                                     bgcolor : color,
-                                    color : '',
+                                    color : $u.bestTextColor(color),
                                     id    : '',
                                     title : ''
                                 });
@@ -2704,7 +2696,7 @@
                                     id    : '',
                                     title : ''
                                 };
-                                
+
                                 html += caap.makeTd(data);
                             } else {
                                 html += caap.makeTd({
@@ -2715,7 +2707,16 @@
                                 });
                             }
                         }
-                        
+
+                        data = {
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+
                         removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].html_escape() + " from your army!";
                         data = {
                             text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].html_escape() +
@@ -2726,7 +2727,7 @@
                         };
 
                         html += caap.makeTd(data);
-                        
+
                         html += '</tr>';
                     }
 
@@ -2754,6 +2755,33 @@
                     caap.caapTopObject.find("span[id*='caap_targetarmy_']").unbind('click', handler).click(handler);
 
                     handler = function (e) {
+                        var userid = 0,
+                            cstate = false,
+                            i      = 0,
+                            len    = 0,
+                            record = {};
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'userid') {
+                                userid = e.target.attributes[i].nodeValue.parseInt();
+                            } else if (e.target.attributes[i].nodeName === 'cstate') {
+                                cstate = e.target.attributes[i].nodeValue === 'true' ? true : false;
+                            }
+                        }
+
+                        if ($u.hasContent(userid) && userid > 0) {
+                            record = army.find(userid);
+                            record['elite'] = !cstate;
+                            army.setItem(record);
+                            $u.log(3, "check", userid, record, e.target.attributes);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.UpdateDashboard(true);
+                        }
+                    };
+
+                    caap.caapTopObject.find("input[id*='caap_elitearmy_']").unbind('change', handler).change(handler);
+
+                    handler = function (e) {
                         var mname  = '',
                             userid = '',
                             i      = 0,
@@ -2762,7 +2790,7 @@
 
                         for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
                             if (e.target.attributes[i].nodeName === 'userid') {
-                                userid = e.target.attributes[i].nodeValue;
+                                userid = e.target.attributes[i].nodeValue.parseInt();
                             } else if (e.target.attributes[i].nodeName === 'mname') {
                                 mname = e.target.attributes[i].nodeValue;
                             }
@@ -2771,6 +2799,9 @@
                         resp = confirm("Are you sure you want to remove " + mname + " from your army?");
                         if (resp === true) {
                             caap.ClickAjaxLinkSend("army_member.php?action=delete&player_id=" + userid);
+                            army.deleteItem(userid);
+                            state.setItem("ArmyDashUpdate", true);
+                            caap.UpdateDashboard(true);
                         }
                     };
 
@@ -2795,7 +2826,7 @@
                     };
 
                     caap.caapTopObject.find("span[id*='caap_army_']").unbind('click', handler).click(handler);
-                    
+
                     state.setItem("ArmyDashUpdate", false);
                 }
 
@@ -2828,18 +2859,18 @@
 
                                 html += caap.makeTd(data);
                             } else if (/\S+Num/.test(values[pp])) {
-                                html += caap.makeTd({text: caap.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
+                                html += caap.makeTd({text: caap.ReconRecordArray[i][values[pp]], color: '', id: '', title: ''});
                             } else if (/\S+Time/.test(values[pp])) {
                                 data = {
                                     text  : $u.makeTime(caap.ReconRecordArray[i][values[pp]], "d M H:i"),
-                                    color : 'black',
+                                    color : '',
                                     id    : '',
                                     title : ''
                                 };
 
                                 html += caap.makeTd(data);
                             } else {
-                                html += caap.makeTd({text: caap.ReconRecordArray[i][values[pp]], color: 'black', id: '', title: ''});
+                                html += caap.makeTd({text: caap.ReconRecordArray[i][values[pp]], color: '', id: '', title: ''});
                             }
                         }
 
@@ -2900,11 +2931,11 @@
 
                                 html += caap.makeTd(data);
                             } else if (/rankNum/.test(values[pp])) {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: 'black', id: '', title: battle.records[i]['rankStr']});
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['rankStr']});
                             } else if (/warRankNum/.test(values[pp])) {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: 'black', id: '', title: battle.records[i]['warRankStr']});
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: battle.records[i]['warRankStr']});
                             } else {
-                                html += caap.makeTd({text: battle.records[i][values[pp]], color: 'black', id: '', title: ''});
+                                html += caap.makeTd({text: battle.records[i][values[pp]], color: '', id: '', title: ''});
                             }
                         }
 
@@ -2949,238 +2980,238 @@
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Facebook ID', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Facebook ID', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['FBID'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Account Name', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Account Name', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['account'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Character Name', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Character Name', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['PlayerName'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Energy', color: titleCol, id: '', title: 'Current/Max'});
+                    html += caap.makeTd({text: 'Energy', color: '', id: '', title: 'Current/Max'});
                     html += caap.makeTd({text: caap.stats['energy']['num'] + '/' + caap.stats['energy']['max'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Level', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Level', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['level'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Stamina', color: titleCol, id: '', title: 'Current/Max'});
+                    html += caap.makeTd({text: 'Stamina', color: '', id: '', title: 'Current/Max'});
                     html += caap.makeTd({text: caap.stats['stamina']['num'] + '/' + caap.stats['stamina']['max'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Battle Rank', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Battle Rank', color: '', id: '', title: ''});
                     html += caap.makeTd({text: battle.battleRankTable[caap.stats['rank']['battle']] + ' (' + caap.stats['rank']['battle'] + ')', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Attack', color: titleCol, id: '', title: 'Current/Max'});
+                    html += caap.makeTd({text: 'Attack', color: '', id: '', title: 'Current/Max'});
                     html += caap.makeTd({text: caap.stats['attack'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Battle Rank Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Battle Rank Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['rank']['battlePoints'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Defense', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Defense', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['defense'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'War Rank', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'War Rank', color: '', id: '', title: ''});
                     html += caap.makeTd({text: battle.warRankTable[caap.stats['rank']['war']] + ' (' + caap.stats['rank']['war'] + ')', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Health', color: titleCol, id: '', title: 'Current/Max'});
+                    html += caap.makeTd({text: 'Health', color: '', id: '', title: 'Current/Max'});
                     html += caap.makeTd({text: caap.stats['health']['num'] + '/' + caap.stats['health']['max'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'War Rank Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'War Rank Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['rank']['warPoints'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Army', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Army', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['army']['actual'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Generals', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Generals', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['generals']['total'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Generals When Invade', color: titleCol, id: '', title: 'For every 5 army members you have, one of your generals will also join the fight.'});
+                    html += caap.makeTd({text: 'Generals When Invade', color: '', id: '', title: 'For every 5 army members you have, one of your generals will also join the fight.'});
                     html += caap.makeTd({text: caap.stats['generals']['invade'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Gold In Bank', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Gold In Bank', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '$' + caap.stats['gold']['bank'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Total Income Per Hour', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Total Income Per Hour', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '$' + caap.stats['gold']['income'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Gold In Cash', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Gold In Cash', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '$' + caap.stats['gold']['cash'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Upkeep', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Upkeep', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '$' + caap.stats['gold']['upkeep'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Total Gold', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Total Gold', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '$' + caap.stats['gold']['total'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Cash Flow Per Hour', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Cash Flow Per Hour', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '$' + caap.stats['gold']['flow'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Skill Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Skill Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['points']['skill'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Energy Potions', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Energy Potions', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['potions']['energy'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Favor Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Favor Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['points']['favor'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Stamina Potions', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Stamina Potions', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['potions']['stamina'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Experience To Next Level (ETNL)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Experience To Next Level (ETNL)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['exp']['dif'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Battle Strength Index (BSI)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Battle Strength Index (BSI)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['bsi'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Hours To Level (HTL)', color: titleCol, id: '', title: ''});
-                    html += caap.makeTd({text: caap.decHours2HoursMin(caap.stats['indicators']['htl']), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Levelling Speed Index (LSI)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Hours To Level (HTL)', color: '', id: '', title: ''});
+                    html += caap.makeTd({text: $u.minutes2hours(caap.stats['indicators']['htl']), color: valueCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Levelling Speed Index (LSI)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['lsi'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Hours Remaining To Level (HRTL)', color: titleCol, id: '', title: ''});
-                    html += caap.makeTd({text: caap.decHours2HoursMin(caap.stats['indicators']['hrtl']), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Skill Points Per Level (SPPL)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Hours Remaining To Level (HRTL)', color: '', id: '', title: ''});
+                    html += caap.makeTd({text: $u.minutes2hours(caap.stats['indicators']['hrtl']), color: valueCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Skill Points Per Level (SPPL)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['sppl'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Expected Next Level (ENL)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Expected Next Level (ENL)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr()), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Attack Power Index (API)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Attack Power Index (API)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['api'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Defense Power Index (DPI)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Defense Power Index (DPI)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['dpi'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Mean Power Index (MPI)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Mean Power Index (MPI)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['indicators']['mpi'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Battles/Wars Won', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Battles/Wars Won', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['bww'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Times eliminated', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Times eliminated', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['te'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Battles/Wars Lost', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Battles/Wars Lost', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['bwl'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Times you eliminated an enemy', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Times you eliminated an enemy', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['tee'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Battles/Wars Win/Loss Ratio (WLR)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['wlr'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Enemy Eliminated/Eliminated Ratio (EER)', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['eer'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Invasions Won', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Invasions Won', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['battle']['invasions']['won'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Duels Won', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Duels Won', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['battle']['duels']['won'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Invasions Lost', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Invasions Lost', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['battle']['invasions']['lost'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Duels Lost', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Duels Lost', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['battle']['duels']['lost'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Invasions Streak', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Invasions Streak', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['battle']['invasions']['streak'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Duels Streak', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Duels Streak', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['battle']['duels']['streak'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Invasions Win/loss Ratio (IWLR)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Invasions Win/loss Ratio (IWLR)', color: '', id: '', title: ''});
                     if (caap.stats['achievements']['battle']['invasions']['ratio']) {
                         html += caap.makeTd({text: caap.stats['achievements']['battle']['invasions']['ratio'], color: valueCol, id: '', title: ''});
                     } else {
                         html += caap.makeTd({text: caap.stats['achievements']['battle']['invasions']['ratio'], color: valueCol, id: '', title: ''});
                     }
 
-                    html += caap.makeTd({text: 'Duels Win/loss Ratio (DWLR)', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Duels Win/loss Ratio (DWLR)', color: '', id: '', title: ''});
                     if (caap.stats['achievements']['battle']['duels']['ratio']) {
                         html += caap.makeTd({text: caap.stats['achievements']['battle']['duels']['ratio'], color: valueCol, id: '', title: ''});
                     } else {
@@ -3190,149 +3221,149 @@
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Quests Completed', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Quests Completed', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['other']['qc'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Alchemy Performed', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Alchemy Performed', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['other']['alchemy'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Gildamesh, The Orc King Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Gildamesh, The Orc King Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['gildamesh'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Lotus Ravenmoore Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Lotus Ravenmoore Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['lotus'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'The Colossus of Terra Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'The Colossus of Terra Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['colossus'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Dragons Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Dragons Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['dragons'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Sylvanas the Sorceress Queen Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['sylvanas'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Cronus, The World Hydra Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Cronus, The World Hydra Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['cronus'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Keira the Dread Knight Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Keira the Dread Knight Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['keira'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'The Battle of the Dark Legion Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'The Battle of the Dark Legion Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['legion'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Genesis, The Earth Elemental Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Genesis, The Earth Elemental Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['genesis'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Skaar Deathrune Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Skaar Deathrune Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['skaar'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Gehenna, The Fire Elemental Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['gehenna'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Sieges Assisted With', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Sieges Assisted With', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['sieges'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: "Aurelius, Lion's Rebellion", color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: "Aurelius, Lion's Rebellion", color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['aurelius'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Corvintheus Slain', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Corvintheus Slain', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['corvintheus'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: "Valhalla, The Air Elemental Slain", color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: "Valhalla, The Air Elemental Slain", color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['valhalla'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += '</tr>';
-                    
-                    html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Ambrosia Daily Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                    html += '</tr>';
+
+                    html += "<tr>";
+                    html += caap.makeTd({text: 'Ambrosia Daily Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['ambrosia']['daily']['num'] + '/' + caap.demi['ambrosia']['daily']['max'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Malekus Daily Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Malekus Daily Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['malekus']['daily']['num'] + '/' + caap.demi['malekus']['daily']['max'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Ambrosia Total Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Ambrosia Total Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['ambrosia']['power']['total'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Malekus Total Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Malekus Total Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['malekus']['power']['total'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Corvintheus Daily Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Corvintheus Daily Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['corvintheus']['daily']['num'] + '/' + caap.demi['corvintheus']['daily']['max'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Aurora Daily Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Aurora Daily Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['aurora']['daily']['num'] + '/' + caap.demi['aurora']['daily']['max'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Corvintheus Total Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Corvintheus Total Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['corvintheus']['power']['total'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: 'Aurora Total Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Aurora Total Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['aurora']['power']['total'], color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Azeron Daily Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Azeron Daily Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['azeron']['daily']['num'] + '/' + caap.demi['azeron']['daily']['max'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: 'Azeron Total Points', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: 'Azeron Total Points', color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.demi['azeron']['power']['total'], color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: titleCol, id: '', title: ''});
+                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
                     html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
@@ -3340,7 +3371,7 @@
                     for (pp in caap.stats['character']) {
                         if (caap.stats['character'].hasOwnProperty(pp)) {
                             html += count % 2 === 0 ? "<tr>" : '';
-                            html += caap.makeTd({text: [pp], color: titleCol, id: '', title: ''});
+                            html += caap.makeTd({text: [pp], color: '', id: '', title: ''});
                             html += caap.makeTd({text: "Level " + caap.stats['character'][pp]['level'] + " (" + caap.stats['character'][pp]['percent'] + "%)", color: valueCol, id: '', title: ''});
                             html += count % 2 === 1 ? '</tr>' : '';
                             count += 1;
@@ -3360,7 +3391,7 @@
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
                     values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
-                    $j.merge(generalValues, values);
+                    jQuery.merge(generalValues, values);
                     for (pp = 0, len = headers.length; pp < len; pp += 1) {
                         header = {
                             text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
@@ -3370,7 +3401,7 @@
                             width : ''
                         };
 
-                        header = headers[pp] === 'Special' ? {text  : headers[pp], color : 'black', id    : '', title : '', width : '25%'} : header;
+                        header = headers[pp] === 'Special' ? {text  : headers[pp], color : '', id    : '', title : '', width : '25%'} : header;
                         html += caap.makeTh(header);
                     }
 
@@ -3378,7 +3409,7 @@
                     for (it = 0, len = general.recordsSortable.length; it < len; it += 1) {
                         html += "<tr>";
                         for (pp = 0, len1 = values.length; pp < len; pp += 1) {
-                            html += caap.makeTd({text: $u.setContent(general.recordsSortable[it][values[pp]], ''), color: pp === 0 ? titleCol : valueCol, id: '', title: ''});
+                            html += caap.makeTd({text: $u.setContent(general.recordsSortable[it][values[pp]], ''), color: pp === 0 ? '' : valueCol, id: '', title: ''});
                         }
 
                         html += '</tr>';
@@ -3395,7 +3426,7 @@
                             clicked = e.target.id.replace(statsRegExp, '');
                         }
 
-                        if (generalValues.indexOf(clicked) !== -1) {
+                        if (generalValues.hasIndexOf(clicked)) {
                             order.data['value']['a'] = clicked;
                             if (clicked !== 'name') {
                                 order.data['reverse']['a'] = true;
@@ -3422,7 +3453,7 @@
                 if (state.getItem("SoldiersDashUpdate", true) || state.getItem("ItemDashUpdate", true) || state.getItem("MagicDashUpdate", true)) {
                     headers = ['Name', 'Type', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
                     values  = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
-                    $j.merge(townValues, values);
+                    jQuery.merge(townValues, values);
                     for (i = 0, len = town.types.length; i < len; i += 1) {
                         if (!state.getItem(town.types[i].ucFirst() + "DashUpdate", true)) {
                             continue;
@@ -3453,14 +3484,14 @@
                                     continue;
                                 }
 
-                                if (isNaN(town[town.types[i] + "Sortable"][it][values[pp]]) || !$u.hasContent(town[town.types[i] + "Sortable"][it][values[pp]])) {
+                                if ($u.isNaN(town[town.types[i] + "Sortable"][it][values[pp]]) || !$u.hasContent(town[town.types[i] + "Sortable"][it][values[pp]])) {
                                     str = $u.setContent(town[town.types[i] + "Sortable"][it][values[pp]], '');
                                 } else {
                                     str = town[town.types[i] + "Sortable"][it][values[pp]].addCommas();
                                     str = $u.hasContent(str) && (values[pp] === 'cost' || values[pp] === 'upkeep' || values[pp] === 'hourly') ? "$" + str : str;
                                 }
 
-                                html += caap.makeTd({text: str, color: pp === 0 ? titleCol : valueCol, id: '', title: ''});
+                                html += caap.makeTd({text: str, color: pp === 0 ? '' : valueCol, id: '', title: ''});
                             }
 
                             html += '</tr>';
@@ -3478,7 +3509,7 @@
                             clicked = e.target.id.replace(statsRegExp, '');
                         }
 
-                        if (townValues.indexOf(clicked) !== -1) {
+                        if (townValues.hasIndexOf(clicked)) {
                             order.data['value']['a'] = clicked;
                             if (clicked !== 'name') {
                                 order.data['reverse']['a'] = true;
@@ -3504,7 +3535,7 @@
                             clicked = e.target.id.replace(statsRegExp, '');
                         }
 
-                        if (townValues.indexOf(clicked) !== -1) {
+                        if (townValues.hasIndexOf(clicked)) {
                             order.data['value']['a'] = clicked;
                             if (clicked !== 'name') {
                                 order.data['reverse']['a'] = true;
@@ -3530,7 +3561,7 @@
                             clicked = e.target.id.replace(statsRegExp, '');
                         }
 
-                        if (townValues.indexOf(clicked) !== -1) {
+                        if (townValues.hasIndexOf(clicked)) {
                             order.data['value']['a'] = clicked;
                             if (clicked !== 'name') {
                                 order.data['reverse']['a'] = true;
@@ -3579,7 +3610,7 @@
 
                                 html += caap.makeTd(data);
                             } else {
-                                html += caap.makeTd({text: str, color: 'black', id: '', title: ''});
+                                html += caap.makeTd({text: str, color: '', id: '', title: ''});
                             }
                         }
 
@@ -3642,7 +3673,7 @@
 
                                 html += caap.makeTd(data);
                             } else {
-                                html += caap.makeTd({text: str, color: 'black', id: '', title: ''});
+                                html += caap.makeTd({text: str, color: '', id: '', title: ''});
                             }
                         }
 
@@ -3941,9 +3972,11 @@
                 config.setItem(idName, e.target.checked);
                 caap.SetDisplay("caapDivObject", idName + '_hide', e.target.checked, true);
                 caap.SetDisplay("caapDivObject", idName + '_not_hide', !e.target.checked, true);
+                /*
                 if (e.target.className) {
                     caap.SetDisplay("caapDivObject", e.target.className, e.target.checked);
                 }
+                */
 
                 switch (idName) {
                 case "AutoStatAdv" :
@@ -4073,19 +4106,120 @@
         },
         /*jslint sub: false */
 
+        colorDiv: {},
+
+        colorUpdate: function (color, op) {
+            try {
+                var bgo  = 0,
+                    btc  = '',
+                    chk1 = '',
+                    chk2 = '';
+
+                if ((state.getItem('caapPause', 'none') !== 'none' && op === 'StyleOpacityDark') || (state.getItem('caapPause', 'none') === 'none' && op === 'StyleOpacityLight')) {
+                    bgo  = state.getItem(op, 1);
+                    btc  = $u.bestTextColor(color);
+                    chk1 = caap.caapDivObject.css('background-color');
+                    if ($u.hexToRGB(color).color !== chk1) {
+                        chk2 = caap.caapDivObject.css('color');
+                        $u.log(3, "Update background color", color, chk1);
+                        caap.caapDivObject.css({
+                            'background' : color,
+                            'opacity'    : bgo,
+                            'color'      : btc
+                        });
+
+                        caap.caapTopObject.css({
+                            'background' : color,
+                            'opacity'    : bgo,
+                            'color'      : btc
+                        });
+
+                        if ($u.hexToRGB(btc).color !== chk2) {
+                            $u.log(3, "Update text color", btc, chk2);
+                            $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
+                        }
+                    }
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in colorUpdate: " + err);
+                return false;
+            }
+        },
+
+        ColorBoxListener: function (e) {
+            try {
+                var t   = $j(e.target),
+                    bgc = t.val(),
+                    id  = e.target.id.stripCaap();
+
+                function fb1call(color) {
+                    caap.colorUpdate(state.setItem("StyleBackgroundLight", color), 'StyleOpacityLight');
+                }
+
+                function fb2call(color) {
+                    caap.colorUpdate(state.setItem("StyleBackgroundDark", color), 'StyleOpacityDark');
+                }
+
+                if ($u.hasContent(caap.colorDiv[e.target.id])) {
+                    $u.log(1, 'Change: setting "' + id + '" to ', String(e.target.value));
+                    config.setItem(id, bgc);
+                    caap.colorDiv[e.target.id].remove();
+                    delete caap.colorDiv[e.target.id];
+                } else {
+                    if (id === "CustStyleBackgroundLight") {
+                        caap.colorDiv[e.target.id] = t.colorInput(fb1call);
+                    } else if (id === "CustStyleBackgroundDark") {
+                        caap.colorDiv[e.target.id] = t.colorInput(fb2call);
+                    } else {
+                        caap.colorDiv[e.target.id] = t.colorInput();
+                    }
+
+                    caap.colorDiv[e.target.id].css({
+                        background : bgc,
+                        color      : $u.bestTextColor(bgc),
+                        padding    : "5px",
+                        border     : "2px solid #000",
+                        top        : t.offset().top + 'px',
+                        left       : (window.innerWidth / 2) + 'px',
+                        zIndex     : '1337',
+                        position   : 'absolute'
+                    });
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ColorBoxListener: " + err);
+                return false;
+            }
+        },
+
         TextBoxListener: function (e) {
             try {
-                var idName = e.target.id.stripCaap();
+                var idName = e.target.id.stripCaap(),
+                    i      = 0,
+                    len    = 0;
+
+                for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                    if (e.target.attributes[i].nodeName === 'data-subtype' && e.target.attributes[i].value === 'color') {
+                        e.target.value = $u.addHex(e.target.value).toUpperCase();
+                        e.target.style.backgroundColor = e.target.value;
+                        e.target.style.color = $u.bestTextColor(e.target.value);
+                    }
+                }
 
                 $u.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
-                if (/StyleBackground+/.test(idName)) {
-                    e.target.value = e.target.value.substr(0, 1) !== '#' ? '#' + e.target.value : e.target.value;
+                if (/CustStyleBackground+/.test(idName)) {
+                    e.target.value = $u.addHex(e.target.value);
                     switch (idName) {
-                    case "StyleBackgroundLight" :
-                        state.setItem("CustStyleBackgroundLight", e.target.value);
+                    case "CustStyleBackgroundLight" :
+                        config.setItem("CustStyleBackgroundLight", e.target.value);
+                        caap.colorUpdate(state.setItem("StyleBackgroundLight", e.target.value), 'StyleOpacityLight');
                         break;
-                    case "StyleBackgroundDark" :
-                        state.setItem("CustStyleBackgroundDark", e.target.value);
+                    case "CustStyleBackgroundDark" :
+                        config.setItem("CustStyleBackgroundDark", e.target.value);
+                        caap.colorUpdate(state.setItem("StyleBackgroundDark", e.target.value), 'StyleOpacityDark');
                         break;
                     default :
                     }
@@ -4107,16 +4241,17 @@
                     number  = null,
                     message = '';
 
-                if (isNaN(e.target.value) && e.target.value !== '') {
+                if ($u.isNaN(e.target.value) && e.target.value !== '') {
                     message = "<div style='text-align: center;'>";
                     message += "You entered:<br /><br />";
                     message += "'" + e.target.value + "'<br /><br />";
                     message += "Please enter a number or leave blank.";
                     message += "</div>";
-                    $u.alert(message);
+                    $j().alert(message);
                     number = '';
                 } else {
-                    number = isNaN(e.target.value) ? '' : e.target.value.parseFloat();
+                    $u.log(1, 'e.target.value', e.target.value, $u.isNaN(e.target.value) && e.target.value);
+                    number = $u.isNaN(e.target.value) && e.target.value === '' ? '' : e.target.value.parseFloat();
                 }
 
                 $u.log(1, 'Change: setting "' + idName + '" to ', number);
@@ -4246,39 +4381,31 @@
                         caap.SetDisplay("caapDivObject", idName + '_hide', value === 'Custom');
                         switch (value) {
                         case "CA Skin" :
-                            config.setItem("StyleBackgroundLight", "#E0C691");
-                            config.setItem("StyleBackgroundDark", "#B09060");
-                            config.setItem("StyleOpacityLight", 1);
-                            config.setItem("StyleOpacityDark", 1);
+                            state.setItem("StyleBackgroundLight", "#E0C691");
+                            state.setItem("StyleBackgroundDark", "#B09060");
+                            state.setItem("StyleOpacityLight", 1);
+                            state.setItem("StyleOpacityDark", 1);
                             break;
                         case "None" :
-                            config.setItem("StyleBackgroundLight", "white");
-                            config.setItem("StyleBackgroundDark", "white");
-                            config.setItem("StyleOpacityLight", 1);
-                            config.setItem("StyleOpacityDark", 1);
+                            state.setItem("StyleBackgroundLight", "#FFFFFF");
+                            state.setItem("StyleBackgroundDark", "#FFFFFF");
+                            state.setItem("StyleOpacityLight", 1);
+                            state.setItem("StyleOpacityDark", 1);
                             break;
                         case "Custom" :
-                            config.setItem("StyleBackgroundLight", state.getItem("CustStyleBackgroundLight", "#E0C691"));
-                            config.setItem("StyleBackgroundDark", state.getItem("CustStyleBackgroundDark", "#B09060"));
-                            config.setItem("StyleOpacityLight", state.getItem("CustStyleOpacityLight", 1));
-                            config.setItem("StyleOpacityDark", state.getItem("CustStyleOpacityDark", 1));
+                            state.setItem("StyleBackgroundLight", config.getItem("CustStyleBackgroundLight", "#E0C691"));
+                            state.setItem("StyleBackgroundDark", config.getItem("CustStyleBackgroundDark", "#B09060"));
+                            state.setItem("StyleOpacityLight", config.getItem("CustStyleOpacityLight", 1));
+                            state.setItem("StyleOpacityDark", config.getItem("CustStyleOpacityDark", 1));
                             break;
                         default :
-                            config.setItem("StyleBackgroundLight", "#efe");
-                            config.setItem("StyleBackgroundDark", "#fee");
-                            config.setItem("StyleOpacityLight", 1);
-                            config.setItem("StyleOpacityDark", 1);
+                            state.setItem("StyleBackgroundLight", "#EFEFFF");
+                            state.setItem("StyleBackgroundDark", "#FEEFFF");
+                            state.setItem("StyleOpacityLight", 1);
+                            state.setItem("StyleOpacityDark", 1);
                         }
 
-                        caap.caapDivObject.css({
-                            background: config.getItem('StyleBackgroundDark', '#fee'),
-                            opacity: config.getItem('StyleOpacityDark', 1)
-                        });
-
-                        caap.caapTopObject.css({
-                            background: config.getItem('StyleBackgroundDark', '#fee'),
-                            opacity: config.getItem('StyleOpacityDark', 1)
-                        });
+                        caap.colorUpdate(state.getItem('StyleBackgroundDark', '#B09060'), 'StyleOpacityDark');
                     }
                 }
 
@@ -4297,7 +4424,7 @@
                 function commas() {
                     // Change the boolean from false to true to enable BoJangles patch or
                     // set the hidden variable in localStorage
-                    if (gm.getItem("TextAreaCommas", false, hiddenVar)) {
+                    if (config.getItem("TextAreaCommas", false)) {
                         // This first removes leading and trailing white space and/or commas before
                         // both removing and inserting commas where appropriate.
                         // Handles adding a single user id as well as replacing the entire list.
@@ -4336,36 +4463,58 @@
         },
 
         PauseListener: function (e) {
+            var bgc = state.getItem('StyleBackgroundDark', '#B09060'),
+                bgo = state.getItem('StyleOpacityDark', 1),
+                btc = $u.bestTextColor(bgc),
+                chk = $u.bestTextColor(state.getItem('StyleBackgroundLight', '#E0C691'));
+
             caap.caapDivObject.css({
-                'background' : config.getItem('StyleBackgroundDark', '#fee'),
-                'opacity'    : '1',
+                'background' : bgc,
+                'color'      : btc,
+                'opacity'    : bgo,
                 'z-index'    : '3'
             });
 
             caap.caapTopObject.css({
-                'background' : config.getItem('StyleBackgroundDark', '#fee'),
-                'opacity'    : '1'
+                'background' : bgc,
+                'color'      : btc,
+                'opacity'    : bgo
             });
+
+            if (btc !== chk) {
+                $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
+            }
 
             caap.caapDivObject.find('#caapPaused').css('display', 'block');
             state.setItem('caapPause', 'block');
         },
 
         RestartListener: function (e) {
+            var bgc = state.getItem('StyleBackgroundLight', '#E0C691'),
+                bgo = state.getItem('StyleOpacityLight', 1),
+                btc = $u.bestTextColor(bgc),
+                chk = $u.bestTextColor(state.getItem('StyleBackgroundDark', '#B09060'));
+
             caap.caapDivObject.find('#caapPaused').css('display', 'none');
             caap.caapDivObject.css({
-                'background' : config.getItem('StyleBackgroundLight', '#efe'),
-                'opacity'    : config.getItem('StyleOpacityLight', 1),
+                'background' : bgc,
+                'color'      : btc,
+                'opacity'    : bgo,
                 'z-index'    : state.getItem('caap_div_zIndex', '2'),
                 'cursor'     : ''
             });
 
             caap.caapTopObject.css({
-                'background' : config.getItem('StyleBackgroundLight', '#efe'),
-                'opacity'    : config.getItem('StyleOpacityLight', 1),
+                'background' : bgc,
+                'color'      : btc,
+                'opacity'    : bgo,
                 'z-index'    : state.getItem('caap_top_zIndex', '1'),
                 'cursor'     : ''
             });
+
+            if (btc !== chk) {
+                $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
+            }
 
             caap.caapDivObject.find(":input[id*='caap_']").attr({disabled: false});
             caap.caapDivObject.find('#unlockMenu').attr('checked', false);
@@ -4489,7 +4638,7 @@
             $u.log(3, "engage arena_battle.php", event.target.id);
             index = event.target.id ? event.target.id.parseInt() : -1;
             minion = arena.getMinion(index);
-            minion = !$j.isEmptyObject(minion) ? minion : {};
+            minion = !jQuery.isEmptyObject(minion) ? minion : {};
             state.setItem('ArenaMinionAttacked', minion);
             state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
             schedule.setItem('clickedOnSomething', 0);
@@ -4594,6 +4743,7 @@
             "party",
             "comments",
             "army",
+            "army_member",
             "army_news_feed",
             "army_reqs",
             "guild",
@@ -4619,6 +4769,7 @@
                 $j(window).bind('resize', caap.windowResizeListener);
                 caap.caapDivObject.find('input:checkbox[id^="caap_"]').change(caap.CheckBoxListener);
                 caap.caapDivObject.find('input[data-subtype="text"]').change(caap.TextBoxListener);
+                caap.caapDivObject.find('input[data-subtype="color"]').change(caap.TextBoxListener).click(caap.ColorBoxListener);
                 caap.caapDivObject.find('input[data-subtype="number"]').change(caap.NumberBoxListener);
                 caap.caapDivObject.find('#unlockMenu').change(caap.CheckBoxListener);
                 caap.caapDivObject.find('select[id^="caap_"]').change(caap.DropBoxListener);
@@ -4631,16 +4782,6 @@
                     state.setItem(caap.friendListType.giftc.name + 'Responded', []);
                     state.setItem(caap.friendListType.facebook.name + 'Responded', false);
 
-                });
-
-                caap.caapDivObject.find('#caap_StartedColorSelect').click(function (e) {
-                    var div = $j('#caap_ColorSelectorDiv1');
-                    div.css('display', div.css('display') === 'none' ? 'block' : 'none');
-                });
-
-                caap.caapDivObject.find('#caap_StopedColorSelect').click(function (e) {
-                    var div = $j('#caap_ColorSelectorDiv2');
-                    div.css('display', div.css('display') === 'none' ? 'block' : 'none');
                 });
 
                 caap.caapDivObject.find('#caap_ResetMenuLocation').click(caap.ResetMenuLocationListener);
@@ -4707,9 +4848,7 @@
                             $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                         }
 
-                        window.setTimeout(function () {
-                            caap.CheckResults();
-                        }, 100);
+                        window.setTimeout(caap.CheckResults, 100);
                     }
 
                     // Reposition the dashboard
@@ -4732,6 +4871,10 @@
         /////////////////////////////////////////////////////////////////////
 
         pageList: {
+            'castle_age': {
+                signaturePic: 'gif',
+                CheckResultsFunction: 'CheckResults_index'
+            },
             'index': {
                 signaturePic: 'gif',
                 CheckResultsFunction: 'CheckResults_index'
@@ -4764,6 +4907,11 @@
             },
             'quests': {
                 signaturePic: 'tab_quest_on.gif',
+                CheckResultsFunction: 'CheckResults_quests',
+                subpages: ['earlyQuest']
+            },
+            'earlyQuest': {
+                signaturePic: 'quest_back_1.jpg',
                 CheckResultsFunction: 'CheckResults_quests'
             },
             'symbolquests': {
@@ -4857,6 +5005,10 @@
             'arena_battle': {
                 signatureId: 'arena_battle_banner_section',
                 CheckResultsFunction: 'CheckResults_arena_battle'
+            },
+            'army_member': {
+                signaturePic: 'view_army_on.gif',
+                CheckResultsFunction: 'CheckResults_army_member'
             }
         },
 
@@ -4888,15 +5040,66 @@
                     return false;
                 }
 
+                schedule.setItem('CheckResultsTimer', 1);
+                caap.appBodyDiv = $j("#" + caap.domain.id[caap.domain.which] + "app_body", caap.globalContainer);
+                caap.battlePage = caap.stats['level'] < 10 ? 'battle_train,battle_off' : 'battle';
+                caap.pageLoadOK = caap.GetStats();
+                if (!caap.pageLoadOK) {
+                    return true;
+                }
+
                 var pageUrl         = '',
-                    page            = 'None',
+                    page            = 'none',
+                    pageTemp        = '',
+                    pageUser        = 0,
                     sigImage        = '',
                     resultsText     = '',
                     resultsFunction = '',
                     demiPointsFirst = false,
-                    whenMonster     = '';
+                    whenMonster     = '',
+                    it              = 0,
+                    len             = 0;
 
-                caap.pageLoadOK = caap.GetStats();
+                pageUrl = state.getItem('clickUrl', '');
+                if ($u.hasContent(pageUrl)) {
+                    page = pageUrl.basename(".php");
+                    if (page === 'keep') {
+                        pageUser = pageUrl.regex(/user=(\d+)/);
+                        pageUser = $u.setContent(pageUser, 0);
+                    }
+                }
+
+                state.setItem('pageUserCheck', pageUser);
+                if ($u.hasContent(page) && $u.hasContent(caap.pageList[page]) && $u.hasContent(caap.pageList[page].subpages)) {
+                    for (it = 0, len = caap.pageList[page].subpages.length; it < len; it += 1) {
+                        if ($u.hasContent($j("img[src*='" + caap.pageList[caap.pageList[page].subpages[it]].signaturePic + "']", caap.appBodyDiv))) {
+                            page = caap.pageList[page].subpages[it];
+                            break;
+                        }
+                    }
+                }
+
+                state.setItem('page', page);
+                resultsText = $j("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper span[class*='result_body']", caap.appBodyDiv).text().trim();
+                if ($u.hasContent(caap.pageList[page])) {
+                    $u.log(2, 'Checking results for', page);
+                    if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
+                        caap[caap.pageList[page].CheckResultsFunction](resultsText);
+                    } else {
+                        $u.warn('Check Results function not found', caap.pageList[page]);
+                    }
+                } else {
+                    $u.log(2, 'No results check defined for', page);
+                }
+
+                // Check for Elite Guard Add image
+                if (!config.getItem('AutoEliteIgnore', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy' && caap.HasImage('elite_guard_add')) {
+                    schedule.setItem('AutoEliteGetList', 0);
+                }
+
+                // Information updates
+                monster.select();
+                caap.UpdateDashboard();
                 caap.AddExpDisplay();
                 caap.SetDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr(true)));
                 demiPointsFirst = config.getItem('DemiPointsFirst', false);
@@ -4921,59 +5124,10 @@
                     caap.SetDivContent('demibless_mess', 'Next Demi Blessing: ' + $u.setContent(schedule.display('BlessingTimer'), "Unknown"));
                 }
 
-                schedule.setItem('CheckResultsTimer', 1);
-                state.getItem('page', '');
-                pageUrl = state.getItem('clickUrl', 'None');
-                state.setItem('pageUserCheck', $u.setContent($u.hasContent(pageUrl) && $u.isString(pageUrl) ? pageUrl.regex(/user=(\d+)/) : 0, 0));
-                page = $u.hasContent(pageUrl) ? pageUrl.basename(".php") : "None";
-                caap.appBodyDiv = $j("#" + caap.domain.id[caap.domain.which] + "app_body");
-                if ($u.hasContent(page) && $u.hasContent(caap.pageList[page])) {
-                    sigImage = page === "quests" && caap.stats['level'] < 8 ? "quest_back_1.jpg" : caap.pageList[page].signaturePic;
-                    if ($u.hasContent(caap.appBodyDiv.find("img[src*='" + sigImage + "']"))) {
-                        state.setItem('page', page);
-                    }
-
-                    if ($u.hasContent(caap.pageList[page].subpages)) {
-                        caap.pageList[page].subpages.forEach(function (subpage) {
-                            page = $u.hasContent(caap.appBodyDiv.find("img[src*='" + caap.pageList[subpage].signaturePic + "']")) ? state.setItem('page', subpage) : page;
-                        });
-                    } else if ($u.hasContent(caap.pageList[page].subsection)) {
-                        caap.pageList[page].subsection.forEach(function (subsection) {
-                            page = $u.hasContent(caap.appBodyDiv.find("#" + caap.domain.id[caap.domain.which] + caap.pageList[subsection].signatureId)) ? state.setItem('page', subsection) : page;
-                        });
-                    }
-                }
-
-                resultsText = $u.setContent(caap.appBodyDiv.find("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper span[class*='result_body']").text().trim(), '');
-                if ($u.hasContent(page) && $u.hasContent(caap.pageList[page])) {
-                    $u.log(2, 'Checking results for', page);
-                    if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
-                        caap[caap.pageList[page].CheckResultsFunction](resultsText);
-                    } else {
-                        $u.warn('Check Results function not found', caap.pageList[page]);
-                    }
-                } else {
-                    $u.log(2, 'No results check defined for', page);
-                }
-
-                monster.select();
-                caap.UpdateDashboard();
-                if (general.List.length <= 2) {
+                if ($u.hasContent(general.List) && general.List.length <= 2) {
                     schedule.setItem("generals", 0);
                     schedule.setItem("allGenerals", 0);
                     caap.CheckGenerals();
-                }
-
-                caap.battlePage = caap.stats['level'] < 10 ? 'battle_train,battle_off' : 'battle';
-                // Check for Elite Guard Add image
-                if (!config.getItem('AutoEliteIgnore', false) && state.getItem('AutoEliteEnd', 'NoArmy') !== 'NoArmy' && caap.HasImage('elite_guard_add')) {
-                    schedule.setItem('AutoEliteGetList', 0);
-                }
-
-                // If set and still recent, go to the function specified in 'ResultsFunction'
-                resultsFunction = state.getItem('ResultsFunction', '');
-                if (resultsFunction && !schedule.check('SetResultsFunctionTimer')) {
-                    caap[resultsFunction](resultsText);
                 }
 
                 return true;
@@ -5212,11 +5366,11 @@
 
         LoadStats: function (FBID, AccName) {
             var Stats = gm.getItem('stats.record', 'default');
-            if (Stats === 'default' || !$j.isPlainObject(Stats)) {
+            if (Stats === 'default' || !jQuery.isPlainObject(Stats)) {
                 Stats = gm.setItem('stats.record', caap.stats);
             }
 
-            $j.extend(true, caap.stats, Stats);
+            jQuery.extend(true, caap.stats, Stats);
             caap.stats['FBID'] = FBID;
             caap.stats['account'] = AccName;
             $u.log(4, "Stats", caap.stats);
@@ -5252,7 +5406,7 @@
                 if ($u.hasContent(tempDiv)) {
                     tStr = tempDiv.text();
                     tNum = tStr ? tStr.numberOnly() : null;
-                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
                         caap.stats['gold']['cash'] = tNum;
                         caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
                     } else {
@@ -5336,7 +5490,7 @@
                 if ($u.hasContent(tempDiv)) {
                     tStr = tempDiv.text();
                     tNum = tStr ? tStr.regex(/(\d+)/) : null;
-                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
                         if (tNum > caap.stats['level']) {
                             $u.log(2, 'New level. Resetting Best Land Cost.');
                             caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
@@ -5357,7 +5511,7 @@
                 if ($u.hasContent(tempDiv)) {
                     tStr = tempDiv.text();
                     tNum = tStr ? tStr.regex(/(\d+)/) : null;
-                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
                         caap.stats['army']['actual'] = tNum;
                         tNum = Math.min(caap.stats['army']['actual'], 501);
                         if (tNum >= 0 && tNum <= 501) {
@@ -5380,7 +5534,7 @@
                 if ($u.hasContent(tempDiv)) {
                     tStr = tempDiv.text();
                     tNum = tStr ? tStr.regex(/(\d+)/) : null;
-                    if ($u.hasContent(tNum) && !isNaN(tNum)) {
+                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
                         if (tNum > caap.stats['points']['skill']) {
                             $u.log(2, 'New points. Resetting AutoStat.');
                             state.setItem("statsMatch", true);
@@ -5412,7 +5566,7 @@
                 }
 
                 if (!passed && caap.stats['energy']['max'] === 0 && caap.stats['health']['max'] === 0 && caap.stats['stamina']['max'] === 0) {
-                    $u.alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>");
+                    $j().alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>");
                     $u.warn("Paused as this account may have been disabled!", caap.stats);
                     caap.PauseListener();
                 }
@@ -5550,7 +5704,7 @@
                     } else {
                         $u.warn('Using stored inStore.');
                     }
-                    
+
                     // Check for income
                     tempDiv = $j(".positive", statsTB).eq(0);
                     if ($u.hasContent(tempDiv)) {
@@ -5597,7 +5751,7 @@
                     // Other stats
                     // Atlantis Open
                     caap.stats['other'].atlantis = $u.hasContent(caap.CheckForImage("seamonster_map_finished.jpg")) ? true : false;
-   
+
                     keepTable1 = $j(".keepTable1 tr", statsTB);
                     // Quests Completed
                     tempDiv = $j("td:last", keepTable1.eq(0));
@@ -5608,7 +5762,7 @@
                     } else {
                         $u.warn('Using stored other.');
                     }
-                    
+
                     // Battles/Wars Won
                     tempDiv = $j("td:last", keepTable1.eq(1));
                     if ($u.hasContent(tempDiv)) {
@@ -5675,6 +5829,10 @@
 
                     schedule.setItem("keep", gm.getItem("CheckKeep", 1, hiddenVar) * 3600, 300);
                     caap.SaveStats();
+                    tempDiv = $j(".keep_stat_title_inc", attrDiv);
+                    tStr = $u.hasContent(tempDiv) ? tempDiv.html() : '';
+                    tStr = tStr ? tStr.trim() + ", <span style='white-space: nowrap;'>BSI: " + caap.stats['indicators']['bsi'] + " LSI: " + caap.stats['indicators']['lsi'] + "<\span>": '';
+                    tStr = tStr ? tempDiv.html(tStr) : '';
                 } else {
                     tempDiv = $j("a[href*='keep.php?user=']", caap.globalContainer);
                     if ($u.hasContent(tempDiv)) {
@@ -5789,7 +5947,7 @@
                             titleTxt = row.text();
                             titleArr = titleTxt ? titleTxt.trim().match(titleRegExp) : [];
                             if (titleArr && titleArr.length === 2) {
-                                if (special.indexOf(titleArr[1]) >= 0) {
+                                if (special.hasIndexOf(titleArr[1])) {
                                     return true;
                                 }
 
@@ -6075,7 +6233,7 @@
 
                         tStr = monsterClass.attr("class");
                         name = tStr ? tStr.replace("banner_", '') : '';
-                        if (name && $j.isPlainObject(caap.stats['character'][name])) {
+                        if (name && jQuery.isPlainObject(caap.stats['character'][name])) {
                             caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getPercent('width').dp(2);
                             tStr = monsterClass.children().eq(2).text();
                             caap.stats['character'][name]['level'] = tStr ? tStr.numberOnly() : 0;
@@ -6299,7 +6457,7 @@
 
                 if (whenQuest === 'Not Fortifying' || (config.getItem('PrioritiseMonsterAfterLvl', false) && state.getItem('KeepLevelUpGeneral', false))) {
                     var fortMon = state.getItem('targetFromfortify', new monster.energyTarget().data);
-                    if ($j.isPlainObject(fortMon) && fortMon['name'] && fortMon['type']) {
+                    if (jQuery.isPlainObject(fortMon) && fortMon['name'] && fortMon['type']) {
                         switch (fortMon['type']) {
                         case "Fortify":
                             var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
@@ -7175,7 +7333,7 @@
 
                 caap.ManualAutoQuest(tempAutoQuest);
                 $u.log(5, 'LabelListener', sps, state.getItem('AutoQuest'));
-                if (caap.stats['level'] < 10 && caap.HasImage('quest_back_1.jpg')) {
+                if (caap.stats['level'] < 8 && caap.HasImage('quest_back_1.jpg')) {
                     config.setItem('QuestArea', 'Quest');
                     config.setItem('QuestSubArea', 'Land of Fire');
                 } else {
@@ -7272,21 +7430,26 @@
         /*jslint sub: false */
 
         BlessingResults: function (resultsText) {
-            // Check time until next Oracle Blessing
-            if (resultsText.match(/Please come back in: /)) {
-                var hours   = 0,
-                    minutes = 0;
+            var hours   = 0,
+                minutes = 0,
+                done    = false;
 
+            if (/Please come back in:/.test(resultsText)) {
+                // Check time until next Oracle Blessing
                 hours = resultsText.regex(/(\d+) hour/);
+                hours = $u.isNumber(hours) ? hours : 3;
                 minutes = resultsText.regex(/(\d+) minute/);
-                schedule.setItem('BlessingTimer', (hours * 60 + minutes) * 60, 300);
-                $u.log(2, 'Recorded Blessing Time. Scheduling next click!');
+                minutes = $u.isNumber(minutes) ? minutes : 0;
+                done = true;
+            } else if (/You have paid tribute to/.test(resultsText)) {
+                // Recieved Demi Blessing.  Wait X hours to try again.
+                hours = /Azeron/i.test(resultsText) ? 48 : 12;
+                done = true;
             }
 
-            // Recieved Demi Blessing.  Wait 24 hours to try again.
-            if (resultsText.match(/You have paid tribute to/)) {
-                schedule.setItem('BlessingTimer', 86400, 300);
-                $u.log(2, 'Received blessing. Scheduling next click!');
+            if (done) {
+                $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + minutes);
+                schedule.setItem('BlessingTimer', (hours * 60 + minutes) * 60, 300);
             }
         },
 
@@ -7295,11 +7458,7 @@
                 autoBless = '';
 
             autoBless = config.getItem('AutoBless', 'none').toLowerCase();
-            if (autoBless === 'none') {
-                return false;
-            }
-
-            if (!schedule.check('BlessingTimer')) {
+            if (autoBless === 'none' || !schedule.check('BlessingTimer')) {
                 return false;
             }
 
@@ -7308,7 +7467,7 @@
             }
 
             picSlice = $j("img[src*='deity_" + autoBless + "']");
-            if (!picSlice || !picSlice.length) {
+            if (!$u.hasContent(picSlice)) {
                 $u.warn('No diety pics for deity', autoBless);
                 return false;
             }
@@ -7318,7 +7477,7 @@
             }
 
             picSlice = $j("form[id*='" + caap.domain.id[caap.domain.which] + "symbols_form_" + caap.deityTable[autoBless] + "']");
-            if (!picSlice || !picSlice.length) {
+            if (!$u.hasContent(picSlice)) {
                 $u.warn('No form for deity blessing.');
                 return false;
             }
@@ -7454,7 +7613,7 @@
                     nums = [];
                     moneyss.each(function () {
                         incomeEl = $j(this);
-                        if (incomeEl.attr("class").indexOf('label') >= 0) {
+                        if (incomeEl.attr("class").hasIndexOf('label')) {
                             incomeEl = income.parent();
                             tStr = incomeEl.text();
                             tStr = tStr ? tStr.regex(/([\d,]+)/) : '';
@@ -7522,13 +7681,13 @@
                     $u.log(3, "Land:", land.data['name']);
                     if (land.data['roi'] > 0 && land.data['roi'] > caap.bestLand['roi']) {
                         $u.log(3, "Set Land:", land.data['name'], land.data);
-                        caap.bestLand = $j.extend(true, {}, land.data);
+                        caap.bestLand = jQuery.extend(true, {}, land.data);
                     }
 
                     return true;
                 });
 
-                $j.extend(true, bestLandCost, caap.bestLand);
+                jQuery.extend(true, bestLandCost, caap.bestLand);
                 delete bestLandCost['row'];
                 bestLandCost['set'] = true;
                 bestLandCost['last'] = new Date().getTime();
@@ -7579,7 +7738,7 @@
                 }
 
                 // Do we have lands above our max to sell?
-                if (!$j.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
+                if (!jQuery.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
                     $u.log(2, "Selling land", caap.sellLand['name']);
                     BuySellLand(caap.sellLand, 'Sell');
                     return true;
@@ -8312,7 +8471,7 @@
                 }
 
                 record = guild_monster.getReview();
-                if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
+                if (record && jQuery.isPlainObject(record) && !jQuery.isEmptyObject(record)) {
                     $u.log(1, "Reviewing Slot (" + record['slot'] + ") Name: " + record['name']);
                     if (caap.stats['staminaT']['num'] > 0 && config.getItem("doGuildMonsterSiege", true)) {
                         objective = "&action=doObjective";
@@ -8423,9 +8582,9 @@
 
                     state.setItem('staminaGuildMonster', 0);
                     record = state.getItem('targetGuildMonster', {});
-                    if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
+                    if (record && jQuery.isPlainObject(record) && !jQuery.isEmptyObject(record)) {
                         minion = guild_monster.getTargetMinion(record);
-                        if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                        if (minion && jQuery.isPlainObject(minion) && !jQuery.isEmptyObject(minion)) {
                             stamina = guild_monster.getStaminaValue(record, minion);
                             state.setItem('staminaGuildMonster', stamina);
                             if (caap.stats['staminaT']['num'] < stamina) {
@@ -8460,7 +8619,7 @@
 
                 caap.SetDivContent('guild_monster_mess', '');
                 record = guild_monster.select(true);
-                if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
+                if (record && jQuery.isPlainObject(record) && !jQuery.isEmptyObject(record)) {
                     if (general.Select('GuildMonsterGeneral')) {
                         return true;
                     }
@@ -8474,7 +8633,7 @@
                     }
 
                     minion = guild_monster.getTargetMinion(record);
-                    if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                    if (minion && jQuery.isPlainObject(minion) && !jQuery.isEmptyObject(minion)) {
                         $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                         caap.SetDivContent('guild_monster_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                         key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
@@ -8595,7 +8754,7 @@
                 tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
                 nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
                 caap.SetDivContent('arena_mess', nextTime);
-                if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
+                if (!record || !jQuery.isPlainObject(record) || jQuery.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                     if (state.getItem('ArenaRefresh', true)) {
                         if (arena.navigate_to_main_refresh()) {
                             return true;
@@ -8668,7 +8827,7 @@
                 }
 
                 minion = arena.getTargetMinion(record);
-                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                if (minion && jQuery.isPlainObject(minion) && !jQuery.isEmptyObject(minion)) {
                     $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                     caap.SetDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                     key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
@@ -8882,7 +9041,7 @@
                     currentMonster['type'] = monster.type(currentMonster['name']);
                 }
 
-                if (currentMonster['type'] === 'Siege' || currentMonster['type'].indexOf('Raid') >= 0) {
+                if (currentMonster['type'] === 'Siege' || currentMonster['type'].hasIndexOf('Raid')) {
                     tempDiv = caap.appBodyDiv.find("div[style*='raid_back']");
                     if (tempDiv && tempDiv.length) {
                         if (tempDiv.find("img[src*='raid_1_large.jpg']").length) {
@@ -9002,7 +9161,7 @@
                         currentMonster['review'] = -1;
                         state.setItem('monsterReviewCounter', counter -= 1);
                         currentMonster['status'] = 'Collect Reward';
-                        if (currentMonster['name'].indexOf('Siege') >= 0) {
+                        if (currentMonster['name'].hasIndexOf('Siege')) {
                             if ($j("a[href*='&rix=1']").length) {
                                 currentMonster['rix'] = 1;
                             } else {
@@ -9083,7 +9242,7 @@
                                     if (tempArr && tempArr.length) {
                                         tempText = tempArr[tempArr.length - 1].toLowerCase();
                                         tempArr = ["strengthen", "heal"];
-                                        if (tempText && tempArr.indexOf(tempText) >= 0) {
+                                        if (tempText && tempArr.hasIndexOf(tempText)) {
                                             if (tempText === tempArr[0]) {
                                                 currentMonster['stun'] = currentMonster['strength'];
                                             } else if (tempText === tempArr[1]) {
@@ -9108,7 +9267,7 @@
                                         if (tempArr && tempArr.length) {
                                             tempText = tempArr[tempArr.length - 1].toLowerCase();
                                             tempArr = ["strengthen", "cripple", "heal", "deflection"];
-                                            if (tempText && tempArr.indexOf(tempText) >= 0) {
+                                            if (tempText && tempArr.hasIndexOf(tempText)) {
                                                 currentMonster['stunType'] = tempText.replace("ion", '');
                                                 $u.log(2, "Character specific attack type", currentMonster['stunType']);
                                             } else {
@@ -9135,7 +9294,7 @@
                         if (monsterInfo.siege) {
                             tStr = $j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']").text();
                             currentMonster['miss'] = tStr ? tStr.trim().innerTrim().replace(new RegExp(".*Need (\\d+) more.*", "gi"), "$1").parseInt() : 0;
-                            if (isNaN(currentMonster['miss'])) {
+                            if ($u.isNaN(currentMonster['miss'])) {
                                 currentMonster['miss'] = 0;
                             }
 
@@ -9148,7 +9307,7 @@
 
                             searchRes = caap.appBodyDiv.find(searchStr);
                             if (searchRes && searchRes.length) {
-                                if (currentMonster['type'].indexOf('Raid') >= 0) {
+                                if (currentMonster['type'].hasIndexOf('Raid')) {
                                     totalCount = searchRes.attr("src").basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt();
                                 } else {
                                     totalCount = searchRes.size() + 1;
@@ -9156,7 +9315,7 @@
                             }
 
                             currentMonster['phase'] = Math.min(totalCount, monsterInfo.siege);
-                            if (isNaN(currentMonster['phase']) || currentMonster['phase'] < 1) {
+                            if ($u.isNaN(currentMonster['phase']) || currentMonster['phase'] < 1) {
                                 currentMonster['phase'] = 1;
                             }
                         }
@@ -9182,7 +9341,8 @@
                     }
 
                     maxDamage = monster.parseCondition('max', currentMonster['conditions']);
-                    maxToFortify = (monster.parseCondition('f%', currentMonster['conditions']) !== false) ? monster.parseCondition('f%', currentMonster['conditions']) : config.getItem('MaxToFortify', 0);
+                    maxToFortify = monster.parseCondition('f%', currentMonster['conditions']);
+                    maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
                     targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);
                     if (currentMonster['name'] === targetFromfortify['name']) {
                         if (targetFromfortify['type'] === 'Fortify' && currentMonster['fortify'] > maxToFortify) {
@@ -9218,11 +9378,11 @@
 
                     //create a temp variable so we don't need to call parseCondition more than once for each if statement
                     KOBtmp = monster.parseCondition('kob', currentMonster['conditions']);
-                    if (isNaN(KOBtmp)) {
+                    if (KOBtmp !== false && $u.isNaN(KOBtmp)) {
                         $u.log(2, 'KOB NaN branch');
                         KOBenable = true;
                         KOBbiasHours = 0;
-                    } else if (!KOBtmp) {
+                    } else if (KOBtmp === false) {
                         $u.log(2, 'KOB false branch');
                         KOBenable = false;
                         KOBbiasHours = 0;
@@ -9313,7 +9473,7 @@
                         if (isTarget) {
                             state.setItem('resetselectMonster', true);
                         }
-                    } else if (currentMonster['damage'] >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster['conditions']))) {
+                    } else if (currentMonster['damage'] >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster['conditions']) !== false)) {
                         currentMonster['color'] = 'darkorange';
                         currentMonster['over'] = 'ach';
                         //used with KOB code
@@ -9347,12 +9507,12 @@
                         if (!KOBmax && !KOBminFort && !KOBach) {
                             //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
                             //had to jump out the black paint if max, ach or fort needed to paint the entry.
-                            currentMonster['color'] = 'black';
+                            currentMonster['color'] = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
                         }
                     }
                     //End of KOB code Part 2 stops here.
                 } else {
-                    currentMonster['color'] = 'black';
+                    currentMonster['color'] = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
                 }
 
                 monster.setItem(currentMonster);
@@ -9490,7 +9650,7 @@
                             }
 
                             link += '&action=collectReward';
-                            if (monster.records[counter]['name'].indexOf('Siege') >= 0) {
+                            if (monster.records[counter]['name'].hasIndexOf('Siege')) {
                                 if (monster.records[counter]['rix'] !== -1)  {
                                     link += '&rix=' + monster.records[counter]['rix'];
                                 } else {
@@ -9606,9 +9766,7 @@
                         }
                     }
 
-                    if (nodeNum >= 0 && nodeNum !== null && nodeNum !== undefined && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax) {
-                        energyRequire = monster.info[monstType].nrgMax[nodeNum];
-                    }
+                    energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax ? monster.info[monstType].nrgMax[nodeNum] : energyRequire;
                 }
 
                 $u.log(3, "Energy Required/Node", energyRequire, nodeNum);
@@ -9858,11 +10016,11 @@
 
         LoadDemi: function () {
             var demis = gm.getItem('demipoint.records', 'default');
-            if (demis === 'default' || !$j.isPlainObject(demis)) {
+            if (demis === 'default' || !jQuery.isPlainObject(demis)) {
                 demis = gm.setItem('demipoint.records', caap.demi);
             }
 
-            $j.extend(true, caap.demi, demis);
+            jQuery.extend(true, caap.demi, demis);
             $u.log(4, 'Demi', caap.demi);
             state.setItem("UserDashUpdate", true);
         },
@@ -9956,20 +10114,20 @@
 
         InLevelUpMode: function () {
             try {
-                if (!gm.getItem('EnableLevelUpMode', true, hiddenVar)) {
+                if (!config.getItem('EnableLevelUpMode', true)) {
                     //if levelup mode is false then new level up mode is also false (kob)
                     state.setItem("newLevelUpMode", false);
                     return false;
                 }
 
-                if (!(caap.stats['indicators']['enl']) || (caap.stats['indicators']['enl']).toString().match(new Date(2009, 1, 1).getTime())) {
+                if (!caap.stats['indicators']['enl']) {
                     //if levelup mode is false then new level up mode is also false (kob)
                     state.setItem("newLevelUpMode", false);
                     return false;
                 }
 
                 // minutesBeforeLevelToUseUpStaEnergy : 5, = 30000
-                if (((caap.stats['indicators']['enl'] - new Date().getTime()) < 30000) || (caap.stats['exp']['dif'] <= config.getItem('LevelUpGeneralExp', 0))) {
+                if (((caap.stats['indicators']['enl'] - new Date().getTime()) < 30000) || (caap.stats['exp']['dif'] <= config.getItem('LevelUpGeneralExp', 20))) {
                     //detect if we are entering level up mode for the very first time (kob)
                     if (!state.getItem("newLevelUpMode", false)) {
                         //set the current level up mode flag so that we don't call refresh monster routine more than once (kob)
@@ -10461,11 +10619,11 @@
                     minStamToHeal = 0;
                 }
 
-                if (!caap.stats['health'] || $j.isEmptyObject(caap.stats['health']) || $j.isEmptyObject(caap.stats['healthT'])) {
+                if (!caap.stats['health'] || jQuery.isEmptyObject(caap.stats['health']) || jQuery.isEmptyObject(caap.stats['healthT'])) {
                     return false;
                 }
 
-                if (!caap.stats['stamina'] || $j.isEmptyObject(caap.stats['stamina']) || $j.isEmptyObject(caap.stats['staminaT'])) {
+                if (!caap.stats['stamina'] || jQuery.isEmptyObject(caap.stats['stamina']) || jQuery.isEmptyObject(caap.stats['staminaT'])) {
                     return false;
                 }
 
@@ -10516,13 +10674,14 @@
                     $u.log(3, 'Elite Guard MergeMyEliteTodo list');
                     var eliteArmyList = [];
                     eliteArmyList = config.getList('EliteArmyList', '');
-                    if (eliteArmyList.length) {
+                    jQuery.merge(eliteArmyList, army.getEliteList());
+                    if ($u.hasContent(eliteArmyList)) {
                         $u.log(3, 'Merge and save Elite Guard MyEliteTodo list');
                         var diffList = list.filter(function (todoID) {
-                            return (eliteArmyList.indexOf(todoID) < 0);
+                            return !eliteArmyList.hasIndexOf(todoID);
                         });
 
-                        $j.merge(eliteArmyList, diffList);
+                        jQuery.merge(eliteArmyList, diffList);
                         state.setItem('MyEliteTodo', eliteArmyList);
                     } else {
                         $u.log(3, 'Save Elite Guard MyEliteTodo list');
@@ -10536,14 +10695,15 @@
                     eliteList = state.setItem('MyEliteTodo', []);
                 }
 
-                if (window.location.href.indexOf('party.php')) {
+                $u.log(1, 'page', state.getItem('page', 'none'));
+                if (state.getItem('page', 'none') === 'party') {
                     $u.log(1, 'Checking Elite Guard status');
                     var autoEliteFew = state.getItem('AutoEliteFew', false);
-                    var autoEliteFull = $j('.result_body').text().match(/YOUR Elite Guard is FULL/i);
+                    var autoEliteFull = /YOUR Elite Guard is FULL/i.test($j('.result_body', caap.globalContainer).text());
                     if (autoEliteFull || (autoEliteFew && state.getItem('AutoEliteEnd', '') === 'NoArmy')) {
                         if (autoEliteFull) {
                             $u.log(1, 'Elite Guard is FULL');
-                            if (eliteList.length) {
+                            if ($u.hasContent(eliteList)) {
                                 MergeMyEliteTodo(eliteList);
                             }
                         } else if (autoEliteFew && state.getItem('AutoEliteEnd', '') === 'NoArmy') {
@@ -10582,13 +10742,13 @@
                         castleageList = state.getItem(caap.friendListType.giftc.name + 'Responded', []);
                     }
 
-                    if (castleageList.length || (caap.stats['army']['capped'] <= 1) || allowPass) {
+                    if ($u.hasContent(castleageList) || caap.stats['army']['capped'] <= 1 || allowPass) {
                         $u.log(2, 'Elite Guard received a new friend list');
                         MergeMyEliteTodo(castleageList);
                         state.setItem(caap.friendListType.giftc.name + 'Responded', []);
                         state.setItem(caap.friendListType.giftc.name + 'Requested', false);
                         eliteList = state.getItem('MyEliteTodo', []);
-                        if (eliteList.length === 0) {
+                        if ($u.hasContent(eliteList)) {
                             $u.log(1, 'WARNING! Elite Guard friend list is 0');
                             state.setItem('AutoEliteFew', true);
                             schedule.setItem('AutoEliteGetList', 21600, 300);
@@ -10605,7 +10765,7 @@
                     $u.log(2, 'Elite Guard sent request, saving shifted MyEliteTodo');
                     state.setItem('MyEliteTodo', eliteList);
                     schedule.setItem('AutoEliteReqNext', 7);
-                    if (!eliteList.length) {
+                    if (!$u.hasContent(eliteList)) {
                         $u.log(2, 'Army list exhausted');
                         state.setItem('AutoEliteEnd', 'NoArmy');
                     }
@@ -10689,6 +10849,10 @@
             if (autoGift) {
                 schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
             }
+        },
+
+        CheckResults_army_member: function (resultsText) {
+            army.page();
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -10851,7 +11015,7 @@
                 $u.log(3, "Performing AjaxGiftCheck");
                 var theUrl = caap.domain.link + '/army.php';
 
-                $j.ajax({
+                jQuery.ajax({
                     url: theUrl,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
@@ -10911,7 +11075,7 @@
 
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
-                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
+                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || (!jQuery.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
                     return false;
                 }
                 /*jslint sub: false */
@@ -10989,7 +11153,7 @@
                     }
                 }
 
-                if ($j.isEmptyObject(gifting.getCurrent())) {
+                if (jQuery.isEmptyObject(gifting.getCurrent())) {
                     return false;
                 }
 
@@ -11293,7 +11457,7 @@
 
         ajaxCTA: function (theUrl, theCount) {
             try {
-                $j.ajax({
+                jQuery.ajax({
                     url: theUrl,
                     dataType: "html",
                     error:
@@ -11449,7 +11613,7 @@
                             state.setItem(listType.name + 'Responded', true);
                         }
                     } else {
-                        $j.ajax({
+                        jQuery.ajax({
                             url: caap.domain.link + listType.url,
                             error:
                                 function (XMLHttpRequest, textStatus, errorThrown) {
@@ -11527,7 +11691,7 @@
 
                         theUrl = caap.domain.link + '/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf';
 
-                        $j.ajax({
+                        jQuery.ajax({
                             url: theUrl,
                             error: responseCallback,
                             success: responseCallback
@@ -11576,7 +11740,7 @@
                 if ((castleageList.length && facebookList.length) || fillArmyList.length) {
                     if (!fillArmyList.length) {
                         var diffList = facebookList.filter(function (facebookID) {
-                            return (castleageList.indexOf(facebookID) >= 0);
+                            return castleageList.hasIndexOf(facebookID);
                         });
 
                         $u.log(3, "diffList: ", diffList);
@@ -11759,16 +11923,16 @@
         },
         /*jslint sub: false */
 
-        reconhbest: false,
+        reconhbest: 2,
 
         LoadRecon: function () {
             caap.ReconRecordArray = gm.getItem('recon.records', 'default');
-            if (caap.ReconRecordArray === 'default' || !$j.isArray(caap.ReconRecordArray)) {
+            if (caap.ReconRecordArray === 'default' || !jQuery.isArray(caap.ReconRecordArray)) {
                 caap.ReconRecordArray = gm.setItem('recon.records', []);
             }
 
             caap.reconhbest = caap.reconhbest === false ? JSON.hbest(caap.ReconRecordArray) : caap.reconhbest;
-            $u.log(2, "recon.records Hbest", caap.reconhbest);
+            $u.log(3, "recon.records Hbest", caap.reconhbest);
             state.setItem("ReconDashUpdate", true);
             $u.log(3, "recon.records", caap.ReconRecordArray);
         },
@@ -11801,7 +11965,7 @@
                 $u.log(1, "Player Recon: In Progress");
                 theUrl = caap.domain.link + '/battle.php';
 
-                $j.ajax({
+                jQuery.ajax({
                     url: theUrl,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
@@ -11925,7 +12089,7 @@
                                     } else {
                                         $u.warn("$tempObj is empty");
                                     }
-                                    
+
                                     return true;
                                 });
 
@@ -11934,7 +12098,7 @@
                                 $u.log(1, 'Player Recon: Found:' + found + ' Total:' + caap.ReconRecordArray.length);
                                 window.setTimeout(function () {
                                     caap.SetDivContent('idle_mess', '');
-                                }, 5 * 1000);
+                                }, 5000);
 
                                 $u.log(3, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
                             } catch (err) {
@@ -12201,28 +12365,19 @@
 
         ErrorCheck: function () {
             // assorted errors...
-            if (window.location.href.indexOf('/common/error.html') >= 0 || window.location.href.indexOf('/sorry.php') >= 0) {
+            if (window.location.href.hasIndexOf('/common/error.html') || window.location.href.hasIndexOf('/sorry.php')) {
                 $u.log(1, 'detected error page, waiting to go back to previous page.');
                 window.setTimeout(function () {
                     window.history.go(-1);
-                }, 30 * 1000);
+                }, 30000);
 
                 return true;
             }
 
+            // Try again button
             if ($j('#try_again_button').length) {
                 $u.log(1, 'detected Try Again message, waiting to reload');
-                // error
-                window.setTimeout(function () {
-                    if ($u.isFunction(window.location.reload)) {
-                        window.location.reload();
-                    } else if ($u.isFunction(history.go)) {
-                        history.go(0);
-                    } else {
-                        window.location.href = window.location.href;
-                    }
-                }, 30 * 1000);
-
+                window.setTimeout($u.refresh, 30000);
                 return true;
             }
 
@@ -12232,7 +12387,6 @@
         MainLoop: function () {
             try {
                 var button          = null,
-                    caapDisabled    = false,
                     noWindowLoad    = 0,
                     actionsListCopy = [],
                     action          = 0,
@@ -12252,13 +12406,12 @@
 
                 //We don't need to send out any notifications
                 button = $j("a[class*='undo_link']");
-                if (button && button.length) {
-                    caap.Click(button);
+                if ($u.hasContent(button)) {
                     $u.log(1, 'Undoing notification');
+                    caap.Click(button);
                 }
 
-                caapDisabled = config.getItem('Disabled', false);
-                if (caapDisabled) {
+                if (config.getItem('Disabled', false)) {
                     caap.WaitMainLoop();
                     return true;
                 }
@@ -12283,16 +12436,6 @@
                 }
 
                 if (state.getItem('caapPause', 'none') !== 'none') {
-                    caap.caapDivObject.css({
-                        background : config.getItem('StyleBackgroundDark', '#fee'),
-                        opacity    : config.getItem('StyleOpacityDark', 1)
-                    });
-
-                    caap.caapTopObject.css({
-                        background : config.getItem('StyleBackgroundDark', '#fee'),
-                        opacity    : config.getItem('StyleOpacityDark', 1)
-                    });
-
                     caap.WaitMainLoop();
                     return true;
                 }
@@ -12301,14 +12444,21 @@
                     if (schedule.since('clickedOnSomething', 45)) {
                         $u.log(1, 'Clicked on something, but nothing new loaded.  Reloading page.');
                         caap.ReloadCastleAge();
+                        return true;
                     }
 
                     ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
-                    if (ajaxLoadIcon && ajaxLoadIcon.length && ajaxLoadIcon.css("display") !== "none") {
+                    if ($u.hasContent(ajaxLoadIcon) && ajaxLoadIcon.css("display") !== "none") {
                         $u.log(1, 'Waiting for page load ...');
                         caap.WaitMainLoop();
                         return true;
                     }
+                }
+
+                if (caap.delayMain) {
+                    $u.log(1, 'Delay main ...');
+                    caap.WaitMainLoop();
+                    return true;
                 }
 
                 if (caap.AutoIncome()) {
@@ -12322,7 +12472,6 @@
                 if (state.getItem('ReleaseControl', false)) {
                     state.setItem('ReleaseControl', false);
                 } else {
-                    $u.log(3, "ReleaseControl to unshift LastAction");
                     actionsListCopy.unshift(state.getItem('LastAction', 'Idle'));
                 }
 
@@ -12345,17 +12494,15 @@
 
         WaitMainLoop: function () {
             try {
-                $u.log(5, 'waitMilliSecs', caap.waitMilliSecs);
-                function timeout() {
+                window.setTimeout(function () {
                     caap.waitMilliSecs = 5000;
                     if (caap.flagReload) {
                         caap.ReloadCastleAge();
                     }
 
                     caap.MainLoop();
-                }
+                }, caap.waitMilliSecs * (1 + Math.random() * 0.2));
 
-                window.setTimeout(timeout, caap.waitMilliSecs * (1 + Math.random() * 0.2));
                 return true;
             } catch (err) {
                 $u.error("ERROR in WaitMainLoop: " + err);
@@ -12380,25 +12527,81 @@
         ReloadOccasionally: function () {
             try {
                 var reloadMin = gm.getItem('ReloadFrequency', 8, hiddenVar);
-                if (!reloadMin || reloadMin < 8) {
-                    reloadMin = 8;
-                }
-
-                function timeout() {
-                    if (schedule.since('clickedOnSomething', 5 * 60) || caap.pageLoadCounter > 40) {
+                reloadMin = !$u.isNumber(reloadMin) || reloadMin < 8 ? 8 : reloadMin;
+                window.setTimeout(function () {
+                    if (schedule.since('clickedOnSomething', 300) || caap.pageLoadCounter > 40) {
                         $u.log(1, 'Reloading if not paused after inactivity');
                         caap.flagReload = true;
                     }
 
                     caap.ReloadOccasionally();
-                }
+                }, 60000 * reloadMin + (reloadMin * 60000 * Math.random()));
 
-                window.setTimeout(timeout, 60000 * reloadMin + (reloadMin * 60000 * Math.random()));
                 return true;
             } catch (err) {
                 $u.error("ERROR in ReloadOccasionally: " + err);
                 return false;
             }
+        },
+
+        ///////////////////////////
+        //       Extend jQuery
+        ///////////////////////////
+        jQueryExtend: function () {
+            (function ($) {
+                /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+                /*jslint sub: true */
+                jQuery.fn['getPercent'] = jQuery.fn.getPercent = function (type) {
+                    var t = [];
+                    if (!type || type === 'width') {
+                        t = this.attr("style").match(/width:\s*([\d\.]+)%/i);
+                    } else if (!type || type === 'height') {
+                        t = this.attr("style").match(/height:\s*([\d\.]+)%/i);
+                    }
+
+                    return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
+                };
+
+                jQuery.fn['colorInput'] = jQuery.fn.colorInput = function (callback) {
+                    var t = this,
+                        w = jQuery("<div id='" + t.attr("id") + "_farb'></div>").appendTo(document.body);
+
+                    jQuery.farbtastic(w, function (c) {
+                        c = c.toUpperCase();
+                        w.css({
+                            background : c,
+                            color      : utility.bestTextColor(c)
+                        });
+
+                        t.css({
+                            background: c,
+                            color      : utility.bestTextColor(c)
+                        });
+
+                        t.val(c);
+                        if (utility.isFunction(callback)) {
+                            callback(c);
+                        }
+                    }).setColor(t.val());
+
+                    return w;
+                };
+
+                jQuery.fn['alert'] = jQuery.fn.alert = function (html) {
+                    var w = jQuery('<div id="alert_' + new Date().getTime() + '" title="Alert!">' + (html ? html : '') + '</div>').appendTo(document.body);
+
+                    w.dialog({
+                        buttons: {
+                            "Ok": function () {
+                                w.dialog("destroy").remove();
+                            }
+                        }
+                    });
+
+                    return w;
+                };
+                /*jslint sub: false */
+            }(jQuery));
         }
     };
 

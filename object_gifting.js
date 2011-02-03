@@ -11,7 +11,7 @@
 
         load: function (type) {
             try {
-                if (!$u.isString(type) || type === '' || gifting.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || !gifting.types.hasIndexOf(type))  {
                     $u.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
@@ -22,7 +22,7 @@
                 }
 
                 gifting[type].hbest = gifting[type].hbest === false ? JSON.hbest(gifting[type].records) : gifting[type].hbest;
-                $u.log(2, "gifting." + type + " Hbest", gifting[type].hbest);
+                $u.log(3, "gifting." + type + " Hbest", gifting[type].hbest);
                 $u.log(3, "gifting.load", type, gifting[type].records);
                 state.setItem("Gift" + type.ucFirst() + "DashUpdate", true);
                 return true;
@@ -34,7 +34,7 @@
 
         save: function (type) {
             try {
-                if (!$u.isString(type) || type === '' || gifting.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || !gifting.types.hasIndexOf(type))  {
                     $u.warn("Type passed to load: ", type);
                     throw "Invalid type value!";
                 }
@@ -52,7 +52,7 @@
 
         clear: function (type) {
             try {
-                if (!$u.isString(type) || type === '' || gifting.types.indexOf(type) < 0)  {
+                if (!$u.isString(type) || type === '' || !gifting.types.hasIndexOf(type))  {
                     $u.warn("Type passed to clear: ", type);
                     throw "Invalid type value!";
                 }
@@ -106,7 +106,7 @@
                 //giftDiv = $j("div[class='messages']:first img:first");
                 // So I have changed the query to try and resolve the issue
                 giftDiv = $j("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
-                if (giftDiv && giftDiv.length) {
+                if ($u.hasContent(giftDiv)) {
                     tStr = giftDiv.attr("uid");
                     tempNum = tStr ? tStr.parseInt() : '';
                     if (tempNum > 0) {
@@ -163,11 +163,11 @@
         /*jslint sub: true */
         setCurrent: function (record) {
             try {
-                if (!record || !$j.isPlainObject(record)) {
+                if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                     throw "Not passed a record";
                 }
 
-                if (isNaN(record['userId']) || record['userId'] < 1) {
+                if ($u.isNaN(record['userId']) || record['userId'] < 1) {
                     $u.warn("userId", record, record['userId']);
                     throw "Invalid identifying userId!";
                 }
@@ -184,6 +184,7 @@
         clearCurrent: function () {
             try {
                 gifting.cachedGiftEntry = gm.setItem("GiftEntry", {});
+                state.setItem("GiftingRefresh", 0);
                 return gifting.cachedGiftEntry;
             } catch (err) {
                 $u.error("ERROR in gifting.clearCurrent: " + err);
@@ -231,18 +232,11 @@
             try {
                 var giftEntry  = false,
                     appDiv     = $j(),
-                    inputDiv   = $j(),
-                    userArr    = [],
-                    userId     = 0,
-                    giftDiv    = $j(),
-                    giftText   = '',
-                    giftArr    = [],
-                    giftType   = '',
-                    tStr       = '',
-                    uidRegExp  = new RegExp("uid=(\\d+)", "i"),
-                    giftRegExp = new RegExp("(.*) has sent you a (.*) in Castle Age!", "i");
+                    reload     = false,
+                    rfCount    = state.getItem("GiftingRefresh", 0),
+                    giftsList  = [];
 
-                if (window.location.href.indexOf('apps.facebook.com/reqs.php#confirm_46755028429_0') < 0) {
+                if (!window.location.href.hasIndexOf(caap.domain.url[1])) {
                     return false;
                 }
 
@@ -251,45 +245,46 @@
                     return false;
                 }
 
-                if (!giftEntry['checked']) {
+                if (!giftEntry['checked'] || rfCount > 0) {
                     $u.log(1, 'On FB page with gift ready to go');
                     appDiv = $j("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
-                    if (appDiv && appDiv.length) {
+                    if ($u.hasContent(appDiv)) {
+                        giftsList = gifting.gifts.list();
                         appDiv.each(function () {
-                            var giftRequest = $j(this);
-                            //inputDiv = giftRequest.find("input[value='Accept and play'],input[value='Accept and Play'],input[value='Accept']");
-                            inputDiv = giftRequest.find(".uiButtonConfirm input[name*='gift_accept.php']");
-                            if (inputDiv && inputDiv.length) {
-                                userArr = inputDiv.attr("name").match(uidRegExp);
-                                if (!userArr || userArr.length !== 2) {
-                                    return true;
-                                }
+                            var giftRequest = $j(this),
+                                giftText    = '',
+                                giftType    = '',
+                                userId      = 0,
+                                name        = '',
+                                giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
+                                inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php']", giftRequest),
+                                tStr        = '';
 
-                                userId = userArr[1] ? userArr[1].parseInt() : '';
+                            if ($u.hasContent(inputDiv)) {
+                                tStr = inputDiv.attr("name");
+                                userId = tStr ? tStr.regex(/uid=(\d+)/i) : 0;
                                 if (giftEntry['userId'] !== userId) {
                                     return true;
                                 }
 
-                                giftDiv = giftRequest.find("span[class='fb_protected_wrapper']");
-                                giftText = '';
-                                giftArr = [];
-                                giftType = '';
-                                if (giftDiv && giftDiv.length) {
+                                if ($u.hasContent(giftDiv)) {
                                     tStr = giftDiv.text();
                                     giftText = tStr ? tStr.trim() : '';
-                                    giftArr = giftText.match(giftRegExp);
-                                    if (giftArr && giftArr.length === 3) {
-                                        giftType = giftArr[2];
+                                    giftType = giftText.regex(new RegExp("has sent you a (.*) in Castle Age!", "i"));
+                                    name = giftText.regex(new RegExp("(.*) has sent you a .* in Castle Age!", "i"));
+                                    giftEntry['name'] = $u.hasContent(giftEntry['name']) ? giftEntry['name'] : ($u.hasContent(name) ? name : 'Unknown');
+                                    if (!$u.hasContent(giftType)) {
+                                        $u.warn("No gift type found in ", giftText);
                                     }
                                 } else {
                                     $u.warn("No fb_protected_wrapper in ", giftRequest);
                                 }
 
-                                if (giftType === '' || gifting.gifts.list().indexOf(giftType) < 0) {
-                                    $u.log(1, 'Unknown gift type', giftType, gifting.gifts.list());
+                                if (giftType === '' || !giftsList.hasIndexOf(giftType)) {
+                                    $u.log(1, 'Unknown gift type', giftType, giftsList);
                                     giftType = 'Unknown Gift';
                                 } else {
-                                    $u.log(1, 'gift type', giftType, gifting.gifts.list());
+                                    $u.log(1, 'gift type', giftType, giftsList);
                                 }
 
                                 giftEntry['gift'] = giftType;
@@ -297,15 +292,30 @@
                                 giftEntry['checked'] = true;
                                 gifting.setCurrent(giftEntry);
                                 schedule.setItem('ClickedFacebookURL', 35);
+                                if (!reload) {
+                                    rfCount = state.setItem("GiftingRefresh", rfCount + 1);
+                                }
+
+                                reload = true;
                                 caap.Click(inputDiv);
                                 return false;
                             } else {
+                                if (!reload) {
+                                    rfCount = state.setItem("GiftingRefresh", rfCount + 1);
+                                }
+
+                                reload = true;
                                 $u.warn("No input found in ", giftRequest);
                             }
 
                             return true;
                         });
                     } else {
+                        if (!reload) {
+                            rfCount = state.setItem("GiftingRefresh", rfCount + 1);
+                        }
+
+                        reload = true;
                         $u.warn("No gifts found for CA");
                     }
 
@@ -325,6 +335,11 @@
                     $u.log(1, 'Unable to find gift', giftEntry);
                 }
 
+                if (reload && rfCount === 1) {
+                    $u.refreshPage();
+                }
+
+                state.setItem("GiftingRefresh", 0);
                 caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
                 return true;
             } catch (err) {
@@ -365,23 +380,23 @@
                     tryAgain   = true;
 
                 popDiv = $j("#pop_content");
-                if (popDiv && popDiv.length) {
+                if ($u.hasContent(popDiv)) {
                     tempDiv = popDiv.find("input[name='sendit']");
-                    if (tempDiv && tempDiv.length) {
+                    if ($u.hasContent(tempDiv)) {
                         $u.log(1, 'Sending gifts to Facebook');
                         caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = popDiv.find("input[name='skip_ci_btn']");
-                    if (tempDiv && tempDiv.length) {
+                    if ($u.hasContent(tempDiv)) {
                         $u.log(1, 'Denying Email Nag For Gift Send');
                         caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = popDiv.find("input[name='ok']");
-                    if (tempDiv && tempDiv.length) {
+                    if ($u.hasContent(tempDiv)) {
                         tempText = tempDiv.parent().parent().prev().text();
                         if (tempText) {
                             if (/you have run out of requests/.test(tempText)) {
@@ -509,13 +524,13 @@
                         update   = false;
 
                     giftDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']");
-                    if (giftDiv && giftDiv.length) {
+                    if ($u.hasContent(giftDiv)) {
                         gifting.clear("gifts");
                         giftDiv.each(function () {
                             var theGift = $j(this);
                             newGift = new gifting.gifts.record();
                             tempDiv = theGift.children().eq(0);
-                            if (tempDiv && tempDiv.length) {
+                            if ($u.hasContent(tempDiv)) {
                                 tStr = tempDiv.text();
                                 tempText = tStr ? tStr.trim().replace("!", "") : '';
                                 if (tempText) {
@@ -530,7 +545,7 @@
                             }
 
                             tempDiv = theGift.find("img[class*='imgButton']");
-                            if (tempDiv && tempDiv.length) {
+                            if ($u.hasContent(tempDiv)) {
                                 tStr = tempDiv.attr("src");
                                 tempText = tStr ? tStr.basename() : '';
                                 if (tempText) {
@@ -558,7 +573,7 @@
                     if (update) {
                         tempArr = gifting.gifts.list();
                         tempText = config.getItem("GiftChoice", gifting.gifts.options[0]);
-                        if (tempArr.indexOf(tempText) < 0)  {
+                        if (!tempArr.hasIndexOf(tempText))  {
                             $u.log(1, "Gift choice invalid, changing from/to ", tempText, gifting.gifts.options[0]);
                             tempText = config.setItem("GiftChoice", gifting.gifts.options[0]);
                         }
@@ -635,7 +650,7 @@
                         save = false;
 
                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
-                        if (isNaN(gifting.queue.records[it]['userId']) || gifting.queue.records[it]['userId'] < 1 || gifting.queue.records[it]['sent'] === true) {
+                        if ($u.isNaN(gifting.queue.records[it]['userId']) || gifting.queue.records[it]['userId'] < 1 || gifting.queue.records[it]['sent'] === true) {
                             $u.warn("gifting.queue.fix - delete", gifting.queue.records[it]);
                             gifting.queue.records.splice(it, 1);
                             save = true;
@@ -653,15 +668,15 @@
                 }
             },
 
-            hbest: false,
+            hbest: 2,
 
             setItem: function (record) {
                 try {
-                    if (!record || !$j.isPlainObject(record)) {
+                    if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                         throw "Not passed a record";
                     }
 
-                    if (isNaN(record['userId']) || record['userId'] < 1) {
+                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
                         $u.warn("userId", record['userId']);
                         throw "Invalid identifying userId!";
                     }
@@ -707,7 +722,7 @@
 
             deleteIndex: function (index) {
                 try {
-                    if (isNaN(index) || index < 0 || index >= gifting.queue.records.length) {
+                    if ($u.isNaN(index) || index < 0 || index >= gifting.queue.records.length) {
                         throw "Invalid index! (" + index + ")";
                     }
 
@@ -770,7 +785,7 @@
                             continue;
                         }
 
-                        if (filterId && filterIdLen && filterIdList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
+                        if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it]['userId'])) {
                             $u.log(2, "chooseGift Filter Id", gifting.queue.records[it]['userId']);
                             continue;
                         }
@@ -778,7 +793,7 @@
                         if (filterGift && filterGiftLen) {
                             filterGiftCont = false;
                             for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
-                                if (gifting.queue.records[it]['gift'].indexOf(filterGiftList[it1]) >= 0) {
+                                if (gifting.queue.records[it]['gift'].hasIndexOf(filterGiftList[it1])) {
                                     $u.log(2, "chooseGift Filter Gift", gifting.queue.records[it]['gift']);
                                     filterGiftCont = true;
                                     break;
@@ -847,7 +862,7 @@
                         pendingList    = [],
                         chosenList     = [];
 
-                    if (isNaN(howmany) || howmany < 1) {
+                    if ($u.isNaN(howmany) || howmany < 1) {
                         throw "Invalid howmany! (" + howmany + ")";
                     }
 
@@ -885,7 +900,7 @@
                             continue;
                         }
 
-                        if (filterId && filterIdLen && filterIdList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
+                        if (filterId && filterIdLen && filterIdList.hasIndexOf(gifting.queue.records[it]['userId'])) {
                             $u.log(2, "chooseFriend Filter Id", gifting.queue.records[it]['userId']);
                             continue;
                         }
@@ -893,7 +908,7 @@
                         if (filterGift && filterGiftLen) {
                             filterGiftCont = false;
                             for (it1 = 0; it1 < filterGiftLen; it1 += 1) {
-                                if (gifting.queue.records[it]['gift'].indexOf(filterGiftList[it1]) >= 0) {
+                                if (gifting.queue.records[it]['gift'].hasIndexOf(filterGiftList[it1])) {
                                     $u.log(2, "chooseFriend Filter Gift", gifting.queue.records[it]['gift']);
                                     filterGiftCont = true;
                                     break;
@@ -923,7 +938,7 @@
                         }
                     }
 
-                    if (giftingList.length) {
+                    if ($u.hasContent(giftingList)) {
                         for (it = 0, len = giftingList.length; it < len; it += 1) {
                             searchStr += "input[value='" + giftingList[it] + "']";
                             if (it >= 0 && it < len - 1) {
@@ -932,7 +947,7 @@
                         }
 
                         unselDiv = unselListDiv.find(searchStr);
-                        if (unselDiv && unselDiv.length) {
+                        if ($u.hasContent(unselDiv)) {
                             unselDiv.each(function () {
                                 var unsel = $j(this),
                                     tStr = '',
@@ -955,7 +970,7 @@
                             $j.merge(pendingList, giftingList);
                         }
 
-                        if (clickedList && clickedList.length) {
+                        if ($u.hasContent(clickedList)) {
                             for (it = 0, len = clickedList.length; it < len; it += 1) {
                                 searchStr += "input[value='" + clickedList[it] + "']";
                                 if (it >= 0 && it < len - 1) {
@@ -964,7 +979,7 @@
                             }
 
                             selDiv = selListDiv.find(searchStr);
-                            if (selDiv && selDiv.length) {
+                            if ($u.hasContent(selDiv)) {
                                 selDiv.each(function () {
                                     var sel  = $j(this),
                                         tStr = '',
@@ -988,11 +1003,11 @@
 
                         $u.log(2, "chosenList/pendingList", chosenList, pendingList);
                         for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
-                            if (chosenList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
+                            if (chosenList.hasIndexOf(gifting.queue.records[it]['userId'])) {
                                 $u.log(2, "Chosen", gifting.queue.records[it]['userId']);
                                 gifting.queue.records[it]['chosen'] = true;
                                 gifting.queue.records[it]['last'] = new Date().getTime();
-                            } else if (pendingList.indexOf(gifting.queue.records[it]['userId']) >= 0) {
+                            } else if (pendingList.hasIndexOf(gifting.queue.records[it]['userId'])) {
                                 $u.log(2, "Pending", gifting.queue.records[it]['userId']);
                                 gifting.queue.records[it]['last'] = new Date().getTime();
                             }
@@ -1016,9 +1031,9 @@
                         resultText = '',
                         sentok     = false;
 
-                    if (window.location.href.indexOf('act=create') >= 0) {
+                    if (window.location.href.hasIndexOf('act=create')) {
                         resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper');
-                        if (resultDiv && resultDiv.length) {
+                        if ($u.hasContent(resultDiv)) {
                             resultText = resultDiv.text();
                             if (resultText) {
                                 if (/You have sent \d+ gift/.test(resultText)) {
@@ -1078,7 +1093,7 @@
                         save = false;
 
                     for (it = gifting.history.records.length - 1; it >= 0; it -= 1) {
-                        if (isNaN(gifting.history.records[it]['userId']) || gifting.history.records[it]['userId'] < 1) {
+                        if ($u.isNaN(gifting.history.records[it]['userId']) || gifting.history.records[it]['userId'] < 1) {
                             $u.warn("gifting.history.fix - delete", gifting.history.records[it]);
                             gifting.history.records.splice(it, 1);
                             save = true;
@@ -1096,15 +1111,15 @@
                 }
             },
 
-            hbest: false,
+            hbest: 0,
 
             received: function (record) {
                 try {
-                    if (!record || !$j.isPlainObject(record)) {
+                    if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                         throw "Not passed a record";
                     }
 
-                    if (isNaN(record['userId']) || record['userId'] < 1) {
+                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
                         $u.warn("userId", record['userId']);
                         throw "Invalid identifying userId!";
                     }
@@ -1149,11 +1164,11 @@
 
             sent: function (record) {
                 try {
-                    if (!record || !$j.isPlainObject(record)) {
+                    if (!$u.hasContent(record) || !$j.isPlainObject(record)) {
                         throw "Not passed a record";
                     }
 
-                    if (isNaN(record['userId']) || record['userId'] < 1) {
+                    if ($u.isNaN(record['userId']) || record['userId'] < 1) {
                         $u.warn("userId", record['userId']);
                         throw "Invalid identifying userId!";
                     }
@@ -1198,7 +1213,7 @@
 
             checkSentOnce: function (userId) {
                 try {
-                    if (isNaN(userId) || userId < 1) {
+                    if ($u.isNaN(userId) || userId < 1) {
                         $u.warn("userId", userId);
                         throw "Invalid identifying userId!";
                     }

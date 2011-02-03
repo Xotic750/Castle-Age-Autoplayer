@@ -90,7 +90,7 @@
             15 : 'High Warchief'
         },
 
-        hbest: false,
+        hbest: 2,
 
         load: function () {
             try {
@@ -100,7 +100,7 @@
                 }
 
                 battle.hbest = battle.hbest === false ? JSON.hbest(battle.records) : battle.hbest;
-                $u.log(2, "battle.load Hbest", battle.hbest);
+                $u.log(3, "battle.load Hbest", battle.hbest);
                 state.setItem("BattleDashUpdate", true);
                 $u.log(3, "battle.load", battle.records);
                 return true;
@@ -143,7 +143,7 @@
                     success   = false,
                     newRecord = null;
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
@@ -176,7 +176,7 @@
                     throw "Not passed a record";
                 }
 
-                if (record['userId'] === '' || isNaN(record['userId']) || record['userId'] < 1) {
+                if (record['userId'] === '' || $u.isNaN(record['userId']) || record['userId'] < 1) {
                     $u.warn("userId", record['userId']);
                     throw "Invalid identifying userId!";
                 }
@@ -214,7 +214,7 @@
                     len       = 0,
                     success   = false;
 
-                if (userId === '' || isNaN(userId) || userId < 1) {
+                if (userId === '' || $u.isNaN(userId) || userId < 1) {
                     $u.warn("userId", userId);
                     throw "Invalid identifying userId!";
                 }
@@ -255,13 +255,13 @@
                     return false;
                 }
 
-                if (record['userId'] === '' || isNaN(record['userId']) || record['userId'] < 1) {
+                if (record['userId'] === '' || $u.isNaN(record['userId']) || record['userId'] < 1) {
                     $u.warn("userId", record);
                     throw "Invalid identifying userId!";
                 }
 
                 hash = (record['userId'].toString().SHA1() + record['nameStr']).SHA1();
-                return (hashes.indexOf(hash) >= 0);
+                return (hashes.hasIndexOf(hash));
             } catch (err) {
                 $u.error("ERROR in battle.hashCheck: " + err);
                 return false;
@@ -630,8 +630,8 @@
                     tempTime = battleRecord['chainTime'] ? battleRecord['chainTime'] : 0;
                     chainBP = config.getItem('ChainBP', '');
                     chainGold = config.getItem('ChainGold', '');
-                    if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !isNaN(chainGold) && chainGold >= 0))) {
-                        if (chainBP !== '' && !isNaN(chainBP) && chainBP >= 0) {
+                    if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0))) {
+                        if (chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) {
                             if (result.points >= chainBP) {
                                 state.setItem("BattleChainId", result.userId);
                                 $u.log(1, "Chain Attack: " + result.userId + ((result.battleType === "War") ? "  War Points: " : "  Battle Points: ") + result.points);
@@ -640,7 +640,7 @@
                             }
                         }
 
-                        if (chainGold !== '' && !isNaN(chainGold) && chainGold >= 0) {
+                        if (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0) {
                             if (result.gold >= chainGold) {
                                 state.setItem("BattleChainId", result.userId);
                                 $u.log(1, "Chain Attack: " + result.userId + " Gold: " + result.goldnum);
@@ -652,7 +652,7 @@
 
                     battleRecord['chainCount'] = battleRecord['chainCount'] ? battleRecord['chainCount'] += 1 : 1;
                     maxChains = config.getItem('MaxChains', 4);
-                    if (maxChains === '' || isNaN(maxChains) || maxChains < 0) {
+                    if (maxChains === '' || $u.isNaN(maxChains) || maxChains < 0) {
                         maxChains = 4;
                     }
 
@@ -733,7 +733,7 @@
                 }
 
                 caap.SetDivContent('battle_mess', 'Battling User ' + battleUpto + '/' + targets.length + ' ' + targets[battleUpto]);
-                if ((targets[battleUpto] === '' || isNaN(targets[battleUpto]) ? targets[battleUpto].toLowerCase() : targets[battleUpto]) === 'raid') {
+                if ((targets[battleUpto] === '' || $u.isNaN(targets[battleUpto]) ? targets[battleUpto].toLowerCase() : targets[battleUpto]) === 'raid') {
                     if (targetRaid) {
                         return 'Raid';
                     }
@@ -848,7 +848,7 @@
                 // Lets get our Freshmeat user settings
                 minRank = config.getItem("FreshMeatMinRank", 99);
                 $u.log(3, "FreshMeatMinRank", minRank);
-                if (minRank === '' || isNaN(minRank)) {
+                if (minRank === '' || $u.isNaN(minRank)) {
                     if (minRank !== '') {
                         $u.warn("FreshMeatMinRank is NaN, using default", 99);
                     }
@@ -858,28 +858,28 @@
 
                 maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
                 $u.log(3, "FreshMeatMaxLevel", maxLevel);
-                if (maxLevel === '' || isNaN(maxLevel)) {
+                if (maxLevel === '' || $u.isNaN(maxLevel)) {
                     maxLevel = 99999;
                     $u.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
                 }
 
                 ARBase = config.getItem("FreshMeatARBase", 0.5);
                 $u.log(3, "FreshMeatARBase", ARBase);
-                if (ARBase === '' || isNaN(ARBase)) {
+                if (ARBase === '' || $u.isNaN(ARBase)) {
                     ARBase = 0.5;
                     $u.warn("FreshMeatARBase is NaN, using default", ARBase);
                 }
 
                 ARMax = gm.getItem("FreshMeatARMax", 99999, hiddenVar);
                 $u.log(3, "FreshMeatARMax", ARMax);
-                if (ARMax === '' || isNaN(ARMax)) {
+                if (ARMax === '' || $u.isNaN(ARMax)) {
                     ARMax = 99999;
                     $u.warn("FreshMeatARMax is NaN, using default", ARMax);
                 }
 
                 ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
                 $u.log(3, "FreshMeatARMin", ARMin);
-                if (ARMin === '' || isNaN(ARMin)) {
+                if (ARMin === '' || $u.isNaN(ARMin)) {
                     ARMin = 0;
                     $u.warn("FreshMeatARMin is NaN, using default", ARMin);
                 }
@@ -1157,7 +1157,7 @@
                                 continue;
                             }
 
-                            if (safeTargets[it]['button'] !== null || safeTargets[it]['button'] !== undefined) {
+                            if ($u.isDefined(safeTargets[it]['button'])) {
                                 $u.log(2, 'Found Target score: ' + safeTargets[it]['score'].dp(2) + ' id: ' + safeTargets[it]['userId'] + ' Number: ' + safeTargets[it]['targetNumber']);
                                 battle.click(safeTargets[it]['button'], type);
                                 delete safeTargets[it]['score'];
@@ -1174,7 +1174,7 @@
                                 return true;
                             }
 
-                            $u.warn('Attack button is null');
+                            $u.warn('Attack button is null or undefined');
                         }
                     }
                 }
