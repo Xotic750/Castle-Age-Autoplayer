@@ -2498,9 +2498,9 @@
     };
 
     RISON.parser.bangs = {
-        t: true,
-        f: false,
-        n: null,
+        't': true,
+        'f': false,
+        'n': null,
         '(': RISON.parser.parse_array
     };
 
@@ -2612,8 +2612,8 @@
                 state = 'int',
                 permittedSigns = '-',
                 transitions = {
-                    'int+.': 'frac',
-                    'int+e': 'exp',
+                    'int+.' : 'frac',
+                    'int+e' : 'exp',
                     'frac+e': 'exp'
                 },
                 c;
@@ -2695,6 +2695,7 @@
     RISON['decode_array'] = RISON.decode_array;
     RISON['parser'] = RISON.parser;
     RISON['parser']['WHITESPACE'] = RISON.parser.WHITESPACE;
+    RISON['parser']['prototype'] = RISON.parser.prototype;
     RISON['parser']['prototype']['setOptions'] = RISON.parser.prototype.setOptions;
     RISON['parser']['prototype']['parse'] = RISON.parser.prototype.parse;
     RISON['parser']['prototype']['error'] = RISON.parser.prototype.error;
