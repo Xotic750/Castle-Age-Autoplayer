@@ -272,11 +272,12 @@
 
         getResult: function () {
             try {
-                var wrapperDiv    = $j(),
+                var wrapperDiv    = $j("#" +  caap.domain.id[caap.domain.which] + "results_main_wrapper"),
                     resultsDiv    = $j(),
                     tempDiv       = $j(),
                     tempText      = '',
                     tempArr       = [],
+                    tNum          = 0,
                     battleRecord  = {},
                     warWinLoseImg = '',
                     result        = {
@@ -290,18 +291,16 @@
                         unknown    : false
                     };
 
-                wrapperDiv = $j("#" +  caap.domain.id[caap.domain.which] + "results_main_wrapper");
-                if (wrapperDiv.find("img[src*='battle_victory.gif']").length) {
+                if ($u.hasContent($j("img[src*='battle_victory.gif']", wrapperDiv))) {
                     warWinLoseImg = 'war_win_left.jpg';
                     result.win = true;
-                } else if (wrapperDiv.find("img[src*='battle_defeat.gif']").length) {
+                } else if ($u.hasContent($j("img[src*='battle_defeat.gif']", wrapperDiv))) {
                     warWinLoseImg = 'war_lose_left.jpg';
                 } else {
-                    resultsDiv = wrapperDiv.find("span[class='result_body']");
-                    if (resultsDiv && resultsDiv.length) {
-                        tempText = resultsDiv.text();
-                        tempText = tempText ? tempText.trim() : '';
-                        if (tempText && tempText.match(/Your opponent is hiding, please try again/)) {
+                    resultsDiv = $j("span[class='result_body']", wrapperDiv);
+                    if ($u.hasContent(resultsDiv)) {
+                        tempText = $u.setContent(tempText, '').trim();
+                        if (/Your opponent is hiding, please try again/.test(tempText)) {
                             result.hiding = true;
                             $u.log(1, "Your opponent is hiding");
                             return result;
@@ -317,18 +316,17 @@
                     }
                 }
 
-                if (wrapperDiv.find("img[src*='war_button_war_council.gif']").length) {
+                if ($u.hasContent($j("img[src*='war_button_war_council.gif']", wrapperDiv))) {
                     result.battleType = 'War';
-                    resultsDiv = wrapperDiv.find("div[class='result']");
-                    if (resultsDiv && resultsDiv.length) {
-                        tempDiv = resultsDiv.find("img[src*='war_rank_small_icon']").eq(0);
-                        if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.parent().text();
-                            tempText = tempText ? tempText.trim() : '';
-                            if (tempText) {
-                                tempArr = tempText.match(/(\d+)\s+War Points/i);
-                                if (tempArr && tempArr.length === 2) {
-                                    result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
+                    resultsDiv = $j("div[class='result']", wrapperDiv);
+                    if ($u.hasContent(resultsDiv)) {
+                        tempDiv = $j("img[src*='war_rank_small_icon']", resultsDiv).eq(0);
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.parent().text(), '').trim();
+                            if ($u.hasContent(tempText)) {
+                                tNum = tempText.match(/(\d+)\s+War Points/i);
+                                if ($u.hasContent(tNum)) {
+                                    result.points = tNum;
                                 } else {
                                     $u.warn("Unable to match war points", tempText);
                                 }
@@ -339,12 +337,11 @@
                             $u.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
                         }
 
-                        tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
-                        if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.text();
-                            tempText = tempText ? tempText.trim() : '';
-                            if (tempText) {
-                                result.gold = tempText ? tempText.numberOnly() : 0;
+                        tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
+                        if ($u.hasContent(tempDiv)) {
+                            tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
+                            if ($u.hasContent(tNum)) {
+                                result.gold = tNum;
                             } else {
                                 $u.warn("Unable to find gold text in", tempDiv);
                             }
@@ -352,11 +349,11 @@
                             $u.warn("Unable to find gold element in", resultsDiv);
                         }
 
-                        tempDiv = resultsDiv.find("input[name='target_id']").eq(0);
-                        if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.attr("value");
-                            if (tempText) {
-                                result.userId = tempText ? tempText.numberOnly() : 0;
+                        tempDiv = resultsDiv.find("input[name='target_id']", resultsDiv).eq(0);
+                        if ($u.hasContent(tempDiv)) {
+                            tNum = $u.setContent(tempDiv.attr("value"), '').numberOnly();
+                            if ($u.hasContent(tNum)) {
+                                result.userId = tNum;
                             } else {
                                 $u.warn("No value in", tempDiv);
                                 throw "Unable to get userId!";
@@ -366,12 +363,11 @@
                             throw "Unable to get userId!";
                         }
 
-                        tempDiv = $j("div[style*='" + warWinLoseImg + "']");
-                        if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.text();
-                            tempText = tempText ? tempText.trim() : '';
-                            if (tempText) {
-                                result.userName = tempText.replace("'s Defense", '');
+                        tempDiv = $j("div[style*='" + warWinLoseImg + "']", caap.globalContainer);
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.text(), '').trim().replace("'s Defense", '');
+                            if ($u.hasContent(tempText)) {
+                                result.userName = tempText;
                             } else {
                                 $u.warn("Unable to match user's name in", tempText);
                             }
@@ -383,36 +379,34 @@
                         throw "Unable to get userId!";
                     }
                 } else {
-                    if (wrapperDiv.find("input[src*='battle_invade_again.gif']").length) {
+                    if ($u.hasContent($j("input[src*='battle_invade_again.gif']", wrapperDiv))) {
                         result.battleType = 'Invade';
-                    } else if (wrapperDiv.find("input[src*='battle_duel_again.gif']").length) {
+                    } else if ($u.hasContent($j("input[src*='battle_duel_again.gif']", wrapperDiv))) {
                         result.battleType = 'Duel';
                     } else {
-                        if (wrapperDiv.find("img[src*='icon_weapon.gif']").length) {
+                        if ($u.hasContent($j("img[src*='icon_weapon.gif']", wrapperDiv))) {
                             result.battleType = 'Duel';
-                        } else if (wrapperDiv.find("div[class='full_invade_results']").length) {
+                        } else if ($u.hasContent($j("div[class='full_invade_results']", wrapperDiv))) {
                             result.battleType = 'Invade';
                         }
                     }
 
-                    if (result.battleType) {
-                        resultsDiv = wrapperDiv.find("div[class='result']");
-                        if (resultsDiv && resultsDiv.length) {
-                            tempDiv = resultsDiv.find("img[src*='battle_rank_small_icon']").eq(0);
-                            if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.parent().text();
-                                tempText = tempText ? tempText.trim() : '';
-                                if (tempText) {
-                                    tempArr = tempText.match(/(\d+)\s+Battle Points/i);
-                                    if (tempArr && tempArr.length === 2) {
-                                        result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
+                    if ($u.hasContent(result.battleType)) {
+                        resultsDiv = $j("div[class='result']", wrapperDiv);
+                        if ($u.hasContent(resultsDiv)) {
+                            tempDiv = $j("img[src*='battle_rank_small_icon']", resultsDiv).eq(0);
+                            if ($u.hasContent(tempDiv)) {
+                                tempText = $u.setContent(tempDiv.parent().text(), '').trim();
+                                if ($u.hasContent(tempText)) {
+                                    tNum = tempText.regex(/(\d+)\s+Battle Points/i);
+                                    if ($u.hasContent(tNum)) {
+                                        result.points = tNum;
                                     } else {
-                                        tempText = tempDiv.parent().parent().text();
-                                        tempText = tempText ? tempText.trim() : '';
-                                        if (tempText) {
-                                            tempArr = tempText.match(/(\d+)\s+Battle Points/i);
-                                            if (tempArr && tempArr.length === 2) {
-                                                result.points = tempArr[1] ? tempArr[1].parseInt() : 0;
+                                        tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim();
+                                        if ($u.hasContent(tempText)) {
+                                            tNum = tempText.regex(/(\d+)\s+Battle Points/i);
+                                            if ($u.hasContent(tNum)) {
+                                                result.points = tNum;
                                             } else {
                                                 $u.warn("Unable to match battle points", tempText);
                                             }
@@ -427,12 +421,11 @@
                                 $u.log(3, "Unable to find battle_rank_small_icon in", resultsDiv);
                             }
 
-                            tempDiv = resultsDiv.find("b[class*='gold']").eq(0);
-                            if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.text();
-                                tempText = tempText ? tempText.trim() : '';
-                                if (tempText) {
-                                    result.gold = tempText ? tempText.numberOnly() : 0;
+                            tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
+                            if ($u.hasContent(tempDiv)) {
+                                tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
+                                if ($u.hasContent(tNum)) {
+                                    result.gold = tNum;
                                 } else {
                                     $u.warn("Unable to find gold text in", tempDiv);
                                 }
@@ -440,21 +433,20 @@
                                 $u.warn("Unable to find gold element in", resultsDiv);
                             }
 
-                            tempDiv = resultsDiv.find("a[href*='keep.php?casuser=']").eq(0);
-                            if (tempDiv && tempDiv.length) {
-                                tempText = tempDiv.attr("href");
-                                if (tempText) {
-                                    tempArr = tempText.match(/user=(\d+)/i);
-                                    if (tempArr && tempArr.length === 2) {
-                                        result.userId = tempArr[1] ? tempArr[1].parseInt() : 0;
+                            tempDiv = $j("a[href*='keep.php?casuser=']", resultsDiv).eq(0);
+                            if ($u.hasContent(tempDiv)) {
+                                tempText = $u.setContent(tempDiv.attr("href"), '');
+                                if ($u.hasContent(tempText)) {
+                                    tNum = tempText.regex(/user=(\d+)/i);
+                                    if ($u.hasContent(tNum)) {
+                                        result.userId = tNum;
                                     } else {
                                         $u.warn("Unable to match user's id in", tempText);
                                         throw "Unable to get userId!";
                                     }
 
-                                    tempText = tempDiv.text();
-                                    tempText = tempText ? tempText.trim() : '';
-                                    if (tempText) {
+                                    tempText = $u.setContent(tempDiv.text(), '').trim();
+                                    if ($u.hasContent(tempText)) {
                                         result.userName = tempText;
                                     } else {
                                         $u.warn("Unable to match user's name in", tempText);
@@ -537,7 +529,7 @@
 
         deadCheck: function () {
             try {
-                var resultsDiv   = $j(),
+                var resultsDiv   = $j("div[class='results']", caap.appBodyDiv),
                     resultsText  = '',
                     battleRecord = {},
                     dead         = false;
@@ -546,12 +538,10 @@
                     battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
                 }
 
-                resultsDiv = caap.appBodyDiv.find("div[class='results']");
-                if (resultsDiv && resultsDiv.length) {
-                    resultsText = resultsDiv.text();
-                    resultsText = resultsText ? resultsText.trim() : '';
-                    if (resultsText) {
-                        if (resultsText.match(/Your opponent is dead or too weak to battle/)) {
+                if ($u.hasContent(resultsDiv)) {
+                    resultsText = $u.setContent(resultsDiv.text(), '').trim();
+                    if ($u.hasContent(resultsText)) {
+                        if (/Your opponent is dead or too weak to battle/.test(resultsText)) {
                             $u.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
                             if ($j.isPlainObject(battleRecord) && !$j.isEmptyObject(battleRecord)) {
                                 battleRecord['deadTime'] = new Date().getTime();
@@ -627,7 +617,7 @@
                 if (result.win) {
                     $u.log(1, "We Defeated ", result.userName);
                     //Test if we should chain this guy
-                    tempTime = battleRecord['chainTime'] ? battleRecord['chainTime'] : 0;
+                    tempTime = $u.setContent(battleRecord['chainTime'], 0);
                     chainBP = config.getItem('ChainBP', '');
                     chainGold = config.getItem('ChainGold', '');
                     if (schedule.since(tempTime, 86400) && ((chainBP !== '' && !$u.isNaN(chainBP) && chainBP >= 0) || (chainGold !== '' && !$u.isNaN(chainGold) && chainGold >= 0))) {
@@ -808,13 +798,14 @@
 
         freshmeat: function (type) {
             try {
-                var inputDiv        = $j(),
+                var inputDiv        = $j("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']", caap.appBodyDiv),
                     plusOneSafe     = false,
                     safeTargets     = [],
                     chainId         = '',
                     chainAttack     = false,
                     inp             = $j(),
                     txt             = '',
+                    tNum            = 0,
                     tempArr         = [],
                     levelm          = [],
                     minRank         = 0,
@@ -835,9 +826,7 @@
                     lastBattleID    = 0,
                     engageButton    = null;
 
-                $u.log(3, 'target img', battle.battles[type][config.getItem('BattleType', 'Invade')]);
-                inputDiv = caap.appBodyDiv.find("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']");
-                if (!inputDiv || !inputDiv.length) {
+                if (!$u.hasContent(inputDiv)) {
                     $u.warn('Not on battlepage');
                     caap.NavigateTo(caap.battlePage);
                     return false;
@@ -893,44 +882,37 @@
                     tempRecord = new battle.record();
                     tempRecord.data['button'] = inputDiv.eq(it);
                     if (type === 'Raid') {
-                        tr = tempRecord.data['button'].parents().eq(4);
-                        txt = tr.children().eq(1).text();
-                        txt = txt ? txt.trim() : '';
+                        txt = $u.setContent(tr.children().eq(1).text(), '').trim();
                         levelm = battle.battles['Raid']['regex1'].exec(txt);
-                        if (!levelm || !levelm.length) {
+                        if (!$u.hasContent(levelm)) {
                             $u.warn("Can't match Raid regex in ", txt);
                             continue;
                         }
 
-                        tempRecord.data['nameStr'] = levelm[1] ? levelm[1].trim() : '';
-                        tempRecord.data['rankNum'] = levelm[2] ? levelm[2].parseInt() : 0;
+                        tempRecord.data['nameStr'] = $u.setContent(levelm[1], '').trim();
+                        tempRecord.data['rankNum'] = $u.setContent(levelm[2], '').parseInt();
                         tempRecord.data['rankStr'] = battle.battleRankTable[tempRecord.data['rankNum']];
-                        tempRecord.data['levelNum'] = levelm[4] ? levelm[4].parseInt() : 0;
-                        tempRecord.data['armyNum'] = levelm[6] ? levelm[6].parseInt() : 0;
+                        tempRecord.data['levelNum'] = $u.setContent(levelm[4], '').parseInt();
+                        tempRecord.data['armyNum'] = $u.setContent(levelm[6], '').parseInt();
                     } else {
                         tr = tempRecord.data['button'].parents("tr").eq(0);
-                        if (!tr || !tr.length) {
+                        if (!$u.hasContent(tr)) {
                             $u.warn("Can't find parent tr in", tempRecord.data['button']);
                             continue;
                         }
 
-                        txt = tr.find("img[src*='symbol_']").attr("src");
-                        if (txt) {
-                            tempArr = txt.match(/(\d+)\.jpg/i);
-                            if (tempArr && tempArr.length === 2) {
-                                tempRecord.data['deityNum'] = tempArr[1] ? tempArr[1].parseInt() - 1: -1;
-                                if (tempRecord.data['deityNum'] >= 0 && tempRecord.data['deityNum'] <= 4) {
-                                    tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
-                                } else {
-                                    $u.warn("Demi number is not between 0 and 4", tempRecord.data['deityNum']);
-                                    tempRecord.data['deityNum'] = 0;
-                                    tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
-                                }
+                        tNum = $u.setContent($j("img[src*='symbol_']", tr).attr("src"), '').regex(/(\d+)\.jpg/i);
+                        if ($u.hasContent(tNum)) {
+                            tempRecord.data['deityNum'] = tNum - 1;
+                            if (tempRecord.data['deityNum'] >= 0 && tempRecord.data['deityNum'] <= 4) {
+                                tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                             } else {
-                                $u.warn("Unable to match demi number in txt", txt);
+                                $u.warn("Demi number is not between 0 and 4", tempRecord.data['deityNum']);
+                                tempRecord.data['deityNum'] = 0;
+                                tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                             }
                         } else {
-                            $u.warn("Unable to find demi image in tr", tr);
+                            $u.warn("Unable to match demi number in txt");
                         }
 
                         // If looking for demi points, and already full, continue
@@ -946,9 +928,8 @@
                             }
                         }
 
-                        txt = tr.text();
-                        txt = txt ? txt.trim() : '';
-                        if (txt === '') {
+                        txt = $u.setContent(tr.text(), '').trim();
+                        if (!$u.hasContent(txt)) {
                             $u.warn("Can't find txt in tr");
                             continue;
                         }
@@ -972,30 +953,26 @@
                             continue;
                         }
 
-                        tempRecord.data['nameStr'] = levelm[1] ? levelm[1].trim() : '';
-                        tempRecord.data['levelNum'] = levelm[2] ? levelm[2].parseInt() : 0;
-                        tempRecord.data['rankStr'] = levelm[3] ? levelm[3].trim() : '';
-                        tempRecord.data['rankNum'] = levelm[4] ? levelm[4].parseInt() : 0;
+                        tempRecord.data['nameStr'] = $u.setContent(levelm[1], '').trim();
+                        tempRecord.data['levelNum'] = $u.setContent(levelm[2], '').parseInt();
+                        tempRecord.data['rankStr'] = $u.setContent(levelm[3], '').trim();
+                        tempRecord.data['rankNum'] = $u.setContent(levelm[4], '').parseInt();
                         if (battle.battles['Freshmeat']['warLevel']) {
-                            tempRecord.data['warRankStr'] = levelm[5] ? levelm[5].trim() : '';
-                            tempRecord.data['warRankNum'] = levelm[6] ? levelm[6].parseInt() : 0;
-                        }
-
-                        if (battle.battles['Freshmeat']['warLevel']) {
-                            tempRecord.data['armyNum'] = levelm[7] ? levelm[7].parseInt() : 0;
+                            tempRecord.data['warRankStr'] = $u.setContent(levelm[5], '').trim();
+                            tempRecord.data['warRankNum'] = $u.setContent(levelm[6], '').parseInt();
+                            tempRecord.data['armyNum'] = $u.setContent(levelm[7], '').parseInt();
                         } else {
-                            tempRecord.data['armyNum'] = levelm[5] ? levelm[5].parseInt() : 0;
+                            tempRecord.data['armyNum'] = $u.setContent(levelm[5], '').parseInt();
                         }
                     }
 
-                    inp = tr.find("input[name='target_id']");
-                    if (!inp || !inp.length) {
+                    inp = $j("input[name='target_id']", tr);
+                    if (!$u.hasContent(inp)) {
                         $u.warn("Could not find 'target_id' input");
                         continue;
                     }
 
-                    txt = inp.attr("value");
-                    tempRecord.data['userId'] = txt ? txt.parseInt() : 0;
+                    tempRecord.data['userId'] = $u.setContent(inp.attr("value"), '').parseInt();
                     if (battle.hashCheck(tempRecord.data)) {
                         continue;
                     }
@@ -1053,13 +1030,13 @@
                     if (!config.getItem("IgnoreBattleLoss", false)) {
                         switch (config.getItem("BattleType", 'Invade')) {
                         case 'Invade' :
-                            tempTime = battleRecord['invadeLostTime'] ? battleRecord['invadeLostTime'] : 0;
+                            tempTime = $u.setContent(battleRecord['invadeLostTime'], 0);
                             break;
                         case 'Duel' :
-                            tempTime = battleRecord['duelLostTime'] ? battleRecord['duelLostTime'] : 0;
+                            tempTime = $u.setContent(battleRecord['duelLostTime'], 0);
                             break;
                         case 'War' :
-                            tempTime = battleRecord['warlostTime'] ? battleRecord['warlostTime'] : 0;
+                            tempTime = $u.setContent(battleRecord['warlostTime'], 0);
                             break;
                         default :
                             $u.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
@@ -1072,28 +1049,28 @@
                     }
 
                     // don't battle people that results were unknown in the last hour
-                    tempTime = battleRecord['unknownTime'] ? battleRecord['unknownTime'] : 0;
+                    tempTime = $u.setContent(battleRecord['unknownTime'], 0);
                     if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 3600)) {
                         $u.log(1, "User was battled but results unknown in the last hour: ", tempRecord.data['userId']);
                         continue;
                     }
 
                     // don't battle people that were dead or hiding in the last hour
-                    tempTime = battleRecord['deadTime'] ? battleRecord['deadTime']: 0;
+                    tempTime = $u.setContent(battleRecord['deadTime'], 0);
                     if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 3600)) {
                         $u.log(1, "User was dead in the last hour: ", tempRecord.data['userId']);
                         continue;
                     }
 
                     // don't battle people we've already chained to max in the last 2 days
-                    tempTime = battleRecord['chainTime'] ? battleRecord['chainTime'] : 0;
+                    tempTime = $u.setContent(battleRecord['chainTime'], 0);
                     if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 86400)) {
                         $u.log(1, "We chained user within 2 days: ", tempRecord.data['userId']);
                         continue;
                     }
 
                     // don't battle people that didn't meet chain gold or chain points in the last week
-                    tempTime = battleRecord['ignoreTime'] ? battleRecord['ignoreTime'] : 0;
+                    tempTime = $u.setContent(battleRecord['ignoreTime'], 0);
                     if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 604800)) {
                         $u.log(1, "User didn't meet chain requirements this week: ", tempRecord.data['userId']);
                         continue;
@@ -1115,11 +1092,11 @@
 
                 safeTargets.sort($u.sortBy(true, "score"));
                 $u.log(3, "safeTargets", safeTargets);
-                if (safeTargets && safeTargets.length) {
+                if ($u.hasContent(safeTargets)) {
                     if (chainAttack) {
                         form = inputDiv.eq(0).parent().parent();
                         inp = form.find("input[name='target_id']");
-                        if (inp && inp.length) {
+                        if ($u.hasContent(inp)) {
                             inp.attr("value", chainId);
                             $u.log(1, "Chain attacking: ", chainId);
                             battle.click(inputDiv.eq(0), type);
@@ -1134,7 +1111,7 @@
                         if (plusOneSafe) {
                             form = inputDiv.eq(0).parent().parent();
                             inp = form.find("input[name='target_id']");
-                            if (inp && inp.length) {
+                            if ($u.hasContent(inp)) {
                                 txt = inp.attr("value");
                                 firstId = txt ? txt.parseInt() : 0;
                                 inp.attr("value", '200000000000001');

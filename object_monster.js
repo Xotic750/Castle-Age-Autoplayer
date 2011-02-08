@@ -254,9 +254,9 @@
                 siegeDam     : [13750000, 17500000, 20500000, 23375000, 26500000, 29500000, 34250000],
                 siege_img    : [
                     '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_small',
-                    '/graphics/azriel_siege_inferno_small',
-                    '/graphics/war_siege_holy_smite_small'
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,
                 staUse       : 5,
@@ -294,8 +294,8 @@
                 siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_small',
-                    '/graphics/azriel_siege_inferno_small'
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2'
                 ],
                 fort         : true,
                 staUse       : 5,
@@ -315,8 +315,8 @@
                 siegeDam     : [22250000, 27500000, 32500000, 37500000, 42500000, 47500000, 55000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_small',
-                    '/graphics/azriel_siege_inferno_small'
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2'
                 ],
                 fort         : true,
                 staUse       : 5,
@@ -356,9 +356,9 @@
                 siegeDam     : [14750000, 18500000, 21000000, 24250000, 27000000, 30000000, 35000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_small',
-                    '/graphics/azriel_siege_inferno_small',
-                    '/graphics/war_siege_holy_smite_small'
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,
                 staUse       : 5,
@@ -378,9 +378,9 @@
                 siegeDam     : [15250000, 19000000, 21500000, 24750000, 27500000, 30500000, 35500000],
                 siege_img    : [
                     '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_small',
-                    '/graphics/azriel_siege_inferno_small',
-                    '/graphics/war_siege_holy_smite_small'
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,
                 staUse       : 5,
@@ -420,9 +420,9 @@
                 siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
                 siege_img    : [
                     '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_small',
-                    '/graphics/azriel_siege_inferno_small',
-                    '/graphics/war_siege_holy_smite_small'
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,
                 staUse       : 5,
@@ -467,13 +467,11 @@
                     return false;
                 }
 
-                var str    = '',
-                    value  = 0,
+                var str    = $u.setContent(conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), ''), ''),
+                    value  = str.numberOnly(),
                     first  = false,
                     second = false;
 
-                str = conditions.substring(conditions.indexOf(':' + type) + type.length + 1).replace(new RegExp(":.+"), '');
-                value = !$u.isNaN(str) ? str.parseFloat() : 0;
                 if (str && (/k$/i.test(str) || /m$/i.test(str))) {
                     first = /\d+k/i.test(str);
                     second = /\d+m/i.test(str);
@@ -670,7 +668,7 @@
 
                 siegeStage = record['phase'] - 1;
                 boss = monster.info[record['type']];
-                timeLeft = record['time'][0].parseInt() + (record['time'][1].parseInt() * 0.0166);
+                timeLeft = record['time'][0] + (record['time'][1] * 0.0166);
                 timeUsed = boss.duration - timeLeft;
                 if (!boss.siege || !boss.hp) {
                     return (record['life'] * timeUsed) / (100 - record['life']);
@@ -765,7 +763,7 @@
                     return false;
                 }
 
-                $u.log(2, 'Selecting monster');
+                $u.log(3, 'Selecting monster');
                 var monsterList  = {
                         'battle_monster' : [],
                         'raid'           : [],
@@ -845,7 +843,7 @@
                 // We loop through for each selection type (only once if serialized between the two)
                 // We then read in the users attack order list
                 for (s = 0, len1 = selectTypes.length; s < len1; s += 1) {
-                    if (!monsterList[selectTypes[s]].length) {
+                    if (!$u.hasContent(monsterList[selectTypes[s]])) {
                         continue;
                     }
 
@@ -870,7 +868,7 @@
                         attackOrderList = config.getList('order' + selectTypes[s], '').concat('your', "'");
                     }
 
-                    $u.log(5, 'attackOrderList', attackOrderList);
+                    $u.log(3, 'attackOrderList', attackOrderList);
                     // Next we step through the users list getting the name and conditions
                     for (p = 0, len2 = attackOrderList.length; p < len2; p += 1) {
                         if (!attackOrderList[p].trim()) {
@@ -979,7 +977,7 @@
                         if (strengthTarget) {
                             energyTarget.data['name'] = strengthTarget;
                             energyTarget.data['type'] = 'Strengthen';
-                            $u.log(2, 'Strengthen target ', energyTarget.data['name']);
+                            $u.log(3, 'Strengthen target ', energyTarget.data['name']);
                         }
 
                         fortifyTarget = firstFortUnderMax;
@@ -990,7 +988,7 @@
                         if (fortifyTarget) {
                             energyTarget.data['name'] = fortifyTarget;
                             energyTarget.data['type'] = 'Fortify';
-                            $u.log(2, 'Fortify replaces strengthen ', energyTarget.data['name']);
+                            $u.log(3, 'Fortify replaces strengthen ', energyTarget.data['name']);
                         }
 
                         stunTarget = firstStunUnderMax;
@@ -1001,12 +999,12 @@
                         if (stunTarget) {
                             energyTarget.data['name'] = stunTarget;
                             energyTarget.data['type'] = 'Stun';
-                            $u.log(2, 'Stun target replaces fortify ', energyTarget.data['name']);
+                            $u.log(3, 'Stun target replaces fortify ', energyTarget.data['name']);
                         }
 
                         state.setItem('targetFromfortify', energyTarget.data);
                         if (energyTarget.data['name']) {
-                            $u.log(1, 'Energy target', energyTarget.data);
+                            $u.log(3, 'Energy target', energyTarget.data);
                         }
                     }
 
@@ -1034,9 +1032,9 @@
                                 state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staMax[nodeNum]);
                             } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
                                 state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staUse);
-                            } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || monsterObj['conditions'].match(/:pa/i)) {
+                            } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || /:pa/i.test(monsterObj['conditions'])) {
                                 state.setItem('MonsterStaminaReq', 5);
-                            } else if (monsterObj['conditions'].match(/:sa/i)) {
+                            } else if (/:sa/i.test(monsterObj['conditions'])) {
                                 state.setItem('MonsterStaminaReq', 1);
                             } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || config.getItem('PowerAttack', true)) {
                                 state.setItem('MonsterStaminaReq', 5);
@@ -1047,17 +1045,17 @@
                             switch (config.getItem('MonsterGeneral', 'Use Current')) {
                             case 'Orc King':
                                 state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
-                                $u.log(2, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
+                                $u.log(3, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));
                                 break;
                             case 'Barbarus':
                                 state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
-                                $u.log(2, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
+                                $u.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
                                 break;
                             default:
                             }
                         } else {
-                            // Switch RaidPowerAttack - RaisStaminaReq is not being used - bug?
-                            if (gm.getItem('RaidPowerAttack', false, hiddenVar) || monsterObj['conditions'].match(/:pa/i)) {
+                            // Switch RaidPowerAttack - RaidStaminaReq is not being used - bug?
+                            if (gm.getItem('RaidPowerAttack', false, hiddenVar) || /:pa/i.test(monsterObj['conditions'])) {
                                 state.setItem('RaidStaminaReq', 5);
                             } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
                                 state.setItem('RaidStaminaReq', monster.info[monsterObj['type']].staUse);
@@ -1079,24 +1077,19 @@
         ConfirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv = $j(),
+                var monsterDiv = $j("div[style*='dragon_title_owner']", caap.globalContainer),
                     tempDiv    = $j(),
-                    tempText   = '',
-                    tStr       = '';
+                    tempText   = '';
 
-                monsterDiv = $j("div[style*='dragon_title_owner']");
-                if (monsterDiv && monsterDiv.length) {
-                    tStr = monsterDiv.children(":eq(2)").text();
-                    tempText = tStr ? tStr.trim() : '';
+                if ($u.hasContent(monsterDiv)) {
+                    tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                 } else {
-                    monsterDiv = $j("div[style*='nm_top']");
-                    if (monsterDiv && monsterDiv.length) {
-                        tStr = monsterDiv.children(":eq(0)").children(":eq(0)").text();
-                        tempText = tStr ? tStr.trim() : '';
-                        tempDiv = $j("div[style*='nm_bars']");
-                        if (tempDiv && tempDiv.length) {
-                            tStr = tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text();
-                            tempText += ' ' + (tStr ? tStr.trim().replace("'s Life", "") : '');
+                    monsterDiv = $j("div[style*='nm_top']", caap.globalContainer);
+                    if ($u.hasContent(monsterDiv)) {
+                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
+                        tempDiv = $j("div[style*='nm_bars']", caap.globalContainer);
+                        if ($u.hasContent(tempDiv)) {
+                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return false;
@@ -1107,8 +1100,8 @@
                     }
                 }
 
-                if (monsterDiv.find("img[uid='" + caap.stats['FBID'] + "']").length) {
-                    $u.log(2, "You monster found");
+                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                    $u.log(2, "Your monster found");
                     tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                 }
 

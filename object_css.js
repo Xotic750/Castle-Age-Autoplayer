@@ -11,7 +11,7 @@
                     $j("<link>").appendTo("head").attr({
                         rel: "stylesheet",
                         type: "text/css",
-                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.6/themes/smoothness/jquery-ui.css"
+                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/smoothness/jquery-ui.css"
                     });
                 }
 

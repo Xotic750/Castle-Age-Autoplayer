@@ -18,43 +18,34 @@
 
     function caap_DomTimeOut() {
         caap_log("DOM onload timeout!!! Reloading ...");
-        $u.refreshPage();
+        if (typeof window.location.reload === 'function') {
+            window.location.reload();
+        } else if (typeof history.go === 'function') {
+            history.go(0);
+        } else {
+            window.location.href = window.location.href;
+        }
     }
 
     function caap_WaitForutility() {
-        if (typeof utility !== 'undefined') {
+        if (window.utility) {
             caap_log("utility ready ...");
-            jQuery(caap.start);
+            $j(caap.start).ready();
         } else {
             caap_log("Waiting for utility ...");
             window.setTimeout(caap_WaitForutility, 100);
         }
     }
 
-    function caap_WaitForrison() {
-        if (typeof rison !== 'undefined') {
-            caap_log("rison ready ...");
-            if (typeof utility === 'undefined') {
+    function caap_WaitForFarbtastic() {
+        if (window.jQuery.farbtastic) {
+            caap_log("farbtastic ready ...");
+            if (!window.utility) {
                 caap_log("Inject utility.");
-                injectScript('http://castle-age-auto-player.googlecode.com/files/utility.min.js?' + new Date().getTime());
+                injectScript('http://utility-js.googlecode.com/files/utility-0.1.0.min.js');
             }
 
             caap_WaitForutility();
-        } else {
-            caap_log("Waiting for rison ...");
-            window.setTimeout(caap_WaitForrison, 100);
-        }
-    }
-
-    function caap_WaitForFarbtastic() {
-        if (typeof jQuery.farbtastic === 'function') {
-            caap_log("farbtastic ready ...");
-            if (typeof rison === 'undefined') {
-                caap_log("Inject rison.");
-                injectScript('http://castle-age-auto-player.googlecode.com/files/rison.js');
-            }
-
-            caap_WaitForrison();
         } else {
             caap_log("Waiting for farbtastic ...");
             window.setTimeout(caap_WaitForFarbtastic, 100);
@@ -62,9 +53,9 @@
     }
 
     function caap_WaitForjQueryUI() {
-        if (typeof jQuery.ui === 'object') {
+        if (window.jQuery.ui) {
             caap_log("jQueryUI ready ...");
-            if (typeof jQuery.farbtastic !== 'function') {
+            if (!window.jQuery.farbtastic) {
                 caap_log("Inject farbtastic.");
                 injectScript('http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js');
             }
@@ -77,12 +68,12 @@
     }
 
     function caap_WaitForjQuery() {
-        if (typeof window.jQuery === 'function') {
+        if (window.jQuery) {
             caap_log("jQuery ready ...");
-            $j = jQuery.noConflict();
-            if (typeof $j.ui !== 'object') {
+            $j = window.jQuery.noConflict();
+            if (!window.jQuery.ui) {
                 caap_log("Inject jQueryUI.");
-                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.8/jquery-ui.min.js');
+                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js');
             }
 
             caap_WaitForjQueryUI();
@@ -98,7 +89,7 @@
 
     caap_log("Starting ... waiting for libraries and DOM load");
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
-    if (typeof window.jQuery !== 'function') {
+    if (!window.jQuery) {
         caap_log("Inject jQuery");
         injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
     }

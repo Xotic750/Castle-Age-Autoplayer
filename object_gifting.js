@@ -96,25 +96,22 @@
         /*jslint sub: true */
         accept: function () {
             try {
-                var giftDiv   = $j(),
+                // Some users reported an issue with the following jQuery search using jQuery 1.4.3
+                //giftDiv = $j("div[class='messages']:first img:first");
+                // So I have changed the query to try and resolve the issue
+                var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id='] img", caap.globalContainer).eq(0),
                     tempText  = '',
                     tStr      = '',
                     tempNum   = 0,
                     current   = {};
 
-                // Some users reported an issue with the following jQuery search using jQuery 1.4.3
-                //giftDiv = $j("div[class='messages']:first img:first");
-                // So I have changed the query to try and resolve the issue
-                giftDiv = $j("div[class='messages'] a[href*='profile.php?id='] img").eq(0);
                 if ($u.hasContent(giftDiv)) {
-                    tStr = giftDiv.attr("uid");
-                    tempNum = tStr ? tStr.parseInt() : '';
-                    if (tempNum > 0) {
+                    tempNum = $u.setContent(giftDiv.attr("uid"), '0').parseInt();
+                    if ($u.hasContent(tempNum) && tempNum > 0) {
                         current = new gifting.queue.record();
                         current.data['userId'] = tempNum;
-                        tStr = giftDiv.attr("title");
-                        tempText = tStr ? tStr.trim() : '';
-                        if (tempText) {
+                        tempText = $u.setContent(giftDiv.attr("title"), '').trim();
+                        if ($u.hasContent(tempText)) {
                             current.data['name'] = tempText;
                         } else {
                             $u.warn("No name found in", giftDiv);
@@ -250,65 +247,70 @@
                     appDiv = $j("#globalContainer .mbl .uiListItem div[id*='app_46755028429_']");
                     if ($u.hasContent(appDiv)) {
                         giftsList = gifting.gifts.list();
-                        appDiv.each(function () {
-                            var giftRequest = $j(this),
-                                giftText    = '',
-                                giftType    = '',
-                                userId      = 0,
-                                name        = '',
-                                giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
-                                inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php']", giftRequest),
-                                tStr        = '';
+                        appDiv.each(function (index) {
+                            try {
+                                var giftRequest = $j(this),
+                                    giftText    = '',
+                                    giftType    = '',
+                                    userId      = 0,
+                                    name        = '',
+                                    giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
+                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php']", giftRequest),
+                                    tStr        = '';
 
-                            if ($u.hasContent(inputDiv)) {
-                                tStr = inputDiv.attr("name");
-                                userId = tStr ? tStr.regex(/uid=(\d+)/i) : 0;
-                                if (giftEntry['userId'] !== userId) {
-                                    return true;
-                                }
-
-                                if ($u.hasContent(giftDiv)) {
-                                    tStr = giftDiv.text();
-                                    giftText = tStr ? tStr.trim() : '';
-                                    giftType = giftText.regex(new RegExp("has sent you a (.*) in Castle Age!", "i"));
-                                    name = giftText.regex(new RegExp("(.*) has sent you a .* in Castle Age!", "i"));
-                                    giftEntry['name'] = $u.hasContent(giftEntry['name']) ? giftEntry['name'] : ($u.hasContent(name) ? name : 'Unknown');
-                                    if (!$u.hasContent(giftType)) {
-                                        $u.warn("No gift type found in ", giftText);
+                                if ($u.hasContent(inputDiv)) {
+                                    userId = $u.setContent(inputDiv.attr("name"), 'uid=0').regex(/uid=(\d+)/i);
+                                    if (giftEntry['userId'] !== userId) {
+                                        return true;
                                     }
+
+                                    if ($u.hasContent(giftDiv)) {
+                                        giftText = $u.setContent(giftDiv.text(), '').trim();
+                                        giftType = giftText.regex(new RegExp("has sent you a (.*) in Castle Age!", "i"));
+                                        name = giftText.regex(new RegExp("(.*) has sent you a .* in Castle Age!", "i"));
+                                        giftEntry['name'] = $u.hasContent(giftEntry['name']) ? giftEntry['name'] : ($u.hasContent(name) ? name : 'Unknown');
+                                        if (!$u.hasContent(giftType)) {
+                                            $u.warn("No gift type found in ", giftText);
+                                        }
+                                    } else {
+                                        $u.warn("No fb_protected_wrapper in giftRequest", index);
+                                    }
+
+                                    if (giftType === '' || !giftsList.hasIndexOf(giftType)) {
+                                        $u.log(1, 'Unknown gift type', giftType, giftsList);
+                                        giftType = 'Unknown Gift';
+                                    } else {
+                                        $u.log(1, 'gift type', giftType, giftsList);
+                                    }
+
+                                    giftEntry['gift'] = giftType;
+                                    giftEntry['found'] = true;
+                                    giftEntry['checked'] = true;
+                                    gifting.setCurrent(giftEntry);
+                                    schedule.setItem('ClickedFacebookURL', 35);
+                                    if (!reload) {
+                                        rfCount = state.setItem("GiftingRefresh", rfCount + 1);
+                                    }
+
+                                    reload = true;
+                                    caap.Click(inputDiv);
+                                    return false;
                                 } else {
-                                    $u.warn("No fb_protected_wrapper in ", giftRequest);
+                                    if (!reload) {
+                                        rfCount = state.setItem("GiftingRefresh", rfCount + 1);
+                                    }
+
+                                    reload = true;
+                                    $u.warn("No input found in giftRequest", index);
                                 }
 
-                                if (giftType === '' || !giftsList.hasIndexOf(giftType)) {
-                                    $u.log(1, 'Unknown gift type', giftType, giftsList);
-                                    giftType = 'Unknown Gift';
-                                } else {
-                                    $u.log(1, 'gift type', giftType, giftsList);
-                                }
-
-                                giftEntry['gift'] = giftType;
-                                giftEntry['found'] = true;
-                                giftEntry['checked'] = true;
-                                gifting.setCurrent(giftEntry);
-                                schedule.setItem('ClickedFacebookURL', 35);
-                                if (!reload) {
-                                    rfCount = state.setItem("GiftingRefresh", rfCount + 1);
-                                }
-
-                                reload = true;
-                                caap.Click(inputDiv);
-                                return false;
-                            } else {
-                                if (!reload) {
-                                    rfCount = state.setItem("GiftingRefresh", rfCount + 1);
-                                }
-
-                                reload = true;
-                                $u.warn("No input found in ", giftRequest);
+                                return true;
+                            } catch (e) {
+                                // This can happen when FB mess up the DOM on the requests page
+                                // NOT_FOUND_ERR code 8
+                                $u.warn("ERROR in gifting.collect: skipping" + e);
+                                return true;
                             }
-
-                            return true;
                         });
                     } else {
                         if (!reload) {
@@ -336,7 +338,7 @@
                 }
 
                 if (reload && rfCount === 1) {
-                    $u.refreshPage();
+                    $u.reload();
                 }
 
                 state.setItem("GiftingRefresh", 0);
@@ -351,10 +353,13 @@
 
         collected: function (force) {
             try {
-                var giftEntry = gifting.getCurrent();
+                var giftEntry   = gifting.getCurrent(),
+                    collectOnly = false;
+
                 if (!$j.isEmptyObject(giftEntry)) {
                     if (force || caap.HasImage("gift_yes.gif")) {
-                        if (!config.getItem("CollectOnly", false) || (config.getItem("CollectOnly", false) && config.getItem("CollectAndQueue", false))) {
+                        collectOnly = config.getItem("CollectOnly", false);
+                        if (!collectOnly || (collectOnly && config.getItem("CollectAndQueue", false))) {
                             gifting.queue.setItem(giftEntry);
                         }
 
@@ -381,21 +386,21 @@
 
                 popDiv = $j("#pop_content");
                 if ($u.hasContent(popDiv)) {
-                    tempDiv = popDiv.find("input[name='sendit']");
+                    tempDiv = $j("input[name='sendit']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         $u.log(1, 'Sending gifts to Facebook');
                         caap.Click(tempDiv);
                         return true;
                     }
 
-                    tempDiv = popDiv.find("input[name='skip_ci_btn']");
+                    tempDiv = $j("input[name='skip_ci_btn']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         $u.log(1, 'Denying Email Nag For Gift Send');
                         caap.Click(tempDiv);
                         return true;
                     }
 
-                    tempDiv = popDiv.find("input[name='ok']");
+                    tempDiv = $j("input[name='ok']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         tempText = tempDiv.parent().parent().prev().text();
                         if (tempText) {
@@ -515,7 +520,7 @@
 
             populate: function () {
                 try {
-                    var giftDiv  = $j(),
+                    var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']"),
                         newGift  = {},
                         tempDiv  = $j(),
                         tempText = '',
@@ -523,7 +528,6 @@
                         tempArr  = [],
                         update   = false;
 
-                    giftDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']");
                     if ($u.hasContent(giftDiv)) {
                         gifting.clear("gifts");
                         giftDiv.each(function () {
@@ -531,9 +535,8 @@
                             newGift = new gifting.gifts.record();
                             tempDiv = theGift.children().eq(0);
                             if ($u.hasContent(tempDiv)) {
-                                tStr = tempDiv.text();
-                                tempText = tStr ? tStr.trim().replace("!", "") : '';
-                                if (tempText) {
+                                tempText = $u.setContent(tempDiv.text(), '').trim().replace("!", "");
+                                if ($u.hasContent(tempText)) {
                                     newGift.data['name'] = tempText;
                                 } else {
                                     $u.warn("Unable to get gift name! No text in ", tempDiv);
@@ -544,10 +547,9 @@
                                 return true;
                             }
 
-                            tempDiv = theGift.find("img[class*='imgButton']");
+                            tempDiv = $j("img[class*='imgButton']", theGift);
                             if ($u.hasContent(tempDiv)) {
-                                tStr = tempDiv.attr("src");
-                                tempText = tStr ? tStr.basename() : '';
+                                tempText = $u.setContent(tempDiv.attr("src"), '').basename();
                                 if (tempText) {
                                     newGift.data['image'] = tempText;
                                 } else {
@@ -593,13 +595,14 @@
                 try {
                     var it       = 0,
                         len      = 0,
-                        giftList = [];
+                        giftList = [],
+                        giftOpts = gifting.gifts.options.slice();
 
                     for (it = 0, len = gifting.gifts.records.length; it < len; it += 1) {
                         giftList.push(gifting.gifts.records[it]['name']);
                     }
 
-                    return $j.merge($j.merge([], gifting.gifts.options), giftList);
+                    return $j.merge(giftOpts, giftList);
                 } catch (err) {
                     $u.error("ERROR in gifting.gifts.list: " + err);
                     return undefined;
@@ -842,8 +845,8 @@
                         it1            = 0,
                         len            = 0,
                         tempGift       = '',
-                        unselListDiv   = $j(),
-                        selListDiv     = $j(),
+                        unselListDiv   = $j("div[class='unselected_list']", caap.appBodyDiv),
+                        selListDiv     = $j("div[class='selected_list']", caap.appBodyDiv),
                         unselDiv       = $j(),
                         selDiv         = $j(),
                         first          = true,
@@ -883,8 +886,6 @@
                         same = false;
                     }
 
-                    unselListDiv = caap.appBodyDiv.find("div[class='unselected_list']");
-                    selListDiv = caap.appBodyDiv.find("div[class='selected_list']");
                     for (it = 0, len = gifting.queue.records.length; it < len; it += 1) {
                         gifting.queue.records[it]['chosen'] = false;
 
@@ -946,16 +947,13 @@
                             }
                         }
 
-                        unselDiv = unselListDiv.find(searchStr);
+                        unselDiv = $j(searchStr, unselListDiv);
                         if ($u.hasContent(unselDiv)) {
                             unselDiv.each(function () {
                                 var unsel = $j(this),
-                                    tStr = '',
-                                    id    = 0;
+                                    id    = $u.setContent(unsel.attr("value"), '0').parseInt();
 
-                                tStr = unsel.attr("value");
-                                id = tStr ? tStr.parseInt() : 0;
-                                if (!/none/.test(unsel.parent().attr("style"))) {
+                                if (!/none/.test($u.setContent(unsel.parent().attr("style"), ''))) {
                                     caap.waitingForDomLoad = false;
                                     caap.Click(unsel);
                                     $u.log(2, "Id clicked:", id);
@@ -978,16 +976,13 @@
                                 }
                             }
 
-                            selDiv = selListDiv.find(searchStr);
+                            selDiv = $j(searchStr, selListDiv);
                             if ($u.hasContent(selDiv)) {
                                 selDiv.each(function () {
-                                    var sel  = $j(this),
-                                        tStr = '',
-                                        id   = 0;
+                                    var sel = $j(this),
+                                        id  = $u.setContent(sel.attr("value"), '0').parseInt();
 
-                                    tStr = sel.attr("value");
-                                    id = tStr ? tStr.parseInt() : 0;
-                                    if (!/none/.test(sel.parent().attr("style"))) {
+                                    if (!/none/.test($u.setContent(sel.parent().attr("style"), ''))) {
                                         $u.log(2, "User Chosen:", id);
                                         chosenList.push(id);
                                     } else {
@@ -1035,7 +1030,7 @@
                         resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper');
                         if ($u.hasContent(resultDiv)) {
                             resultText = resultDiv.text();
-                            if (resultText) {
+                            if ($u.hasContent(resultText)) {
                                 if (/You have sent \d+ gift/.test(resultText)) {
                                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
                                         if (gifting.queue.records[it]['chosen']) {

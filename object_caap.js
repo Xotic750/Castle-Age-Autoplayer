@@ -37,6 +37,7 @@
             } else if (window.location.href.hasIndexOf('web3.castleagegame.com/castle_ws/')) {
                 caap.domain.which = 2;
             } else {
+                caap.ErrorCheck();
                 $u.error('Unknown domain!');
                 return;
             }
@@ -124,7 +125,7 @@
             if (!idOk) {
                 // Force reload without retrying
                 $u.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-                $u.refresh();
+                $u.reload();
                 return;
             }
 
@@ -231,7 +232,7 @@
         IncrementPageLoadCounter: function () {
             try {
                 caap.pageLoadCounter += 1;
-                $u.log(3, "pageLoadCounter", caap.pageLoadCounter);
+                $u.log(4, "pageLoadCounter", caap.pageLoadCounter);
                 return caap.pageLoadCounter;
             } catch (err) {
                 $u.error("ERROR in IncrementPageLoadCounter: " + err);
@@ -511,7 +512,7 @@
                 }
 
                 var jss = "javascript";
-                window.location.href = jss + ":void(" + caap.domain.id[caap.domain.which] + "get_cached_ajax('" + link + "', 'get_body'))";
+                window.location.href = jss + ":void(" + caap.domain.ajax[caap.domain.which] + "get_cached_ajax('" + link + "', 'get_body'))";
                 return true;
             } catch (err) {
                 $u.error("ERROR in caap.ClickGetCachedAjax: " + err);
@@ -538,7 +539,7 @@
 
                 pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
                 for (s = pathList.length - 1; s >= 0; s -= 1) {
-                    a = caap.globalContainer.find("a[href*='" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']");
+                    a = $j("a[href*='" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']", caap.globalContainer);
                     if ($u.hasContent(a)) {
                         $u.log(2, 'Go to', pathList[s]);
                         caap.Click(a);
@@ -568,7 +569,7 @@
                 nodeNum = $u.isNumber(nodeNum) ? nodeNum : ($u.isNaN(nodeNum) ? 0 : nodeNum.parseInt());
                 webSlice = $u.setContent(webSlice, ($u.isDefined(subDocument) && $u.isDefined(subDocument.body) ? subDocument.body : window.document.body));
                 webSlice = webSlice.jquery ? webSlice : $j(webSlice);
-                return webSlice.find("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']").eq(nodeNum);
+                return $j("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']", webSlice).eq(nodeNum);
             } catch (err) {
                 $u.error("ERROR in caap.CheckForImage: " + err);
                 return undefined;
@@ -594,7 +595,7 @@
                 var hr = new RegExp('.*(http:.*)'),
                     qr = /"/g;
 
-                slice.find(query).each(function () {
+                $j(query, slice).each(function () {
                     var e = $j(this),
                         h = '',
                         t = '',
@@ -667,12 +668,55 @@
 
         MakeTD: function (text, indent, right, css) {
             try {
-                var cls = " class='caap_ff caap_fn" + (indent ? " caap_in" : '') + (right ? " caap_tr" : '') + "'";
                 css = css ? " style='" + css + "'" : '';
+                var cls = " class='caap_ff caap_fn" + (indent ? " caap_in" : '') + (right ? " caap_tr" : '') + "'";
                 return "<div" + cls + css + ">" + text + "</div>";
             } catch (err) {
                 $u.error("ERROR in MakeTD: " + err);
                 return '';
+            }
+        },
+
+        MakeSlider: function (text, id, inst, defaultValue, indent) {
+            try {
+                var value = config.getItem(id, 'defaultValue'),
+                    html = "<div class='caap_ff caap_fn caap_ww' id='caap_" + id + "'>";
+
+                value = value !== 'defaultValue' ? value : config.setItem(id, $u.setContent(defaultValue, 1));
+                html += '<div style="width: ' + (indent ? "42%;padding-left: 5%;" : "47%") + ';display: inline-block;">' + text + '</div>';
+                html += "<div style='width: 45%;padding-right: 5%;display: inline-block;' id='caap_" + id + "_slider' title='" + inst + "'></div>";
+                html += "</div>";
+
+                return html;
+            } catch (err) {
+                $u.error("ERROR in MakeTD: " + err);
+                return '';
+            }
+        },
+
+        MakeSliderListener: function (id, min, max, step, defaultValue, opacity) {
+            try {
+                $j("#caap_" + id + "_slider", caap.caapDivObject).slider({
+                    orientation: "horizontal",
+                    range: "min",
+                    min: min,
+                    max: max,
+                    step: step,
+                    value: config.getItem(id, defaultValue),
+                    slide: function (event, ui) {
+                        if (opacity) {
+                            state.setItem(id.replace("Cust", ''), config.setItem(id, ui.value));
+                            caap.colorUpdate();
+                        } else {
+                            config.setItem(id, ui.value);
+                        }
+                    }
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in MakeTD: " + err);
+                return false;
             }
         },
 
@@ -694,16 +738,16 @@
 
         MakeNumberForm: function (idName, instructions, initDefault, formatParms, subtype, css) {
             try {
-                var value = config.getItem(idName, 'defaultValue'),
-                    stNum = false,
-                    id    = idName ? " id='caap_" + idName + "'" : '',
-                    title = instructions ? " title='" + instructions + "'" : '';
-
                 subtype = $u.setContent(subtype, 'number');
+                var value = config.getItem(idName, 'defaultValue'),
+                    stNum = subtype === 'number',
+                    id    = idName ? " id='caap_" + idName + "'" : '',
+                    title = instructions ? " title='" + instructions + "'" : '',
+                    type  = stNum ? " type='text' min='0' step='1'" : " type='text'";
+
                 css += subtype === 'color' ? 'background-color:' + value + '; color:' + $u.bestTextColor(value) + ';' : '';
                 css = css ? " style='" + css + "'" : '';
                 subtype = subtype ? " data-subtype='" + subtype + "'" : '';
-                stNum = subtype === 'number';
                 initDefault = stNum && $u.isNumber(initDefault) ? initDefault : (stNum && $u.hasContent(initDefault) && $u.isString(initDefault) && !$u.isNaN(initDefault) ? initDefault.parseFloat() : (!stNum && $u.isString(initDefault) ? initDefault : ''));
                 if (stNum && $u.hasContent(initDefault) && $u.isNaN(initDefault)) {
                     $u.warn("MakeNumberForm - default value is not a number!", idName, initDefault);
@@ -711,7 +755,7 @@
 
                 value = value !== 'defaultValue' ? value : config.setItem(idName, initDefault);
                 formatParms = $u.setContent(formatParms, '');
-                return "<input class='caap_ff caap_fs caap_tr caap_ww' type='text'" + subtype + id + css + formatParms + title + " value='" + value + "' />";
+                return "<input class='caap_ff caap_fs caap_tr caap_ww'" + type + subtype + id + css + formatParms + title + " value='" + value + "' />";
             } catch (err) {
                 $u.error("ERROR in MakeNumberForm: " + err);
                 return '';
@@ -755,6 +799,9 @@
 
         MakeNumberFormTR: function (text, idName, instructions, initDefault, formatParms, subtype, indent, right, width) {
             try {
+                indent = $u.setContent(indent, false);
+                right = $u.setContent(right, false);
+                width = $u.setContent(width, 30);
                 var htmlCode = '';
                 htmlCode = caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 92 - width : 97 - width) + "%; display: inline-block;");
@@ -881,8 +928,8 @@
 
         SelectDropOption: function (idName, value) {
             try {
-                caap.caapDivObject.find("#caap_" + idName + " option").removeAttr('selected');
-                caap.caapDivObject.find("#caap_" + idName + " option[value='" + value + "']").attr('selected', 'selected');
+                $j("#caap_" + idName + " option", caap.caapDivObject).removeAttr('selected');
+                $j("#caap_" + idName + " option[value='" + value + "']", caap.caapDivObject).attr('selected', 'selected');
                 return true;
             } catch (err) {
                 $u.error("ERROR in SelectDropOption: " + err);
@@ -927,7 +974,7 @@
         /*jslint sub: true */
         ShowAutoQuest: function () {
             try {
-                caap.caapDivObject.find("#stopAutoQuest").text("Stop auto quest: " + state.getItem('AutoQuest', caap.newAutoQuest())['name'] + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest())['energy'] + ")").css('display', 'block');
+                $j("#stopAutoQuest", caap.caapDivObject).text("Stop auto quest: " + state.getItem('AutoQuest', caap.newAutoQuest())['name'] + " (energy: " + state.getItem('AutoQuest', caap.newAutoQuest())['energy'] + ")").css('display', 'block');
                 return true;
             } catch (err) {
                 $u.error("ERROR in ShowAutoQuest: " + err);
@@ -938,7 +985,7 @@
 
         ClearAutoQuest: function () {
             try {
-                caap.caapDivObject.find("#stopAutoQuest").text("").css('display', 'none');
+                $j("#stopAutoQuest", caap.caapDivObject).text("").css('display', 'none');
                 return true;
             } catch (err) {
                 $u.error("ERROR in ClearAutoQuest: " + err);
@@ -960,21 +1007,21 @@
 
         ChangeDropDownList: function (idName, dropList, option) {
             try {
-                caap.caapDivObject.find("#caap_" + idName + " option").remove();
-                caap.caapDivObject.find("#caap_" + idName).append("<option disabled='disabled' value='not selected'>Choose one</option>");
+                $j("#caap_" + idName + " option", caap.caapDivObject).remove();
+                $j("#caap_" + idName, caap.caapDivObject).append("<option disabled='disabled' value='not selected'>Choose one</option>");
                 for (var item = 0, len = dropList.length; item < len; item += 1) {
                     if (item === 0 && !option) {
                         config.setItem(idName, dropList[item]);
                         $u.log(1, "Saved: " + idName + "  Value: " + dropList[item]);
                     }
 
-                    caap.caapDivObject.find("#caap_" + idName).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
+                    $j("#caap_" + idName, caap.caapDivObject).append("<option value='" + dropList[item] + "'>" + dropList[item] + "</option>");
                 }
 
                 if (option) {
-                    caap.caapDivObject.find("#caap_" + idName + " option[value='" + option + "']").attr('selected', 'selected');
+                    $j("#caap_" + idName + " option[value='" + option + "']", caap.caapDivObject).attr('selected', 'selected');
                 } else {
-                    caap.caapDivObject.find("#caap_" + idName + " option:eq(1)").attr('selected', 'selected');
+                    $j("#caap_" + idName + " option:eq(1)", caap.caapDivObject).attr('selected', 'selected');
                 }
 
                 return true;
@@ -1089,7 +1136,7 @@
                     'font-size'             : '11px',
                     width                   : '180px',
                     background              : bgc,
-                    opacity                 : config.getItem('StyleOpacityLight', 1),
+                    opacity                 : state.getItem('StyleOpacityLight', 1),
                     color                   : $u.bestTextColor(bgc),
                     padding                 : "4px",
                     border                  : "2px solid #444",
@@ -1098,6 +1145,7 @@
                     zIndex                  : state.getItem('caap_div_zIndex', '2'),
                     position                : 'absolute',
                     '-moz-border-radius'    : '5px',
+                    '-webkit-border-radius' : '5px',
                     'border-radius'         : '5px'
                 }).appendTo(document.body);
 
@@ -1129,6 +1177,8 @@
 
                 caap.CheckLastAction(state.getItem('LastAction', 'Idle'));
                 $j("input[type='button']", caap.caapDivObject).button();
+                caap.MakeSliderListener("CustStyleOpacityLight", 0.5, 1, 0.01, 1, true);
+                caap.MakeSliderListener("CustStyleOpacityDark", 0.5, 1, 0.01, 1, true);
                 return true;
             } catch (err) {
                 $u.error("ERROR in AddControl: " + err);
@@ -1175,11 +1225,11 @@
                 htmlCode += caap.MakeCheckTR("Bank Immediately", 'BankImmed', false, bankImmedInstructions);
                 htmlCode += caap.MakeCheckTR("Auto Buy Lands", 'autoBuyLand', false, autobuyInstructions);
                 htmlCode += caap.MakeCheckTR("Auto Sell Excess Lands", 'SellLands', false, autosellInstructions);
-                htmlCode += caap.MakeNumberFormTR("Keep In Bank", 'minInStore', bankInstructions0, 100000, '', '', false, false, 60);
+                htmlCode += caap.MakeNumberFormTR("Keep In Bank", 'minInStore', bankInstructions0, 100000, '', '', false, false, 62);
                 htmlCode += caap.MakeNumberFormTR("Bank Above", 'MaxInCash', bankInstructions2, '', '', '', false, false, 40);
                 htmlCode += caap.MakeNumberFormTR("But Keep On Hand", 'MinInCash', bankInstructions1, '', '', '', true, false, 40);
-                htmlCode += caap.MakeNumberFormTR("Heal If Health Below", 'MinToHeal', healthInstructions, '', '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("But Not If Stamina Below", 'MinStamToHeal', healthStamInstructions, '', '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Heal If Health Below", 'MinToHeal', healthInstructions, '', '', '');
+                htmlCode += caap.MakeNumberFormTR("Not If Stamina Below", 'MinStamToHeal', healthStamInstructions, '', '', '', true, false);
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -1233,26 +1283,26 @@
                     htmlCode = '';
 
                 htmlCode = caap.startToggle('Quests', 'QUEST');
-                htmlCode += caap.MakeDropDownTR("Quest When", 'WhenQuest', questWhenList, questWhenInst, '', 'Never', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Quest When", 'WhenQuest', questWhenList, questWhenInst, '', 'Never', false, false, 62);
                 htmlCode += caap.startDropHide('WhenQuest', '', 'Never', true);
                 htmlCode += caap.startDropHide('WhenQuest', 'XEnergy', 'At X Energy', false);
-                htmlCode += caap.MakeNumberFormTR("Start At Or Above Energy", 'XQuestEnergy', XQuestInstructions, 1, '', '', false, false, 25);
-                htmlCode += caap.MakeNumberFormTR("Stop At Or Below Energy", 'XMinQuestEnergy', XMinQuestInstructions, 0, '', '', false, false, 25);
+                htmlCode += caap.MakeNumberFormTR("Start At Or Above", 'XQuestEnergy', XQuestInstructions, 1, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Stop At Or Below", 'XMinQuestEnergy', XMinQuestInstructions, 0, '', '', true, false);
                 htmlCode += caap.endDropHide('WhenQuest', 'XEnergy');
-                htmlCode += caap.MakeDropDownTR("Quest Area", 'QuestArea', questAreaList, '', '', '', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Quest Area", 'QuestArea', questAreaList, '', '', '', false, false, 62);
                 switch (config.getItem('QuestArea', questAreaList[0])) {
                 case 'Quest':
-                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.landQuestList, '', '', '', false, false, 60);
+                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.landQuestList, '', '', '', false, false, 62);
                     break;
                 case 'Demi Quests':
-                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.demiQuestList, '', '', '', false, false, 60);
+                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.demiQuestList, '', '', '', false, false, 62);
                     break;
                 default:
-                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.atlantisQuestList, '', '', '', false, false, 60);
+                    htmlCode += caap.MakeDropDownTR("Sub Area", 'QuestSubArea', caap.atlantisQuestList, '', '', '', false, false, 62);
                     break;
                 }
 
-                htmlCode += caap.MakeDropDownTR("Quest For", 'WhyQuest', questForList, questForListInstructions, '', '', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Quest For", 'WhyQuest', questForList, questForListInstructions, '', '', false, false, 62);
                 htmlCode += caap.MakeCheckTR("Switch Quest Area", 'switchQuestArea', true, 'Allows switching quest area after Advancement or Max Influence');
                 htmlCode += caap.MakeCheckTR("Use Only Subquest General", 'ForceSubGeneral', false, forceSubGen);
                 htmlCode += caap.MakeCheckTR("Quest For Orbs", 'GetOrbs', false, 'Perform the Boss quest in the selected land for orbs you do not have.');
@@ -1345,33 +1395,33 @@
                     htmlCode = '';
 
                 htmlCode = caap.startToggle('Battling', 'BATTLE');
-                htmlCode += caap.MakeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 62);
                 htmlCode += caap.startDropHide('WhenBattle', '', 'Never', true);
                 htmlCode += "<div id='caap_WhenBattleStayHidden_hide' style='color: red; font-weight: bold; display: ";
                 htmlCode += (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
                 htmlCode += "Warning: Monster Not Set To 'Stay Hidden'";
                 htmlCode += "</div>";
                 htmlCode += caap.startDropHide('WhenBattle', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Start Battles When Stamina", 'XBattleStamina', XBattleInstructions, 1, '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinBattleStamina', XMinBattleInstructions, 0, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Start At Or Above", 'XBattleStamina', XBattleInstructions, 1, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Stop At Or Below", 'XMinBattleStamina', XMinBattleInstructions, 0, '', '', true, false);
                 htmlCode += caap.endDropHide('WhenBattle', 'XStamina');
                 htmlCode += caap.startDropHide('WhenBattle', 'DemiOnly', 'Demi Points Only', false);
                 htmlCode += caap.MakeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, observeDemiFirstInstructions);
                 htmlCode += caap.endDropHide('WhenBattle', 'DemiOnly');
-                htmlCode += caap.MakeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 62);
                 htmlCode += caap.MakeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, safeHealthInstructions);
                 htmlCode += caap.MakeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
                 htmlCode += caap.MakeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
                 htmlCode += caap.MakeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
                 htmlCode += caap.MakeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
-                htmlCode += caap.MakeNumberFormTR("Chain:Battle Points Won", 'ChainBP', chainBPInstructions, '', '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Chain:Gold Won", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
-                htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '', false, false, 20);
-                htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 60);
+                htmlCode += caap.MakeNumberFormTR("Chain Battle Points", 'ChainBP', chainBPInstructions, '', '');
+                htmlCode += caap.MakeNumberFormTR("Chain Gold", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
+                htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '');
+                htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
                 htmlCode += caap.startDropHide('TargetType', 'Freshmeat', 'Freshmeat', false);
-                htmlCode += caap.MakeTD("Attack targets that are:");
-                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '', false, false, 20);
+                htmlCode += caap.MakeTD("Attack targets that are not:");
+                htmlCode += caap.MakeNumberFormTR("Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '');
+                htmlCode += caap.MakeNumberFormTR("Higher Than X*Army", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
                 htmlCode += caap.endDropHide('TargetType', 'Freshmeat');
                 htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
                 htmlCode += caap.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions);
@@ -1439,20 +1489,20 @@
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Monster', 'MONSTER');
-                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenMonster', mbattleList, mbattleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
                 htmlCode += caap.startDropHide('WhenMonster', '', 'Never', true);
                 htmlCode += "<div id='caap_WhenMonsterStayHidden_hide' style='color: red; font-weight: bold; display: ";
                 htmlCode += (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
                 htmlCode += "Warning: Battle Not Set To 'Stay Hidden'";
                 htmlCode += "</div>";
                 htmlCode += caap.startDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Battle When Stamina", 'XMonsterStamina', XMonsterInstructions, 1, '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep This Stamina", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions, 1, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', true, false);
                 htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '');
                 htmlCode += caap.MakeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
                 htmlCode += caap.startCheckHide('UseTactics');
-                htmlCode += caap.MakeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, '', '', true, false);
                 htmlCode += caap.endCheckHide('UseTactics');
                 htmlCode += caap.MakeCheckTR("Power Attack Only", 'PowerAttack', true, powerattackInstructions);
                 htmlCode += caap.startCheckHide('PowerAttack');
@@ -1474,9 +1524,9 @@
 
                 htmlCode += caap.MakeTD(subCode, false, false, "white-space: nowrap;");
                 htmlCode += caap.endCheckHide('DemiPointsFirst');
-                htmlCode += caap.MakeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '');
+                htmlCode += caap.MakeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '');
+                htmlCode += caap.MakeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '');
                 htmlCode += caap.MakeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
                 htmlCode += caap.MakeTD("Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a>");
                 htmlCode += caap.MakeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
@@ -1507,11 +1557,11 @@
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('GuildMonsters', 'GUILD MONSTERS');
-                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
                 htmlCode += caap.startDropHide('WhenGuildMonster', '', 'Never', true);
                 htmlCode += caap.startDropHide('WhenGuildMonster', 'XStamina', 'At X Stamina', false);
-                htmlCode += caap.MakeNumberFormTR("Max Stamina To Fight", 'MaxStaminaToGMonster', '', 0, '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep Stamina", 'MinStaminaToGMonster', '', 0, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Start At Or Above", 'MaxStaminaToGMonster', '', 0, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Stop At Or Below", 'MinStaminaToGMonster', '', 0, '', '', true, false);
                 htmlCode += caap.endDropHide('WhenGuildMonster', 'XStamina');
                 htmlCode += caap.MakeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, 'Prioritise the classic monsters and raids before Guild Monsters.');
                 htmlCode += caap.MakeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, 'Perform siege assists when visiting your Guild Monster.');
@@ -1522,7 +1572,7 @@
                 htmlCode += caap.MakeTD("W" + caap.MakeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.MakeTD("E" + caap.MakeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
                 htmlCode += caap.MakeTD("S" + caap.MakeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
-                htmlCode += caap.MakeNumberFormTR("Ignore Minions Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Ignore Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, '', '');
                 htmlCode += caap.MakeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
                 htmlCode += caap.MakeTD("Attack Monsters in this order");
                 htmlCode += caap.MakeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
@@ -1562,12 +1612,12 @@
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Arena', 'ARENA');
-                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 62);
                 htmlCode += caap.startDropHide('WhenArena', '', 'Never', true);
                 htmlCode += caap.MakeTD("Attack Classes in this order");
                 htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
-                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '', false, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Ignore Your Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '');
+                htmlCode += caap.MakeNumberFormTR("Ignore Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '');
                 htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
                 htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
                 htmlCode += caap.startCheckHide('doPoly');
@@ -1614,11 +1664,11 @@
                 htmlCode += caap.startToggle('Recon', 'RECON');
                 htmlCode += caap.MakeCheckTR("Enable Player Recon", 'DoPlayerRecon', false, PReconInstructions);
                 htmlCode += caap.startCheckHide('DoPlayerRecon');
-                htmlCode += caap.MakeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Limit Target Records", 'LimitTargets', "Maximum number of records to hold.", 100, '', '');
                 htmlCode += caap.MakeTD('Find battle targets that are:');
-                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'ReconPlayerRank', PRRankInstructions, 3, '', '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Not Higher Than Level Plus", 'ReconPlayerLevel', PRLevelInstructions, 10, '', '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'ReconPlayerARBase', PRARBaseInstructions, 1, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Not Lower Than Rank Minus", 'ReconPlayerRank', PRRankInstructions, 3, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than Level Plus", 'ReconPlayerLevel', PRLevelInstructions, 10, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Not Higher Than X*Army", 'ReconPlayerARBase', PRARBaseInstructions, 1, '', '', true, false);
                 htmlCode += caap.endCheckHide('DoPlayerRecon');
                 htmlCode += caap.endToggle;
                 return htmlCode;
@@ -1659,16 +1709,16 @@
                 htmlCode += caap.startToggle('Generals', 'GENERALS');
                 htmlCode += caap.MakeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
                 for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
-                    htmlCode += caap.MakeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 60);
+                    htmlCode += caap.MakeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
                 }
 
-                htmlCode += caap.MakeDropDownTR("Buy", 'BuyGeneral', general.BuyList, '', '', 'Use Current', false, false, 60);
-                htmlCode += caap.MakeDropDownTR("Collect", 'CollectGeneral', general.CollectList, '', '', 'Use Current', false, false, 60);
-                htmlCode += caap.MakeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 60);
-                htmlCode += caap.MakeDropDownTR("Banking", 'BankingGeneral', general.BankingList, '', '', 'Use Current', false, false, 60);
-                htmlCode += caap.MakeDropDownTR("Level Up", 'LevelUpGeneral', general.List, '', '', 'Use Current', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Buy", 'BuyGeneral', general.BuyList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.MakeDropDownTR("Collect", 'CollectGeneral', general.CollectList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.MakeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.MakeDropDownTR("Banking", 'BankingGeneral', general.BankingList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.MakeDropDownTR("Level Up", 'LevelUpGeneral', general.List, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
-                htmlCode += caap.MakeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, '', '', true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
@@ -1836,17 +1886,17 @@
                 htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
                 htmlCode += caap.MakeCheckTR('Enable Army Functions', 'EnableArmy', true, armyInstructions);
                 htmlCode += caap.startCheckHide('EnableArmy');
-                htmlCode += caap.MakeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
                 htmlCode += caap.MakeCheckTR('Change Indicators', 'ArmyIndicators', false, '');
                 htmlCode += caap.startCheckHide('ArmyIndicators');
                 htmlCode += caap.MakeNumberFormTR("Recent", 'ArmyAgeDaysColor0', '', '#008000', '', 'color', false, false, 50);
-                htmlCode += caap.MakeNumberFormTR("Warn 1 (days)", 'ArmyAgeDays1', '', 7, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 1 (days)", 'ArmyAgeDays1', '', 7, '', '');
                 htmlCode += caap.MakeNumberFormTR("Warn 2", 'ArmyAgeDaysColor1', '', '#ADFF2F', '', 'color', false, false, 50);
-                htmlCode += caap.MakeNumberFormTR("Warn 2 (days)", 'ArmyAgeDays2', '', 14, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 2 (days)", 'ArmyAgeDays2', '', 14, '', '');
                 htmlCode += caap.MakeNumberFormTR("Warn 3", 'ArmyAgeDaysColor2', '', '#FFD700', '', 'color', false, false, 50);
-                htmlCode += caap.MakeNumberFormTR("Warn 3 (days)", 'ArmyAgeDays3', '', 21, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 3 (days)", 'ArmyAgeDays3', '', 21, '', '');
                 htmlCode += caap.MakeNumberFormTR("Warn 4", 'ArmyAgeDaysColor3', '', '#FF8C00', '', 'color', false, false, 50);
-                htmlCode += caap.MakeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '', false, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
                 htmlCode += caap.MakeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
                 htmlCode += caap.endCheckHide('ArmyIndicators');
                 htmlCode += caap.endCheckHide('EnableArmy');
@@ -1895,14 +1945,14 @@
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Auto', 'AUTO OPTIONS');
-                htmlCode += caap.MakeDropDownTR("Auto bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Auto bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 62);
                 htmlCode += caap.MakeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
                 htmlCode += caap.startCheckHide('AutoPotions');
-                htmlCode += caap.MakeNumberFormTR("Spend Stamina Potions At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep Stamina Potions", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, '', '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Spend Energy Potions At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, '', '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Keep Energy Potions", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, '', '', true, false, 20);
-                htmlCode += caap.MakeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Keep Stamina", 'staminaPotionsKeepUnder', autoPotionsInstructions2, 35, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Spend Energy At", 'energyPotionsSpendOver', autoPotionsInstructions3, 39, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Keep Energy", 'energyPotionsKeepUnder', autoPotionsInstructions4, 35, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Wait If Exp. To Level", 'potionsExperience', autoPotionsInstructions5, 20, '', '', true, false);
                 htmlCode += caap.endCheckHide('AutoPotions');
                 htmlCode += caap.MakeCheckTR('Auto Alchemy', 'AutoAlchemy', false, autoAlchemyInstructions1);
                 htmlCode += caap.startCheckHide('AutoAlchemy');
@@ -1951,7 +2001,7 @@
                 htmlCode += caap.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
                 htmlCode += caap.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
                 htmlCode += caap.startCheckHide('enableRecipeClean');
-                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true, false);
                 htmlCode += caap.endCheckHide('enableRecipeClean');
                 htmlCode += caap.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
                 htmlCode += caap.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
@@ -1965,20 +2015,21 @@
                 htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
                 htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
                 htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
-                htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 60);
+                htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
                 htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
                 htmlCode += caap.MakeTD("Running:");
-                htmlCode += caap.MakeNumberFormTR("Background Color", 'CustStyleBackgroundLight', '#FFFFFF', '#E0C691', '', 'color', true, false, 40);
-                htmlCode += caap.MakeNumberFormTR("Background Transparency", 'CustStyleOpacityLight', '0 ~ 1', 1, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Color", 'CustStyleBackgroundLight', '#FFFFFF', '#E0C691', '', 'color', true, false, 40);
+                htmlCode += caap.MakeSlider('Transparency', "CustStyleOpacityLight", '', 1, true);
                 htmlCode += caap.MakeTD("Paused:");
-                htmlCode += caap.MakeNumberFormTR("Background Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
-                htmlCode += caap.MakeNumberFormTR("Background Transparency", 'CustStyleOpacityDark', "0 ~ 1", 1, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
+                htmlCode += caap.MakeSlider('Transparency', "CustStyleOpacityDark", '', 1, true);
                 htmlCode += caap.endDropHide('DisplayStyle');
+                //htmlCode += $u.is_chrome && $u.inputtypes.number ? caap.MakeCheckTR('Number Roller', 'numberRoller', true, "Enable or disable the number roller on GUI options.") : '';
                 htmlCode += caap.MakeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions);
                 htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions);
                 htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false);
                 htmlCode += caap.startCheckHide('ChangeLogLevel');
-                htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false, 20);
+                htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
                 htmlCode += caap.endCheckHide('ChangeLogLevel');
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
@@ -2025,7 +2076,7 @@
                  container and position it within the main container.
                 \-------------------------------------------------------------------------------------*/
                 var layout      = "<div id='caap_top'>",
-                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldier Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', 'Arena', 'Army'],
+                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldiers Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', 'Arena', 'Army'],
                     styleXY = {
                         x: 0,
                         y: 0
@@ -2113,7 +2164,11 @@
                 /*-------------------------------------------------------------------------------------\
                  Then we put in the Live Feed link since we overlay the Castle Age link.
                 \-------------------------------------------------------------------------------------*/
-                layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:0px;'><input id='caap_liveFeed' type='button' value='LIVE FEED! Your friends are calling.' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+                layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:10px;'><input id='caap_liveFeed' type='button' value='Live Feed' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+                /*-------------------------------------------------------------------------------------\
+                 Then we put in the Live Feed link since we overlay the Castle Age link.
+                \-------------------------------------------------------------------------------------*/
+                layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:60px;'><input id='caap_crusaders' type='button' value='Crusaders' style='padding: 0; font-size: 9px; height: 18px' /></div>";
                 /*-------------------------------------------------------------------------------------\
                  We install the display selection box that allows the user to toggle through the
                  available displays.
@@ -2130,7 +2185,7 @@
                 layout += "<div id='caap_infoBattle' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Battle Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_userStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'User Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_generalsStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Generals Stats' ? 'block' : 'none') + "'></div>";
-                layout += "<div id='caap_soldiersStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Soldier Stats' ? 'block' : 'none') + "'></div>";
+                layout += "<div id='caap_soldiersStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Soldiers Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_itemStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Item Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_magicStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Magic Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
@@ -2153,28 +2208,18 @@
                     height                  : "185px",
                     width                   : "610px",
                     margin                  : "0 auto",
-                    opacity                 : config.getItem('StyleOpacityLight', 1),
+                    opacity                 : state.getItem('StyleOpacityLight', 1),
                     top                     : styleXY.y + 'px',
                     left                    : styleXY.x + 'px',
                     zIndex                  : state.getItem('caap_top_zIndex', 1),
                     position                : 'absolute',
                     '-moz-border-radius'    : '5px',
+                    '-webkit-border-radius' : '5px',
                     'border-radius'         : '5px'
                 }).appendTo(document.body);
 
                 caap.caapTopObject = $j('#caap_top');
-                caap.caapTopObject.find("#caap_refreshMonsters").button();
-                caap.caapTopObject.find("#caap_refreshGuildMonsters").button();
-                caap.caapTopObject.find("#caap_clearTargets").button();
-                caap.caapTopObject.find("#caap_clearBattle").button();
-                caap.caapTopObject.find("#caap_clearGifting").button();
-                caap.caapTopObject.find("#caap_clearGiftQueue").button();
-                caap.caapTopObject.find("#caap_liveFeed").button();
-                caap.caapTopObject.find("#caap_sortGenerals").button();
-                caap.caapTopObject.find("#caap_sortSoldiers").button();
-                caap.caapTopObject.find("#caap_sortItem").button();
-                caap.caapTopObject.find("#caap_sortMagic").button();
-                caap.caapTopObject.find("#caap_getArmy").button();
+                $j("input[type='button']", caap.caapTopObject).button();
                 return true;
             } catch (err) {
                 $u.error("ERROR in AddDashboard: " + err);
@@ -2227,13 +2272,14 @@
 
                 if (!force && !schedule.oneMinuteUpdate('dashboard') && $j('#caap_infoMonster').html()) {
                     if (caap.UpdateDashboardWaitLog) {
-                        $u.log(3, "Dashboard update is waiting on oneMinuteUpdate");
+                        $u.log(4, "Dashboard update is waiting on oneMinuteUpdate");
                         caap.UpdateDashboardWaitLog = false;
                     }
 
                     return false;
                 }
 
+                caap.UpdateDashboardWaitLog = true;
                 $u.log(3, "Updating Dashboard");
                 var html                     = '',
                     color                    = '',
@@ -2267,10 +2313,9 @@
                     data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
                     linkRegExp               = new RegExp("'(http:.+)'"),
                     statsRegExp              = new RegExp("caap_.*Stats_"),
-                    handler                  = function (e) {};
+                    handler                  = null;
 
-                caap.UpdateDashboardWaitLog = true;
-                if (state.getItem("MonsterDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Monster' && state.getItem("MonsterDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['Name', 'Damage', 'Damage%', 'Fort%', 'Stre%', 'TimeLeft', 'T2K', 'Phase', 'Link', '&nbsp;', '&nbsp;'];
                     values  = ['name', 'damage', 'life', 'fortify', 'strength', 'time', 't2k', 'phase', 'link'];
@@ -2299,7 +2344,7 @@
                             data = {
                                 text  : '<span id="caap_monster_' + count + '" title="' + visitMonsterInstructions + '" mname="' + monsterObj['name'] + '" rlink="' + visitMonsterLink[1] +
                                         '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + monsterObj['name'] + '</span>',
-                                color : color,
+                                color : 'blue',
                                 id    : '',
                                 title : ''
                             };
@@ -2403,7 +2448,7 @@
                     });
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_infoMonster").html(html);
+                    $j("#caap_infoMonster", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitMonsterLink = {
@@ -2426,7 +2471,7 @@
                         caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_monster_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_monster_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     handler = function (e) {
                         var monsterRemove = {
@@ -2455,7 +2500,7 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_remove_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_remove_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("MonsterDashUpdate", false);
                 }
 
@@ -2463,7 +2508,7 @@
                 Next we build the HTML to be included into the 'caap_guildMonster' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("GuildMonsterDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Guild Monster' && state.getItem("GuildMonsterDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['Slot', 'Name', 'Damage', 'Damage%',     'My Status', 'TimeLeft', 'Status', 'Link', '&nbsp;'];
                     values  = ['slot', 'name', 'damage', 'enemyHealth', 'myStatus',  'ticker',   'state'];
@@ -2523,7 +2568,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_guildMonster").html(html);
+                    $j("#caap_guildMonster", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitMonsterLink = {
@@ -2544,7 +2589,7 @@
                         caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_guildmonster_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_guildmonster_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     state.setItem("GuildMonsterDashUpdate", false);
                 }
@@ -2553,7 +2598,7 @@
                 Next we build the HTML to be included into the 'caap_arena' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("ArenaDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Arena' && state.getItem("ArenaDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['Arena', 'Damage', 'Team%',      'Enemy%',      'My Status', 'TimeLeft', 'Status'];
                     values  = ['damage', 'teamHealth', 'enemyHealth', 'myStatus',  'ticker',   'state'];
@@ -2592,7 +2637,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_arena").html(html);
+                    $j("#caap_arena", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitMonsterLink = {
@@ -2613,7 +2658,7 @@
                         caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id='caap_arena_1']").unbind('click', handler).click(handler);
+                    $j("span[id='caap_arena_1']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     state.setItem("ArenaDashUpdate", false);
                 }
@@ -2622,7 +2667,7 @@
                 Next we build the HTML to be included into the 'caap_army' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("ArmyDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Army' && state.getItem("ArmyDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['UserId', 'User', 'Name', 'Level', 'Change', 'Elite', 'Delete'];
                     values  = ['userId', 'user', 'name', 'lvl',   'change'];
@@ -2717,9 +2762,9 @@
 
                         html += caap.makeTd(data);
 
-                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].html_escape() + " from your army!";
+                        removeLinkInstructions = "Clicking this link will remove " + army.recordsSortable[i]['user'].escapeHTML() + " from your army!";
                         data = {
-                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].html_escape() +
+                            text  : '<span id="caap_removearmy_' + i + '" title="' + removeLinkInstructions + '" userid="' + army.recordsSortable[i]['userId'] + '" mname="' + army.recordsSortable[i]['user'].escapeHTML() +
                                     '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                             color : 'blue',
                             id    : '',
@@ -2732,7 +2777,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_army").html(html);
+                    $j("#caap_army", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitUserIdLink = {
@@ -2752,7 +2797,7 @@
                         caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_targetarmy_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_targetarmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     handler = function (e) {
                         var userid = 0,
@@ -2770,16 +2815,16 @@
                         }
 
                         if ($u.hasContent(userid) && userid > 0) {
-                            record = army.find(userid);
+                            record = $j(userid, army);
                             record['elite'] = !cstate;
                             army.setItem(record);
-                            $u.log(3, "check", userid, record, e.target.attributes);
+                            $u.log(4, "check", userid, record, e.target.attributes);
                             state.setItem("ArmyDashUpdate", true);
                             caap.UpdateDashboard(true);
                         }
                     };
 
-                    caap.caapTopObject.find("input[id*='caap_elitearmy_']").unbind('change', handler).change(handler);
+                    $j("input[id*='caap_elitearmy_']", caap.caapTopObject).unbind('change', handler).change(handler);
 
                     handler = function (e) {
                         var mname  = '',
@@ -2805,7 +2850,7 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_removearmy_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_removearmy_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     handler = function (e) {
                         var clicked  = '',
@@ -2825,7 +2870,7 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_army_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_army_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     state.setItem("ArmyDashUpdate", false);
                 }
@@ -2834,7 +2879,7 @@
                 Next we build the HTML to be included into the 'caap_infoTargets1' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("ReconDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Target List' && state.getItem("ReconDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['UserId', 'Name',    'Deity#',   'Rank',    'Rank#',   'Level',    'Army',    'Last Alive'];
                     values  = ['userID', 'nameStr', 'deityNum', 'rankStr', 'rankNum', 'levelNum', 'armyNum', 'aliveTime'];
@@ -2878,7 +2923,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_infoTargets1").html(html);
+                    $j("#caap_infoTargets1", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitUserIdLink = {
@@ -2898,7 +2943,7 @@
                         caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_targetrecon_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_targetrecon_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("ReconDashUpdate", false);
                 }
 
@@ -2906,7 +2951,7 @@
                 Next we build the HTML to be included into the 'caap_infoBattle' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("BattleDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Battle Stats' && state.getItem("BattleDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['UserId', 'Name',    'BR#',     'WR#',        'Level',    'Army',    'I Win',         'I Lose',          'D Win',       'D Lose',        'W Win',      'W Lose'];
                     values  = ['userId', 'nameStr', 'rankNum', 'warRankNum', 'levelNum', 'armyNum', 'invadewinsNum', 'invadelossesNum', 'duelwinsNum', 'duellossesNum', 'warwinsNum', 'warlossesNum'];
@@ -2943,9 +2988,9 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_infoBattle").html(html);
+                    $j("#caap_infoBattle", caap.caapTopObject).html(html);
 
-                    caap.caapTopObject.find("span[id*='caap_battle_']").click(function (e) {
+                    $j("span[id*='caap_battle_']", caap.caapTopObject).click(function (e) {
                         var visitUserIdLink = {
                                 rlink     : '',
                                 arlink    : ''
@@ -2970,7 +3015,7 @@
                 Next we build the HTML to be included into the 'caap_userStats' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("UserDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'User Stats' && state.getItem("UserDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['Name', 'Value', 'Name', 'Value'];
                     for (pp = 0, len = headers.length; pp < len; pp += 1) {
@@ -3379,7 +3424,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_userStats").html(html);
+                    $j("#caap_userStats", caap.caapTopObject).html(html);
                     state.setItem("UserDashUpdate", false);
                 }
 
@@ -3387,11 +3432,11 @@
                 Next we build the HTML to be included into the 'caap_generalsStats' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("GeneralsDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Generals Stats' && state.getItem("GeneralsDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['General', 'Lvl', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'EAtk', 'EDef', 'EAPI', 'EDPI', 'EMPI', 'Special'];
                     values  = ['name', 'lvl', 'atk', 'def', 'api', 'dpi', 'mpi', 'eatk', 'edef', 'eapi', 'edpi', 'empi', 'special'];
-                    jQuery.merge(generalValues, values);
+                    $j.merge(generalValues, values);
                     for (pp = 0, len = headers.length; pp < len; pp += 1) {
                         header = {
                             text  : '<span id="caap_generalsStats_' + values[pp] + '" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>',
@@ -3416,7 +3461,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_generalsStats").html(html);
+                    $j("#caap_generalsStats", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var clicked = '',
@@ -3441,21 +3486,20 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_generalsStats_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_generalsStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("GeneralsDashUpdate", false);
                 }
-
 
                 /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'soldiers', 'item' and 'magic' div.
                 We set our table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("SoldiersDashUpdate", true) || state.getItem("ItemDashUpdate", true) || state.getItem("MagicDashUpdate", true)) {
+                if ((config.getItem('DBDisplay', '') === 'Soldiers Stats' && state.getItem("SoldiersDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Item Stats' && state.getItem("ItemDashUpdate", true)) || (config.getItem('DBDisplay', '') === 'Magic Stats' && state.getItem("MagicDashUpdate", true))) {
                     headers = ['Name', 'Type', 'Owned', 'Atk', 'Def', 'API', 'DPI', 'MPI', 'Cost', 'Upkeep', 'Hourly'];
                     values  = ['name', 'type', 'owned', 'atk', 'def', 'api', 'dpi', 'mpi', 'cost', 'upkeep', 'hourly'];
-                    jQuery.merge(townValues, values);
+                    $j.merge(townValues, values);
                     for (i = 0, len = town.types.length; i < len; i += 1) {
-                        if (!state.getItem(town.types[i].ucFirst() + "DashUpdate", true)) {
+                        if (config.getItem('DBDisplay', '') !== (town.types[i].ucFirst() + ' Stats')) {
                             continue;
                         }
 
@@ -3498,7 +3542,8 @@
                         }
 
                         html += '</table>';
-                        caap.caapTopObject.find("#caap_" + town.types[i] + "Stats").html(html);
+                        $j("#caap_" + town.types[i] + "Stats", caap.caapTopObject).html(html);
+                        state.setItem(town.types[i] + "DashUpdate", false);
                     }
 
                     handler = function (e) {
@@ -3524,8 +3569,7 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_soldiersStats_']").unbind('click', handler).click(handler);
-                    state.setItem("SoldiersDashUpdate", false);
+                    $j("span[id*='caap_soldiersStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     handler = function (e) {
                         var clicked = '',
@@ -3550,8 +3594,7 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_itemStats_']").unbind('click', handler).click(handler);
-                    state.setItem("ItemDashUpdate", false);
+                    $j("span[id*='caap_itemStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     handler = function (e) {
                         var clicked = '',
@@ -3576,15 +3619,14 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_magicStats_']").unbind('click', handler).click(handler);
-                    state.setItem("MagicDashUpdate", false);
+                    $j("span[id*='caap_magicStats_']", caap.caapTopObject).unbind('click', handler).click(handler);
                 }
 
                 /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_giftStats' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("GiftHistoryDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Gifting Stats' && state.getItem("GiftHistoryDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['UserId', 'Name', 'Received', 'Sent'];
                     values  = ['userId', 'name', 'received', 'sent'];
@@ -3618,7 +3660,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_giftStats").html(html);
+                    $j("#caap_giftStats", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitUserIdLink = {
@@ -3638,7 +3680,7 @@
                         caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_targetgift_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_targetgift_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("GiftHistoryDashUpdate", false);
                 }
 
@@ -3646,7 +3688,7 @@
                 Next we build the HTML to be included into the 'caap_giftQueue' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (state.getItem("GiftQueueDashUpdate", true)) {
+                if (config.getItem('DBDisplay', '') === 'Gift Queue' && state.getItem("GiftQueueDashUpdate", true)) {
                     html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
                     headers = ['UserId', 'Name', 'Gift', 'FB Cleared', 'Delete'];
                     values  = ['userId', 'name', 'gift', 'found'];
@@ -3692,7 +3734,7 @@
                     }
 
                     html += '</table>';
-                    caap.caapTopObject.find("#caap_giftQueue").html(html);
+                    $j("#caap_giftQueue", caap.caapTopObject).html(html);
 
                     handler = function (e) {
                         var visitUserIdLink = {
@@ -3712,7 +3754,7 @@
                         caap.ClickAjaxLinkSend(visitUserIdLink.arlink);
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_targetgiftq_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_targetgiftq_']", caap.caapTopObject).unbind('click', handler).click(handler);
 
                     handler = function (e) {
                         var index = -1,
@@ -3733,7 +3775,7 @@
                         }
                     };
 
-                    caap.caapTopObject.find("span[id*='caap_removeq_']").unbind('click', handler).click(handler);
+                    $j("span[id*='caap_removeq_']", caap.caapTopObject).unbind('click', handler).click(handler);
                     state.setItem("GiftQueueDashUpdate", false);
                 }
 
@@ -3791,7 +3833,7 @@
                 caap.SetDisplay("caapTopObject", 'generalsStats', true);
                 caap.SetDisplay("caapTopObject", 'buttonSortGenerals', true);
                 break;
-            case "Soldier Stats" :
+            case "Soldiers Stats" :
                 caap.SetDisplay("caapTopObject", 'soldiersStats', true);
                 caap.SetDisplay("caapTopObject", 'buttonSortSoldiers', true);
                 break;
@@ -3828,6 +3870,8 @@
                 break;
             default :
             }
+
+            caap.UpdateDashboard(true);
         },
 
         refreshMonstersListener: function (e) {
@@ -3844,6 +3888,10 @@
 
         liveFeedButtonListener: function (e) {
             caap.ClickAjaxLinkSend('army_news_feed.php');
+        },
+
+        crusadersButtonListener: function (e) {
+            caap.ClickAjaxLinkSend('specialmembership.php');
         },
 
         clearTargetsButtonListener: function (e) {
@@ -3903,25 +3951,26 @@
 
         AddDBListener: function () {
             try {
-                $u.log(3, "Adding listeners for caap_top");
-                if (!caap.caapTopObject.find('#caap_DBDisplay').length) {
+                $u.log(4, "Adding listeners for caap_top");
+                if (!$u.hasContent($j('#caap_DBDisplay', caap.caapTopObject))) {
                     caap.ReloadCastleAge();
                 }
 
-                caap.caapTopObject.find('#caap_DBDisplay').change(caap.dbDisplayListener);
-                caap.caapTopObject.find('#caap_refreshMonsters').click(caap.refreshMonstersListener);
-                caap.caapTopObject.find('#caap_refreshGuildMonsters').click(caap.refreshGuildMonstersListener);
-                caap.caapTopObject.find('#caap_liveFeed').click(caap.liveFeedButtonListener);
-                caap.caapTopObject.find('#caap_clearTargets').click(caap.clearTargetsButtonListener);
-                caap.caapTopObject.find('#caap_clearBattle').click(caap.clearBattleButtonListener);
-                caap.caapTopObject.find('#caap_clearGifting').click(caap.clearGiftingButtonListener);
-                caap.caapTopObject.find('#caap_clearGiftQueue').click(caap.clearGiftQueueButtonListener);
-                caap.caapTopObject.find('#caap_sortGenerals').click(caap.sortGeneralsButtonListener);
-                caap.caapTopObject.find('#caap_sortSoldiers').click(caap.sortSoldiersButtonListener);
-                caap.caapTopObject.find('#caap_sortItem').click(caap.sortItemButtonListener);
-                caap.caapTopObject.find('#caap_sortMagic').click(caap.sortMagicButtonListener);
-                caap.caapTopObject.find('#caap_getArmy').click(caap.getArmyButtonListener);
-                $u.log(8, "Listeners added for caap_top");
+                $j('#caap_DBDisplay', caap.caapTopObject).change(caap.dbDisplayListener);
+                $j('#caap_refreshMonsters', caap.caapTopObject).click(caap.refreshMonstersListener);
+                $j('#caap_refreshGuildMonsters', caap.caapTopObject).click(caap.refreshGuildMonstersListener);
+                $j('#caap_liveFeed', caap.caapTopObject).click(caap.liveFeedButtonListener);
+                $j('#caap_crusaders', caap.caapTopObject).click(caap.crusadersButtonListener);
+                $j('#caap_clearTargets', caap.caapTopObject).click(caap.clearTargetsButtonListener);
+                $j('#caap_clearBattle', caap.caapTopObject).click(caap.clearBattleButtonListener);
+                $j('#caap_clearGifting', caap.caapTopObject).click(caap.clearGiftingButtonListener);
+                $j('#caap_clearGiftQueue', caap.caapTopObject).click(caap.clearGiftQueueButtonListener);
+                $j('#caap_sortGenerals', caap.caapTopObject).click(caap.sortGeneralsButtonListener);
+                $j('#caap_sortSoldiers', caap.caapTopObject).click(caap.sortSoldiersButtonListener);
+                $j('#caap_sortItem', caap.caapTopObject).click(caap.sortItemButtonListener);
+                $j('#caap_sortMagic', caap.caapTopObject).click(caap.sortMagicButtonListener);
+                $j('#caap_getArmy', caap.caapTopObject).click(caap.getArmyButtonListener);
+                $u.log(4, "Listeners added for caap_top");
                 return true;
             } catch (err) {
                 $u.error("ERROR in AddDBListener: " + err);
@@ -4108,36 +4157,31 @@
 
         colorDiv: {},
 
-        colorUpdate: function (color, op) {
+        colorUpdate: function () {
             try {
-                var bgo  = 0,
-                    btc  = '',
-                    chk1 = '',
-                    chk2 = '';
+                var color = state.getItem('caapPause', 'none') === 'none' ? state.getItem('StyleBackgroundLight', 1) : state.getItem('StyleBackgroundDark', 1),
+                    bgo  = state.getItem('caapPause', 'none') === 'none' ? state.getItem('StyleOpacityLight', 1) : state.getItem('StyleOpacityDark', 1),
+                    btc  = $u.bestTextColor(color),
+                    chk1 = caap.caapDivObject.css('background-color'),
+                    chk2 = caap.caapDivObject.css('color');
 
-                if ((state.getItem('caapPause', 'none') !== 'none' && op === 'StyleOpacityDark') || (state.getItem('caapPause', 'none') === 'none' && op === 'StyleOpacityLight')) {
-                    bgo  = state.getItem(op, 1);
-                    btc  = $u.bestTextColor(color);
-                    chk1 = caap.caapDivObject.css('background-color');
-                    if ($u.hexToRGB(color).color !== chk1) {
-                        chk2 = caap.caapDivObject.css('color');
-                        $u.log(3, "Update background color", color, chk1);
-                        caap.caapDivObject.css({
-                            'background' : color,
-                            'opacity'    : bgo,
-                            'color'      : btc
-                        });
+                if ($u.hex2rgb(color).color !== chk1) {
+                    $u.log(4, "Update background color", color, chk1);
+                    caap.caapDivObject.css({
+                        'background' : color,
+                        'opacity'    : bgo,
+                        'color'      : btc
+                    });
 
-                        caap.caapTopObject.css({
-                            'background' : color,
-                            'opacity'    : bgo,
-                            'color'      : btc
-                        });
+                    caap.caapTopObject.css({
+                        'background' : color,
+                        'opacity'    : bgo,
+                        'color'      : btc
+                    });
 
-                        if ($u.hexToRGB(btc).color !== chk2) {
-                            $u.log(3, "Update text color", btc, chk2);
-                            $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
-                        }
+                    if ($u.hex2rgb(btc).color !== chk2) {
+                        $u.log(4, "Update text color", btc, chk2);
+                        $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
                     }
                 }
 
@@ -4148,44 +4192,116 @@
             }
         },
 
-        ColorBoxListener: function (e) {
+        ColorBoxClickListener: function (e) {
             try {
-                var t   = $j(e.target),
-                    bgc = t.val(),
-                    id  = e.target.id.stripCaap();
+                var id = e.target.id.stripCaap(),
+                    t  = $j(e.target);
 
                 function fb1call(color) {
-                    caap.colorUpdate(state.setItem("StyleBackgroundLight", color), 'StyleOpacityLight');
+                    state.setItem("StyleBackgroundLight", color);
+                    caap.colorUpdate();
                 }
 
                 function fb2call(color) {
-                    caap.colorUpdate(state.setItem("StyleBackgroundDark", color), 'StyleOpacityDark');
+                    state.setItem("StyleBackgroundDark", color);
+                    caap.colorUpdate();
                 }
 
-                if ($u.hasContent(caap.colorDiv[e.target.id])) {
-                    $u.log(1, 'Change: setting "' + id + '" to ', String(e.target.value));
-                    config.setItem(id, bgc);
-                    caap.colorDiv[e.target.id].remove();
-                    delete caap.colorDiv[e.target.id];
-                } else {
-                    if (id === "CustStyleBackgroundLight") {
-                        caap.colorDiv[e.target.id] = t.colorInput(fb1call);
-                    } else if (id === "CustStyleBackgroundDark") {
-                        caap.colorDiv[e.target.id] = t.colorInput(fb2call);
+                function d1call(el_id, color) {
+                    var s = el_id.stripCaap(),
+                        v = $u.addSharp(color).toUpperCase(),
+                        c = '';
+
+                    if (color !== 'close') {
+                        $u.log(1, 'Change: setting "' + s + '" to ', v);
+                        config.setItem(s, v);
                     } else {
-                        caap.colorDiv[e.target.id] = t.colorInput();
+                        c = config.getItem(s, v);
+                        switch (s) {
+                        case "CustStyleBackgroundLight" :
+                            state.setItem("StyleBackgroundLight", c);
+                            caap.colorUpdate();
+                            break;
+                        case "CustStyleBackgroundDark" :
+                            state.setItem("StyleBackgroundDark", c);
+                            caap.colorUpdate();
+                            break;
+                        default :
+                        }
+
+                        caap.colorDiv[e.target.id][3].val(c);
+                        caap.colorDiv[e.target.id][3].css({
+                            background : e.target.value,
+                            color      : $u.bestTextColor(e.target.value)
+                        });
                     }
 
-                    caap.colorDiv[e.target.id].css({
-                        background : bgc,
-                        color      : $u.bestTextColor(bgc),
+                    delete caap.colorDiv[el_id];
+                }
+
+                if (!$u.hasContent(caap.colorDiv[e.target.id])) {
+                    switch (id) {
+                    case "CustStyleBackgroundLight" :
+                        caap.colorDiv[e.target.id] = t.colorInput(fb1call, d1call).concat(t);
+                        break;
+                    case "CustStyleBackgroundDark" :
+                        caap.colorDiv[e.target.id] = t.colorInput(fb2call, d1call).concat(t);
+                        break;
+                    default :
+                        caap.colorDiv[e.target.id] = t.colorInput(function () {}, d1call).concat(t);
+                    }
+
+                    caap.colorDiv[e.target.id][1].css({
+                        background : e.target.value,
+                        color      : $u.bestTextColor(e.target.value),
                         padding    : "5px",
-                        border     : "2px solid #000",
-                        top        : t.offset().top + 'px',
-                        left       : (window.innerWidth / 2) + 'px',
-                        zIndex     : '1337',
-                        position   : 'absolute'
+                        border     : "2px solid #000000"
                     });
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ColorBoxClickListener: " + err);
+                return false;
+            }
+        },
+
+        ColorBoxChangeListener: function (e) {
+            try {
+                e.target.value = $u.addSharp(e.target.value).toUpperCase();
+                caap.ColorBoxListener(e);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in ColorBoxChangeListener: " + err);
+                return false;
+            }
+        },
+
+        ColorBoxListener: function (e) {
+            try {
+                var id  = e.target.id.stripCaap(),
+                    val = $u.addSharp(e.target.value).toUpperCase(),
+                    c = new $u.ColorConv();
+
+                e.target.style.backgroundColor = val;
+                c.setRgb(e.target.style.backgroundColor);
+                e.target.style.color = $u.bestTextColor(c.getHex());
+                $u.log(1, 'Change: setting "' + id + '" to ', val);
+                config.setItem(id, val);
+                if ($u.hasContent(caap.colorDiv[e.target.id])) {
+                    caap.colorDiv[e.target.id][2].setColor(val);
+                }
+
+                switch (id) {
+                case "CustStyleBackgroundLight" :
+                    state.setItem("StyleBackgroundLight", val);
+                    caap.colorUpdate();
+                    break;
+                case "CustStyleBackgroundDark" :
+                    state.setItem("StyleBackgroundDark", val);
+                    caap.colorUpdate();
+                    break;
+                default :
                 }
 
                 return true;
@@ -4201,29 +4317,8 @@
                     i      = 0,
                     len    = 0;
 
-                for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                    if (e.target.attributes[i].nodeName === 'data-subtype' && e.target.attributes[i].value === 'color') {
-                        e.target.value = $u.addHex(e.target.value).toUpperCase();
-                        e.target.style.backgroundColor = e.target.value;
-                        e.target.style.color = $u.bestTextColor(e.target.value);
-                    }
-                }
-
                 $u.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
-                if (/CustStyleBackground+/.test(idName)) {
-                    e.target.value = $u.addHex(e.target.value);
-                    switch (idName) {
-                    case "CustStyleBackgroundLight" :
-                        config.setItem("CustStyleBackgroundLight", e.target.value);
-                        caap.colorUpdate(state.setItem("StyleBackgroundLight", e.target.value), 'StyleOpacityLight');
-                        break;
-                    case "CustStyleBackgroundDark" :
-                        config.setItem("CustStyleBackgroundDark", e.target.value);
-                        caap.colorUpdate(state.setItem("StyleBackgroundDark", e.target.value), 'StyleOpacityDark');
-                        break;
-                    default :
-                    }
-                } else if (/AttrValue+/.test(idName)) {
+                if (/AttrValue+/.test(idName)) {
                     state.setItem("statsMatch", true);
                 }
 
@@ -4250,22 +4345,11 @@
                     $j().alert(message);
                     number = '';
                 } else {
-                    $u.log(1, 'e.target.value', e.target.value, $u.isNaN(e.target.value) && e.target.value);
                     number = $u.isNaN(e.target.value) && e.target.value === '' ? '' : e.target.value.parseFloat();
                 }
 
                 $u.log(1, 'Change: setting "' + idName + '" to ', number);
-                if (/StyleOpacity+/.test(idName)) {
-                    switch (idName) {
-                    case "StyleOpacityLight" :
-                        state.setItem("CustStyleOpacityLight", e.target.value);
-                        break;
-                    case "StyleOpacityDark" :
-                        state.setItem("CustStyleOpacityDark", e.target.value);
-                        break;
-                    default :
-                    }
-                } else if (/AttrValue+/.test(idName)) {
+                if (/AttrValue+/.test(idName)) {
                     state.setItem("statsMatch", true);
                 } else if (/MaxToFortify/.test(idName)) {
                     monster.flagFullReview();
@@ -4380,9 +4464,9 @@
                     } else if (idName === 'DisplayStyle') {
                         caap.SetDisplay("caapDivObject", idName + '_hide', value === 'Custom');
                         switch (value) {
-                        case "CA Skin" :
-                            state.setItem("StyleBackgroundLight", "#E0C691");
-                            state.setItem("StyleBackgroundDark", "#B09060");
+                        case "Original" :
+                            state.setItem("StyleBackgroundLight", "#EFEFFF");
+                            state.setItem("StyleBackgroundDark", "#FEEFFF");
                             state.setItem("StyleOpacityLight", 1);
                             state.setItem("StyleOpacityDark", 1);
                             break;
@@ -4399,13 +4483,13 @@
                             state.setItem("StyleOpacityDark", config.getItem("CustStyleOpacityDark", 1));
                             break;
                         default :
-                            state.setItem("StyleBackgroundLight", "#EFEFFF");
-                            state.setItem("StyleBackgroundDark", "#FEEFFF");
+                            state.setItem("StyleBackgroundLight", "#E0C691");
+                            state.setItem("StyleBackgroundDark", "#B09060");
                             state.setItem("StyleOpacityLight", 1);
                             state.setItem("StyleOpacityDark", 1);
                         }
 
-                        caap.colorUpdate(state.getItem('StyleBackgroundDark', '#B09060'), 'StyleOpacityDark');
+                        caap.colorUpdate();
                     }
                 }
 
@@ -4485,7 +4569,15 @@
                 $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
             }
 
-            caap.caapDivObject.find('#caapPaused').css('display', 'block');
+            $j('#caapPaused', caap.caapDivObject).css('display', 'block');
+            /*
+            if ($u.is_chrome && config.getItem("numberRoller", true) && $u.inputtypes.number) {
+                $j(":input[data-subtype='number']", caap.caapDivObject).each(function() {
+                    this.type = 'number';
+                });
+            }
+            */
+
             state.setItem('caapPause', 'block');
         },
 
@@ -4495,7 +4587,7 @@
                 btc = $u.bestTextColor(bgc),
                 chk = $u.bestTextColor(state.getItem('StyleBackgroundDark', '#B09060'));
 
-            caap.caapDivObject.find('#caapPaused').css('display', 'none');
+            $j('#caapPaused', caap.caapDivObject).css('display', 'none');
             caap.caapDivObject.css({
                 'background' : bgc,
                 'color'      : btc,
@@ -4516,8 +4608,13 @@
                 $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
             }
 
-            caap.caapDivObject.find(":input[id*='caap_']").attr({disabled: false});
-            caap.caapDivObject.find('#unlockMenu').attr('checked', false);
+            /*
+            $j(":input[data-subtype='number']", caap.caapDivObject).each(function() {
+                this.type = 'text';
+            });
+            */
+
+            $j('#unlockMenu', caap.caapDivObject).attr('checked', false);
             state.setItem('caapPause', 'none');
             state.setItem('ReleaseControl', true);
             state.setItem('resetselectMonster', true);
@@ -4554,8 +4651,8 @@
                 'left' : caap_topXY.x + 'px'
             });
 
-            caap.caapDivObject.find(":input[id^='caap_']").attr({disabled: false});
-            caap.caapTopObject.find(":input[id^='caap_']").attr({disabled: false});
+            $j(":input[id^='caap_']", caap.caapDivObject).attr({disabled: false});
+            $j(":input[id^='caap_']", caap.caapTopObject).attr({disabled: false});
         },
 
         FoldingBlockListener: function (e) {
@@ -4625,7 +4722,7 @@
         },
 
         arenaEngageListener: function (event) {
-            $u.log(3, "engage arena_battle.php");
+            $u.log(4, "engage arena_battle.php");
             state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
@@ -4635,10 +4732,10 @@
             var index  = -1,
                 minion = {};
 
-            $u.log(3, "engage arena_battle.php", event.target.id);
+            $u.log(4, "engage arena_battle.php", event.target.id);
             index = event.target.id ? event.target.id.parseInt() : -1;
             minion = arena.getMinion(index);
-            minion = !jQuery.isEmptyObject(minion) ? minion : {};
+            minion = !$j.isEmptyObject(minion) ? minion : {};
             state.setItem('ArenaMinionAttacked', minion);
             state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
             schedule.setItem('clickedOnSomething', 0);
@@ -4646,7 +4743,7 @@
         },
 
         guildMonsterEngageListener: function (event) {
-            $u.log(3, "engage guild_battle_monster.php");
+            $u.log(4, "engage guild_battle_monster.php");
             state.setItem('clickUrl', caap.domain.link + '/guild_battle_monster.php');
             schedule.setItem('clickedOnSomething', 0);
             caap.waitingForDomLoad = true;
@@ -4665,53 +4762,46 @@
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
         goldTimeListener: function (e) {
-            var tTxt = $j(e.target).text();
-
-            if (tTxt === '') {
+            var tArr = $u.setContent($u.setContent($j(e.target).text(), '').regex(/(\d+):(\d+)/), []);
+            if (!$u.hasContent(tArr) || tArr.length !== 2) {
                 return;
             }
 
-            caap.stats['gold']['ticker'] = tTxt ? tTxt.regex(/(\d+):(\d+)/) : [];
-            $u.log(3, "goldTimeListenerr", tTxt);
+            caap.stats['gold']['ticker'] = tArr;
+            //$u.log(3, "goldTimeListenerr", tArr[0] + ":" + (tArr[1] < 10 ? '0' + tArr[1] : tArr[1]));
         },
 
         energyListener: function (e) {
-            var tTxt = $j(e.target).text(),
-                num  = tTxt ? tTxt.parseInt() : -1;
-
-            if (num < 0) {
+            var num = $u.setContent($u.setContent($j(e.target).text(), '').parseInt(), -1);
+            if (num < 0 || $u.isNaN(num)) {
                 return;
             }
 
             caap.stats['energy'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['energy']['max']), caap.stats['energy']);
             caap.stats['energyT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['energyT']['max']), caap.stats['energy']);
-            $u.log(3, "energyListener", num);
+            //$u.log(3, "energyListener", num);
         },
 
         healthListener: function (e) {
-            var tTxt = $j(e.target).text(),
-                num  = tTxt ? tTxt.parseInt() : -1;
-
-            if (num < 0) {
+            var num = $u.setContent($u.setContent($j(e.target).text(), '').parseInt(), -1);
+            if (num < 0 || $u.isNaN(num)) {
                 return;
             }
 
             caap.stats['health'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['health']['max']), caap.stats['health']);
             caap.stats['healthT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['healthT']['max']), caap.stats['healthT']);
-            $u.log(3, "healthListener", num);
+            //$u.log(3, "healthListener", num);
         },
 
         staminaListener: function (e) {
-            var tTxt = $j(e.target).text(),
-                num  = tTxt ? tTxt.parseInt() : -1;
-
-            if (num < 0) {
+            var num = $u.setContent($u.setContent($j(e.target).text(), '').parseInt(), -1);
+            if (num < 0 || $u.isNaN(num)) {
                 return;
             }
 
             caap.stats['stamina'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['stamina']['max']), caap.stats['stamina']);
             caap.stats['staminaT'] = $u.setContent(caap.GetStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
-            $u.log(3, "staminaListener", num);
+            //$u.log(3, "staminaListener", num);
         },
         /*jslint sub: false */
 
@@ -4726,6 +4816,7 @@
             "battle_train",
             "quests",
             "raid",
+            "party",
             "symbolquests",
             "alchemy",
             "goblin_emp",
@@ -4753,7 +4844,8 @@
             "guild_battle_monster",
             "guild_monster_summon_list",
             "arena",
-            "arena_battle"
+            "arena_battle",
+            "specialmembership"
         ],
 
         globalContainer: {},
@@ -4762,20 +4854,20 @@
         /*jslint sub: true */
         AddListeners: function () {
             try {
-                if (caap.caapDivObject.length === 0) {
+                if (!$u.hasContent(caap.caapDivObject)) {
                     throw "Unable to find div for caap_div";
                 }
 
                 $j(window).bind('resize', caap.windowResizeListener);
-                caap.caapDivObject.find('input:checkbox[id^="caap_"]').change(caap.CheckBoxListener);
-                caap.caapDivObject.find('input[data-subtype="text"]').change(caap.TextBoxListener);
-                caap.caapDivObject.find('input[data-subtype="color"]').change(caap.TextBoxListener).click(caap.ColorBoxListener);
-                caap.caapDivObject.find('input[data-subtype="number"]').change(caap.NumberBoxListener);
-                caap.caapDivObject.find('#unlockMenu').change(caap.CheckBoxListener);
-                caap.caapDivObject.find('select[id^="caap_"]').change(caap.DropBoxListener);
-                caap.caapDivObject.find('textarea[id^="caap_"]').change(caap.TextAreaListener);
-                caap.caapDivObject.find('a[id^="caap_Switch"]').click(caap.FoldingBlockListener);
-                caap.caapDivObject.find('#caap_FillArmy').click(function (e) {
+                $j('input:checkbox[id^="caap_"]', caap.caapDivObject).change(caap.CheckBoxListener);
+                $j('input[data-subtype="text"]', caap.caapDivObject).change(caap.TextBoxListener);
+                $j('input[data-subtype="color"]', caap.caapDivObject).keyup(caap.ColorBoxListener).change(caap.ColorBoxChangeListener).click(caap.ColorBoxClickListener);
+                $j('input[data-subtype="number"]', caap.caapDivObject).change(caap.NumberBoxListener);
+                $j('#unlockMenu', caap.caapDivObject).change(caap.CheckBoxListener);
+                $j('select[id^="caap_"]', caap.caapDivObject).change(caap.DropBoxListener);
+                $j('textarea[id^="caap_"]', caap.caapDivObject).change(caap.TextAreaListener);
+                $j('a[id^="caap_Switch"]', caap.caapDivObject).click(caap.FoldingBlockListener);
+                $j('#caap_FillArmy', caap.caapDivObject).click(function (e) {
                     state.setItem("FillArmy", true);
                     state.setItem("ArmyCount", 0);
                     state.setItem('FillArmyList', []);
@@ -4784,8 +4876,8 @@
 
                 });
 
-                caap.caapDivObject.find('#caap_ResetMenuLocation').click(caap.ResetMenuLocationListener);
-                caap.caapDivObject.find('#caap_resetElite').click(function (e) {
+                $j('#caap_ResetMenuLocation', caap.caapDivObject).click(caap.ResetMenuLocationListener);
+                $j('#caap_resetElite', caap.caapDivObject).click(function (e) {
                     schedule.setItem('AutoEliteGetList', 0);
                     schedule.setItem('AutoEliteReqNext', 0);
                     state.setItem('AutoEliteEnd', '');
@@ -4795,32 +4887,33 @@
                     }
                 });
 
-                caap.caapDivObject.find('#caapRestart').click(caap.RestartListener);
-                caap.caapDivObject.find('#caap_control').mousedown(caap.PauseListener);
-                caap.caapDivObject.find('#stopAutoQuest').click(function (e) {
+                $j('#caapRestart', caap.caapDivObject).click(caap.RestartListener);
+                $j('#caap_control', caap.caapDivObject).mousedown(caap.PauseListener);
+                $j('#stopAutoQuest', caap.caapDivObject).click(function (e) {
                     $u.log(1, 'Change: setting stopAutoQuest and go to Manual');
                     caap.ManualAutoQuest();
                 });
 
                 caap.globalContainer = $j('#' + caap.domain.id[caap.domain.which] + 'globalContainer');
-                if (caap.globalContainer.length === 0) {
+                if (!$u.hasContent(caap.globalContainer)) {
                     throw 'Global Container not found';
                 }
 
                 // Fires when CAAP navigates to new location
-                caap.globalContainer.find('a').bind('click', caap.whatClickedURLListener);
-                caap.globalContainer.find("div[id*='friend_box_']").bind('click', caap.whatFriendBox);
-                caap.globalContainer.find("input[src*='dragon_list_btn_']").bind('click', caap.guildMonsterEngageListener);
-                caap.globalContainer.find("input[src*='battle_enter_battle']").bind('click', caap.arenaEngageListener);
-                caap.globalContainer.find("div[style*='arena3_newsfeed']").bind('click', caap.arenaEngageListener);
-                caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
+                $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
+                $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
+                $j("input[src*='dragon_list_btn_']", caap.globalContainer).bind('click', caap.guildMonsterEngageListener);
+                $j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', caap.arenaEngageListener);
+                $j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', caap.arenaEngageListener);
+                $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
                     $j(this).attr("id", index).bind('click', caap.arenaDualListener);
                 });
-                caap.globalContainer.find("input[src*='guild_duel_button']").bind('click', caap.guildMonsterEngageListener);
-                caap.globalContainer.find("span[id*='gold_time_value']").bind('DOMSubtreeModified', caap.goldTimeListener);
-                caap.globalContainer.find("span[id*='energy_current_value']").bind('DOMSubtreeModified', caap.energyListener);
-                caap.globalContainer.find("span[id*='stamina_current_value']").bind('DOMSubtreeModified', caap.staminaListener);
-                caap.globalContainer.find("span[id*='health_current_value']").bind('DOMSubtreeModified', caap.healthListener);
+
+                $j("input[src*='guild_duel_button']", caap.globalContainer).bind('click', caap.guildMonsterEngageListener);
+                $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
+                $j("span[id*='energy_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.energyListener);
+                $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
+                $j("span[id*='health_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.healthListener);
 
                 caap.globalContainer.bind('DOMNodeInserted', function (event) {
                     var tId = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id;
@@ -4835,14 +4928,14 @@
                     */
 
                     if (caap.targetList.hasIndexOf(tId)) {
-                        $u.log(3, "Refreshing DOM Listeners", event.target.id);
+                        $u.log(4, "Refreshing DOM Listeners", event.target.id);
                         caap.waitingForDomLoad = false;
-                        caap.globalContainer.find('a').unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
-                        caap.globalContainer.find("div[id*='friend_box_']").unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
-                        caap.globalContainer.find("span[id*='gold_time_value']").unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
-                        caap.globalContainer.find("span[id*='energy_current_value']").unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
-                        caap.globalContainer.find("span[id*='stamina_current_value']").unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
-                        caap.globalContainer.find("span[id*='health_current_value']").unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
+                        $j('a', caap.globalContainer).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                        $j("div[id*='friend_box_']", caap.globalContainer).unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
+                        $j("span[id*='gold_time_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
+                        $j("span[id*='energy_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
+                        $j("span[id*='stamina_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
+                        $j("span[id*='health_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
                         caap.IncrementPageLoadCounter();
                         if (config.getItem('HideAdsIframe', false)) {
                             $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
@@ -5014,14 +5107,10 @@
 
         AddExpDisplay: function () {
             try {
-                var enlDiv = caap.globalContainer.find("#caap_enl");
-                if ($u.hasContent(enlDiv)) {
-                    enlDiv.html(caap.stats['exp']['dif']);
-                } else {
-                    enlDiv = caap.globalContainer.find("#" + caap.domain.id[caap.domain.which] + "st_2_5 strong").prepend("(<span id='caap_enl' style='color:red'>" + (caap.stats['exp']['dif']) + "</span>) ");
-                    if (!$u.hasContent(enlDiv)) {
-                        $u.warn("Unable to get experience array");
-                    }
+                var enlDiv = $j("#caap_enl", caap.globalContainer);
+                enlDiv = $u.hasContent(enlDiv) ? enlDiv.html(caap.stats['exp']['dif']) : $j("#" + caap.domain.id[caap.domain.which] + "st_2_5 strong", caap.globalContainer).prepend("(<span id='caap_enl' style='color:red'>" + caap.stats['exp']['dif'] + "</span>) ");
+                if (!$u.hasContent(enlDiv)) {
+                    $u.warn("Unable to get experience array");
                 }
 
                 caap.SetDivContent('exp_mess', "Experience to next level: " + caap.stats['exp']['dif']);
@@ -5098,7 +5187,6 @@
                 }
 
                 // Information updates
-                monster.select();
                 caap.UpdateDashboard();
                 caap.AddExpDisplay();
                 caap.SetDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr(true)));
@@ -5148,7 +5236,7 @@
                     html = "<span title='Equipped Attack Power Index' style='font-size: 12px; font-weight: normal;'>EAPI:" + currentGeneral['eapi'] +
                            "</span> <span title='Equipped Defense Power Index' style='font-size: 12px; font-weight: normal;'>EDPI:" + currentGeneral['edpi'] +
                            "</span> <span title='Equipped Mean Power Index' style='font-size: 12px; font-weight: normal;'>EMPI:" + currentGeneral['empi'] + "</span>";
-                    caap.appBodyDiv.find("#" + caap.domain.id[caap.domain.which] + "general_name_div_int").append(html);
+                    $j("#" + caap.domain.id[caap.domain.which] + "general_name_div_int", caap.appBodyDiv).append(html);
                 }
 
                 schedule.setItem("generals", gm.getItem("CheckGenerals", 24, hiddenVar) * 3600, 300);
@@ -5167,24 +5255,23 @@
         // text in the format '123/234'
         GetStatusNumbers: function (text) {
             try {
-                var txtArr = [];
-                if (text === '' || !$u.isString(text)) {
-                    throw "No text supplied for status numbers:" + text;
+                text = $u.isString(text) ? text.trim() : '';
+                if (text === '' || !$u.isString(text) || !/^\d+\/\d+$/.test(text)) {
+                    throw "Invalid text supplied:" + text;
                 }
 
-                txtArr = text.match(/(\d+)\/(\d+)/);
-                if (txtArr.length !== 3) {
-                    throw "Unable to match status numbers" + text;
-                }
+                var num = $u.setContent(text.regex(/^(\d+)\//), 0),
+                    max = $u.setContent(text.regex(/\/(\d+)$/), 0),
+                    dif = $u.setContent(max - num, 0);
 
                 return {
-                    'num': txtArr[1].parseInt(),
-                    'max': txtArr[2].parseInt(),
-                    'dif': txtArr[2].parseInt() - txtArr[1].parseInt()
+                    'num': num,
+                    'max': max,
+                    'dif': dif
                 };
             } catch (err) {
                 $u.error("ERROR in GetStatusNumbers: " + err);
-                return false;
+                return undefined;
             }
         },
 
@@ -5318,7 +5405,6 @@
                     'alchemy' : 0
                 }
             },
-
             'character' : {
                 'warrior' : {
                     'name'    : 'Warrior',
@@ -5366,11 +5452,11 @@
 
         LoadStats: function (FBID, AccName) {
             var Stats = gm.getItem('stats.record', 'default');
-            if (Stats === 'default' || !jQuery.isPlainObject(Stats)) {
+            if (Stats === 'default' || !$j.isPlainObject(Stats)) {
                 Stats = gm.setItem('stats.record', caap.stats);
             }
 
-            jQuery.extend(true, caap.stats, Stats);
+            $j.extend(true, caap.stats, Stats);
             caap.stats['FBID'] = FBID;
             caap.stats['account'] = AccName;
             $u.log(4, "Stats", caap.stats);
@@ -5388,31 +5474,20 @@
         /*jslint sub: true */
         GetStats: function () {
             try {
-                var tempDiv     = $j(),
-                    passed      = true,
+                var passed      = true,
                     tempT       = {},
                     tStr        = '',
                     tNum        = 0,
                     xS          = 0,
                     xE          = 0,
-                    ststbDiv    = $j(),
-                    bntpDiv     = $j();
-
-                ststbDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_ststb", caap.globalContainer);
-                bntpDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bntp", caap.globalContainer);
+                    ststbDiv    = $j("#" + caap.domain.id[caap.domain.which] + "main_ststb", caap.globalContainer),
+                    bntpDiv     = $j("#" + caap.domain.id[caap.domain.which] + "main_bntp", caap.globalContainer),
+                    tempDiv     = $j("#" + caap.domain.id[caap.domain.which] + "gold_current_value", ststbDiv);
 
                 // gold
-                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "gold_current_value", ststbDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tNum = tStr ? tStr.numberOnly() : null;
-                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
-                        caap.stats['gold']['cash'] = tNum;
-                        caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
-                    } else {
-                        $u.warn("Cash value is not a number", tStr);
-                        passed = false;
-                    }
+                    caap.stats['gold']['cash'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
+                    caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
                 } else {
                     $u.warn("Unable to get cashDiv");
                     passed = false;
@@ -5421,15 +5496,8 @@
                 // energy
                 tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_2", ststbDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
-                    if ($u.hasContent(tempT)) {
-                        caap.stats['energy'] = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['energy']['max']);
-                        caap.stats['energyT'] = tempT;
-                    } else {
-                        $u.warn("Unable to get energy levels");
-                        passed = false;
-                    }
+                    caap.stats['energyT'] = caap.GetStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
+                    caap.stats['energy'] = caap.GetStatusNumbers(caap.stats['energyT']['num'] + "/" + caap.stats['energy']['max']);
                 } else {
                     $u.warn("Unable to get energyDiv");
                     passed = false;
@@ -5438,15 +5506,8 @@
                 // health
                 tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_3", ststbDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
-                    if ($u.hasContent(tempT)) {
-                        caap.stats['health'] = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['health']['max']);
-                        caap.stats['healthT'] = tempT;
-                    } else {
-                        $u.warn("Unable to get health levels");
-                        passed = false;
-                    }
+                    caap.stats['healthT'] = caap.GetStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
+                    caap.stats['health'] = caap.GetStatusNumbers(caap.stats['healthT']['num'] + "/" + caap.stats['health']['max']);
                 } else {
                     $u.warn("Unable to get healthDiv");
                     passed = false;
@@ -5455,15 +5516,8 @@
                 // stamina
                 tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_4", ststbDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
-                    if ($u.hasContent(tempT)) {
-                        caap.stats['stamina'] = caap.GetStatusNumbers(tempT['num'] + "/" + caap.stats['stamina']['max']);
-                        caap.stats['staminaT'] = tempT;
-                    } else {
-                        $u.warn("Unable to get stamina values");
-                        passed = false;
-                    }
+                    caap.stats['staminaT'] = caap.GetStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
+                    caap.stats['stamina'] = caap.GetStatusNumbers(caap.stats['staminaT']['num'] + "/" + caap.stats['stamina']['max']);
                 } else {
                     $u.warn("Unable to get staminaDiv");
                     passed = false;
@@ -5472,14 +5526,7 @@
                 // experience
                 tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_2_5", ststbDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tempT = tStr ? caap.GetStatusNumbers(tStr) : {};
-                    if ($u.hasContent(tempT)) {
-                        caap.stats['exp'] = tempT;
-                    } else {
-                        $u.warn("Unable to get experience values");
-                        passed = false;
-                    }
+                    caap.stats['exp'] = caap.GetStatusNumbers($u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+\/\d+)/), "0/0"));
                 } else {
                     $u.warn("Unable to get expDiv");
                     passed = false;
@@ -5488,19 +5535,14 @@
                 // level
                 tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "st_5", ststbDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tNum = tStr ? tStr.regex(/(\d+)/) : null;
-                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
-                        if (tNum > caap.stats['level']) {
-                            $u.log(2, 'New level. Resetting Best Land Cost.');
-                            caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
-                            state.setItem('KeepLevelUpGeneral', true);
-                            caap.stats['level'] = tNum;
-                        }
-                    } else {
-                        $u.warn('newLevel incorrect');
-                        passed = false;
+                    tNum = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+                    if (tNum > caap.stats['level']) {
+                        $u.log(2, 'New level. Resetting Best Land Cost.');
+                        caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
+                        state.setItem('KeepLevelUpGeneral', true);
                     }
+
+                    caap.stats['level'] = tNum;
                 } else {
                     $u.warn("Unable to get levelDiv");
                     passed = false;
@@ -5509,19 +5551,12 @@
                 // army
                 tempDiv = $j("a[href*='army.php']", bntpDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tNum = tStr ? tStr.regex(/(\d+)/) : null;
-                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
-                        caap.stats['army']['actual'] = tNum;
-                        tNum = Math.min(caap.stats['army']['actual'], 501);
-                        if (tNum >= 0 && tNum <= 501) {
-                            caap.stats['army']['capped'] = tNum;
-                        } else {
-                            $u.warn("Army count not in limits");
-                            passed = false;
-                        }
+                    caap.stats['army']['actual'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+                    tNum = Math.min(caap.stats['army']['actual'], 501);
+                    if (tNum >= 1 && tNum <= 501) {
+                        caap.stats['army']['capped'] = tNum;
                     } else {
-                        $u.warn('armyNum incorrect');
+                        $u.warn("Army count not in limits");
                         passed = false;
                     }
                 } else {
@@ -5532,18 +5567,13 @@
                 // upgrade points
                 tempDiv = $j("a[href*='keep.php']", bntpDiv);
                 if ($u.hasContent(tempDiv)) {
-                    tStr = tempDiv.text();
-                    tNum = tStr ? tStr.regex(/(\d+)/) : null;
-                    if ($u.hasContent(tNum) && !$u.isNaN(tNum)) {
-                        if (tNum > caap.stats['points']['skill']) {
-                            $u.log(2, 'New points. Resetting AutoStat.');
-                            state.setItem("statsMatch", true);
-                        }
-
-                        caap.stats['points']['skill'] = tNum;
-                    } else {
-                        caap.stats['points']['skill'] = 0;
+                    tNum = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
+                    if (tNum > caap.stats['points']['skill']) {
+                        $u.log(2, 'New points. Resetting AutoStat.');
+                        state.setItem("statsMatch", true);
                     }
+
+                    caap.stats['points']['skill'] = tNum;
                 } else {
                     $u.warn("Unable to get pointsDiv");
                     passed = false;
@@ -5566,8 +5596,7 @@
                 }
 
                 if (!passed && caap.stats['energy']['max'] === 0 && caap.stats['health']['max'] === 0 && caap.stats['stamina']['max'] === 0) {
-                    $j().alert("<div style='text-align: center;'>Paused as this account may have been disabled!</div>");
-                    $u.warn("Paused as this account may have been disabled!", caap.stats);
+                    $j().alert("<div style='text-align: center;'>" + $u.warn("Paused as this account may have been disabled!", caap.stats) + "</div>");
                     caap.PauseListener();
                 }
 
@@ -5580,23 +5609,20 @@
 
         CheckResults_keep: function () {
             try {
-                var attrDiv    = $j(),
-                    statsTB    = $j(),
-                    keepTable1 = $j(),
-                    statCont   = $j(),
+                var attrDiv    = $j(".keep_attribute_section", caap.globalContainer),
+                    statsTB    = $j(".statsTB", caap.globalContainer),
+                    keepTable1 = $j(".keepTable1 tr", statsTB),
+                    statCont   = $j(".attribute_stat_container", attrDiv),
                     tempDiv    = $j(),
                     tStr       = '',
                     tNum       = 0;
 
-                attrDiv = $j(".keep_attribute_section", caap.globalContainer);
                 if ($u.hasContent(attrDiv)) {
                     $u.log(8, "Getting new values from player keep");
                     // rank
                     tempDiv = $j("img[src*='gif/rank']", caap.globalContainer);
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.attr("src");
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        caap.stats['rank']['battle'] = $u.setContent(tNum, 0);
+                        caap.stats['rank']['battle'] = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
                     } else {
                         $u.warn('Using stored rank.');
                     }
@@ -5604,9 +5630,7 @@
                     // PlayerName
                     tempDiv = $j(".keep_stat_title_inc", attrDiv);
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tStr = tStr ? tStr.regex(new RegExp("\"(.+)\",")) : null;
-                        caap.stats['PlayerName'] = $u.setContent(tStr, '');
+                        caap.stats['PlayerName'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(new RegExp("\"(.+)\",")), '');
                     } else {
                         $u.warn('Using stored PlayerName.');
                     }
@@ -5615,22 +5639,17 @@
                     if (caap.stats['level'] >= 100) {
                         tempDiv = $j("img[src*='war_rank_']", caap.globalContainer);
                         if ($u.hasContent(tempDiv)) {
-                            tStr = tempDiv.attr("src");
-                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                            caap.stats['rank']['war'] = $u.setContent(tNum, 0);
+                            caap.stats['rank']['war'] = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
                         } else {
                             $u.warn('Using stored warRank.');
                         }
                     }
 
-                    statCont = $j(".attribute_stat_container", attrDiv);
                     if ($u.hasContent(statCont) && statCont.length === 6) {
                         // Energy
                         tempDiv = statCont.eq(0);
                         if ($u.hasContent(tempDiv)) {
-                            tStr = tempDiv.text();
-                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                            caap.stats['energy'] = caap.GetStatusNumbers(caap.stats['energyT']['num'] + '/' + $u.setContent(tNum, 0));
+                            caap.stats['energy'] = caap.GetStatusNumbers(caap.stats['energyT']['num'] + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
                         } else {
                             $u.warn('Using stored energy value.');
                         }
@@ -5638,9 +5657,7 @@
                         // Stamina
                         tempDiv = statCont.eq(1);
                         if ($u.hasContent(tempDiv)) {
-                            tStr = tempDiv.text();
-                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                            caap.stats['stamina'] = caap.GetStatusNumbers(caap.stats['staminaT']['num'] + '/' + $u.setContent(tNum, 0));
+                            caap.stats['stamina'] = caap.GetStatusNumbers(caap.stats['staminaT']['num'] + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
                         } else {
                             $u.warn('Using stored stamina value.');
                         }
@@ -5649,9 +5666,7 @@
                             // Attack
                             tempDiv = statCont.eq(2);
                             if ($u.hasContent(tempDiv)) {
-                                tStr = tempDiv.text();
-                                tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                                caap.stats['attack'] = $u.setContent(tNum, 0);
+                                caap.stats['attack'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                             } else {
                                 $u.warn('Using stored attack value.');
                             }
@@ -5659,9 +5674,7 @@
                             // Defense
                             tempDiv = statCont.eq(3);
                             if ($u.hasContent(tempDiv)) {
-                                tStr = tempDiv.text();
-                                tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                                caap.stats['defense'] = $u.setContent(tNum, 0);
+                                caap.stats['defense'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                             } else {
                                 $u.warn('Using stored defense value.');
                             }
@@ -5670,9 +5683,7 @@
                         // Health
                         tempDiv = statCont.eq(4);
                         if ($u.hasContent(tempDiv)) {
-                            tStr = tempDiv.text();
-                            tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                            caap.stats['health'] = caap.GetStatusNumbers(caap.stats['healthT']['num'] + '/' + $u.setContent(tNum, 0));
+                            caap.stats['health'] = caap.GetStatusNumbers(caap.stats['healthT']['num'] + '/' + $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0));
                         } else {
                             $u.warn('Using stored health value.');
                         }
@@ -5681,12 +5692,9 @@
                     }
 
                     // Check for Gold Stored
-                    statsTB = $j(".statsTB", caap.globalContainer);
                     tempDiv = $j(".money", statsTB);
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.numberOnly() : null;
-                        caap.stats['gold']['bank'] = $u.setContent(tNum, 0);
+                        caap.stats['gold']['bank'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                         caap.stats['gold']['total'] = caap.stats['gold']['bank'] + caap.stats['gold']['cash'];
                         tempDiv.attr({
                             title : "Click to copy value to retrieve",
@@ -5708,9 +5716,7 @@
                     // Check for income
                     tempDiv = $j(".positive", statsTB).eq(0);
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.numberOnly() : null;
-                        caap.stats['gold']['income'] = $u.setContent(tNum, 0);
+                        caap.stats['gold']['income'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     } else {
                         $u.warn('Using stored income.');
                     }
@@ -5718,9 +5724,7 @@
                     // Check for upkeep
                     tempDiv = $j(".negative", statsTB);
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.numberOnly() : null;
-                        caap.stats['gold']['upkeep'] = $u.setContent(tNum, 0);
+                        caap.stats['gold']['upkeep'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     } else {
                         $u.warn('Using stored upkeep.');
                     }
@@ -5731,9 +5735,7 @@
                     // Energy potions
                     tempDiv = $j("img[title='Energy Potion']", caap.globalContainer).parent().next();
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.numberOnly() : null;
-                        caap.stats['potions']['energy'] = $u.setContent(tNum, 0);
+                        caap.stats['potions']['energy'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     } else {
                         caap.stats['potions']['energy'] = 0;
                     }
@@ -5741,9 +5743,7 @@
                     // Stamina potions
                     tempDiv = $j("img[title='Stamina Potion']", caap.globalContainer).parent().next();
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.numberOnly() : null;
-                        caap.stats['potions']['stamina'] = $u.setContent(tNum, 0);
+                        caap.stats['potions']['stamina'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     } else {
                         caap.stats['potions']['stamina'] = 0;
                     }
@@ -5752,13 +5752,10 @@
                     // Atlantis Open
                     caap.stats['other'].atlantis = $u.hasContent(caap.CheckForImage("seamonster_map_finished.jpg")) ? true : false;
 
-                    keepTable1 = $j(".keepTable1 tr", statsTB);
                     // Quests Completed
                     tempDiv = $j("td:last", keepTable1.eq(0));
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        caap.stats['other']['qc'] = $u.setContent(tNum, 0);
+                        caap.stats['other']['qc'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
@@ -5766,9 +5763,7 @@
                     // Battles/Wars Won
                     tempDiv = $j("td:last", keepTable1.eq(1));
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        caap.stats['other']['bww'] = $u.setContent(tNum, 0);
+                        caap.stats['other']['bww'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
@@ -5776,9 +5771,7 @@
                     // Battles/Wars Lost
                     tempDiv = $j("td:last", keepTable1.eq(2));
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        caap.stats['other']['bwl'] = $u.setContent(tNum, 0);
+                        caap.stats['other']['bwl'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
@@ -5786,9 +5779,7 @@
                     // Times eliminated
                     tempDiv = $j("td:last", keepTable1.eq(3));
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        caap.stats['other']['te'] = $u.setContent(tNum, 0);
+                        caap.stats['other']['te'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
@@ -5796,27 +5787,15 @@
                     // Times you eliminated an enemy
                     tempDiv = $j("td:last", keepTable1.eq(4));
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.text();
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        caap.stats['other']['tee'] = $u.setContent(tNum, 0);
+                        caap.stats['other']['tee'] = $u.setContent($u.setContent(tempDiv.text(), '').regex(/(\d+)/), 0);
                     } else {
                         $u.warn('Using stored other.');
                     }
 
                     // Win/Loss Ratio (WLR)
-                    if (caap.stats['other']['bwl'] !== 0) {
-                        caap.stats['other']['wlr'] = (caap.stats['other']['bww'] / caap.stats['other']['bwl']).dp(2);
-                    } else {
-                        caap.stats['other']['wlr'] = Infinity;
-                    }
-
+                    caap.stats['other']['wlr'] = caap.stats['other']['bwl'] !== 0 ? (caap.stats['other']['bww'] / caap.stats['other']['bwl']).dp(2) : Infinity;
                     // Enemy Eliminated Ratio/Eliminated (EER)
-                    if (caap.stats['other']['tee'] !== 0) {
-                        caap.stats['other']['eer'] = (caap.stats['other']['tee'] / caap.stats['other']['te']).dp(2);
-                    } else {
-                        caap.stats['other']['eer'] = Infinity;
-                    }
-
+                    caap.stats['other']['eer'] = caap.stats['other']['tee'] !== 0 ? (caap.stats['other']['tee'] / caap.stats['other']['te']).dp(2) : Infinity;
                     // Indicators
                     if (caap.stats['level'] >= 10) {
                         caap.stats['indicators']['bsi'] = ((caap.stats['attack'] + caap.stats['defense']) / caap.stats['level']).dp(2);
@@ -5830,15 +5809,11 @@
                     schedule.setItem("keep", gm.getItem("CheckKeep", 1, hiddenVar) * 3600, 300);
                     caap.SaveStats();
                     tempDiv = $j(".keep_stat_title_inc", attrDiv);
-                    tStr = $u.hasContent(tempDiv) ? tempDiv.html() : '';
-                    tStr = tStr ? tStr.trim() + ", <span style='white-space: nowrap;'>BSI: " + caap.stats['indicators']['bsi'] + " LSI: " + caap.stats['indicators']['lsi'] + "<\span>": '';
-                    tStr = tStr ? tempDiv.html(tStr) : '';
+                    tempDiv = $u.hasContent(tempDiv) ? tempDiv.html($u.setContent(tempDiv.html(), '').trim() + ", <span style='white-space: nowrap;'>BSI: " + caap.stats['indicators']['bsi'] + " LSI: " + caap.stats['indicators']['lsi'] + "</span>") : tempDiv;
                 } else {
                     tempDiv = $j("a[href*='keep.php?user=']", caap.globalContainer);
                     if ($u.hasContent(tempDiv)) {
-                        tStr = tempDiv.attr("href");
-                        tNum = tStr ? tStr.basename().regex(/(\d+)/) : null;
-                        $u.log(2, "On another player's keep", $u.setContent(tNum, 0));
+                        $u.log(2, "On another player's keep", $u.setContent($u.setContent(tempDiv.attr("href"), '').basename().regex(/(\d+)/), 0));
                     } else {
                         $u.warn("Attribute section not found and not identified as another player's keep!");
                     }
@@ -5857,34 +5832,24 @@
 
         CheckResults_oracle: function () {
             try {
-                var favorDiv = $j(),
+                var favorDiv = $j(".title_action"),
                     text     = '',
-                    temp     = [],
+                    tNum     = 0,
                     save     = false;
 
-                favorDiv = $j(".title_action");
-                if (favorDiv.length) {
+                if ($u.setContent(favorDiv)) {
                     text = favorDiv.text();
-                    temp = text.match(new RegExp("\\s*You have zero favor points!\\s*"));
-                    if (temp && temp.length === 1) {
-                        $u.log(2, 'Got number of Favor Points.');
+                    if (/You have zero favor points!/.test(text)) {
                         caap.stats['points']['favor'] = 0;
                         save = true;
+                    } else if (/You have a favor point!/.test(text)) {
+                        caap.stats['points']['favor'] = 1;
+                        save = true;
                     } else {
-                        temp = text.match(new RegExp("\\s*You have a favor point!\\s*"));
-                        if (temp && temp.length === 1) {
-                            $u.log(2, 'Got number of Favor Points.');
-                            caap.stats['points']['favor'] = 1;
+                        tNum = text.regex(/You have (\d+) favor points!/);
+                        if ($u.hasContent(tNum)) {
+                            caap.stats['points']['favor'] = tNum;
                             save = true;
-                        } else {
-                            temp = text.match(new RegExp("\\s*You have (\\d+) favor points!\\s*"));
-                            if (temp && temp.length === 2) {
-                                $u.log(2, 'Got number of Favor Points.');
-                                caap.stats['points']['favor'] = temp[1].parseInt();
-                                save = true;
-                            } else {
-                                $u.warn('Favor Points RegExp not matched.');
-                            }
                         }
                     }
                 } else {
@@ -5892,7 +5857,10 @@
                 }
 
                 if (save) {
+                    $u.log(2, 'Got number of Favor Points', caap.stats['points']['favor']);
                     caap.SaveStats();
+                } else {
+                    $u.warn('Favor Points not matched.');
                 }
 
                 schedule.setItem("oracle", gm.getItem("CheckOracle", 24, hiddenVar) * 3600, 300);
@@ -5911,11 +5879,9 @@
                 }
 
                 if (config.getItem("enableRecipeClean", true)) {
-                    var recipeDiv   = $j(),
+                    var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.globalContainer),
                         titleTxt    = '',
                         titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
-                        titleArr    = [],
-                        tempDiv     = $j(),
                         image       = '',
                         hideCount   = config.getItem("recipeCleanCount", 1),
                         special     = [
@@ -5940,25 +5906,21 @@
                         hideCount = 1;
                     }
 
-                    recipeDiv = $j(".alchemyRecipeBack .recipeTitle");
-                    if (recipeDiv && recipeDiv.length) {
+                    if ($u.hasContent(recipeDiv)) {
                         recipeDiv.each(function () {
                             var row = $j(this);
-                            titleTxt = row.text();
-                            titleArr = titleTxt ? titleTxt.trim().match(titleRegExp) : [];
-                            if (titleArr && titleArr.length === 2) {
-                                if (special.hasIndexOf(titleArr[1])) {
+                            titleTxt = row.text().trim().innerTrim().regex(titleRegExp);
+                            if ($u.hasContent(titleTxt)) {
+                                if (special.hasIndexOf(titleTxt)) {
                                     return true;
                                 }
 
-                                if (titleArr[1] === "Elven Crown") {
+                                if (titleTxt === "Elven Crown") {
                                     image = "gift_aeris_complete.jpg";
                                 }
 
-                                if (town.getCount(titleArr[1], image) >= hideCount && !spreadsheet.isSummon(titleArr[1], image)) {
-                                    tempDiv = row.parent().parent();
-                                    tempDiv.css("display", "none");
-                                    tempDiv.next().css("display", "none");
+                                if (town.getCount(titleTxt, image) >= hideCount && !spreadsheet.isSummon(titleTxt, image)) {
+                                    row.parent().parent().css("display", "none").next().css("display", "none");
                                 }
                             }
 
@@ -5968,15 +5930,15 @@
                 }
 
                 if (config.getItem("enableIngredientsHide", false)) {
-                    $j("div[class='statsTTitle'],div[class='statsTMain']").css("display", "none");
+                    $j("div[class='statsTTitle'],div[class='statsTMain']", caap.globalContainer).css("display", "none");
                 }
 
                 if (config.getItem("enableAlchemyShrink", true)) {
-                    $j("div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']").css("height", "100px");
-                    $j("div[class*='alchemySpace']").css("height", "4px");
-                    $j(".statsT2 img").not("img[src*='emporium_go.gif']").attr("style", "height: 45px; width: 45px;").parent().attr("style", "height: 45px; width: 45px;").parent().css("width", "50px");
-                    $j("input[name='Alchemy Submit']").css("width", "80px");
-                    $j(".recipeTitle").css("margin", "0px");
+                    $j("div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']", caap.globalContainer).css("height", "100px");
+                    $j("div[class*='alchemySpace']", caap.globalContainer).css("height", "4px");
+                    $j(".statsT2 img").not("img[src*='emporium_go.gif']", caap.globalContainer).attr("style", "height: 45px; width: 45px;").parent().attr("style", "height: 45px; width: 45px;").parent().css("width", "50px");
+                    $j("input[name='Alchemy Submit']", caap.globalContainer).css("width", "80px");
+                    $j(".recipeTitle", caap.globalContainer).css("margin", "0px");
                 }
 
                 return true;
@@ -5986,13 +5948,23 @@
             }
         },
 
-        CheckResults_soldiers: function () {
+        commonTown: function () {
             try {
-                $j("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
+                $j("div[class='eq_buy_costs_int'] form[id*='itemBuy'] select[name='amount'] option[value='5']", caap.globalContainer).attr('selected', 'selected');
                 if (config.getItem("enableTitles", true)) {
                     spreadsheet.doTitles();
                 }
 
+                return true;
+            } catch (err) {
+                $u.error("ERROR in commonTown: " + err);
+                return false;
+            }
+        },
+
+        CheckResults_soldiers: function () {
+            try {
+                caap.commonTown();
                 town.GetItems("soldiers");
                 schedule.setItem("soldiers", gm.getItem("CheckSoldiers", 72, hiddenVar) * 3600, 300);
                 return true;
@@ -6004,11 +5976,7 @@
 
         CheckResults_item: function () {
             try {
-                $j("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
-                if (config.getItem("enableTitles", true)) {
-                    spreadsheet.doTitles();
-                }
-
+                caap.commonTown();
                 town.GetItems("item");
                 schedule.setItem("item", gm.getItem("CheckItem", 72, hiddenVar) * 3600, 300);
                 return true;
@@ -6020,11 +5988,7 @@
 
         CheckResults_magic: function () {
             try {
-                $j("div[class='eq_buy_costs_int']").find("select[name='amount']:first option[value='5']").attr('selected', 'selected');
-                if (config.getItem("enableTitles", true)) {
-                    spreadsheet.doTitles();
-                }
-
+                caap.commonTown();
                 town.GetItems("magic");
                 schedule.setItem("magic", gm.getItem("CheckMagic", 72, hiddenVar) * 3600, 300);
                 return true;
@@ -6062,17 +6026,14 @@
         /*jslint sub: true */
         CheckResults_battlerank: function () {
             try {
-                var rankDiv  = $j(),
-                    text     = '',
-                    temp     = [];
+                var rankDiv = $j("div[style*='battle_rank_banner.jpg']", caap.globalContainer),
+                    tNum    = 0;
 
-                rankDiv = $j("div[style*='battle_rank_banner.jpg']");
-                if (rankDiv.length) {
-                    text = rankDiv.text();
-                    temp = text.match(new RegExp(".*with (.*) Battle Points.*"));
-                    if (temp && temp.length === 2) {
-                        $u.log(2, 'Got Battle Rank Points.');
-                        caap.stats['rank']['battlePoints'] = temp[1] ? temp[1].numberOnly() : 0;
+                if ($u.hasContent(rankDiv)) {
+                    tNum = rankDiv.text().regex(/with ([\d,]+) Battle Points/i).numberOnly();
+                    if ($u.hasContent(tNum)) {
+                        $u.log(2, 'Got Battle Rank Points', tNum);
+                        caap.stats['rank']['battlePoints'] = tNum;
                         caap.SaveStats();
                     } else {
                         $u.warn('Battle Rank Points RegExp not matched.');
@@ -6091,17 +6052,14 @@
 
         CheckResults_war_rank: function () {
             try {
-                var rankDiv  = $j(),
-                    text     = '',
-                    temp     = [];
+                var rankDiv = $j("div[style*='war_rank_banner.jpg']", caap.globalContainer),
+                    tNum    = 0;
 
-                rankDiv = $j("div[style*='war_rank_banner.jpg']");
-                if (rankDiv.length) {
-                    text = rankDiv.text();
-                    temp = text.match(new RegExp(".*with (.*) War Points.*"));
-                    if (temp && temp.length === 2) {
-                        $u.log(2, 'Got War Rank Points.');
-                        caap.stats['rank']['warPoints'] = temp[1] ? temp[1].numberOnly() : 0;
+                if ($u.hasContent(rankDiv)) {
+                    tNum = rankDiv.text().regex(/with ([\d,]+) War Points/i).numberOnly();
+                    if ($u.hasContent(tNum)) {
+                        $u.log(2, 'Got War Rank Points', tNum);
+                        caap.stats['rank']['warPoints'] = tNum;
                         caap.SaveStats();
                     } else {
                         $u.warn('War Rank Points RegExp not matched.');
@@ -6120,37 +6078,20 @@
 
         CheckResults_achievements: function () {
             try {
-                var achDiv = $j(),
-                    tdDiv  = $j(),
-                    tStr   = '';
+                var achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_2", caap.globalContainer),
+                    tdDiv  = $j("td div", achDiv);
 
-                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_2");
-                if (achDiv && achDiv.length) {
-                    tdDiv = achDiv.find("td div");
-                    if (tdDiv && tdDiv.length === 6) {
-                        tStr = tdDiv.eq(0).text();
-                        caap.stats['achievements']['battle']['invasions']['won'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(1).text();
-                        caap.stats['achievements']['battle']['duels']['won'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(2).text();
-                        caap.stats['achievements']['battle']['invasions']['lost'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(3).text();
-                        caap.stats['achievements']['battle']['duels']['lost'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(4).text();
-                        caap.stats['achievements']['battle']['invasions']['streak'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(5).text();
-                        caap.stats['achievements']['battle']['duels']['streak'] = tStr ? tStr.numberOnly() : 0;
-                        if (caap.stats['achievements']['battle']['invasions']['lost']) {
-                            caap.stats['achievements']['battle']['invasions']['ratio'] = (caap.stats['achievements']['battle']['invasions']['won'] / caap.stats['achievements']['battle']['invasions']['lost']).dp(2);
-                        } else {
-                            caap.stats['achievements']['battle']['invasions']['ratio'] = Infinity;
-                        }
-
-                        if (caap.stats['achievements']['battle']['invasions']['lost']) {
-                            caap.stats['achievements']['battle']['duels']['ratio'] = (caap.stats['achievements']['battle']['duels']['won'] / caap.stats['achievements']['battle']['duels']['lost']).dp(2);
-                        } else {
-                            caap.stats['achievements']['battle']['duels']['ratio'] = Infinity;
-                        }
+                if ($u.hasContent(achDiv)) {
+                    if ($u.hasContent(tdDiv) && tdDiv.length === 6) {
+                        caap.stats['achievements']['battle']['invasions']['won'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['duels']['won'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['invasions']['lost'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['duels']['lost'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['invasions']['streak'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['duels']['streak'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
+                        caap.stats['achievements']['battle']['invasions']['ratio'] = caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['invasions']['won'] / caap.stats['achievements']['battle']['invasions']['lost']).dp(2) : Infinity;
+                        caap.stats['achievements']['battle']['duels']['ratio'] = caap.stats['achievements']['battle']['invasions']['lost'] > 0 ? (caap.stats['achievements']['battle']['duels']['won'] / caap.stats['achievements']['battle']['duels']['lost']).dp(2) : Infinity;
+                        caap.SaveStats();
                     } else {
                         $u.warn('Battle Achievements problem.');
                     }
@@ -6158,40 +6099,26 @@
                     $u.warn('Battle Achievements not found.');
                 }
 
-                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3");
-                if (achDiv && achDiv.length) {
-                    tdDiv = achDiv.find("td div");
-                    if (tdDiv && tdDiv.length === 15) {
-                        tStr = tdDiv.eq(0).text();
-                        caap.stats['achievements']['monster']['gildamesh'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(1).text();
-                        caap.stats['achievements']['monster']['lotus'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(2).text();
-                        caap.stats['achievements']['monster']['colossus'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(3).text();
-                        caap.stats['achievements']['monster']['dragons'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(4).text();
-                        caap.stats['achievements']['monster']['sylvanas'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(5).text();
-                        caap.stats['achievements']['monster']['cronus'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(6).text();
-                        caap.stats['achievements']['monster']['keira'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(7).text();
-                        caap.stats['achievements']['monster']['sieges'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(8).text();
-                        caap.stats['achievements']['monster']['legion'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(9).text();
-                        caap.stats['achievements']['monster']['genesis'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(10).text();
-                        caap.stats['achievements']['monster']['skaar'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(11).text();
-                        caap.stats['achievements']['monster']['gehenna'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(12).text();
-                        caap.stats['achievements']['monster']['aurelius'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(13).text();
-                        caap.stats['achievements']['monster']['corvintheus'] = tStr ? tStr.numberOnly() : 0;
-                        tStr = tdDiv.eq(14).text();
-                        caap.stats['achievements']['monster']['valhalla'] = tStr ? tStr.numberOnly() : 0;
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.globalContainer);
+                if ($u.hasContent(achDiv)) {
+                    tdDiv = $j("td div", achDiv);
+                    if ($u.hasContent(tdDiv) && tdDiv.length === 15) {
+                        caap.stats['achievements']['monster']['gildamesh'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['lotus'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['colossus'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['dragons'] = $u.setContent(tdDiv.eq(3).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['sylvanas'] = $u.setContent(tdDiv.eq(4).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['cronus'] = $u.setContent(tdDiv.eq(5).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['keira'] = $u.setContent(tdDiv.eq(6).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['sieges'] = $u.setContent(tdDiv.eq(7).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['legion'] = $u.setContent(tdDiv.eq(8).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['genesis'] = $u.setContent(tdDiv.eq(9).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['skaar'] = $u.setContent(tdDiv.eq(10).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['gehenna'] = $u.setContent(tdDiv.eq(11).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['aurelius'] = $u.setContent(tdDiv.eq(12).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['corvintheus'] = $u.setContent(tdDiv.eq(13).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['valhalla'] = $u.setContent(tdDiv.eq(14).text().numberOnly(), 0);
+                        caap.SaveStats();
                     } else {
                         $u.warn('Monster Achievements problem.');
                     }
@@ -6199,17 +6126,15 @@
                     $u.warn('Monster Achievements not found.');
                 }
 
-                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_4");
-                if (achDiv && achDiv.length) {
-                    tdDiv = achDiv.find("td div");
-                    if (tdDiv && tdDiv.length === 1) {
-                        tStr = tdDiv.eq(0).text();
-                        caap.stats['achievements']['other']['alchemy'] = tStr ? tStr.numberOnly() : 0;
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_4", caap.globalContainer);
+                if ($u.hasContent(achDiv)) {
+                    tdDiv = $j("td div", achDiv);
+                    if ($u.hasContent(tdDiv) && tdDiv.length === 1) {
+                        caap.stats['achievements']['other']['alchemy'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
+                        caap.SaveStats();
                     } else {
                         $u.warn('Other Achievements problem.');
                     }
-
-                    caap.SaveStats();
                 } else {
                     $u.warn('Other Achievements not found.');
                 }
@@ -6224,26 +6149,22 @@
 
         CheckResults_view_class_progress: function () {
             try {
-                var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']");
-                if (classDiv && classDiv.length === 6) {
+                var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']", caap.globalContainer);
+                if ($u.hasContent(classDiv) && classDiv.length === 6) {
                     classDiv.each(function (index) {
                         var monsterClass = $j(this),
-                            name         = '',
-                            tStr         = '';
+                            name         = '';
 
-                        tStr = monsterClass.attr("class");
-                        name = tStr ? tStr.replace("banner_", '') : '';
-                        if (name && jQuery.isPlainObject(caap.stats['character'][name])) {
-                            caap.stats['character'][name]['percent'] = monsterClass.find("img[src*='progress']").eq(0).getPercent('width').dp(2);
-                            tStr = monsterClass.children().eq(2).text();
-                            caap.stats['character'][name]['level'] = tStr ? tStr.numberOnly() : 0;
+                        name = $u.setContent(monsterClass.attr("class"), '').replace("banner_", '');
+                        if (name && $j.isPlainObject(caap.stats['character'][name])) {
+                            caap.stats['character'][name]['percent'] = $u.setContent($j("img[src*='progress']", monsterClass).eq(0).getPercent('width').dp(2), 0);
+                            caap.stats['character'][name]['level'] = $u.setContent(monsterClass.children().eq(2).text().numberOnly(), 0);
                             $u.log(2, "Got character class record", name, caap.stats['character'][name]);
+                            caap.SaveStats();
                         } else {
                             $u.warn("Problem character class name", name);
                         }
                     });
-
-                    caap.SaveStats();
                 } else {
                     $u.warn("Problem with character class records", classDiv);
                 }
@@ -6262,24 +6183,25 @@
         /////////////////////////////////////////////////////////////////////
 
         MaxEnergyQuest: function () {
-            var maxIdleEnergy = caap.stats['energy']['max'],
-                theGeneral = config.getItem('IdleGeneral', 'Use Current');
+            try {
+                var maxIdleEnergy = 0,
+                    theGeneral    = config.getItem('IdleGeneral', 'Use Current');
 
-            if (theGeneral !== 'Use Current') {
-                maxIdleEnergy = general.GetEnergyMax(theGeneral);
-                if (!maxIdleEnergy) {
-                    $u.log(2, "Changing to idle general to get Max energy");
-                    if (general.Select('IdleGeneral')) {
-                        return true;
+                if (theGeneral !== 'Use Current') {
+                    maxIdleEnergy = $u.setContent(general.GetEnergyMax(theGeneral), 0);
+                    if (maxIdleEnergy === 0 || $u.isNaN(maxIdleEnergy)) {
+                        $u.log(1, "Changing to idle general to get Max energy");
+                        if (general.Select('IdleGeneral')) {
+                            return true;
+                        }
                     }
                 }
-            }
 
-            if (caap.stats['energy']['num'] >= maxIdleEnergy) {
-                return caap.Quests();
+                return caap.stats['energy']['num'] >= maxIdleEnergy ? caap.Quests() : false;
+            } catch (err) {
+                $u.error("ERROR in MaxEnergyQuest: " + err);
+                return undefined;
             }
-
-            return false;
         },
         /*jslint sub: false */
 
@@ -6457,7 +6379,7 @@
 
                 if (whenQuest === 'Not Fortifying' || (config.getItem('PrioritiseMonsterAfterLvl', false) && state.getItem('KeepLevelUpGeneral', false))) {
                     var fortMon = state.getItem('targetFromfortify', new monster.energyTarget().data);
-                    if (jQuery.isPlainObject(fortMon) && fortMon['name'] && fortMon['type']) {
+                    if ($j.isPlainObject(fortMon) && fortMon['name'] && fortMon['type']) {
                         switch (fortMon['type']) {
                         case "Fortify":
                             var maxHealthtoQuest = config.getItem('MaxHealthtoQuest', 0);
@@ -6677,7 +6599,7 @@
 
                 // if found missing requires, click to buy
                 if (autoQuestDivs.tr && autoQuestDivs.tr.length) {
-                    var background = autoQuestDivs.tr.find("div[style*='background-color']");
+                    var background = $j("div[style*='background-color']", autoQuestDivs.tr);
                     if (background && background.length && background.css("background-color") === 'rgb(158, 11, 15)') {
                         $u.log(1, "Missing item", autoQuestDivs.tr);
                         if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
@@ -6777,7 +6699,7 @@
                         }
                     });
 
-                    $u.log(3, 'Points', points);
+                    $u.log(4, 'Points', points);
                     if (success) {
                         caap.demi['ambrosia']['power']['total'] = $u.setContent(points[0], 0);
                         caap.demi['malekus']['power']['total'] = $u.setContent(points[1], 0);
@@ -6821,7 +6743,7 @@
         },
 
         symbolquestsListener: function (event) {
-            $u.log(3, "symbolquests");
+            $u.log(4, "symbolquests");
             state.setItem('clickUrl', caap.domain.link + '/symbolquests.php');
             caap.CheckResults();
         },
@@ -6832,11 +6754,11 @@
             try {
                 //$u.log(1, "CheckResults_quests pickQuestTF", pickQuestTF);
                 pickQuestTF = pickQuestTF ? pickQuestTF : false;
-                if ($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container").length) {
-                    $j("div[id*='" + caap.domain.id[caap.domain.which] + "meta_quest_']").each(function (index) {
+                if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container", caap.globalContainer))) {
+                    $j("div[id*='" + caap.domain.id[caap.domain.which] + "meta_quest_']", caap.globalContainer).each(function (index) {
                         var row = $j(this);
-                        if (!(row.find("img[src*='_completed']").length || row.find("img[src*='_locked']").length)) {
-                            $j("div[id='" + caap.domain.id[caap.domain.which] + "quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']").css("display", "block");
+                        if (!($u.hasContent($j("img[src*='_completed']", row)) || $u.hasContent($j("img[src*='_locked']", row)))) {
+                            $j("div[id='" + caap.domain.id[caap.domain.which] + "quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.globalContainer).css("display", "block");
                         }
                     });
                 }
@@ -6857,9 +6779,9 @@
 
                 if (caap.HasImage('demi_quest_on.gif')) {
                     caap.CheckResults_symbolquests($u.isString(pickQuestTF) ? pickQuestTF : undefined);
-                    $j("div[id*='" + caap.domain.id[caap.domain.which] + "symbol_tab_symbolquests']").unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
-                    ss = $j("div[id*='symbol_displaysymbolquest']");
-                    if (!ss || !ss.length) {
+                    $j("div[id*='" + caap.domain.id[caap.domain.which] + "symbol_tab_symbolquests']", caap.globalContainer).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
+                    ss = $j("div[id*='symbol_displaysymbolquest']", caap.globalContainer);
+                    if (!$u.hasContent(ss)) {
                         $u.warn("Failed to find symbol_displaysymbolquest");
                     }
 
@@ -6875,8 +6797,8 @@
                     div = $j(document.body);
                 }
 
-                ss = div.find("div[class*='quests_background']");
-                if (!ss || !ss.length) {
+                ss = $j("div[class*='quests_background']", div);
+                if (!$u.hasContent(ss)) {
                     $u.warn("Failed to find quests_background");
                     return false;
                 }
@@ -6889,7 +6811,7 @@
                 isTheArea = caap.CheckCurrentQuestArea(questSubArea);
                 $u.log(2, "Is quest area", questSubArea, isTheArea);
                 if (isTheArea && whyQuest !== 'Manual' && config.getItem('GetOrbs', false)) {
-                    if ($j("input[alt='Perform Alchemy']").length) {
+                    if ($u.hasContent($j("input[alt='Perform Alchemy']"))) {
                         haveOrb = true;
                     } else {
                         if (questSubArea && caap.QuestAreaInfo[questSubArea].orb) {
@@ -6911,7 +6833,7 @@
                     orbCheck : false
                 };
 
-                $j("div[class='autoquest']").remove();
+                $j("div[class='autoquest']", caap.globalContainer).remove();
                 var expRegExp       = new RegExp("\\+(\\d+)"),
                     energyRegExp    = new RegExp("(\\d+)\\s+energy", "i"),
                     moneyRegExp     = new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
@@ -6937,8 +6859,8 @@
                     if (expM && expM.length === 2) {
                         experience = expM[1] ? expM[1].numberOnly() : 0;
                     } else {
-                        var expObj = $j("div[class='quest_experience']");
-                        if (expObj && expObj.length) {
+                        var expObj = $j("div[class='quest_experience']", caap.globalContainer);
+                        if ($u.hasContent(expObj)) {
                             tStr = expObj.text();
                             experience = tStr ? tStr.numberOnly() : 0;
                         } else {
@@ -6955,9 +6877,9 @@
                     if (energyM && energyM.length === 2) {
                         energy = energyM[1] ? energyM[1].numberOnly() : 0;
                     } else {
-                        var eObj = div.find("div[class*='quest_req']");
-                        if (eObj && eObj.length) {
-                            energy = eObj.find('b').eq(0).text().numberOnly();
+                        var eObj = $j("div[class*='quest_req']", div);
+                        if ($u.hasContent(eObj)) {
+                            energy = $j('b', eObj).eq(0).text().numberOnly();
                         }
                     }
 
@@ -6986,15 +6908,15 @@
                         }
                     }
 
-                    var click = div.find("input[name*='Do Quest']");
-                    if (!click || !click.length) {
+                    var click = $j("input[name*='Do Quest']", div);
+                    if (!$u.hasContent(click)) {
                         $u.warn('No button found for', caap.questName);
                         return true;
                     }
 
                     var influence = -1;
                     if (caap.isBossQuest(caap.questName)) {
-                        if ($j("div[class='quests_background_sub']").length) {
+                        if ($u.hasContent($j("div[class='quests_background_sub']", caap.globalContainer))) {
                             //if boss and found sub quests
                             influence = 100;
                         } else {
@@ -7017,10 +6939,10 @@
                         genDiv  = $j();
 
                     if (influence >= 0 && influence < 100) {
-                        genDiv = div.find("div[class*='quest_act_gen']");
-                        if (genDiv && genDiv.length) {
-                            genDiv = genDiv.find("img[src*='jpg']");
-                            if (genDiv && genDiv.length) {
+                        genDiv = $j("div[class*='quest_act_gen']", div);
+                        if ($u.hasContent(genDiv)) {
+                            genDiv = $j("img[src*='jpg']", genDiv);
+                            if ($u.hasContent(genDiv)) {
                                 general = genDiv.attr("title");
                             }
                         }
@@ -7094,7 +7016,7 @@
                             tempAutoQuest['general'] = general;
                             tempAutoQuest['expRatio'] = expRatio;
                             state.setItem('AutoQuest', tempAutoQuest);
-                            $u.log(3, "CheckResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
+                            $u.log(4, "CheckResults_quests", state.getItem('AutoQuest', caap.newAutoQuest()));
                             caap.ShowAutoQuest();
                             autoQuestDivs.name = caap.questName;
                             autoQuestDivs.click = click;
@@ -7176,7 +7098,7 @@
                         found = true;
                     }
                 } else if (QuestSubArea && caap.QuestAreaInfo[QuestSubArea]) {
-                    if ($j("div[class='" + caap.QuestAreaInfo[QuestSubArea].clas + "']").length) {
+                    if ($u.hasContent($j("div[class='" + caap.QuestAreaInfo[QuestSubArea].clas + "']", caap.globalContainer))) {
                         found = true;
                     }
                 }
@@ -7191,28 +7113,27 @@
 
         GetQuestName: function (questDiv) {
             try {
-                var item_title = $j(),
+                var item_title = $j("div[class*='quest_desc'],div[class*='quest_sub_title']", questDiv),
                     firstb     = $j();
 
-                item_title = questDiv.find("div[class*='quest_desc'],div[class*='quest_sub_title']");
-                if (!item_title || !item_title.length) {
+                if (!$u.hasContent(item_title)) {
                     $u.log(2, "Can't find quest description or sub-title");
                     return false;
                 }
 
-                if (item_title.html().match(/LOCK/)) {
+                if (/LOCK/.test(item_title.html())) {
                     $u.log(2, "Quest locked", item_title);
                     return false;
                 }
 
-                firstb = item_title.find("b").eq(0);
-                if (!firstb || !firstb.length) {
+                firstb = $j("b", item_title).eq(0);
+                if (!$u.hasContent(firstb)) {
                     $u.warn("Can't get bolded member out of", item_title.html());
                     return false;
                 }
 
                 caap.questName = firstb.text().trim();
-                if (!caap.questName) {
+                if (!$u.hasContent(caap.questName)) {
                     $u.warn('No quest name for this row');
                     return false;
                 }
@@ -7351,10 +7272,10 @@
                         caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                     }
 
-                    mainDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bn");
-                    if (mainDiv && mainDiv.length) {
+                    mainDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer);
+                    if ($u.hasContent(mainDiv)) {
                         className = mainDiv.attr("class");
-                        if (className && caap.ClassToQuestArea[className]) {
+                        if ($u.hasContent(className) && caap.ClassToQuestArea[className]) {
                             config.setItem('QuestSubArea', caap.ClassToQuestArea[className]);
                         }
                     }
@@ -7373,7 +7294,7 @@
 
         LabelQuests: function (div, energy, reward, experience, click) {
             try {
-                if (div.find("div[class='autoquest'").length) {
+                if ($u.hasContent($j("div[class='autoquest'", div))) {
                     return;
                 }
 
@@ -7466,7 +7387,7 @@
                 return true;
             }
 
-            picSlice = $j("img[src*='deity_" + autoBless + "']");
+            picSlice = $j("img[src*='deity_" + autoBless + "']", caap.globalContainer);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No diety pics for deity', autoBless);
                 return false;
@@ -7476,7 +7397,7 @@
                 return caap.NavigateTo('deity_' + autoBless);
             }
 
-            picSlice = $j("form[id*='" + caap.domain.id[caap.domain.which] + "symbols_form_" + caap.deityTable[autoBless] + "']");
+            picSlice = $j("form[id*='" + caap.domain.id[caap.domain.which] + "symbols_form_" + caap.deityTable[autoBless] + "']", caap.globalContainer);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No form for deity blessing.');
                 return false;
@@ -7550,8 +7471,8 @@
                     try {
                         type = type ? type : 'Buy';
                         var selects = $j();
-                        selects = div.find("select");
-                        if (!selects || !selects.length) {
+                        selects = $j("select", div);
+                        if (!$u.hasContent(selects)) {
                             $u.warn(type + " select not found!");
                             return false;
                         }
@@ -7574,38 +7495,38 @@
                 caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
                 caap.sellLand = {};
                 ss = $j("tr[class*='land_buy_row']", caap.globalContainer);
-                if (!ss || !ss.length) {
+                if (!$u.hasContent(ss)) {
                     $u.warn("Can't find land_buy_row");
                     return false;
                 }
 
                 ss.each(function () {
                     row = $j(this);
-                    if (!row || !row.length) {
+                    if (!$u.hasContent(row)) {
                         return true;
                     }
 
                     SelectLands(row, 10);
                     infoDiv = $j("div[class*='land_buy_info']", row);
-                    if (!infoDiv || !infoDiv.length) {
+                    if (!$u.hasContent(infoDiv)) {
                         $u.warn("Can't find land_buy_info");
                         return true;
                     }
 
                     strongs = $j("strong", infoDiv);
-                    if (strongs && strongs.length < 1) {
+                    if (!$u.hasContent(strongs)) {
                         $u.warn("Can't find strong");
                         return true;
                     }
 
                     name = strongs.eq(0).text().trim();
-                    if (!name) {
+                    if (!$u.hasContent(name)) {
                         $u.warn("Can't find land name");
                         return true;
                     }
 
                     moneyss = $j("strong[class*='gold']", row);
-                    if (!moneyss || moneyss.length < 2) {
+                    if (!$u.hasContent(moneyss) || moneyss.length < 2) {
                         $u.warn("Can't find 2 gold instances");
                         return true;
                     }
@@ -7648,7 +7569,7 @@
                     tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
                     maxAllowed = tStr ? tStr.parseInt() : 0;
                     // Lets get our owned total from the land_buy_costs div
-                    div = row.find("div[class*='land_buy_costs']");
+                    div = $j("div[class*='land_buy_costs']", row);
                     tStr = div.text();
                     tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
                     owned = tStr ? tStr.parseInt() : 0;
@@ -7662,7 +7583,7 @@
                     land.data['buy'] = (maxAllowed - owned) > 10 ? 10 : maxAllowed - owned;
                     land.data['totalCost'] = land.data['buy'] * cost;
                     roi = (((income / cost) * 240000) / 100).dp(2);
-                    if (!$j("input[name='Buy']", row).length) {
+                    if (!$u.hasContent($j("input[name='Buy']", row))) {
                         roi = 0;
                         // If we own more than allowed we will set land and selection
                         for (s = 2; s >= 0; s -= 1) {
@@ -7678,16 +7599,16 @@
                     div = $j("strong", infoDiv);
                     tStr = div.eq(0).text();
                     div.eq(0).text(tStr + " | " + land.data['roi'] + "% per day.");
-                    $u.log(3, "Land:", land.data['name']);
+                    $u.log(4, "Land:", land.data['name']);
                     if (land.data['roi'] > 0 && land.data['roi'] > caap.bestLand['roi']) {
-                        $u.log(3, "Set Land:", land.data['name'], land.data);
-                        caap.bestLand = jQuery.extend(true, {}, land.data);
+                        $u.log(4, "Set Land:", land.data['name'], land.data);
+                        caap.bestLand = $j.extend(true, {}, land.data);
                     }
 
                     return true;
                 });
 
-                jQuery.extend(true, bestLandCost, caap.bestLand);
+                $j.extend(true, bestLandCost, caap.bestLand);
                 delete bestLandCost['row'];
                 bestLandCost['set'] = true;
                 bestLandCost['last'] = new Date().getTime();
@@ -7716,9 +7637,8 @@
                 function BuySellLand(land, type) {
                     try {
                         type = type ? type : 'Buy';
-                        var button = $j();
-                        button = $j("input[name='" + type + "']", land['row']);
-                        if (button && button.length) {
+                        var button = $j("input[name='" + type + "']", land['row']);
+                        if ($u.hasContent(button)) {
                             if (type === 'Buy') {
                                 caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
                             } else {
@@ -7738,7 +7658,7 @@
                 }
 
                 // Do we have lands above our max to sell?
-                if (!jQuery.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
+                if (!$j.isEmptyObject(caap.sellLand) && config.getItem('SellLands', false)) {
                     $u.log(2, "Selling land", caap.sellLand['name']);
                     BuySellLand(caap.sellLand, 'Sell');
                     return true;
@@ -8012,9 +7932,9 @@
                 battleButton = caap.CheckForImage(battle.battles['Freshmeat'][config.getItem('BattleType', 'Invade')]);
                 if ($u.hasContent(battleButton)) {
                     form = battleButton.parent().parent();
-                    if (form && form.length) {
-                        inp = form.find("input[name='target_id']");
-                        if (inp && inp.length) {
+                    if ($u.hasContent(form)) {
+                        inp = $j("input[name='target_id']", form);
+                        if ($u.hasContent(inp)) {
                             inp.attr("value", userid);
                             state.setItem("lastBattleID", userid);
                             battle.click(battleButton);
@@ -8055,7 +7975,7 @@
                     targetType    = '',
                     rejoinSecs    = '',
                     battleRecord  = {},
-                    tempTime      = new Date(2009, 0, 1).getTime();
+                    tempTime      = 0;
 
                 if (caap.stats['level'] < 8) {
                     if (caap.battleWarnLevel) {
@@ -8221,9 +8141,9 @@
                     }
 
                     raidName = state.getItem('targetFromraid', '');
-                    if (!$j("div[style*='dragon_title_owner']").length) {
+                    if (!$u.hasContent($j("div[style*='dragon_title_owner']", caap.globalContainer))) {
                         button = monster.engageButtons[raidName];
-                        if (button) {
+                        if ($u.hasContent(button)) {
                             caap.Click(button);
                             return true;
                         }
@@ -8239,7 +8159,7 @@
                     // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                     if (targetType === "Userid List") {
                         if (battle.freshmeat('Raid')) {
-                            if ($j("span[class*='result_body']").length) {
+                            if ($u.hasContent($j("span[class*='result_body']", caap.globalContainer))) {
                                 battle.nextTarget();
                             }
 
@@ -8265,7 +8185,7 @@
                     // The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                     if (targetType === "Userid List") {
                         if (battle.freshmeat('Freshmeat')) {
-                            if ($j("span[class*='result_body']").length) {
+                            if ($u.hasContent($j("span[class*='result_body']", caap.globalContainer))) {
                                 battle.nextTarget();
                             }
 
@@ -8471,7 +8391,7 @@
                 }
 
                 record = guild_monster.getReview();
-                if (record && jQuery.isPlainObject(record) && !jQuery.isEmptyObject(record)) {
+                if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
                     $u.log(1, "Reviewing Slot (" + record['slot'] + ") Name: " + record['name']);
                     if (caap.stats['staminaT']['num'] > 0 && config.getItem("doGuildMonsterSiege", true)) {
                         objective = "&action=doObjective";
@@ -8582,9 +8502,9 @@
 
                     state.setItem('staminaGuildMonster', 0);
                     record = state.getItem('targetGuildMonster', {});
-                    if (record && jQuery.isPlainObject(record) && !jQuery.isEmptyObject(record)) {
+                    if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
                         minion = guild_monster.getTargetMinion(record);
-                        if (minion && jQuery.isPlainObject(minion) && !jQuery.isEmptyObject(minion)) {
+                        if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                             stamina = guild_monster.getStaminaValue(record, minion);
                             state.setItem('staminaGuildMonster', stamina);
                             if (caap.stats['staminaT']['num'] < stamina) {
@@ -8619,7 +8539,7 @@
 
                 caap.SetDivContent('guild_monster_mess', '');
                 record = guild_monster.select(true);
-                if (record && jQuery.isPlainObject(record) && !jQuery.isEmptyObject(record)) {
+                if (record && $j.isPlainObject(record) && !$j.isEmptyObject(record)) {
                     if (general.Select('GuildMonsterGeneral')) {
                         return true;
                     }
@@ -8633,7 +8553,7 @@
                     }
 
                     minion = guild_monster.getTargetMinion(record);
-                    if (minion && jQuery.isPlainObject(minion) && !jQuery.isEmptyObject(minion)) {
+                    if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                         $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                         caap.SetDivContent('guild_monster_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                         key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
@@ -8754,7 +8674,7 @@
                 tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
                 nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
                 caap.SetDivContent('arena_mess', nextTime);
-                if (!record || !jQuery.isPlainObject(record) || jQuery.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
+                if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                     if (state.getItem('ArenaRefresh', true)) {
                         if (arena.navigate_to_main_refresh()) {
                             return true;
@@ -8827,7 +8747,7 @@
                 }
 
                 minion = arena.getTargetMinion(record);
-                if (minion && jQuery.isPlainObject(minion) && !jQuery.isEmptyObject(minion)) {
+                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                     $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
                     caap.SetDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                     key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
@@ -8854,7 +8774,7 @@
 
         CheckResults_fightList: function () {
             try {
-                var buttonsDiv            = $j(),
+                var buttonsDiv            = $j("img[src*='dragon_list_btn_']", caap.globalContainer),
                     page                  = '',
                     monsterReviewed       = {},
                     it                    = 0,
@@ -8866,21 +8786,19 @@
                     monsterName           = '',
                     monsterRow            = $j(),
                     monsterFull           = '',
-                    summonDiv             = $j(),
+                    summonDiv             = $j("img[src*='mp_button_summon_']", caap.globalContainer),
                     tempText              = '',
                     pageUserCheck         = 0,
                     tStr                  = '';
 
                 // get all buttons to check monsterObjectList
-                summonDiv = $j("img[src*='mp_button_summon_']");
-                buttonsDiv = $j("img[src*='dragon_list_btn_']");
-                if ((!summonDiv || !summonDiv.length) && (!buttonsDiv || !buttonsDiv.length)) {
+                if (!$u.hasContent(summonDiv) && !$u.hasContent(buttonsDiv)) {
                     $u.log(2, "No buttons found");
                     return false;
                 }
 
                 page = state.getItem('page', 'battle_monster');
-                if (page === 'battle_monster' && (!buttonsDiv || !buttonsDiv.length)) {
+                if (page === 'battle_monster' && !$u.hasContent(buttonsDiv)) {
                     $u.log(2, "No monsters to review");
                     state.setItem('reviewDone', true);
                     return true;
@@ -8888,7 +8806,7 @@
 
                 tempText = buttonsDiv.eq(0).parent().attr("href");
                 pageUserCheck = state.getItem('pageUserCheck', 0);
-                if (pageUserCheck && tempText && !(tempText.match('user=' + caap.stats['FBID']) || tempText.match(/alchemy\.php/))) {
+                if (pageUserCheck && tempText && !(new RegExp('user=' + caap.stats['FBID']).test(tempText) || /alchemy\.php/.test(tempText))) {
                     $u.log(2, "On another player's keep.", pageUserCheck);
                     return false;
                 }
@@ -8897,21 +8815,17 @@
                 for (it = 0, len = buttonsDiv.length; it < len; it += 1) {
                     // Make links for easy clickin'
                     url = buttonsDiv.eq(it).parent().attr("href");
-                    if (!(url && url.match(/user=/) && (url.match(/mpool=/) || url.match(/raid\.php/)))) {
+                    if (!(url && /user=/.test(url) && (/mpool=/.test(url) || /raid\.php/.test(url)))) {
                         continue;
                     }
 
                     monsterRow = buttonsDiv.eq(it).parents().eq(3);
-                    tStr = monsterRow.text();
-                    monsterFull = tStr ? tStr.trim() : '';
-                    monsterName = monsterFull ? monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').trim() : '';
+                    monsterFull = $u.setContent(monsterRow.text(), '').trim();
+                    monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').trim();
                     monsterReviewed = monster.getItem(monsterName);
-                    if (monsterReviewed['type'] === '') {
-                        monsterReviewed['type'] = monster.type(monsterName);
-                    }
-
+                    monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], monster.type(monsterName));
                     monsterReviewed['page'] = page;
-                    engageButtonName = buttonsDiv.eq(it).attr("src").match(/dragon_list_btn_\d/i)[0];
+                    engageButtonName = $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
                     switch (engageButtonName) {
                     case 'dragon_list_btn_2' :
                         monsterReviewed['status'] = 'Collect Reward';
@@ -8937,12 +8851,9 @@
                     default :
                     }
 
-                    monsterReviewed['userId'] = url.match(/user=\d+/i)[0].split('=')[1].parseInt();
-                    monsterReviewed['mpool'] = ((url.match(/mpool=\d+/i)) ? '&mpool=' + url.match(/mpool=\d+/i)[0].split('=')[1] : '');
-                    if (monster.info[monsterReviewed['type']] && monster.info[monsterReviewed['type']].siege) {
-                        siege = "&action=doObjective";
-                    }
-
+                    monsterReviewed['userId'] = $u.setContent(url.regex(/user=(\d+)/), 0);
+                    monsterReviewed['mpool'] = /mpool=\d+/.test(url) ? '&mpool=' + url.regex(/mpool=(\d+)/) : '';
+                    siege = monster.info[monsterReviewed['type']] && monster.info[monsterReviewed['type']].siege ? "&action=doObjective" : '';
                     monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + page + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + siege + "'>Link</a>";
                     monster.setItem(monsterReviewed);
                 }
@@ -8999,7 +8910,8 @@
                     damageDiv         = $j(),
                     monsterInfo       = {},
                     targetFromfortify = {},
-                    tStr              = '';
+                    tStr              = '',
+                    tBool             = false;
 
                 battle.checkResults();
                 if (config.getItem("enableTitles", true)) {
@@ -9007,19 +8919,16 @@
                 }
 
                 caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
-                monsterDiv = caap.appBodyDiv.find("div[style*='dragon_title_owner']");
-                if (monsterDiv && monsterDiv.length) {
-                    tStr = monsterDiv.children(":eq(2)").text();
-                    tempText = tStr ? tStr.trim() : '';
+                monsterDiv = $j("div[style*='dragon_title_owner']", caap.appBodyDiv);
+                if ($u.hasContent(monsterDiv)) {
+                    tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                 } else {
-                    monsterDiv = caap.appBodyDiv.find("div[style*='nm_top']");
-                    if (monsterDiv && monsterDiv.length) {
-                        tStr = monsterDiv.children(":eq(0)").children(":eq(0)").text();
-                        tempText = tStr ? tStr.trim() : '';
-                        tempDiv = caap.appBodyDiv.find("div[style*='nm_bars']");
-                        if (tempDiv && tempDiv.length) {
-                            tStr = tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text();
-                            tempText += tStr ? (' ' + tStr.trim().replace("'s Life", "")) : '';
+                    monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
+                    if ($u.hasContent(monsterDiv)) {
+                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
+                        tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
+                        if ($u.hasContent(tempDiv)) {
+                            tempText += $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return;
@@ -9030,7 +8939,7 @@
                     }
                 }
 
-                if (monsterDiv && monsterDiv.length && monsterDiv.find("img[uid='" + caap.stats['FBID'] + "']").length) {
+                if ($u.hasContent(monsterDiv) && $u.hasContent($j("img[uid='" + caap.stats['FBID'] + "']", monsterDiv))) {
                     $u.log(2, "Your monster found", tempText);
                     tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                 }
@@ -9042,13 +8951,13 @@
                 }
 
                 if (currentMonster['type'] === 'Siege' || currentMonster['type'].hasIndexOf('Raid')) {
-                    tempDiv = caap.appBodyDiv.find("div[style*='raid_back']");
-                    if (tempDiv && tempDiv.length) {
-                        if (tempDiv.find("img[src*='raid_1_large.jpg']").length) {
+                    tempDiv = $j("div[style*='raid_back']", caap.appBodyDiv);
+                    if ($u.hasContent(tempDiv)) {
+                        if ($u.hasContent($j("img[src*='raid_1_large.jpg']", tempDiv))) {
                             currentMonster['type'] = 'Raid I';
-                        } else if (tempDiv.find("img[src*='raid_b1_large.jpg']").length) {
+                        } else if ($u.hasContent($j("img[src*='raid_b1_large.jpg']", tempDiv))) {
                             currentMonster['type'] = 'Raid II';
-                        } else if (tempDiv.find("img[src*='raid_1_large_victory.jpg']").length) {
+                        } else if ($u.hasContent($j("img[src*='raid_1_large_victory.jpg']", tempDiv))) {
                             $u.log(2, "Siege Victory!");
                         } else {
                             $u.log(2, "Problem finding raid image! Probably finished.");
@@ -9063,17 +8972,17 @@
                 currentMonster['review'] = new Date().getTime();
                 state.setItem('monsterRepeatCount', 0);
                 // Extract info
-                tempDiv = caap.appBodyDiv.find("#" + caap.domain.id[caap.domain.which] + "monsterTicker");
-                if (tempDiv && tempDiv.length) {
+                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", caap.appBodyDiv);
+                if ($u.hasContent(tempDiv)) {
                     $u.log(4, "Monster ticker found");
-                    time = tempDiv.text().split(":");
+                    time = $u.setContent(tempDiv.text(), '').regex(/(\d+):(\d+):(\d+)/);
                 } else {
                     if (!caap.HasImage("dead.jpg")) {
                         $u.warn("Could not locate Monster ticker.");
                     }
                 }
 
-                if (time && time.length === 3 && monsterInfo && monsterInfo.fort) {
+                if ($u.hasContent(time) && time.length === 3 && monsterInfo && monsterInfo.fort) {
                     if (currentMonster['type'] === "Deathrune" || currentMonster['type'] === 'Ice Elemental') {
                         currentMonster['fortify'] = 100;
                     } else {
@@ -9082,22 +8991,22 @@
 
                     switch (monsterInfo.defense_img) {
                     case 'bar_dispel.gif' :
-                        tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
-                        if (tempDiv && tempDiv.length) {
-                            currentMonster['fortify'] = (100 - tempDiv.parent().getPercent('width')).dp(2);
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
+                        if ($u.hasContent(tempDiv)) {
+                            currentMonster['fortify'] = (100 - tempDiv.getPercent('width')).dp(2);
                         } else {
                             $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                         }
 
                         break;
                     case 'seamonster_ship_health.jpg' :
-                        tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
-                        if (tempDiv && tempDiv.length) {
-                            currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
+                        if ($u.hasContent(tempDiv)) {
+                            currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
                             if (monsterInfo.repair_img) {
-                                tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.repair_img + "']");
-                                if (tempDiv && tempDiv.length) {
-                                    currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.parent().getPercent('width')))).dp(2);
+                                tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", caap.appBodyDiv).parent();
+                                if ($u.hasContent(tempDiv)) {
+                                    currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.getPercent('width')))).dp(2);
                                 } else {
                                     $u.warn("Unable to find repair bar", monsterInfo.repair_img);
                                 }
@@ -9108,10 +9017,20 @@
 
                         break;
                     case 'nm_green.jpg' :
-                        tempDiv = caap.appBodyDiv.find("img[src*='" + monsterInfo.defense_img + "']");
-                        if (tempDiv && tempDiv.length) {
-                            currentMonster['fortify'] = tempDiv.parent().getPercent('width').dp(2);
-                            currentMonster['strength'] = tempDiv.parent().parent().getPercent('width').dp(2);
+                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv);
+                        if ($u.hasContent(tempDiv)) {
+                            tempDiv = tempDiv.parent();
+                            if ($u.hasContent(tempDiv)) {
+                                currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
+                                tempDiv = tempDiv.parent();
+                                if ($u.hasContent(tempDiv)) {
+                                    currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
+                                } else {
+                                    $u.warn("Unable to find defense bar strength");
+                                }
+                            } else {
+                                $u.warn("Unable to find defense bar fortify");
+                            }
                         } else {
                             $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                         }
@@ -9123,26 +9042,23 @@
                 }
 
                 // Get damage done to monster
-                actionDiv = caap.appBodyDiv.find("#" + caap.domain.id[caap.domain.which] + "action_logs");
-                damageDiv = actionDiv.find("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first");
-                if (damageDiv && damageDiv.length) {
+                actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", caap.appBodyDiv);
+                damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
+                if ($u.hasContent(damageDiv)) {
                     if (monsterInfo && monsterInfo.defense) {
-                        tStr = damageDiv.parent().parent().siblings(":last").text();
-                        tempArr = tStr ? tStr.match(new RegExp("([0-9,]+) dmg / ([0-9,]+) def")) : [];
-                        if (tempArr && tempArr.length === 3) {
-                            currentMonster['attacked'] = tempArr[1] ? tempArr[1].numberOnly() : 0;
-                            currentMonster['defended'] = tempArr[2] ? tempArr[2].numberOnly() : 0;
+                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+) dmg \/ ([\d,]+) def/);
+                        if ($u.hasContent(tempArr) && tempArr.length === 2) {
+                            currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
+                            currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();
                             currentMonster['damage'] = currentMonster['attacked'] + currentMonster['defended'];
                         } else {
                             $u.warn("Unable to get attacked and defended damage");
                         }
                     } else if (currentMonster['type'] === 'Siege' || (monsterInfo && monsterInfo.raid)) {
-                        tStr = damageDiv.parent().siblings(":last").text();
-                        currentMonster['attacked'] = tStr ? tStr.numberOnly() : 0;
+                        currentMonster['attacked'] = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
                         currentMonster['damage'] = currentMonster['attacked'];
                     } else {
-                        tStr = damageDiv.parent().parent().siblings(":last").text();
-                        currentMonster['attacked'] = tStr ? tStr.trim().numberOnly() : 0;
+                        currentMonster['attacked'] = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '0').numberOnly();
                         currentMonster['damage'] = currentMonster['attacked'];
                     }
 
@@ -9151,95 +9067,81 @@
                     $u.log(2, "Player hasn't done damage yet");
                 }
 
-                if (/:ac\b/.test(currentMonster['conditions']) ||
-                        (currentMonster['type'].match(/Raid/) && config.getItem('raidCollectReward', false)) ||
-                        (!currentMonster['type'].match(/Raid/) && config.getItem('monsterCollectReward', false))) {
-
+                tBool = /Raid/i.test(currentMonster['type']);
+                if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
                     counter = state.getItem('monsterReviewCounter', -3);
-                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($j("a[href*='&action=collectReward']").length || $j("input[alt*='Collect Reward']").length)) {
+                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.globalContainer)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.globalContainer)))) {
                         $u.log(2, 'Collecting Reward');
                         currentMonster['review'] = -1;
                         state.setItem('monsterReviewCounter', counter -= 1);
                         currentMonster['status'] = 'Collect Reward';
                         if (currentMonster['name'].hasIndexOf('Siege')) {
-                            if ($j("a[href*='&rix=1']").length) {
-                                currentMonster['rix'] = 1;
-                            } else {
-                                currentMonster['rix'] = 2;
-                            }
+                            currentMonster['rix'] = $u.hasContent($j("a[href*='&rix=1']", caap.globalContainer)) ? 1 : 0;
                         }
                     }
                 }
 
-                if (monsterInfo && monsterInfo.alpha) {
-                    monstHealthImg = 'nm_red.jpg';
-                } else {
-                    monstHealthImg = 'monster_health_background.jpg';
-                }
-
-                monsterDiv = caap.appBodyDiv.find("img[src*='" + monstHealthImg + "']");
-                if (time && time.length === 3 && monsterDiv && monsterDiv.length) {
+                monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' :  'monster_health_background.jpg';
+                monsterDiv = $j("img[src*='" + monstHealthImg + "']", caap.appBodyDiv).parent();
+                if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
                     currentMonster['time'] = time;
-                    if (monsterDiv && monsterDiv.length) {
+                    if ($u.hasContent(monsterDiv)) {
                         $u.log(4, "Found monster health div");
-                        currentMonster['life'] = monsterDiv.parent().getPercent('width').dp(2);
+                        currentMonster['life'] = monsterDiv.getPercent('width').dp(2);
                     } else {
                         $u.warn("Could not find monster health div.");
                     }
 
-                    if (currentMonster['life']) {
-                        if (!monsterInfo) {
-                            monster.setItem(currentMonster);
-                            $u.warn('Unknown monster');
-                            return;
-                        }
+                    if (currentMonster['life'] && !monsterInfo) {
+                        monster.setItem(currentMonster);
+                        $u.warn('Unknown monster');
+                        return;
                     }
 
-                    if (damageDiv && damageDiv.length && monsterInfo && monsterInfo.alpha) {
+                    if ($u.hasContent(damageDiv) && monsterInfo && monsterInfo.alpha) {
                         // Character type stuff
-                        monsterDiv = caap.appBodyDiv.find("div[style*='nm_bottom']");
-                        if (monsterDiv && monsterDiv.length) {
-                            tStr = monsterDiv.children().eq(0).children().text();
-                            tempText = tStr ? tStr.trim().innerTrim() : '';
+                        monsterDiv = $j("div[style*='nm_bottom']", caap.appBodyDiv);
+                        if ($u.hasContent(monsterDiv)) {
+                            tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
                             if (tempText) {
                                 $u.log(4, "Character class text", tempText);
-                                tempArr = tempText.match(/Class: (\w+) /);
-                                if (tempArr && tempArr.length === 2) {
-                                    currentMonster['charClass'] = tempArr[1];
-                                    $u.log(3, "character", currentMonster['charClass']);
+                                tStr = tempText.regex(/Class: (\w+) /);
+                                if ($u.hasContent(tStr)) {
+                                    currentMonster['charClass'] = tStr;
+                                    $u.log(4, "character", currentMonster['charClass']);
                                 } else {
-                                    $u.warn("Can't get character", tempArr);
+                                    $u.warn("Can't get character", tempText);
                                 }
 
-                                tempArr = tempText.match(/Tip: ([\w ]+) Status/);
-                                if (tempArr && tempArr.length === 2) {
-                                    currentMonster['tip'] = tempArr[1];
-                                    $u.log(3, "tip", currentMonster['tip']);
+                                tStr = tempText.regex(/Tip: ([\w ]+) Status/);
+                                if ($u.hasContent(tStr)) {
+                                    currentMonster['tip'] = tStr;
+                                    $u.log(4, "tip", currentMonster['tip']);
                                 } else {
-                                    $u.warn("Can't get tip", tempArr);
+                                    $u.warn("Can't get tip", tempText);
                                 }
 
-                                tempArr = tempText.match(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
-                                if (tempArr && tempArr.length === 4) {
-                                    currentMonster['stunTime'] = new Date().getTime() + (tempArr[1] * 60 * 60 * 1000) + (tempArr[2] * 60 * 1000) + (tempArr[3] * 1000);
-                                    $u.log(3, "statusTime", currentMonster['stunTime']);
+                                tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
+                                if ($u.hasContent(tempArr) && tempArr.length === 3) {
+                                    currentMonster['stunTime'] = new Date().getTime() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
+                                    $u.log(4, "statusTime", currentMonster['stunTime']);
                                 } else {
-                                    $u.warn("Can't get statusTime", tempArr);
+                                    $u.warn("Can't get statusTime", tempText);
                                 }
 
-                                tempDiv = monsterDiv.find("img[src*='nm_stun_bar']");
-                                if (tempDiv && tempDiv.length) {
+                                tempDiv = $j("img[src*='nm_stun_bar']", monsterDiv);
+                                if ($u.hasContent(tempDiv)) {
                                     tempText = tempDiv.getPercent('width').dp(2);
                                     $u.log(4, "Stun bar percent text", tempText);
                                     if (tempText >= 0) {
                                         currentMonster['stun'] = tempText;
-                                        $u.log(3, "stun", currentMonster['stun']);
+                                        $u.log(4, "stun", currentMonster['stun']);
                                     } else {
                                         $u.warn("Can't get stun bar width");
                                     }
                                 } else {
                                     tempArr = currentMonster['tip'].split(" ");
-                                    if (tempArr && tempArr.length) {
+                                    if ($u.hasContent(tempArr)) {
                                         tempText = tempArr[tempArr.length - 1].toLowerCase();
                                         tempArr = ["strengthen", "heal"];
                                         if (tempText && tempArr.hasIndexOf(tempText)) {
@@ -9264,7 +9166,7 @@
                                     if (currentMonster['stunDo']) {
                                         $u.log(2, "Do character specific attack", currentMonster['stunDo']);
                                         tempArr = currentMonster['tip'].split(" ");
-                                        if (tempArr && tempArr.length) {
+                                        if ($u.hasContent(tempArr)) {
                                             tempText = tempArr[tempArr.length - 1].toLowerCase();
                                             tempArr = ["strengthen", "cripple", "heal", "deflection"];
                                             if (tempText && tempArr.hasIndexOf(tempText)) {
@@ -9277,7 +9179,7 @@
                                             $u.warn("Unable to get type from tip!", currentMonster);
                                         }
                                     } else {
-                                        $u.log(2, "Tip does not match class or stun maxed", currentMonster);
+                                        $u.log(3, "Tip does not match class or stun maxed", currentMonster);
                                     }
                                 } else {
                                     $u.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
@@ -9292,12 +9194,7 @@
 
                     if (monsterInfo) {
                         if (monsterInfo.siege) {
-                            tStr = $j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']").text();
-                            currentMonster['miss'] = tStr ? tStr.trim().innerTrim().replace(new RegExp(".*Need (\\d+) more.*", "gi"), "$1").parseInt() : 0;
-                            if ($u.isNaN(currentMonster['miss'])) {
-                                currentMonster['miss'] = 0;
-                            }
-
+                            currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']").text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
                             for (ind = 0, len = monsterInfo.siege_img.length; ind < len; ind += 1) {
                                 searchStr += "img[src*='" + monsterInfo.siege_img[ind] + "']";
                                 if (ind < len - 1) {
@@ -9305,13 +9202,9 @@
                                 }
                             }
 
-                            searchRes = caap.appBodyDiv.find(searchStr);
-                            if (searchRes && searchRes.length) {
-                                if (currentMonster['type'].hasIndexOf('Raid')) {
-                                    totalCount = searchRes.attr("src").basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt();
-                                } else {
-                                    totalCount = searchRes.size() + 1;
-                                }
+                            searchRes = $j(searchStr, caap.appBodyDiv);
+                            if ($u.hasContent(searchRes)) {
+                                totalCount = currentMonster['type'].hasIndexOf('Raid') ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
                             }
 
                             currentMonster['phase'] = Math.min(totalCount, monsterInfo.siege);
@@ -9334,7 +9227,7 @@
                     return;
                 }
 
-                if (damageDiv && damageDiv.length) {
+                if ($u.hasContent(damageDiv)) {
                     achLevel = monster.parseCondition('ach', currentMonster['conditions']);
                     if (monsterInfo && achLevel === false) {
                         achLevel = monsterInfo.ach;
@@ -9422,7 +9315,7 @@
                     }
 
                     //Time Left Remaining
-                    KOBtimeLeft = time[0].parseInt() + (time[1].parseInt() * 0.0166);
+                    KOBtimeLeft = time[0] + (time[1] * 0.0166);
                     if (KOBenable) {
                         $u.log(2, 'TimeLeft: ', KOBtimeLeft);
                     }
@@ -9516,6 +9409,7 @@
                 }
 
                 monster.setItem(currentMonster);
+                monster.select(true);
                 caap.UpdateDashboard(true);
                 if (schedule.check('battleTimer')) {
                     window.setTimeout(function () {
@@ -9619,7 +9513,7 @@
                     }
 
                     tempTime = monster.records[counter]['review'] ? monster.records[counter]['review'] : -1;
-                    $u.log(3, "Review", monster.records[counter], !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60));
+                    $u.log(4, "Review", monster.records[counter], !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60));
                     if (monster.records[counter]['status'] === 'Complete' || !schedule.since(tempTime, gm.getItem("MonsterLastReviewed", 15, hiddenVar) * 60) || state.getItem('monsterRepeatCount', 0) > 2) {
                         state.setItem('monsterReviewCounter', counter += 1);
                         state.setItem('monsterRepeatCount', 0);
@@ -9640,7 +9534,7 @@
                         the conditions indicate we should not do sieges then we fix the link.
                         \-------------------------------------------------------------------------------------*/
                         isSiege = monster.records[counter]['type'].match(/Raid/) || monster.records[counter]['type'] === 'Siege';
-                        $u.log(3, "monster.records[counter]", monster.records[counter]);
+                        $u.log(4, "monster.records[counter]", monster.records[counter]);
                         if (((monster.records[counter]['conditions'] && /:ac\b/.test(monster.records[counter]['conditions'])) ||
                                 (isSiege && config.getItem('raidCollectReward', false)) ||
                                 (!isSiege && config.getItem('monsterCollectReward', false))) && monster.records[counter]['status'] === 'Collect Reward') {
@@ -9769,15 +9663,15 @@
                     energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax ? monster.info[monstType].nrgMax[nodeNum] : energyRequire;
                 }
 
-                $u.log(3, "Energy Required/Node", energyRequire, nodeNum);
+                $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
                 switch (config.getItem('FortifyGeneral', 'Use Current')) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
-                    $u.log(2, 'Monsters Fortify:Orc King', energyRequire);
+                    $u.log(3, 'Monsters Fortify:Orc King', energyRequire);
                     break;
                 case 'Barbarus':
                     energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
-                    $u.log(2, 'Monsters Fortify:Barbarus', energyRequire);
+                    $u.log(3, 'Monsters Fortify:Barbarus', energyRequire);
                     break;
                 default:
                 }
@@ -9803,12 +9697,9 @@
                 }
 
                 // Check if on engage monster page
-                imageTest = 'dragon_title_owner';
-                if (monstType && monster.info[monstType].alpha) {
-                    imageTest = 'nm_top';
-                }
+                imageTest = monstType && monster.info[monstType].alpha ? 'nm_top' : 'dragon_title_owner';
 
-                if ($j("div[style*='" + imageTest + "']").length) {
+                if ($u.hasContent($j("div[style*='" + imageTest + "']", caap.globalContainer))) {
                     if (monster.ConfirmRightPage(monsterName)) {
                         return true;
                     }
@@ -9836,7 +9727,7 @@
                             buttonList.unshift("button_nm_s_");
                         }
 
-                        $u.log(3, "monster/button list", currentMonster, buttonList);
+                        $u.log(4, "monster/button list", currentMonster, buttonList);
                     } else if (state.getItem('MonsterStaminaReq', 1) === 1) {
                         // not power attack only normal attacks
                         buttonList = singleButtonList;
@@ -9919,9 +9810,9 @@
                     return true;
                 }
 
-                buttonHref = $j("img[src*='dragon_list_btn_']").eq(0).parent().attr("href");
+                buttonHref = $u.setContent($j("img[src*='dragon_list_btn_']", caap.globalContainer).eq(0).parent().attr("href"), '');
                 pageUserCheck = state.getItem('pageUserCheck', 0);
-                if (pageUserCheck && (!buttonHref || !buttonHref.match('user=' + caap.stats['FBID']) || !buttonHref.match(/alchemy\.php/))) {
+                if (pageUserCheck && (!buttonHref || !new RegExp('user=' + caap.stats['FBID']).test(buttonHref) || !/alchemy\.php/.test(buttonHref))) {
                     $u.log(2, "On another player's keep.", pageUserCheck);
                     return caap.NavigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
                 }
@@ -9935,7 +9826,7 @@
                     return true;
                 }
 
-                if (monster.engageButtons[monsterName]) {
+                if ($u.hasContent(monster.engageButtons[monsterName])) {
                     caap.SetDivContent('monster_mess', 'Opening ' + monsterName);
                     caap.Click(monster.engageButtons[monsterName]);
                     return true;
@@ -10016,11 +9907,11 @@
 
         LoadDemi: function () {
             var demis = gm.getItem('demipoint.records', 'default');
-            if (demis === 'default' || !jQuery.isPlainObject(demis)) {
+            if (demis === 'default' || !$j.isPlainObject(demis)) {
                 demis = gm.setItem('demipoint.records', caap.demi);
             }
 
-            jQuery.extend(true, caap.demi, demis);
+            $j.extend(true, caap.demi, demis);
             $u.log(4, 'Demi', caap.demi);
             state.setItem("UserDashUpdate", true);
         },
@@ -10619,11 +10510,11 @@
                     minStamToHeal = 0;
                 }
 
-                if (!caap.stats['health'] || jQuery.isEmptyObject(caap.stats['health']) || jQuery.isEmptyObject(caap.stats['healthT'])) {
+                if (!caap.stats['health'] || $j.isEmptyObject(caap.stats['health']) || $j.isEmptyObject(caap.stats['healthT'])) {
                     return false;
                 }
 
-                if (!caap.stats['stamina'] || jQuery.isEmptyObject(caap.stats['stamina']) || jQuery.isEmptyObject(caap.stats['staminaT'])) {
+                if (!caap.stats['stamina'] || $j.isEmptyObject(caap.stats['stamina']) || $j.isEmptyObject(caap.stats['staminaT'])) {
                     return false;
                 }
 
@@ -10674,14 +10565,14 @@
                     $u.log(3, 'Elite Guard MergeMyEliteTodo list');
                     var eliteArmyList = [];
                     eliteArmyList = config.getList('EliteArmyList', '');
-                    jQuery.merge(eliteArmyList, army.getEliteList());
+                    $j.merge(eliteArmyList, army.getEliteList());
                     if ($u.hasContent(eliteArmyList)) {
                         $u.log(3, 'Merge and save Elite Guard MyEliteTodo list');
                         var diffList = list.filter(function (todoID) {
                             return !eliteArmyList.hasIndexOf(todoID);
                         });
 
-                        jQuery.merge(eliteArmyList, diffList);
+                        $j.merge(eliteArmyList, diffList);
                         state.setItem('MyEliteTodo', eliteArmyList);
                     } else {
                         $u.log(3, 'Save Elite Guard MyEliteTodo list');
@@ -10991,7 +10882,7 @@
                     }
 
                     arena.setItem(arenaInfo);
-                    $u.log(3, 'arenaInfo', arenaInfo);
+                    $u.log(4, 'arenaInfo', arenaInfo);
                 }
 
                 return true;
@@ -11015,7 +10906,7 @@
                 $u.log(3, "Performing AjaxGiftCheck");
                 var theUrl = caap.domain.link + '/army.php';
 
-                jQuery.ajax({
+                $j.ajax({
                     url: theUrl,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
@@ -11024,7 +10915,7 @@
                     success:
                         function (data, textStatus, XMLHttpRequest) {
                             try {
-                                $u.log(3, "AjaxGiftCheck.ajax: Checking data.");
+                                $u.log(4, "AjaxGiftCheck.ajax: Checking data.");
                                 if ($j(data).find("a[href*='reqs.php#confirm_46755028429_0']").length) {
                                     $u.log(1, 'AjaxGiftCheck.ajax: We have a gift waiting!');
                                     state.setItem('HaveGift', true);
@@ -11033,7 +10924,7 @@
                                     state.setItem('HaveGift', false);
                                 }
 
-                                $u.log(3, "AjaxGiftCheck.ajax: Done.");
+                                $u.log(4, "AjaxGiftCheck.ajax: Done.");
                             } catch (err) {
                                 $u.error("ERROR in AjaxGiftCheck.ajax: " + err);
                             }
@@ -11041,7 +10932,7 @@
                 });
 
                 schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
-                $u.log(3, "Completed AjaxGiftCheck");
+                $u.log(4, "Completed AjaxGiftCheck");
                 return true;
             } catch (err) {
                 $u.error("ERROR in AjaxGiftCheck: " + err);
@@ -11075,7 +10966,7 @@
 
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
-                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || (!jQuery.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
+                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
                     return false;
                 }
                 /*jslint sub: false */
@@ -11128,7 +11019,7 @@
                         if (tempDiv && tempDiv.length) {
                             tempText = tempDiv.attr("src").basename();
                             if (tempText !== giftImg) {
-                                $u.log(3, "images", tempText, giftImg);
+                                $u.log(4, "images", tempText, giftImg);
                                 return caap.NavigateTo(giftImg);
                             }
 
@@ -11153,7 +11044,7 @@
                     }
                 }
 
-                if (jQuery.isEmptyObject(gifting.getCurrent())) {
+                if ($j.isEmptyObject(gifting.getCurrent())) {
                     return false;
                 }
 
@@ -11413,7 +11304,7 @@
                     attrName = 'Attribute' + n;
                     attribute = config.getItem(attrName, '');
                     if (attribute === '') {
-                        $u.log(3, attrName + " is blank: continue");
+                        $u.log(4, attrName + " is blank: continue");
                         continue;
                     }
 
@@ -11428,13 +11319,13 @@
                     returnIncreaseStat = caap.IncreaseStat(attribute, attrValue, atributeSlice);
                     switch (returnIncreaseStat) {
                     case "Next" :
-                        $u.log(3, attrName + " : next");
+                        $u.log(4, attrName + " : next");
                         continue;
                     case "Click" :
-                        $u.log(3, attrName + " : click");
+                        $u.log(4, attrName + " : click");
                         return true;
                     default :
-                        $u.log(3, attrName + " return value: " + returnIncreaseStat);
+                        $u.log(4, attrName + " return value: " + returnIncreaseStat);
                         return false;
                     }
                 }
@@ -11457,7 +11348,7 @@
 
         ajaxCTA: function (theUrl, theCount) {
             try {
-                jQuery.ajax({
+                $j.ajax({
                     url: theUrl,
                     dataType: "html",
                     error:
@@ -11476,14 +11367,14 @@
                                 newData   = '';
 
                             tempArr = data.match(fbcRegExp);
-                            $u.log(3, "ajaxCTA fbcontext", tempArr);
+                            $u.log(4, "ajaxCTA fbcontext", tempArr);
                             if (tempArr && tempArr.length !== 2) {
                                 $u.warn("ajaxCTA unable to find fbcontext");
                                 return data;
                             }
 
                             fbcontext = tempArr[1];
-                            $u.log(3, "ajaxCTA fbcontext", fbcontext, tempArr);
+                            $u.log(4, "ajaxCTA fbcontext", fbcontext, tempArr);
                             tempArr = data.split('<div style="padding: 10px 30px;">');
                             if (tempArr && tempArr.length !== 2) {
                                 $u.warn("ajaxCTA unable to do first split");
@@ -11498,7 +11389,7 @@
                             }
 
                             newData = tempArr[0];
-                            $u.log(3, "ajaxCTA dataFilter", [newData, type]);
+                            $u.log(4, "ajaxCTA dataFilter", [newData, type]);
                             return newData;
                         },
                     success:
@@ -11506,10 +11397,10 @@
                             var tempText = $j('<div></div>').html(data).find("#" + caap.domain.id[caap.domain.which] + "guild_battle_banner_section").text();
                             if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
                                 schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
-                                $u.log(3, "ajaxCTA not done", theUrl);
+                                $u.log(4, "ajaxCTA not done", theUrl);
                             } else {
                                 schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
-                                $u.log(3, "ajaxCTA done", theUrl);
+                                $u.log(4, "ajaxCTA done", theUrl);
                             }
 
                             state.setItem('ajaxCTABackOff' + theCount, 0);
@@ -11529,11 +11420,11 @@
         doCTAs: function (urls) {
             try {
                 urls = [
-                    "7NT8TFZWVlaxlL0pPD56U52g3UgPX9zN1UbkPQ0oTwv3BwtolRUqB6BfqQeaOVjynGKUpdjWYZ+r4eNwM0AeMj0kRLCCwISHcG1gzTBQebP48ZMenZ5bjo6i6MfksXmxea5MjQotR0h/lmeR7q79dEuvRqiam1yyS69W5WN1kQJouU8=",
-                    "AtX8TOrq6uq4AL3jqwwa55YYFfPZCDZ2h3SOotp+GcLqgyMWcn6liJuUIln27/dx5F7ZwMbAddDhhouTQQIJnpLNm+skAyKUzw7m5iPGyKdsx4Z/tSTWM0u8WvKDdQH7URjuTTQjipQ6iKEvpImx/nWmByRGCeGe/FGCAGR3UwN9Fww=",
-                    "GNX8TFJSUlI0FKy9rtqANgSt784rIacRvkBTTIAJXt6vaoyZ7exU3G8oBl00pY6cbFLKMbjTCM7NGANTZj0kmCIUzXUGXGo4atLKafgPw37R06RtxxKnzmwDbIHuB4hT9ZvxVuEBzsOklQfXzpLNDLhqsYaLm4FdCg7EyA+fbE6hkzs=",
-                    "LtX8TCIiIiJvZRsmu8UE/4M3Vki3AmsZ7maWaBx1yt6cQ8o3IeIbuTYmd5rwabuEISyFDZKaLLzG39m3UOGjVluSzWZkdhP6AXPe2akPBDgNM6/A8DJ7s66us+9216FCCNFMv5gmNxD8MRv1SQifcVOuQpIzHmbzyUIRaquumD4uMDk=",
-                    "QNX8TFJSUlIOxfBqJJME6gqstkzl+WcNgyc/266fZMgWSPobhyfU3/JBswxOl5XpIdTWIS8QvrZRFaWU54qsJIllhslLkn96vG4wwtIwwIbomH9Ajn9nPg9JeO86b2HqYD5TtrujcdpLPFHU/Hm9SYrIQg8sBdVR/cENyxiqNNeRGCI="
+                    "mOJKTYKCgoKcyiiyNiM3TVSEsjbUWiTYj6xIyB4c5VdoH3G2JHiu/PGHDbv36QKh2z/I2q7BfhbbCxh5BVNIR1RxIuTlH84QWcXQWqjNxdeC4R5giWjQ5b/yo0q9HM4C",
+                    "vOJKTbm5ubnij+8pur2Gp5ozow1TmZ1c69jRXqIXS6uradSqhNgFUwa6378IXviqMu/BxzfHE1/+B6spd8mErM42qLhpBFOGam0fTiL498I518OpSJ4s+U0yu868uYP8",
+                    "2OJKTYaGhob2k3paXWxtL/DBDmU78HPZKreKeVIaNhan0aK5yjGhuubhHygwv5N/L5afFhoh9gugmGNIoTj0xqo3O5pB8gnLx/I3FO8GxMi4u+kQFRaD4JM1cR3o43uW",
+                    "7uJKTVNTU1N69Y31TtcH1acbyRryS5G2vKIdVe75FQSW2janxfLEk7IdV2rK3Vi28V0tXC+6ZQCe9E22UDiHEIHhcqwtNd8ulYglNFVqlYZGo3u+nPNN5rnCH1n7Qyvq",
+                    "B+NKTaurq6svfr4+kpJ6Nlnv65AxQ+qw1Wsha3LcUwAgSUpEM/WRzGYeJwRmuGezx4FPt0JL3TGgagwxlXf0F2100x7jWZPUgmrMiv3ctZC9+KRipVmjp3TY7vOnxuq3"
                 ];
 
                 if (gm.getItem("ajaxCTA", false, hiddenVar) || caap.waitAjaxCTA || caap.stats['stamina']['num'] < 1 || !schedule.check('ajaxCTATimer')) {
@@ -11541,14 +11432,14 @@
                 }
 
                 var count = state.getItem('ajaxCTACount', 0),
-                    aes = new $u.Aes(gm.get_namespace());
+                    aes   = new $u.Aes(gm.get_namespace());
 
-                $u.log(3, "doCTAs", count, urls.length);
+                $u.log(4, "doCTAs", count, urls.length);
                 if (count < urls.length) {
-                    $u.log(3, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
+                    $u.log(4, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
                     if (schedule.check('ajaxCTATimer' + count)) {
                         caap.waitAjaxCTA = true;
-                        caap.ajaxCTA(aes.decrypt(urls[count]), count);
+                        caap.ajaxCTA(caap.domain.link + aes.decrypt(urls[count]), count);
                     }
 
                     state.setItem('ajaxCTACount', count + 1);
@@ -11590,8 +11481,8 @@
 
         GetFriendList: function (listType, force) {
             try {
-                $u.log(3, "Entered GetFriendList and request is for: ", listType.name);
-                if (force) {
+                $u.log(4, "Entered GetFriendList and request is for: ", listType.name);
+                if (force === true) {
                     state.setItem(listType.name + 'Requested', false);
                     state.setItem(listType.name + 'Responded', []);
                 }
@@ -11599,12 +11490,11 @@
                 if (!state.getItem(listType.name + 'Requested', false)) {
                     $u.log(3, "Getting Friend List: ", listType.name);
                     state.setItem(listType.name + 'Requested', true);
-
                     if (caap.domain.which > 1) {
                         if (listType.name === "giftc") {
                             var armyList = army.getIdList();
-                            $u.log(2, "armyList", armyList);
-                            if (armyList.length) {
+                            $u.log(4, "armyList", armyList);
+                            if ($u.hasContent(armyList)) {
                                 state.setItem(listType.name + 'Responded', army.getIdList());
                             } else {
                                 state.setItem(listType.name + 'Responded', true);
@@ -11613,17 +11503,17 @@
                             state.setItem(listType.name + 'Responded', true);
                         }
                     } else {
-                        jQuery.ajax({
+                        $j.ajax({
                             url: caap.domain.link + listType.url,
                             error:
                                 function (XMLHttpRequest, textStatus, errorThrown) {
                                     state.setItem(listType.name + 'Requested', false);
-                                    $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
+                                    $u.log(4, "GetFriendList(" + listType.name + "): ", textStatus);
                                 },
                             success:
                                 function (data, textStatus, XMLHttpRequest) {
                                     try {
-                                        $u.log(3, "GetFriendList.ajax splitting data");
+                                        $u.log(4, "GetFriendList.ajax splitting data");
                                         data = data.split('<div class="unselected_list">');
                                         if (data.length < 2) {
                                             throw "Could not locate 'unselected_list'";
@@ -11634,20 +11524,20 @@
                                             throw "Could not locate 'selected_list'";
                                         }
 
-                                        $u.log(3, "GetFriendList.ajax data split ok");
+                                        $u.log(4, "GetFriendList.ajax data split ok");
                                         var friendList = [];
                                         $j('<div></div>').html(data[0]).find('input').each(function (index) {
                                             friendList.push($j(this).val().parseInt());
                                         });
 
-                                        $u.log(3, "GetFriendList.ajax saving friend list of: ", friendList.length);
+                                        $u.log(4, "GetFriendList.ajax saving friend list of: ", friendList.length);
                                         if (friendList.length) {
                                             state.setItem(listType.name + 'Responded', friendList);
                                         } else {
                                             state.setItem(listType.name + 'Responded', true);
                                         }
 
-                                        $u.log(3, "GetFriendList(" + listType.name + "): ", textStatus);
+                                        $u.log(4, "GetFriendList(" + listType.name + "): ", textStatus);
                                     } catch (err) {
                                         state.setItem(listType.name + 'Requested', false);
                                         $u.error("ERROR in GetFriendList.ajax: " + err);
@@ -11656,7 +11546,7 @@
                         });
                     }
                 } else {
-                    $u.log(3, "Already requested GetFriendList for: ", listType.name);
+                    $u.log(4, "Already requested GetFriendList for: ", listType.name);
                 }
 
                 return true;
@@ -11691,7 +11581,7 @@
 
                         theUrl = caap.domain.link + '/party.php?twt=jneg&jneg=true&user=' + id + '&lka=' + id + '&etw=9&ref=nf';
 
-                        jQuery.ajax({
+                        $j.ajax({
                             url: theUrl,
                             error: responseCallback,
                             success: responseCallback
@@ -11734,16 +11624,16 @@
                 }
 
                 var castleageList = state.getItem(caListType.name + 'Responded', []);
-                $u.log(3, "gifList: ", castleageList);
+                $u.log(4, "gifList: ", castleageList);
                 var facebookList = state.getItem(fbListType.name + 'Responded', []);
-                $u.log(3, "facebookList: ", facebookList);
+                $u.log(4, "facebookList: ", facebookList);
                 if ((castleageList.length && facebookList.length) || fillArmyList.length) {
                     if (!fillArmyList.length) {
                         var diffList = facebookList.filter(function (facebookID) {
                             return castleageList.hasIndexOf(facebookID);
                         });
 
-                        $u.log(3, "diffList: ", diffList);
+                        $u.log(4, "diffList: ", diffList);
                         fillArmyList = state.setItem('FillArmyList', diffList);
                         state.setItem(caListType.name + 'Responded', false);
                         state.setItem(fbListType.name + 'Responded', false);
@@ -11807,7 +11697,7 @@
 
         Idle: function () {
             if (state.getItem('resetselectMonster', false)) {
-                $u.log(3, "resetselectMonster");
+                $u.log(4, "resetselectMonster");
                 monster.select(true);
                 state.setItem('resetselectMonster', false);
             }
@@ -11927,7 +11817,7 @@
 
         LoadRecon: function () {
             caap.ReconRecordArray = gm.getItem('recon.records', 'default');
-            if (caap.ReconRecordArray === 'default' || !jQuery.isArray(caap.ReconRecordArray)) {
+            if (caap.ReconRecordArray === 'default' || !$j.isArray(caap.ReconRecordArray)) {
                 caap.ReconRecordArray = gm.setItem('recon.records', []);
             }
 
@@ -11965,7 +11855,7 @@
                 $u.log(1, "Player Recon: In Progress");
                 theUrl = caap.domain.link + '/battle.php';
 
-                jQuery.ajax({
+                $j.ajax({
                     url: theUrl,
                     error:
                         function (XMLHttpRequest, textStatus, errorThrown) {
@@ -12100,7 +11990,7 @@
                                     caap.SetDivContent('idle_mess', '');
                                 }, 5000);
 
-                                $u.log(3, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
+                                $u.log(4, "ReconPlayers.ajax: Done.", caap.ReconRecordArray);
                             } catch (err) {
                                 $u.error("ERROR in ReconPlayers.ajax: " + err);
                             }
@@ -12147,45 +12037,21 @@
         /*jslint sub: false */
 
         CheckLastAction: function (thisAction) {
-            var lastAction = state.getItem('LastAction', 'Idle');
-            if (caap.actionDescTable[thisAction]) {
-                caap.SetDivContent('activity_mess', 'Activity: ' + caap.actionDescTable[thisAction]);
-            } else {
-                caap.SetDivContent('activity_mess', 'Activity: ' + thisAction);
-            }
+            try {
+                var lastAction = state.getItem('LastAction', 'Idle');
+                caap.SetDivContent('activity_mess', 'Activity: ' + $u.setContent(caap.actionDescTable[thisAction], thisAction));
 
-            if (lastAction !== thisAction) {
-                $u.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
-                state.setItem('LastAction', thisAction);
+                if (lastAction !== thisAction) {
+                    $u.log(1, 'Changed from doing ' + lastAction + ' to ' + thisAction);
+                    state.setItem('LastAction', thisAction);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in CheckLastAction:" + err);
+                return false;
             }
         },
-
-        /*
-        // The Master Action List
-        masterActionList: {
-            0x00: 'AutoElite',
-            0x01: 'Heal',
-            0x02: 'ImmediateBanking',
-            0x03: 'ImmediateAutoStat',
-            0x04: 'MaxEnergyQuest',
-            0x05: 'GuildMonsterReview',
-            0x06: 'MonsterReview',
-            0x07: 'GuildMonster',
-            0x08: 'DemiPoints',
-            0x09: 'Monsters',
-            0x0A: 'Battle',
-            0x0B: 'Quests',
-            0x0C: 'Bank',
-            0x0D: 'PassiveGeneral',
-            0x0E: 'Lands',
-            0x0F: 'AutoBless',
-            0x10: 'AutoStat',
-            0x11: 'AutoGift',
-            0x12: 'AutoPotions',
-            0x13: 'AutoAlchemy',
-            0x14: 'Idle'
-        },
-        */
 
         masterActionList: {
             0x00: 'AutoElite',
@@ -12217,16 +12083,20 @@
 
         MakeActionsList: function () {
             try {
-                if (caap.actionsList && caap.actionsList.length === 0) {
+                if (!$u.hasContent(caap.actionsList)) {
                     $u.log(2, "Loading a fresh Action List");
                     // actionOrder is a comma seperated string of action numbers as
                     // hex pairs and can be referenced in the Master Action List
                     // Example: "00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12"
-                    var action = '';
-                    var actionOrderArray = [];
-                    var masterActionListCount = 0;
-                    var actionOrderUser = gm.getItem("actionOrder", '', hiddenVar);
-                    if (actionOrderUser !== '') {
+                    var action                = '',
+                        actionOrderArray      = [],
+                        masterActionListCount = 0,
+                        actionOrderUser       = gm.getItem("actionOrder", '', hiddenVar),
+                        actionOrderArrayCount = 0,
+                        itemCount             = 0,
+                        actionItem            = '';
+
+                    if ($u.hasContent(actionOrderUser)) {
                         // We are using the user defined actionOrder set in the
                         // Advanced Hidden Options
                         $u.log(2, "Trying user defined Action Order");
@@ -12238,7 +12108,7 @@
                         for (action in caap.masterActionList) {
                             if (caap.masterActionList.hasOwnProperty(action)) {
                                 masterActionListCount += 1;
-                                $u.log(5, "Counting Action List", masterActionListCount);
+                                $u.log(4, "Counting Action List", masterActionListCount);
                             } else {
                                 $u.warn("Error Getting Master Action List length!");
                                 $u.warn("Skipping 'action' from masterActionList: ", action);
@@ -12251,7 +12121,7 @@
                         for (action in caap.masterActionList) {
                             if (caap.masterActionList.hasOwnProperty(action)) {
                                 masterActionListCount = actionOrderArray.push(action);
-                                $u.log(5, "Action Added", action);
+                                $u.log(4, "Action Added", action);
                             } else {
                                 $u.warn("Error Building Default Action Order!");
                                 $u.warn("Skipping 'action' from masterActionList: ", action);
@@ -12261,78 +12131,49 @@
 
                     // We notify if the number of actions are not sensible or the
                     // same as in the Master Action List
-                    var actionOrderArrayCount = actionOrderArray.length;
+                    actionOrderArrayCount = actionOrderArray.length;
                     if (actionOrderArrayCount === 0) {
-                        var throwError = "Action Order Array is empty! " + (actionOrderUser === "" ? "(Default)" : "(User)");
-                        throw throwError;
-                    }
-
-                    if (actionOrderArrayCount < masterActionListCount) {
+                        throw "Action Order Array is empty! " + (actionOrderUser === "" ? "(Default)" : "(User)");
+                    } else if (actionOrderArrayCount < masterActionListCount) {
                         $u.warn("Warning! Action Order Array has fewer orders than default!");
-                    }
-
-                    if (actionOrderArrayCount > masterActionListCount) {
+                    } else if (actionOrderArrayCount > masterActionListCount) {
                         $u.warn("Warning! Action Order Array has more orders than default!");
                     }
 
                     // We build the Action List
                     $u.log(8, "Building Action List ...");
-                    for (var itemCount = 0; itemCount !== actionOrderArrayCount; itemCount += 1) {
-                        var actionItem = '';
-                        if (actionOrderUser !== '') {
+                    for (itemCount = 0; itemCount !== actionOrderArrayCount; itemCount += 1) {
+                        actionItem = '';
+                        if ($u.hasContent(actionOrderUser)) {
                             // We are using the user defined comma separated list of hex pairs
                             actionItem = caap.masterActionList[actionOrderArray[itemCount].parseInt(16)];
-                            $u.log(3, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
+                            $u.log(4, "(" + itemCount + ") Converted user defined hex pair to action", actionItem);
                         } else {
                             // We are using the Master Action List
                             actionItem = caap.masterActionList[actionOrderArray[itemCount]];
-                            $u.log(5, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
+                            $u.log(4, "(" + itemCount + ") Converted Master Action List entry to an action", actionItem);
                         }
 
                         // Check the Action Item
-                        if (actionItem.length > 0 && $u.isString(actionItem)) {
+                        if ($u.hasContent(actionItem)) {
                             // We add the Action Item to the Action List
                             caap.actionsList.push(actionItem);
-                            $u.log(5, "Added action to the list", actionItem);
+                            $u.log(4, "Added action to the list", actionItem);
                         } else {
                             $u.warn("Error! Skipping actionItem");
                             $u.warn("Action Item(" + itemCount + "): ", actionItem);
                         }
                     }
 
-                    if (actionOrderUser !== '') {
+                    if ($u.hasContent(actionOrderUser)) {
                         $u.log(1, "Get Action List: ", caap.actionsList);
                     }
                 }
+
                 return true;
             } catch (err) {
                 // Something went wrong, log it and use the emergency Action List.
                 $u.error("ERROR in MakeActionsList: " + err);
-                /*
-                caap.actionsList = [
-                    "AutoElite",
-                    "Heal",
-                    "ImmediateBanking",
-                    "ImmediateAutoStat",
-                    "MaxEnergyQuest",
-                    'GuildMonsterReview',
-                    "MonsterReview",
-                    'GuildMonster',
-                    "DemiPoints",
-                    "Monsters",
-                    "Battle",
-                    "Quests",
-                    "Bank",
-                    'PassiveGeneral',
-                    "Lands",
-                    "AutoBless",
-                    "AutoStat",
-                    "AutoGift",
-                    'AutoPotions',
-                    "AutoAlchemy",
-                    "Idle"
-                ];
-                */
                 caap.actionsList = [
                     "AutoElite",
                     "Heal",
@@ -12366,18 +12207,29 @@
         ErrorCheck: function () {
             // assorted errors...
             if (window.location.href.hasIndexOf('/common/error.html') || window.location.href.hasIndexOf('/sorry.php')) {
-                $u.log(1, 'detected error page, waiting to go back to previous page.');
+                $u.warn('Detected "error" or "sorry" page, waiting to go back to previous page.');
                 window.setTimeout(function () {
-                    window.history.go(-1);
+                    if ($u.isFunction(window.history.back)) {
+                        window.history.back();
+                    } else if ($u.isFunction(window.history.go)) {
+                        window.history.go(-1);
+                    } else {
+                        window.location.href = 'http://apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0';
+                    }
                 }, 30000);
 
                 return true;
             }
 
             // Try again button
-            if ($j('#try_again_button').length) {
-                $u.log(1, 'detected Try Again message, waiting to reload');
-                window.setTimeout($u.refresh, 30000);
+            var button = $j('#try_again_button');
+            if ($u.hasContent(button)) {
+                $u.warn('Detected "Try Again" message, clicking button else refresh.');
+                caap.Click(button);
+                window.setTimeout(function () {
+                    $u.reload();
+                }, 30000);
+
                 return true;
             }
 
@@ -12475,6 +12327,7 @@
                     actionsListCopy.unshift(state.getItem('LastAction', 'Idle'));
                 }
 
+                monster.select();
                 for (action = 0, len = actionsListCopy.length; action < len; action += 1) {
                     if (caap[actionsListCopy[action]]()) {
                         caap.CheckLastAction(actionsListCopy[action]);
@@ -12562,11 +12415,37 @@
                     return (t && t.length >= 2 && t[1]) ? parseFloat(t[1]) : 0;
                 };
 
-                jQuery.fn['colorInput'] = jQuery.fn.colorInput = function (callback) {
+                jQuery.fn['colorInput'] = jQuery.fn.colorInput = function (farb_callback, diag_callback) {
                     var t = this,
-                        w = jQuery("<div id='" + t.attr("id") + "_farb'></div>").appendTo(document.body);
+                        v = jQuery("<div id='" + t.attr("id") + "_diag'></div>").appendTo(document.body),
+                        w,
+                        x;
 
-                    jQuery.farbtastic(w, function (c) {
+                    v.dialog({
+                        title     : t.attr("id"),
+                        resizable : false,
+                        top       : t.offset().top + 'px',
+                        left      : (window.innerWidth / 2) + 'px',
+                        width     : 'auto',
+                        height    : 'auto',
+                        buttons   : {
+                            "Ok": function () {
+                                v.dialog("destroy").remove();
+                                if (utility.isFunction(diag_callback)) {
+                                    diag_callback(t.attr("id"), t.val());
+                                }
+                            }
+                        },
+                        close     : function () {
+                            v.dialog("destroy").remove();
+                            if (utility.isFunction(diag_callback)) {
+                                diag_callback(t.attr("id"), 'close');
+                            }
+                        }
+                    });
+
+                    w = jQuery("<div id='" + t.attr("id") + "_farb'></div>").appendTo(v);
+                    x = jQuery.farbtastic(w, function (c) {
                         c = c.toUpperCase();
                         w.css({
                             background : c,
@@ -12579,12 +12458,12 @@
                         });
 
                         t.val(c);
-                        if (utility.isFunction(callback)) {
-                            callback(c);
+                        if (utility.isFunction(farb_callback)) {
+                            farb_callback(c);
                         }
                     }).setColor(t.val());
 
-                    return w;
+                    return [v, w, x];
                 };
 
                 jQuery.fn['alert'] = jQuery.fn.alert = function (html) {

@@ -144,7 +144,7 @@
                 } else {
                     $u.log(3, "Updated record'");
                 }
-                
+
                 army.save();
                 army.copy2sortable();
                 return record;
@@ -177,7 +177,7 @@
                 return undefined;
             }
         },
-        
+
         deleteItem: function (userId) {
             try {
                 var it    = 0,
@@ -198,14 +198,14 @@
                     army.save();
                     army.copy2sortable();
                 }
-                
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.setItem: " + err);
                 return false;
             }
         },
-        
+
         page: function () {
             try {
                 if (!army.pageDone) {
@@ -220,7 +220,7 @@
                         it     = 0,
                         len    = 0,
                         number = ss.getItem("army.currentPage", 1, true);
-                        
+
                     caap.delayMain = true;
                     window.setTimeout(function () {
                         if (number === 1) {
@@ -232,7 +232,7 @@
                         } else {
                             pCount = state.getItem("ArmyPageCount", 1);
                         }
-            
+
                         search = $j("a[href*='comments.php?casuser=']", caap.globalContainer);
                         search.each(function () {
                             var el = $j(this);
@@ -251,10 +251,10 @@
                             if ($u.hasContent(record.data['userId']) && record.data['userId'] > 0) {
                                 army.recordsTemp.push(record.data);
                             } else {
-                                $u.log(1, "army.page skipping record", record.data);
+                                $u.warn("army.page skipping record", record.data);
                             }
                         });
-            
+
                         if (number === pCount) {
                             search = $j("img[src*='bonus_member.jpg']", caap.globalContainer).parent().parent().find("a[href*='oracle.php']");
                             if ($u.hasContent(search)) {
@@ -271,14 +271,14 @@
                                 }
                             }
                         }
-                                    
+
                         ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
-                        $u.log(1, "army.page", number, pCount, army.recordsTemp);
+                        $u.log(2, "army.page", number, pCount, army.recordsTemp);
                         army.pageDone = true;
                         caap.delayMain = false;
                     }, 400);
                 }
-                
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in army.page: " + err);
@@ -287,7 +287,7 @@
                 return false;
             }
         },
-        
+
         run: function () {
             try {
                 if (!config.getItem("EnableArmy", true) || !schedule.check("army_member")) {
@@ -307,7 +307,7 @@
 
                 if (currentPage > expectedPageCount) {
                     army.pageDone = false;
-                    $u.log(1, "army.run", expectedPageCount);
+                    $u.log(3, "army.run", expectedPageCount);
                     if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
                         $u.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
                         schedule.setItem("army_member", 1800, 300);
@@ -343,17 +343,14 @@
                         army.recordsTemp[it]['elite'] = $u.setContent(record['elite'], false);
                         if (army.recordsTemp[it]['lvl'] > record['lvl']) {
                             army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                            $u.log(2, "Changed level", army.recordsTemp[it]);
                         } else {
                             if ($u.hasContent(record['change']) && record['change'] > 0) {
-                                army.recordsTemp[it]['change'] = $u.setContent(record['change'], 0);
-                                $u.log(3, "Copy change", army.recordsTemp[it]);
+                                army.recordsTemp[it]['change'] = record['change'];
                             } else {
                                 army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
-                                $u.log(3, "Set change", army.recordsTemp[it]);
                             }
                         }
-                        
+
                         if (!$u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name'])) {
                             army.recordsTemp[it]['name'] = record['name'];
                         }
@@ -361,7 +358,7 @@
                         if ($u.hasContent(army.recordsTemp[it]['name']) && $u.hasContent(record['name']) && army.recordsTemp[it]['user'] !== record['user']) {
                             army.recordsTemp[it]['name'] = record['name'];
                         }
-                        
+
                         if (!$u.hasContent(army.recordsTemp[it]['user']) && $u.hasContent(record['user'])) {
                             army.recordsTemp[it]['user'] = record['user'];
                         }
@@ -369,14 +366,16 @@
                         if ($u.hasContent(army.recordsTemp[it]['user']) && $u.hasContent(record['user']) && army.recordsTemp[it]['user'] !== record['user']) {
                             army.recordsTemp[it]['user'] = record['user'];
                         }
-                        
+
                         if (!$u.hasContent(army.recordsTemp[it]['lvl']) && $u.hasContent(record['lvl'])) {
                             army.recordsTemp[it]['lvl'] = record['lvl'];
                         }
-                        
+
                         if (!$u.hasContent(army.recordsTemp[it]['elite']) && $u.hasContent(record['elite'])) {
                             army.recordsTemp[it]['elite'] = record['elite'];
                         }
+                    } else {
+                        army.recordsTemp[it]['change'] = army.recordsTemp[it]['last'];
                     }
                 }
 
@@ -389,7 +388,7 @@
                 return false;
             }
         },
-       
+
         getIdList: function () {
             try {
                 var it   = 0,
@@ -408,7 +407,7 @@
                 return undefined;
             }
         },
-        
+
         getEliteList: function () {
             try {
                 var it   = 0,
