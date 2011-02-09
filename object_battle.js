@@ -276,7 +276,6 @@
                     resultsDiv    = $j(),
                     tempDiv       = $j(),
                     tempText      = '',
-                    tempArr       = [],
                     tNum          = 0,
                     battleRecord  = {},
                     warWinLoseImg = '',

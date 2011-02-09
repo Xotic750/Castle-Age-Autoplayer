@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            41
+// @dev            43
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -18,7 +18,7 @@
 // ==/UserScript==
 
 /*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, maxlen: 512 */
-/*global window,jQuery,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,rison,utility,$u,tests */
+/*global window,jQuery,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,rison,utility,$u,tests,escape,caap_scope_injected */
 /*jslint maxlen: 512 */
 
 //////////////////////////////////
@@ -27,7 +27,7 @@
 (function () {
 
     var caapVersion   = "140.24.1",
-        devVersion    = "41",
+        devVersion    = "43",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -5572,7 +5572,6 @@
                     resultsDiv    = $j(),
                     tempDiv       = $j(),
                     tempText      = '',
-                    tempArr       = [],
                     tNum          = 0,
                     battleRecord  = {},
                     warWinLoseImg = '',
@@ -7164,7 +7163,6 @@
                 // So I have changed the query to try and resolve the issue
                 var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id='] img", caap.globalContainer).eq(0),
                     tempText  = '',
-                    tStr      = '',
                     tempNum   = 0,
                     current   = {};
 
@@ -7318,8 +7316,7 @@
                                     userId      = 0,
                                     name        = '',
                                     giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
-                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php']", giftRequest),
-                                    tStr        = '';
+                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php']", giftRequest);
 
                                 if ($u.hasContent(inputDiv)) {
                                     userId = $u.setContent(inputDiv.attr("name"), 'uid=0').regex(/uid=(\d+)/i);
@@ -7587,7 +7584,6 @@
                         newGift  = {},
                         tempDiv  = $j(),
                         tempText = '',
-                        tStr     = '',
                         tempArr  = [],
                         update   = false;
 
@@ -8526,8 +8522,7 @@
         page: function () {
             try {
                 if (!army.pageDone) {
-                    var jData  = $j(),
-                        pages  = $j(),
+                    var pages  = $j(),
                         search = $j(),
                         record = {},
                         tStr   = '',
@@ -8624,7 +8619,7 @@
 
                 if (currentPage > expectedPageCount) {
                     army.pageDone = false;
-                    $u.log(2, "army.run", expectedPageCount);
+                    $u.log(3, "army.run", expectedPageCount);
                     if (caap.stats['army']['actual'] - 1 !== army.recordsTemp.length) {
                         $u.log(2, "Army size mismatch. Next schedule set 30 mins.", caap.stats['army']['actual'] - 1, army.recordsTemp.length);
                         schedule.setItem("army_member", 1800, 300);
@@ -11127,7 +11122,7 @@
                                         break;
                                     case 'time' :
                                         if ($u.hasContent(value) && value.length === 3) {
-                                            value = value[0] + ":" + value[1];
+                                            value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]);
                                             title = $u.hasContent(monster.info[monsterObj['type']]) && $u.isNumber(monster.info[monsterObj['type']].duration) ? "Total Monster Duration: " + monster.info[monsterObj['type']].duration + " hours" : '';
                                         } else {
                                             value = '';
@@ -13060,10 +13055,7 @@
 
         TextBoxListener: function (e) {
             try {
-                var idName = e.target.id.stripCaap(),
-                    i      = 0,
-                    len    = 0;
-
+                var idName = e.target.id.stripCaap();
                 $u.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
                 if (/AttrValue+/.test(idName)) {
                     state.setItem("statsMatch", true);
@@ -13886,11 +13878,8 @@
 
                 var pageUrl         = '',
                     page            = 'none',
-                    pageTemp        = '',
                     pageUser        = 0,
-                    sigImage        = '',
                     resultsText     = '',
-                    resultsFunction = '',
                     demiPointsFirst = false,
                     whenMonster     = '',
                     it              = 0,
@@ -14222,8 +14211,6 @@
         GetStats: function () {
             try {
                 var passed      = true,
-                    tempT       = {},
-                    tStr        = '',
                     tNum        = 0,
                     xS          = 0,
                     xE          = 0,
@@ -14360,9 +14347,7 @@
                     statsTB    = $j(".statsTB", caap.globalContainer),
                     keepTable1 = $j(".keepTable1 tr", statsTB),
                     statCont   = $j(".attribute_stat_container", attrDiv),
-                    tempDiv    = $j(),
-                    tStr       = '',
-                    tNum       = 0;
+                    tempDiv    = $j();
 
                 if ($u.hasContent(attrDiv)) {
                     $u.log(8, "Getting new values from player keep");
@@ -17535,8 +17520,7 @@
                     monsterFull           = '',
                     summonDiv             = $j("img[src*='mp_button_summon_']", caap.globalContainer),
                     tempText              = '',
-                    pageUserCheck         = 0,
-                    tStr                  = '';
+                    pageUserCheck         = 0;
 
                 // get all buttons to check monsterObjectList
                 if (!$u.hasContent(summonDiv) && !$u.hasContent(buttonsDiv)) {
@@ -17675,7 +17659,7 @@
                         tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
                         tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
-                            tempText += $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
+                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return;
@@ -17793,7 +17777,7 @@
                 damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
                 if ($u.hasContent(damageDiv)) {
                     if (monsterInfo && monsterInfo.defense) {
-                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+) dmg \/ ([\d,]+) def/);
+                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
                         if ($u.hasContent(tempArr) && tempArr.length === 2) {
                             currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
                             currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();

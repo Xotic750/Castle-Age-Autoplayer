@@ -209,8 +209,7 @@
         page: function () {
             try {
                 if (!army.pageDone) {
-                    var jData  = $j(),
-                        pages  = $j(),
+                    var pages  = $j(),
                         search = $j(),
                         record = {},
                         tStr   = '',

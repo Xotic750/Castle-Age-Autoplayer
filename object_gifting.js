@@ -101,7 +101,6 @@
                 // So I have changed the query to try and resolve the issue
                 var giftDiv   = $j("div[class='messages'] a[href*='profile.php?id='] img", caap.globalContainer).eq(0),
                     tempText  = '',
-                    tStr      = '',
                     tempNum   = 0,
                     current   = {};
 
@@ -255,8 +254,7 @@
                                     userId      = 0,
                                     name        = '',
                                     giftDiv     = $j("span[class='fb_protected_wrapper']", giftRequest),
-                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php']", giftRequest),
-                                    tStr        = '';
+                                    inputDiv    = $j(".uiButtonConfirm input[name*='gift_accept.php'],input[name*='army.php']", giftRequest);
 
                                 if ($u.hasContent(inputDiv)) {
                                     userId = $u.setContent(inputDiv.attr("name"), 'uid=0').regex(/uid=(\d+)/i);
@@ -524,7 +522,6 @@
                         newGift  = {},
                         tempDiv  = $j(),
                         tempText = '',
-                        tStr     = '',
                         tempArr  = [],
                         update   = false;
 

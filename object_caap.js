@@ -2380,7 +2380,7 @@
                                         break;
                                     case 'time' :
                                         if ($u.hasContent(value) && value.length === 3) {
-                                            value = value[0] + ":" + value[1];
+                                            value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]);
                                             title = $u.hasContent(monster.info[monsterObj['type']]) && $u.isNumber(monster.info[monsterObj['type']].duration) ? "Total Monster Duration: " + monster.info[monsterObj['type']].duration + " hours" : '';
                                         } else {
                                             value = '';
@@ -4313,10 +4313,7 @@
 
         TextBoxListener: function (e) {
             try {
-                var idName = e.target.id.stripCaap(),
-                    i      = 0,
-                    len    = 0;
-
+                var idName = e.target.id.stripCaap();
                 $u.log(1, 'Change: setting "' + idName + '" to ', String(e.target.value));
                 if (/AttrValue+/.test(idName)) {
                     state.setItem("statsMatch", true);
@@ -5139,11 +5136,8 @@
 
                 var pageUrl         = '',
                     page            = 'none',
-                    pageTemp        = '',
                     pageUser        = 0,
-                    sigImage        = '',
                     resultsText     = '',
-                    resultsFunction = '',
                     demiPointsFirst = false,
                     whenMonster     = '',
                     it              = 0,
@@ -5475,8 +5469,6 @@
         GetStats: function () {
             try {
                 var passed      = true,
-                    tempT       = {},
-                    tStr        = '',
                     tNum        = 0,
                     xS          = 0,
                     xE          = 0,
@@ -5613,9 +5605,7 @@
                     statsTB    = $j(".statsTB", caap.globalContainer),
                     keepTable1 = $j(".keepTable1 tr", statsTB),
                     statCont   = $j(".attribute_stat_container", attrDiv),
-                    tempDiv    = $j(),
-                    tStr       = '',
-                    tNum       = 0;
+                    tempDiv    = $j();
 
                 if ($u.hasContent(attrDiv)) {
                     $u.log(8, "Getting new values from player keep");
@@ -8788,8 +8778,7 @@
                     monsterFull           = '',
                     summonDiv             = $j("img[src*='mp_button_summon_']", caap.globalContainer),
                     tempText              = '',
-                    pageUserCheck         = 0,
-                    tStr                  = '';
+                    pageUserCheck         = 0;
 
                 // get all buttons to check monsterObjectList
                 if (!$u.hasContent(summonDiv) && !$u.hasContent(buttonsDiv)) {
@@ -8928,7 +8917,7 @@
                         tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
                         tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
-                            tempText += $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
+                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return;
@@ -9046,7 +9035,7 @@
                 damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
                 if ($u.hasContent(damageDiv)) {
                     if (monsterInfo && monsterInfo.defense) {
-                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+) dmg \/ ([\d,]+) def/);
+                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
                         if ($u.hasContent(tempArr) && tempArr.length === 2) {
                             currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
                             currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();
