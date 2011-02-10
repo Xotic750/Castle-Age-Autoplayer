@@ -520,7 +520,6 @@
                 }
 
                 battle.setItem(battleRecord);
-                $u.log(1, "getResult returning", result, battleRecord);
                 return result;
             } catch (err) {
                 $u.error("ERROR in battle.getResult: " + err);
@@ -599,7 +598,6 @@
                 }
 
                 result = battle.getResult();
-                $u.log(2, "result", result);
                 if (!result || result.hiding === true) {
                     return true;
                 }
@@ -884,7 +882,7 @@
                     tempArr = [];
                     tempTime = -1;
                     tempRecord = new battle.record();
-                    tempRecord.data['button'] = inputDiv.eq(it);
+                    tempRecord.data['button'] = $j(inputDiv.eq(it));
                     if (type === 'Raid') {
                         tr = tempRecord.data['button'].parents().eq(4);
                         txt = $u.setContent(tr.children().eq(1).text(), '').trim();
