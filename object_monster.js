@@ -230,7 +230,7 @@
             'Raid II'   : {
                 duration     : 144,
                 raid         : true,
-                ach          : 50,
+                ach          : 100,
                 siege        : 2,
                 siegeClicks  : [80, 100],
                 siegeDam     : [300, 1500],
@@ -833,7 +833,7 @@
                 //one "targetFromxxxx" to fill in. The other MUST be left blank. This is what keeps it
                 //serialized!!! Trying to make this two pass logic is like trying to fit a square peg in
                 //a round hole. Please reconsider before doing so.
-                if (gm.getItem('SerializeRaidsAndMonsters', false, hiddenVar)) {
+                if (config.getItem('SerializeRaidsAndMonsters', false)) {
                     selectTypes = ['any'];
                 } else {
                     selectTypes = ['battle_monster', 'raid'];
@@ -1054,8 +1054,7 @@
                             default:
                             }
                         } else {
-                            // Switch RaidPowerAttack - RaidStaminaReq is not being used - bug?
-                            if (gm.getItem('RaidPowerAttack', false, hiddenVar) || /:pa/i.test(monsterObj['conditions'])) {
+                            if (config.getItem('RaidPowerAttack', false) || /:pa/i.test(monsterObj['conditions'])) {
                                 state.setItem('RaidStaminaReq', 5);
                             } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
                                 state.setItem('RaidStaminaReq', monster.info[monsterObj['type']].staUse);

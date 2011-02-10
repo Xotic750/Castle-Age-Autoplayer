@@ -41,7 +41,8 @@
                 'aliveTime'       : 0,
                 'attackTime'      : 0,
                 'selectTime'      : 0,
-                'unknownTime'     : 0
+                'unknownTime'     : 0,
+                'newRecord'       : true
             };
         },
         /*jslint sub: false */
@@ -157,6 +158,7 @@
 
                 if (success) {
                     $u.log(3, "Got battle record", userId, battle.records[it]);
+                    battle.records[it]['newRecord'] = false;
                     return battle.records[it];
                 } else {
                     newRecord = new battle.record();
@@ -192,6 +194,7 @@
                     }
                 }
 
+                record['newRecord'] = false;
                 if (success) {
                     battle.records[it] = record;
                     $u.log(3, "Updated battle record", record, battle.records);
@@ -469,7 +472,6 @@
                 }
 
                 battleRecord = battle.getItem(result.userId);
-                $u.log(1, "battleRecord", battleRecord, result);
                 battleRecord['attackTime'] = new Date().getTime();
                 if (result.userName && result.userName !== battleRecord['nameStr']) {
                     $u.log(1, "Updating battle record user name, from/to", battleRecord['nameStr'], result.userName);
@@ -756,8 +758,10 @@
         /*jslint sub: true */
         battles: {
             'Raid' : {
-                'Invade'   : 'raid_attack_button.gif',
-                'Duel'     : 'raid_attack_button2.gif',
+                'Invade1'  : 'raid_attack_button.gif',
+                'Invade5'  : 'raid_attack_button3.gif',
+                'Duel1'    : 'raid_attack_button2.gif',
+                'Duel5'    : 'raid_attack_button4.gif',
                 'regex1'   : new RegExp('[0-9]+\\. (.+)\\s*Rank: ([0-9]+) ([^0-9]+) ([0-9]+) ([^0-9]+) ([0-9]+)', 'i'),
                 'refresh'  : 'raid',
                 'image'    : 'tab_raid_on.gif'
@@ -797,7 +801,8 @@
 
         freshmeat: function (type) {
             try {
-                var inputDiv        = $j("input[src*='" + battle.battles[type][config.getItem('BattleType', 'Invade')] + "']", caap.appBodyDiv),
+                var buttonType      = type === 'Raid' ? config.getItem('BattleType', 'Invade') + state.getItem('RaidStaminaReq', 1) : config.getItem('BattleType', 'Invade'),
+                    inputDiv        = $j("input[src*='" + battle.battles[type][buttonType] + "']", caap.appBodyDiv),
                     plusOneSafe     = false,
                     safeTargets     = [],
                     chainId         = '',
@@ -881,6 +886,7 @@
                     tempRecord = new battle.record();
                     tempRecord.data['button'] = inputDiv.eq(it);
                     if (type === 'Raid') {
+                        tr = tempRecord.data['button'].parents().eq(4);
                         txt = $u.setContent(tr.children().eq(1).text(), '').trim();
                         levelm = battle.battles['Raid']['regex1'].exec(txt);
                         if (!$u.hasContent(levelm)) {
@@ -896,7 +902,7 @@
                     } else {
                         tr = tempRecord.data['button'].parents("tr").eq(0);
                         if (!$u.hasContent(tr)) {
-                            $u.warn("Can't find parent tr in", tempRecord.data['button']);
+                            $u.warn("Can't find parent tr in tempRecord.data['button']");
                             continue;
                         }
 
@@ -1022,10 +1028,6 @@
 
                     // don't battle people we lost to in the last week
                     battleRecord = battle.getItem(tempRecord.data['userId']);
-                    if (!$j.isEmptyObject(battleRecord)) {
-                        $u.log(1, "We have a battle record", battleRecord);
-                    }
-
                     if (!config.getItem("IgnoreBattleLoss", false)) {
                         switch (config.getItem("BattleType", 'Invade')) {
                         case 'Invade' :
@@ -1041,36 +1043,36 @@
                             $u.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
                         }
 
-                        if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 604800)) {
-                            $u.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId'], battleRecord);
+                        if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 604800)) {
+                            $u.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
                             continue;
                         }
                     }
 
                     // don't battle people that results were unknown in the last hour
                     tempTime = $u.setContent(battleRecord['unknownTime'], 0);
-                    if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 3600)) {
+                    if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 3600)) {
                         $u.log(1, "User was battled but results unknown in the last hour: ", tempRecord.data['userId']);
                         continue;
                     }
 
                     // don't battle people that were dead or hiding in the last hour
                     tempTime = $u.setContent(battleRecord['deadTime'], 0);
-                    if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 3600)) {
+                    if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 3600)) {
                         $u.log(1, "User was dead in the last hour: ", tempRecord.data['userId']);
                         continue;
                     }
 
                     // don't battle people we've already chained to max in the last 2 days
                     tempTime = $u.setContent(battleRecord['chainTime'], 0);
-                    if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 86400)) {
+                    if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 86400)) {
                         $u.log(1, "We chained user within 2 days: ", tempRecord.data['userId']);
                         continue;
                     }
 
                     // don't battle people that didn't meet chain gold or chain points in the last week
                     tempTime = $u.setContent(battleRecord['ignoreTime'], 0);
-                    if (battleRecord && battleRecord['nameStr'] !== '' && !schedule.since(tempTime, 604800)) {
+                    if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 604800)) {
                         $u.log(1, "User didn't meet chain requirements this week: ", tempRecord.data['userId']);
                         continue;
                     }
@@ -1090,7 +1092,6 @@
                 }
 
                 safeTargets.sort($u.sortBy(true, "score"));
-                $u.log(3, "safeTargets", safeTargets);
                 if ($u.hasContent(safeTargets)) {
                     if (chainAttack) {
                         form = inputDiv.eq(0).parent().parent();
@@ -1143,7 +1144,6 @@
                                 safeTargets[it]['aliveTime'] = new Date().getTime();
                                 battleRecord = battle.getItem(safeTargets[it]['userId']);
                                 $j.extend(true, battleRecord, safeTargets[it]);
-                                $u.log(3, "battleRecord", battleRecord);
                                 battle.setItem(battleRecord);
                                 caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                                 state.setItem("notSafeCount", 0);
