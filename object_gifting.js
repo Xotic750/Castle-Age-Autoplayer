@@ -304,8 +304,6 @@
 
                                 return true;
                             } catch (e) {
-                                // This can happen when FB mess up the DOM on the requests page
-                                // NOT_FOUND_ERR code 8
                                 $u.warn("ERROR in gifting.collect: skipping" + e);
                                 return true;
                             }

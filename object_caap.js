@@ -6024,7 +6024,7 @@
                     tNum    = 0;
 
                 if ($u.hasContent(rankDiv)) {
-                    tNum = rankDiv.text().regex(/with ([\d,]+) Battle Points/i).numberOnly();
+                    tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/with (\d+) Battle Points/i), 0);
                     if ($u.hasContent(tNum)) {
                         $u.log(2, 'Got Battle Rank Points', tNum);
                         caap.stats['rank']['battlePoints'] = tNum;
@@ -6050,7 +6050,7 @@
                     tNum    = 0;
 
                 if ($u.hasContent(rankDiv)) {
-                    tNum = rankDiv.text().regex(/with ([\d,]+) War Points/i).numberOnly();
+                    tNum = $u.setContent($u.setContent(rankDiv.text(), '').replace(',', '').regex(/with (\d+) War Points/i), 0);
                     if ($u.hasContent(tNum)) {
                         $u.log(2, 'Got War Rank Points', tNum);
                         caap.stats['rank']['warPoints'] = tNum;
@@ -8839,11 +8839,11 @@
                         monsterReviewed['color'] = 'grey';
                         break;
                     case 'dragon_list_btn_3' :
-                        monster.engageButtons[monsterName] = buttonsDiv.eq(it);
+                        monster.engageButtons[monsterName] = $j(buttonsDiv.eq(it));
                         break;
                     case 'dragon_list_btn_4' :
                         if (page === 'raid' && !(/!/.test(monsterFull))) {
-                            monster.engageButtons[monsterName] = buttonsDiv.eq(it);
+                            monster.engageButtons[monsterName] = $j(buttonsDiv.eq(it));
                             break;
                         }
 
