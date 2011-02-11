@@ -106,5 +106,81 @@
                 $u.error("ERROR in config.deleteItem: " + err);
                 return false;
             }
+        },
+
+        saveDialog: function () {
+            try {
+                var h = '',
+                    w = $j("#caap_save");;
+
+                if (!$u.hasContent(w)) {
+                    h = "<textarea style='resize:none;width:400px;height:400px;' disabled>" + JSON.stringify(config.options, null, "\t") + "</textarea>";
+                    w = $j('<div id="caap_save" title="Save Config">' + h + '</div>').appendTo(document.body);
+                    w.dialog({
+                        resizable : false,
+                        width     : 'auto',
+                        height    : 'auto',
+                        buttons   : {
+                            "Ok": function () {
+                                w.dialog("destroy").remove();
+                            }
+                        },
+                        close     : function () {
+                            w.dialog("destroy").remove();
+                        }
+                    });
+                }
+
+                return w;
+            } catch (err) {
+                $u.error("ERROR in config.saveDialog: " + err);
+                return undefined;
+            }
+        },
+
+        loadDialog: function () {
+            try {
+                var h = '',
+                    w = $j("#caap_load"),
+                    l = {},
+                    v = '';
+
+                if (!$u.hasContent(w)) {
+                    h = "<textarea id='caap_load_config' style='resize:none;width:400px;height:400px;'></textarea>";
+                    w = $j('<div id="caap_load" title="Load Config">' + h + '</div>').appendTo(document.body);
+                    w.dialog({
+                        resizable : false,
+                        width     : 'auto',
+                        height    : 'auto',
+                        buttons   : {
+                            "Ok": function () {
+                                try {
+                                    v = JSON.parse($u.setContent($j("#caap_load_config", w).val(), 'null'));
+                                } catch (e) {
+                                    v = null
+                                }
+
+                                l = $u.setContent(v, 'default');
+                                if ($j.isPlainObject(l) && l !== 'default') {
+                                    config.options = l;
+                                    config.save();
+                                    w.dialog("destroy").remove();
+                                    caap.ReloadCastleAge(true);
+                                } else {
+                                    $u.warn("User config was not loaded!", l);
+                                }
+                            }
+                        },
+                        close     : function () {
+                            w.dialog("destroy").remove();
+                        }
+                    });
+                }
+
+                return w;
+            } catch (err) {
+                $u.error("ERROR in config.loadDialog: " + err);
+                return undefined;
+            }
         }
     };

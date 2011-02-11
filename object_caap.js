@@ -2027,14 +2027,18 @@
                 htmlCode += caap.MakeNumberFormTR("Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
                 htmlCode += caap.MakeSlider('Transparency', "CustStyleOpacityDark", '', 1, true);
                 htmlCode += caap.endDropHide('DisplayStyle');
+                htmlCode += caap.MakeCheckTR('Advanced', 'AdvancedOptions', false);
+                htmlCode += caap.startCheckHide('AdvancedOptions');
                 //htmlCode += $u.is_chrome && $u.inputtypes.number ? caap.MakeCheckTR('Number Roller', 'numberRoller', true, "Enable or disable the number roller on GUI options.") : '';
-                htmlCode += caap.MakeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions);
-                htmlCode += caap.MakeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions);
-                htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions);
-                htmlCode += caap.MakeCheckTR('Change Log Level', 'ChangeLogLevel', false);
-                htmlCode += caap.startCheckHide('ChangeLogLevel');
+                htmlCode += caap.MakeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
+                htmlCode += caap.MakeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
+                htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
                 htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
-                htmlCode += caap.endCheckHide('ChangeLogLevel');
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("<input type='button' id='caap_LoadConfig' value='Load Config' style='padding: 0; font-size: 10px; height: 18px' />", true);
+                htmlCode += caap.MakeTD("<input type='button' id='caap_SaveConfig' value='Save Config' style='padding: 0; font-size: 10px; height: 18px' />", true);
+                htmlCode += caap.endTR;
+                htmlCode += caap.endCheckHide('AdvancedOptions');
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
                 htmlCode += caap.endTR;
@@ -4868,6 +4872,8 @@
                 $j('select[id^="caap_"]', caap.caapDivObject).change(caap.DropBoxListener);
                 $j('textarea[id^="caap_"]', caap.caapDivObject).change(caap.TextAreaListener);
                 $j('a[id^="caap_Switch"]', caap.caapDivObject).click(caap.FoldingBlockListener);
+                $j('#caap_LoadConfig', caap.caapDivObject).click(config.loadDialog);
+                $j('#caap_SaveConfig', caap.caapDivObject).click(config.saveDialog);
                 $j('#caap_FillArmy', caap.caapDivObject).click(function (e) {
                     state.setItem("FillArmy", true);
                     state.setItem("ArmyCount", 0);
@@ -12370,10 +12376,10 @@
             }
         },
 
-        ReloadCastleAge: function () {
+        ReloadCastleAge: function (force) {
             try {
                 // better than reload... no prompt on forms!
-                if (!config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
+                if (force || !config.getItem('Disabled') && (state.getItem('caapPause') === 'none')) {
                     caap.VisitUrl(caap.domain.link + "/index.php?bm=1&ref=bookmarks&count=0");
                 }
 
