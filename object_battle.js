@@ -276,7 +276,7 @@
         getResult: function () {
             try {
                 var wrapperDiv    = $j("#" +  caap.domain.id[caap.domain.which] + "results_main_wrapper"),
-                    resultsDiv    = $j(),
+                    resultsDiv    = $j("span[class='result_body']", wrapperDiv),
                     tempDiv       = $j(),
                     tempText      = '',
                     tNum          = 0,
@@ -299,9 +299,8 @@
                 } else if ($u.hasContent($j("img[src*='battle_defeat.gif']", wrapperDiv))) {
                     warWinLoseImg = 'war_lose_left.jpg';
                 } else {
-                    resultsDiv = $j("span[class='result_body']", wrapperDiv);
                     if ($u.hasContent(resultsDiv)) {
-                        tempText = $u.setContent(tempText, '').trim();
+                        tempText = $u.setContent(resultsDiv.text(), '').trim().innerTrim();
                         if (/Your opponent is hiding, please try again/.test(tempText)) {
                             result.hiding = true;
                             $u.log(1, "Your opponent is hiding");
@@ -318,15 +317,14 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[src*='war_button_war_council.gif']", wrapperDiv))) {
+                if ($u.hasContent($j("img[src*='war_castle.jpg']", wrapperDiv))) {
                     result.battleType = 'War';
-                    resultsDiv = $j("div[class='result']", wrapperDiv);
                     if ($u.hasContent(resultsDiv)) {
                         tempDiv = $j("img[src*='war_rank_small_icon']", resultsDiv).eq(0);
                         if ($u.hasContent(tempDiv)) {
-                            tempText = $u.setContent(tempDiv.parent().text(), '').trim();
+                            tempText = $u.setContent(tempDiv.parent().text(), '').trim().innerTrim();
                             if ($u.hasContent(tempText)) {
-                                tNum = tempText.match(/(\d+)\s+War Points/i);
+                                tNum = tempText.regex(/(\d+)\s+War Points/i);
                                 if ($u.hasContent(tNum)) {
                                     result.points = tNum;
                                 } else {
@@ -351,10 +349,10 @@
                             $u.warn("Unable to find gold element in", resultsDiv);
                         }
 
-                        tempDiv = resultsDiv.find("input[name='target_id']", resultsDiv).eq(0);
+                        tempDiv = $j("form[id*='fight_opp_'] input[name='target_id']", resultsDiv).eq(0);
                         if ($u.hasContent(tempDiv)) {
-                            tNum = $u.setContent(tempDiv.attr("value"), '').numberOnly();
-                            if ($u.hasContent(tNum)) {
+                            tNum = $u.setContent(tempDiv.attr("value"), '0').parseInt();
+                            if ($u.hasContent(tNum) && tNum > 0) {
                                 result.userId = tNum;
                             } else {
                                 $u.warn("No value in", tempDiv);
@@ -365,7 +363,7 @@
                             throw "Unable to get userId!";
                         }
 
-                        tempDiv = $j("div[style*='" + warWinLoseImg + "']", caap.globalContainer);
+                        tempDiv = $j("div[style*='" + warWinLoseImg + "']", resultsDiv);
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().replace("'s Defense", '');
                             if ($u.hasContent(tempText)) {
@@ -394,33 +392,22 @@
                     }
 
                     if ($u.hasContent(result.battleType)) {
-                        resultsDiv = $j("div[class='result']", wrapperDiv);
                         if ($u.hasContent(resultsDiv)) {
                             tempDiv = $j("img[src*='battle_rank_small_icon']", resultsDiv).eq(0);
                             if ($u.hasContent(tempDiv)) {
-                                tempText = $u.setContent(tempDiv.parent().text(), '').trim();
+                                tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
                                 if ($u.hasContent(tempText)) {
                                     tNum = tempText.regex(/(\d+)\s+Battle Points/i);
                                     if ($u.hasContent(tNum)) {
                                         result.points = tNum;
                                     } else {
-                                        tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim();
-                                        if ($u.hasContent(tempText)) {
-                                            tNum = tempText.regex(/(\d+)\s+Battle Points/i);
-                                            if ($u.hasContent(tNum)) {
-                                                result.points = tNum;
-                                            } else {
-                                                $u.warn("Unable to match battle points", tempText);
-                                            }
-                                        } else {
-                                            $u.warn("Unable to find battle points text in", tempDiv.parent().parent());
-                                        }
+                                        $u.warn("Unable to match battle points", tempText);
                                     }
                                 } else {
-                                    $u.warn("Unable to find battle points text in", tempDiv.parent());
+                                    $u.warn("Unable to find battle points text in tempDiv.parent().parent()");
                                 }
                             } else {
-                                $u.log(3, "Unable to find battle_rank_small_icon in", resultsDiv);
+                                $u.log(3, "Unable to find battle_rank_small_icon in resultsDiv");
                             }
 
                             tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
@@ -429,10 +416,10 @@
                                 if ($u.hasContent(tNum)) {
                                     result.gold = tNum;
                                 } else {
-                                    $u.warn("Unable to find gold text in", tempDiv);
+                                    $u.warn("Unable to find gold text in tempDiv");
                                 }
                             } else {
-                                $u.warn("Unable to find gold element in", resultsDiv);
+                                $u.warn("Unable to find gold element in resultsDiv");
                             }
 
                             tempDiv = $j("a[href*='keep.php?casuser=']", resultsDiv).eq(0);
@@ -458,7 +445,7 @@
                                     throw "Unable to get userId!";
                                 }
                             } else {
-                                $u.warn("Unable to find keep.php?casuser= in", resultsDiv);
+                                $u.warn("Unable to find keep.php?casuser= in resultsDiv");
                                 throw "Unable to get userId!";
                             }
                         } else {
@@ -539,7 +526,7 @@
                 }
 
                 if ($u.hasContent(resultsDiv)) {
-                    resultsText = $u.setContent(resultsDiv.text(), '').trim();
+                    resultsText = $u.setContent(resultsDiv.text(), '').trim().innerTrim();
                     if ($u.hasContent(resultsText)) {
                         if (/Your opponent is dead or too weak to battle/.test(resultsText)) {
                             $u.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
@@ -554,7 +541,7 @@
                             battleRecord['unknownTime'] = new Date().getTime();
                         }
 
-                        $u.warn("Unable to determine if user is dead!", resultsDiv);
+                        $u.warn("Unable to determine if user is dead!");
                         dead = null;
                     }
                 } else {
@@ -1093,7 +1080,7 @@
                 if ($u.hasContent(safeTargets)) {
                     if (chainAttack) {
                         form = inputDiv.eq(0).parent().parent();
-                        inp = form.find("input[name='target_id']");
+                        inp = $j("input[name='target_id']", form);
                         if ($u.hasContent(inp)) {
                             inp.attr("value", chainId);
                             $u.log(1, "Chain attacking: ", chainId);
@@ -1108,7 +1095,7 @@
                     } else if (config.getItem('PlusOneKills', false) && type === 'Raid') {
                         if (plusOneSafe) {
                             form = inputDiv.eq(0).parent().parent();
-                            inp = form.find("input[name='target_id']");
+                            inp = $j("input[name='target_id']", form);
                             if ($u.hasContent(inp)) {
                                 txt = inp.attr("value");
                                 firstId = txt ? txt.parseInt() : 0;
