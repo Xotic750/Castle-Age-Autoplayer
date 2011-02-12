@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            49
+// @dev            50
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 (function () {
 
     var caapVersion   = "140.24.1",
-        devVersion    = "49",
+        devVersion    = "50",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -6534,11 +6534,11 @@
 
         itemRegex: {
             'Weapon' : /axe|blade|bow|cleaver|cudgel|dagger|edge|grinder|halberd|lance|mace|morningstar|rod|saber|scepter|spear|staff|stave|sword |sword$|talon|trident|wand|^Avenger$|Celestas Devotion|Crystal Rod|Daedalus|Deliverance|Dragonbane|Excalibur|Holy Avenger|Incarnation|Ironhart's Might|Judgement|Justice|Lightbringer|Oathkeeper|Onslaught|Punisher|Soulforge|Bonecrusher|Lion Fang|Exsanguinator|Lifebane|Deathbellow|Moonclaw/i,
-            'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass/i,
+            'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass|Protector/i,
             'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
             'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
             'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
-            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes/i
+            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom/i
         },
 
         record: function () {
@@ -10807,14 +10807,14 @@
                 htmlCode += caap.MakeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
                 htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
                 htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
-                htmlCode += "<form><fieldset><legend>Database</legend>"
+                htmlCode += "<form><fieldset><legend>Database</legend>";
                 htmlCode += caap.MakeDropDownTR("Which Data", 'DataSelect', caap.exportList(), '', '', 'Config', true, false, 50);
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input type='button' id='caap_ExportData' value='Export' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.MakeTD("<input type='button' id='caap_ImportData' value='Import' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.MakeTD("<input type='button' id='caap_DeleteData' value='Delete' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.endTR;
-                htmlCode += "</fieldset></form>"
+                htmlCode += "</fieldset></form>";
                 htmlCode += caap.endCheckHide('AdvancedOptions');
                 htmlCode += caap.endToggle;
                 return htmlCode;
@@ -14974,7 +14974,7 @@
 
                 if (theGeneral !== 'Use Current') {
                     maxIdleEnergy = $u.setContent(general.GetEnergyMax(theGeneral), 0);
-                    if (maxIdleEnergy === 0 || $u.isNaN(maxIdleEnergy)) {
+                    if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
                         $u.log(1, "Changing to idle general to get Max energy");
                         if (general.Select('IdleGeneral')) {
                             return true;
@@ -15248,7 +15248,7 @@
                             }
                         }
 
-                        if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2') {
+                        if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2' || landPic === 'tab_mist2') {
                             imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                         } else if (landPic === 'tab_heaven') {
                             imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
@@ -15394,7 +15394,7 @@
                 // if found missing requires, click to buy
                 if ($u.hasContent(autoQuestDivs.tr)) {
                     var background = $j("div[style*='background-color']", autoQuestDivs.tr);
-                    if (background && background.length && background.css("background-color") === 'rgb(158, 11, 15)') {
+                    if ($u.hasContent(background) && background.css("background-color") === 'rgb(158, 11, 15)') {
                         $u.log(1, "Missing item");
                         if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
                             $u.log(1, "Cant buy Atlantis items, stopping quest");
@@ -15909,25 +15909,26 @@
         GetQuestName: function (questDiv) {
             try {
                 var item_title = $j("div[class*='quest_desc'],div[class*='quest_sub_title']", questDiv),
-                    firstb     = $j();
+                    firstb     = $j("b", item_title).eq(0),
+                    text       = '';
 
                 if (!$u.hasContent(item_title)) {
                     $u.log(2, "Can't find quest description or sub-title");
                     return false;
                 }
 
-                if (/LOCK/.test(item_title.html())) {
-                    $u.log(2, "Quest locked", item_title);
+                text = item_title.html().trim().innerTrim();
+                if (/LOCK/.test(text) || /boss_locked/.test(text)) {
+                    $u.log(2, "Quest locked", text);
                     return false;
                 }
 
-                firstb = $j("b", item_title).eq(0);
                 if (!$u.hasContent(firstb)) {
-                    $u.warn("Can't get bolded member out of", item_title.html());
+                    $u.warn("Can't get bolded member out of", text);
                     return false;
                 }
 
-                caap.questName = firstb.text().trim();
+                caap.questName = firstb.text().trim().innerTrim();
                 if (!$u.hasContent(caap.questName)) {
                     $u.warn('No quest name for this row');
                     return false;
@@ -16033,7 +16034,7 @@
         LabelListener: function (e) {
             try {
                 var sps           = e.target.getElementsByTagName('span'),
-                    mainDiv       = $j(),
+                    mainDiv       = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     className     = '',
                     tempAutoQuest = {};
 
@@ -16067,7 +16068,6 @@
                         caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                     }
 
-                    mainDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer);
                     if ($u.hasContent(mainDiv)) {
                         className = mainDiv.attr("class");
                         if ($u.hasContent(className) && caap.ClassToQuestArea[className]) {

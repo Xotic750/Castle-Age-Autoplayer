@@ -2039,14 +2039,14 @@
                 htmlCode += caap.MakeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
                 htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
                 htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
-                htmlCode += "<form><fieldset><legend>Database</legend>"
+                htmlCode += "<form><fieldset><legend>Database</legend>";
                 htmlCode += caap.MakeDropDownTR("Which Data", 'DataSelect', caap.exportList(), '', '', 'Config', true, false, 50);
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input type='button' id='caap_ExportData' value='Export' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.MakeTD("<input type='button' id='caap_ImportData' value='Import' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.MakeTD("<input type='button' id='caap_DeleteData' value='Delete' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.endTR;
-                htmlCode += "</fieldset></form>"
+                htmlCode += "</fieldset></form>";
                 htmlCode += caap.endCheckHide('AdvancedOptions');
                 htmlCode += caap.endToggle;
                 return htmlCode;
@@ -6206,7 +6206,7 @@
 
                 if (theGeneral !== 'Use Current') {
                     maxIdleEnergy = $u.setContent(general.GetEnergyMax(theGeneral), 0);
-                    if (maxIdleEnergy === 0 || $u.isNaN(maxIdleEnergy)) {
+                    if (maxIdleEnergy <= 0 || $u.isNaN(maxIdleEnergy)) {
                         $u.log(1, "Changing to idle general to get Max energy");
                         if (general.Select('IdleGeneral')) {
                             return true;
@@ -6480,7 +6480,7 @@
                             }
                         }
 
-                        if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2') {
+                        if (landPic === 'tab_underworld' || landPic === 'tab_ivory' || landPic === 'tab_earth2' || landPic === 'tab_water2' || landPic === 'tab_mist2') {
                             imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small.gif', landPic + '_big');
                         } else if (landPic === 'tab_heaven') {
                             imgExist = caap.NavigateTo('quests,jobs_tab_more.gif,' + landPic + '_small2.gif', landPic + '_big2.gif');
@@ -6626,7 +6626,7 @@
                 // if found missing requires, click to buy
                 if ($u.hasContent(autoQuestDivs.tr)) {
                     var background = $j("div[style*='background-color']", autoQuestDivs.tr);
-                    if (background && background.length && background.css("background-color") === 'rgb(158, 11, 15)') {
+                    if ($u.hasContent(background) && background.css("background-color") === 'rgb(158, 11, 15)') {
                         $u.log(1, "Missing item");
                         if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
                             $u.log(1, "Cant buy Atlantis items, stopping quest");
@@ -7141,25 +7141,26 @@
         GetQuestName: function (questDiv) {
             try {
                 var item_title = $j("div[class*='quest_desc'],div[class*='quest_sub_title']", questDiv),
-                    firstb     = $j();
+                    firstb     = $j("b", item_title).eq(0),
+                    text       = '';
 
                 if (!$u.hasContent(item_title)) {
                     $u.log(2, "Can't find quest description or sub-title");
                     return false;
                 }
 
-                if (/LOCK/.test(item_title.html())) {
-                    $u.log(2, "Quest locked", item_title);
+                text = item_title.html().trim().innerTrim();
+                if (/LOCK/.test(text) || /boss_locked/.test(text)) {
+                    $u.log(2, "Quest locked", text);
                     return false;
                 }
 
-                firstb = $j("b", item_title).eq(0);
                 if (!$u.hasContent(firstb)) {
-                    $u.warn("Can't get bolded member out of", item_title.html());
+                    $u.warn("Can't get bolded member out of", text);
                     return false;
                 }
 
-                caap.questName = firstb.text().trim();
+                caap.questName = firstb.text().trim().innerTrim();
                 if (!$u.hasContent(caap.questName)) {
                     $u.warn('No quest name for this row');
                     return false;
@@ -7265,7 +7266,7 @@
         LabelListener: function (e) {
             try {
                 var sps           = e.target.getElementsByTagName('span'),
-                    mainDiv       = $j(),
+                    mainDiv       = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer),
                     className     = '',
                     tempAutoQuest = {};
 
@@ -7299,7 +7300,6 @@
                         caap.ChangeDropDownList('QuestSubArea', caap.atlantisQuestList);
                     }
 
-                    mainDiv = $j("#" + caap.domain.id[caap.domain.which] + "main_bn", caap.globalContainer);
                     if ($u.hasContent(mainDiv)) {
                         className = mainDiv.attr("class");
                         if ($u.hasContent(className) && caap.ClassToQuestArea[className]) {
