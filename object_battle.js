@@ -331,10 +331,10 @@
                                     $u.warn("Unable to match war points", tempText);
                                 }
                             } else {
-                                $u.warn("Unable to find war points text in", tempDiv.parent());
+                                $u.warn("Unable to find war points text");
                             }
                         } else {
-                            $u.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
+                            $u.log(3, "Unable to find war_rank_small_icon");
                         }
 
                         tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
@@ -343,10 +343,10 @@
                             if ($u.hasContent(tNum)) {
                                 result.gold = tNum;
                             } else {
-                                $u.warn("Unable to find gold text in", tempDiv);
+                                $u.warn("Unable to find gold text");
                             }
                         } else {
-                            $u.warn("Unable to find gold element in", resultsDiv);
+                            $u.warn("Unable to find gold element");
                         }
 
                         tempDiv = $j("form[id*='fight_opp_'] input[name='target_id']", resultsDiv).eq(0);
@@ -355,11 +355,11 @@
                             if ($u.hasContent(tNum) && tNum > 0) {
                                 result.userId = tNum;
                             } else {
-                                $u.warn("No value in", tempDiv);
+                                $u.warn("No value in tempDiv");
                                 throw "Unable to get userId!";
                             }
                         } else {
-                            $u.warn("Unable to find target_id in", resultsDiv);
+                            $u.warn("Unable to find target_id in resultsDiv");
                             throw "Unable to get userId!";
                         }
 
@@ -441,7 +441,7 @@
                                         $u.warn("Unable to match user's name in", tempText);
                                     }
                                 } else {
-                                    $u.warn("No href text in", tempDiv);
+                                    $u.warn("No href text in tempDiv");
                                     throw "Unable to get userId!";
                                 }
                             } else {
@@ -491,7 +491,6 @@
 
                     break;
                 case 'War' :
-                    $u.log(1, "War Result");
                     if (result.win) {
                         battleRecord['warwinsNum'] += 1;
                         $u.log(1, "War Win", battleRecord['warwinsNum']);
@@ -808,6 +807,7 @@
                     battleRecord    = {},
                     tempTime        = 0,
                     it              = 0,
+                    itx,
                     len             = 0,
                     tr              = $j(),
                     form            = $j(),
@@ -977,13 +977,13 @@
                     }
 
                     if (tempRecord.data['levelNum'] - caap.stats['level'] > maxLevel) {
-                        $u.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'minRank': minRank});
+                        $u.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'maxLevel': maxLevel});
                         continue;
                     }
 
                     if (config.getItem("BattleType", 'Invade') === "War" && battle.battles['Freshmeat']['warLevel']) {
                         if (caap.stats['rank']['war'] && (caap.stats['rank']['war'] - tempRecord.data['warRankNum'] > minRank)) {
-                            $u.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['rankNum'], 'minRank': minRank});
+                            $u.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['warRankNum'], 'minRank': minRank});
                             continue;
                         }
                     } else {
@@ -1022,13 +1022,13 @@
                             tempTime = $u.setContent(battleRecord['duelLostTime'], 0);
                             break;
                         case 'War' :
-                            tempTime = $u.setContent(battleRecord['warlostTime'], 0);
+                            tempTime = $u.setContent(battleRecord['warLostTime'], 0);
                             break;
                         default :
                             $u.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
                         }
 
-                        if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 604800)) {
+                        if (battleRecord && !battleRecord['newRecord'] && tempTime && !schedule.since(tempTime, 604800)) {
                             $u.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
                             continue;
                         }
@@ -1125,10 +1125,31 @@
                                 delete safeTargets[it]['score'];
                                 delete safeTargets[it]['targetNumber'];
                                 delete safeTargets[it]['button'];
-                                state.setItem("lastBattleID", safeTargets[it]['userId']);
-                                safeTargets[it]['aliveTime'] = new Date().getTime();
                                 battleRecord = battle.getItem(safeTargets[it]['userId']);
-                                $j.extend(true, battleRecord, safeTargets[it]);
+                                if (battleRecord['newRecord']) {
+                                    state.setItem("lastBattleID", safeTargets[it]['userId']);
+                                    $j.extend(true, battleRecord, safeTargets[it]);
+                                    battleRecord['newRecord'] = false;
+                                    battleRecord['aliveTime'] = new Date().getTime();
+                                } else {
+                                    battleRecord['aliveTime'] = new Date().getTime();
+                                    for (itx in safeTargets[it]) {
+                                        if (safeTargets[it].hasOwnProperty(itx)) {
+                                            if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {
+                                                battleRecord[itx] = safeTargets[it][itx];
+                                            }
+
+                                            if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && battleRecord[itx] !== safeTargets[it][itx]) {
+                                                battleRecord[itx] = safeTargets[it][itx];
+                                            }
+
+                                            if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && battleRecord[itx] < safeTargets[it][itx]) {
+                                                battleRecord[itx] = safeTargets[it][itx];
+                                            }
+                                        }
+                                    }
+                                }
+
                                 battle.setItem(battleRecord);
                                 caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                                 state.setItem("notSafeCount", 0);
@@ -1142,7 +1163,7 @@
 
                 state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
                 // add a schedule here for 5 mins or so
-                if (state.getItem("notSafeCount", 0) > 100) {
+                if (state.getItem("notSafeCount", 0) > 20) {
                     caap.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
                     $u.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
                     state.setItem("notSafeCount", 0);

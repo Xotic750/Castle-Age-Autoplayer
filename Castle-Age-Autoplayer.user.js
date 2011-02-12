@@ -857,82 +857,6 @@
                 $u.error("ERROR in config.deleteItem: " + err);
                 return false;
             }
-        },
-
-        saveDialog: function () {
-            try {
-                var h = '',
-                    w = $j("#caap_save");;
-
-                if (!$u.hasContent(w)) {
-                    h = "<textarea style='resize:none;width:400px;height:400px;' disabled>" + JSON.stringify(config.options, null, "\t") + "</textarea>";
-                    w = $j('<div id="caap_save" title="Save Config">' + h + '</div>').appendTo(document.body);
-                    w.dialog({
-                        resizable : false,
-                        width     : 'auto',
-                        height    : 'auto',
-                        buttons   : {
-                            "Ok": function () {
-                                w.dialog("destroy").remove();
-                            }
-                        },
-                        close     : function () {
-                            w.dialog("destroy").remove();
-                        }
-                    });
-                }
-
-                return w;
-            } catch (err) {
-                $u.error("ERROR in config.saveDialog: " + err);
-                return undefined;
-            }
-        },
-
-        loadDialog: function () {
-            try {
-                var h = '',
-                    w = $j("#caap_load"),
-                    l = {},
-                    v = '';
-
-                if (!$u.hasContent(w)) {
-                    h = "<textarea id='caap_load_config' style='resize:none;width:400px;height:400px;'></textarea>";
-                    w = $j('<div id="caap_load" title="Load Config">' + h + '</div>').appendTo(document.body);
-                    w.dialog({
-                        resizable : false,
-                        width     : 'auto',
-                        height    : 'auto',
-                        buttons   : {
-                            "Ok": function () {
-                                try {
-                                    v = JSON.parse($u.setContent($j("#caap_load_config", w).val(), 'null'));
-                                } catch (e) {
-                                    v = null
-                                }
-
-                                l = $u.setContent(v, 'default');
-                                if ($j.isPlainObject(l) && l !== 'default') {
-                                    config.options = l;
-                                    config.save();
-                                    w.dialog("destroy").remove();
-                                    caap.ReloadCastleAge(true);
-                                } else {
-                                    $u.warn("User config was not loaded!", l);
-                                }
-                            }
-                        },
-                        close     : function () {
-                            w.dialog("destroy").remove();
-                        }
-                    });
-                }
-
-                return w;
-            } catch (err) {
-                $u.error("ERROR in config.loadDialog: " + err);
-                return undefined;
-            }
         }
     };
 
@@ -2537,7 +2461,7 @@
                 alpha        : true,
                 duration     : 168,
                 hp           : 640000000,
-                ach          : 30000000,
+                ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
                 siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
@@ -2555,6 +2479,27 @@
                 defense_img  : 'nm_green.jpg'
             },
             'Air Elemental' : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 630000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/water_siege_small',
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/war_siege_holy_smite_2'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg'
+            },
+            'Priestess of Aurora' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 630000000,
@@ -2649,6 +2594,8 @@
                 if (count >= 4) {
                     if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
                         return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
+                    } else if (words[count - 2] === 'Priestess' && words[count - 1] === 'of' && words[count] === 'Aurora') {
+                        return words[count - 2] + ' ' + words[count - 1] + ' ' + words[count];
                     }
                 }
 
@@ -2963,7 +2910,7 @@
                     }
 
                     monster.records[it]['conditions'] = 'none';
-                    if (gm.getItem('SerializeRaidsAndMonsters', false, hiddenVar)) {
+                    if (config.getItem('SerializeRaidsAndMonsters', false)) {
                         monsterList['any'].push(monster.records[it]['name']);
                     } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'] === 'battle_monster')) {
                         monsterList[monster.records[it]['page']].push(monster.records[it]['name']);
@@ -3054,11 +3001,11 @@
                                 if (monsterObj['over'] === 'ach') {
                                     if (!firstOverAch) {
                                         firstOverAch = monsterList[selectTypes[s]][m];
-                                        $u.log(3, 'firstOverAch', firstOverAch);
+                                        $u.log(2, 'firstOverAch', firstOverAch);
                                     }
                                 } else if (monsterObj['over'] !== 'max') {
                                     firstUnderMax = monsterList[selectTypes[s]][m];
-                                    $u.log(3, 'firstUnderMax', firstUnderMax);
+                                    $u.log(2, 'firstUnderMax', firstUnderMax);
                                 }
                             }
 
@@ -5702,10 +5649,10 @@
                                     $u.warn("Unable to match war points", tempText);
                                 }
                             } else {
-                                $u.warn("Unable to find war points text in", tempDiv.parent());
+                                $u.warn("Unable to find war points text");
                             }
                         } else {
-                            $u.log(3, "Unable to find war_rank_small_icon in", resultsDiv);
+                            $u.log(3, "Unable to find war_rank_small_icon");
                         }
 
                         tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
@@ -5714,10 +5661,10 @@
                             if ($u.hasContent(tNum)) {
                                 result.gold = tNum;
                             } else {
-                                $u.warn("Unable to find gold text in", tempDiv);
+                                $u.warn("Unable to find gold text");
                             }
                         } else {
-                            $u.warn("Unable to find gold element in", resultsDiv);
+                            $u.warn("Unable to find gold element");
                         }
 
                         tempDiv = $j("form[id*='fight_opp_'] input[name='target_id']", resultsDiv).eq(0);
@@ -5726,11 +5673,11 @@
                             if ($u.hasContent(tNum) && tNum > 0) {
                                 result.userId = tNum;
                             } else {
-                                $u.warn("No value in", tempDiv);
+                                $u.warn("No value in tempDiv");
                                 throw "Unable to get userId!";
                             }
                         } else {
-                            $u.warn("Unable to find target_id in", resultsDiv);
+                            $u.warn("Unable to find target_id in resultsDiv");
                             throw "Unable to get userId!";
                         }
 
@@ -5812,7 +5759,7 @@
                                         $u.warn("Unable to match user's name in", tempText);
                                     }
                                 } else {
-                                    $u.warn("No href text in", tempDiv);
+                                    $u.warn("No href text in tempDiv");
                                     throw "Unable to get userId!";
                                 }
                             } else {
@@ -5862,7 +5809,6 @@
 
                     break;
                 case 'War' :
-                    $u.log(1, "War Result");
                     if (result.win) {
                         battleRecord['warwinsNum'] += 1;
                         $u.log(1, "War Win", battleRecord['warwinsNum']);
@@ -6179,6 +6125,7 @@
                     battleRecord    = {},
                     tempTime        = 0,
                     it              = 0,
+                    itx,
                     len             = 0,
                     tr              = $j(),
                     form            = $j(),
@@ -6348,13 +6295,13 @@
                     }
 
                     if (tempRecord.data['levelNum'] - caap.stats['level'] > maxLevel) {
-                        $u.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'minRank': minRank});
+                        $u.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'maxLevel': maxLevel});
                         continue;
                     }
 
                     if (config.getItem("BattleType", 'Invade') === "War" && battle.battles['Freshmeat']['warLevel']) {
                         if (caap.stats['rank']['war'] && (caap.stats['rank']['war'] - tempRecord.data['warRankNum'] > minRank)) {
-                            $u.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['rankNum'], 'minRank': minRank});
+                            $u.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['warRankNum'], 'minRank': minRank});
                             continue;
                         }
                     } else {
@@ -6393,13 +6340,13 @@
                             tempTime = $u.setContent(battleRecord['duelLostTime'], 0);
                             break;
                         case 'War' :
-                            tempTime = $u.setContent(battleRecord['warlostTime'], 0);
+                            tempTime = $u.setContent(battleRecord['warLostTime'], 0);
                             break;
                         default :
                             $u.warn("Battle type unknown!", config.getItem("BattleType", 'Invade'));
                         }
 
-                        if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 604800)) {
+                        if (battleRecord && !battleRecord['newRecord'] && tempTime && !schedule.since(tempTime, 604800)) {
                             $u.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
                             continue;
                         }
@@ -6496,10 +6443,31 @@
                                 delete safeTargets[it]['score'];
                                 delete safeTargets[it]['targetNumber'];
                                 delete safeTargets[it]['button'];
-                                state.setItem("lastBattleID", safeTargets[it]['userId']);
-                                safeTargets[it]['aliveTime'] = new Date().getTime();
                                 battleRecord = battle.getItem(safeTargets[it]['userId']);
-                                $j.extend(true, battleRecord, safeTargets[it]);
+                                if (battleRecord['newRecord']) {
+                                    state.setItem("lastBattleID", safeTargets[it]['userId']);
+                                    $j.extend(true, battleRecord, safeTargets[it]);
+                                    battleRecord['newRecord'] = false;
+                                    battleRecord['aliveTime'] = new Date().getTime();
+                                } else {
+                                    battleRecord['aliveTime'] = new Date().getTime();
+                                    for (itx in safeTargets[it]) {
+                                        if (safeTargets[it].hasOwnProperty(itx)) {
+                                            if (!$u.hasContent(battleRecord[itx] && $u.hasContent(safeTargets[it][itx]))) {
+                                                battleRecord[itx] = safeTargets[it][itx];
+                                            }
+
+                                            if ($u.hasContent(safeTargets[it][itx]) && $u.isString(safeTargets[it][itx]) && battleRecord[itx] !== safeTargets[it][itx]) {
+                                                battleRecord[itx] = safeTargets[it][itx];
+                                            }
+
+                                            if ($u.hasContent(safeTargets[it][itx]) && $u.isNumber(safeTargets[it][itx]) && battleRecord[itx] < safeTargets[it][itx]) {
+                                                battleRecord[itx] = safeTargets[it][itx];
+                                            }
+                                        }
+                                    }
+                                }
+
                                 battle.setItem(battleRecord);
                                 caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                                 state.setItem("notSafeCount", 0);
@@ -6513,7 +6481,7 @@
 
                 state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
                 // add a schedule here for 5 mins or so
-                if (state.getItem("notSafeCount", 0) > 100) {
+                if (state.getItem("notSafeCount", 0) > 20) {
                     caap.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
                     $u.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
                     state.setItem("notSafeCount", 0);
@@ -9539,6 +9507,7 @@
         MakeNumberForm: function (idName, instructions, initDefault, formatParms, subtype, css) {
             try {
                 subtype = $u.setContent(subtype, 'number');
+                css = $u.setContent(css, '');
                 var value = config.getItem(idName, 'defaultValue'),
                     stNum = subtype === 'number',
                     id    = idName ? " id='caap_" + idName + "'" : '',
@@ -9711,7 +9680,8 @@
             'Kingdom of Heaven',
             'Ivory City',
             'Earth II',
-            'Water II'
+            'Water II',
+            'Mist II'
         ],
 
         demiQuestList: [
@@ -9951,7 +9921,7 @@
 
                 caap.caapDivObject = $j("#caap_div");
 
-                banner += "<div id='caap_BannerHide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
+                banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
                 banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
                 caap.SetDivContent('banner', banner);
 
@@ -10578,7 +10548,7 @@
                     htmlCode += caap.MakeTD("Increase", false, false, "width: 27%; display: inline-block;");
                     htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', ''), false, false, "width: 40%; display: inline-block;");
                     htmlCode += caap.MakeTD("to", false, false, "text-align: center; width: 10%; display: inline-block;");
-                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, 0, '', 'text'), false, true, "width: 20%; display: inline-block;");
+                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, 0), false, true, "width: 20%; display: inline-block;");
                     htmlCode += caap.endTR;
                 }
 
@@ -10590,7 +10560,7 @@
                     htmlCode += caap.MakeTD(caap.MakeDropDown('Attribute' + it, attrList, '', '', ''), false, false, "width: 45%; display: inline-block;");
                     htmlCode += caap.MakeTD("using", true, false, "width: 25%; display: inline-block;");
                     htmlCode += caap.endTR;
-                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'), false, false, '');
+                    htmlCode += caap.MakeTD(caap.MakeNumberForm('AttrValue' + it, statusInstructions, '', '', 'text', 'width: 97%;'));
                 }
 
                 htmlCode += caap.endCheckHide('AutoStatAdv');
@@ -10804,7 +10774,7 @@
                 htmlCode += caap.MakeCheckTR('Alchemy Shrink', 'enableAlchemyShrink', true, alchemyShrinkInstructions);
                 htmlCode += caap.MakeCheckTR('Recipe Clean-Up', 'enableRecipeClean', 1, recipeCleanInstructions);
                 htmlCode += caap.startCheckHide('enableRecipeClean');
-                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true, false);
+                htmlCode += caap.MakeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
                 htmlCode += caap.endCheckHide('enableRecipeClean');
                 htmlCode += caap.MakeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
                 htmlCode += caap.MakeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
@@ -10827,6 +10797,9 @@
                 htmlCode += caap.MakeNumberFormTR("Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
                 htmlCode += caap.MakeSlider('Transparency', "CustStyleOpacityDark", '', 1, true);
                 htmlCode += caap.endDropHide('DisplayStyle');
+                htmlCode += caap.startTR();
+                htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
                 htmlCode += caap.MakeCheckTR('Advanced', 'AdvancedOptions', false);
                 htmlCode += caap.startCheckHide('AdvancedOptions');
                 //htmlCode += $u.is_chrome && $u.inputtypes.number ? caap.MakeCheckTR('Number Roller', 'numberRoller', true, "Enable or disable the number roller on GUI options.") : '';
@@ -10834,14 +10807,15 @@
                 htmlCode += caap.MakeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
                 htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
                 htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
+                htmlCode += "<form><fieldset><legend>Database</legend>"
+                htmlCode += caap.MakeDropDownTR("Which Data", 'DataSelect', caap.exportList(), '', '', 'Config', true, false, 50);
                 htmlCode += caap.startTR();
-                htmlCode += caap.MakeTD("<input type='button' id='caap_LoadConfig' value='Load Config' style='padding: 0; font-size: 10px; height: 18px' />", true);
-                htmlCode += caap.MakeTD("<input type='button' id='caap_SaveConfig' value='Save Config' style='padding: 0; font-size: 10px; height: 18px' />", true);
+                htmlCode += caap.MakeTD("<input type='button' id='caap_ExportData' value='Export' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+                htmlCode += caap.MakeTD("<input type='button' id='caap_ImportData' value='Import' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
+                htmlCode += caap.MakeTD("<input type='button' id='caap_DeleteData' value='Delete' style='padding: 0; font-size: 10px; height: 18px' />", true, false, "display: inline-block;");
                 htmlCode += caap.endTR;
+                htmlCode += "</fieldset></form>"
                 htmlCode += caap.endCheckHide('AdvancedOptions');
-                htmlCode += caap.startTR();
-                htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
-                htmlCode += caap.endTR;
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -12146,8 +12120,8 @@
                     html += "<tr>";
                     html += caap.makeTd({text: "Valhalla, The Air Elemental Slain", color: '', id: '', title: ''});
                     html += caap.makeTd({text: caap.stats['achievements']['monster']['valhalla'].addCommas(), color: valueCol, id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: '', id: '', title: ''});
-                    html += caap.makeTd({text: '&nbsp;', color: valueCol, id: '', title: ''});
+                    html += caap.makeTd({text: "Jahanna, Priestess of Aurora", color: '', id: '', title: ''});
+                    html += caap.makeTd({text: caap.stats['achievements']['monster']['jahanna'].addCommas(), color: valueCol, id: '', title: ''});
                     html += '</tr>';
 
                     html += "<tr>";
@@ -12859,10 +12833,6 @@
                 case "HideFBChat" :
                     $u.log(9, "HideFBChat");
                     $j("div[class*='fbDockWrapper fbDockWrapperBottom fbDockWrapperRight']").css('display', e.target.checked ? 'none' : 'block');
-                    break;
-                case "BannerDisplay" :
-                    $u.log(9, "BannerDisplay");
-                    caap.SetDisplay("caapDivObject", idName, e.target.checked);
                     break;
                 case "IgnoreBattleLoss" :
                     $u.log(9, "IgnoreBattleLoss");
@@ -13672,8 +13642,21 @@
                 $j('select[id^="caap_"]', caap.caapDivObject).change(caap.DropBoxListener);
                 $j('textarea[id^="caap_"]', caap.caapDivObject).change(caap.TextAreaListener);
                 $j('a[id^="caap_Switch"]', caap.caapDivObject).click(caap.FoldingBlockListener);
-                $j('#caap_LoadConfig', caap.caapDivObject).click(config.loadDialog);
-                $j('#caap_SaveConfig', caap.caapDivObject).click(config.saveDialog);
+                $j('#caap_ImportData', caap.caapDivObject).click(function () {
+                    var val = $u.setContent($j('#caap_DataSelect', caap.caapDivObject).val(), 'Config');
+                    caap.importDialog(val);
+                });
+
+                $j('#caap_ExportData', caap.caapDivObject).click(function () {
+                    var val = $u.setContent($j('#caap_DataSelect', caap.caapDivObject).val(), 'Config');
+                    caap.exportDialog(caap.exportTable[val]['export'](), val);
+                });
+
+                $j('#caap_DeleteData', caap.caapDivObject).click(function () {
+                    var val = $u.setContent($j('#caap_DataSelect', caap.caapDivObject).val(), 'Config');
+                    caap.deleteDialog(val);
+                });
+
                 $j('#caap_FillArmy', caap.caapDivObject).click(function (e) {
                     state.setItem("FillArmy", true);
                     state.setItem("ArmyCount", 0);
@@ -14203,7 +14186,8 @@
                     'gehenna'     : 0,
                     'aurelius'    : 0,
                     'corvintheus' : 0,
-                    'valhalla'    : 0
+                    'valhalla'    : 0,
+                    'jahanna'     : 0
                 },
                 'other' : {
                     'alchemy' : 0
@@ -14902,7 +14886,7 @@
                 achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.globalContainer);
                 if ($u.hasContent(achDiv)) {
                     tdDiv = $j("td div", achDiv);
-                    if ($u.hasContent(tdDiv) && tdDiv.length === 15) {
+                    if ($u.hasContent(tdDiv) && tdDiv.length === 16) {
                         caap.stats['achievements']['monster']['gildamesh'] = $u.setContent(tdDiv.eq(0).text().numberOnly(), 0);
                         caap.stats['achievements']['monster']['lotus'] = $u.setContent(tdDiv.eq(1).text().numberOnly(), 0);
                         caap.stats['achievements']['monster']['colossus'] = $u.setContent(tdDiv.eq(2).text().numberOnly(), 0);
@@ -14918,6 +14902,7 @@
                         caap.stats['achievements']['monster']['aurelius'] = $u.setContent(tdDiv.eq(12).text().numberOnly(), 0);
                         caap.stats['achievements']['monster']['corvintheus'] = $u.setContent(tdDiv.eq(13).text().numberOnly(), 0);
                         caap.stats['achievements']['monster']['valhalla'] = $u.setContent(tdDiv.eq(14).text().numberOnly(), 0);
+                        caap.stats['achievements']['monster']['jahanna'] = $u.setContent(tdDiv.eq(15).text().numberOnly(), 0);
                         caap.SaveStats();
                     } else {
                         $u.warn('Monster Achievements problem.');
@@ -15100,10 +15085,19 @@
                 clas : 'quests_stage_11',
                 base : 'tab_water2',
                 next : 'Ambrosia',
-                area : 'Demi Quests',
-                list : 'demiQuestList',
+                area : '',
+                list : '',
                 boss : "Corvintheus",
                 orb  : 'Orb of Corvintheus'
+            },
+            'Mist II' : {
+                clas : 'quests_stage_12',
+                base : 'tab_mist2',
+                next : 'Ambrosia',
+                area : 'Demi Quests',
+                list : 'demiQuestList',
+                boss : "Jahanna",
+                orb  : 'Orb of Jahanna'
             },
             'Ambrosia' : {
                 clas : 'symbolquests_stage_1',
@@ -15278,7 +15272,7 @@
                     }
 
                     var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
-                    var picSlice = $j("img[src*='deity_" + caap.demiQuestTable[subDQArea] + "']");
+                    var picSlice = $j("img[src*='deity_" + caap.demiQuestTable[subDQArea] + "']", caap.globalContainer);
                     if (picSlice.css("height") !== '160px') {
                         if (caap.NavigateTo('deity_' + caap.demiQuestTable[subDQArea])) {
                             return true;
@@ -15309,9 +15303,9 @@
 
                 var costToBuy = 0;
                 //Buy quest requires popup
-                var itemBuyPopUp = $j("form[id*='itemBuy']");
-                if (itemBuyPopUp && itemBuyPopUp.length) {
-                    $u.log(1, 'itemBuy');
+                var itemBuyPopUp = $j("form[id*='itemBuy']", caap.globalContainer);
+                if ($u.hasContent(itemBuyPopUp)) {
+                    $u.log(2, 'itemBuy');
                     state.setItem('storeRetrieve', 'general');
                     if (general.Select('BuyGeneral')) {
                         return true;
@@ -15346,7 +15340,7 @@
 
                 button = caap.CheckForImage('quick_buy_button.jpg');
                 if ($u.hasContent(button)) {
-                    $u.log(1, 'quick_buy_button');
+                    $u.log(2, 'quick_buy_button');
                     state.setItem('storeRetrieve', 'general');
                     if (general.Select('BuyGeneral')) {
                         return true;
@@ -15398,10 +15392,10 @@
                 }
 
                 // if found missing requires, click to buy
-                if (autoQuestDivs.tr && autoQuestDivs.tr.length) {
+                if ($u.hasContent(autoQuestDivs.tr)) {
                     var background = $j("div[style*='background-color']", autoQuestDivs.tr);
                     if (background && background.length && background.css("background-color") === 'rgb(158, 11, 15)') {
-                        $u.log(1, "Missing item", autoQuestDivs.tr);
+                        $u.log(1, "Missing item");
                         if (config.getItem('QuestSubArea', 'Atlantis') === 'Atlantis') {
                             $u.log(1, "Cant buy Atlantis items, stopping quest");
                             caap.ManualAutoQuest();
@@ -15440,7 +15434,7 @@
 
                         $u.log(2, 'Using level up general');
                     } else {
-                        if (autoQuestDivs.genDiv && autoQuestDivs.genDiv.length) {
+                        if ($u.hasContent(autoQuestDivs.genDiv)) {
                             $u.log(2, 'Clicking on general', questGeneral);
                             caap.Click(autoQuestDivs.genDiv);
                             return true;
@@ -15451,7 +15445,7 @@
                     }
                 }
 
-                if (autoQuestDivs.click && autoQuestDivs.click) {
+                if ($u.hasContent(autoQuestDivs.click)) {
                     $u.log(2, 'Clicking auto quest', autoQuestName);
                     state.setItem('ReleaseControl', true);
                     caap.Click(autoQuestDivs.click);
@@ -15484,7 +15478,7 @@
                 }
 
                 demiDiv = $j("div[id*='" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests']");
-                if (demiDiv && demiDiv.length === 5) {
+                if ($u.hasContent(demiDiv) && demiDiv.length === 5) {
                     demiDiv.each(function () {
                         var text = '',
                             num  = 0;
@@ -15881,6 +15875,7 @@
             'quests_stage_9'         : 'Ivory City',
             'quests_stage_10'        : 'Earth II',
             'quests_stage_11'        : 'Water II',
+            'quests_stage_12'        : 'Mist II',
             'symbolquests_stage_1'   : 'Ambrosia',
             'symbolquests_stage_2'   : 'Malekus',
             'symbolquests_stage_3'   : 'Corvintheus',
@@ -18753,7 +18748,7 @@
 
                 battle.checkResults();
                 symDiv = caap.appBodyDiv.find("img[src*='symbol_tiny_']").not("img[src*='rewards.jpg']");
-                if (symDiv && symDiv.length === 5) {
+                if ($u.hasContent(symDiv) && symDiv.length === 5) {
                     symDiv.each(function (index) {
                         var txt = '';
                         txt = $j(this).parent().parent().next().text();
@@ -18776,7 +18771,7 @@
                         caap.SaveDemi();
                     }
                 } else {
-                    $u.warn('Demi symDiv problem', symDiv);
+                    $u.warn('Demi symDiv problem');
                 }
 
                 return true;
@@ -21206,6 +21201,337 @@
                 return true;
             } catch (err) {
                 $u.error("ERROR in ReloadOccasionally: " + err);
+                return false;
+            }
+        },
+
+        exportTable: {
+            'Config' : {
+                'export' : function () {
+                    return config.options;
+                },
+                'import' : function (d) {
+                    config.options = d;
+                    config.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("config.options");
+                }
+            },
+            'State' : {
+                'export' : function () {
+                    return state.flags;
+                },
+                'import' : function (d) {
+                    state.flags = d;
+                    state.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("state.flags");
+                }
+            },
+            'Schedule' : {
+                'export' : function () {
+                    return schedule.timers;
+                },
+                'import' : function (d) {
+                    schedule.timers = d;
+                    schedule.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("schedule.timers");
+                }
+            },
+            'Monster' : {
+                'export' : function () {
+                    return monster.records;
+                },
+                'import' : function (d) {
+                    monster.records = d;
+                    monster.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("monster.records");
+                }
+            },
+            'Battle' : {
+                'export' : function () {
+                    return battle.records;
+                },
+                'import' : function (d) {
+                    battle.records = d;
+                    battle.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("battle.records");
+                }
+            },
+            'Guild Monster' : {
+                'export' : function () {
+                    return guild_monster.records;
+                },
+                'import' : function (d) {
+                    guild_monster.records = d;
+                    guild_monster.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("guild_monster.records");
+                }
+            },
+            'Target' : {
+                'export' : function () {
+                    return caap.ReconRecordArray;
+                },
+                'import' : function (d) {
+                    caap.ReconRecordArray = d;
+                    caap.SaveRecon();
+                },
+                'delete' : function () {
+                    gm.deleteItem("recon.records");
+                }
+            },
+            'User' : {
+                'export' : function () {
+                    return caap.stats;
+                },
+                'import' : function (d) {
+                    caap.stats = d;
+                    caap.SaveStats();
+                },
+                'delete' : function () {
+                    gm.deleteItem("stats.record");
+                }
+            },
+            'Generals' : {
+                'export' : function () {
+                    return general.records;
+                },
+                'import' : function (d) {
+                    general.records = d;
+                    general.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("general.records");
+                }
+            },
+            'Soldiers' : {
+                'export' : function () {
+                    return town.soldiers;
+                },
+                'import' : function (d) {
+                    town.soldiers = d;
+                    town.save('soldiers');
+                },
+                'delete' : function () {
+                    gm.deleteItem("soldiers.records");
+                }
+            },
+            'Item' : {
+                'export' : function () {
+                    return town.item;
+                },
+                'import' : function (d) {
+                    town.item = d;
+                    town.save('item');
+                },
+                'delete' : function () {
+                    gm.deleteItem("item.records");
+                }
+            },
+            'Magic' : {
+                'export' : function () {
+                    return town.magic;
+                },
+                'import' : function (d) {
+                    town.magic = d;
+                    town.save('magic');
+                },
+                'delete' : function () {
+                    gm.deleteItem("magic.records");
+                }
+            },
+            'Gift Stats' : {
+                'export' : function () {
+                    return gifting.history.records;
+                },
+                'import' : function (d) {
+                    gifting.history.records = d;
+                    gifting.save('history');
+                },
+                'delete' : function () {
+                    gm.deleteItem("gifting.history");
+                }
+            },
+            'Gift Queue' : {
+                'export' : function () {
+                    return gifting.queue.records;
+                },
+                'import' : function (d) {
+                    gifting.queue.records = d;
+                    gifting.save('queue');
+                },
+                'delete' : function () {
+                    gm.deleteItem("gifting.queue");
+                }
+            },
+            'Gifts' : {
+                'export' : function () {
+                    return gifting.gifts.records;
+                },
+                'import' : function (d) {
+                    gifting.queue.records = d;
+                    gifting.save('gifts');
+                },
+                'delete' : function () {
+                    gm.deleteItem("gifting.gifts");
+                }
+            },
+            'Arena' : {
+                'export' : function () {
+                    return arena.records;
+                },
+                'import' : function (d) {
+                    arena.records = d;
+                    arena.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("arena.records");
+                }
+            },
+            'Army' : {
+                'export' : function () {
+                    return army.records;
+                },
+                'import' : function (d) {
+                    army.records = d;
+                    army.save();
+                },
+                'delete' : function () {
+                    gm.deleteItem("army.records");
+                }
+            },
+            'Demi Points' : {
+                'export' : function () {
+                    return caap.demi;
+                },
+                'import' : function (d) {
+                    caap.demi = d;
+                    caap.SaveDemi();
+                },
+                'delete' : function () {
+                    gm.deleteItem("demipoint.records");
+                }
+            }
+        },
+
+        exportList: function () {
+            try {
+                var it,
+                    list = [];
+
+                for (it in caap.exportTable) {
+                    if (caap.exportTable.hasOwnProperty(it)) {
+                        list.push(it);
+                    }
+                }
+
+                return list;
+            } catch (err) {
+                $u.error("ERROR in caap.exportList: " + err);
+                return undefined;
+            }
+        },
+
+        exportDialog: function (data, title) {
+            try {
+                var h = '',
+                    w = $j("#caap_export");
+
+                if (!$u.hasContent(w)) {
+                    h = "<textarea style='resize:none;width:400px;height:400px;' disabled>" + JSON.stringify(data, null, "\t") + "</textarea>";
+                    w = $j('<div id="caap_export" title="Export ' + title + ' Data">' + h + '</div>').appendTo(document.body);
+                    w.dialog({
+                        resizable : false,
+                        width     : 'auto',
+                        height    : 'auto',
+                        buttons   : {
+                            "Ok": function () {
+                                w.dialog("destroy").remove();
+                            }
+                        },
+                        close     : function () {
+                            w.dialog("destroy").remove();
+                        }
+                    });
+                }
+
+                return w;
+            } catch (err) {
+                $u.error("ERROR in caap.exportDialog: " + err);
+                return undefined;
+            }
+        },
+
+        importDialog: function (which) {
+            try {
+                var h = '',
+                    w = $j("#caap_import"),
+                    l = {},
+                    v = '',
+                    resp = false;
+
+                if (!$u.hasContent(w)) {
+                    h = "<textarea id='caap_import_data' style='resize:none;width:400px;height:400px;'></textarea>";
+                    w = $j('<div id="caap_import" title="Import ' + which + ' Data">' + h + '</div>').appendTo(document.body);
+                    w.dialog({
+                        resizable : false,
+                        width     : 'auto',
+                        height    : 'auto',
+                        buttons   : {
+                            "Ok": function () {
+                                try {
+                                    v = JSON.parse($u.setContent($j("#caap_import_data", w).val(), 'null'));
+                                } catch (e) {
+                                    v = null;
+                                }
+
+                                l = $u.setContent(v, 'default');
+                                if ($j.isPlainObject(l) && l !== 'default') {
+                                    resp = confirm("Are you sure you want to load " + which + "?");
+                                    if (resp) {
+                                        caap.exportTable[which]['import'](l);
+                                        w.dialog("destroy").remove();
+                                        caap.ReloadCastleAge(true);
+                                    }
+                                } else {
+                                    $u.warn("User config was not loaded!", l);
+                                }
+                            }
+                        },
+                        close     : function () {
+                            w.dialog("destroy").remove();
+                        }
+                    });
+                }
+
+                return w;
+            } catch (err) {
+                $u.error("ERROR in caap.importDialog: " + err);
+                return undefined;
+            }
+        },
+
+        deleteDialog: function (which) {
+            try {
+                var resp = confirm("Are you sure you want to delete " + which + "?");
+                if (resp) {
+                    caap.exportTable[which]['delete']();
+                    caap.ReloadCastleAge(true);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in caap.deleteDialog: " + err);
                 return false;
             }
         },

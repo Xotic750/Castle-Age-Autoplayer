@@ -393,7 +393,7 @@
                 alpha        : true,
                 duration     : 168,
                 hp           : 640000000,
-                ach          : 30000000,
+                ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
                 siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
@@ -411,6 +411,27 @@
                 defense_img  : 'nm_green.jpg'
             },
             'Air Elemental' : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 630000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/water_siege_small',
+                    '/graphics/alpha_bahamut_siege_blizzard_2',
+                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/war_siege_holy_smite_2'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg'
+            },
+            'Priestess of Aurora' : {
                 alpha        : true,
                 duration     : 168,
                 hp           : 630000000,
@@ -505,6 +526,8 @@
                 if (count >= 4) {
                     if (words[count - 4] === 'Alpha' && words[count - 1] === 'Volcanic' && words[count] === 'Dragon') {
                         return words[count - 4] + ' ' + words[count - 1] + ' ' + words[count];
+                    } else if (words[count - 2] === 'Priestess' && words[count - 1] === 'of' && words[count] === 'Aurora') {
+                        return words[count - 2] + ' ' + words[count - 1] + ' ' + words[count];
                     }
                 }
 
@@ -819,7 +842,7 @@
                     }
 
                     monster.records[it]['conditions'] = 'none';
-                    if (gm.getItem('SerializeRaidsAndMonsters', false, hiddenVar)) {
+                    if (config.getItem('SerializeRaidsAndMonsters', false)) {
                         monsterList['any'].push(monster.records[it]['name']);
                     } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'] === 'battle_monster')) {
                         monsterList[monster.records[it]['page']].push(monster.records[it]['name']);
@@ -910,11 +933,11 @@
                                 if (monsterObj['over'] === 'ach') {
                                     if (!firstOverAch) {
                                         firstOverAch = monsterList[selectTypes[s]][m];
-                                        $u.log(3, 'firstOverAch', firstOverAch);
+                                        $u.log(2, 'firstOverAch', firstOverAch);
                                     }
                                 } else if (monsterObj['over'] !== 'max') {
                                     firstUnderMax = monsterList[selectTypes[s]][m];
-                                    $u.log(3, 'firstUnderMax', firstUnderMax);
+                                    $u.log(2, 'firstUnderMax', firstUnderMax);
                                 }
                             }
 
