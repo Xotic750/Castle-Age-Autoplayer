@@ -136,18 +136,18 @@
 
                 if (tempIt > -1) {
                     titleStr = spreadsheet.records[tempIt]['name'] + ": " + spreadsheet.records[tempIt]['type'];
-                    if ($u.isDefined(spreadsheet.records[tempIt]['attack']) && $u.isDefined(spreadsheet.records[tempIt]['defense'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['attack']) && $u.hasContent(spreadsheet.records[tempIt]['defense'])) {
                         titleStr += ", " + spreadsheet.records[tempIt]['attack'] + "atk," + spreadsheet.records[tempIt]['defense'] + "def";
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['hero'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['hero'])) {
                         titleStr += ", Hero: " + spreadsheet.records[tempIt]['hero'];
                         owned = general.owned(spreadsheet.records[tempIt]['hero']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe1'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe1'])) {
                         titleStr += ", Recipe1: " + spreadsheet.records[tempIt]['recipe1'];
                         if (spreadsheet.records[tempIt]['recipe1'] === "Map of Atlantis") {
                             owned = caap.stats['other']['atlantis'];
@@ -160,33 +160,33 @@
                         }
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe2'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe2'])) {
                         titleStr += ", Recipe2: " + spreadsheet.records[tempIt]['recipe2'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe2'], spreadsheet.records[tempIt]['recipe2image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe3'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe3'])) {
                         titleStr += ", Recipe3: " + spreadsheet.records[tempIt]['recipe3'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe3'], spreadsheet.records[tempIt]['recipe3image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe4'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe4'])) {
                         titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['summon'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['summon'])) {
                         titleStr += ", Summon: " + spreadsheet.records[tempIt]['summon'];
                         opacity = true;
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['comment'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['comment'])) {
                         titleStr += ", Comment: " + spreadsheet.records[tempIt]['comment'];
                     }
                 }
@@ -202,7 +202,7 @@
         doTitles: function (goblin) {
             try {
                 var images = $j("#" + caap.domain.id[caap.domain.which] + "globalContainer img");
-                if (images && images.length) {
+                if ($u.hasContent(images)) {
                     images.each(function () {
                         var img   = $j(this),
                             div   = $j(),
@@ -212,8 +212,8 @@
                             tMes  = {};
 
                         title = img.attr("title");
-                        if (title) {
-                            image = img.attr("src").basename();
+                        if ($u.hasContent(title)) {
+                            image = $u.setContent(img.attr("src"), '').basename();
                             tMes = spreadsheet.getTitle(title, image);
                             if (tMes && $j.isPlainObject(tMes) && !$j.isEmptyObject(tMes) && tMes.title) {
                                 img.attr("title", tMes.title);

@@ -413,11 +413,11 @@
             'Air Elemental' : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 630000000,
+                hp           : 650000000,
                 ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siegeDam     : [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
                     '/graphics/alpha_bahamut_siege_blizzard_2',
@@ -434,11 +434,11 @@
             'Priestess of Aurora' : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 630000000,
+                hp           : 650000000,
                 ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
                 siege_img    : [
                     '/graphics/water_siege_small',
                     '/graphics/alpha_bahamut_siege_blizzard_2',
@@ -933,11 +933,11 @@
                                 if (monsterObj['over'] === 'ach') {
                                     if (!firstOverAch) {
                                         firstOverAch = monsterList[selectTypes[s]][m];
-                                        $u.log(2, 'firstOverAch', firstOverAch);
+                                        $u.log(3, 'firstOverAch', firstOverAch);
                                     }
                                 } else if (monsterObj['over'] !== 'max') {
                                     firstUnderMax = monsterList[selectTypes[s]][m];
-                                    $u.log(2, 'firstUnderMax', firstUnderMax);
+                                    $u.log(3, 'firstUnderMax', firstUnderMax);
                                 }
                             }
 

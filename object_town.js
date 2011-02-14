@@ -25,7 +25,7 @@
             'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
             'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
             'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
-            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom/i
+            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom|Locket/i
         },
 
         record: function () {
@@ -151,9 +151,8 @@
         /*jslint sub: true */
         GetItems: function (type) {
             try {
-                var rowDiv  = $j(),
+                var rowDiv  = $j("td[class*='eq_buy_row']", caap.appBodyDiv),
                     tempDiv = $j(),
-                    tStr    = '',
                     current = {},
                     passed  = true,
                     save    = false;
@@ -164,15 +163,13 @@
                 }
 
                 town[type] = [];
-                rowDiv = caap.appBodyDiv.find("td[class*='eq_buy_row']");
-                if (rowDiv && rowDiv.length) {
+                if ($u.hasContent(rowDiv)) {
                     rowDiv.each(function (index) {
                         var row = $j(this);
                         current = new town.record();
-                        tempDiv = row.find("div[class='eq_buy_txt_int'] strong");
-                        if (tempDiv && tempDiv.length === 1) {
-                            tStr = tempDiv.text();
-                            current.data['name'] = tStr ? tStr.trim() : '';
+                        tempDiv = $j("div[class='eq_buy_txt_int'] strong", row);
+                        if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                            current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
                             current.data['type'] = town.getItemType(current.data['name']);
                         } else {
                             $u.warn("Unable to get item name in", type);
@@ -180,28 +177,24 @@
                         }
 
                         if (passed) {
-                            tempDiv = row.find("img");
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.attr("src");
-                                current.data['image'] = tStr ? tStr.basename() : '';
+                            tempDiv = $j("img", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['image'] = $u.setContent(tempDiv.attr("src"), '').basename();
                             } else {
-                                $u.log(4, "No image found for", type, current.data['name']);
+                                $u.log(3, "No image found for", type, current.data['name']);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_txt_int'] span[class='negative']");
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.text();
-                                current.data['upkeep'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_txt_int'] span[class='negative']", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['upkeep'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
-                                $u.log(4, "No upkeep found for", type, current.data.name);
+                                $u.log(3, "No upkeep found for", type, current.data.name);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_stats_int'] div");
-                            if (tempDiv && tempDiv.length === 2) {
-                                tStr = tempDiv.eq(0).text();
-                                current.data['atk'] = tStr ? tStr.numberOnly() : 0;
-                                tStr = tempDiv.eq(1).text();
-                                current.data['def'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_stats_int'] div", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
+                                current.data['atk'] = $u.setContent(tempDiv.eq(0).text(), '0').numberOnly();
+                                current.data['def'] = $u.setContent(tempDiv.eq(1).text(), '0').numberOnly();
                                 current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
                                 current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                                 current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
@@ -209,18 +202,16 @@
                                 $u.warn("No atk/def found for", type, current.data['name']);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_costs_int'] strong[class='gold']");
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.text();
-                                current.data['cost'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_costs_int'] strong[class='gold']", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['cost'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
-                                $u.log(4, "No cost found for", type, current.data['name']);
+                                $u.log(3, "No cost found for", type, current.data['name']);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_costs_int'] tr:last td").eq(0);
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.text();
-                                current.data['owned'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_costs_int'] tr:last td", row).eq(0);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['owned'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                                 current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                             } else {
                                 $u.warn("No number owned found for", type, current.data['name']);

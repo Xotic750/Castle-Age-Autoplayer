@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            50
+// @dev            51
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 (function () {
 
     var caapVersion   = "140.24.1",
-        devVersion    = "50",
+        devVersion    = "51",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -1033,7 +1033,7 @@
                     it1  = 0,
                     len1 = 0;
 
-                if (!sort.dialog[id] || !sort.dialog[id].length) {
+                if (!$u.hasContent(sort.dialog[id])) {
                     list.unshift("");
                     html += "<p>Sort by ...</p>";
                     for (it = 0; it < 3; it += 1) {
@@ -1087,7 +1087,7 @@
         getForm: function (id, records) {
             try {
                 var order = new sort.order();
-                if (sort.dialog[id] && sort.dialog[id].length) {
+                if ($u.hasContent(sort.dialog[id])) {
                     order.data['reverse']['a'] = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
                     order.data['reverse']['b'] = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
                     order.data['reverse']['c'] = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
@@ -1099,7 +1099,7 @@
                     state.setItem(id + "DashUpdate", true);
                     caap.UpdateDashboard(true);
                 } else {
-                    $u.warn("Dialog for getForm not found", id);
+                    $u.log(3, "Dialog for getForm not found", id);
                 }
 
                 return order.data;
@@ -1112,7 +1112,7 @@
         updateForm: function (id) {
             try {
                 var order = new sort.order();
-                if (sort.dialog[id] && sort.dialog[id].length) {
+                if ($u.hasContent(sort.dialog[id])) {
                     $j.extend(true, order.data, state.getItem(id + "Sort", order));
                     $j("#form0 input", sort.dialog[id]).val([order.data['reverse']['a']]);
                     $j("#form1 input", sort.dialog[id]).val([order.data['reverse']['b']]);
@@ -1121,7 +1121,7 @@
                     $j("#select1", sort.dialog[id]).val(order.data['value']['b']);
                     $j("#select2", sort.dialog[id]).val(order.data['value']['c']);
                 } else {
-                    $u.warn("Dialog for updateForm not found", id, sort.dialog[id]);
+                    $u.log(3, "Dialog for updateForm not found", id);
                 }
 
                 return true;
@@ -1589,6 +1589,8 @@
 
         CollectList: [],
 
+        SubQuestList: [],
+
         StandardList: [
             'Idle',
             'Monster',
@@ -1597,7 +1599,6 @@
             'Invade',
             'Duel',
             'War',
-            'SubQuest',
             'Arena'
         ],
 
@@ -1639,6 +1640,13 @@
                     'Morrigan'
                 ].filter(crossList);
 
+                general.SubQuestList = [
+                    'Use Current',
+                    'Under Level 4',
+                    'Sano',
+                    'Titania'
+                ].filter(crossList);
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.BuildlLists: " + err);
@@ -1648,18 +1656,11 @@
 
         GetCurrent: function () {
             try {
-                var generalName = '',
-                    tStr        = '',
-                    nameObj     = $j();
-
-                nameObj = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3");
-                if (nameObj && nameObj.length) {
-                    tStr = nameObj.text();
-                    generalName = tStr ? tStr.trim().stripTRN().replace(/\*/g, '') : '';
-                }
+                var nameObj     = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3", caap.globalContainer),
+                    generalName = $u.hasContent(nameObj) ? $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, '') : '';
 
                 if (!generalName) {
-                    $u.warn("Couldn't get current 'General'. Will use current 'General'", generalName, nameObj);
+                    $u.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
                 }
 
@@ -1675,15 +1676,13 @@
         /*jslint sub: true */
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2"),
+                var generalsDiv = $j(".generalSmallContainer2", caap.globalContainer),
                     update      = false,
-                    save        = false,
-                    tempObj     = $j();
+                    save        = false;
 
-                if (generalsDiv.length) {
+                if ($u.hasContent(generalsDiv)) {
                     generalsDiv.each(function (index) {
                         var newGeneral = new general.record(),
-                            tStr       = '',
                             name       = '',
                             img        = '',
                             level      = 0,
@@ -1692,48 +1691,40 @@
                             special    = '',
                             container  = $j(this),
                             it         = 0,
-                            len        = 0;
+                            len        = 0,
+                            tempObj    = $j(".general_name_div3", container);
 
-                        tempObj = container.find(".general_name_div3");
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.text();
-                            name = tStr ? tStr.stripTRN().replace(/\*/g, '') : '';
+                        if ($u.hasContent(tempObj)) {
+                            name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
                         } else {
                             $u.warn("Unable to find 'name' container", index);
                         }
 
-                        tempObj = container.find(".imgButton");
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.attr("src");
-                            img = tStr ? tStr.basename() : '';
+                        tempObj = $j(".imgButton", container);
+                        if ($u.hasContent(tempObj)) {
+                            img = $u.setContent(tempObj.attr("src"), '').basename();
                         } else {
                             $u.warn("Unable to find 'image' container", index);
                         }
 
                         tempObj = container.children().eq(3);
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.text();
-                            level = tStr ? tStr.replace(/Level /gi, '').stripTRN().parseInt() : 0;
+                        if ($u.hasContent(tempObj)) {
+                            level = $u.setContent(tempObj.text(), '0').replace(/Level /gi, '').stripTRN().parseInt();
                         } else {
                             $u.warn("Unable to find 'level' container", index);
                         }
 
                         tempObj = container.children().eq(4);
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.html();
-                            tStr = tStr ? tStr.replace(/<br>/g, ' ') : '';
-                            tStr = $j(tStr).text();
-                            special = tStr ? tStr.trim() : '';
+                        if ($u.hasContent(tempObj)) {
+                            special = $u.setContent($j($u.setContent(tempObj.html(), '').replace(/<br>/g, ' ')).text(), '').trim().innerTrim();
                         } else {
                             $u.warn("Unable to find 'special' container", index);
                         }
 
-                        tempObj = container.find(".generals_indv_stats_padding div");
-                        if (tempObj && tempObj.length === 2) {
-                            tStr = tempObj.eq(0).text();
-                            atk = tStr ? tStr.parseInt() : 0;
-                            tStr = tempObj.eq(1).text();
-                            def = tStr ? tStr.parseInt() : 0;
+                        tempObj = $j(".generals_indv_stats_padding div", container);
+                        if ($u.hasContent(tempObj) && tempObj.length === 2) {
+                            atk = $u.setContent(tempObj.eq(0).text(), '0').parseInt();
+                            def = $u.setContent(tempObj.eq(1).text(), '0').parseInt();
                         } else {
                             $u.warn("Unable to find 'attack and defence' containers", index);
                         }
@@ -1797,11 +1788,13 @@
                     len = 0;
 
                 general.BuildlLists();
-                $u.log(2, "Updating 'General' Drop Down Lists");
+                $u.log(3, "Updating 'General' Drop Down Lists");
                 for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                     caap.ChangeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
                 }
 
+                caap.ChangeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
+                caap.ChangeDropDownList('SiegeGeneral', general.SiegeList, config.getItem('SiegeGeneral', 'Use Current'));
                 caap.ChangeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
                 caap.ChangeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
                 caap.ChangeDropDownList('BankingGeneral', general.BankingList, config.getItem('BankingGeneral', 'Use Current'));
@@ -1884,16 +1877,12 @@
                         return general.Clear(whichGeneral);
                     }
 
-                    if (config.getItem('ReverseLevelUpGenerals')) {
-                        generalName = general.GetLevelUpNames().reverse().pop();
-                    } else {
-                        generalName = general.GetLevelUpNames().pop();
-                    }
+                    generalName = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop();
                 }
 
                 getCurrentGeneral = general.GetCurrent();
                 if (!getCurrentGeneral) {
-                    caap.ReloadCastleAge();
+                    caap.ReloadCastleAge(true);
                 }
 
                 currentGeneral = getCurrentGeneral;
@@ -1931,10 +1920,9 @@
         GetEquippedStats: function () {
             try {
                 var generalName  = general.GetCurrent(),
-                    tStr         = '',
                     it           = 0,
                     len          = 0,
-                    generalDiv   = $j(),
+                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
                     tempObj      = $j(),
                     success      = false;
 
@@ -1954,16 +1942,13 @@
                     return false;
                 }
 
-                generalDiv = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div");
-                if (generalDiv && generalDiv.length === 2) {
+                if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                     tempObj = generalDiv.eq(0);
-                    if (tempObj && tempObj.length) {
-                        tStr = tempObj.text();
-                        general.records[it]['eatk'] = tStr ? tStr.parseInt() : 0;
+                    if ($u.hasContent(tempObj)) {
+                        general.records[it]['eatk'] = $u.setContent(tempObj.text(), '0').parseInt();
                         tempObj = generalDiv.eq(1);
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.text();
-                            general.records[it]['edef'] = tStr ? tStr.parseInt() : 0;
+                        if ($u.hasContent(tempObj)) {
+                            general.records[it]['edef'] = $u.setContent(tempObj.text(), '0').parseInt();
                             success = true;
                         } else {
                             $u.warn("Unable to get 'General' defense object");
@@ -1987,7 +1972,7 @@
                         $u.warn("Unable to get 'General' stats");
                     }
                 } else {
-                    $u.warn("Unable to get equipped 'General' divs", generalDiv);
+                    $u.warn("Unable to get equipped 'General' divs");
                 }
 
                 return general.records[it];
@@ -2481,11 +2466,11 @@
             'Air Elemental' : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 630000000,
+                hp           : 650000000,
                 ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siegeDam     : [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
                     '/graphics/alpha_bahamut_siege_blizzard_2',
@@ -2502,11 +2487,11 @@
             'Priestess of Aurora' : {
                 alpha        : true,
                 duration     : 168,
-                hp           : 630000000,
+                hp           : 650000000,
                 ach          : 1000000,
                 siege        : 10,
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
-                siegeDam     : [16250000, 19500000, 22750000, 26000000, 229250000, 32500000, 39000000, 41600000, 44800000, 51200000],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
                 siege_img    : [
                     '/graphics/water_siege_small',
                     '/graphics/alpha_bahamut_siege_blizzard_2',
@@ -3001,11 +2986,11 @@
                                 if (monsterObj['over'] === 'ach') {
                                     if (!firstOverAch) {
                                         firstOverAch = monsterList[selectTypes[s]][m];
-                                        $u.log(2, 'firstOverAch', firstOverAch);
+                                        $u.log(3, 'firstOverAch', firstOverAch);
                                     }
                                 } else if (monsterObj['over'] !== 'max') {
                                     firstUnderMax = monsterList[selectTypes[s]][m];
-                                    $u.log(2, 'firstUnderMax', firstUnderMax);
+                                    $u.log(3, 'firstUnderMax', firstUnderMax);
                                 }
                             }
 
@@ -6538,7 +6523,7 @@
             'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
             'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
             'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
-            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom/i
+            'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom|Locket/i
         },
 
         record: function () {
@@ -6664,9 +6649,8 @@
         /*jslint sub: true */
         GetItems: function (type) {
             try {
-                var rowDiv  = $j(),
+                var rowDiv  = $j("td[class*='eq_buy_row']", caap.appBodyDiv),
                     tempDiv = $j(),
-                    tStr    = '',
                     current = {},
                     passed  = true,
                     save    = false;
@@ -6677,15 +6661,13 @@
                 }
 
                 town[type] = [];
-                rowDiv = caap.appBodyDiv.find("td[class*='eq_buy_row']");
-                if (rowDiv && rowDiv.length) {
+                if ($u.hasContent(rowDiv)) {
                     rowDiv.each(function (index) {
                         var row = $j(this);
                         current = new town.record();
-                        tempDiv = row.find("div[class='eq_buy_txt_int'] strong");
-                        if (tempDiv && tempDiv.length === 1) {
-                            tStr = tempDiv.text();
-                            current.data['name'] = tStr ? tStr.trim() : '';
+                        tempDiv = $j("div[class='eq_buy_txt_int'] strong", row);
+                        if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                            current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
                             current.data['type'] = town.getItemType(current.data['name']);
                         } else {
                             $u.warn("Unable to get item name in", type);
@@ -6693,28 +6675,24 @@
                         }
 
                         if (passed) {
-                            tempDiv = row.find("img");
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.attr("src");
-                                current.data['image'] = tStr ? tStr.basename() : '';
+                            tempDiv = $j("img", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['image'] = $u.setContent(tempDiv.attr("src"), '').basename();
                             } else {
-                                $u.log(4, "No image found for", type, current.data['name']);
+                                $u.log(3, "No image found for", type, current.data['name']);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_txt_int'] span[class='negative']");
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.text();
-                                current.data['upkeep'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_txt_int'] span[class='negative']", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['upkeep'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
-                                $u.log(4, "No upkeep found for", type, current.data.name);
+                                $u.log(3, "No upkeep found for", type, current.data.name);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_stats_int'] div");
-                            if (tempDiv && tempDiv.length === 2) {
-                                tStr = tempDiv.eq(0).text();
-                                current.data['atk'] = tStr ? tStr.numberOnly() : 0;
-                                tStr = tempDiv.eq(1).text();
-                                current.data['def'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_stats_int'] div", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
+                                current.data['atk'] = $u.setContent(tempDiv.eq(0).text(), '0').numberOnly();
+                                current.data['def'] = $u.setContent(tempDiv.eq(1).text(), '0').numberOnly();
                                 current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
                                 current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                                 current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
@@ -6722,18 +6700,16 @@
                                 $u.warn("No atk/def found for", type, current.data['name']);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_costs_int'] strong[class='gold']");
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.text();
-                                current.data['cost'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_costs_int'] strong[class='gold']", row);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['cost'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
-                                $u.log(4, "No cost found for", type, current.data['name']);
+                                $u.log(3, "No cost found for", type, current.data['name']);
                             }
 
-                            tempDiv = row.find("div[class='eq_buy_costs_int'] tr:last td").eq(0);
-                            if (tempDiv && tempDiv.length === 1) {
-                                tStr = tempDiv.text();
-                                current.data['owned'] = tStr ? tStr.numberOnly() : 0;
+                            tempDiv = $j("div[class='eq_buy_costs_int'] tr:last td", row).eq(0);
+                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
+                                current.data['owned'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                                 current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                             } else {
                                 $u.warn("No number owned found for", type, current.data['name']);
@@ -6964,18 +6940,18 @@
 
                 if (tempIt > -1) {
                     titleStr = spreadsheet.records[tempIt]['name'] + ": " + spreadsheet.records[tempIt]['type'];
-                    if ($u.isDefined(spreadsheet.records[tempIt]['attack']) && $u.isDefined(spreadsheet.records[tempIt]['defense'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['attack']) && $u.hasContent(spreadsheet.records[tempIt]['defense'])) {
                         titleStr += ", " + spreadsheet.records[tempIt]['attack'] + "atk," + spreadsheet.records[tempIt]['defense'] + "def";
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['hero'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['hero'])) {
                         titleStr += ", Hero: " + spreadsheet.records[tempIt]['hero'];
                         owned = general.owned(spreadsheet.records[tempIt]['hero']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe1'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe1'])) {
                         titleStr += ", Recipe1: " + spreadsheet.records[tempIt]['recipe1'];
                         if (spreadsheet.records[tempIt]['recipe1'] === "Map of Atlantis") {
                             owned = caap.stats['other']['atlantis'];
@@ -6988,33 +6964,33 @@
                         }
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe2'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe2'])) {
                         titleStr += ", Recipe2: " + spreadsheet.records[tempIt]['recipe2'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe2'], spreadsheet.records[tempIt]['recipe2image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe3'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe3'])) {
                         titleStr += ", Recipe3: " + spreadsheet.records[tempIt]['recipe3'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe3'], spreadsheet.records[tempIt]['recipe3image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['recipe4'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['recipe4'])) {
                         titleStr += ", Recipe4: " + spreadsheet.records[tempIt]['recipe4'];
                         owned = town.getCount(spreadsheet.records[tempIt]['recipe4'], spreadsheet.records[tempIt]['recipe4image']);
                         titleStr += " (Owned: " + owned + ")";
                         hide = (owned ? false : true);
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['summon'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['summon'])) {
                         titleStr += ", Summon: " + spreadsheet.records[tempIt]['summon'];
                         opacity = true;
                     }
 
-                    if ($u.isDefined(spreadsheet.records[tempIt]['comment'])) {
+                    if ($u.hasContent(spreadsheet.records[tempIt]['comment'])) {
                         titleStr += ", Comment: " + spreadsheet.records[tempIt]['comment'];
                     }
                 }
@@ -7030,7 +7006,7 @@
         doTitles: function (goblin) {
             try {
                 var images = $j("#" + caap.domain.id[caap.domain.which] + "globalContainer img");
-                if (images && images.length) {
+                if ($u.hasContent(images)) {
                     images.each(function () {
                         var img   = $j(this),
                             div   = $j(),
@@ -7040,8 +7016,8 @@
                             tMes  = {};
 
                         title = img.attr("title");
-                        if (title) {
-                            image = img.attr("src").basename();
+                        if ($u.hasContent(title)) {
+                            image = $u.setContent(img.attr("src"), '').basename();
                             tMes = spreadsheet.getTitle(title, image);
                             if (tMes && $j.isPlainObject(tMes) && !$j.isEmptyObject(tMes) && tMes.title) {
                                 img.attr("title", tMes.title);
@@ -7465,57 +7441,57 @@
 
         popCheck: function (type) {
             try {
-                var popDiv     = $j(),
+                var popDiv     = $j("#pop_content"),
                     tempDiv    = $j(),
                     tempText   = '',
                     tryAgain   = true;
 
-                popDiv = $j("#pop_content");
                 if ($u.hasContent(popDiv)) {
                     tempDiv = $j("input[name='sendit']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        $u.log(1, 'Sending gifts to Facebook');
+                        $u.log(2, 'Sending gifts to Facebook');
                         caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = $j("input[name='skip_ci_btn']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        $u.log(1, 'Denying Email Nag For Gift Send');
+                        $u.log(2, 'Denying Email Nag For Gift Send');
                         caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = $j("input[name='ok']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        tempText = tempDiv.parent().parent().prev().text();
+                        tempText = $u.setContent(tempDiv.parent().parent().prev().text(), '').trim().innerTrim();
                         if (tempText) {
                             if (/you have run out of requests/.test(tempText)) {
-                                $u.log(2, 'Out of requests: ', tempText);
+                                $u.log(2, 'Out of gift requests: ', tempText);
                                 schedule.setItem("MaxGiftsExceeded", 10800, 300);
+                                caap.SetDivContent('gifting_mess', "Max gift limit");
                                 tryAgain = false;
                             } else {
-                                $u.warn('Popup message: ', tempText);
+                                $u.warn('Unknown popup message: ', tempText);
                             }
                         } else {
-                            $u.warn('Popup message but no text found', tempDiv);
+                            $u.warn('Popup message but no text found');
                         }
 
                         caap.Click(tempDiv);
                         return tryAgain;
                     }
 
-                    tempText = popDiv.text();
+                    tempText = $u.setContent(popDiv.text(), '').trim().innerTrim();
                     if (tempText) {
                         if (/Loading/.test(tempText)) {
                             $u.log(2, "Popup is loading ...");
                             return true;
                         } else {
-                            $u.warn('Unknown popup!', popDiv.text());
+                            $u.warn('Unknown popup!', tempText);
                             return false;
                         }
                     } else {
-                        $u.warn('Popup message but no text found', popDiv);
+                        $u.warn('Popup message but no text found');
                         return false;
                     }
                 }
@@ -7606,9 +7582,7 @@
 
             populate: function () {
                 try {
-                    var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']"),
-                        newGift  = {},
-                        tempDiv  = $j(),
+                    var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']", caap.globalContainer),
                         tempText = '',
                         tempArr  = [],
                         update   = false;
@@ -7616,9 +7590,10 @@
                     if ($u.hasContent(giftDiv)) {
                         gifting.clear("gifts");
                         giftDiv.each(function () {
-                            var theGift = $j(this);
-                            newGift = new gifting.gifts.record();
-                            tempDiv = theGift.children().eq(0);
+                            var theGift = $j(this),
+                                tempDiv = theGift.children().eq(0),
+                                newGift = new gifting.gifts.record();
+
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.text(), '').trim().replace("!", "");
                                 if ($u.hasContent(tempText)) {
@@ -7734,7 +7709,7 @@
 
             fix: function () {
                 try {
-                    var it = 0,
+                    var it   = 0,
                         save = false;
 
                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
@@ -8112,9 +8087,9 @@
                         sentok     = false;
 
                     if (window.location.href.hasIndexOf('act=create')) {
-                        resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper');
+                        resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper', caap.globalContainer);
                         if ($u.hasContent(resultDiv)) {
-                            resultText = resultDiv.text();
+                            resultText = $u.setContent(resultDiv.text(), '').trim().innerTrim();
                             if ($u.hasContent(resultText)) {
                                 if (/You have sent \d+ gift/.test(resultText)) {
                                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
@@ -8131,6 +8106,7 @@
                                 } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                     $u.log(1, 'Exceeded daily gift limit.');
                                     schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
+                                    caap.SetDivContent('gifting_mess', "Max gift limit");
                                 } else {
                                     $u.log(2, 'Result message', resultText);
                                 }
@@ -8471,17 +8447,17 @@
 
                 for (it = 0, len = army.records.length; it < len; it += 1) {
                     if (army.records[it]['userId'] === record['userId']) {
-                        army.records[it] = record;
                         found = true;
                         break;
                     }
                 }
 
-                if (!found) {
-                    $u.log(3, "Added record'");
-                    army.records.push(record);
+                if (found) {
+                    army.records[it] = record;
+                    $u.log(3, "Updated record");
                 } else {
-                    $u.log(3, "Updated record'");
+                    army.records.push(record);
+                    $u.log(3, "Added record");
                 }
 
                 army.save();
@@ -8507,7 +8483,7 @@
                 }
 
                 if (!found) {
-                    $u.log(1, "Unable to find 'userId'", userId);
+                    $u.log(3, "Unable to find 'userId'", userId);
                 }
 
                 return found ? army.records[it] : {};
@@ -8532,7 +8508,7 @@
                 }
 
                 if (!found) {
-                    $u.log(1, "Unable to find 'userId'", userId);
+                    $u.log(3, "Unable to find 'userId'", userId);
                 } else {
                     army.save();
                     army.copy2sortable();
@@ -8575,16 +8551,11 @@
                         search.each(function () {
                             var el = $j(this);
                             record = new army.record();
-                            tStr = el.attr("href");
-                            tNum = $u.hasContent(tStr) ? tStr.regex(/casuser=(\d+)/) : null;
-                            record.data['userId'] = $u.setContent(tNum, 0);
-                            tStr = el.parents("tr").eq(0).text().trim().innerTrim();
-                            tTxt = $u.hasContent(tStr) ? tStr.regex(new RegExp('(.+)\\s+"')) : '';
-                            record.data['user'] = $u.hasContent(tTxt) ?  tTxt.toString() : '';
-                            tTxt = $u.hasContent(tStr) ? tStr.regex(new RegExp('"(.+)"')) : '';
-                            record.data['name'] = $u.hasContent(tTxt) ? tTxt.toString() : '';
-                            tNum = $u.hasContent(tStr) ? tStr.regex(/Level\s+(\d+)/) : null;
-                            record.data['lvl'] = $u.setContent(tNum, 0);
+                            record.data['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
+                            tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
+                            record.data['user'] = $u.setContent(tStr.regex(new RegExp('(.+)\\s+"')), '').toString();
+                            record.data['name'] = $u.setContent(tStr.regex(new RegExp('"(.+)"')), '').toString();
+                            record.data['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
                             record.data['last'] = new Date().getTime();
                             if ($u.hasContent(record.data['userId']) && record.data['userId'] > 0) {
                                 army.recordsTemp.push(record.data);
@@ -8594,11 +8565,9 @@
                         });
 
                         if (number === pCount) {
-                            search = $j("img[src*='bonus_member.jpg']", caap.globalContainer).parent().parent().find("a[href*='oracle.php']");
+                            search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", caap.appBodyDiv).parent().parent());
                             if ($u.hasContent(search)) {
-                                tStr = search.text();
-                                tNum = $u.hasContent(tStr) ? tStr.regex(/Extra members x(\d+)/) : null;
-                                len = $u.setContent(tNum, 0);
+                                len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members x(\d+)/), 0);
                                 for (it = 1; it <= len; it += 1) {
                                     record = new army.record();
                                     record.data['userId'] = 0 - it;
@@ -8611,7 +8580,7 @@
                         }
 
                         ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
-                        $u.log(2, "army.page", number, pCount, army.recordsTemp);
+                        $u.log(2, "army.page", number, pCount, army.recordsTemp.length);
                         army.pageDone = true;
                         caap.delayMain = false;
                     }, 400);
@@ -9318,7 +9287,7 @@
                     imageTest = imageTest.hasIndexOf(".") ? imageTest : imageTest + '.';
                     img = $u.hasContent(imageTest) ? caap.CheckForImage(imageTest) : img;
                     if ($u.hasContent(img)) {
-                        $u.log(2, 'Click on image', img.attr("src").regex(/([\w.]+$)/));
+                        $u.log(2, 'Click on image', img.attr("src").basename());
                         caap.Click(img);
                         return true;
                     }
@@ -9409,6 +9378,7 @@
                 htmlCode = "<select class='caap_ff caap_fs caap_ww'" + id + css + title + formatParms + ">";
                 htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
                 for (item = 0; item < len; item += 1) {
+                    title = instructions[item] ? " title='" + instructions[item] + "'" : '';
                     htmlCode += "<option value='" + dropDownList[item] + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item] + "</option>";
                 }
 
@@ -9424,8 +9394,7 @@
             try {
                 id = id ? " id='" + id  + "'" : '';
                 css = css ? " style='" + css + "'" : '';
-                var cls = " class='caap_ff caap_fn caap_ww'";
-                return "<div" + cls + id + css + ">";
+                return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
             } catch (err) {
                 $u.error("ERROR in startTR: " + err);
                 return '';
@@ -9448,7 +9417,7 @@
         MakeSlider: function (text, id, inst, defaultValue, indent) {
             try {
                 var value = config.getItem(id, 'defaultValue'),
-                    html = "<div class='caap_ff caap_fn caap_ww' id='caap_" + id + "'>";
+                    html  = "<div class='caap_ff caap_fn caap_ww' id='caap_" + id + "'>";
 
                 value = value !== 'defaultValue' ? value : config.setItem(id, $u.setContent(defaultValue, 1));
                 html += '<div style="width: ' + (indent ? "42%;padding-left: 5%;" : "47%") + ';display: inline-block;">' + text + '</div>';
@@ -9465,13 +9434,13 @@
         MakeSliderListener: function (id, min, max, step, defaultValue, opacity) {
             try {
                 $j("#caap_" + id + "_slider", caap.caapDivObject).slider({
-                    orientation: "horizontal",
-                    range: "min",
-                    min: min,
-                    max: max,
-                    step: step,
-                    value: config.getItem(id, defaultValue),
-                    slide: function (event, ui) {
+                    orientation : "horizontal",
+                    range       : "min",
+                    min         : min,
+                    max         : max,
+                    step        : step,
+                    value       : config.getItem(id, defaultValue),
+                    slide       : function (event, ui) {
                         if (opacity) {
                             state.setItem(id.replace("Cust", ''), config.setItem(id, ui.value));
                             caap.colorUpdate();
@@ -9534,7 +9503,7 @@
         MakeCheckTR: function (text, idName, defaultValue, instructions, indent, right, css) {
             try {
                 var htmlCode = '';
-                htmlCode = caap.startTR();
+                htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 85 : 90) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeCheckBox(idName, defaultValue, instructions, css), false, true, "width: 10%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -9572,7 +9541,7 @@
                 right = $u.setContent(right, false);
                 width = $u.setContent(width, 30);
                 var htmlCode = '';
-                htmlCode = caap.startTR();
+                htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 92 - width : 97 - width) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeNumberForm(idName, instructions, initDefault, formatParms, subtype, ''), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -9586,7 +9555,7 @@
         MakeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css) {
             try {
                 var htmlCode = '';
-                htmlCode = caap.startTR();
+                htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeDropDown(idName, dropDownList, instructions, formatParms, defaultValue, css), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -9627,7 +9596,7 @@
                     style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
                     toggleCode     = '';
 
-                toggleCode = '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
+                toggleCode += '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
                 toggleCode += displayChar + ' ' + staticText + '</a><br />' + "<div id='caap_" + controlId + "' style='display: " + currentDisplay + ";'>";
                 return toggleCode;
             } catch (err) {
@@ -9722,7 +9691,7 @@
 
         updateAutoQuest: function (id, value) {
             try {
-                if (!$u.isString(id) || !$u.hasContent(value)) {
+                if (!$u.isString(id) || !$u.hasContent(id)) {
                     throw "No valid id supplied!";
                 }
 
@@ -9883,6 +9852,7 @@
                         'fortify_mess',
                         'heal_mess',
                         'demipoint_mess',
+                        'gifting_mess',
                         'demibless_mess',
                         'level_mess',
                         'exp_mess',
@@ -10289,7 +10259,7 @@
                 htmlCode += caap.startCheckHide('DemiPointsFirst');
                 for (demiPtItem = 0; demiPtItem < demiPoint.length; demiPtItem += 1) {
                     subCode += "<span title='" + demiPoint[demiPtItem] + "'>";
-                    subCode += "<img alt='" + demiPoint[demiPtItem] + "' src='data:image/jpg;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>";
+                    subCode += "<img alt='" + demiPoint[demiPtItem] + "' src='data:image/gif;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>";
                     subCode += caap.MakeCheckBox('DemiPoint' + demiPtItem, true);
                     subCode += "</span>";
                 }
@@ -10484,6 +10454,7 @@
                     htmlCode += caap.MakeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
                 }
 
+                htmlCode += caap.MakeDropDownTR("SubQuest", 'SubQuestGeneral', general.SubQuestList, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.MakeDropDownTR("Buy", 'BuyGeneral', general.BuyList, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.MakeDropDownTR("Collect", 'CollectGeneral', general.CollectList, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.MakeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 62);
@@ -10593,19 +10564,15 @@
                 htmlCode += caap.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
                 htmlCode += caap.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Don't return gifts to a list of UserIDs");
                 htmlCode += caap.startCheckHide('FilterReturnId');
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(caap.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.endCheckHide('FilterReturnId');
                 htmlCode += caap.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Don't return gifts for a list of certain gifts recieved");
                 htmlCode += caap.startCheckHide('FilterReturnGift');
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(caap.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', ''));
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
                 htmlCode += caap.endToggle;
@@ -10630,15 +10597,12 @@
                 htmlCode += caap.MakeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
                 htmlCode += caap.startCheckHide('AutoElite');
                 htmlCode += caap.MakeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(caap.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.endCheckHide('AutoElite');
                 htmlCode += caap.endToggle;
                 return htmlCode;
@@ -10784,9 +10748,12 @@
                 htmlCode += caap.MakeCheckTR('Display Name', 'SetTitleName', false, titleInstructions2, true);
                 htmlCode += caap.endCheckHide('SetTitle');
                 htmlCode += caap.MakeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
-                htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
-                htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
-                htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                if (caap.domain.which === 0) {
+                    htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
+                    htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
+                    htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                }
+
                 htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
                 htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
                 htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
@@ -10797,9 +10764,12 @@
                 htmlCode += caap.MakeNumberFormTR("Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
                 htmlCode += caap.MakeSlider('Transparency', "CustStyleOpacityDark", '', 1, true);
                 htmlCode += caap.endDropHide('DisplayStyle');
-                htmlCode += caap.startTR();
-                htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
-                htmlCode += caap.endTR;
+                if (caap.domain.which === 0) {
+                    htmlCode += caap.startTR();
+                    htmlCode += caap.MakeTD("<input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+                    htmlCode += caap.endTR;
+                }
+
                 htmlCode += caap.MakeCheckTR('Advanced', 'AdvancedOptions', false);
                 htmlCode += caap.startCheckHide('AdvancedOptions');
                 //htmlCode += $u.is_chrome && $u.inputtypes.number ? caap.MakeCheckTR('Number Roller', 'numberRoller', true, "Enable or disable the number roller on GUI options.") : '';
@@ -11479,6 +11449,10 @@
                         case 'Change':
                             header.width = '10%';
                             break;
+                        case 'Elite':
+                            header.text = '<span id="caap_army_elite" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>';
+                            header.width = '5%';
+                            break;
                         default:
                             header.text = headers[pp];
                             header.width = '5%';
@@ -11490,6 +11464,10 @@
 
                     html += '</tr>';
                     for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
+                        if (army.recordsSortable[i]["userId"] <= 0) {
+                            continue;
+                        }
+
                         html += "<tr>";
                         if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor4", 'red');
@@ -11536,7 +11514,7 @@
                         }
 
                         data = {
-                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
                             color : 'blue',
                             id    : '',
                             title : ''
@@ -11597,10 +11575,9 @@
                         }
 
                         if ($u.hasContent(userid) && userid > 0) {
-                            record = $j(userid, army);
+                            record = army.getItem(userid);
                             record['elite'] = !cstate;
                             army.setItem(record);
-                            $u.log(4, "check", userid, record, e.target.attributes);
                             state.setItem("ArmyDashUpdate", true);
                             caap.UpdateDashboard(true);
                         }
@@ -13223,7 +13200,7 @@
                         }
                     } else if (idName === 'BattleType') {
                         state.getItem('BattleChainId', 0);
-                    } else if (idName === 'AutoBless') {
+                    } else if (idName === 'AutoBless' && value === 'None') {
                         schedule.setItem('BlessingTimer', 0);
                     } else if (idName === 'TargetType') {
                         state.getItem('BattleChainId', 0);
@@ -16152,10 +16129,8 @@
 
             if (/Please come back in:/.test(resultsText)) {
                 // Check time until next Oracle Blessing
-                hours = resultsText.regex(/(\d+) hour/);
-                hours = $u.isNumber(hours) ? hours : 3;
-                minutes = resultsText.regex(/(\d+) minute/);
-                minutes = $u.isNumber(minutes) ? minutes : 0;
+                hours = $u.setContent(resultsText.regex(/(\d+) hour/), 3);
+                minutes = $u.setContent(resultsText.regex(/(\d+) minute/), 0);
                 done = true;
             } else if (/You have paid tribute to/.test(resultsText)) {
                 // Recieved Demi Blessing.  Wait X hours to try again.
@@ -16164,17 +16139,17 @@
             }
 
             if (done) {
-                $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + minutes);
+                $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
                 schedule.setItem('BlessingTimer', (hours * 60 + minutes) * 60, 300);
             }
         },
 
         AutoBless: function () {
-            var picSlice  = $j(),
-                autoBless = '';
+            var autoBless  = config.getItem('AutoBless', 'none'),
+                autoBlessN = caap.deityTable[autoBless.toLowerCase()],
+                picSlice   = $j();
 
-            autoBless = config.getItem('AutoBless', 'none').toLowerCase();
-            if (autoBless === 'none' || !schedule.check('BlessingTimer')) {
+            if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
                 return false;
             }
 
@@ -16182,32 +16157,25 @@
                 return true;
             }
 
-            picSlice = $j("img[src*='deity_" + autoBless + "']", caap.globalContainer);
+            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + autoBlessN, caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No diety pics for deity', autoBless);
                 return false;
             }
 
             if (picSlice.css('height') !== '160px') {
-                return caap.NavigateTo('deity_' + autoBless);
+                return caap.NavigateTo(picSlice.attr("src").basename());
             }
 
-            picSlice = $j("form[id*='" + caap.domain.id[caap.domain.which] + "symbols_form_" + caap.deityTable[autoBless] + "']", caap.globalContainer);
+            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbols_form_" + autoBlessN + " input[name='symbolsubmit']", caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
-                $u.warn('No form for deity blessing.');
+                $u.warn('No image for deity blessing', autoBless);
                 return false;
             }
 
-            picSlice = caap.CheckForImage('demi_quest_bless', picSlice);
-            if (!$u.hasContent(picSlice)) {
-                $u.warn('No image for deity blessing.');
-                return false;
-            }
-
-            $u.log(1, 'Click deity blessing for ', autoBless);
+            $u.log(1, 'Click deity blessing for', autoBless);
             schedule.setItem('BlessingTimer', 3600, 300);
-            caap.Click(picSlice);
-            return true;
+            return caap.NavigateTo(picSlice.attr("src").basename());
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -17650,7 +17618,7 @@
 
                         if (!monster.completeButton[page]['button'] && !monster.completeButton[page]['name']) {
                             monster.completeButton[page]['name'] = monsterName;
-                            monster.completeButton[page]['button'] = caap.CheckForImage('cancelButton.gif', monsterRow);
+                            monster.completeButton[page]['button'] = $j("img[src*='cancelButton.gif']", monsterRow);
                         }
 
                         monsterReviewed['status'] = 'Complete';
@@ -18269,6 +18237,15 @@
                         state.setItem('reviewDone', true);
                     }
 
+                    if (config.getItem('clearCompleteMonsters', false) && monster.completeButton['battle_monster']['button'] && monster.completeButton['battle_monster']['name']) {
+                        caap.Click(monster.completeButton['battle_monster']['button']);
+                        monster.deleteItem(monster.completeButton['battle_monster']['name']);
+                        monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
+                        caap.UpdateDashboard(true);
+                        $u.log(1, 'Cleared a completed monster');
+                        return true;
+                    }
+
                     if (state.getItem('reviewDone', true)) {
                         state.setItem('monsterReviewCounter', counter += 1);
                     } else {
@@ -18285,6 +18262,15 @@
                     } else {
                         $u.log(1, "Raids: Unlock at level 8");
                         state.setItem('reviewDone', true);
+                    }
+
+                    if (config.getItem('clearCompleteRaids', false) && monster.completeButton['raid']['button'] && monster.completeButton['raid']['name']) {
+                        caap.Click(monster.completeButton['raid']['button']);
+                        monster.deleteItem(monster.completeButton['raid']['name']);
+                        monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
+                        caap.UpdateDashboard(true);
+                        $u.log(1, 'Cleared a completed raid');
+                        return true;
                     }
 
                     if (state.getItem('reviewDone', true)) {
@@ -19808,6 +19794,7 @@
                     if (caap.GiftExceedLog) {
                         $u.log(1, 'Gifting limit exceeded, will try later');
                         caap.GiftExceedLog = false;
+                        caap.SetDivContent('gifting_mess', "Max gift limit");
                     }
 
                     return false;
@@ -19823,9 +19810,9 @@
                     giftImg = gifting.gifts.getImg(giftChoice);
                     if (giftImg) {
                         caap.NavigateTo('gift_more_gifts.gif');
-                        tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer img[class='imgButton']").eq(0);
-                        if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.attr("src").basename();
+                        tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer img[class='imgButton']", caap.globalContainer).eq(0);
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.attr("src"), '').basename();
                             if (tempText !== giftImg) {
                                 $u.log(4, "images", tempText, giftImg);
                                 return caap.NavigateTo(giftImg);
@@ -19838,8 +19825,8 @@
                     }
 
                     if (gifting.queue.chooseFriend(gm.getItem("NumberOfGifts", 5, hiddenVar))) {
-                        tempDiv = $j("form[id*='req_form_'] input[name='send']");
-                        if (tempDiv && tempDiv.length) {
+                        tempDiv = $j("form[id*='req_form_'] input[name='send']", caap.globalContainer);
+                        if ($u.hasContent(tempDiv)) {
                             caap.Click(tempDiv);
                             return true;
                         } else {
@@ -19885,7 +19872,7 @@
             try {
                 attribute = attribute.toLowerCase();
                 var button        = $j(),
-                    ajaxLoadIcon  = $j(),
+                    ajaxLoadIcon  = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon'),
                     level         = 0,
                     attrCurrent   = 0,
                     energy        = 0,
@@ -19894,24 +19881,18 @@
                     defense       = 0,
                     health        = 0,
                     attrAdjustNew = 0,
-                    energyDiv     = $j(),
-                    staminaDiv    = $j(),
-                    attackDiv     = $j(),
-                    defenseDiv    = $j(),
-                    healthDiv     = $j(),
+                    energyDiv     = $j("a[href*='energy_max']", atributeSlice),
+                    staminaDiv    = $j("a[href*='stamina_max']", atributeSlice),
+                    attackDiv     = $j("a[href*='attack']", atributeSlice),
+                    defenseDiv    = $j("a[href*='defense']", atributeSlice),
+                    healthDiv     = $j("a[href*='health_max']", atributeSlice),
                     logTxt        = "";
 
-                ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
-                if (!ajaxLoadIcon.length || ajaxLoadIcon.css("display") !== 'none') {
+                if (!$u.hasContent(ajaxLoadIcon) || ajaxLoadIcon.css("display") !== 'none') {
                     $u.warn("Unable to find AjaxLoadIcon or page not loaded: Fail");
                     return "Fail";
                 }
 
-                energyDiv = atributeSlice.find("a[href*='energy_max']");
-                staminaDiv = atributeSlice.find("a[href*='stamina_max']");
-                attackDiv = atributeSlice.find("a[href*='attack']");
-                defenseDiv = atributeSlice.find("a[href*='defense']");
-                healthDiv = atributeSlice.find("a[href*='health_max']");
                 switch (attribute) {
                 case "energy" :
                     button = energyDiv;
@@ -19932,7 +19913,7 @@
                     throw "Unable to match attribute: " + attribute;
                 }
 
-                if (!button) {
+                if (!$u.hasContent(button)) {
                     $u.warn("Unable to locate upgrade button: Fail ", attribute);
                     return "Fail";
                 }
@@ -19941,7 +19922,7 @@
                 logTxt = attrAdjust;
                 level = caap.stats['level'];
                 function getValue(div) {
-                    return div.parent().parent().find("div[class='attribute_stat_container']").text().regex(/(\d+)/);
+                    return $u.setContent($j("div[class='attribute_stat_container']", div.parent().parent()).text(), '').regex(/(\d+)/);
                 }
 
                 attrCurrent = getValue(button);
@@ -20088,7 +20069,7 @@
                     return false;
                 }
 
-                var atributeSlice      = null,
+                var atributeSlice      = $j("div[class*='keep_attribute_section']", caap.globalContainer),
                     startAtt           = 0,
                     stopAtt            = 4,
                     attrName           = '',
@@ -20097,8 +20078,7 @@
                     n                  = 0,
                     returnIncreaseStat = '';
 
-                atributeSlice = $j("div[class*='keep_attribute_section']");
-                if (!atributeSlice || !atributeSlice.length) {
+                if (!$u.hasContent(atributeSlice)) {
                     caap.NavigateTo('keep');
                     return true;
                 }
@@ -21496,7 +21476,7 @@
                                 }
 
                                 l = $u.setContent(v, 'default');
-                                if ($j.isPlainObject(l) && l !== 'default') {
+                                if (($j.isArray(l) || $j.isPlainObject(l)) && l !== 'default') {
                                     resp = confirm("Are you sure you want to load " + which + "?");
                                     if (resp) {
                                         caap.exportTable[which]['import'](l);
@@ -21504,7 +21484,7 @@
                                         caap.ReloadCastleAge(true);
                                     }
                                 } else {
-                                    $u.warn("User config was not loaded!", l);
+                                    $u.warn(which + " config was not loaded!", l);
                                 }
                             }
                         },

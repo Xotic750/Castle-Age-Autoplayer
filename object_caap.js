@@ -550,7 +550,7 @@
                     imageTest = imageTest.hasIndexOf(".") ? imageTest : imageTest + '.';
                     img = $u.hasContent(imageTest) ? caap.CheckForImage(imageTest) : img;
                     if ($u.hasContent(img)) {
-                        $u.log(2, 'Click on image', img.attr("src").regex(/([\w.]+$)/));
+                        $u.log(2, 'Click on image', img.attr("src").basename());
                         caap.Click(img);
                         return true;
                     }
@@ -641,6 +641,7 @@
                 htmlCode = "<select class='caap_ff caap_fs caap_ww'" + id + css + title + formatParms + ">";
                 htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
                 for (item = 0; item < len; item += 1) {
+                    title = instructions[item] ? " title='" + instructions[item] + "'" : '';
                     htmlCode += "<option value='" + dropDownList[item] + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item] + "</option>";
                 }
 
@@ -656,8 +657,7 @@
             try {
                 id = id ? " id='" + id  + "'" : '';
                 css = css ? " style='" + css + "'" : '';
-                var cls = " class='caap_ff caap_fn caap_ww'";
-                return "<div" + cls + id + css + ">";
+                return "<div class='caap_ff caap_fn caap_ww'" + id + css + ">";
             } catch (err) {
                 $u.error("ERROR in startTR: " + err);
                 return '';
@@ -680,7 +680,7 @@
         MakeSlider: function (text, id, inst, defaultValue, indent) {
             try {
                 var value = config.getItem(id, 'defaultValue'),
-                    html = "<div class='caap_ff caap_fn caap_ww' id='caap_" + id + "'>";
+                    html  = "<div class='caap_ff caap_fn caap_ww' id='caap_" + id + "'>";
 
                 value = value !== 'defaultValue' ? value : config.setItem(id, $u.setContent(defaultValue, 1));
                 html += '<div style="width: ' + (indent ? "42%;padding-left: 5%;" : "47%") + ';display: inline-block;">' + text + '</div>';
@@ -697,13 +697,13 @@
         MakeSliderListener: function (id, min, max, step, defaultValue, opacity) {
             try {
                 $j("#caap_" + id + "_slider", caap.caapDivObject).slider({
-                    orientation: "horizontal",
-                    range: "min",
-                    min: min,
-                    max: max,
-                    step: step,
-                    value: config.getItem(id, defaultValue),
-                    slide: function (event, ui) {
+                    orientation : "horizontal",
+                    range       : "min",
+                    min         : min,
+                    max         : max,
+                    step        : step,
+                    value       : config.getItem(id, defaultValue),
+                    slide       : function (event, ui) {
                         if (opacity) {
                             state.setItem(id.replace("Cust", ''), config.setItem(id, ui.value));
                             caap.colorUpdate();
@@ -766,7 +766,7 @@
         MakeCheckTR: function (text, idName, defaultValue, instructions, indent, right, css) {
             try {
                 var htmlCode = '';
-                htmlCode = caap.startTR();
+                htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 85 : 90) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeCheckBox(idName, defaultValue, instructions, css), false, true, "width: 10%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -804,7 +804,7 @@
                 right = $u.setContent(right, false);
                 width = $u.setContent(width, 30);
                 var htmlCode = '';
-                htmlCode = caap.startTR();
+                htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 92 - width : 97 - width) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeNumberForm(idName, instructions, initDefault, formatParms, subtype, ''), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -818,7 +818,7 @@
         MakeDropDownTR: function (text, idName, dropDownList, instructions, formatParms, defaultValue, indent, right, width, css) {
             try {
                 var htmlCode = '';
-                htmlCode = caap.startTR();
+                htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(text, indent, right, "width: " + (indent ? 95 - width : 100 - width) + "%; display: inline-block;");
                 htmlCode += caap.MakeTD(caap.MakeDropDown(idName, dropDownList, instructions, formatParms, defaultValue, css), false, true, "width: " + width + "%; display: inline-block;");
                 htmlCode += caap.endTR;
@@ -859,7 +859,7 @@
                     style = "font-family: 'lucida grande', tahoma, verdana, arial, sans-serif; font-size: 11px;",
                     toggleCode     = '';
 
-                toggleCode = '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
+                toggleCode += '<a style=\"font-weight: bold;' + style + '\" id="caap_Switch_' + controlId + '" href="javascript:;" style="text-decoration: none;"> ';
                 toggleCode += displayChar + ' ' + staticText + '</a><br />' + "<div id='caap_" + controlId + "' style='display: " + currentDisplay + ";'>";
                 return toggleCode;
             } catch (err) {
@@ -954,7 +954,7 @@
 
         updateAutoQuest: function (id, value) {
             try {
-                if (!$u.isString(id) || !$u.hasContent(value)) {
+                if (!$u.isString(id) || !$u.hasContent(id)) {
                     throw "No valid id supplied!";
                 }
 
@@ -1115,6 +1115,7 @@
                         'fortify_mess',
                         'heal_mess',
                         'demipoint_mess',
+                        'gifting_mess',
                         'demibless_mess',
                         'level_mess',
                         'exp_mess',
@@ -1521,7 +1522,7 @@
                 htmlCode += caap.startCheckHide('DemiPointsFirst');
                 for (demiPtItem = 0; demiPtItem < demiPoint.length; demiPtItem += 1) {
                     subCode += "<span title='" + demiPoint[demiPtItem] + "'>";
-                    subCode += "<img alt='" + demiPoint[demiPtItem] + "' src='data:image/jpg;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>";
+                    subCode += "<img alt='" + demiPoint[demiPtItem] + "' src='data:image/gif;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>";
                     subCode += caap.MakeCheckBox('DemiPoint' + demiPtItem, true);
                     subCode += "</span>";
                 }
@@ -1716,6 +1717,7 @@
                     htmlCode += caap.MakeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
                 }
 
+                htmlCode += caap.MakeDropDownTR("SubQuest", 'SubQuestGeneral', general.SubQuestList, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.MakeDropDownTR("Buy", 'BuyGeneral', general.BuyList, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.MakeDropDownTR("Collect", 'CollectGeneral', general.CollectList, '', '', 'Use Current', false, false, 62);
                 htmlCode += caap.MakeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 62);
@@ -1825,19 +1827,15 @@
                 htmlCode += caap.MakeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
                 htmlCode += caap.MakeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Don't return gifts to a list of UserIDs");
                 htmlCode += caap.startCheckHide('FilterReturnId');
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(caap.MakeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.endCheckHide('FilterReturnId');
                 htmlCode += caap.MakeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Don't return gifts for a list of certain gifts recieved");
                 htmlCode += caap.startCheckHide('FilterReturnGift');
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(caap.MakeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', ''));
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.endCheckHide('FilterReturnGift');
                 htmlCode += caap.endCheckHide('AutoGift');
                 htmlCode += caap.endToggle;
@@ -1862,15 +1860,12 @@
                 htmlCode += caap.MakeCheckTR('Auto Elite Army', 'AutoElite', false, autoEliteInstructions);
                 htmlCode += caap.startCheckHide('AutoElite');
                 htmlCode += caap.MakeCheckTR('Timed Only', 'AutoEliteIgnore', false, autoEliteIgnoreInstructions);
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD("<input type='button' id='caap_resetElite' value='Do Now' style='padding: 0; font-size: 10px; height: 18px' />");
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.startTR();
                 htmlCode += caap.MakeTD(caap.MakeTextBox('EliteArmyList', "Try these UserIDs first. Use ',' between each UserID", '', ''));
                 htmlCode += caap.endTR;
-
                 htmlCode += caap.endCheckHide('AutoElite');
                 htmlCode += caap.endToggle;
                 return htmlCode;
@@ -2016,9 +2011,12 @@
                 htmlCode += caap.MakeCheckTR('Display Name', 'SetTitleName', false, titleInstructions2, true);
                 htmlCode += caap.endCheckHide('SetTitle');
                 htmlCode += caap.MakeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
-                htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
-                htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
-                htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                if (caap.domain.which === 0) {
+                    htmlCode += caap.MakeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
+                    htmlCode += caap.MakeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
+                    htmlCode += caap.MakeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
+                }
+
                 htmlCode += caap.MakeCheckTR('Enable News Summary', 'NewsSummary', true, newsSummaryInstructions);
                 htmlCode += caap.MakeDropDownTR("Style", 'DisplayStyle', styleList, '', '', 'CA Skin', false, false, 62);
                 htmlCode += caap.startDropHide('DisplayStyle', '', 'Custom');
@@ -2029,9 +2027,12 @@
                 htmlCode += caap.MakeNumberFormTR("Color", 'CustStyleBackgroundDark', '#FFFFFF', '#B09060', '', 'color', true, false, 40);
                 htmlCode += caap.MakeSlider('Transparency', "CustStyleOpacityDark", '', 1, true);
                 htmlCode += caap.endDropHide('DisplayStyle');
-                htmlCode += caap.startTR();
-                htmlCode += caap.MakeTD("<input" + (caap.domain.which > 1 ? " disabled='disabled' title='Fill Army is not possible on this server.'" : '') + " type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
-                htmlCode += caap.endTR;
+                if (caap.domain.which === 0) {
+                    htmlCode += caap.startTR();
+                    htmlCode += caap.MakeTD("<input type='button' id='caap_FillArmy' value='Fill Army' style='padding: 0; font-size: 10px; height: 18px' />");
+                    htmlCode += caap.endTR;
+                }
+
                 htmlCode += caap.MakeCheckTR('Advanced', 'AdvancedOptions', false);
                 htmlCode += caap.startCheckHide('AdvancedOptions');
                 //htmlCode += $u.is_chrome && $u.inputtypes.number ? caap.MakeCheckTR('Number Roller', 'numberRoller', true, "Enable or disable the number roller on GUI options.") : '';
@@ -2711,6 +2712,10 @@
                         case 'Change':
                             header.width = '10%';
                             break;
+                        case 'Elite':
+                            header.text = '<span id="caap_army_elite" title="Click to sort" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">' + headers[pp] + '</span>';
+                            header.width = '5%';
+                            break;
                         default:
                             header.text = headers[pp];
                             header.width = '5%';
@@ -2722,6 +2727,10 @@
 
                     html += '</tr>';
                     for (i = 0, len = army.recordsSortable.length; i < len; i += 1) {
+                        if (army.recordsSortable[i]["userId"] <= 0) {
+                            continue;
+                        }
+
                         html += "<tr>";
                         if (schedule.since(army.recordsSortable[i]['change'], config.getItem("ArmyAgeDays4", 28) * 86400)) {
                             color = config.getItem("ArmyAgeDaysColor4", 'red');
@@ -2768,7 +2777,7 @@
                         }
 
                         data = {
-                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
+                            text  : '<input id="caap_elitearmy_' + i + '" type="checkbox" title="Use to fill elite guard first" userid="' + army.recordsSortable[i]['userId'] + '" cstate="' + (army.recordsSortable[i]['elite'] ? 'true' : 'false') + '" ' + (army.recordsSortable[i]['elite'] ? ' checked' : '') + ' />',
                             color : 'blue',
                             id    : '',
                             title : ''
@@ -2829,10 +2838,9 @@
                         }
 
                         if ($u.hasContent(userid) && userid > 0) {
-                            record = $j(userid, army);
+                            record = army.getItem(userid);
                             record['elite'] = !cstate;
                             army.setItem(record);
-                            $u.log(4, "check", userid, record, e.target.attributes);
                             state.setItem("ArmyDashUpdate", true);
                             caap.UpdateDashboard(true);
                         }
@@ -4455,7 +4463,7 @@
                         }
                     } else if (idName === 'BattleType') {
                         state.getItem('BattleChainId', 0);
-                    } else if (idName === 'AutoBless') {
+                    } else if (idName === 'AutoBless' && value === 'None') {
                         schedule.setItem('BlessingTimer', 0);
                     } else if (idName === 'TargetType') {
                         state.getItem('BattleChainId', 0);
@@ -7384,10 +7392,8 @@
 
             if (/Please come back in:/.test(resultsText)) {
                 // Check time until next Oracle Blessing
-                hours = resultsText.regex(/(\d+) hour/);
-                hours = $u.isNumber(hours) ? hours : 3;
-                minutes = resultsText.regex(/(\d+) minute/);
-                minutes = $u.isNumber(minutes) ? minutes : 0;
+                hours = $u.setContent(resultsText.regex(/(\d+) hour/), 3);
+                minutes = $u.setContent(resultsText.regex(/(\d+) minute/), 0);
                 done = true;
             } else if (/You have paid tribute to/.test(resultsText)) {
                 // Recieved Demi Blessing.  Wait X hours to try again.
@@ -7396,17 +7402,17 @@
             }
 
             if (done) {
-                $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + minutes);
+                $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
                 schedule.setItem('BlessingTimer', (hours * 60 + minutes) * 60, 300);
             }
         },
 
         AutoBless: function () {
-            var picSlice  = $j(),
-                autoBless = '';
+            var autoBless  = config.getItem('AutoBless', 'none'),
+                autoBlessN = caap.deityTable[autoBless.toLowerCase()],
+                picSlice   = $j();
 
-            autoBless = config.getItem('AutoBless', 'none').toLowerCase();
-            if (autoBless === 'none' || !schedule.check('BlessingTimer')) {
+            if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
                 return false;
             }
 
@@ -7414,32 +7420,25 @@
                 return true;
             }
 
-            picSlice = $j("img[src*='deity_" + autoBless + "']", caap.globalContainer);
+            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + autoBlessN, caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No diety pics for deity', autoBless);
                 return false;
             }
 
             if (picSlice.css('height') !== '160px') {
-                return caap.NavigateTo('deity_' + autoBless);
+                return caap.NavigateTo(picSlice.attr("src").basename());
             }
 
-            picSlice = $j("form[id*='" + caap.domain.id[caap.domain.which] + "symbols_form_" + caap.deityTable[autoBless] + "']", caap.globalContainer);
+            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbols_form_" + autoBlessN + " input[name='symbolsubmit']", caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
-                $u.warn('No form for deity blessing.');
+                $u.warn('No image for deity blessing', autoBless);
                 return false;
             }
 
-            picSlice = caap.CheckForImage('demi_quest_bless', picSlice);
-            if (!$u.hasContent(picSlice)) {
-                $u.warn('No image for deity blessing.');
-                return false;
-            }
-
-            $u.log(1, 'Click deity blessing for ', autoBless);
+            $u.log(1, 'Click deity blessing for', autoBless);
             schedule.setItem('BlessingTimer', 3600, 300);
-            caap.Click(picSlice);
-            return true;
+            return caap.NavigateTo(picSlice.attr("src").basename());
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -8882,7 +8881,7 @@
 
                         if (!monster.completeButton[page]['button'] && !monster.completeButton[page]['name']) {
                             monster.completeButton[page]['name'] = monsterName;
-                            monster.completeButton[page]['button'] = caap.CheckForImage('cancelButton.gif', monsterRow);
+                            monster.completeButton[page]['button'] = $j("img[src*='cancelButton.gif']", monsterRow);
                         }
 
                         monsterReviewed['status'] = 'Complete';
@@ -9501,6 +9500,15 @@
                         state.setItem('reviewDone', true);
                     }
 
+                    if (config.getItem('clearCompleteMonsters', false) && monster.completeButton['battle_monster']['button'] && monster.completeButton['battle_monster']['name']) {
+                        caap.Click(monster.completeButton['battle_monster']['button']);
+                        monster.deleteItem(monster.completeButton['battle_monster']['name']);
+                        monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
+                        caap.UpdateDashboard(true);
+                        $u.log(1, 'Cleared a completed monster');
+                        return true;
+                    }
+
                     if (state.getItem('reviewDone', true)) {
                         state.setItem('monsterReviewCounter', counter += 1);
                     } else {
@@ -9517,6 +9525,15 @@
                     } else {
                         $u.log(1, "Raids: Unlock at level 8");
                         state.setItem('reviewDone', true);
+                    }
+
+                    if (config.getItem('clearCompleteRaids', false) && monster.completeButton['raid']['button'] && monster.completeButton['raid']['name']) {
+                        caap.Click(monster.completeButton['raid']['button']);
+                        monster.deleteItem(monster.completeButton['raid']['name']);
+                        monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
+                        caap.UpdateDashboard(true);
+                        $u.log(1, 'Cleared a completed raid');
+                        return true;
                     }
 
                     if (state.getItem('reviewDone', true)) {
@@ -11040,6 +11057,7 @@
                     if (caap.GiftExceedLog) {
                         $u.log(1, 'Gifting limit exceeded, will try later');
                         caap.GiftExceedLog = false;
+                        caap.SetDivContent('gifting_mess', "Max gift limit");
                     }
 
                     return false;
@@ -11055,9 +11073,9 @@
                     giftImg = gifting.gifts.getImg(giftChoice);
                     if (giftImg) {
                         caap.NavigateTo('gift_more_gifts.gif');
-                        tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer img[class='imgButton']").eq(0);
-                        if (tempDiv && tempDiv.length) {
-                            tempText = tempDiv.attr("src").basename();
+                        tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer img[class='imgButton']", caap.globalContainer).eq(0);
+                        if ($u.hasContent(tempDiv)) {
+                            tempText = $u.setContent(tempDiv.attr("src"), '').basename();
                             if (tempText !== giftImg) {
                                 $u.log(4, "images", tempText, giftImg);
                                 return caap.NavigateTo(giftImg);
@@ -11070,8 +11088,8 @@
                     }
 
                     if (gifting.queue.chooseFriend(gm.getItem("NumberOfGifts", 5, hiddenVar))) {
-                        tempDiv = $j("form[id*='req_form_'] input[name='send']");
-                        if (tempDiv && tempDiv.length) {
+                        tempDiv = $j("form[id*='req_form_'] input[name='send']", caap.globalContainer);
+                        if ($u.hasContent(tempDiv)) {
                             caap.Click(tempDiv);
                             return true;
                         } else {
@@ -11117,7 +11135,7 @@
             try {
                 attribute = attribute.toLowerCase();
                 var button        = $j(),
-                    ajaxLoadIcon  = $j(),
+                    ajaxLoadIcon  = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon'),
                     level         = 0,
                     attrCurrent   = 0,
                     energy        = 0,
@@ -11126,24 +11144,18 @@
                     defense       = 0,
                     health        = 0,
                     attrAdjustNew = 0,
-                    energyDiv     = $j(),
-                    staminaDiv    = $j(),
-                    attackDiv     = $j(),
-                    defenseDiv    = $j(),
-                    healthDiv     = $j(),
+                    energyDiv     = $j("a[href*='energy_max']", atributeSlice),
+                    staminaDiv    = $j("a[href*='stamina_max']", atributeSlice),
+                    attackDiv     = $j("a[href*='attack']", atributeSlice),
+                    defenseDiv    = $j("a[href*='defense']", atributeSlice),
+                    healthDiv     = $j("a[href*='health_max']", atributeSlice),
                     logTxt        = "";
 
-                ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
-                if (!ajaxLoadIcon.length || ajaxLoadIcon.css("display") !== 'none') {
+                if (!$u.hasContent(ajaxLoadIcon) || ajaxLoadIcon.css("display") !== 'none') {
                     $u.warn("Unable to find AjaxLoadIcon or page not loaded: Fail");
                     return "Fail";
                 }
 
-                energyDiv = atributeSlice.find("a[href*='energy_max']");
-                staminaDiv = atributeSlice.find("a[href*='stamina_max']");
-                attackDiv = atributeSlice.find("a[href*='attack']");
-                defenseDiv = atributeSlice.find("a[href*='defense']");
-                healthDiv = atributeSlice.find("a[href*='health_max']");
                 switch (attribute) {
                 case "energy" :
                     button = energyDiv;
@@ -11164,7 +11176,7 @@
                     throw "Unable to match attribute: " + attribute;
                 }
 
-                if (!button) {
+                if (!$u.hasContent(button)) {
                     $u.warn("Unable to locate upgrade button: Fail ", attribute);
                     return "Fail";
                 }
@@ -11173,7 +11185,7 @@
                 logTxt = attrAdjust;
                 level = caap.stats['level'];
                 function getValue(div) {
-                    return div.parent().parent().find("div[class='attribute_stat_container']").text().regex(/(\d+)/);
+                    return $u.setContent($j("div[class='attribute_stat_container']", div.parent().parent()).text(), '').regex(/(\d+)/);
                 }
 
                 attrCurrent = getValue(button);
@@ -11320,7 +11332,7 @@
                     return false;
                 }
 
-                var atributeSlice      = null,
+                var atributeSlice      = $j("div[class*='keep_attribute_section']", caap.globalContainer),
                     startAtt           = 0,
                     stopAtt            = 4,
                     attrName           = '',
@@ -11329,8 +11341,7 @@
                     n                  = 0,
                     returnIncreaseStat = '';
 
-                atributeSlice = $j("div[class*='keep_attribute_section']");
-                if (!atributeSlice || !atributeSlice.length) {
+                if (!$u.hasContent(atributeSlice)) {
                     caap.NavigateTo('keep');
                     return true;
                 }
@@ -12728,7 +12739,7 @@
                                 }
 
                                 l = $u.setContent(v, 'default');
-                                if ($j.isPlainObject(l) && l !== 'default') {
+                                if (($j.isArray(l) || $j.isPlainObject(l)) && l !== 'default') {
                                     resp = confirm("Are you sure you want to load " + which + "?");
                                     if (resp) {
                                         caap.exportTable[which]['import'](l);
@@ -12736,7 +12747,7 @@
                                         caap.ReloadCastleAge(true);
                                     }
                                 } else {
-                                    $u.warn("User config was not loaded!", l);
+                                    $u.warn(which + " config was not loaded!", l);
                                 }
                             }
                         },

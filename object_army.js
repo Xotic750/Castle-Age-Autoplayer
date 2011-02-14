@@ -132,17 +132,17 @@
 
                 for (it = 0, len = army.records.length; it < len; it += 1) {
                     if (army.records[it]['userId'] === record['userId']) {
-                        army.records[it] = record;
                         found = true;
                         break;
                     }
                 }
 
-                if (!found) {
-                    $u.log(3, "Added record'");
-                    army.records.push(record);
+                if (found) {
+                    army.records[it] = record;
+                    $u.log(3, "Updated record");
                 } else {
-                    $u.log(3, "Updated record'");
+                    army.records.push(record);
+                    $u.log(3, "Added record");
                 }
 
                 army.save();
@@ -168,7 +168,7 @@
                 }
 
                 if (!found) {
-                    $u.log(1, "Unable to find 'userId'", userId);
+                    $u.log(3, "Unable to find 'userId'", userId);
                 }
 
                 return found ? army.records[it] : {};
@@ -193,7 +193,7 @@
                 }
 
                 if (!found) {
-                    $u.log(1, "Unable to find 'userId'", userId);
+                    $u.log(3, "Unable to find 'userId'", userId);
                 } else {
                     army.save();
                     army.copy2sortable();
@@ -236,16 +236,11 @@
                         search.each(function () {
                             var el = $j(this);
                             record = new army.record();
-                            tStr = el.attr("href");
-                            tNum = $u.hasContent(tStr) ? tStr.regex(/casuser=(\d+)/) : null;
-                            record.data['userId'] = $u.setContent(tNum, 0);
-                            tStr = el.parents("tr").eq(0).text().trim().innerTrim();
-                            tTxt = $u.hasContent(tStr) ? tStr.regex(new RegExp('(.+)\\s+"')) : '';
-                            record.data['user'] = $u.hasContent(tTxt) ?  tTxt.toString() : '';
-                            tTxt = $u.hasContent(tStr) ? tStr.regex(new RegExp('"(.+)"')) : '';
-                            record.data['name'] = $u.hasContent(tTxt) ? tTxt.toString() : '';
-                            tNum = $u.hasContent(tStr) ? tStr.regex(/Level\s+(\d+)/) : null;
-                            record.data['lvl'] = $u.setContent(tNum, 0);
+                            record.data['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
+                            tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
+                            record.data['user'] = $u.setContent(tStr.regex(new RegExp('(.+)\\s+"')), '').toString();
+                            record.data['name'] = $u.setContent(tStr.regex(new RegExp('"(.+)"')), '').toString();
+                            record.data['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
                             record.data['last'] = new Date().getTime();
                             if ($u.hasContent(record.data['userId']) && record.data['userId'] > 0) {
                                 army.recordsTemp.push(record.data);
@@ -255,11 +250,9 @@
                         });
 
                         if (number === pCount) {
-                            search = $j("img[src*='bonus_member.jpg']", caap.globalContainer).parent().parent().find("a[href*='oracle.php']");
+                            search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", caap.appBodyDiv).parent().parent());
                             if ($u.hasContent(search)) {
-                                tStr = search.text();
-                                tNum = $u.hasContent(tStr) ? tStr.regex(/Extra members x(\d+)/) : null;
-                                len = $u.setContent(tNum, 0);
+                                len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members x(\d+)/), 0);
                                 for (it = 1; it <= len; it += 1) {
                                     record = new army.record();
                                     record.data['userId'] = 0 - it;
@@ -272,7 +265,7 @@
                         }
 
                         ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
-                        $u.log(2, "army.page", number, pCount, army.recordsTemp);
+                        $u.log(2, "army.page", number, pCount, army.recordsTemp.length);
                         army.pageDone = true;
                         caap.delayMain = false;
                     }, 400);

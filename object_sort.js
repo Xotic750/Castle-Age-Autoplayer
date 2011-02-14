@@ -29,7 +29,7 @@
                     it1  = 0,
                     len1 = 0;
 
-                if (!sort.dialog[id] || !sort.dialog[id].length) {
+                if (!$u.hasContent(sort.dialog[id])) {
                     list.unshift("");
                     html += "<p>Sort by ...</p>";
                     for (it = 0; it < 3; it += 1) {
@@ -83,7 +83,7 @@
         getForm: function (id, records) {
             try {
                 var order = new sort.order();
-                if (sort.dialog[id] && sort.dialog[id].length) {
+                if ($u.hasContent(sort.dialog[id])) {
                     order.data['reverse']['a'] = $j("#form0 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
                     order.data['reverse']['b'] = $j("#form1 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
                     order.data['reverse']['c'] = $j("#form2 input[name='reverse']:checked", sort.dialog[id]).val() === "true" ? true : false;
@@ -95,7 +95,7 @@
                     state.setItem(id + "DashUpdate", true);
                     caap.UpdateDashboard(true);
                 } else {
-                    $u.warn("Dialog for getForm not found", id);
+                    $u.log(3, "Dialog for getForm not found", id);
                 }
 
                 return order.data;
@@ -108,7 +108,7 @@
         updateForm: function (id) {
             try {
                 var order = new sort.order();
-                if (sort.dialog[id] && sort.dialog[id].length) {
+                if ($u.hasContent(sort.dialog[id])) {
                     $j.extend(true, order.data, state.getItem(id + "Sort", order));
                     $j("#form0 input", sort.dialog[id]).val([order.data['reverse']['a']]);
                     $j("#form1 input", sort.dialog[id]).val([order.data['reverse']['b']]);
@@ -117,7 +117,7 @@
                     $j("#select1", sort.dialog[id]).val(order.data['value']['b']);
                     $j("#select2", sort.dialog[id]).val(order.data['value']['c']);
                 } else {
-                    $u.warn("Dialog for updateForm not found", id, sort.dialog[id]);
+                    $u.log(3, "Dialog for updateForm not found", id);
                 }
 
                 return true;

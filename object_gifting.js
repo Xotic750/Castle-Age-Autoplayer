@@ -375,57 +375,57 @@
 
         popCheck: function (type) {
             try {
-                var popDiv     = $j(),
+                var popDiv     = $j("#pop_content"),
                     tempDiv    = $j(),
                     tempText   = '',
                     tryAgain   = true;
 
-                popDiv = $j("#pop_content");
                 if ($u.hasContent(popDiv)) {
                     tempDiv = $j("input[name='sendit']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        $u.log(1, 'Sending gifts to Facebook');
+                        $u.log(2, 'Sending gifts to Facebook');
                         caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = $j("input[name='skip_ci_btn']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        $u.log(1, 'Denying Email Nag For Gift Send');
+                        $u.log(2, 'Denying Email Nag For Gift Send');
                         caap.Click(tempDiv);
                         return true;
                     }
 
                     tempDiv = $j("input[name='ok']", popDiv);
                     if ($u.hasContent(tempDiv)) {
-                        tempText = tempDiv.parent().parent().prev().text();
+                        tempText = $u.setContent(tempDiv.parent().parent().prev().text(), '').trim().innerTrim();
                         if (tempText) {
                             if (/you have run out of requests/.test(tempText)) {
-                                $u.log(2, 'Out of requests: ', tempText);
+                                $u.log(2, 'Out of gift requests: ', tempText);
                                 schedule.setItem("MaxGiftsExceeded", 10800, 300);
+                                caap.SetDivContent('gifting_mess', "Max gift limit");
                                 tryAgain = false;
                             } else {
-                                $u.warn('Popup message: ', tempText);
+                                $u.warn('Unknown popup message: ', tempText);
                             }
                         } else {
-                            $u.warn('Popup message but no text found', tempDiv);
+                            $u.warn('Popup message but no text found');
                         }
 
                         caap.Click(tempDiv);
                         return tryAgain;
                     }
 
-                    tempText = popDiv.text();
+                    tempText = $u.setContent(popDiv.text(), '').trim().innerTrim();
                     if (tempText) {
                         if (/Loading/.test(tempText)) {
                             $u.log(2, "Popup is loading ...");
                             return true;
                         } else {
-                            $u.warn('Unknown popup!', popDiv.text());
+                            $u.warn('Unknown popup!', tempText);
                             return false;
                         }
                     } else {
-                        $u.warn('Popup message but no text found', popDiv);
+                        $u.warn('Popup message but no text found');
                         return false;
                     }
                 }
@@ -516,9 +516,7 @@
 
             populate: function () {
                 try {
-                    var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']"),
-                        newGift  = {},
-                        tempDiv  = $j(),
+                    var giftDiv  = $j("#" + caap.domain.id[caap.domain.which] + "giftContainer div[id*='" + caap.domain.id[caap.domain.which] + "gift']", caap.globalContainer),
                         tempText = '',
                         tempArr  = [],
                         update   = false;
@@ -526,9 +524,10 @@
                     if ($u.hasContent(giftDiv)) {
                         gifting.clear("gifts");
                         giftDiv.each(function () {
-                            var theGift = $j(this);
-                            newGift = new gifting.gifts.record();
-                            tempDiv = theGift.children().eq(0);
+                            var theGift = $j(this),
+                                tempDiv = theGift.children().eq(0),
+                                newGift = new gifting.gifts.record();
+
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.text(), '').trim().replace("!", "");
                                 if ($u.hasContent(tempText)) {
@@ -644,7 +643,7 @@
 
             fix: function () {
                 try {
-                    var it = 0,
+                    var it   = 0,
                         save = false;
 
                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
@@ -1022,9 +1021,9 @@
                         sentok     = false;
 
                     if (window.location.href.hasIndexOf('act=create')) {
-                        resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper');
+                        resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper', caap.globalContainer);
                         if ($u.hasContent(resultDiv)) {
-                            resultText = resultDiv.text();
+                            resultText = $u.setContent(resultDiv.text(), '').trim().innerTrim();
                             if ($u.hasContent(resultText)) {
                                 if (/You have sent \d+ gift/.test(resultText)) {
                                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {
@@ -1041,6 +1040,7 @@
                                 } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                     $u.log(1, 'Exceeded daily gift limit.');
                                     schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
+                                    caap.SetDivContent('gifting_mess', "Max gift limit");
                                 } else {
                                     $u.log(2, 'Result message', resultText);
                                 }

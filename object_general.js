@@ -248,6 +248,8 @@
 
         CollectList: [],
 
+        SubQuestList: [],
+
         StandardList: [
             'Idle',
             'Monster',
@@ -256,7 +258,6 @@
             'Invade',
             'Duel',
             'War',
-            'SubQuest',
             'Arena'
         ],
 
@@ -298,6 +299,13 @@
                     'Morrigan'
                 ].filter(crossList);
 
+                general.SubQuestList = [
+                    'Use Current',
+                    'Under Level 4',
+                    'Sano',
+                    'Titania'
+                ].filter(crossList);
+
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.BuildlLists: " + err);
@@ -307,18 +315,11 @@
 
         GetCurrent: function () {
             try {
-                var generalName = '',
-                    tStr        = '',
-                    nameObj     = $j();
-
-                nameObj = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3");
-                if (nameObj && nameObj.length) {
-                    tStr = nameObj.text();
-                    generalName = tStr ? tStr.trim().stripTRN().replace(/\*/g, '') : '';
-                }
+                var nameObj     = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .general_name_div3", caap.globalContainer),
+                    generalName = $u.hasContent(nameObj) ? $u.setContent(nameObj.text(), '').trim().stripTRN().replace(/\*/g, '') : '';
 
                 if (!generalName) {
-                    $u.warn("Couldn't get current 'General'. Will use current 'General'", generalName, nameObj);
+                    $u.warn("Couldn't get current 'General'. Using 'Use Current'");
                     return 'Use Current';
                 }
 
@@ -334,15 +335,13 @@
         /*jslint sub: true */
         GetGenerals: function () {
             try {
-                var generalsDiv = $j(".generalSmallContainer2"),
+                var generalsDiv = $j(".generalSmallContainer2", caap.globalContainer),
                     update      = false,
-                    save        = false,
-                    tempObj     = $j();
+                    save        = false;
 
-                if (generalsDiv.length) {
+                if ($u.hasContent(generalsDiv)) {
                     generalsDiv.each(function (index) {
                         var newGeneral = new general.record(),
-                            tStr       = '',
                             name       = '',
                             img        = '',
                             level      = 0,
@@ -351,48 +350,40 @@
                             special    = '',
                             container  = $j(this),
                             it         = 0,
-                            len        = 0;
+                            len        = 0,
+                            tempObj    = $j(".general_name_div3", container);
 
-                        tempObj = container.find(".general_name_div3");
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.text();
-                            name = tStr ? tStr.stripTRN().replace(/\*/g, '') : '';
+                        if ($u.hasContent(tempObj)) {
+                            name = $u.setContent(tempObj.text(), '').stripTRN().replace(/\*/g, '');
                         } else {
                             $u.warn("Unable to find 'name' container", index);
                         }
 
-                        tempObj = container.find(".imgButton");
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.attr("src");
-                            img = tStr ? tStr.basename() : '';
+                        tempObj = $j(".imgButton", container);
+                        if ($u.hasContent(tempObj)) {
+                            img = $u.setContent(tempObj.attr("src"), '').basename();
                         } else {
                             $u.warn("Unable to find 'image' container", index);
                         }
 
                         tempObj = container.children().eq(3);
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.text();
-                            level = tStr ? tStr.replace(/Level /gi, '').stripTRN().parseInt() : 0;
+                        if ($u.hasContent(tempObj)) {
+                            level = $u.setContent(tempObj.text(), '0').replace(/Level /gi, '').stripTRN().parseInt();
                         } else {
                             $u.warn("Unable to find 'level' container", index);
                         }
 
                         tempObj = container.children().eq(4);
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.html();
-                            tStr = tStr ? tStr.replace(/<br>/g, ' ') : '';
-                            tStr = $j(tStr).text();
-                            special = tStr ? tStr.trim() : '';
+                        if ($u.hasContent(tempObj)) {
+                            special = $u.setContent($j($u.setContent(tempObj.html(), '').replace(/<br>/g, ' ')).text(), '').trim().innerTrim();
                         } else {
                             $u.warn("Unable to find 'special' container", index);
                         }
 
-                        tempObj = container.find(".generals_indv_stats_padding div");
-                        if (tempObj && tempObj.length === 2) {
-                            tStr = tempObj.eq(0).text();
-                            atk = tStr ? tStr.parseInt() : 0;
-                            tStr = tempObj.eq(1).text();
-                            def = tStr ? tStr.parseInt() : 0;
+                        tempObj = $j(".generals_indv_stats_padding div", container);
+                        if ($u.hasContent(tempObj) && tempObj.length === 2) {
+                            atk = $u.setContent(tempObj.eq(0).text(), '0').parseInt();
+                            def = $u.setContent(tempObj.eq(1).text(), '0').parseInt();
                         } else {
                             $u.warn("Unable to find 'attack and defence' containers", index);
                         }
@@ -456,11 +447,13 @@
                     len = 0;
 
                 general.BuildlLists();
-                $u.log(2, "Updating 'General' Drop Down Lists");
+                $u.log(3, "Updating 'General' Drop Down Lists");
                 for (it = 0, len = general.StandardList.length; it < len; it += 1) {
                     caap.ChangeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
                 }
 
+                caap.ChangeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
+                caap.ChangeDropDownList('SiegeGeneral', general.SiegeList, config.getItem('SiegeGeneral', 'Use Current'));
                 caap.ChangeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
                 caap.ChangeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
                 caap.ChangeDropDownList('BankingGeneral', general.BankingList, config.getItem('BankingGeneral', 'Use Current'));
@@ -543,16 +536,12 @@
                         return general.Clear(whichGeneral);
                     }
 
-                    if (config.getItem('ReverseLevelUpGenerals')) {
-                        generalName = general.GetLevelUpNames().reverse().pop();
-                    } else {
-                        generalName = general.GetLevelUpNames().pop();
-                    }
+                    generalName = config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop();
                 }
 
                 getCurrentGeneral = general.GetCurrent();
                 if (!getCurrentGeneral) {
-                    caap.ReloadCastleAge();
+                    caap.ReloadCastleAge(true);
                 }
 
                 currentGeneral = getCurrentGeneral;
@@ -590,10 +579,9 @@
         GetEquippedStats: function () {
             try {
                 var generalName  = general.GetCurrent(),
-                    tStr         = '',
                     it           = 0,
                     len          = 0,
-                    generalDiv   = $j(),
+                    generalDiv   = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div", caap.globalContainer),
                     tempObj      = $j(),
                     success      = false;
 
@@ -613,16 +601,13 @@
                     return false;
                 }
 
-                generalDiv = $j("#" + caap.domain.id[caap.domain.which] + "equippedGeneralContainer .generals_indv_stats div");
-                if (generalDiv && generalDiv.length === 2) {
+                if ($u.hasContent(generalDiv) && generalDiv.length === 2) {
                     tempObj = generalDiv.eq(0);
-                    if (tempObj && tempObj.length) {
-                        tStr = tempObj.text();
-                        general.records[it]['eatk'] = tStr ? tStr.parseInt() : 0;
+                    if ($u.hasContent(tempObj)) {
+                        general.records[it]['eatk'] = $u.setContent(tempObj.text(), '0').parseInt();
                         tempObj = generalDiv.eq(1);
-                        if (tempObj && tempObj.length) {
-                            tStr = tempObj.text();
-                            general.records[it]['edef'] = tStr ? tStr.parseInt() : 0;
+                        if ($u.hasContent(tempObj)) {
+                            general.records[it]['edef'] = $u.setContent(tempObj.text(), '0').parseInt();
                             success = true;
                         } else {
                             $u.warn("Unable to get 'General' defense object");
@@ -646,7 +631,7 @@
                         $u.warn("Unable to get 'General' stats");
                     }
                 } else {
-                    $u.warn("Unable to get equipped 'General' divs", generalDiv);
+                    $u.warn("Unable to get equipped 'General' divs");
                 }
 
                 return general.records[it];
