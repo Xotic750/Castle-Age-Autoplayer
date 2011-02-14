@@ -6512,11 +6512,21 @@
                     }
 
                     var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
-                    var picSlice = $j("img[src*='deity_" + caap.demiQuestTable[subDQArea] + "']", caap.globalContainer);
-                    if (picSlice.css("height") !== '160px') {
-                        if (caap.NavigateTo('deity_' + caap.demiQuestTable[subDQArea])) {
-                            return true;
-                        }
+                    var deityN = caap.deityTable[caap.demiQuestTable[subDQArea]];
+                    var picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.appBodyDiv);
+                    if (!$u.hasContent(picSlice)) {
+                        $u.warn('No diety image for', subDQArea);
+                        return false;
+                    }
+
+                    var descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.appBodyDiv);
+                    if (!$u.hasContent(descSlice)) {
+                        $u.warn('No diety description for', subDQArea);
+                        return false;
+                    }
+
+                    if (descSlice.css('display') === 'none') {
+                        return caap.NavigateTo(picSlice.attr("src").basename());
                     }
 
                     break;
@@ -7410,7 +7420,8 @@
         AutoBless: function () {
             var autoBless  = config.getItem('AutoBless', 'none'),
                 autoBlessN = caap.deityTable[autoBless.toLowerCase()],
-                picSlice   = $j();
+                picSlice   = $j(),
+                descSlice  = $j();
 
             if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
                 return false;
@@ -7422,11 +7433,17 @@
 
             picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + autoBlessN, caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
-                $u.warn('No diety pics for deity', autoBless);
+                $u.warn('No diety image for', autoBless);
                 return false;
             }
 
-            if (picSlice.css('height') !== '160px') {
+            descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + autoBlessN, caap.appBodyDiv);
+            if (!$u.hasContent(descSlice)) {
+                $u.warn('No diety description for', autoBless);
+                return false;
+            }
+
+            if (descSlice.css('display') === 'none') {
                 return caap.NavigateTo(picSlice.attr("src").basename());
             }
 
