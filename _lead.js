@@ -23,7 +23,7 @@
         general       = {},
         monster       = {},
         guild_monster = {},
-        arena         = {},
+        //arena         = {},
         battle        = {},
         town          = {},
         spreadsheet   = {},

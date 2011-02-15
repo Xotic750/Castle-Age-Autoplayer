@@ -440,9 +440,9 @@
                 siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
                 siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
                 siege_img    : [
-                    '/graphics/water_siege_small',
-                    '/graphics/alpha_bahamut_siege_blizzard_2',
-                    '/graphics/azriel_siege_inferno_2',
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/death_siege_small',
                     '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,

@@ -257,8 +257,8 @@
             'GuildMonster',
             'Invade',
             'Duel',
-            'War',
-            'Arena'
+            'War'
+            //'Arena'
         ],
 
         BuildlLists: function () {

@@ -1158,5 +1158,366 @@
                 $u.error("ERROR in arena.getTargetMinion: " + err);
                 return undefined;
             }
+        },
+
+
+        AddArenaMenu: function () {
+            try {
+                var mbattleList = [
+                        'Tokens Available',
+                        'Never'
+                    ],
+                    mbattleInst = [
+                        'Tokens Available will attack whenever you have enough tokens',
+                        'Never - disables attacking in Arena'
+                    ],
+                    chainList = [
+                        '0',
+                        '160',
+                        '200',
+                        '240'
+                    ],
+                    chainListInst = [
+                        'Disabled',
+                        'Chain 160 and above',
+                        'Chain 200 and above',
+                        'Chain 240 and above'
+                    ],
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Arena', 'ARENA');
+                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 62);
+                htmlCode += caap.startDropHide('WhenArena', '', 'Never', true);
+                htmlCode += caap.MakeTD("Attack Classes in this order");
+                htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
+                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '');
+                htmlCode += caap.MakeNumberFormTR("Ignore Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '');
+                htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
+                htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
+                htmlCode += caap.startCheckHide('doPoly');
+                htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
+                htmlCode += caap.MakeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
+                htmlCode += caap.MakeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
+                htmlCode += caap.endCheckHide('doPoly');
+                htmlCode += caap.MakeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
+                htmlCode += caap.MakeDropDownTR("Chain", 'chainArena', chainList, chainListInst, '', '160', false, false, 35);
+                htmlCode += caap.startDropHide('chainArena', '', '0', true);
+                htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
+                htmlCode += caap.endDropHide('chainArena');
+                htmlCode += caap.endDropHide('WhenArena');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in arena.AddArenaMenu: " + err);
+                return '';
+            }
+        },
+
+        AddArenaDashboard: function () {
+            try {
+                if (config.getItem('DBDisplay', '') === 'Arena' && state.getItem("ArenaDashUpdate", true)) {
+                    var html    = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>",
+                        headers = ['Arena', 'Damage', 'Team%',      'Enemy%',      'My Status', 'TimeLeft', 'Status'],
+                        values  = ['damage', 'teamHealth', 'enemyHealth', 'myStatus',  'ticker',   'state'];
+                        pp      = 0,
+                        i       = 0,
+                        len     = 0,
+                        data    = {},
+                        color   = '',
+                        handler = null;
+
+                    for (pp = 0; pp < headers.length; pp += 1) {
+                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
+                    }
+
+                    html += '</tr>';
+                    for (i = 0, len = arena.records.length; i < len; i += 1) {
+                        html += "<tr>";
+                        data = {
+                            text  : '<span id="caap_arena_1" title="Clicking this link will take you to the Arena" rlink="arena.php" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">Arena</span>',
+                            color : 'blue',
+                            id    : '',
+                            title : ''
+                        };
+
+                        html += caap.makeTd(data);
+                        color = arena.records[i]['state'] === 'Alive' ? 'green' : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
+                        color = arena.records[i]['state'] === 'Alive' && arena.records[i]['enemyHealth'] === arena.records[i]['teamHealth'] ? 'purple' : color;
+                        color = arena.records[i]['enemyHealth'] > arena.records[i]['teamHealth'] ? 'red' : color;
+                        for (pp = 0; pp < values.length; pp += 1) {
+                            if (values[pp] === 'ticker') {
+                                html += caap.makeTd({text: $u.hasContent(arena.records[i][values[pp]]) ? arena.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: color, id: '', title: ''});
+                            } else {
+                                html += caap.makeTd({
+                                    text  : $u.hasContent(arena.records[i][values[pp]]) && ($u.isString(arena.records[i][values[pp]]) || arena.records[i][values[pp]] > 0) ? arena.records[i][values[pp]] : '',
+                                    color : color,
+                                    id    : '',
+                                    title : ''
+                                });
+                            }
+                        }
+
+                        html += '</tr>';
+                    }
+
+                    html += '</table>';
+                    $j("#caap_arena", caap.caapTopObject).html(html);
+
+                    handler = function (e) {
+                        var visitMonsterLink = {
+                                mname     : '',
+                                arlink    : ''
+                            },
+                            i   = 0,
+                            len = 0;
+
+                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
+                            if (e.target.attributes[i].nodeName === 'mname') {
+                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
+                            } else if (e.target.attributes[i].nodeName === 'rlink') {
+                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
+                            }
+                        }
+
+                        caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
+                    };
+
+                    $j("span[id='caap_arena_1']", caap.caapTopObject).unbind('click', handler).click(handler);
+
+                    state.setItem("ArenaDashUpdate", false);
+                }
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in arena.AddArenaDashboard: " + err);
+                return false;
+            }
+        },
+
+        engageListener: function (event) {
+            $u.log(4, "engage arena_battle.php");
+            state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
+            schedule.setItem('clickedOnSomething', 0);
+            caap.waitingForDomLoad = true;
+        },
+
+
+        dualListener: function (event) {
+            var index  = -1,
+                minion = {};
+
+            $u.log(4, "engage arena_battle.php", event.target.id);
+            index = event.target.id ? event.target.id.parseInt() : -1;
+            minion = arena.getMinion(index);
+            minion = !$j.isEmptyObject(minion) ? minion : {};
+            state.setItem('ArenaMinionAttacked', minion);
+            state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
+            schedule.setItem('clickedOnSomething', 0);
+            caap.waitingForDomLoad = true;
+        },
+
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
+        CheckResults_arena: function () {
+            try {
+                caap.globalContainer.find("input[src*='battle_enter_battle']").bind('click', arena.engageListener);
+                arena.checkInfo();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in arena.CheckResults_arena: " + err);
+                return false;
+            }
+        },
+
+        CheckResults_arena_battle: function () {
+            try {
+                caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
+                    $j(this).attr("id", index).bind('click', arena.dualListener);
+                });
+
+                arena.onBattle();
+                return true;
+            } catch (err) {
+                $u.error("ERROR in arena.CheckResults_arena_battle: " + err);
+                return false;
+            }
+        },
+
+        review: function () {
+            try {
+                /*-------------------------------------------------------------------------------------\
+                We do Arena review once an hour.  Some routines may reset this timer to drive
+                ArenaReview immediately.
+                \-------------------------------------------------------------------------------------*/
+                if (!schedule.check("ArenaReview") || config.getItem('WhenArena', 'Never') === 'Never') {
+                    return false;
+                }
+
+                if (state.getItem('ArenaRefresh', true)) {
+                    if (arena.navigate_to_main_refresh()) {
+                        return true;
+                    }
+                }
+
+                if (!state.getItem('ArenaReview', false)) {
+                    if (arena.navigate_to_main()) {
+                        return true;
+                    }
+
+                    state.setItem('ArenaReview', true);
+                }
+
+                state.setItem('ArenaRefresh', true);
+                state.setItem('ArenaReview', false);
+                $u.log(1, 'Done with Arena review.');
+                return false;
+            } catch (err) {
+                $u.error("ERROR in arena.Review: " + err);
+                return false;
+            }
+        },
+
+        arena: function () {
+            try {
+                var when    = '',
+                    record  = {},
+                    minion  = {},
+                    form    = $j(),
+                    key     = $j(),
+                    enterButton = $j(),
+                    nextTime = '',
+                    tokenTimer = 0;
+
+                when = config.getItem("WhenArena", 'Never');
+                if (when === 'Never') {
+                    return false;
+                }
+
+                record = arena.getItem();
+                nextTime = (record['reviewed'] && record['nextTime']) ? "Next Arena: " + $u.makeTime(record['reviewed'] + (record['nextTime'].parseTimer() * 1000), schedule.timeStr(true)) : '';
+                nextTime = record['startTime'] ? "Next Arena: " + record['startTime'] + " seconds" : nextTime;
+                tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
+                tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
+                nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
+                caap.SetDivContent('arena_mess', nextTime);
+                if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
+                    if (state.getItem('ArenaRefresh', true)) {
+                        if (arena.navigate_to_main_refresh()) {
+                            return true;
+                        }
+                    }
+
+                    if (!state.getItem('ArenaReview', false)) {
+                        if (arena.navigate_to_main()) {
+                            return true;
+                        }
+
+                        state.setItem('ArenaReview', true);
+                    }
+
+                    state.setItem('ArenaRefresh', true);
+                    state.setItem('ArenaReview', false);
+                    state.setItem('ArenaJoined', false);
+                    return false;
+                }
+
+                if (/*!record['days'] || */record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
+                    return false;
+                }
+
+                caap.SetDivContent('arena_mess', "Entering Arena");
+                if (general.Select('ArenaGeneral')) {
+                    return true;
+                }
+
+                if (!$j("#" + caap.domain.id[caap.domain.which] + "arena_battle_banner_section").length) {
+                    if (state.getItem('ArenaRefresh', true)) {
+                        if (arena.navigate_to_main_refresh()) {
+                            return true;
+                        }
+                    }
+
+                    if (!state.getItem('ArenaReview', false)) {
+                        if (arena.navigate_to_main()) {
+                            return true;
+                        }
+
+                        state.setItem('ArenaReview', true);
+                    }
+
+                    state.setItem('ArenaRefresh', true);
+                    state.setItem('ArenaReview', false);
+                    enterButton = $j("input[src*='battle_enter_battle.gif']");
+                    $u.log(1, "Enter battle", record, enterButton);
+                    if (record['tokens'] > 0 && enterButton && enterButton.length) {
+                        arena.clearMinions();
+                        caap.Click(enterButton);
+                        return true;
+                    }
+                }
+
+                enterButton = $j("input[src*='guild_enter_battle_button.gif']");
+                if (enterButton && enterButton.length) {
+                    $u.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
+                    if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
+                        state.setItem('ArenaJoined', true);
+                        caap.Click(enterButton);
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                if (record['state'] !== "Alive") {
+                    return false;
+                }
+
+                minion = arena.getTargetMinion(record);
+                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
+                    $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
+                    caap.SetDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
+                    key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
+                    if (key && key.length) {
+                        form = key.parents("form").eq(0);
+                        if (form && form.length) {
+                            state.setItem('ArenaMinionAttacked', minion);
+                            caap.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            } catch (err) {
+                $u.error("ERROR in arena.arena: " + err);
+                return false;
+            }
+        },
+
+        index: function () {
+            try {
+                var tokenSpan = $j(),
+                    tStr      = '',
+                    arenaInfo = {};
+
+                $j("div[style*='arena3_newsfeed']").unbind('click', arena.engageListener).bind('click', caap.arenaEngageListener);
+                tokenSpan = $j("span[id='" + caap.domain.id[caap.domain.which] + "arena_token_current_value']");
+                if (tokenSpan && tokenSpan.length) {
+                    tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
+                    arenaInfo = arena.getItem();
+                    arenaInfo['tokens'] = tStr ? tStr.parseInt() : 0;
+                    if (arenaInfo['tokens'] === 10) {
+                        arenaInfo['tokenTime'] = '';
+                    }
+
+                    arena.setItem(arenaInfo);
+                    $u.log(4, 'arenaInfo', arenaInfo);
+                }
+                return false;
+            } catch (err) {
+                $u.error("ERROR in arena.index: " + err);
+                return false;
+            }
         }
+        /*jslint sub: false */
     };

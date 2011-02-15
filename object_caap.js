@@ -27,6 +27,12 @@
         },
 
         start: function () {
+            var FBID      = 0,
+                idOk      = false,
+                tempText  = '',
+                accountEl = $j(),
+                delay     = 1000;
+
             $u.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
             $u.log(1, 'DOM load completed');
             window.clearTimeout(caap_timeout);
@@ -36,6 +42,7 @@
                 caap.domain.which = 1;
             } else if (window.location.href.hasIndexOf('web3.castleagegame.com/castle_ws/')) {
                 caap.domain.which = 2;
+                delay = 5000;
             } else {
                 caap.ErrorCheck();
                 $u.error('Unknown domain!');
@@ -56,11 +63,6 @@
             caap.jQueryExtend();
             gm = new $u.storage({'namespace': 'caap'});
             ss = new $u.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
-
-            var FBID      = 0,
-                idOk      = false,
-                tempText  = '',
-                accountEl = $j();
 
             function mainCaapLoop() {
                 caap.waitMilliSecs = 8000;
@@ -125,7 +127,10 @@
             if (!idOk) {
                 // Force reload without retrying
                 $u.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
-                $u.reload();
+                window.setTimeout(function () {
+                    $u.reload();
+                }, delay);
+
                 return;
             }
 
@@ -383,7 +388,7 @@
                 general.load();
                 monster.load();
                 guild_monster.load();
-                arena.load();
+                //arena.load();
                 battle.load();
                 caap.LoadDemi();
                 caap.LoadRecon();
@@ -400,8 +405,6 @@
                 caap.AutoStatCheck();
                 caap.bestLand = new caap.landRecord().data;
                 caap.sellLand = {};
-                //schedule.deleteItem("army_member");
-                //schedule.deleteItem("ArenaReview")
 
                 return true;
             } catch (err) {
@@ -1111,7 +1114,7 @@
                         'battle_mess',
                         'monster_mess',
                         'guild_monster_mess',
-                        'arena_mess',
+                        //'arena_mess',
                         'fortify_mess',
                         'heal_mess',
                         'demipoint_mess',
@@ -1165,13 +1168,18 @@
                 htmlCode += caap.AddBattleMenu();
                 htmlCode += caap.AddMonsterMenu();
                 htmlCode += caap.AddGuildMonstersMenu();
-                htmlCode += caap.AddArenaMenu();
+                //htmlCode += arena.AddArenaMenu();
                 htmlCode += caap.AddReconMenu();
                 htmlCode += caap.AddGeneralsMenu();
                 htmlCode += caap.AddSkillPointsMenu();
                 htmlCode += caap.AddEliteGuardOptionsMenu();
                 htmlCode += caap.AddArmyOptionsMenu();
-                htmlCode += caap.AddGiftingOptionsMenu();
+                if (caap.domain.which === 0) {
+                    htmlCode += caap.AddGiftingOptionsMenu();
+                } else {
+                    config.setItem("AutoGift", false);
+                }
+
                 htmlCode += caap.AddAutoOptionsMenu();
                 htmlCode += caap.AddOtherOptionsMenu();
                 htmlCode += caap.AddFooterMenu();
@@ -1336,12 +1344,15 @@
                     maxChainsInstructions = "Maximum number of chain hits after the initial attack.",
                     FMRankInstructions = "The lowest relative rank below yours that " +
                         "you are willing to spend your stamina on. Leave blank to attack " +
-                        "any rank.",
-                    FMARBaseInstructions = "This value sets the base for your army " +
-                        "ratio calculation. It is basically a multiplier for the army " +
+                        "any rank. (Uses Battle Rank for invade and duel, War Rank for wars.)",
+                    FMARBaseInstructions = "This value sets the base for your Army " +
+                        "Ratio calculation [X * (Your Army Size/ Opponent Army Size)]. It is basically a multiplier for the army " +
                         "size of a player at your equal level. A value of 1 means you " +
                         "will battle an opponent the same level as you with an army the " +
                         "same size as you or less. Default .5",
+                    FreshMeatARMaxInstructions = "This setting sets the highest value you will use for the Army Ratio [Math.min(Army Ratio, Army Ratio Max)] value. So, if you NEVER want to fight an army bigger than 80% your size, you can set the Max value to .8.",
+                    FreshMeatARMinInstructions = "This setting sets the lowest value you will use for the Army Ratio [Math.max(Army Ratio, Army Ratio Min)] value. So, if you NEVER want to pass up an army that is less than 10% the size of yours, you can set MIN value to .1.",
+                    FreshMeatMaxLevelInstructions = "This setting sets the highest level above you that you are willing to attack. So if you are a level 100 and do not want to attack an opponent above level 120, you can code 20.",
                     plusonekillsInstructions = "Force +1 kill scenario if 80% or more" +
                         " of targets are withn freshmeat settings. Note: Since Castle Age" +
                         " choses the target, selecting this option could result in a " +
@@ -1421,12 +1432,18 @@
                 htmlCode += caap.MakeNumberFormTR("Chain Battle Points", 'ChainBP', chainBPInstructions, '', '');
                 htmlCode += caap.MakeNumberFormTR("Chain Gold", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
                 htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '');
-                htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
-                htmlCode += caap.startDropHide('TargetType', 'Freshmeat', 'Freshmeat', false);
+
                 htmlCode += caap.MakeTD("Attack targets that are not:");
                 htmlCode += caap.MakeNumberFormTR("Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '');
-                htmlCode += caap.MakeNumberFormTR("Higher Than X*Army", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
-                htmlCode += caap.endDropHide('TargetType', 'Freshmeat');
+                htmlCode += caap.MakeNumberFormTR("Higher Than X*AR", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
+                htmlCode += caap.MakeCheckTR('Advanced', 'AdvancedFreshMeatOptions', false);
+                htmlCode += caap.startCheckHide('AdvancedFreshMeatOptions');
+                htmlCode += caap.MakeNumberFormTR("Max Level", 'FreshMeatMaxLevel', FreshMeatMaxLevelInstructions, '', '', '', true);
+                htmlCode += caap.MakeNumberFormTR("Army Ratio Max", 'FreshMeatARMax', FreshMeatARMaxInstructions, '', '', '', true);
+                htmlCode += caap.MakeNumberFormTR("Army Ratio Min", 'FreshMeatARMin', FreshMeatARMinInstructions, '', '', '', true);
+                htmlCode += caap.endCheckHide('AdvancedFreshMeatOptions');
+
+                htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
                 htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
                 htmlCode += caap.MakeCheckTR("Power Attack", 'RaidPowerAttack', false, raidPowerAttackInstructions, true);
                 htmlCode += caap.MakeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions, true);
@@ -1592,58 +1609,6 @@
             }
         },
 
-        AddArenaMenu: function () {
-            try {
-                var mbattleList = [
-                        'Tokens Available',
-                        'Never'
-                    ],
-                    mbattleInst = [
-                        'Tokens Available will attack whenever you have enough tokens',
-                        'Never - disables attacking in Arena'
-                    ],
-                    chainList = [
-                        '0',
-                        '160',
-                        '200',
-                        '240'
-                    ],
-                    chainListInst = [
-                        'Disabled',
-                        'Chain 160 and above',
-                        'Chain 200 and above',
-                        'Chain 240 and above'
-                    ],
-                    htmlCode = '';
-
-                htmlCode += caap.startToggle('Arena', 'ARENA');
-                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 62);
-                htmlCode += caap.startDropHide('WhenArena', '', 'Never', true);
-                htmlCode += caap.MakeTD("Attack Classes in this order");
-                htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
-                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '');
-                htmlCode += caap.MakeNumberFormTR("Ignore Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '');
-                htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
-                htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
-                htmlCode += caap.startCheckHide('doPoly');
-                htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
-                htmlCode += caap.MakeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
-                htmlCode += caap.MakeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
-                htmlCode += caap.endCheckHide('doPoly');
-                htmlCode += caap.MakeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
-                htmlCode += caap.MakeDropDownTR("Chain", 'chainArena', chainList, chainListInst, '', '160', false, false, 35);
-                htmlCode += caap.startDropHide('chainArena', '', '0', true);
-                htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
-                htmlCode += caap.endDropHide('chainArena');
-                htmlCode += caap.endDropHide('WhenArena');
-                htmlCode += caap.endToggle;
-                return htmlCode;
-            } catch (err) {
-                $u.error("ERROR in AddArenaMenu: " + err);
-                return '';
-            }
-        },
-
         AddReconMenu: function () {
             try {
                 // Recon Controls
@@ -1707,7 +1672,7 @@
                     LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
                     LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
                     LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
-                    LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
+                    //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
                     dropDownItem = 0,
                     htmlCode = '';
 
@@ -1732,7 +1697,7 @@
                 htmlCode += caap.MakeCheckTR("Gen For Invades", 'InvadeLevelUpGeneral', true, LevelUpGenInstructions4, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
-                htmlCode += caap.MakeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
+                //htmlCode += caap.MakeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
                 htmlCode += caap.MakeCheckTR("Gen For MainQuests", 'QuestLevelUpGeneral', false, LevelUpGenInstructions8, true, false);
                 htmlCode += caap.MakeCheckTR("Don't Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
@@ -1849,7 +1814,7 @@
         AddEliteGuardOptionsMenu: function () {
             try {
                 // Other controls
-                var autoEliteInstructions = "Enable or disable Auto Elite function",
+                var autoEliteInstructions = "Enable or disable Auto Elite function. If running on web3 url then you must enable Army Functions also.",
                     autoEliteIgnoreInstructions = "Use this option if you have a small " +
                         "army and are unable to fill all 10 Elite positions. This prevents " +
                         "the script from checking for any empty places and will cause " +
@@ -2039,6 +2004,7 @@
                 htmlCode += caap.MakeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
                 htmlCode += caap.MakeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
                 htmlCode += caap.MakeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
+                htmlCode += caap.MakeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 8 minutes.', 8, '', '', true, false);
                 htmlCode += caap.MakeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
                 htmlCode += "<form><fieldset><legend>Database</legend>";
                 htmlCode += caap.MakeDropDownTR("Which Data", 'DataSelect', caap.exportList(), '', '', 'Config', true, false, 50);
@@ -2091,7 +2057,7 @@
                  container and position it within the main container.
                 \-------------------------------------------------------------------------------------*/
                 var layout      = "<div id='caap_top'>",
-                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldiers Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', 'Arena', 'Army'],
+                    displayList = ['Monster', 'Guild Monster', 'Target List', 'Battle Stats', 'User Stats', 'Generals Stats', 'Soldiers Stats', 'Item Stats', 'Magic Stats', 'Gifting Stats', 'Gift Queue', /*'Arena',*/ 'Army'],
                     styleXY = {
                         x: 0,
                         y: 0
@@ -2206,7 +2172,7 @@
                 layout += "<div id='caap_giftStats' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gifting Stats' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_giftQueue' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Gift Queue' ? 'block' : 'none') + "'></div>";
                 layout += "<div id='caap_army' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Army' ? 'block' : 'none') + "'></div>";
-                layout += "<div id='caap_arena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena' ? 'block' : 'none') + "'></div>";
+                //layout += "<div id='caap_arena' style='position:relative;top:15px;width:610px;height:165px;overflow:auto;display:" + (config.getItem('DBDisplay', 'Monster') === 'Arena' ? 'block' : 'none') + "'></div>";
                 layout += "</div>";
                 /*-------------------------------------------------------------------------------------\
                  No we apply our CSS to our container
@@ -2613,70 +2579,7 @@
                 Next we build the HTML to be included into the 'caap_arena' div. We set our
                 table and then build the header row.
                 \-------------------------------------------------------------------------------------*/
-                if (config.getItem('DBDisplay', '') === 'Arena' && state.getItem("ArenaDashUpdate", true)) {
-                    html = "<table width='100%' cellpadding='0px' cellspacing='0px'><tr>";
-                    headers = ['Arena', 'Damage', 'Team%',      'Enemy%',      'My Status', 'TimeLeft', 'Status'];
-                    values  = ['damage', 'teamHealth', 'enemyHealth', 'myStatus',  'ticker',   'state'];
-                    for (pp = 0; pp < headers.length; pp += 1) {
-                        html += caap.makeTh({text: headers[pp], color: '', id: '', title: '', width: ''});
-                    }
-
-                    html += '</tr>';
-                    for (i = 0, len = arena.records.length; i < len; i += 1) {
-                        html += "<tr>";
-                        data = {
-                            text  : '<span id="caap_arena_1" title="Clicking this link will take you to the Arena" rlink="arena.php" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';">Arena</span>',
-                            color : 'blue',
-                            id    : '',
-                            title : ''
-                        };
-
-                        html += caap.makeTd(data);
-                        color = arena.records[i]['state'] === 'Alive' ? 'green' : $u.bestTextColor(config.getItem("StyleBackgroundLight", "#E0C961"));
-                        color = arena.records[i]['state'] === 'Alive' && arena.records[i]['enemyHealth'] === arena.records[i]['teamHealth'] ? 'purple' : color;
-                        color = arena.records[i]['enemyHealth'] > arena.records[i]['teamHealth'] ? 'red' : color;
-                        for (pp = 0; pp < values.length; pp += 1) {
-                            if (values[pp] === 'ticker') {
-                                html += caap.makeTd({text: $u.hasContent(arena.records[i][values[pp]]) ? arena.records[i][values[pp]].regex(/(\d+:\d+):\d+/) : '', color: color, id: '', title: ''});
-                            } else {
-                                html += caap.makeTd({
-                                    text  : $u.hasContent(arena.records[i][values[pp]]) && ($u.isString(arena.records[i][values[pp]]) || arena.records[i][values[pp]] > 0) ? arena.records[i][values[pp]] : '',
-                                    color : color,
-                                    id    : '',
-                                    title : ''
-                                });
-                            }
-                        }
-
-                        html += '</tr>';
-                    }
-
-                    html += '</table>';
-                    $j("#caap_arena", caap.caapTopObject).html(html);
-
-                    handler = function (e) {
-                        var visitMonsterLink = {
-                                mname     : '',
-                                arlink    : ''
-                            },
-                            i   = 0,
-                            len = 0;
-
-                        for (i = 0, len = e.target.attributes.length; i < len; i += 1) {
-                            if (e.target.attributes[i].nodeName === 'mname') {
-                                visitMonsterLink.mname = e.target.attributes[i].nodeValue;
-                            } else if (e.target.attributes[i].nodeName === 'rlink') {
-                                visitMonsterLink.arlink = e.target.attributes[i].nodeValue;
-                            }
-                        }
-
-                        caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
-                    };
-
-                    $j("span[id='caap_arena_1']", caap.caapTopObject).unbind('click', handler).click(handler);
-
-                    state.setItem("ArenaDashUpdate", false);
-                }
+                //arena.AddArenaDashboard();
 
                 /*-------------------------------------------------------------------------------------\
                 Next we build the HTML to be included into the 'caap_army' div. We set our
@@ -3817,7 +3720,7 @@
             config.setItem('DBDisplay', value);
             caap.SetDisplay("caapTopObject", 'infoMonster', false);
             caap.SetDisplay("caapTopObject", 'guildMonster', false);
-            caap.SetDisplay("caapTopObject", 'arena', false);
+            //caap.SetDisplay("caapTopObject", 'arena', false);
             caap.SetDisplay("caapTopObject", 'army', false);
             caap.SetDisplay("caapTopObject", 'infoTargets1', false);
             caap.SetDisplay("caapTopObject", 'infoBattle', false);
@@ -3883,9 +3786,9 @@
                 caap.SetDisplay("caapTopObject", 'infoMonster', true);
                 caap.SetDisplay("caapTopObject", 'buttonMonster', true);
                 break;
-            case "Arena" :
+            /*case "Arena" :
                 caap.SetDisplay("caapTopObject", 'arena', true);
-                break;
+                break;*/
             case "Army" :
                 caap.SetDisplay("caapTopObject", 'army', true);
                 caap.SetDisplay("caapTopObject", 'buttonArmy', true);
@@ -4136,6 +4039,11 @@
                     if (!state.getItem('FillArmy', false)) {
                         state.setItem(caap.friendListType.giftc.name + 'Requested', false);
                         state.setItem(caap.friendListType.giftc.name + 'Responded', []);
+                    }
+
+                    if (caap.domain.which === 2 && e.target.checked) {
+                        $j("#caap_EnableArmy", caap.caapDivObject).attr("checked", config.setItem("EnableArmy", true));
+                        caap.SetDisplay("caapDivObject", "EnableArmy" + '_hide', true, true);
                     }
 
                     break;
@@ -4399,9 +4307,9 @@
                     if (idName.hasIndexOf('When')) {
                         caap.SetDisplay("caapDivObject", idName + '_hide', value !== 'Never');
                         if (!idName.hasIndexOf('Quest')) {
-                            if (!idName.hasIndexOf('Arena')) {
-                                caap.SetDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
-                            }
+                            //if (!idName.hasIndexOf('Arena')) {
+                            caap.SetDisplay("caapDivObject", idName + 'XStamina_hide', value === 'At X Stamina');
+                            //}
 
                             caap.SetDisplay("caapDivObject", 'WhenBattleStayHidden_hide', ((config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden')));
                             caap.SetDisplay("caapDivObject", 'WhenMonsterStayHidden_hide', ((config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden')));
@@ -4431,14 +4339,14 @@
                                 }
 
                                 break;
-                            case 'WhenArena':
+                            /*case 'WhenArena':
                                 if (value === 'Never') {
                                     caap.SetDivContent('arena_mess', 'Arena off');
                                 } else {
                                     caap.SetDivContent('arena_mess', '');
                                 }
 
-                                break;
+                                break;*/
                             default:
                             }
                         } else {
@@ -4474,8 +4382,8 @@
                         caap.SetDisplay("caapDivObject", idName + '_hide', value !== 'Use Current');
                     } else if (/Attribute?/.test(idName)) {
                         state.setItem("statsMatch", true);
-                    } else if (idName === 'chainArena') {
-                        caap.SetDisplay("caapDivObject", idName + '_hide', value !== '0');
+                    /*} else if (idName === 'chainArena') {
+                        caap.SetDisplay("caapDivObject", idName + '_hide', value !== '0');*/
                     } else if (idName === 'DisplayStyle') {
                         caap.SetDisplay("caapDivObject", idName + '_hide', value === 'Custom');
                         switch (value) {
@@ -4736,27 +4644,6 @@
             }
         },
 
-        arenaEngageListener: function (event) {
-            $u.log(4, "engage arena_battle.php");
-            state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
-        },
-
-        arenaDualListener: function (event) {
-            var index  = -1,
-                minion = {};
-
-            $u.log(4, "engage arena_battle.php", event.target.id);
-            index = event.target.id ? event.target.id.parseInt() : -1;
-            minion = arena.getMinion(index);
-            minion = !$j.isEmptyObject(minion) ? minion : {};
-            state.setItem('ArenaMinionAttacked', minion);
-            state.setItem('clickUrl', caap.domain.link + '/arena_battle.php');
-            schedule.setItem('clickedOnSomething', 0);
-            caap.waitingForDomLoad = true;
-        },
-
         guildMonsterEngageListener: function (event) {
             $u.log(4, "engage guild_battle_monster.php");
             state.setItem('clickUrl', caap.domain.link + '/guild_battle_monster.php');
@@ -4843,6 +4730,7 @@
             "symbols",
             "treasure_chest",
             "gift",
+            "war_council",
             "apprentice",
             "news",
             "friend_page",
@@ -4933,11 +4821,11 @@
                 $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
                 $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
                 $j("input[src*='dragon_list_btn_']", caap.globalContainer).bind('click', caap.guildMonsterEngageListener);
-                $j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', caap.arenaEngageListener);
-                $j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', caap.arenaEngageListener);
+                /*$j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', arena.engageListener);
+                $j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', arena.engageListener);
                 $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
-                    $j(this).attr("id", index).bind('click', caap.arenaDualListener);
-                });
+                    $j(this).attr("id", index).bind('click', arena.dualListener);
+                });*/
 
                 $j("input[src*='guild_duel_button']", caap.globalContainer).bind('click', caap.guildMonsterEngageListener);
                 $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
@@ -5121,14 +5009,14 @@
                 signatureId: 'guild_battle_banner_section',
                 CheckResultsFunction: 'CheckResults_guild_battle_monster'
             },
-            'arena': {
+            /*'arena': {
                 signaturePic: 'tab_arena_on.gif',
                 CheckResultsFunction: 'CheckResults_arena'
             },
             'arena_battle': {
                 signatureId: 'arena_battle_banner_section',
                 CheckResultsFunction: 'CheckResults_arena_battle'
-            },
+            },*/
             'army_member': {
                 signaturePic: 'view_army_on.gif',
                 CheckResultsFunction: 'CheckResults_army_member'
@@ -7447,13 +7335,13 @@
                 return caap.NavigateTo(picSlice.attr("src").basename());
             }
 
-            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbols_form_" + autoBlessN + " input[name='symbolsubmit']", caap.appBodyDiv);
+            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbols_form_" + autoBlessN + " input[name='symbolsubmit']", descSlice);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No image for deity blessing', autoBless);
                 return false;
             }
 
-            $u.log(1, 'Click deity blessing for', autoBless);
+            $u.log(1, 'Click deity blessing for', autoBless, autoBlessN);
             schedule.setItem('BlessingTimer', 3600, 300);
             return caap.NavigateTo(picSlice.attr("src").basename());
         },
@@ -8176,6 +8064,13 @@
                     }
 
                     caap.SetDivContent('battle_mess', 'Joining the Raid');
+                    // This is a temporary fix for the web3 url until CA fix their HTML
+                    if (caap.domain.which === 2 && !$u.hasContent($j("img[src*='tab_raid_']", caap.appBodyDiv))) {
+                        if (caap.NavigateTo(caap.battlePage + ',arena', 'tab_arena_on.gif')) {
+                            return true;
+                        }
+                    }
+
                     if (caap.NavigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
                         return true;
                     }
@@ -8642,50 +8537,9 @@
         //                          ARENA
         /////////////////////////////////////////////////////////////////////
 
-        /*-------------------------------------------------------------------------------------\
-        ArenaReview is a primary action subroutine to mange the Arena on the dashboard
-        \-------------------------------------------------------------------------------------*/
-        ArenaReview: function () {
+        /*CheckResults_arena: function () {
             try {
-                /*-------------------------------------------------------------------------------------\
-                We do Arena review once an hour.  Some routines may reset this timer to drive
-                ArenaReview immediately.
-                \-------------------------------------------------------------------------------------*/
-                if (!schedule.check("ArenaReview") || config.getItem('WhenArena', 'Never') === 'Never') {
-                    return false;
-                }
-
-                if (state.getItem('ArenaRefresh', true)) {
-                    if (arena.navigate_to_main_refresh()) {
-                        return true;
-                    }
-                }
-
-                if (!state.getItem('ArenaReview', false)) {
-                    if (arena.navigate_to_main()) {
-                        return true;
-                    }
-
-                    state.setItem('ArenaReview', true);
-                }
-
-                state.setItem('ArenaRefresh', true);
-                state.setItem('ArenaReview', false);
-                $u.log(1, 'Done with Arena review.');
-                return false;
-            } catch (err) {
-                $u.error("ERROR in ArenaReview: " + err);
-                return false;
-            }
-        },
-
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
-        CheckResults_arena: function () {
-            try {
-                caap.globalContainer.find("input[src*='battle_enter_battle']").bind('click', caap.arenaEngageListener);
-                arena.checkInfo();
-                return true;
+                return arena.CheckResults_arena();
             } catch (err) {
                 $u.error("ERROR in CheckResults_arena: " + err);
                 return false;
@@ -8694,141 +8548,40 @@
 
         CheckResults_arena_battle: function () {
             try {
-                caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
-                    $j(this).attr("id", index).bind('click', caap.arenaDualListener);
-                });
-
-                arena.onBattle();
-                return true;
+                return arena.CheckResults_arena_battle();
             } catch (err) {
                 $u.error("ERROR in CheckResults_arena_battle: " + err);
                 return false;
             }
+        },*/
+
+        /*-------------------------------------------------------------------------------------\
+        ArenaReview is a primary action subroutine to mange the Arena on the dashboard
+        \-------------------------------------------------------------------------------------*/
+        /*ArenaReview: function () {
+            try {
+                return arena.review();
+            } catch (err) {
+                $u.error("ERROR in ArenaReview: " + err);
+                return false;
+            }
         },
 
-        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
-        /*jslint sub: true */
         Arena: function () {
             try {
-                var when    = '',
-                    record  = {},
-                    minion  = {},
-                    form    = $j(),
-                    key     = $j(),
-                    enterButton = $j(),
-                    nextTime = '',
-                    tokenTimer = 0;
-
-                when = config.getItem("WhenArena", 'Never');
-                if (when === 'Never') {
-                    return false;
-                }
-
-                record = arena.getItem();
-                nextTime = (record['reviewed'] && record['nextTime']) ? "Next Arena: " + $u.makeTime(record['reviewed'] + (record['nextTime'].parseTimer() * 1000), schedule.timeStr(true)) : '';
-                nextTime = record['startTime'] ? "Next Arena: " + record['startTime'] + " seconds" : nextTime;
-                tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
-                tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
-                nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
-                caap.SetDivContent('arena_mess', nextTime);
-                if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
-                    if (state.getItem('ArenaRefresh', true)) {
-                        if (arena.navigate_to_main_refresh()) {
-                            return true;
-                        }
-                    }
-
-                    if (!state.getItem('ArenaReview', false)) {
-                        if (arena.navigate_to_main()) {
-                            return true;
-                        }
-
-                        state.setItem('ArenaReview', true);
-                    }
-
-                    state.setItem('ArenaRefresh', true);
-                    state.setItem('ArenaReview', false);
-                    state.setItem('ArenaJoined', false);
-                    return false;
-                }
-
-                if (/*!record['days'] || */record['tokens'] <= 0 || (record['ticker'].parseTimer() <= 0 && record['state'] === "Ready") || (caap.stats['stamina']['num'] < 20 && record['state'] === "Ready")) {
-                    return false;
-                }
-
-                caap.SetDivContent('arena_mess', "Entering Arena");
-                if (general.Select('ArenaGeneral')) {
-                    return true;
-                }
-
-                if (!$j("#" + caap.domain.id[caap.domain.which] + "arena_battle_banner_section").length) {
-                    if (state.getItem('ArenaRefresh', true)) {
-                        if (arena.navigate_to_main_refresh()) {
-                            return true;
-                        }
-                    }
-
-                    if (!state.getItem('ArenaReview', false)) {
-                        if (arena.navigate_to_main()) {
-                            return true;
-                        }
-
-                        state.setItem('ArenaReview', true);
-                    }
-
-                    state.setItem('ArenaRefresh', true);
-                    state.setItem('ArenaReview', false);
-                    enterButton = $j("input[src*='battle_enter_battle.gif']");
-                    $u.log(1, "Enter battle", record, enterButton);
-                    if (record['tokens'] > 0 && enterButton && enterButton.length) {
-                        arena.clearMinions();
-                        caap.Click(enterButton);
-                        return true;
-                    }
-                }
-
-                enterButton = $j("input[src*='guild_enter_battle_button.gif']");
-                if (enterButton && enterButton.length) {
-                    $u.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
-                    if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
-                        state.setItem('ArenaJoined', true);
-                        caap.Click(enterButton);
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                if (record['state'] !== "Alive") {
-                    return false;
-                }
-
-                minion = arena.getTargetMinion(record);
-                if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
-                    $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
-                    caap.SetDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
-                    key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
-                    if (key && key.length) {
-                        form = key.parents("form").eq(0);
-                        if (form && form.length) {
-                            state.setItem('ArenaMinionAttacked', minion);
-                            caap.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
+                return arena.arena();
             } catch (err) {
                 $u.error("ERROR in Arena: " + err);
                 return false;
             }
-        },
+        },*/
 
         /////////////////////////////////////////////////////////////////////
         //                          MONSTERS AND BATTLES
         /////////////////////////////////////////////////////////////////////
 
+        /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
+        /*jslint sub: true */
         CheckResults_fightList: function () {
             try {
                 var buttonsDiv            = $j("img[src*='dragon_list_btn_']", caap.globalContainer),
@@ -9535,6 +9288,13 @@
 
                 if (counter === -1) {
                     if (caap.stats['level'] > 7) {
+                        // This is a temporary fix for the web3 url until CA fix their HTML
+                        if (caap.domain.which === 2 && !$u.hasContent($j("img[src*='tab_raid_']", caap.appBodyDiv))) {
+                            if (caap.NavigateTo(caap.battlePage + ',arena', 'tab_arena_on.gif')) {
+                                return true;
+                            }
+                        }
+
                         if (caap.NavigateTo(caap.battlePage + ',raid', 'tab_raid_on.gif')) {
                             state.setItem('reviewDone', false);
                             return true;
@@ -10941,24 +10701,7 @@
                     schedule.setItem("ajaxGiftCheck", gm.getItem('CheckGiftMins', 15, hiddenVar) * 60, 300);
                 }
 
-                var tokenSpan = $j(),
-                    tStr      = '',
-                    arenaInfo = {};
-
-                $j("div[style*='arena3_newsfeed']").unbind('click', caap.arenaEngageListener).bind('click', caap.arenaEngageListener);
-                tokenSpan = $j("span[id='" + caap.domain.id[caap.domain.which] + "arena_token_current_value']");
-                if (tokenSpan && tokenSpan.length) {
-                    tStr = tokenSpan.length ? tokenSpan.text().trim() : '';
-                    arenaInfo = arena.getItem();
-                    arenaInfo['tokens'] = tStr ? tStr.parseInt() : 0;
-                    if (arenaInfo['tokens'] === 10) {
-                        arenaInfo['tokenTime'] = '';
-                    }
-
-                    arena.setItem(arenaInfo);
-                    $u.log(4, 'arenaInfo', arenaInfo);
-                }
-
+                //arena.index();
                 return true;
             } catch (err) {
                 $u.error("ERROR in CheckResults_index: " + err);
@@ -11029,18 +10772,18 @@
                     giftImg    = '',
                     giftChoice = '',
                     popCheck,
-                    collecting,
-                    whenArena  = '',
+                    collecting;
+                    /*whenArena  = '',
                     arenaInfo  = {};
 
                 whenArena = config.getItem("WhenArena", 'Never');
                 if (whenArena !== 'Never') {
                     arenaInfo = arena.getItem();
-                }
+                }*/
 
                 /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
                 /*jslint sub: true */
-                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')) {
+                if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) /*|| (!$j.isEmptyObject(arenaInfo) && arenaInfo['state'] !== 'Ready')*/) {
                     return false;
                 }
                 /*jslint sub: false */
@@ -11906,15 +11649,7 @@
         /*jslint sub: true */
         ReconPlayers: function () {
             try {
-                if (!config.getItem('DoPlayerRecon', false)) {
-                    return false;
-                }
-
-                if (caap.stats['stamina']['num'] <= 0) {
-                    return false;
-                }
-
-                if (!schedule.check('PlayerReconTimer')) {
+                if (!config.getItem('DoPlayerRecon', false) || !schedule.check('PlayerReconTimer') || caap.stats['stamina']['num'] <= 0) {
                     return false;
                 }
 
@@ -12127,11 +11862,11 @@
             0x02: 'ImmediateBanking',
             0x03: 'ImmediateAutoStat',
             0x04: 'MaxEnergyQuest',
-            0x05: 'ArenaReview',
+            //0x05: 'ArenaReview',
             0x06: 'GuildMonsterReview',
             0x07: 'MonsterReview',
             0x08: 'GuildMonster',
-            0x09: 'Arena',
+            //0x09: 'Arena',
             0x0A: 'DemiPoints',
             0x0B: 'Monsters',
             0x0C: 'Battle',
@@ -12249,10 +11984,10 @@
                     "ImmediateAutoStat",
                     "MaxEnergyQuest",
                     'GuildMonsterReview',
-                    "ArenaReview",
+                    //"ArenaReview",
                     "MonsterReview",
                     'GuildMonster',
-                    'Arena',
+                    //'Arena',
                     "DemiPoints",
                     "Monsters",
                     "Battle",
@@ -12447,7 +12182,7 @@
 
         ReloadOccasionally: function () {
             try {
-                var reloadMin = gm.getItem('ReloadFrequency', 8, hiddenVar);
+                var reloadMin = config.getItem('ReloadFrequency', 8);
                 reloadMin = !$u.isNumber(reloadMin) || reloadMin < 8 ? 8 : reloadMin;
                 window.setTimeout(function () {
                     if (schedule.since('clickedOnSomething', 300) || caap.pageLoadCounter > 40) {
@@ -12646,7 +12381,7 @@
                     gm.deleteItem("gifting.gifts");
                 }
             },
-            'Arena' : {
+            /*'Arena' : {
                 'export' : function () {
                     return arena.records;
                 },
@@ -12657,7 +12392,7 @@
                 'delete' : function () {
                     gm.deleteItem("arena.records");
                 }
-            },
+            },*/
             'Army' : {
                 'export' : function () {
                     return army.records;
@@ -12708,7 +12443,7 @@
                     w = $j("#caap_export");
 
                 if (!$u.hasContent(w)) {
-                    h = "<textarea style='resize:none;width:400px;height:400px;' disabled>" + JSON.stringify(data, null, "\t") + "</textarea>";
+                    h = "<textarea style='resize:none;width:400px;height:400px;' readonly='readonly'>" + JSON.stringify(data, null, "\t") + "</textarea>";
                     w = $j('<div id="caap_export" title="Export ' + title + ' Data">' + h + '</div>').appendTo(document.body);
                     w.dialog({
                         resizable : false,
@@ -12913,8 +12648,8 @@
     caap['CheckResults_guild_current_battles'] = caap.CheckResults_guild_current_battles;
     caap['CheckResults_guild_current_monster_battles'] = caap.CheckResults_guild_current_monster_battles;
     caap['CheckResults_guild_battle_monster'] = caap.CheckResults_guild_battle_monster;
-    caap['CheckResults_arena'] = caap.CheckResults_arena;
-    caap['CheckResults_arena_battle'] = caap.CheckResults_arena_battle;
+    //caap['CheckResults_arena'] = caap.CheckResults_arena;
+    //caap['CheckResults_arena_battle'] = caap.CheckResults_arena_battle;
     caap['AutoElite'] = caap.AutoElite;
     caap['Heal'] = caap.Heal;
     caap['ImmediateBanking'] = caap.ImmediateBanking;
@@ -12937,6 +12672,6 @@
     caap['AutoAlchemy'] = caap.AutoAlchemy;
     caap['Idle'] = caap.Idle;
     caap['AutoIncome'] = caap.AutoIncome;
-    caap['Arena'] = caap.Arena;
-    caap['ArenaReview'] = caap.ArenaReview;
+    //caap['Arena'] = caap.Arena;
+    //caap['ArenaReview'] = caap.ArenaReview;
     /*jslint sub: false */

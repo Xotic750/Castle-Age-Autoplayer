@@ -213,7 +213,6 @@
                         search = $j(),
                         record = {},
                         tStr   = '',
-                        tTxt   = '',
                         tNum   = 0,
                         pCount = 0,
                         it     = 0,
@@ -288,7 +287,7 @@
 
                 var expectedPageCount = 0,
                     currentPage       = 0,
-                    scanDays          = config.getItem("ArmyScanDays", 7);
+                    scanDays          = $u.setContent(config.getItem("ArmyScanDays", 7), 7);
 
                 currentPage = ss.getItem("army.currentPage", 1, true);
                 expectedPageCount = state.getItem("ArmyPageCount", 0);

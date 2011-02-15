@@ -834,32 +834,44 @@
                     minRank = 99;
                 }
 
-                maxLevel = gm.getItem("FreshMeatMaxLevel", 99999, hiddenVar);
+                maxLevel = config.getItem("FreshMeatMaxLevel", 99999);
                 $u.log(3, "FreshMeatMaxLevel", maxLevel);
                 if (maxLevel === '' || $u.isNaN(maxLevel)) {
+                    if (maxLevel !== '') {
+                        $u.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
+                    }
+
                     maxLevel = 99999;
-                    $u.warn("FreshMeatMaxLevel is NaN, using default", maxLevel);
                 }
 
                 ARBase = config.getItem("FreshMeatARBase", 0.5);
                 $u.log(3, "FreshMeatARBase", ARBase);
                 if (ARBase === '' || $u.isNaN(ARBase)) {
+                    if (ARBase !== '') {
+                        $u.warn("FreshMeatARBase is NaN, using default", ARBase);
+                    }
+
                     ARBase = 0.5;
-                    $u.warn("FreshMeatARBase is NaN, using default", ARBase);
                 }
 
-                ARMax = gm.getItem("FreshMeatARMax", 99999, hiddenVar);
+                ARMax = config.getItem("FreshMeatARMax", 99999);
                 $u.log(3, "FreshMeatARMax", ARMax);
                 if (ARMax === '' || $u.isNaN(ARMax)) {
+                    if (ARMax !== '') {
+                        $u.warn("FreshMeatARMax is NaN, using default", ARMax);
+                    }
+
                     ARMax = 99999;
-                    $u.warn("FreshMeatARMax is NaN, using default", ARMax);
                 }
 
-                ARMin = gm.getItem("FreshMeatARMin", 0, hiddenVar);
+                ARMin = config.getItem("FreshMeatARMin", 0);
                 $u.log(3, "FreshMeatARMin", ARMin);
                 if (ARMin === '' || $u.isNaN(ARMin)) {
+                    if (ARMin !== '') {
+                        $u.warn("FreshMeatARMin is NaN, using default", ARMin);
+                    }
+
                     ARMin = 0;
-                    $u.warn("FreshMeatARMin is NaN, using default", ARMin);
                 }
 
                 for (it = 0, len = inputDiv.length; it < len; it += 1) {
@@ -967,7 +979,7 @@
                         continue;
                     }
 
-                    levelMultiplier = caap.stats['level'] / tempRecord.data['levelNum'];
+                    levelMultiplier = caap.stats['level'] / (tempRecord.data['levelNum'] > 0 ? tempRecord.data['levelNum'] : 1);
                     armyRatio = ARBase * levelMultiplier;
                     armyRatio = Math.min(armyRatio, ARMax);
                     armyRatio = Math.max(armyRatio, ARMin);
