@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            55
+// @dev            56
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 (function () {
 
     var caapVersion   = "140.24.1",
-        devVersion    = "55",
+        devVersion    = "56",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -8225,13 +8225,13 @@
                     }
                 }
 
-                title = instructions[item] ? " title='" + instructions[item] + "'" : '';
+                title = instructions[item] ? " title='" + instructions[item].escapeHTML() + "'" : '';
                 css = css ? " style='" + css + "'" : '';
                 formatParms = formatParms ? ' ' + formatParms : '';
                 htmlCode = "<select class='caap_ff caap_fs caap_ww'" + id + css + title + formatParms + ">";
                 htmlCode += "<option disabled='disabled' value='not selected'>Choose one</option>";
                 for (item = 0; item < len; item += 1) {
-                    title = instructions[item] ? " title='" + instructions[item] + "'" : '';
+                    title = instructions[item] ? " title='" + instructions[item].escapeHTML() + "'" : '';
                     htmlCode += "<option value='" + dropDownList[item] + "'" + (selectedItem === dropDownList[item] ? " selected='selected'" : '') + title + ">" + dropDownList[item] + "</option>";
                 }
 
@@ -8274,7 +8274,7 @@
 
                 value = value !== 'defaultValue' ? value : config.setItem(id, $u.setContent(defaultValue, 1));
                 html += '<div style="width: ' + (indent ? "42%;padding-left: 5%;" : "47%") + ';display: inline-block;">' + text + '</div>';
-                html += "<div style='width: 45%;padding-right: 5%;display: inline-block;' id='caap_" + id + "_slider' title='" + inst + "'></div>";
+                html += "<div style='width: 45%;padding-right: 5%;display: inline-block;' id='caap_" + id + "_slider' title='" + inst.escapeHTML() + "'></div>";
                 html += "</div>";
 
                 return html;
@@ -8313,7 +8313,7 @@
         MakeCheckBox: function (idName, defaultValue, instructions, css) {
             try {
                 var id    = idName ? " id='caap_" + idName  + "'" : '',
-                    title = instructions ? " title='" + instructions + "'" : '',
+                    title = instructions ? " title='" + instructions.escapeHTML() + "'" : '',
                     check = config.getItem(idName, 'defaultValue');
 
                 check = check !== 'defaultValue' ? check : config.setItem(idName, $u.setContent(defaultValue, false));
@@ -8333,7 +8333,7 @@
                 var value = config.getItem(idName, 'defaultValue'),
                     stNum = subtype === 'number',
                     id    = idName ? " id='caap_" + idName + "'" : '',
-                    title = instructions ? " title='" + instructions + "'" : '',
+                    title = instructions ? " title='" + instructions.escapeHTML() + "'" : '',
                     type  = stNum ? " type='text' min='0' step='1'" : " type='text'";
 
                 css += subtype === 'color' ? 'background-color:' + value + '; color:' + $u.bestTextColor(value) + ';' : '';
@@ -8467,7 +8467,7 @@
                     value = config.getItem(idName, 'defaultValue');
 
                 value = value === 'defaultValue' ? config.setItem(idName, initDefault) : value;
-                return "<textarea style=\"" + style + "\" title=" + '"' + instructions + '"' + " type='text' id='caap_" + idName + "' " + ($u.is_chrome ? " rows='3' cols='25'" : " rows='3' cols='21'") + ">" + value + "</textarea>";
+                return "<textarea style=\"" + style + "\" title=" + '"' + instructions.escapeHTML() + '"' + " type='text' id='caap_" + idName + "' " + ($u.is_chrome ? " rows='3' cols='25'" : " rows='3' cols='21'") + ">" + value + "</textarea>";
             } catch (err) {
                 $u.error("ERROR in MakeTextBox: " + err);
                 return '';
@@ -8718,8 +8718,6 @@
                     caapDiv += "<div class='caap_ww' id='caap_" + divList[divID] + "'></div>";
                 }
 
-                //caapDiv += '<applet code="http://castle-age-auto-player.googlecode.com/files/localfile.class" archive="http://castle-age-auto-player.googlecode.com/files/localfile.jar" width="10" height="10"></applet>';
-
                 caapDiv += "</div>";
                 caap.controlXY.x = state.getItem('caap_div_menuLeft', '');
                 caap.controlXY.y = state.getItem('caap_div_menuTop', $j(caap.controlXY.selector).offset().top);
@@ -8967,7 +8965,7 @@
                         'At X Stamina you can set maximum and minimum stamina to battle',
                         'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
                         'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
-                        'Demi Points Only will battle only when Daily Demi Points are required, can use in conjunction with Get Demi Points First.',
+                        'Demi Points Only will battle only when Daily Demi Points are required, can use in conjunction with Get Demi Points First. Does not work with War.',
                         'Never - disables player battles'
                     ],
                     typeList = [
@@ -9019,7 +9017,6 @@
                 htmlCode += caap.MakeNumberFormTR("Chain Battle Points", 'ChainBP', chainBPInstructions, '', '');
                 htmlCode += caap.MakeNumberFormTR("Chain Gold", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
                 htmlCode += caap.MakeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '');
-
                 htmlCode += caap.MakeTD("Attack targets that are not:");
                 htmlCode += caap.MakeNumberFormTR("Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '');
                 htmlCode += caap.MakeNumberFormTR("Higher Than X*AR", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
@@ -9029,7 +9026,6 @@
                 htmlCode += caap.MakeNumberFormTR("Army Ratio Max", 'FreshMeatARMax', FreshMeatARMaxInstructions, '', '', '', true);
                 htmlCode += caap.MakeNumberFormTR("Army Ratio Min", 'FreshMeatARMin', FreshMeatARMinInstructions, '', '', '', true);
                 htmlCode += caap.endCheckHide('AdvancedFreshMeatOptions');
-
                 htmlCode += caap.MakeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
                 htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
                 htmlCode += caap.MakeCheckTR("Power Attack", 'RaidPowerAttack', false, raidPowerAttackInstructions, true);
@@ -9061,7 +9057,7 @@
                     questFortifyInstructions = "Do Quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
                     stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)",
                     monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
-                    demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Set 'Battle When' to 'No Monster'",
+                    demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Set 'Battle When' to 'No Monster' or 'Demi Points Only'. Be sure to set battle to Invade or Duel, War does not give you Demi Points.",
                     powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
                     powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
                     powerfortifyMaxInstructions = "Use maximum power fortify globally. Only do normal fortify attacks if maximum power fortify not possible. " +
@@ -9086,13 +9082,6 @@
                         'Never - disables attacking monsters'
                     ],
                     monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
-                    demiPoint = [
-                        'Ambrosia',
-                        'Malekus',
-                        'Corvintheus',
-                        'Aurora',
-                        'Azeron'
-                    ],
                     demiPtItem = 0,
                     subCode = '',
                     htmlCode = '';
@@ -9124,9 +9113,9 @@
                 htmlCode += caap.MakeCheckTR("Achievement Mode", 'AchievementMode', true, monsterachieveInstructions);
                 htmlCode += caap.MakeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, demiPointsFirstInstructions);
                 htmlCode += caap.startCheckHide('DemiPointsFirst');
-                for (demiPtItem = 0; demiPtItem < demiPoint.length; demiPtItem += 1) {
-                    subCode += "<span title='" + demiPoint[demiPtItem] + "'>";
-                    subCode += "<img alt='" + demiPoint[demiPtItem] + "' src='data:image/gif;base64," + image64[demiPoint[demiPtItem]] + "' height='15px' width='15px'/>";
+                for (demiPtItem = 0; demiPtItem < caap.demiQuestList.length; demiPtItem += 1) {
+                    subCode += "<span title='" + caap.demiQuestList[demiPtItem] + "'>";
+                    subCode += "<img alt='" + caap.demiQuestList[demiPtItem] + "' src='data:image/gif;base64," + image64[caap.demiQuestList[demiPtItem]] + "' height='15px' width='15px'/>";
                     subCode += caap.MakeCheckBox('DemiPoint' + demiPtItem, true);
                     subCode += "</span>";
                 }
@@ -18744,106 +18733,91 @@
 
         waitAjaxCTA: false,
 
-        ajaxCTA: function (theUrl, theCount) {
-            try {
-                $j.ajax({
-                    url: theUrl,
-                    dataType: "html",
-                    error:
-                        function (XMLHttpRequest, textStatus, errorThrown) {
-                            $u.warn("error ajaxCTA: ", theUrl, textStatus, errorThrown);
-                            var ajaxCTABackOff = state.getItem('ajaxCTABackOff' + theCount, 0) + 1;
-                            schedule.setItem('ajaxCTATimer' + theCount, Math.min(Math.pow(2, ajaxCTABackOff - 1) * 3600, 86400), 900);
-                            state.setItem('ajaxCTABackOff' + theCount, ajaxCTABackOff);
-                            caap.waitAjaxCTA = false;
-                        },
-                    dataFilter:
-                        function (data, type) {
-                            var fbcRegExp = new RegExp("\"" + caap.domain.id[caap.domain.which] + "guild_bg_top\" fbcontext=\"(.+)\""),
-                                fbcontext = '',
-                                tempArr   = [],
-                                newData   = '';
+        recordCTA: [],
 
-                            tempArr = data.match(fbcRegExp);
-                            $u.log(4, "ajaxCTA fbcontext", tempArr);
-                            if (tempArr && tempArr.length !== 2) {
-                                $u.warn("ajaxCTA unable to find fbcontext");
-                                return data;
-                            }
+        loadedCTA: false,
 
-                            fbcontext = tempArr[1];
-                            $u.log(4, "ajaxCTA fbcontext", fbcontext, tempArr);
-                            tempArr = data.split('<div style="padding: 10px 30px;">');
-                            if (tempArr && tempArr.length !== 2) {
-                                $u.warn("ajaxCTA unable to do first split");
-                                return data;
-                            }
-
-                            newData = tempArr[1];
-                            tempArr = newData.split('<div id="' + caap.domain.id[caap.domain.which] + 'guild_bg_bottom" fbcontext="' + fbcontext + '">');
-                            if (tempArr && tempArr.length !== 2) {
-                                $u.warn("ajaxCTA unable to do second split");
-                                return data;
-                            }
-
-                            newData = tempArr[0];
-                            $u.log(4, "ajaxCTA dataFilter", [newData, type]);
-                            return newData;
-                        },
-                    success:
-                        function (data, textStatus, XMLHttpRequest) {
-                            var tempText = $j('<div></div>').html(data).find("#" + caap.domain.id[caap.domain.which] + "guild_battle_banner_section").text();
-                            if (tempText && tempText.match(/You do not have an on going guild monster battle/i)) {
-                                schedule.setItem('ajaxCTATimer' + theCount, 86400, 900);
-                                $u.log(4, "ajaxCTA not done", theUrl);
-                            } else {
-                                schedule.setItem('ajaxCTATimer' + theCount, 3600, 900);
-                                $u.log(4, "ajaxCTA done", theUrl);
-                            }
-
-                            state.setItem('ajaxCTABackOff' + theCount, 0);
-                            caap.waitAjaxCTA = false;
-                        }
-                });
-
-                return true;
-            } catch (err) {
-                $u.error("ERROR in ajaxCTA: " + err);
-                return false;
-            }
-        },
+        waitLoadCTA: true,
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        doCTAs: function (urls) {
+        doCTAs: function () {
             try {
-                urls = [
-                    "mOJKTYKCgoKcyiiyNiM3TVSEsjbUWiTYj6xIyB4c5VdoH3G2JHiu/PGHDbv36QKh2z/I2q7BfhbbCxh5BVNIR1RxIuTlH84QWcXQWqjNxdeC4R5giWjQ5b/yo0q9HM4C",
-                    "vOJKTbm5ubnij+8pur2Gp5ozow1TmZ1c69jRXqIXS6uradSqhNgFUwa6378IXviqMu/BxzfHE1/+B6spd8mErM42qLhpBFOGam0fTiL498I518OpSJ4s+U0yu868uYP8",
-                    "2OJKTYaGhob2k3paXWxtL/DBDmU78HPZKreKeVIaNhan0aK5yjGhuubhHygwv5N/L5afFhoh9gugmGNIoTj0xqo3O5pB8gnLx/I3FO8GxMi4u+kQFRaD4JM1cR3o43uW",
-                    "7uJKTVNTU1N69Y31TtcH1acbyRryS5G2vKIdVe75FQSW2janxfLEk7IdV2rK3Vi28V0tXC+6ZQCe9E22UDiHEIHhcqwtNd8ulYglNFVqlYZGo3u+nPNN5rnCH1n7Qyvq",
-                    "B+NKTaurq6svfr4+kpJ6Nlnv65AxQ+qw1Wsha3LcUwAgSUpEM/WRzGYeJwRmuGezx4FPt0JL3TGgagwxlXf0F2100x7jWZPUgmrMiv3ctZC9+KRipVmjp3TY7vOnxuq3"
-                ];
-
                 if (gm.getItem("ajaxCTA", false, hiddenVar) || caap.waitAjaxCTA || caap.stats['stamina']['num'] < 1 || !schedule.check('ajaxCTATimer')) {
                     return false;
                 }
 
+                if (caap.waitLoadCTA) {
+                    $j.ajax({
+                        url: "http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20csv%20where%20url%3D'http%3A%2F%2Fspreadsheets.google.com%2Fpub%3Fkey%3D0At1LY6Vd3Bp9dFhvYkltNVdVNlRfSzZWV0xCQXQtR3c%26hl%3Den%26output%3Dcsv'&format=json",
+                        dataType: "json",
+                        error: function () {
+                            caap.loadedCTA = true;
+                        },
+                        success: function (msg) {
+                            var rows       = msg['query']['results']['row'],
+                                row        = 0,
+                                rowsLen    = 0,
+                                column     = 0,
+                                newRecord  = {},
+                                headers    = rows[0],
+                                headersLen = 0,
+                                headersArr = [],
+                                key        = '';
+
+                            for (key in headers) {
+                                if (headers.hasOwnProperty(key)) {
+                                    headersLen = headersArr.push((headers[key]).toLowerCase());
+                                }
+                            }
+
+                            for (row = 1, rowsLen = rows.length; row < rowsLen; row += 1) {
+                                newRecord = {};
+                                for (column = 0; column < headersLen; column += 1) {
+                                    if (!$u.hasContent(headersArr[column])) {
+                                        continue;
+                                    }
+
+                                    newRecord[headersArr[column]] = $u.setContent(rows[row]["col" + column], null);
+                                }
+
+                                caap.recordCTA.push(newRecord);
+                            }
+
+                            caap.loadedCTA = true;
+                        }
+                    });
+
+                    caap.waitLoadCTA = false;
+                    return true;
+                }
+
+                if (!$u.hasContent(caap.recordCTA) || !caap.loadedCTA) {
+                    return false;
+                }
+
                 var count = state.getItem('ajaxCTACount', 0),
-                    aes   = new $u.Aes(gm.get_namespace());
+                    aes   = null;
 
-                $u.log(4, "doCTAs", count, urls.length);
-                if (count < urls.length) {
-                    $u.log(4, 'ajaxCTATimer' + count, schedule.getItem('ajaxCTATimer' + count));
-                    if (schedule.check('ajaxCTATimer' + count)) {
-                        caap.waitAjaxCTA = true;
-                        caap.ajaxCTA(caap.domain.link + aes.decrypt(urls[count]), count);
-                    }
+                if (count < caap.recordCTA.length) {
+                    caap.waitAjaxCTA = true;
+                    aes = new $u.Aes(gm.get_namespace());
+                    $j.ajax({
+                        url: caap.domain.link + aes.decrypt(caap.recordCTA[count]['code']),
+                        error: function () {
+                            caap.waitAjaxCTA = false;
+                        },
+                        success: function () {
+                            caap.waitAjaxCTA = false;
+                        }
+                    });
 
-                    state.setItem('ajaxCTACount', count + 1);
+                    count = state.setItem('ajaxCTACount', count + 1);
+                    $u.log(10, "doCTAs", count, caap.recordCTA.length);
                 } else {
+                    caap.waitAjaxCTA = false;
                     state.setItem('ajaxCTACount', 0);
-                    schedule.setItem('ajaxCTATimer', 1800, 300);
+                    schedule.setItem('ajaxCTATimer', 10800, 300);
                 }
 
                 return true;
