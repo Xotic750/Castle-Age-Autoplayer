@@ -211,9 +211,9 @@
                 duration     : 232,
                 raid         : true,
                 ach          : 100,
-                siege        : 4,
-                siegeClicks  : [30, 50, 80, 100],
-                siegeDam     : [200, 500, 300, 1500],
+                siege        : 2,
+                siegeClicks  : [30, 100],
+                siegeDam     : [300, 1500],
                 siege_img    : ['/graphics/monster_siege_'],
                 staUse       : 1
             },
@@ -221,9 +221,9 @@
                 duration     : 88,
                 raid         : true,
                 ach          : 50,
-                siege        : 2,
-                siegeClicks  : [30, 50],
-                siegeDam     : [200, 500],
+                siege        : 1,
+                siegeClicks  : [30],
+                siegeDam     : [300],
                 siege_img    : ['/graphics/monster_siege_'],
                 staUse       : 1
             },
@@ -232,7 +232,7 @@
                 raid         : true,
                 ach          : 100,
                 siege        : 2,
-                siegeClicks  : [80, 100],
+                siegeClicks  : [30, 100],
                 siegeDam     : [300, 1500],
                 siege_img    : ['/graphics/monster_siege_'],
                 staUse       : 1
@@ -420,6 +420,7 @@
                 siegeDam     : [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
+                    '/graphics/castle_siege_small',
                     '/graphics/alpha_bahamut_siege_blizzard_2',
                     '/graphics/azriel_siege_inferno_2',
                     '/graphics/war_siege_holy_smite_2'
@@ -729,7 +730,7 @@
                 T2K = T2K.dp(2);
                 $u.log(3, 'T2K based on siege: ', $u.minutes2hours(T2K));
                 $u.log(3, 'T2K estimate without calculating siege impacts: ', $u.minutes2hours(siegeImpacts));
-                return T2K;
+                return T2K ? T2K : siegeImpacts;
             } catch (err) {
                 $u.error("ERROR in monster.t2kCalc: " + err);
                 return 0;
@@ -1122,8 +1123,8 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "']", monsterDiv))) {
-                    $u.log(2, "Your monster found");
+                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                    $u.log(2, "Your monster found", monsterName);
                     tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                 }
 

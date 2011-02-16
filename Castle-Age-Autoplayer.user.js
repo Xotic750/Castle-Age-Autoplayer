@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            56
+// @dev            58
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -27,7 +27,7 @@
 (function () {
 
     var caapVersion   = "140.24.1",
-        devVersion    = "56",
+        devVersion    = "58",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -2264,9 +2264,9 @@
                 duration     : 232,
                 raid         : true,
                 ach          : 100,
-                siege        : 4,
-                siegeClicks  : [30, 50, 80, 100],
-                siegeDam     : [200, 500, 300, 1500],
+                siege        : 2,
+                siegeClicks  : [30, 100],
+                siegeDam     : [300, 1500],
                 siege_img    : ['/graphics/monster_siege_'],
                 staUse       : 1
             },
@@ -2274,9 +2274,9 @@
                 duration     : 88,
                 raid         : true,
                 ach          : 50,
-                siege        : 2,
-                siegeClicks  : [30, 50],
-                siegeDam     : [200, 500],
+                siege        : 1,
+                siegeClicks  : [30],
+                siegeDam     : [300],
                 siege_img    : ['/graphics/monster_siege_'],
                 staUse       : 1
             },
@@ -2285,7 +2285,7 @@
                 raid         : true,
                 ach          : 100,
                 siege        : 2,
-                siegeClicks  : [80, 100],
+                siegeClicks  : [30, 100],
                 siegeDam     : [300, 1500],
                 siege_img    : ['/graphics/monster_siege_'],
                 staUse       : 1
@@ -2473,6 +2473,7 @@
                 siegeDam     : [16250000, 19500000, 22750000, 26000000, 29250000, 32500000, 39000000, 42250000, 45500000, 52000000],
                 siege_img    : [
                     '/graphics/water_siege_small',
+                    '/graphics/castle_siege_small',
                     '/graphics/alpha_bahamut_siege_blizzard_2',
                     '/graphics/azriel_siege_inferno_2',
                     '/graphics/war_siege_holy_smite_2'
@@ -2782,7 +2783,7 @@
                 T2K = T2K.dp(2);
                 $u.log(3, 'T2K based on siege: ', $u.minutes2hours(T2K));
                 $u.log(3, 'T2K estimate without calculating siege impacts: ', $u.minutes2hours(siegeImpacts));
-                return T2K;
+                return T2K ? T2K : siegeImpacts;
             } catch (err) {
                 $u.error("ERROR in monster.t2kCalc: " + err);
                 return 0;
@@ -3175,8 +3176,8 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "']", monsterDiv))) {
-                    $u.log(2, "Your monster found");
+                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                    $u.log(2, "Your monster found", monsterName);
                     tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                 }
 
@@ -14003,12 +14004,17 @@
                 default :
                 }
 
-                var button = caap.CheckForImage('quick_switch_button.gif');
-                if ($u.hasContent(button) && !config.getItem('ForceSubGeneral', false)) {
-                    $u.log(2, 'Clicking on quick switch general button.');
-                    caap.Click(button);
-                    general.quickSwitch = true;
-                    return true;
+                var bDiv = $j("#" + caap.domain.id[caap.domain.which] + "single_popup", caap.globalContainer);
+                var bDisp = $u.setContent(bDiv.css("display"), 'none');
+                if (bDiv !== 'none') {
+                    //var button = caap.CheckForImage('quick_switch_button.gif');
+                    var button = $j("input[src*='quick_switch_button.gif']", bDiv);
+                    if ($u.hasContent(button) && !config.getItem('ForceSubGeneral', false)) {
+                        $u.log(2, 'Clicking on quick switch general button.');
+                        caap.Click(button);
+                        general.quickSwitch = true;
+                        return true;
+                    }
                 }
 
                 if (general.quickSwitch) {
@@ -14191,7 +14197,7 @@
                     caap.BlessingResults(resultsText);
                 }
 
-                demiDiv = $j("div[id*='" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests']");
+                demiDiv = $j("div[id*='symbol_desc_symbolquests']");
                 if ($u.hasContent(demiDiv) && demiDiv.length === 5) {
                     demiDiv.each(function () {
                         var text = '',
@@ -14263,10 +14269,10 @@
                 //$u.log(1, "CheckResults_quests pickQuestTF", pickQuestTF);
                 pickQuestTF = pickQuestTF ? pickQuestTF : false;
                 if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container", caap.globalContainer))) {
-                    $j("div[id*='" + caap.domain.id[caap.domain.which] + "meta_quest_']", caap.globalContainer).each(function (index) {
+                    $j("div[id*='meta_quest_']", caap.globalContainer).each(function (index) {
                         var row = $j(this);
                         if (!($u.hasContent($j("img[src*='_completed']", row)) || $u.hasContent($j("img[src*='_locked']", row)))) {
-                            $j("div[id='" + caap.domain.id[caap.domain.which] + "quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.globalContainer).css("display", "block");
+                            $j("div[id*='quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.globalContainer).css("display", "block");
                         }
                     });
                 }
@@ -14287,7 +14293,7 @@
 
                 if (caap.HasImage('demi_quest_on.gif')) {
                     caap.CheckResults_symbolquests($u.isString(pickQuestTF) ? pickQuestTF : undefined);
-                    $j("div[id*='" + caap.domain.id[caap.domain.which] + "symbol_tab_symbolquests']", caap.globalContainer).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
+                    $j("div[id*='symbol_tab_symbolquests']", caap.globalContainer).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
                     ss = $j("div[id*='symbol_displaysymbolquest']", caap.globalContainer);
                     if (!$u.hasContent(ss)) {
                         $u.warn("Failed to find symbol_displaysymbolquest");
@@ -14302,10 +14308,10 @@
                         return true;
                     });
                 } else {
-                    div = $j(document.body);
+                    div = caap.globalContainer;
                 }
 
-                ss = $j("div[class*='quests_background']", div);
+                ss = $j(".quests_background,.quests_background_sub", div);
                 if (!$u.hasContent(ss)) {
                     $u.warn("Failed to find quests_background");
                     return false;
@@ -14341,7 +14347,7 @@
                     orbCheck : false
                 };
 
-                $j("div[class='autoquest']", caap.globalContainer).remove();
+                $j(".autoquest", caap.globalContainer).remove();
                 var expRegExp       = new RegExp("\\+(\\d+)"),
                     energyRegExp    = new RegExp("(\\d+)\\s+energy", "i"),
                     moneyRegExp     = new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
@@ -14362,12 +14368,12 @@
                         expM       = [],
                         tStr       = '';
 
-                    divTxt = div.text();
+                    divTxt = div.text().trim().innerTrim();
                     expM = divTxt ? divTxt.match(expRegExp) : [];
                     if (expM && expM.length === 2) {
                         experience = expM[1] ? expM[1].numberOnly() : 0;
                     } else {
-                        var expObj = $j("div[class='quest_experience']", caap.globalContainer);
+                        var expObj = $j(".quest_experience", div);
                         if ($u.hasContent(expObj)) {
                             tStr = expObj.text();
                             experience = tStr ? tStr.numberOnly() : 0;
@@ -14385,7 +14391,7 @@
                     if (energyM && energyM.length === 2) {
                         energy = energyM[1] ? energyM[1].numberOnly() : 0;
                     } else {
-                        var eObj = $j("div[class*='quest_req']", div);
+                        var eObj = $j(".quest_req", div);
                         if ($u.hasContent(eObj)) {
                             energy = $j('b', eObj).eq(0).text().numberOnly();
                         }
@@ -14416,7 +14422,7 @@
                         }
                     }
 
-                    var click = $j("input[name*='Do Quest']", div);
+                    var click = $j("input[name='Do Quest']", div);
                     if (!$u.hasContent(click)) {
                         $u.warn('No button found for', caap.questName);
                         return true;
@@ -14424,7 +14430,7 @@
 
                     var influence = -1;
                     if (caap.isBossQuest(caap.questName)) {
-                        if ($u.hasContent($j("div[class='quests_background_sub']", caap.globalContainer))) {
+                        if ($u.hasContent($j(".quests_background_sub", div))) {
                             //if boss and found sub quests
                             influence = 100;
                         } else {
@@ -14447,7 +14453,7 @@
                         genDiv  = $j();
 
                     if (influence >= 0 && influence < 100) {
-                        genDiv = $j("div[class*='quest_act_gen']", div);
+                        genDiv = $j(".quest_act_gen", div);
                         if ($u.hasContent(genDiv)) {
                             genDiv = $j("img[src*='jpg']", genDiv);
                             if ($u.hasContent(genDiv)) {
@@ -14622,7 +14628,7 @@
 
         GetQuestName: function (questDiv) {
             try {
-                var item_title = $j("div[class*='quest_desc'],div[class*='quest_sub_title']", questDiv),
+                var item_title = $j(".quest_desc,.quest_sub_title", questDiv),
                     firstb     = $j("b", item_title).eq(0),
                     text       = '';
 
@@ -14803,7 +14809,7 @@
 
         LabelQuests: function (div, energy, reward, experience, click) {
             try {
-                if ($u.hasContent($j("div[class='autoquest'", div))) {
+                if ($u.hasContent($j("div[class='autoquest']", div))) {
                     return;
                 }
 
@@ -14919,7 +14925,7 @@
 
             $u.log(1, 'Click deity blessing for', autoBless, autoBlessN);
             schedule.setItem('BlessingTimer', 3600, 300);
-            return caap.NavigateTo(picSlice.attr("src").basename());
+            return caap.Click(picSlice);
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -14977,8 +14983,7 @@
                 function SelectLands(div, val, type) {
                     try {
                         type = type ? type : 'Buy';
-                        var selects = $j();
-                        selects = $j("select", div);
+                        var selects = $j("select", div);
                         if (!$u.hasContent(selects)) {
                             $u.warn(type + " select not found!");
                             return false;
@@ -16298,509 +16303,514 @@
                     tStr              = '',
                     tBool             = false;
 
-                battle.checkResults();
-                if (config.getItem("enableTitles", true)) {
-                    spreadsheet.doTitles();
-                }
+                caap.delayMain = true;
+                window.setTimeout(function () {
+                    battle.checkResults();
+                    if (config.getItem("enableTitles", true)) {
+                        spreadsheet.doTitles();
+                    }
 
-                caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
-                monsterDiv = $j("div[style*='dragon_title_owner']", caap.appBodyDiv);
-                if ($u.hasContent(monsterDiv)) {
-                    tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
-                } else {
-                    monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
+                    caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
+                    monsterDiv = $j("div[style*='dragon_title_owner']", caap.appBodyDiv);
                     if ($u.hasContent(monsterDiv)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
-                        tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
-                        if ($u.hasContent(tempDiv)) {
-                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
+                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                    } else {
+                        monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
+                        if ($u.hasContent(monsterDiv)) {
+                            tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
+                            tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
+                            if ($u.hasContent(tempDiv)) {
+                                tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
+                            } else {
+                                $u.warn("Problem finding nm_bars");
+                                return;
+                            }
                         } else {
-                            $u.warn("Problem finding nm_bars");
+                            $u.warn("Problem finding dragon_title_owner and nm_top");
                             return;
                         }
-                    } else {
-                        $u.warn("Problem finding dragon_title_owner and nm_top");
-                        return;
-                    }
-                }
-
-                if ($u.hasContent(monsterDiv) && $u.hasContent($j("img[uid='" + caap.stats['FBID'] + "']", monsterDiv))) {
-                    $u.log(2, "Your monster found", tempText);
-                    tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
-                }
-
-                $u.log(2, "Monster name", tempText);
-                currentMonster = monster.getItem(tempText);
-                if (currentMonster['type'] === '') {
-                    currentMonster['type'] = monster.type(currentMonster['name']);
-                }
-
-                if (currentMonster['type'] === 'Siege' || currentMonster['type'].hasIndexOf('Raid')) {
-                    tempDiv = $j("div[style*='raid_back']", caap.appBodyDiv);
-                    if ($u.hasContent(tempDiv)) {
-                        if ($u.hasContent($j("img[src*='raid_1_large.jpg']", tempDiv))) {
-                            currentMonster['type'] = 'Raid I';
-                        } else if ($u.hasContent($j("img[src*='raid_b1_large.jpg']", tempDiv))) {
-                            currentMonster['type'] = 'Raid II';
-                        } else if ($u.hasContent($j("img[src*='raid_1_large_victory.jpg']", tempDiv))) {
-                            $u.log(2, "Siege Victory!");
-                        } else {
-                            $u.log(2, "Problem finding raid image! Probably finished.");
-                        }
-                    } else {
-                        $u.warn("Problem finding raid_back");
-                        return;
-                    }
-                }
-
-                monsterInfo = monster.info[currentMonster['type']];
-                currentMonster['review'] = new Date().getTime();
-                state.setItem('monsterRepeatCount', 0);
-                // Extract info
-                tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", caap.appBodyDiv);
-                if ($u.hasContent(tempDiv)) {
-                    $u.log(4, "Monster ticker found");
-                    time = $u.setContent(tempDiv.text(), '').regex(/(\d+):(\d+):(\d+)/);
-                } else {
-                    if (!caap.HasImage("dead.jpg")) {
-                        $u.warn("Could not locate Monster ticker.");
-                    }
-                }
-
-                if ($u.hasContent(time) && time.length === 3 && monsterInfo && monsterInfo.fort) {
-                    if (currentMonster['type'] === "Deathrune" || currentMonster['type'] === 'Ice Elemental') {
-                        currentMonster['fortify'] = 100;
-                    } else {
-                        currentMonster['fortify'] = 0;
                     }
 
-                    switch (monsterInfo.defense_img) {
-                    case 'bar_dispel.gif' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
+                    if ($u.hasContent(monsterDiv) && $u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],.fb_link[href*='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                        $u.log(2, "Your monster found", tempText);
+                        tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
+                    }
+
+                    $u.log(2, "Monster name", tempText);
+                    currentMonster = monster.getItem(tempText);
+                    if (currentMonster['type'] === '') {
+                        currentMonster['type'] = monster.type(currentMonster['name']);
+                    }
+
+                    if (currentMonster['type'] === 'Siege' || currentMonster['type'].hasIndexOf('Raid')) {
+                        tempDiv = $j("div[style*='raid_back']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
-                            currentMonster['fortify'] = (100 - tempDiv.getPercent('width')).dp(2);
-                        } else {
-                            $u.warn("Unable to find defense bar", monsterInfo.defense_img);
-                        }
-
-                        break;
-                    case 'seamonster_ship_health.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
-                        if ($u.hasContent(tempDiv)) {
-                            currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
-                            if (monsterInfo.repair_img) {
-                                tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", caap.appBodyDiv).parent();
-                                if ($u.hasContent(tempDiv)) {
-                                    currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.getPercent('width')))).dp(2);
-                                } else {
-                                    $u.warn("Unable to find repair bar", monsterInfo.repair_img);
-                                }
+                            if ($u.hasContent($j("img[src*='raid_1_large.jpg']", tempDiv))) {
+                                currentMonster['type'] = 'Raid I';
+                            } else if ($u.hasContent($j("img[src*='raid_b1_large.jpg']", tempDiv))) {
+                                currentMonster['type'] = 'Raid II';
+                            } else if ($u.hasContent($j("img[src*='raid_1_large_victory.jpg']", tempDiv))) {
+                                $u.log(2, "Siege Victory!");
+                            } else {
+                                $u.log(2, "Problem finding raid image! Probably finished.");
                             }
                         } else {
-                            $u.warn("Unable to find defense bar", monsterInfo.defense_img);
+                            $u.warn("Problem finding raid_back");
+                            return;
+                        }
+                    }
+
+                    monsterInfo = monster.info[currentMonster['type']];
+                    currentMonster['review'] = new Date().getTime();
+                    state.setItem('monsterRepeatCount', 0);
+                    // Extract info
+                    tempDiv = $j("#" + caap.domain.id[caap.domain.which] + "monsterTicker", caap.appBodyDiv);
+                    if ($u.hasContent(tempDiv)) {
+                        $u.log(4, "Monster ticker found");
+                        time = $u.setContent(tempDiv.text(), '').regex(/(\d+):(\d+):(\d+)/);
+                    } else {
+                        if (!caap.HasImage("dead.jpg")) {
+                            $u.warn("Could not locate Monster ticker.");
+                        }
+                    }
+
+                    if ($u.hasContent(time) && time.length === 3 && monsterInfo && monsterInfo.fort) {
+                        if (currentMonster['type'] === "Deathrune" || currentMonster['type'] === 'Ice Elemental') {
+                            currentMonster['fortify'] = 100;
+                        } else {
+                            currentMonster['fortify'] = 0;
                         }
 
-                        break;
-                    case 'nm_green.jpg' :
-                        tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv);
-                        if ($u.hasContent(tempDiv)) {
-                            tempDiv = tempDiv.parent();
+                        switch (monsterInfo.defense_img) {
+                        case 'bar_dispel.gif' :
+                            tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
+                            if ($u.hasContent(tempDiv)) {
+                                currentMonster['fortify'] = (100 - tempDiv.getPercent('width')).dp(2);
+                            } else {
+                                $u.warn("Unable to find defense bar", monsterInfo.defense_img);
+                            }
+
+                            break;
+                        case 'seamonster_ship_health.jpg' :
+                            tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv).parent();
                             if ($u.hasContent(tempDiv)) {
                                 currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
-                                tempDiv = tempDiv.parent();
-                                if ($u.hasContent(tempDiv)) {
-                                    currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
-                                } else {
-                                    $u.warn("Unable to find defense bar strength");
+                                if (monsterInfo.repair_img) {
+                                    tempDiv = $j("img[src*='" + monsterInfo.repair_img + "']", caap.appBodyDiv).parent();
+                                    if ($u.hasContent(tempDiv)) {
+                                        currentMonster['fortify'] = (currentMonster['fortify'] * (100 / (100 - tempDiv.getPercent('width')))).dp(2);
+                                    } else {
+                                        $u.warn("Unable to find repair bar", monsterInfo.repair_img);
+                                    }
                                 }
                             } else {
-                                $u.warn("Unable to find defense bar fortify");
+                                $u.warn("Unable to find defense bar", monsterInfo.defense_img);
                             }
-                        } else {
-                            $u.warn("Unable to find defense bar", monsterInfo.defense_img);
-                        }
 
-                        break;
-                    default:
-                        $u.warn("No match for defense_img", monsterInfo.defense_img);
-                    }
-                }
-
-                // Get damage done to monster
-                actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", caap.appBodyDiv);
-                damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
-                if ($u.hasContent(damageDiv)) {
-                    if (monsterInfo && monsterInfo.defense) {
-                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
-                        if ($u.hasContent(tempArr) && tempArr.length === 2) {
-                            currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
-                            currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();
-                            currentMonster['damage'] = currentMonster['attacked'] + currentMonster['defended'];
-                        } else {
-                            $u.warn("Unable to get attacked and defended damage");
-                        }
-                    } else if (currentMonster['type'] === 'Siege' || (monsterInfo && monsterInfo.raid)) {
-                        currentMonster['attacked'] = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
-                        currentMonster['damage'] = currentMonster['attacked'];
-                    } else {
-                        currentMonster['attacked'] = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '0').numberOnly();
-                        currentMonster['damage'] = currentMonster['attacked'];
-                    }
-
-                    damageDiv.parents("tr").eq(0).css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
-                } else {
-                    $u.log(2, "Player hasn't done damage yet");
-                }
-
-                tBool = /Raid/i.test(currentMonster['type']);
-                if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
-                    counter = state.getItem('monsterReviewCounter', -3);
-                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.globalContainer)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.globalContainer)))) {
-                        $u.log(2, 'Collecting Reward');
-                        currentMonster['review'] = -1;
-                        state.setItem('monsterReviewCounter', counter -= 1);
-                        currentMonster['status'] = 'Collect Reward';
-                        if (currentMonster['name'].hasIndexOf('Siege')) {
-                            currentMonster['rix'] = $u.hasContent($j("a[href*='&rix=1']", caap.globalContainer)) ? 1 : 0;
-                        }
-                    }
-                }
-
-                monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' :  'monster_health_background.jpg';
-                monsterDiv = $j("img[src*='" + monstHealthImg + "']", caap.appBodyDiv).parent();
-                if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
-                    currentMonster['time'] = time;
-                    if ($u.hasContent(monsterDiv)) {
-                        $u.log(4, "Found monster health div");
-                        currentMonster['life'] = monsterDiv.getPercent('width').dp(2);
-                    } else {
-                        $u.warn("Could not find monster health div.");
-                    }
-
-                    if (currentMonster['life'] && !monsterInfo) {
-                        monster.setItem(currentMonster);
-                        $u.warn('Unknown monster');
-                        return;
-                    }
-
-                    if ($u.hasContent(damageDiv) && monsterInfo && monsterInfo.alpha) {
-                        // Character type stuff
-                        monsterDiv = $j("div[style*='nm_bottom']", caap.appBodyDiv);
-                        if ($u.hasContent(monsterDiv)) {
-                            tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
-                            if (tempText) {
-                                $u.log(4, "Character class text", tempText);
-                                tStr = tempText.regex(/Class: (\w+) /);
-                                if ($u.hasContent(tStr)) {
-                                    currentMonster['charClass'] = tStr;
-                                    $u.log(4, "character", currentMonster['charClass']);
-                                } else {
-                                    $u.warn("Can't get character", tempText);
-                                }
-
-                                tStr = tempText.regex(/Tip: ([\w ]+) Status/);
-                                if ($u.hasContent(tStr)) {
-                                    currentMonster['tip'] = tStr;
-                                    $u.log(4, "tip", currentMonster['tip']);
-                                } else {
-                                    $u.warn("Can't get tip", tempText);
-                                }
-
-                                tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
-                                if ($u.hasContent(tempArr) && tempArr.length === 3) {
-                                    currentMonster['stunTime'] = new Date().getTime() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
-                                    $u.log(4, "statusTime", currentMonster['stunTime']);
-                                } else {
-                                    $u.warn("Can't get statusTime", tempText);
-                                }
-
-                                tempDiv = $j("img[src*='nm_stun_bar']", monsterDiv);
+                            break;
+                        case 'nm_green.jpg' :
+                            tempDiv = $j("img[src*='" + monsterInfo.defense_img + "']", caap.appBodyDiv);
+                            if ($u.hasContent(tempDiv)) {
+                                tempDiv = tempDiv.parent();
                                 if ($u.hasContent(tempDiv)) {
-                                    tempText = tempDiv.getPercent('width').dp(2);
-                                    $u.log(4, "Stun bar percent text", tempText);
-                                    if (tempText >= 0) {
-                                        currentMonster['stun'] = tempText;
-                                        $u.log(4, "stun", currentMonster['stun']);
+                                    currentMonster['fortify'] = tempDiv.getPercent('width').dp(2);
+                                    tempDiv = tempDiv.parent();
+                                    if ($u.hasContent(tempDiv)) {
+                                        currentMonster['strength'] = tempDiv.getPercent('width').dp(2);
                                     } else {
-                                        $u.warn("Can't get stun bar width");
+                                        $u.warn("Unable to find defense bar strength");
                                     }
                                 } else {
-                                    tempArr = currentMonster['tip'].split(" ");
-                                    if ($u.hasContent(tempArr)) {
-                                        tempText = tempArr[tempArr.length - 1].toLowerCase();
-                                        tempArr = ["strengthen", "heal"];
-                                        if (tempText && tempArr.hasIndexOf(tempText)) {
-                                            if (tempText === tempArr[0]) {
-                                                currentMonster['stun'] = currentMonster['strength'];
-                                            } else if (tempText === tempArr[1]) {
-                                                currentMonster['stun'] = currentMonster['health'];
-                                            } else {
-                                                $u.warn("Expected strengthen or heal to match!", tempText);
-                                            }
+                                    $u.warn("Unable to find defense bar fortify");
+                                }
+                            } else {
+                                $u.warn("Unable to find defense bar", monsterInfo.defense_img);
+                            }
+
+                            break;
+                        default:
+                            $u.warn("No match for defense_img", monsterInfo.defense_img);
+                        }
+                    }
+
+                    // Get damage done to monster
+                    actionDiv = $j("#" + caap.domain.id[caap.domain.which] + "action_logs", caap.appBodyDiv);
+                    damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
+                    if ($u.hasContent(damageDiv)) {
+                        if (monsterInfo && monsterInfo.defense) {
+                            tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
+                            if ($u.hasContent(tempArr) && tempArr.length === 2) {
+                                currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
+                                currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();
+                                currentMonster['damage'] = currentMonster['attacked'] + currentMonster['defended'];
+                            } else {
+                                $u.warn("Unable to get attacked and defended damage");
+                            }
+                        } else if (currentMonster['type'] === 'Siege' || (monsterInfo && monsterInfo.raid)) {
+                            currentMonster['attacked'] = $u.setContent(damageDiv.parent().siblings(":last").text(), '0').numberOnly();
+                            currentMonster['damage'] = currentMonster['attacked'];
+                        } else {
+                            currentMonster['attacked'] = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '0').numberOnly();
+                            currentMonster['damage'] = currentMonster['attacked'];
+                        }
+
+                        damageDiv.parents("tr").eq(0).css('background-color', gm.getItem("HighlightColor", '#C6A56F', hiddenVar));
+                    } else {
+                        $u.log(2, "Player hasn't done damage yet");
+                    }
+
+                    tBool = /Raid/i.test(currentMonster['type']);
+                    if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
+                        counter = state.getItem('monsterReviewCounter', -3);
+                        if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.globalContainer)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.globalContainer)))) {
+                            $u.log(2, 'Collecting Reward');
+                            currentMonster['review'] = -1;
+                            state.setItem('monsterReviewCounter', counter -= 1);
+                            currentMonster['status'] = 'Collect Reward';
+                            if (currentMonster['name'].hasIndexOf('Siege')) {
+                                currentMonster['rix'] = $u.hasContent($j("a[href*='&rix=1']", caap.globalContainer)) ? 1 : 0;
+                            }
+                        }
+                    }
+
+                    monstHealthImg = monsterInfo && monsterInfo.alpha ? 'nm_red.jpg' :  'monster_health_background.jpg';
+                    monsterDiv = $j("img[src*='" + monstHealthImg + "']", caap.appBodyDiv).parent();
+                    if ($u.hasContent(time) && time.length === 3 && $u.hasContent(monsterDiv)) {
+                        currentMonster['time'] = time;
+                        if ($u.hasContent(monsterDiv)) {
+                            $u.log(4, "Found monster health div");
+                            currentMonster['life'] = monsterDiv.getPercent('width').dp(2);
+                        } else {
+                            $u.warn("Could not find monster health div.");
+                        }
+
+                        if (currentMonster['life'] && !monsterInfo) {
+                            monster.setItem(currentMonster);
+                            $u.warn('Unknown monster');
+                            return;
+                        }
+
+                        if ($u.hasContent(damageDiv) && monsterInfo && monsterInfo.alpha) {
+                            // Character type stuff
+                            monsterDiv = $j("div[style*='nm_bottom']", caap.appBodyDiv);
+                            if ($u.hasContent(monsterDiv)) {
+                                tempText = $u.setContent(monsterDiv.children().eq(0).children().text(), '').trim().innerTrim();
+                                if (tempText) {
+                                    $u.log(4, "Character class text", tempText);
+                                    tStr = tempText.regex(/Class: (\w+) /);
+                                    if ($u.hasContent(tStr)) {
+                                        currentMonster['charClass'] = tStr;
+                                        $u.log(4, "character", currentMonster['charClass']);
+                                    } else {
+                                        $u.warn("Can't get character", tempText);
+                                    }
+
+                                    tStr = tempText.regex(/Tip: ([\w ]+) Status/);
+                                    if ($u.hasContent(tStr)) {
+                                        currentMonster['tip'] = tStr;
+                                        $u.log(4, "tip", currentMonster['tip']);
+                                    } else {
+                                        $u.warn("Can't get tip", tempText);
+                                    }
+
+                                    tempArr = tempText.regex(/Status Time Remaining: (\d+):(\d+):(\d+)\s*/);
+                                    if ($u.hasContent(tempArr) && tempArr.length === 3) {
+                                        currentMonster['stunTime'] = new Date().getTime() + (tempArr[0] * 60 * 60 * 1000) + (tempArr[1] * 60 * 1000) + (tempArr[2] * 1000);
+                                        $u.log(4, "statusTime", currentMonster['stunTime']);
+                                    } else {
+                                        $u.warn("Can't get statusTime", tempText);
+                                    }
+
+                                    tempDiv = $j("img[src*='nm_stun_bar']", monsterDiv);
+                                    if ($u.hasContent(tempDiv)) {
+                                        tempText = tempDiv.getPercent('width').dp(2);
+                                        $u.log(4, "Stun bar percent text", tempText);
+                                        if (tempText >= 0) {
+                                            currentMonster['stun'] = tempText;
+                                            $u.log(4, "stun", currentMonster['stun']);
                                         } else {
-                                            $u.warn("Expected strengthen or heal from tip!", tempText);
+                                            $u.warn("Can't get stun bar width");
                                         }
                                     } else {
-                                        $u.warn("Can't get stun bar and unexpected tip!", currentMonster['tip']);
-                                    }
-                                }
-
-                                if (currentMonster['charClass'] && currentMonster['tip'] && currentMonster['stun'] !== -1) {
-                                    currentMonster['stunDo'] = new RegExp(currentMonster['charClass']).test(currentMonster['tip']) && currentMonster['stun'] < 100;
-                                    currentMonster['stunType'] = '';
-                                    if (currentMonster['stunDo']) {
-                                        $u.log(2, "Do character specific attack", currentMonster['stunDo']);
                                         tempArr = currentMonster['tip'].split(" ");
                                         if ($u.hasContent(tempArr)) {
                                             tempText = tempArr[tempArr.length - 1].toLowerCase();
-                                            tempArr = ["strengthen", "cripple", "heal", "deflection"];
+                                            tempArr = ["strengthen", "heal"];
                                             if (tempText && tempArr.hasIndexOf(tempText)) {
-                                                currentMonster['stunType'] = tempText.replace("ion", '');
-                                                $u.log(2, "Character specific attack type", currentMonster['stunType']);
+                                                if (tempText === tempArr[0]) {
+                                                    currentMonster['stun'] = currentMonster['strength'];
+                                                } else if (tempText === tempArr[1]) {
+                                                    currentMonster['stun'] = currentMonster['health'];
+                                                } else {
+                                                    $u.warn("Expected strengthen or heal to match!", tempText);
+                                                }
                                             } else {
-                                                $u.warn("Type does match list!", tempText);
+                                                $u.warn("Expected strengthen or heal from tip!", tempText);
                                             }
                                         } else {
-                                            $u.warn("Unable to get type from tip!", currentMonster);
+                                            $u.warn("Can't get stun bar and unexpected tip!", currentMonster['tip']);
+                                        }
+                                    }
+
+                                    if (currentMonster['charClass'] && currentMonster['tip'] && currentMonster['stun'] !== -1) {
+                                        currentMonster['stunDo'] = new RegExp(currentMonster['charClass']).test(currentMonster['tip']) && currentMonster['stun'] < 100;
+                                        currentMonster['stunType'] = '';
+                                        if (currentMonster['stunDo']) {
+                                            $u.log(2, "Do character specific attack", currentMonster['stunDo']);
+                                            tempArr = currentMonster['tip'].split(" ");
+                                            if ($u.hasContent(tempArr)) {
+                                                tempText = tempArr[tempArr.length - 1].toLowerCase();
+                                                tempArr = ["strengthen", "cripple", "heal", "deflection"];
+                                                if (tempText && tempArr.hasIndexOf(tempText)) {
+                                                    currentMonster['stunType'] = tempText.replace("ion", '');
+                                                    $u.log(2, "Character specific attack type", currentMonster['stunType']);
+                                                } else {
+                                                    $u.warn("Type does match list!", tempText);
+                                                }
+                                            } else {
+                                                $u.warn("Unable to get type from tip!", currentMonster);
+                                            }
+                                        } else {
+                                            $u.log(3, "Tip does not match class or stun maxed", currentMonster);
                                         }
                                     } else {
-                                        $u.log(3, "Tip does not match class or stun maxed", currentMonster);
+                                        $u.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
                                     }
                                 } else {
-                                    $u.warn("Missing 'class', 'tip' or 'stun'", currentMonster);
+                                    $u.warn("Missing tempText");
                                 }
                             } else {
-                                $u.warn("Missing tempText");
+                                $u.warn("Missing nm_bottom");
                             }
-                        } else {
-                            $u.warn("Missing nm_bottom");
                         }
-                    }
 
-                    if (monsterInfo) {
-                        if (monsterInfo.siege) {
-                            currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']").text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
-                            for (ind = 0, len = monsterInfo.siege_img.length; ind < len; ind += 1) {
-                                searchStr += "img[src*='" + monsterInfo.siege_img[ind] + "']";
-                                if (ind < len - 1) {
-                                    searchStr += ",";
+                        if (monsterInfo) {
+                            if (monsterInfo.siege) {
+                                currentMonster['miss'] = $u.setContent($u.setContent($j("div[style*='monster_layout'],div[style*='nm_bottom'],div[style*='raid_back']").text(), '').trim().innerTrim().regex(/Need (\d+) more/i), 0);
+                                for (ind = 0, len = monsterInfo.siege_img.length; ind < len; ind += 1) {
+                                    searchStr += "img[src*='" + monsterInfo.siege_img[ind] + "']";
+                                    if (ind < len - 1) {
+                                        searchStr += ",";
+                                    }
+                                }
+
+                                searchRes = $j(searchStr, caap.appBodyDiv);
+                                if ($u.hasContent(searchRes)) {
+                                    totalCount = currentMonster['type'].hasIndexOf('Raid') ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
+                                }
+
+                                currentMonster['phase'] = Math.min(totalCount, monsterInfo.siege);
+                                if ($u.isNaN(currentMonster['phase']) || currentMonster['phase'] < 1) {
+                                    currentMonster['phase'] = 1;
                                 }
                             }
 
-                            searchRes = $j(searchStr, caap.appBodyDiv);
-                            if ($u.hasContent(searchRes)) {
-                                totalCount = currentMonster['type'].hasIndexOf('Raid') ? $u.setContent(searchRes.attr("src"), '').basename().replace(new RegExp(".*(\\d+).*", "gi"), "$1").parseInt() : searchRes.size() + 1;
+                            currentMonster['t2k'] = monster.t2kCalc(currentMonster);
+                        }
+                    } else {
+                        $u.log(2, 'Monster is dead or fled');
+                        currentMonster['color'] = 'grey';
+                        if (currentMonster['status'] !== 'Complete' && currentMonster['status'] !== 'Collect Reward') {
+                            currentMonster['status'] = "Dead or Fled";
+                        }
+
+                        state.setItem('resetselectMonster', true);
+                        monster.setItem(currentMonster);
+                        return;
+                    }
+
+                    if ($u.hasContent(damageDiv)) {
+                        achLevel = monster.parseCondition('ach', currentMonster['conditions']);
+                        if (monsterInfo && achLevel === false) {
+                            achLevel = monsterInfo.ach;
+                        }
+
+                        maxDamage = monster.parseCondition('max', currentMonster['conditions']);
+                        maxToFortify = monster.parseCondition('f%', currentMonster['conditions']);
+                        maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
+                        targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);
+                        if (currentMonster['name'] === targetFromfortify['name']) {
+                            if (targetFromfortify['type'] === 'Fortify' && currentMonster['fortify'] > maxToFortify) {
+                                state.setItem('resetselectMonster', true);
                             }
 
-                            currentMonster['phase'] = Math.min(totalCount, monsterInfo.siege);
-                            if ($u.isNaN(currentMonster['phase']) || currentMonster['phase'] < 1) {
-                                currentMonster['phase'] = 1;
+                            if (targetFromfortify['type'] === 'Strengthen' && currentMonster['strength'] >= 100) {
+                                state.setItem('resetselectMonster', true);
+                            }
+
+                            if (targetFromfortify['type'] === 'Stun' && !currentMonster['stunDo']) {
+                                state.setItem('resetselectMonster', true);
                             }
                         }
 
-                        currentMonster['t2k'] = monster.t2kCalc(currentMonster);
-                    }
-                } else {
-                    $u.log(2, 'Monster is dead or fled');
-                    currentMonster['color'] = 'grey';
-                    if (currentMonster['status'] !== 'Complete' && currentMonster['status'] !== 'Collect Reward') {
-                        currentMonster['status'] = "Dead or Fled";
+                        // Start of Keep On Budget (KOB) code Part 1 -- required variables
+                        $u.log(2, 'Start of Keep On Budget (KOB) Code');
+
+                        //default is disabled for everything
+                        KOBenable = false;
+
+                        //default is zero bias hours for everything
+                        KOBbiasHours = 0;
+
+                        //KOB needs to follow achievment mode for this monster so that KOB can be skipped.
+                        KOBach = false;
+
+                        //KOB needs to follow max mode for this monster so that KOB can be skipped.
+                        KOBmax = false;
+
+                        //KOB needs to follow minimum fortification state for this monster so that KOB can be skipped.
+                        KOBminFort = false;
+
+                        //create a temp variable so we don't need to call parseCondition more than once for each if statement
+                        KOBtmp = monster.parseCondition('kob', currentMonster['conditions']);
+                        if (KOBtmp !== false && $u.isNaN(KOBtmp)) {
+                            $u.log(2, 'KOB NaN branch');
+                            KOBenable = true;
+                            KOBbiasHours = 0;
+                        } else if (KOBtmp === false) {
+                            $u.log(2, 'KOB false branch');
+                            KOBenable = false;
+                            KOBbiasHours = 0;
+                        } else {
+                            $u.log(2, 'KOB passed value branch');
+                            KOBenable = true;
+                            KOBbiasHours = KOBtmp;
+                        }
+
+                        //test if user wants kob active globally
+                        if (!KOBenable && gm.getItem('KOBAllMonters', false, hiddenVar)) {
+                            KOBenable = true;
+                        }
+
+                        //disable kob if in level up mode or if we are within 5 stamina of max potential stamina
+                        if (caap.InLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['stamina']['max'] - 5) {
+                            KOBenable = false;
+                        }
+
+                        if (KOBenable) {
+                            $u.log(2, 'Level Up Mode: ', caap.InLevelUpMode());
+                            $u.log(2, 'Stamina Avail: ', caap.stats['stamina']['num']);
+                            $u.log(2, 'Stamina Max: ', caap.stats['stamina']['max']);
+
+                            //log results of previous two tests
+                            $u.log(2, 'KOBenable: ', KOBenable);
+                            $u.log(2, 'KOB Bias Hours: ', KOBbiasHours);
+                        }
+
+                        //Total Time alotted for monster
+                        KOBtotalMonsterTime = monsterInfo.duration;
+                        if (KOBenable) {
+                            $u.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
+
+                            //Total Damage remaining
+                            $u.log(2, 'HP left: ', currentMonster['life']);
+                        }
+
+                        //Time Left Remaining
+                        KOBtimeLeft = time[0] + (time[1] * 0.0166);
+                        if (KOBenable) {
+                            $u.log(2, 'TimeLeft: ', KOBtimeLeft);
+                        }
+
+                        //calculate the bias offset for time remaining
+                        KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
+
+                        //for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
+                        // -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
+                        if (KOBtotalMonsterTime >= 168) {
+                            KOBtotalMonsterTime = KOBtotalMonsterTime - gm.getItem('KOBDelayStart', 48, hiddenVar);
+                        }
+
+                        //Percentage of time remaining for the currently selected monster
+                        KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
+                        if (KOBenable) {
+                            $u.log(2, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
+                        }
+
+                        // End of Keep On Budget (KOB) code Part 1 -- required variables
+
+                        isTarget = (currentMonster['name'] === state.getItem('targetFromraid', '') ||
+                                    currentMonster['name'] === state.getItem('targetFrombattle_monster', '') ||
+                                    currentMonster['name'] === targetFromfortify['name']);
+
+                        if (maxDamage && currentMonster['damage'] >= maxDamage) {
+                            currentMonster['color'] = 'red';
+                            currentMonster['over'] = 'max';
+                            //used with KOB code
+                            KOBmax = true;
+                            //used with kob debugging
+                            if (KOBenable) {
+                                $u.log(2, 'KOB - max activated');
+                            }
+
+                            if (isTarget) {
+                                state.setItem('resetselectMonster', true);
+                            }
+                        } else if (currentMonster['fortify'] !== -1 && currentMonster['fortify'] < config.getItem('MinFortToAttack', 1)) {
+                            currentMonster['color'] = 'purple';
+                            //used with KOB code
+                            KOBminFort = true;
+                            //used with kob debugging
+                            if (KOBenable) {
+                                $u.log(2, 'KOB - MinFort activated');
+                            }
+
+                            if (isTarget) {
+                                state.setItem('resetselectMonster', true);
+                            }
+                        } else if (currentMonster['damage'] >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster['conditions']) !== false)) {
+                            currentMonster['color'] = 'darkorange';
+                            currentMonster['over'] = 'ach';
+                            //used with KOB code
+                            KOBach = true;
+                            //used with kob debugging
+                            if (KOBenable) {
+                                $u.log(2, 'KOB - achievement reached');
+                            }
+
+                            if (isTarget && currentMonster['damage'] < achLevel) {
+                                state.setItem('resetselectMonster', true);
+                            }
+                        }
+
+                        //Start of KOB code Part 2 begins here
+                        if (KOBenable && !KOBmax && !KOBminFort && KOBach && currentMonster['life'] < KOBPercentTimeRemaining) {
+                            //kob color
+                            currentMonster['color'] = 'magenta';
+                            // this line is required or we attack anyway.
+                            currentMonster['over'] = 'max';
+                            //used with kob debugging
+                            if (KOBenable) {
+                                $u.log(2, 'KOB - budget reached');
+                            }
+
+                            if (isTarget) {
+                                state.setItem('resetselectMonster', true);
+                                $u.log(1, 'This monster no longer a target due to kob');
+                            }
+                        } else {
+                            if (!KOBmax && !KOBminFort && !KOBach) {
+                                //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
+                                //had to jump out the black paint if max, ach or fort needed to paint the entry.
+                                currentMonster['color'] = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
+                            }
+                        }
+                        //End of KOB code Part 2 stops here.
+                    } else {
+                        currentMonster['color'] = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
                     }
 
-                    state.setItem('resetselectMonster', true);
                     monster.setItem(currentMonster);
-                    return;
-                }
-
-                if ($u.hasContent(damageDiv)) {
-                    achLevel = monster.parseCondition('ach', currentMonster['conditions']);
-                    if (monsterInfo && achLevel === false) {
-                        achLevel = monsterInfo.ach;
+                    monster.select(true);
+                    caap.UpdateDashboard(true);
+                    if (schedule.check('battleTimer')) {
+                        window.setTimeout(function () {
+                            caap.SetDivContent('monster_mess', '');
+                        }, 2000);
                     }
 
-                    maxDamage = monster.parseCondition('max', currentMonster['conditions']);
-                    maxToFortify = monster.parseCondition('f%', currentMonster['conditions']);
-                    maxToFortify = maxToFortify !== false ? maxToFortify : config.getItem('MaxToFortify', 0);
-                    targetFromfortify = state.getItem('targetFromfortify', new monster.energyTarget().data);
-                    if (currentMonster['name'] === targetFromfortify['name']) {
-                        if (targetFromfortify['type'] === 'Fortify' && currentMonster['fortify'] > maxToFortify) {
-                            state.setItem('resetselectMonster', true);
-                        }
-
-                        if (targetFromfortify['type'] === 'Strengthen' && currentMonster['strength'] >= 100) {
-                            state.setItem('resetselectMonster', true);
-                        }
-
-                        if (targetFromfortify['type'] === 'Stun' && !currentMonster['stunDo']) {
-                            state.setItem('resetselectMonster', true);
-                        }
-                    }
-
-                    // Start of Keep On Budget (KOB) code Part 1 -- required variables
-                    $u.log(2, 'Start of Keep On Budget (KOB) Code');
-
-                    //default is disabled for everything
-                    KOBenable = false;
-
-                    //default is zero bias hours for everything
-                    KOBbiasHours = 0;
-
-                    //KOB needs to follow achievment mode for this monster so that KOB can be skipped.
-                    KOBach = false;
-
-                    //KOB needs to follow max mode for this monster so that KOB can be skipped.
-                    KOBmax = false;
-
-                    //KOB needs to follow minimum fortification state for this monster so that KOB can be skipped.
-                    KOBminFort = false;
-
-                    //create a temp variable so we don't need to call parseCondition more than once for each if statement
-                    KOBtmp = monster.parseCondition('kob', currentMonster['conditions']);
-                    if (KOBtmp !== false && $u.isNaN(KOBtmp)) {
-                        $u.log(2, 'KOB NaN branch');
-                        KOBenable = true;
-                        KOBbiasHours = 0;
-                    } else if (KOBtmp === false) {
-                        $u.log(2, 'KOB false branch');
-                        KOBenable = false;
-                        KOBbiasHours = 0;
-                    } else {
-                        $u.log(2, 'KOB passed value branch');
-                        KOBenable = true;
-                        KOBbiasHours = KOBtmp;
-                    }
-
-                    //test if user wants kob active globally
-                    if (!KOBenable && gm.getItem('KOBAllMonters', false, hiddenVar)) {
-                        KOBenable = true;
-                    }
-
-                    //disable kob if in level up mode or if we are within 5 stamina of max potential stamina
-                    if (caap.InLevelUpMode() || caap.stats['stamina']['num'] >= caap.stats['stamina']['max'] - 5) {
-                        KOBenable = false;
-                    }
-
-                    if (KOBenable) {
-                        $u.log(2, 'Level Up Mode: ', caap.InLevelUpMode());
-                        $u.log(2, 'Stamina Avail: ', caap.stats['stamina']['num']);
-                        $u.log(2, 'Stamina Max: ', caap.stats['stamina']['max']);
-
-                        //log results of previous two tests
-                        $u.log(2, 'KOBenable: ', KOBenable);
-                        $u.log(2, 'KOB Bias Hours: ', KOBbiasHours);
-                    }
-
-                    //Total Time alotted for monster
-                    KOBtotalMonsterTime = monsterInfo.duration;
-                    if (KOBenable) {
-                        $u.log(2, 'Total Time for Monster: ', KOBtotalMonsterTime);
-
-                        //Total Damage remaining
-                        $u.log(2, 'HP left: ', currentMonster['life']);
-                    }
-
-                    //Time Left Remaining
-                    KOBtimeLeft = time[0] + (time[1] * 0.0166);
-                    if (KOBenable) {
-                        $u.log(2, 'TimeLeft: ', KOBtimeLeft);
-                    }
-
-                    //calculate the bias offset for time remaining
-                    KOBbiasedTF = KOBtimeLeft - KOBbiasHours;
-
-                    //for 7 day monsters we want kob to not permit attacks (beyond achievement level) for the first 24 to 48 hours
-                    // -- i.e. reach achievement and then wait for more players and siege assist clicks to catch up
-                    if (KOBtotalMonsterTime >= 168) {
-                        KOBtotalMonsterTime = KOBtotalMonsterTime - gm.getItem('KOBDelayStart', 48, hiddenVar);
-                    }
-
-                    //Percentage of time remaining for the currently selected monster
-                    KOBPercentTimeRemaining = Math.round(KOBbiasedTF / KOBtotalMonsterTime * 1000) / 10;
-                    if (KOBenable) {
-                        $u.log(2, 'Percent Time Remaining: ', KOBPercentTimeRemaining);
-                    }
-
-                    // End of Keep On Budget (KOB) code Part 1 -- required variables
-
-                    isTarget = (currentMonster['name'] === state.getItem('targetFromraid', '') ||
-                                currentMonster['name'] === state.getItem('targetFrombattle_monster', '') ||
-                                currentMonster['name'] === targetFromfortify['name']);
-
-                    if (maxDamage && currentMonster['damage'] >= maxDamage) {
-                        currentMonster['color'] = 'red';
-                        currentMonster['over'] = 'max';
-                        //used with KOB code
-                        KOBmax = true;
-                        //used with kob debugging
-                        if (KOBenable) {
-                            $u.log(2, 'KOB - max activated');
-                        }
-
-                        if (isTarget) {
-                            state.setItem('resetselectMonster', true);
-                        }
-                    } else if (currentMonster['fortify'] !== -1 && currentMonster['fortify'] < config.getItem('MinFortToAttack', 1)) {
-                        currentMonster['color'] = 'purple';
-                        //used with KOB code
-                        KOBminFort = true;
-                        //used with kob debugging
-                        if (KOBenable) {
-                            $u.log(2, 'KOB - MinFort activated');
-                        }
-
-                        if (isTarget) {
-                            state.setItem('resetselectMonster', true);
-                        }
-                    } else if (currentMonster['damage'] >= achLevel && (config.getItem('AchievementMode', false) || monster.parseCondition('ach', currentMonster['conditions']) !== false)) {
-                        currentMonster['color'] = 'darkorange';
-                        currentMonster['over'] = 'ach';
-                        //used with KOB code
-                        KOBach = true;
-                        //used with kob debugging
-                        if (KOBenable) {
-                            $u.log(2, 'KOB - achievement reached');
-                        }
-
-                        if (isTarget && currentMonster['damage'] < achLevel) {
-                            state.setItem('resetselectMonster', true);
-                        }
-                    }
-
-                    //Start of KOB code Part 2 begins here
-                    if (KOBenable && !KOBmax && !KOBminFort && KOBach && currentMonster['life'] < KOBPercentTimeRemaining) {
-                        //kob color
-                        currentMonster['color'] = 'magenta';
-                        // this line is required or we attack anyway.
-                        currentMonster['over'] = 'max';
-                        //used with kob debugging
-                        if (KOBenable) {
-                            $u.log(2, 'KOB - budget reached');
-                        }
-
-                        if (isTarget) {
-                            state.setItem('resetselectMonster', true);
-                            $u.log(1, 'This monster no longer a target due to kob');
-                        }
-                    } else {
-                        if (!KOBmax && !KOBminFort && !KOBach) {
-                            //the way that the if statements got stacked, if it wasn't kob it was painted black anyway
-                            //had to jump out the black paint if max, ach or fort needed to paint the entry.
-                            currentMonster['color'] = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
-                        }
-                    }
-                    //End of KOB code Part 2 stops here.
-                } else {
-                    currentMonster['color'] = $u.bestTextColor(state.getItem("StyleBackgroundLight", "#E0C961"));
-                }
-
-                monster.setItem(currentMonster);
-                monster.select(true);
-                caap.UpdateDashboard(true);
-                if (schedule.check('battleTimer')) {
-                    window.setTimeout(function () {
-                        caap.SetDivContent('monster_mess', '');
-                    }, 2000);
-                }
+                    caap.delayMain = false;
+                }, 400);
             } catch (err) {
                 $u.error("ERROR in CheckResults_viewFight: " + err);
             }
