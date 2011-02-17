@@ -93,7 +93,7 @@
                     records.sort($u.sortBy(order.data['reverse']['a'], order.data['value']['a'], $u.sortBy(order.data['reverse']['b'], order.data['value']['b'], $u.sortBy(order.data['reverse']['c'], order.data['value']['c']))));
                     state.setItem(id + "Sort", order);
                     state.setItem(id + "DashUpdate", true);
-                    caap.UpdateDashboard(true);
+                    caap.updateDashboard(true);
                 } else {
                     $u.log(3, "Dialog for getForm not found", id);
                 }

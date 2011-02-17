@@ -764,7 +764,7 @@
                 monster.flagReview();
                 schedule.setItem('NotargetFrombattle_monster', 0);
                 state.setItem('ReleaseControl', true);
-                caap.UpdateDashboard(true);
+                caap.updateDashboard(true);
                 return true;
             } catch (err) {
                 $u.error("ERROR in monster.flagFullReview: " + err);
@@ -1044,7 +1044,7 @@
                         state.setItem('targetFrom' + monsterObj['page'], monsterName);
                         if (monsterObj['page'] === 'battle_monster') {
                             nodeNum = 0;
-                            if (!caap.InLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staLvl) {
+                            if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staLvl) {
                                 for (nodeNum = monster.info[monsterObj['type']].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
                                     if (caap.stats['stamina']['max'] >= monster.info[monsterObj['type']].staLvl[nodeNum]) {
                                         break;
@@ -1052,15 +1052,15 @@
                                 }
                             }
 
-                            if (!caap.InLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                            if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
                                 state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staMax[nodeNum]);
                             } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
                                 state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staUse);
-                            } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || /:pa/i.test(monsterObj['conditions'])) {
+                            } else if ((caap.inLevelUpMode() && caap.stats['stamina']['num'] >= 10) || /:pa/i.test(monsterObj['conditions'])) {
                                 state.setItem('MonsterStaminaReq', 5);
                             } else if (/:sa/i.test(monsterObj['conditions'])) {
                                 state.setItem('MonsterStaminaReq', 1);
-                            } else if ((caap.InLevelUpMode() && caap.stats['stamina']['num'] >= 10) || config.getItem('PowerAttack', true)) {
+                            } else if ((caap.inLevelUpMode() && caap.stats['stamina']['num'] >= 10) || config.getItem('PowerAttack', true)) {
                                 state.setItem('MonsterStaminaReq', 5);
                             } else {
                                 state.setItem('MonsterStaminaReq', 1);
@@ -1089,7 +1089,7 @@
                     }
                 }
 
-                caap.UpdateDashboard(true);
+                caap.updateDashboard(true);
                 return true;
             } catch (err) {
                 $u.error("ERROR in monster.select: " + err);
@@ -1130,7 +1130,7 @@
 
                 if (monsterName !== tempText) {
                     $u.log(2, 'Looking for ' + monsterName + ' but on ' + tempText + '. Going back to select screen');
-                    return caap.NavigateTo('keep,' + monster.getItem(monsterName).page);
+                    return caap.navigateTo('keep,' + monster.getItem(monsterName).page);
                 }
 
                 return false;
@@ -1138,6 +1138,98 @@
                 $u.error("ERROR in monster.ConfirmRightPage: " + err);
                 return false;
             }
-        }
+        },
         /*jslint sub: false */
+
+        menu: function () {
+            try {
+                var XMonsterInstructions = "Start attacking if stamina is above this points",
+                    XMinMonsterInstructions = "Don't attack if stamina is below this points",
+                    attackOrderInstructions = "List of search words that decide which monster to attack first. " +
+                        "Use words in player name or in monster name. To specify max damage follow keyword with " +
+                        ":max token and specifiy max damage values. Use 'k' and 'm' suffixes for thousand and million. " +
+                        "To override achievement use the ach: token and specify damage values.",
+                    fortifyInstructions = "Fortify if ship health is below this % (leave blank to disable)",
+                    questFortifyInstructions = "Do quests if ship health is above this % and quest mode is set to Not Fortify (leave blank to disable)",
+                    stopAttackInstructions = "Don't attack if ship health is below this % (leave blank to disable)",
+                    monsterachieveInstructions = "Check if monsters have reached achievement damage level first. Switch when achievement met.",
+                    demiPointsFirstInstructions = "Don't attack monsters until you've gotten all your demi points from battling. Set 'Battle When' to 'No Monster' or 'Demi Points Only'. Be sure to set battle to Invade or Duel, War does not give you Demi Points.",
+                    powerattackInstructions = "Use power attacks. Only do normal attacks if power attack not possible",
+                    powerattackMaxInstructions = "Use maximum power attacks globally on Skaar, Genesis, Ragnarok, and Bahamut types. Only do normal power attacks if maximum power attack not possible",
+                    powerfortifyMaxInstructions = "Use maximum power fortify globally. Only do normal fortify attacks if maximum power fortify not possible. " +
+                        "Also includes other energy attacks, Strengthen, Deflect and Cripple. NOTE: Setting a high forty% can waste energy and no safety on other types.",
+                    dosiegeInstructions = "Turns on or off automatic siege assist for all monsters only.",
+                    useTacticsInstructions = "Use the Tactics attack method, on monsters that support it, instead of the normal attack. You must be level 50 or above.",
+                    useTacticsThresholdInstructions = "If monster health falls below this percentage then use the regular attack buttons instead of tactics.",
+                    collectRewardInstructions = "Automatically collect monster rewards.",
+                    strengthenTo100Instructions = "Don't wait until the character class gets a bonus for strengthening but perform strengthening as soon as the energy is available.",
+                    mbattleList = [
+                        'Stamina Available',
+                        'At Max Stamina',
+                        'At X Stamina',
+                        'Stay Hidden',
+                        'Never'
+                    ],
+                    mbattleInst = [
+                        'Stamina Available will attack whenever you have enough stamina',
+                        'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
+                        'At X Stamina you can set maximum and minimum stamina to battle',
+                        'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET BATTLE WHEN TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                        'Never - disables attacking monsters'
+                    ],
+                    monsterDelayInstructions = "Max random delay (in seconds) to battle monsters",
+                    demiPtItem = 0,
+                    subCode = '',
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Monster', 'MONSTER');
+                htmlCode += caap.makeDropDownTR("Attack When", 'WhenMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
+                htmlCode += caap.startDropHide('WhenMonster', '', 'Never', true);
+                htmlCode += "<div id='caap_WhenMonsterStayHidden_hide' style='color: red; font-weight: bold; display: ";
+                htmlCode += (config.getItem('WhenMonster', 'Never') === 'Stay Hidden' && config.getItem('WhenBattle', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
+                htmlCode += "Warning: Battle Not Set To 'Stay Hidden'";
+                htmlCode += "</div>";
+                htmlCode += caap.startDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XMonsterStamina', XMonsterInstructions, 1, '', '', true, false);
+                htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinMonsterStamina', XMinMonsterInstructions, 0, '', '', true, false);
+                htmlCode += caap.endDropHide('WhenMonster', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.makeNumberFormTR("Monster delay secs", 'seedTime', monsterDelayInstructions, 300, '', '');
+                htmlCode += caap.makeCheckTR("Use Tactics", 'UseTactics', false, useTacticsInstructions);
+                htmlCode += caap.startCheckHide('UseTactics');
+                htmlCode += caap.makeNumberFormTR("Health threshold", 'TacticsThreshold', useTacticsThresholdInstructions, 75, '', '', true, false);
+                htmlCode += caap.endCheckHide('UseTactics');
+                htmlCode += caap.makeCheckTR("Power Attack Only", 'PowerAttack', true, powerattackInstructions);
+                htmlCode += caap.startCheckHide('PowerAttack');
+                htmlCode += caap.makeCheckTR("Power Attack Max", 'PowerAttackMax', false, powerattackMaxInstructions, true);
+                htmlCode += caap.endCheckHide('PowerAttack');
+                htmlCode += caap.makeCheckTR("Power Fortify Max", 'PowerFortifyMax', false, powerfortifyMaxInstructions);
+                htmlCode += caap.makeCheckTR("Siege Weapon Assist Monsters", 'monsterDoSiege', true, dosiegeInstructions);
+                htmlCode += caap.makeCheckTR("Collect Monster Rewards", 'monsterCollectReward', false, collectRewardInstructions);
+                htmlCode += caap.makeCheckTR("Clear Complete Monsters", 'clearCompleteMonsters', false, '');
+                htmlCode += caap.makeCheckTR("Achievement Mode", 'AchievementMode', true, monsterachieveInstructions);
+                htmlCode += caap.makeCheckTR("Get Demi Points First", 'DemiPointsFirst', false, demiPointsFirstInstructions);
+                htmlCode += caap.startCheckHide('DemiPointsFirst');
+                for (demiPtItem = 0; demiPtItem < caap.demiQuestList.length; demiPtItem += 1) {
+                    subCode += "<span title='" + caap.demiQuestList[demiPtItem] + "'>";
+                    subCode += "<img alt='" + caap.demiQuestList[demiPtItem] + "' src='data:image/gif;base64," + image64[caap.demiQuestList[demiPtItem]] + "' height='15px' width='15px'/>";
+                    subCode += caap.makeCheckBox('DemiPoint' + demiPtItem, true);
+                    subCode += "</span>";
+                }
+
+                htmlCode += caap.makeTD(subCode, false, false, "white-space: nowrap;");
+                htmlCode += caap.endCheckHide('DemiPointsFirst');
+                htmlCode += caap.makeNumberFormTR("Fortify If % Under", 'MaxToFortify', fortifyInstructions, 50, '', '');
+                htmlCode += caap.makeNumberFormTR("Quest If % Over", 'MaxHealthtoQuest', questFortifyInstructions, 60, '', '');
+                htmlCode += caap.makeNumberFormTR("No Attack If % Under", 'MinFortToAttack', stopAttackInstructions, 10, '', '');
+                htmlCode += caap.makeCheckTR("Don't Wait Until Strengthen", 'StrengthenTo100', true, strengthenTo100Instructions);
+                htmlCode += caap.makeTD("Attack Monsters in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a>");
+                htmlCode += caap.makeTextBox('orderbattle_monster', attackOrderInstructions, '', '');
+                htmlCode += caap.endDropHide('WhenMonster');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in monster.menu: " + err);
+                return '';
+            }
+        }
     };

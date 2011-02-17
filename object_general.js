@@ -423,7 +423,7 @@
                         caap.stats['generals']['total'] = general.records.length;
                         caap.stats['generals']['invade'] = Math.min((caap.stats['army']['actual'] / 5).dp(), general.records.length);
                         general.save();
-                        caap.SaveStats();
+                        caap.saveStats();
                         general.copy2sortable();
                         if (update) {
                             general.UpdateDropDowns();
@@ -449,16 +449,16 @@
                 general.BuildlLists();
                 $u.log(3, "Updating 'General' Drop Down Lists");
                 for (it = 0, len = general.StandardList.length; it < len; it += 1) {
-                    caap.ChangeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
+                    caap.changeDropDownList(general.StandardList[it] + 'General', general.List, config.getItem(general.StandardList[it] + 'General', 'Use Current'));
                 }
 
-                caap.ChangeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
-                caap.ChangeDropDownList('SiegeGeneral', general.SiegeList, config.getItem('SiegeGeneral', 'Use Current'));
-                caap.ChangeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
-                caap.ChangeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
-                caap.ChangeDropDownList('BankingGeneral', general.BankingList, config.getItem('BankingGeneral', 'Use Current'));
-                caap.ChangeDropDownList('CollectGeneral', general.CollectList, config.getItem('CollectGeneral', 'Use Current'));
-                caap.ChangeDropDownList('LevelUpGeneral', general.List, config.getItem('LevelUpGeneral', 'Use Current'));
+                caap.changeDropDownList('SubQuestGeneral', general.SubQuestList, config.getItem('SubQuestGeneral', 'Use Current'));
+                caap.changeDropDownList('SiegeGeneral', general.SiegeList, config.getItem('SiegeGeneral', 'Use Current'));
+                caap.changeDropDownList('BuyGeneral', general.BuyList, config.getItem('BuyGeneral', 'Use Current'));
+                caap.changeDropDownList('IncomeGeneral', general.IncomeList, config.getItem('IncomeGeneral', 'Use Current'));
+                caap.changeDropDownList('BankingGeneral', general.BankingList, config.getItem('BankingGeneral', 'Use Current'));
+                caap.changeDropDownList('CollectGeneral', general.CollectList, config.getItem('CollectGeneral', 'Use Current'));
+                caap.changeDropDownList('LevelUpGeneral', general.List, config.getItem('LevelUpGeneral', 'Use Current'));
                 return true;
             } catch (err) {
                 $u.error("ERROR in general.UpdateDropDowns: " + err);
@@ -541,7 +541,7 @@
 
                 getCurrentGeneral = general.GetCurrent();
                 if (!getCurrentGeneral) {
-                    caap.ReloadCastleAge(true);
+                    caap.reloadCastleAge(true);
                 }
 
                 currentGeneral = getCurrentGeneral;
@@ -550,16 +550,16 @@
                 }
 
                 $u.log(1, 'Changing from ' + currentGeneral + ' to ' + generalName);
-                if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+                if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                     return true;
                 }
 
                 generalImage = general.GetImage(generalName);
-                if (caap.HasImage(generalImage)) {
-                    return caap.NavigateTo(generalImage);
+                if (caap.hasImage(generalImage)) {
+                    return caap.navigateTo(generalImage);
                 }
 
-                caap.SetDivContent('Could not find ' + generalName);
+                caap.setDivContent('Could not find ' + generalName);
                 $u.warn('Could not find', generalName, generalImage);
                 if (config.getItem('ignoreGeneralImage', true)) {
                     return false;
@@ -670,16 +670,16 @@
                     return false;
                 }
 
-                if (caap.NavigateTo('mercenary,generals', 'tab_generals_on.gif')) {
+                if (caap.navigateTo('mercenary,generals', 'tab_generals_on.gif')) {
                     $u.log(2, "Visiting generals to get 'General' stats");
                     return true;
                 }
 
                 generalImage = general.GetImage(general.records[it]['name']);
-                if (caap.HasImage(generalImage)) {
+                if (caap.hasImage(generalImage)) {
                     if (general.GetCurrent() !== general.records[it]['name']) {
                         $u.log(2, "Visiting 'General'", general.records[it]['name']);
-                        return caap.NavigateTo(generalImage);
+                        return caap.navigateTo(generalImage);
                     }
                 }
 
@@ -707,6 +707,71 @@
                 $u.error("ERROR in general.owned: " + err);
                 return undefined;
             }
-        }
+        },
         /*jslint sub: false */
+
+        menu: function () {
+            try {
+                // Add General Comboboxes
+                var reverseGenInstructions = "This will make the script level Generals under level 4 from Top-down instead of Bottom-up",
+                    ignoreGeneralImage = "This will prevent the script " +
+                        "from changing your selected General to 'Use Current' if the script " +
+                        "is unable to find the General's image when changing activities. " +
+                        "Instead it will use the current General for the activity and try " +
+                        "to select the correct General again next time.",
+                    LevelUpGenExpInstructions = "Specify the number of experience " +
+                        "points below the next level up to begin using the level up general.",
+                    LevelUpGenInstructions1 = "Use the Level Up General for Idle mode.",
+                    LevelUpGenInstructions2 = "Use the Level Up General for Monster mode.",
+                    LevelUpGenInstructions3 = "Use the Level Up General for Fortify mode.",
+                    LevelUpGenInstructions4 = "Use the Level Up General for Invade mode.",
+                    LevelUpGenInstructions5 = "Use the Level Up General for Duel mode.",
+                    LevelUpGenInstructions6 = "Use the Level Up General for War mode.",
+                    LevelUpGenInstructions7 = "Use the Level Up General for doing sub-quests.",
+                    LevelUpGenInstructions8 = "Use the Level Up General for doing primary quests " +
+                        "(Warning: May cause you not to gain influence if wrong general is equipped.)",
+                    LevelUpGenInstructions9 = "Ignore Banking until level up energy and stamina gains have been used.",
+                    LevelUpGenInstructions10 = "Ignore Income until level up energy and stamina gains have been used.",
+                    LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
+                    LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
+                    //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
+                    dropDownItem = 0,
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Generals', 'GENERALS');
+                htmlCode += caap.makeCheckTR("Do not reset General", 'ignoreGeneralImage', true, ignoreGeneralImage);
+                for (dropDownItem = 0; dropDownItem < general.StandardList.length; dropDownItem += 1) {
+                    htmlCode += caap.makeDropDownTR(general.StandardList[dropDownItem], general.StandardList[dropDownItem] + 'General', general.List, '', '', 'Use Current', false, false, 62);
+                }
+
+                htmlCode += caap.makeDropDownTR("SubQuest", 'SubQuestGeneral', general.SubQuestList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Buy", 'BuyGeneral', general.BuyList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Collect", 'CollectGeneral', general.CollectList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Income", 'IncomeGeneral', general.IncomeList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Banking", 'BankingGeneral', general.BankingList, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Level Up", 'LevelUpGeneral', general.List, '', '', 'Use Current', false, false, 62);
+                htmlCode += caap.startDropHide('LevelUpGeneral', '', 'Use Current', true);
+                htmlCode += caap.makeNumberFormTR("Exp To Use Gen", 'LevelUpGeneralExp', LevelUpGenExpInstructions, 20, '', '', true, false);
+                htmlCode += caap.makeCheckTR("Gen For Idle", 'IdleLevelUpGeneral', true, LevelUpGenInstructions1, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Monsters", 'MonsterLevelUpGeneral', true, LevelUpGenInstructions2, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Guild Monsters", 'GuildMonsterLevelUpGeneral', true, LevelUpGenInstructions12, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Fortify", 'FortifyLevelUpGeneral', true, LevelUpGenInstructions3, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Invades", 'InvadeLevelUpGeneral', true, LevelUpGenInstructions4, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Duels", 'DuelLevelUpGeneral', true, LevelUpGenInstructions5, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
+                //htmlCode += caap.makeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
+                htmlCode += caap.makeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
+                htmlCode += caap.makeCheckTR("Gen For MainQuests", 'QuestLevelUpGeneral', false, LevelUpGenInstructions8, true, false);
+                htmlCode += caap.makeCheckTR("Don't Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
+                htmlCode += caap.makeCheckTR("Don't Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);
+                htmlCode += caap.makeCheckTR("Prioritise Monster After", 'PrioritiseMonsterAfterLvl', false, LevelUpGenInstructions11, true, false);
+                htmlCode += caap.endDropHide('LevelUpGeneral');
+                htmlCode += caap.makeCheckTR("Reverse Under Level 4 Order", 'ReverseLevelUpGenerals', false, reverseGenInstructions);
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in general.menu: " + err);
+                return '';
+            }
+        }
     };

@@ -678,7 +678,7 @@
                         return 'Raid';
                     }
 
-                    caap.SetDivContent('battle_mess', 'No Raid To Attack');
+                    caap.setDivContent('battle_mess', 'No Raid To Attack');
                     return 'NoRaid';
                 }
 
@@ -707,13 +707,13 @@
                     return false;
                 }
 
-                caap.SetDivContent('battle_mess', 'Battling User ' + battleUpto + '/' + targets.length + ' ' + targets[battleUpto]);
+                caap.setDivContent('battle_mess', 'Battling User ' + battleUpto + '/' + targets.length + ' ' + targets[battleUpto]);
                 if ((targets[battleUpto] === '' || $u.isNaN(targets[battleUpto]) ? targets[battleUpto].toLowerCase() : targets[battleUpto]) === 'raid') {
                     if (targetRaid) {
                         return 'Raid';
                     }
 
-                    caap.SetDivContent('battle_mess', 'No Raid To Attack');
+                    caap.setDivContent('battle_mess', 'No Raid To Attack');
                     battle.nextTarget();
                     return false;
                 }
@@ -730,7 +730,7 @@
                 state.setItem('ReleaseControl', true);
                 battle.flagResult = true;
                 state.setItem('clickUrl', caap.domain.link + '/' + (type === 'Raid' ? 'raid.php' : 'battle.php'));
-                caap.Click(battleButton);
+                caap.click(battleButton);
                 return true;
             } catch (err) {
                 $u.error("ERROR in battle.click: " + err);
@@ -817,7 +817,7 @@
 
                 if (!$u.hasContent(inputDiv)) {
                     $u.warn('Not on battlepage');
-                    caap.NavigateTo(caap.battlePage);
+                    caap.navigateTo(caap.battlePage);
                     return false;
                 }
 
@@ -1098,7 +1098,7 @@
                             $u.log(1, "Chain attacking: ", chainId);
                             battle.click(inputDiv.eq(0), type);
                             state.setItem("lastBattleID", chainId);
-                            caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
+                            caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                             state.setItem("notSafeCount", 0);
                             return true;
                         }
@@ -1115,7 +1115,7 @@
                                 $u.log(1, "Target ID Overriden For +1 Kill. Expected Defender: ", firstId);
                                 battle.click(inputDiv.eq(0), type);
                                 state.setItem("lastBattleID", firstId);
-                                caap.SetDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
+                                caap.setDivContent('battle_mess', 'Attacked: ' + state.getItem("lastBattleID", 0));
                                 state.setItem("notSafeCount", 0);
                                 return true;
                             }
@@ -1163,7 +1163,7 @@
                                 }
 
                                 battle.setItem(battleRecord);
-                                caap.SetDivContent('battle_mess', 'Attacked: ' + lastBattleID);
+                                caap.setDivContent('battle_mess', 'Attacked: ' + lastBattleID);
                                 state.setItem("notSafeCount", 0);
                                 return true;
                             }
@@ -1176,25 +1176,25 @@
                 state.setItem("notSafeCount", state.getItem("notSafeCount", 0) + 1);
                 // add a schedule here for 5 mins or so
                 if (state.getItem("notSafeCount", 0) > 20) {
-                    caap.SetDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
+                    caap.setDivContent('battle_mess', 'Leaving Battle. Will Return Soon.');
                     $u.log(1, 'No safe targets limit reached. Releasing control for other processes: ', state.getItem("notSafeCount", 0));
                     state.setItem("notSafeCount", 0);
                     return false;
                 }
 
-                caap.SetDivContent('battle_mess', 'No targets matching criteria');
+                caap.setDivContent('battle_mess', 'No targets matching criteria');
                 $u.log(1, 'No safe targets: ', state.getItem("notSafeCount", 0));
 
                 if (type === 'Raid') {
                     engageButton = monster.engageButtons[state.getItem('targetFromraid', '')];
                     if (state.getItem("page", '') === 'raid' && engageButton) {
-                        caap.Click(engageButton);
+                        caap.click(engageButton);
                     } else {
                         schedule.setItem("RaidNoTargetDelay", gm.getItem("RaidNoTargetDelay", 45, hiddenVar));
-                        caap.NavigateTo(caap.battlePage + ',raid');
+                        caap.navigateTo(caap.battlePage + ',raid');
                     }
                 } else {
-                    caap.NavigateTo(caap.battlePage + ',battle_on.gif');
+                    caap.navigateTo(caap.battlePage + ',battle_on.gif');
                 }
 
                 return true;
@@ -1202,6 +1202,136 @@
                 $u.error("ERROR in battle.freshmeat: " + err);
                 return false;
             }
-        }
+        },
         /*jslint sub: false */
+
+        menu: function () {
+            try {
+                var XBattleInstructions = "Start battling if stamina is above this points",
+                    XMinBattleInstructions = "Don't battle if stamina is below this points",
+                    safeHealthInstructions = "Wait until health is 13 instead of 10, prevents you killing yourself but leaves you unhidden for upto 15 minutes",
+                    userIdInstructions = "User IDs(not user name).  Click with the " +
+                        "right mouse button on the link to the users profile & copy link." +
+                        "  Then paste it here and remove everything but the last numbers." +
+                        " (ie. 123456789)",
+                    chainBPInstructions = "Number of battle points won to initiate a chain attack. Specify 0 to always chain attack.",
+                    chainGoldInstructions = "Amount of gold won to initiate a chain attack. Specify 0 to always chain attack.",
+                    maxChainsInstructions = "Maximum number of chain hits after the initial attack.",
+                    FMRankInstructions = "The lowest relative rank below yours that " +
+                        "you are willing to spend your stamina on. Leave blank to attack " +
+                        "any rank. (Uses Battle Rank for invade and duel, War Rank for wars.)",
+                    FMARBaseInstructions = "This value sets the base for your Army " +
+                        "Ratio calculation [X * (Your Army Size/ Opponent Army Size)]. It is basically a multiplier for the army " +
+                        "size of a player at your equal level. A value of 1 means you " +
+                        "will battle an opponent the same level as you with an army the " +
+                        "same size as you or less. Default .5",
+                    FreshMeatARMaxInstructions = "This setting sets the highest value you will use for the Army Ratio [Math.min(Army Ratio, Army Ratio Max)] value. So, if you NEVER want to fight an army bigger than 80% your size, you can set the Max value to .8.",
+                    FreshMeatARMinInstructions = "This setting sets the lowest value you will use for the Army Ratio [Math.max(Army Ratio, Army Ratio Min)] value. So, if you NEVER want to pass up an army that is less than 10% the size of yours, you can set MIN value to .1.",
+                    FreshMeatMaxLevelInstructions = "This setting sets the highest level above you that you are willing to attack. So if you are a level 100 and do not want to attack an opponent above level 120, you can code 20.",
+                    plusonekillsInstructions = "Force +1 kill scenario if 80% or more" +
+                        " of targets are withn freshmeat settings. Note: Since Castle Age" +
+                        " choses the target, selecting this option could result in a " +
+                        "greater chance of loss.",
+                    raidPowerAttackInstructions = "Attack raids using the x5 button. (Not recommended).",
+                    raidOrderInstructions = "List of search words that decide which " +
+                        "raids to participate in first.  Use words in player name or in " +
+                        "raid name. To specify max damage follow keyword with :max token " +
+                        "and specifiy max damage values. Use 'k' and 'm' suffixes for " +
+                        "thousand and million.",
+                    ignorebattlelossInstructions = "Ignore battle losses and attack " +
+                        "regardless.  This will also delete all battle loss records.",
+                    battleList = [
+                        'Stamina Available',
+                        'At Max Stamina',
+                        'At X Stamina',
+                        'No Monster',
+                        'Stay Hidden',
+                        'Demi Points Only',
+                        'Never'
+                    ],
+                    battleInst = [
+                        'Stamina Available will battle whenever you have enough stamina',
+                        'At Max Stamina will battle when stamina is at max and will burn down all stamina when able to level up',
+                        'At X Stamina you can set maximum and minimum stamina to battle',
+                        'No Monster will battle only when there are no active monster battles or if Get Demi Points First has been selected.',
+                        'Stay Hidden uses stamina to try to keep you under 10 health so you cannot be attacked, while also attempting to maximize your stamina use for Monster attacks. YOU MUST SET MONSTER TO "STAY HIDDEN" TO USE THIS FEATURE.',
+                        'Demi Points Only will battle only when Daily Demi Points are required, can use in conjunction with Get Demi Points First. Does not work with War.',
+                        'Never - disables player battles'
+                    ],
+                    typeList = [
+                        'Invade',
+                        'Duel',
+                        'War'
+                    ],
+                    typeInst = [
+                        'Battle using Invade button',
+                        'Battle using Duel button - no guarentee you will win though',
+                        'War using Duel button - no guarentee you will win though'
+                    ],
+                    targetList = [
+                        'Freshmeat',
+                        'Userid List',
+                        'Raid'
+                    ],
+                    targetInst = [
+                        'Use settings to select a target from the Battle Page',
+                        'Select target from the supplied list of userids',
+                        'Raid Battles'
+                    ],
+                    dosiegeInstructions = "(EXPERIMENTAL) Turns on or off automatic siege assist for all raids only.",
+                    collectRewardInstructions = "(EXPERIMENTAL) Automatically collect raid rewards.",
+                    observeDemiFirstInstructions = "If you are setting Get demi Points First and No Attack If % Under in Monster then enabling this option " +
+                        "will cause Demi Points Only to observe the Demi Points requested in the case where No Attack If % Under is triggered.",
+                    htmlCode = '';
+
+                htmlCode = caap.startToggle('Battling', 'BATTLE');
+                htmlCode += caap.makeDropDownTR("Battle When", 'WhenBattle', battleList, battleInst, '', 'Never', false, false, 62);
+                htmlCode += caap.startDropHide('WhenBattle', '', 'Never', true);
+                htmlCode += "<div id='caap_WhenBattleStayHidden_hide' style='color: red; font-weight: bold; display: ";
+                htmlCode += (config.getItem('WhenBattle', 'Never') === 'Stay Hidden' && config.getItem('WhenMonster', 'Never') !== 'Stay Hidden' ? 'block' : 'none') + "'>";
+                htmlCode += "Warning: Monster Not Set To 'Stay Hidden'";
+                htmlCode += "</div>";
+                htmlCode += caap.startDropHide('WhenBattle', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.makeNumberFormTR("Start At Or Above", 'XBattleStamina', XBattleInstructions, 1, '', '', true, false);
+                htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'XMinBattleStamina', XMinBattleInstructions, 0, '', '', true, false);
+                htmlCode += caap.endDropHide('WhenBattle', 'XStamina');
+                htmlCode += caap.startDropHide('WhenBattle', 'DemiOnly', 'Demi Points Only', false);
+                htmlCode += caap.makeCheckTR("Observe Get Demi Points First", 'observeDemiFirst', false, observeDemiFirstInstructions);
+                htmlCode += caap.endDropHide('WhenBattle', 'DemiOnly');
+                htmlCode += caap.makeDropDownTR("Battle Type", 'BattleType', typeList, typeInst, '', '', false, false, 62);
+                htmlCode += caap.makeCheckTR("Wait For Safe Health", 'waitSafeHealth', false, safeHealthInstructions);
+                htmlCode += caap.makeCheckTR("Siege Weapon Assist Raids", 'raidDoSiege', true, dosiegeInstructions);
+                htmlCode += caap.makeCheckTR("Collect Raid Rewards", 'raidCollectReward', false, collectRewardInstructions);
+                htmlCode += caap.makeCheckTR("Clear Complete Raids", 'clearCompleteRaids', false, '');
+                htmlCode += caap.makeCheckTR("Ignore Battle Losses", 'IgnoreBattleLoss', false, ignorebattlelossInstructions);
+                htmlCode += caap.makeNumberFormTR("Chain Battle Points", 'ChainBP', chainBPInstructions, '', '');
+                htmlCode += caap.makeNumberFormTR("Chain Gold", 'ChainGold', chainGoldInstructions, '', '', '', false, false, 30);
+                htmlCode += caap.makeNumberFormTR("Max Chains", 'MaxChains', maxChainsInstructions, 4, '', '');
+                htmlCode += caap.makeTD("Attack targets that are not:");
+                htmlCode += caap.makeNumberFormTR("Lower Than Rank Minus", 'FreshMeatMinRank', FMRankInstructions, '', '', '');
+                htmlCode += caap.makeNumberFormTR("Higher Than X*AR", 'FreshMeatARBase', FMARBaseInstructions, 0.5, '', '');
+                htmlCode += caap.makeCheckTR('Advanced', 'AdvancedFreshMeatOptions', false);
+                htmlCode += caap.startCheckHide('AdvancedFreshMeatOptions');
+                htmlCode += caap.makeNumberFormTR("Max Level", 'FreshMeatMaxLevel', FreshMeatMaxLevelInstructions, '', '', '', true);
+                htmlCode += caap.makeNumberFormTR("Army Ratio Max", 'FreshMeatARMax', FreshMeatARMaxInstructions, '', '', '', true);
+                htmlCode += caap.makeNumberFormTR("Army Ratio Min", 'FreshMeatARMin', FreshMeatARMinInstructions, '', '', '', true);
+                htmlCode += caap.endCheckHide('AdvancedFreshMeatOptions');
+                htmlCode += caap.makeDropDownTR("Target Type", 'TargetType', targetList, targetInst, '', '', false, false, 62);
+                htmlCode += caap.startDropHide('TargetType', 'Raid', 'Raid', false);
+                htmlCode += caap.makeCheckTR("Power Attack", 'RaidPowerAttack', false, raidPowerAttackInstructions, true);
+                htmlCode += caap.makeCheckTR("Attempt +1 Kills", 'PlusOneKills', false, plusonekillsInstructions, true);
+                htmlCode += caap.makeTD("Join Raids in this order <a href='http://senses.ws/caap/index.php?topic=1502.0' target='_blank' style='color: blue'>(INFO)</a>");
+                htmlCode += caap.makeTextBox('orderraid', raidOrderInstructions, '');
+                htmlCode += caap.endDropHide('TargetType', 'Raid');
+                htmlCode += caap.startDropHide('TargetType', 'UserId', 'Userid List', false);
+                htmlCode += caap.makeTextBox('BattleTargets', userIdInstructions, '');
+                htmlCode += caap.endDropHide('TargetType', 'UserId');
+                htmlCode += caap.endDropHide('WhenBattle');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in battle.menu: " + err);
+                return '';
+            }
+        }
     };

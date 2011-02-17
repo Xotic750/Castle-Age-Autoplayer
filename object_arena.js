@@ -398,13 +398,13 @@
         /*jslint sub: false */
 
         navigate_to_main: function () {
-            return caap.NavigateTo('battle,arena', 'tab_arena_on.gif');
+            return caap.navigateTo('battle,arena', 'tab_arena_on.gif');
         },
 
         navigate_to_main_refresh: function () {
-            var button = caap.CheckForImage("tab_arena_on.gif");
+            var button = caap.checkForImage("tab_arena_on.gif");
             if ($u.hasContent(button)) {
-                caap.Click(button);
+                caap.click(button);
             }
 
             state.setItem('ArenaRefresh', false);
@@ -801,7 +801,7 @@
                     $u.log(3, "currentRecord", currentRecord);
                     arena.setItem(currentRecord);
                     if (currentRecord['state'] === 'Collect' && collectDiv.length) {
-                        caap.Click(collectDiv);
+                        caap.click(collectDiv);
                     }
                 } else {
                     $u.warn("Not on arena battle page");
@@ -1161,7 +1161,7 @@
         },
 
 
-        AddArenaMenu: function () {
+        menu: function () {
             try {
                 var mbattleList = [
                         'Tokens Available',
@@ -1186,29 +1186,29 @@
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Arena', 'ARENA');
-                htmlCode += caap.MakeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 62);
+                htmlCode += caap.makeDropDownTR("Attack When", 'WhenArena', mbattleList, mbattleInst, '', 'Never', false, false, 62);
                 htmlCode += caap.startDropHide('WhenArena', '', 'Never', true);
-                htmlCode += caap.MakeTD("Attack Classes in this order");
-                htmlCode += caap.MakeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
-                htmlCode += caap.MakeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '');
-                htmlCode += caap.MakeNumberFormTR("Ignore Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '');
-                htmlCode += caap.MakeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
-                htmlCode += caap.MakeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
+                htmlCode += caap.makeTD("Attack Classes in this order");
+                htmlCode += caap.makeTextBox('orderArenaClass', 'Attack Arena class in this order. Uses the class name.', 'Cleric,Mage,Rogue,Warrior', '');
+                htmlCode += caap.makeNumberFormTR("Ignore Health &lt;=", 'ignoreArenaHealth', "Ignore enemies with health equal to or below this level.", 200, '', '');
+                htmlCode += caap.makeNumberFormTR("Ignore Level Plus &gt;=", 'maxArenaLevel', "This value is added the the value of your current level and enemies with a level above this value are ignored", 50, '', '');
+                htmlCode += caap.makeCheckTR("Stun All Clerics", 'killClericFirst', false, "Attack Clerics that are not stunned.");
+                htmlCode += caap.makeCheckTR("Do Polymorphed", 'doPoly', true, "Attack polymorphed players.");
                 htmlCode += caap.startCheckHide('doPoly');
-                htmlCode += caap.MakeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
-                htmlCode += caap.MakeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
-                htmlCode += caap.MakeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
+                htmlCode += caap.makeCheckTR("Priority Polymorphed", 'attackPoly', false, "Attack polymorphed players first.", true);
+                htmlCode += caap.makeCheckTR("Attack Polymorphed If Rogue", 'roguePoly', true, "Only attack polymorphed players if you are class Rogue.", true);
+                htmlCode += caap.makeCheckTR("Stunned Ignore Polymorphed", 'stunnedPoly', true, "If you are stunned then don't attack polymorphed minions, leave them for someone who can do more damage.", true);
                 htmlCode += caap.endCheckHide('doPoly');
-                htmlCode += caap.MakeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
-                htmlCode += caap.MakeDropDownTR("Chain", 'chainArena', chainList, chainListInst, '', '160', false, false, 35);
+                htmlCode += caap.makeCheckTR("Suicide", 'attackSuicide', false, "When out of targets, attack active Rogues or Warriors to which you lost previously, before any class that's not stunned.");
+                htmlCode += caap.makeDropDownTR("Chain", 'chainArena', chainList, chainListInst, '', '160', false, false, 35);
                 htmlCode += caap.startDropHide('chainArena', '', '0', true);
-                htmlCode += caap.MakeCheckTR("Chain Observe Health", 'observeHealth', true, "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
+                htmlCode += caap.makeCheckTR("Chain Observe Health", 'observeHealth', true, "When chaining, observe the 'Ignore Health' and 'Stun All Clerics' options.");
                 htmlCode += caap.endDropHide('chainArena');
                 htmlCode += caap.endDropHide('WhenArena');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
-                $u.error("ERROR in arena.AddArenaMenu: " + err);
+                $u.error("ERROR in arena.menu: " + err);
                 return '';
             }
         },
@@ -1279,7 +1279,7 @@
                             }
                         }
 
-                        caap.ClickAjaxLinkSend(visitMonsterLink.arlink);
+                        caap.clickAjaxLinkSend(visitMonsterLink.arlink);
                     };
 
                     $j("span[id='caap_arena_1']", caap.caapTopObject).unbind('click', handler).click(handler);
@@ -1318,18 +1318,18 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        CheckResults_arena: function () {
+        checkResults_arena: function () {
             try {
                 caap.globalContainer.find("input[src*='battle_enter_battle']").bind('click', arena.engageListener);
                 arena.checkInfo();
                 return true;
             } catch (err) {
-                $u.error("ERROR in arena.CheckResults_arena: " + err);
+                $u.error("ERROR in arena.checkResults_arena: " + err);
                 return false;
             }
         },
 
-        CheckResults_arena_battle: function () {
+        checkResults_arena_battle: function () {
             try {
                 caap.globalContainer.find("input[src*='monster_duel_button']").each(function (index) {
                     $j(this).attr("id", index).bind('click', arena.dualListener);
@@ -1338,7 +1338,7 @@
                 arena.onBattle();
                 return true;
             } catch (err) {
-                $u.error("ERROR in arena.CheckResults_arena_battle: " + err);
+                $u.error("ERROR in arena.checkResults_arena_battle: " + err);
                 return false;
             }
         },
@@ -1399,7 +1399,7 @@
                 tokenTimer = (record['reviewed'] && record['tokenTime'] && record['state'] === 'Alive') ? ((record['reviewed'] + (record['tokenTime'].parseTimer() * 1000)) - new Date().getTime()) / 1000 : -1;
                 tokenTimer = tokenTimer >= 0 ? tokenTimer.dp() : 0;
                 nextTime = (tokenTimer >= 0 && record['state'] === 'Alive') ? "Next Token in: " + tokenTimer + ' seconds': nextTime;
-                caap.SetDivContent('arena_mess', nextTime);
+                caap.setDivContent('arena_mess', nextTime);
                 if (!record || !$j.isPlainObject(record) || $j.isEmptyObject(record) || state.getItem('ArenaJoined', false)) {
                     if (state.getItem('ArenaRefresh', true)) {
                         if (arena.navigate_to_main_refresh()) {
@@ -1425,7 +1425,7 @@
                     return false;
                 }
 
-                caap.SetDivContent('arena_mess', "Entering Arena");
+                caap.setDivContent('arena_mess', "Entering Arena");
                 if (general.Select('ArenaGeneral')) {
                     return true;
                 }
@@ -1451,7 +1451,7 @@
                     $u.log(1, "Enter battle", record, enterButton);
                     if (record['tokens'] > 0 && enterButton && enterButton.length) {
                         arena.clearMinions();
-                        caap.Click(enterButton);
+                        caap.click(enterButton);
                         return true;
                     }
                 }
@@ -1461,7 +1461,7 @@
                     $u.log(1, "Joining battle", caap.stats['stamina']['num'], record, enterButton);
                     if (caap.stats['stamina']['num'] >= 20 && record['tokens'] > 0) {
                         state.setItem('ArenaJoined', true);
-                        caap.Click(enterButton);
+                        caap.click(enterButton);
                         return true;
                     }
 
@@ -1475,13 +1475,13 @@
                 minion = arena.getTargetMinion(record);
                 if (minion && $j.isPlainObject(minion) && !$j.isEmptyObject(minion)) {
                     $u.log(2, "Fighting target_id (" + minion['target_id'] + ") Name: " + minion['name']);
-                    caap.SetDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
+                    caap.setDivContent('arena_mess', "Fighting (" + minion['target_id'] + ") " + minion['name']);
                     key = $j("#" + caap.domain.id[caap.domain.which] + "attack_key_" + minion['target_id']);
                     if (key && key.length) {
                         form = key.parents("form").eq(0);
                         if (form && form.length) {
                             state.setItem('ArenaMinionAttacked', minion);
-                            caap.Click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
+                            caap.click(form.find("input[src*='guild_duel_button2.gif'],input[src*='monster_duel_button.gif']"));
                             return true;
                         }
                     }

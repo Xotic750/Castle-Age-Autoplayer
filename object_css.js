@@ -5,7 +5,7 @@
     /////////////////////////////////////////////////////////////////////
 
     css = {
-        AddCSS: function () {
+        addCSS: function () {
             try {
                 if (!$j('link[href*="jquery-ui.css"]').length) {
                     $j("<link>").appendTo("head").attr({
@@ -19,7 +19,7 @@
                 $j("<style type='text/css'>" + css.caap + "</style>").appendTo("head");
                 return true;
             } catch (err) {
-                $u.error("ERROR in AddCSS: " + err);
+                $u.error("ERROR in addCSS: " + err);
                 return false;
             }
         },

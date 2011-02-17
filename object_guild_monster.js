@@ -234,13 +234,13 @@
         },
 
         navigate_to_main: function () {
-            return caap.NavigateTo('guild', 'tab_guild_main_on.gif');
+            return caap.navigateTo('guild', 'tab_guild_main_on.gif');
         },
 
         navigate_to_battles_refresh: function () {
-            var button = caap.CheckForImage("guild_monster_tab_on.jpg");
+            var button = caap.checkForImage("guild_monster_tab_on.jpg");
             if ($u.hasContent(button)) {
-                caap.Click(button);
+                caap.click(button);
             }
 
             state.setItem('guildMonsterBattlesRefresh', false);
@@ -248,7 +248,7 @@
         },
 
         navigate_to_battles: function () {
-            return caap.NavigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
+            return caap.navigateTo('guild,guild_current_monster_battles', 'guild_monster_tab_on.jpg');
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -355,7 +355,7 @@
                     guild_monster.clear();
                 }
 
-                caap.UpdateDashboard(true);
+                caap.updateDashboard(true);
                 return true;
             } catch (err) {
                 $u.error("ERROR in guild_monster.populate: " + err);
@@ -503,7 +503,7 @@
                     $u.log(2, "currentRecord", currentRecord);
                     guild_monster.setItem(currentRecord);
                     if (collect) {
-                        caap.Click(collectDiv);
+                        caap.click(collectDiv);
                     }
                 } else {
                     if (bannerDiv.children().eq(0).text().hasIndexOf("You do not have an on going guild monster battle. Have your Guild initiate more!")) {
@@ -943,6 +943,54 @@
                 $u.error("ERROR in guild_monster.getStaminaValue: " + err);
                 return undefined;
             }
-        }
+        },
         /*jslint sub: false */
+
+        menu: function () {
+            try {
+                // Guild Monster controls
+                var mbattleList = [
+                        'Stamina Available',
+                        'At Max Stamina',
+                        'At X Stamina',
+                        'Never'
+                    ],
+                    mbattleInst = [
+                        'Stamina Available will attack whenever you have enough stamina',
+                        'At Max Stamina will attack when stamina is at max and will burn down all stamina when able to level up',
+                        'At X Stamina you can set maximum and minimum stamina to battle',
+                        'Never - disables attacking monsters'
+                    ],
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('GuildMonsters', 'GUILD MONSTERS');
+                htmlCode += caap.makeDropDownTR("Attack When", 'WhenGuildMonster', mbattleList, mbattleInst, '', 'Never', false, false, 62);
+                htmlCode += caap.startDropHide('WhenGuildMonster', '', 'Never', true);
+                htmlCode += caap.startDropHide('WhenGuildMonster', 'XStamina', 'At X Stamina', false);
+                htmlCode += caap.makeNumberFormTR("Start At Or Above", 'MaxStaminaToGMonster', '', 0, '', '', true, false);
+                htmlCode += caap.makeNumberFormTR("Stop At Or Below", 'MinStaminaToGMonster', '', 0, '', '', true, false);
+                htmlCode += caap.endDropHide('WhenGuildMonster', 'XStamina');
+                htmlCode += caap.makeCheckTR('Classic Monsters First', 'doClassicMonstersFirst', false, 'Prioritise the classic monsters and raids before Guild Monsters.');
+                htmlCode += caap.makeCheckTR('Siege Monster', 'doGuildMonsterSiege', true, 'Perform siege assists when visiting your Guild Monster.');
+                htmlCode += caap.makeCheckTR('Collect Rewards', 'guildMonsterCollect', false, 'Collect the rewards of your completed Guild Monsters.');
+                htmlCode += caap.makeCheckTR("Don't Attack Clerics", 'ignoreClerics', false, "Do not attack Guild Monster's Clerics. Does not include the Gate minions e.g. Azriel");
+                htmlCode += caap.makeTD("Attack Gates");
+                htmlCode += caap.makeTD("N" + caap.makeCheckBox('attackGateNorth', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.makeTD("W" + caap.makeCheckBox('attackGateWest', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.makeTD("E" + caap.makeCheckBox('attackGateEast', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.makeTD("S" + caap.makeCheckBox('attackGateSouth', true), false, true, "display: inline-block; width: 25%;");
+                htmlCode += caap.makeNumberFormTR("Ignore Below Health", 'XMinMonsterStamina', "Don't attack monster minions that have a health below this value.", 0, '', '');
+                htmlCode += caap.makeCheckTR('Choose First Alive', 'chooseIgnoredMinions', false, 'When the only selection left is the monster general then go back and attack any previously ignored monster minions.');
+                htmlCode += caap.makeTD("Attack Monsters in this order");
+                htmlCode += caap.makeTextBox('orderGuildMonster', 'Attack your guild monsters in this order, can use Slot Number and Name. Control is provided by using :ach and :max', '', '');
+                htmlCode += caap.makeTD("Attack Minions in this order");
+                htmlCode += caap.makeTextBox('orderGuildMinion', 'Attack your guild minions in this order. Uses the minion name.', '', '');
+                htmlCode += caap.endDropHide('WhenGuildMonster');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in guild_monster.menu: " + err);
+                return '';
+            }
+        }
     };

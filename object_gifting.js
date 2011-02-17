@@ -198,7 +198,7 @@
                 }
 
                 if ($j.isEmptyObject(giftEntry) && state.getItem('HaveGift', false)) {
-                    if (caap.NavigateTo('army', 'invite_on.gif')) {
+                    if (caap.navigateTo('army', 'invite_on.gif')) {
                         return true;
                     }
 
@@ -208,7 +208,7 @@
                     }
 
                     schedule.setItem('ClickedFacebookURL', 30);
-                    caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/reqs.php#confirm_46755028429_0");
+                    caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + "apps.facebook.com/reqs.php#confirm_46755028429_0");
                     return true;
                 }
 
@@ -291,7 +291,7 @@
                                     }
 
                                     reload = true;
-                                    caap.Click(inputDiv);
+                                    caap.click(inputDiv);
                                     return false;
                                 } else {
                                     if (!reload) {
@@ -338,7 +338,7 @@
                 }
 
                 state.setItem("GiftingRefresh", 0);
-                caap.VisitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
+                caap.visitUrl(caap.domain.protocol[caap.domain.ptype] + caap.domain.url[0] + "/gift_accept.php?act=acpt&uid=" + giftEntry['userId']);
                 return true;
             } catch (err) {
                 $u.error("ERROR in gifting.collect: " + err);
@@ -353,7 +353,7 @@
                     collectOnly = false;
 
                 if (!$j.isEmptyObject(giftEntry)) {
-                    if (force || caap.HasImage("gift_yes.gif")) {
+                    if (force || caap.hasImage("gift_yes.gif")) {
                         collectOnly = config.getItem("CollectOnly", false);
                         if (!collectOnly || (collectOnly && config.getItem("CollectAndQueue", false))) {
                             gifting.queue.setItem(giftEntry);
@@ -384,14 +384,14 @@
                     tempDiv = $j("input[name='sendit']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         $u.log(2, 'Sending gifts to Facebook');
-                        caap.Click(tempDiv);
+                        caap.click(tempDiv);
                         return true;
                     }
 
                     tempDiv = $j("input[name='skip_ci_btn']", popDiv);
                     if ($u.hasContent(tempDiv)) {
                         $u.log(2, 'Denying Email Nag For Gift Send');
-                        caap.Click(tempDiv);
+                        caap.click(tempDiv);
                         return true;
                     }
 
@@ -402,7 +402,7 @@
                             if (/you have run out of requests/.test(tempText)) {
                                 $u.log(2, 'Out of gift requests: ', tempText);
                                 schedule.setItem("MaxGiftsExceeded", 10800, 300);
-                                caap.SetDivContent('gifting_mess', "Max gift limit");
+                                caap.setDivContent('gifting_mess', "Max gift limit");
                                 tryAgain = false;
                             } else {
                                 $u.warn('Unknown popup message: ', tempText);
@@ -411,7 +411,7 @@
                             $u.warn('Popup message but no text found');
                         }
 
-                        caap.Click(tempDiv);
+                        caap.click(tempDiv);
                         return tryAgain;
                     }
 
@@ -438,6 +438,45 @@
             } catch (err) {
                 $u.error("ERROR in gifting.popCheck: " + err);
                 return undefined;
+            }
+        },
+
+        menu: function () {
+            try {
+                // Other controls
+                var giftInstructions = "Automatically receive and send return gifts.",
+                    giftQueueUniqueInstructions = "When enabled only unique user's gifts will be queued, otherwise all received gifts will be queued.",
+                    giftCollectOnlyInstructions = "Only collect gifts, do not queue and do not return.",
+                    giftCollectAndQueueInstructions = "When used with Collect Only it will collect and queue gifts but not return.",
+                    giftReturnOnlyOneInstructions = "Only return 1 gift to a person in 24 hours even if you received many from that person.",
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Gifting', 'GIFTING OPTIONS');
+                htmlCode += caap.makeCheckTR('Auto Gifting', 'AutoGift', false, giftInstructions);
+                htmlCode += caap.startCheckHide('AutoGift');
+                htmlCode += caap.makeCheckTR('Queue unique users only', 'UniqueGiftQueue', true, giftQueueUniqueInstructions);
+                htmlCode += caap.makeCheckTR('Collect Only', 'CollectOnly', false, giftCollectOnlyInstructions);
+                htmlCode += caap.makeCheckTR('And Queue', 'CollectAndQueue', false, giftCollectAndQueueInstructions);
+                htmlCode += caap.makeDropDownTR("Give", 'GiftChoice', gifting.gifts.list(), '', '', '', false, false, 80);
+                htmlCode += caap.makeCheckTR('1 Gift Per Person Per 24hrs', 'ReturnOnlyOne', false, giftReturnOnlyOneInstructions);
+                htmlCode += caap.makeCheckTR('Filter Return By UserId', 'FilterReturnId', false, "Don't return gifts to a list of UserIDs");
+                htmlCode += caap.startCheckHide('FilterReturnId');
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnIdList', "Don't return gifts to these UserIDs. Use ',' between each UserID", '', ''));
+                htmlCode += caap.endTR;
+                htmlCode += caap.endCheckHide('FilterReturnId');
+                htmlCode += caap.makeCheckTR('Filter Return By Gift', 'FilterReturnGift', false, "Don't return gifts for a list of certain gifts recieved");
+                htmlCode += caap.startCheckHide('FilterReturnGift');
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD(caap.makeTextBox('FilterReturnGiftList', "Don't return gifts to these received gifts. Use ',' between each gift", '', ''));
+                htmlCode += caap.endTR;
+                htmlCode += caap.endCheckHide('FilterReturnGift');
+                htmlCode += caap.endCheckHide('AutoGift');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in gifting.menu: " + err);
+                return '';
             }
         },
 
@@ -574,7 +613,7 @@
                             tempText = config.setItem("GiftChoice", gifting.gifts.options[0]);
                         }
 
-                        caap.ChangeDropDownList("GiftChoice", tempArr, tempText);
+                        caap.changeDropDownList("GiftChoice", tempArr, tempText);
                         gifting.save("gifts");
                     }
 
@@ -949,7 +988,7 @@
 
                                 if (!/none/.test($u.setContent(unsel.parent().attr("style"), ''))) {
                                     caap.waitingForDomLoad = false;
-                                    caap.Click(unsel);
+                                    caap.click(unsel);
                                     $u.log(2, "Id clicked:", id);
                                     clickedList.push(id);
                                 } else {
@@ -1040,7 +1079,7 @@
                                 } else if (/You have exceed the max gift limit for the day/.test(resultText)) {
                                     $u.log(1, 'Exceeded daily gift limit.');
                                     schedule.setItem("MaxGiftsExceeded", gm.getItem("MaxGiftsExceededDelaySecs", 10800, hiddenVar), 300);
-                                    caap.SetDivContent('gifting_mess', "Max gift limit");
+                                    caap.setDivContent('gifting_mess', "Max gift limit");
                                 } else {
                                     $u.log(2, 'Result message', resultText);
                                 }

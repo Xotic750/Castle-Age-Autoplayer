@@ -312,7 +312,7 @@
                     return false;
                 } else if (army.pageDone) {
                     army.pageDone = false;
-                    caap.ClickAjaxLinkSend("army_member.php?page=" + currentPage);
+                    caap.clickAjaxLinkSend("army_member.php?page=" + currentPage);
                 }
 
                 return true;
@@ -416,6 +416,38 @@
                 $u.error("ERROR in army.getEliteList: " + err);
                 return [];
             }
-        }
+        },
         /*jslint sub: false */
+        
+        menu: function () {
+            try {
+                // Other controls
+                var armyInstructions = "Enable or disable the Army functions. Required when using CA's alternative URL.",
+                    armyScanInstructions = "Scan the army pages every X days.",
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Army', 'ARMY OPTIONS');
+                htmlCode += caap.makeCheckTR('Enable Army Functions', 'EnableArmy', true, armyInstructions);
+                htmlCode += caap.startCheckHide('EnableArmy');
+                htmlCode += caap.makeNumberFormTR("Scan Every (days)", 'ArmyScanDays', armyScanInstructions, 7, '', '');
+                htmlCode += caap.makeCheckTR('Change Indicators', 'ArmyIndicators', false, '');
+                htmlCode += caap.startCheckHide('ArmyIndicators');
+                htmlCode += caap.makeNumberFormTR("Recent", 'ArmyAgeDaysColor0', '', '#008000', '', 'color', false, false, 50);
+                htmlCode += caap.makeNumberFormTR("Warn 1 (days)", 'ArmyAgeDays1', '', 7, '', '');
+                htmlCode += caap.makeNumberFormTR("Warn 2", 'ArmyAgeDaysColor1', '', '#ADFF2F', '', 'color', false, false, 50);
+                htmlCode += caap.makeNumberFormTR("Warn 2 (days)", 'ArmyAgeDays2', '', 14, '', '');
+                htmlCode += caap.makeNumberFormTR("Warn 3", 'ArmyAgeDaysColor2', '', '#FFD700', '', 'color', false, false, 50);
+                htmlCode += caap.makeNumberFormTR("Warn 3 (days)", 'ArmyAgeDays3', '', 21, '', '');
+                htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor3', '', '#FF8C00', '', 'color', false, false, 50);
+                htmlCode += caap.makeNumberFormTR("Warn 4 (days)", 'ArmyAgeDays4', '', 28, '', '');
+                htmlCode += caap.makeNumberFormTR("Warn 4", 'ArmyAgeDaysColor4', '', '#FF0000', '', 'color', false, false, 50);
+                htmlCode += caap.endCheckHide('ArmyIndicators');
+                htmlCode += caap.endCheckHide('EnableArmy');
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in army.menu: " + err);
+                return '';
+            }
+        }
     };
