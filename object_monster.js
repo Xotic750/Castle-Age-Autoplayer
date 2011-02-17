@@ -1123,7 +1123,7 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "'],img[src*='" + caap.stats['FBID'] + "']", monsterDiv))) {
                     $u.log(2, "Your monster found", monsterName);
                     tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                 }

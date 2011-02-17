@@ -3232,7 +3232,7 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                if ($u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],a[href*='" + caap.stats['FBID'] + "'],img[src*='" + caap.stats['FBID'] + "']", monsterDiv))) {
                     $u.log(2, "Your monster found", monsterName);
                     tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                 }
@@ -16414,7 +16414,7 @@
                         }
                     }
 
-                    if ($u.hasContent(monsterDiv) && $u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],.fb_link[href*='" + caap.stats['FBID'] + "']", monsterDiv))) {
+                    if ($u.hasContent(monsterDiv) && $u.hasContent($j("img[uid='" + caap.stats['FBID'] + "'],.fb_link[href*='" + caap.stats['FBID'] + "'],img[src*='" + caap.stats['FBID'] + "']", monsterDiv))) {
                         $u.log(2, "Your monster found", tempText);
                         tempText = tempText.replace(new RegExp(".+?'s "), 'Your ');
                     }
