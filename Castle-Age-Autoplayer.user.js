@@ -12347,7 +12347,9 @@
             "festival_challenge",
             "festival_achievements",
             "festival_battle_home",
-            "festival_battle_rank"
+            "festival_battle_rank",
+            "festival_tower",
+            "festival_battle_monster"
         ],
 
         globalContainer: {},
@@ -14960,20 +14962,21 @@
         /////////////////////////////////////////////////////////////////////
 
         festivalBlessTable: {
-            'attack'  : 'hero_angel.jpg',
-            'defense' : 'festival_general_large_ophelia.jpg',
-            'energy'  : 'festival_general_large_terra.jpg',
-            'stamina' : 'festival_general_large_colossus.jpg',
-            'health'  : 'festival_general_large_gallador.jpg',
-            'army'    : 'festival_general_large_burnvillage.jpg'
+            'attack'  : 'defense',
+            'defense' : 'energy',
+            'energy'  : 'stamina',
+            'stamina' : 'health',
+            'health'  : 'army',
+            'army'    : 'attack'
         },
         /*jslint sub: false */
 
         festivalBlessResults: function () {
-            var hours   = 0,
-                minutes = 0,
-                tDiv    = $j("div[style*='festival_feats_bottom.jpg']", caap.globalContainer),
-                txt     = $u.setContent(tDiv.text(), '').trim().innerTrim().regex(/(\d+:\d+)/);
+            var hours     = 0,
+                minutes   = 0,
+                tDiv      = $j("div[style*='festival_feats_bottom.jpg']", caap.globalContainer),
+                txt       = $u.setContent(tDiv.text(), '').trim().innerTrim().regex(/(\d+:\d+)/),
+                autoBless = config.getItem('festivalBless', 'None');
 
             if ($u.hasContent(txt)) {
                 // Check time until next Festival Blessing
@@ -14982,30 +14985,51 @@
                 $u.log(2, 'Recorded Festival Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
                 schedule.setItem('festivalBlessTimer', (hours * 60 + minutes) * 60, 300);
             }
+
+            if (autoBless !== 'None') {
+                tDiv = $j("div[style*='festival_victory_popup.jpg']", caap.globalContainer);
+                if ($u.hasContent(tDiv)) {
+                    $u.log(1, "Festival Feat Victory!");
+                } else {
+                    tDiv = $j("div[style*='festival_defeat_popup.jpg']", caap.globalContainer);
+                    if ($u.hasContent(tDiv)) {
+                        $u.log(1, "Festival Feat Defeat!");
+                        $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                    }
+                }
+            }
         },
 
         festivalBless: function () {
             var autoBless  = config.getItem('festivalBless', 'None'),
-                autoBlessN = caap.festivalBlessTable[autoBless.toLowerCase()],
-                capPic = 'festival_capsule_' + autoBless.toLowerCase() + '.gif',
-                picSlice   = $j();
+                capPic     = 'festival_capsule_' + autoBless.toLowerCase() + '.gif',
+                picSlice   = $j(),
+                txt        = '';
 
-            if (!$u.hasContent(autoBlessN) || !schedule.check('festivalBlessTimer')) {
+            if (autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
                 return false;
             }
 
-            if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, autoBlessN)) {
+            if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
                 return true;
+            }
+
+            txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
+            if (!new RegExp(autoBless).test(txt)) {
+                $u.warn('No match for text', autoBless);
+                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                return false;
             }
 
             picSlice = $j("input[src*='festival_feat_testbutton.jpg']", caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No blessing button', autoBless);
+                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
                 return false;
             }
 
             $u.log(1, 'Click blessing button for', autoBless);
-            schedule.setItem('festivalBlessTimer', 3600, 300);
+            schedule.setItem('festivalBlessTimer', 300, 300);
             return caap.click(picSlice);
         },
 
