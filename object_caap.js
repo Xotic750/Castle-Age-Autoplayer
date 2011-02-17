@@ -7035,6 +7035,14 @@
                 return false;
             }
 
+            picSlice = $j("img[src*='festival_feat_rankprogress.jpg']", caap.appBodyDiv);
+            if (!$u.hasContent(picSlice) && picSlice.length >= 8) {
+                $u.log(1, 'Area Completed!', autoBless);
+                $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                return false;
+            }
+
             picSlice = $j("input[src*='festival_feat_testbutton.jpg']", caap.appBodyDiv);
             if (!$u.hasContent(picSlice)) {
                 $u.warn('No blessing button', autoBless);
@@ -11719,7 +11727,7 @@
                     } else {
                         window.location.href = 'http://apps.facebook.com/castle_age/index.php?bm=1&ref=bookmarks&count=0';
                     }
-                }, 30000);
+                }, 60000);
 
                 return true;
             }
@@ -11728,10 +11736,12 @@
             var button = $j('#try_again_button');
             if ($u.hasContent(button)) {
                 $u.warn('Detected "Try Again" message, clicking button else refresh.');
-                caap.click(button);
                 window.setTimeout(function () {
-                    $u.reload();
-                }, 30000);
+                    caap.click(button);
+                    window.setTimeout(function () {
+                        $u.reload();
+                    }, 60000);
+                }, 20000);
 
                 return true;
             }
