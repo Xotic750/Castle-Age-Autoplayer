@@ -365,11 +365,22 @@
 
         init: function () {
             try {
-                if (caap.domain.which === 2) {
-                    caap.controlXY.selector = "#globalcss";
-                    caap.dashboardXY.selector = "#app_body_container";
+                if (caap.domain.which === 0 && config.getItem('backgroundCA', false)) {
+                    $j("body").css({
+                        'background-image'    : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
+                        'background-position' : 'center top',
+                        'background-repeat'   : 'no-repeat',
+                        'background-color'    : 'black',
+                        'margin'              : '0'
+                    });
+
+                    $j("#pagelet_canvas_footer_content").css({
+                        'display'    : 'none'
+                    });
                 }
 
+                caap.controlXY.selector = "#" + caap.domain.id[caap.domain.which] + "globalcss";
+                caap.dashboardXY.selector = "#" + caap.domain.id[caap.domain.which] + "app_body_container";
                 state.setItem(caap.friendListType.gifta.name + 'Requested', false);
                 state.setItem(caap.friendListType.giftc.name + 'Requested', false);
                 state.setItem(caap.friendListType.facebook.name + 'Requested', false);
@@ -1049,7 +1060,7 @@
         },
 
         controlXY: {
-            selector : '.UIStandardFrame_Content',
+            selector : '',
             x        : 0,
             y        : 0
         },
@@ -1078,7 +1089,7 @@
         },
 
         dashboardXY: {
-            selector : '#app46755028429_app_body_container',
+            selector : '',
             x        : 0,
             y        : 0
         },
@@ -1494,15 +1505,6 @@
                         'Health',
                         'Stamina'
                     ],
-                    festivalBlessList = [
-                        'None',
-                        'Energy',
-                        'Attack',
-                        'Defense',
-                        'Health',
-                        'Stamina',
-                        'Army'
-                    ],
                     autoBlessListInstructions = [
                         'None disables the auto bless feature.',
                         'Energy performs an automatic daily blessing with Ambrosia.',
@@ -1546,7 +1548,7 @@
                         'Health',
                         'Stamina',
                         'Army'
-                    ]
+                    ],
                     htmlCode = '';
 
                 htmlCode += caap.startToggle('Festival', 'FESTIVAL OPTIONS');
@@ -1606,6 +1608,7 @@
                 htmlCode += caap.endCheckHide('SetTitle');
                 htmlCode += caap.makeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
                 if (caap.domain.which === 0) {
+                    htmlCode += caap.makeCheckTR('Use CA Background', 'backgroundCA', false, '');
                     htmlCode += caap.makeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
                     htmlCode += caap.makeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
                     htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
@@ -3585,6 +3588,34 @@
                 case "AutoStatAdv" :
                     $u.log(9, "AutoStatAdv");
                     state.setItem("statsMatch", true);
+                    break;
+                case "backgroundCA" :
+                    if (e.target.checked) {
+                        $j("body").css({
+                            'background-image'    : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
+                            'background-position' : 'center top',
+                            'background-repeat'   : 'no-repeat',
+                            'background-color'    : 'black',
+                            'margin'              : '0'
+                        });
+
+                        $j("#pagelet_canvas_footer_content").css({
+                            'display'    : 'none'
+                        });
+                    } else {
+                        $j("body").css({
+                            'background-image'    : '',
+                            'background-position' : '',
+                            'background-repeat'   : '',
+                            'background-color'    : '',
+                            'margin'              : ''
+                        });
+
+                        $j("#pagelet_canvas_footer_content").css({
+                            'display'    : 'block'
+                        });
+                    }
+
                     break;
                 case "HideAds" :
                     $u.log(9, "HideAds");
@@ -7018,8 +7049,8 @@
 
             if ($u.hasContent(txt)) {
                 // Check time until next Festival Blessing
-                hours = $u.setContent(txt.regex(/(\d+):/), 3);
-                minutes = $u.setContent(txt.regex(/:(\d+)/), 0);
+                hours = $u.setContent(txt.regex(/(\d+):/), 0);
+                minutes = $u.setContent(txt.regex(/:(\d+)/), 30);
                 $u.log(2, 'Recorded Festival Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
                 schedule.setItem('festivalBlessTimer', (hours * 60 + minutes) * 60, 300);
             }
