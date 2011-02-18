@@ -1549,7 +1549,7 @@
                     ]
                     htmlCode = '';
 
-                htmlCode += caap.startToggle('Auto', 'FESTIVAL OPTIONS');
+                htmlCode += caap.startToggle('Festival', 'FESTIVAL OPTIONS');
                 htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
                 htmlCode += caap.endToggle;
                 return htmlCode;

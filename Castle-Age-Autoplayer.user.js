@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            59
+// @dev            60
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -28,7 +28,7 @@
     "use strict";
 
     var caapVersion   = "140.24.1",
-        devVersion    = "59",
+        devVersion    = "60",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -9535,7 +9535,7 @@
                     ]
                     htmlCode = '';
 
-                htmlCode += caap.startToggle('Auto', 'FESTIVAL OPTIONS');
+                htmlCode += caap.startToggle('Festival', 'FESTIVAL OPTIONS');
                 htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
                 htmlCode += caap.endToggle;
                 return htmlCode;
