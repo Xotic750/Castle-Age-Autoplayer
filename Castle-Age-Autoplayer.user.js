@@ -9177,6 +9177,7 @@
                 }
 
                 htmlCode += caap.addAutoOptionsMenu();
+                htmlCode += caap.addFestivalOptionsMenu();
                 htmlCode += caap.addOtherOptionsMenu();
                 htmlCode += caap.addFooterMenu();
 
@@ -9500,7 +9501,6 @@
 
                 htmlCode += caap.startToggle('Auto', 'AUTO OPTIONS');
                 htmlCode += caap.makeDropDownTR("Auto Bless", 'AutoBless', autoBlessList, autoBlessListInstructions, '', '', false, false, 62);
-                htmlCode += caap.makeDropDownTR("Festival Bless", 'festivalBless', festivalBlessList, autoBlessListInstructions, '', '', false, false, 62);
                 htmlCode += caap.makeCheckTR('Auto Potions', 'AutoPotions', false, autoPotionsInstructions0);
                 htmlCode += caap.startCheckHide('AutoPotions');
                 htmlCode += caap.makeNumberFormTR("Spend Stamina At", 'staminaPotionsSpendOver', autoPotionsInstructions1, 39, '', '', true, false);
@@ -9517,6 +9517,30 @@
                 return htmlCode;
             } catch (err) {
                 $u.error("ERROR in addAutoOptionsMenu: " + err);
+                return '';
+            }
+        },
+
+        addFestivalOptionsMenu: function () {
+            try {
+                // Other controls
+                var festivalBlessList = [
+                        'None',
+                        'Energy',
+                        'Attack',
+                        'Defense',
+                        'Health',
+                        'Stamina',
+                        'Army'
+                    ]
+                    htmlCode = '';
+
+                htmlCode += caap.startToggle('Auto', 'FESTIVAL OPTIONS');
+                htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
+                htmlCode += caap.endToggle;
+                return htmlCode;
+            } catch (err) {
+                $u.error("ERROR in addFestivalOptionsMenu: " + err);
                 return '';
             }
         },
@@ -15769,7 +15793,7 @@
                         return true;
                     }
 
-                    if (config.getItem('clearCompleteRaids', false) && monster.completeButton['raid']['button'] && monster.completeButton['raid']['name']) {
+                    if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['name'])) {
                         caap.click(monster.completeButton['raid']['button']);
                         monster.deleteItem(monster.completeButton['raid']['name']);
                         monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
@@ -16343,9 +16367,9 @@
                             break;
                         }
 
-                        if (!monster.completeButton[page]['button'] && !monster.completeButton[page]['name']) {
-                            monster.completeButton[page]['name'] = monsterName;
-                            monster.completeButton[page]['button'] = $j("img[src*='cancelButton.gif']", monsterRow);
+                        if (!$u.hasContent(monster.completeButton['raid']['button']) || !$u.hasContent(monster.completeButton['raid']['name'])) {
+                            monster.completeButton[page]['name'] = $u.setContent(monsterName, '');
+                            monster.completeButton[page]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
                         }
 
                         monsterReviewed['status'] = 'Complete';
@@ -16974,7 +16998,7 @@
                         state.setItem('reviewDone', true);
                     }
 
-                    if (config.getItem('clearCompleteMonsters', false) && monster.completeButton['battle_monster']['button'] && monster.completeButton['battle_monster']['name']) {
+                    if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
                         caap.click(monster.completeButton['battle_monster']['button']);
                         monster.deleteItem(monster.completeButton['battle_monster']['name']);
                         monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
@@ -17008,7 +17032,7 @@
                         state.setItem('reviewDone', true);
                     }
 
-                    if (config.getItem('clearCompleteRaids', false) && monster.completeButton['raid']['button'] && monster.completeButton['raid']['name']) {
+                    if (config.getItem('clearCompleteRaids', false) && $u.hasContent(monster.completeButton['raid']['button']) && $u.hasContent(monster.completeButton['raid']['name'])) {
                         caap.click(monster.completeButton['raid']['button']);
                         monster.deleteItem(monster.completeButton['raid']['name']);
                         monster.completeButton['raid'] = {'name': undefined, 'button': undefined};
@@ -17071,7 +17095,7 @@
                         If the autocollect token was specified then we set the link to do auto collect. If
                         the conditions indicate we should not do sieges then we fix the link.
                         \-------------------------------------------------------------------------------------*/
-                        isSiege = monster.records[counter]['type'].match(/Raid/) || monster.records[counter]['type'] === 'Siege';
+                        isSiege = /Raid/.test(monster.records[counter]['type']) || monster.records[counter]['type'] === 'Siege';
                         $u.log(4, "monster.records[counter]", monster.records[counter]);
                         if (((monster.records[counter]['conditions'] && /:ac\b/.test(monster.records[counter]['conditions'])) ||
                                 (isSiege && config.getItem('raidCollectReward', false)) ||
@@ -17355,7 +17379,7 @@
                     return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
                 }
 
-                if (config.getItem('clearCompleteMonsters', false) && monster.completeButton['battle_monster']['button'] && monster.completeButton['battle_monster']['name']) {
+                if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
                     caap.click(monster.completeButton['battle_monster']['button']);
                     monster.deleteItem(monster.completeButton['battle_monster']['name']);
                     monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
@@ -19701,9 +19725,15 @@
             }
         },
 
+        errorCheckWait: false,
+
         errorCheck: function () {
             // assorted errors...
-            if (window.location.href.hasIndexOf('/common/error.html') || window.location.href.hasIndexOf('/sorry.php')) {
+            if (caap.errorCheckWait) {
+                return true;
+            }
+
+            if (window.location.href.hasIndexOf('/error.html') || window.location.href.hasIndexOf('/sorry.php')) {
                 $u.warn('Detected "error" or "sorry" page, waiting to go back to previous page.');
                 window.setTimeout(function () {
                     if ($u.isFunction(window.history.back)) {
@@ -19715,6 +19745,7 @@
                     }
                 }, 60000);
 
+                caap.errorCheckWait = true;
                 return true;
             }
 
@@ -19729,6 +19760,7 @@
                     }, 60000);
                 }, 20000);
 
+                caap.errorCheckWait = true;
                 return true;
             }
 
