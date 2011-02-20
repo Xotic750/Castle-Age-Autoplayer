@@ -4861,7 +4861,7 @@
                 }
 
                 state.setItem('page', page);
-                resultsText = $j("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper span[class*='result_body']", caap.appBodyDiv).text().trim();
+                resultsText = $u.setContent($j("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper span[class*='result_body']", caap.appBodyDiv).text(), '').trim().innerTrim();
                 if ($u.hasContent(caap.pageList[page])) {
                     $u.log(2, 'Checking results for', page);
                     if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
@@ -7070,14 +7070,14 @@
                 minutes = 0,
                 done    = false;
 
-            if (/Please come back in:/.test(resultsText)) {
+            if (/Please come back in:/gi.test(resultsText)) {
                 // Check time until next Oracle Blessing
-                hours = $u.setContent(resultsText.regex(/(\d+) hour/), 3);
-                minutes = $u.setContent(resultsText.regex(/(\d+) minute/), 0);
+                hours = $u.setContent(resultsText.regex(/(\d+) hour/gi), 3);
+                minutes = $u.setContent(resultsText.regex(/(\d+) minute/gi), 0);
                 done = true;
-            } else if (/You have paid tribute to/.test(resultsText)) {
+            } else if (/You have paid tribute to/gi.test(resultsText)) {
                 // Recieved Demi Blessing.  Wait X hours to try again.
-                hours = /Azeron/i.test(resultsText) ? 48 : 12;
+                hours = /Azeron/gi.test(resultsText) ? 48 : 12;
                 done = true;
             } else {
                 if ($u.hasContent(resultsText)) {
@@ -7155,11 +7155,11 @@
 
             if (autoBless !== 'None') {
                 tDiv = $j("div[style*='festival_feats_bottom.jpg']", caap.globalContainer);
-                txt = $u.setContent(tDiv.text(), '').trim().innerTrim().regex(/(\d+:\d+)/);
+                txt = $u.setContent(tDiv.text(), '').trim().innerTrim().regex(/(\d+:\d+)/g);
                 if ($u.hasContent(txt)) {
                     // Check time until next Festival Blessing
-                    hours = $u.setContent(txt.regex(/(\d+):/), 0);
-                    minutes = $u.setContent(txt.regex(/:(\d+)/), 30);
+                    hours = $u.setContent(txt.regex(/(\d+):/g), 0);
+                    minutes = $u.setContent(txt.regex(/:(\d+)/g), 30);
                     $u.log(2, 'Recorded Festival Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
                     schedule.setItem('festivalBlessTimer', (hours * 60 + minutes + 5) * 60, 300);
                 }
@@ -7192,7 +7192,7 @@
             }
 
             txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
-            if (/Mastered/i.test(txt)) {
+            if (/Mastered/gi.test(txt)) {
                 $u.log(1, 'Area Completed!', autoBless);
                 $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
                 caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
