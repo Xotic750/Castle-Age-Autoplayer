@@ -1,5 +1,5 @@
 
-/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true, strict: true */
+/*jslint white: true, browser: true, devel: true, undef: true, nomen: true, bitwise: true, plusplus: true, immed: true, regexp: true, eqeqeq: true, newcap: true */
 /*global window,jQuery,GM_xmlhttpRequest,GM_openInTab,GM_registerMenuCommand,rison,utility,$u */
 /*jslint maxlen: 512 */
 
@@ -7,8 +7,6 @@
 //       Globals
 //////////////////////////////////
 (function () {
-    "use strict";
-
     var caapVersion   = "!version!",
         devVersion    = "!dev!",
         hiddenVar     = true,

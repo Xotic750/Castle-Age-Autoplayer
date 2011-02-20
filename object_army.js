@@ -219,55 +219,51 @@
                         len    = 0,
                         number = ss.getItem("army.currentPage", 1, true);
 
-                    caap.delayMain = true;
-                    window.setTimeout(function () {
-                        if (number === 1) {
-                            pages = $j("a[href*='army_member.php?page=']", caap.globalContainer).last();
-                            tStr = $u.hasContent(pages) ? pages.attr("href") : '';
-                            tNum = $u.hasContent(tStr) ? tStr.regex(/page=(\d+)/) : null;
-                            pCount = $u.setContent(tNum, 1);
-                            state.setItem("ArmyPageCount", pCount);
+                    if (number === 1) {
+                        pages = $j("a[href*='army_member.php?page=']", caap.globalContainer).last();
+                        tStr = $u.hasContent(pages) ? pages.attr("href") : '';
+                        tNum = $u.hasContent(tStr) ? tStr.regex(/page=(\d+)/) : null;
+                        pCount = $u.setContent(tNum, 1);
+                        state.setItem("ArmyPageCount", pCount);
+                    } else {
+                        pCount = state.getItem("ArmyPageCount", 1);
+                    }
+
+                    search = $j("a[href*='comments.php?casuser=']", caap.globalContainer);
+                    search.each(function () {
+                        var el = $j(this);
+                        record = new army.record();
+                        record.data['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
+                        tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
+                        record.data['user'] = $u.setContent(tStr.regex(new RegExp('(.+)\\s+"')), '').toString();
+                        record.data['name'] = $u.setContent(tStr.regex(new RegExp('"(.+)"')), '').toString();
+                        record.data['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
+                        record.data['last'] = new Date().getTime();
+                        if ($u.hasContent(record.data['userId']) && record.data['userId'] > 0) {
+                            army.recordsTemp.push(record.data);
                         } else {
-                            pCount = state.getItem("ArmyPageCount", 1);
+                            $u.warn("army.page skipping record", record.data);
                         }
+                    });
 
-                        search = $j("a[href*='comments.php?casuser=']", caap.globalContainer);
-                        search.each(function () {
-                            var el = $j(this);
-                            record = new army.record();
-                            record.data['userId'] = $u.setContent($u.setContent(el.attr("href"), '').regex(/casuser=(\d+)/), 0);
-                            tStr = $u.setContent(el.parents("tr").eq(0).text(), '').trim().innerTrim();
-                            record.data['user'] = $u.setContent(tStr.regex(new RegExp('(.+)\\s+"')), '').toString();
-                            record.data['name'] = $u.setContent(tStr.regex(new RegExp('"(.+)"')), '').toString();
-                            record.data['lvl'] = $u.setContent(tStr.regex(/Level\s+(\d+)/), 0);
-                            record.data['last'] = new Date().getTime();
-                            if ($u.hasContent(record.data['userId']) && record.data['userId'] > 0) {
+                    if (number === pCount) {
+                        search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", caap.appBodyDiv).parent().parent());
+                        if ($u.hasContent(search)) {
+                            len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members x(\d+)/), 0);
+                            for (it = 1; it <= len; it += 1) {
+                                record = new army.record();
+                                record.data['userId'] = 0 - it;
+                                record.data['name'] = "Extra member " + it;
+                                record.data['lvl'] = 0;
+                                record.data['last'] = new Date().getTime();
                                 army.recordsTemp.push(record.data);
-                            } else {
-                                $u.warn("army.page skipping record", record.data);
-                            }
-                        });
-
-                        if (number === pCount) {
-                            search = $j("a[href*='oracle.php']", $j("img[src*='bonus_member.jpg']", caap.appBodyDiv).parent().parent());
-                            if ($u.hasContent(search)) {
-                                len = $u.setContent($u.setContent(search.text(), '').regex(/Extra members x(\d+)/), 0);
-                                for (it = 1; it <= len; it += 1) {
-                                    record = new army.record();
-                                    record.data['userId'] = 0 - it;
-                                    record.data['name'] = "Extra member " + it;
-                                    record.data['lvl'] = 0;
-                                    record.data['last'] = new Date().getTime();
-                                    army.recordsTemp.push(record.data);
-                                }
                             }
                         }
+                    }
 
-                        ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
-                        $u.log(2, "army.page", number, pCount, army.recordsTemp.length);
-                        army.pageDone = true;
-                        caap.delayMain = false;
-                    }, 400);
+                    ss.setItem("army.currentPage", army.saveTemp() ? number + 1 : number);
+                    $u.log(2, "army.page", number, pCount, army.recordsTemp.length);
+                    army.pageDone = true;
                 }
 
                 return true;
@@ -418,7 +414,7 @@
             }
         },
         /*jslint sub: false */
-        
+
         menu: function () {
             try {
                 // Other controls
