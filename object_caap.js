@@ -7192,6 +7192,13 @@
             }
 
             txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
+            if (/Mastered/i.test(txt)) {
+                $u.log(1, 'Area Completed!', autoBless);
+                $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                return false;
+            }
+
             if (!new RegExp(autoBless).test(txt)) {
                 $u.warn('No match for text', autoBless);
                 caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
