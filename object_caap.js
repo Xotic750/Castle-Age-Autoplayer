@@ -84,14 +84,14 @@
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
             if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                accountEl = $j('#navAccountName');/*
+                accountEl = $j('#navAccountName');
                 if ($u.hasContent(accountEl)) {
                     FBID = $u.setContent(accountEl.attr('href'), 'id=0').regex(/id=(\d+)/i);
                     if ($u.isNumber(FBID) && FBID > 0) {
                         caap.stats['FBID'] = FBID;
                         idOk = true;
                     }
-                }*/
+                }
 
                 if (!idOk) {
                     FBID = $u.setContent($j('script').text(), 'user:0,').regex(new RegExp('[\\s"]*?user[\\s"]*?:(\\d+),', 'i'));
@@ -100,13 +100,13 @@
                         idOk = true;
                     }
 
-                    /*if (!idOk) {
+                    if (!idOk) {
                         FBID = $u.setContent(window.presence.user, '0').parseInt();
                         if ($u.isNumber(FBID) && FBID > 0) {
                             caap.stats['FBID'] = FBID;
                             idOk = true;
                         }
-                    }*/
+                    }
                 }
             } else {
                 accountEl = $j("img[src*='graph.facebook.com']");
@@ -9352,7 +9352,7 @@
                     energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax ? monster.info[monstType].nrgMax[nodeNum] : energyRequire;
                 }
 
-                $u.log(2, "Energy Required/Node", energyRequire, nodeNum);
+                $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
                 switch (config.getItem('FortifyGeneral', 'Use Current')) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
@@ -9410,6 +9410,10 @@
                             'attack_monster_button3.jpg'
                         ];
 
+                        if (monster.info[monstType] && monster.info[monstType].fortify_img) {
+                            buttonList.unshift(monster.info[monstType].fortify_img[0]);
+                        }
+
                         if (currentMonster && currentMonster['stunDo'] && currentMonster['stunType'] !== '') {
                             buttonList.unshift("button_nm_s_" + currentMonster['stunType']);
                         } else {
@@ -9451,13 +9455,17 @@
                                 'attack_monster_button.jpg'
                             ].concat(singleButtonList);
 
-                            if (monster.info[monstType] && monster.info[monstType].attack_img && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                buttonList.unshift(monster.info[monstType].attack_img[1]);
+                            if (monster.info[monstType] && monster.info[monstType].attack_img) {
+                                if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                                    buttonList.unshift(monster.info[monstType].attack_img[1]);
+                                } else {
+                                    buttonList.unshift(monster.info[monstType].attack_img[0]);
+                                }
                             }
                         }
                     }
 
-                    $u.log(2, "monster/button list", currentMonster, buttonList);
+                    $u.log(4, "monster/button list", currentMonster, buttonList);
                     nodeNum = 0;
                     if (!caap.inLevelUpMode()) {
                         if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monster.info[monstType].staLvl) {

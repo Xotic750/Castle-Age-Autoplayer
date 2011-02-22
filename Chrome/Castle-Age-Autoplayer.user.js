@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            65
+// @dev            66
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "65",
+        devVersion    = "66",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -2336,8 +2336,12 @@
                 siege        : 0,
                 fort         : true,
                 staUse       : 10,
-                staLvl       : [0,  50],
                 staMax       : [10, 20],
+                attack_img   : [
+                    'serpent_10stam_attack.gif',
+                    'serpent_20stam_attack.gif'
+                ],
+                fortify_img  : ['seamonster_fortify.gif'],
                 defense_img  : 'seamonster_ship_health.jpg'
             },
             'Siege'    : {
@@ -3186,7 +3190,7 @@
                             }
 
                             if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                if (monster.info[monstType].attack_img) {
+                                if (monster.info[monsterObj['type']].attack_img) {
                                     nodeNum = 1;
                                 }
 
@@ -8080,14 +8084,14 @@
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
             if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                accountEl = $j('#navAccountName');/*
+                accountEl = $j('#navAccountName');
                 if ($u.hasContent(accountEl)) {
                     FBID = $u.setContent(accountEl.attr('href'), 'id=0').regex(/id=(\d+)/i);
                     if ($u.isNumber(FBID) && FBID > 0) {
                         caap.stats['FBID'] = FBID;
                         idOk = true;
                     }
-                }*/
+                }
 
                 if (!idOk) {
                     FBID = $u.setContent($j('script').text(), 'user:0,').regex(new RegExp('[\\s"]*?user[\\s"]*?:(\\d+),', 'i'));
@@ -8096,13 +8100,13 @@
                         idOk = true;
                     }
 
-                    /*if (!idOk) {
+                    if (!idOk) {
                         FBID = $u.setContent(window.presence.user, '0').parseInt();
                         if ($u.isNumber(FBID) && FBID > 0) {
                             caap.stats['FBID'] = FBID;
                             idOk = true;
                         }
-                    }*/
+                    }
                 }
             } else {
                 accountEl = $j("img[src*='graph.facebook.com']");
@@ -17348,7 +17352,7 @@
                     energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax ? monster.info[monstType].nrgMax[nodeNum] : energyRequire;
                 }
 
-                $u.log(2, "Energy Required/Node", energyRequire, nodeNum);
+                $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
                 switch (config.getItem('FortifyGeneral', 'Use Current')) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
@@ -17406,6 +17410,10 @@
                             'attack_monster_button3.jpg'
                         ];
 
+                        if (monster.info[monstType] && monster.info[monstType].fortify_img) {
+                            buttonList.unshift(monster.info[monstType].fortify_img[0]);
+                        }
+
                         if (currentMonster && currentMonster['stunDo'] && currentMonster['stunType'] !== '') {
                             buttonList.unshift("button_nm_s_" + currentMonster['stunType']);
                         } else {
@@ -17447,13 +17455,17 @@
                                 'attack_monster_button.jpg'
                             ].concat(singleButtonList);
 
-                            if (monster.info[monstType] && monster.info[monstType].attack_img && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                buttonList.unshift(monster.info[monstType].attack_img[1]);
+                            if (monster.info[monstType] && monster.info[monstType].attack_img) {
+                                if (!caap.inLevelUpMode() && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                                    buttonList.unshift(monster.info[monstType].attack_img[1]);
+                                } else {
+                                    buttonList.unshift(monster.info[monstType].attack_img[0]);
+                                }
                             }
                         }
                     }
 
-                    $u.log(2, "monster/button list", currentMonster, buttonList);
+                    $u.log(4, "monster/button list", currentMonster, buttonList);
                     nodeNum = 0;
                     if (!caap.inLevelUpMode()) {
                         if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monster.info[monstType].staLvl) {

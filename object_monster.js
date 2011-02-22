@@ -229,8 +229,12 @@
                 siege        : 0,
                 fort         : true,
                 staUse       : 10,
-                staLvl       : [0,  50],
                 staMax       : [10, 20],
+                attack_img   : [
+                    'serpent_10stam_attack.gif',
+                    'serpent_20stam_attack.gif'
+                ],
+                fortify_img  : ['seamonster_fortify.gif'],
                 defense_img  : 'seamonster_ship_health.jpg'
             },
             'Siege'    : {
@@ -1079,7 +1083,7 @@
                             }
 
                             if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
-                                if (monster.info[monstType].attack_img) {
+                                if (monster.info[monsterObj['type']].attack_img) {
                                     nodeNum = 1;
                                 }
 
