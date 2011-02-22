@@ -275,9 +275,7 @@
 
         getResult: function () {
             try {
-                var wrapperDiv    = $j("#" +  caap.domain.id[caap.domain.which] + "results_main_wrapper"),
-                    resultsDiv    = $j("span[class='result_body']", wrapperDiv),
-                    tempDiv       = $j(),
+                var tempDiv       = $j(),
                     tempText      = '',
                     tNum          = 0,
                     battleRecord  = {},
@@ -293,15 +291,14 @@
                         unknown    : false
                     };
 
-                if ($u.hasContent($j("img[src*='battle_victory.gif']", wrapperDiv))) {
+                if ($u.hasContent($j("img[src*='battle_victory.gif']", caap.resultsWrapperDiv))) {
                     warWinLoseImg = 'war_win_left.jpg';
                     result.win = true;
-                } else if ($u.hasContent($j("img[src*='battle_defeat.gif']", wrapperDiv))) {
+                } else if ($u.hasContent($j("img[src*='battle_defeat.gif']", caap.resultsWrapperDiv))) {
                     warWinLoseImg = 'war_lose_left.jpg';
                 } else {
-                    if ($u.hasContent(resultsDiv)) {
-                        tempText = $u.setContent(resultsDiv.text(), '').trim().innerTrim();
-                        if (/Your opponent is hiding, please try again/.test(tempText)) {
+                    if ($u.hasContent(caap.resultsWrapperDiv)) {
+                        if (/Your opponent is hiding, please try again/.test(caap.resultsText)) {
                             result.hiding = true;
                             $u.log(1, "Your opponent is hiding");
                             return result;
@@ -317,10 +314,10 @@
                     }
                 }
 
-                if ($u.hasContent($j("img[src*='war_castle.jpg']", wrapperDiv))) {
+                if ($u.hasContent($j("img[src*='war_castle.jpg']", caap.resultsWrapperDiv))) {
                     result.battleType = 'War';
-                    if ($u.hasContent(resultsDiv)) {
-                        tempDiv = $j("img[src*='war_rank_small_icon']", resultsDiv).eq(0);
+                    if ($u.hasContent(caap.resultsWrapperDiv)) {
+                        tempDiv = $j("img[src*='war_rank_small_icon']", caap.resultsWrapperDiv).eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.parent().text(), '').trim().innerTrim();
                             if ($u.hasContent(tempText)) {
@@ -337,7 +334,7 @@
                             $u.log(3, "Unable to find war_rank_small_icon");
                         }
 
-                        tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
+                        tempDiv = $j("b[class*='gold']", caap.resultsWrapperDiv).eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
                             if ($u.hasContent(tNum)) {
@@ -349,7 +346,7 @@
                             $u.warn("Unable to find gold element");
                         }
 
-                        tempDiv = $j("form[id*='fight_opp_'] input[name='target_id']", resultsDiv).eq(0);
+                        tempDiv = $j("form[id*='fight_opp_'] input[name='target_id']", caap.resultsWrapperDiv).eq(0);
                         if ($u.hasContent(tempDiv)) {
                             tNum = $u.setContent(tempDiv.attr("value"), '0').parseInt();
                             if ($u.hasContent(tNum) && tNum > 0) {
@@ -359,11 +356,11 @@
                                 throw "Unable to get userId!";
                             }
                         } else {
-                            $u.warn("Unable to find target_id in resultsDiv");
+                            $u.warn("Unable to find target_id in caap.resultsWrapperDiv");
                             throw "Unable to get userId!";
                         }
 
-                        tempDiv = $j("div[style*='" + warWinLoseImg + "']", resultsDiv);
+                        tempDiv = $j("div[style*='" + warWinLoseImg + "']", caap.resultsWrapperDiv);
                         if ($u.hasContent(tempDiv)) {
                             tempText = $u.setContent(tempDiv.text(), '').trim().replace("'s Defense", '');
                             if ($u.hasContent(tempText)) {
@@ -379,21 +376,21 @@
                         throw "Unable to get userId!";
                     }
                 } else {
-                    if ($u.hasContent($j("input[src*='battle_invade_again.gif']", wrapperDiv))) {
+                    if ($u.hasContent($j("input[src*='battle_invade_again.gif']", caap.resultsWrapperDiv))) {
                         result.battleType = 'Invade';
-                    } else if ($u.hasContent($j("input[src*='battle_duel_again.gif']", wrapperDiv))) {
+                    } else if ($u.hasContent($j("input[src*='battle_duel_again.gif']", caap.resultsWrapperDiv))) {
                         result.battleType = 'Duel';
                     } else {
-                        if ($u.hasContent($j("img[src*='icon_weapon.gif']", wrapperDiv))) {
+                        if ($u.hasContent($j("img[src*='icon_weapon.gif']", caap.resultsWrapperDiv))) {
                             result.battleType = 'Duel';
-                        } else if ($u.hasContent($j("div[class='full_invade_results']", wrapperDiv))) {
+                        } else if ($u.hasContent($j("div[class='full_invade_results']", caap.resultsWrapperDiv))) {
                             result.battleType = 'Invade';
                         }
                     }
 
                     if ($u.hasContent(result.battleType)) {
-                        if ($u.hasContent(resultsDiv)) {
-                            tempDiv = $j("img[src*='battle_rank_small_icon']", resultsDiv).eq(0);
+                        if ($u.hasContent(caap.resultsWrapperDiv)) {
+                            tempDiv = $j("img[src*='battle_rank_small_icon']", caap.resultsWrapperDiv).eq(0);
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.parent().parent().text(), '').trim().innerTrim();
                                 if ($u.hasContent(tempText)) {
@@ -407,10 +404,10 @@
                                     $u.warn("Unable to find battle points text in tempDiv.parent().parent()");
                                 }
                             } else {
-                                $u.log(3, "Unable to find battle_rank_small_icon in resultsDiv");
+                                $u.log(3, "Unable to find battle_rank_small_icon in caap.resultsWrapperDiv");
                             }
 
-                            tempDiv = $j("b[class*='gold']", resultsDiv).eq(0);
+                            tempDiv = $j("b[class*='gold']", caap.resultsWrapperDiv).eq(0);
                             if ($u.hasContent(tempDiv)) {
                                 tNum = $u.setContent(tempDiv.text(), '').trim().numberOnly();
                                 if ($u.hasContent(tNum)) {
@@ -419,10 +416,10 @@
                                     $u.warn("Unable to find gold text in tempDiv");
                                 }
                             } else {
-                                $u.warn("Unable to find gold element in resultsDiv");
+                                $u.warn("Unable to find gold element in caap.resultsWrapperDiv");
                             }
 
-                            tempDiv = $j("a[href*='keep.php?casuser=']", resultsDiv).eq(0);
+                            tempDiv = $j("a[href*='keep.php?casuser=']", caap.resultsWrapperDiv).eq(0);
                             if ($u.hasContent(tempDiv)) {
                                 tempText = $u.setContent(tempDiv.attr("href"), '');
                                 if ($u.hasContent(tempText)) {
@@ -445,7 +442,7 @@
                                     throw "Unable to get userId!";
                                 }
                             } else {
-                                $u.warn("Unable to find keep.php?casuser= in resultsDiv");
+                                $u.warn("Unable to find keep.php?casuser= in caap.resultsWrapperDiv");
                                 throw "Unable to get userId!";
                             }
                         } else {
@@ -515,19 +512,16 @@
 
         deadCheck: function () {
             try {
-                var resultsDiv   = $j("div[class='results']", caap.appBodyDiv),
-                    resultsText  = '',
-                    battleRecord = {},
+                var battleRecord = {},
                     dead         = false;
 
                 if (state.getItem("lastBattleID", 0)) {
                     battleRecord = battle.getItem(state.getItem("lastBattleID", 0));
                 }
 
-                if ($u.hasContent(resultsDiv)) {
-                    resultsText = $u.setContent(resultsDiv.text(), '').trim().innerTrim();
-                    if ($u.hasContent(resultsText)) {
-                        if (/Your opponent is dead or too weak to battle/.test(resultsText)) {
+                if ($u.hasContent(caap.resultsWrapperDiv)) {
+                    if ($u.hasContent(caap.resultsText)) {
+                        if (/Your opponent is dead or too weak to battle/.test(caap.resultsText)) {
                             $u.log(1, "This opponent is dead or hiding: ", state.getItem("lastBattleID", 0));
                             if ($j.isPlainObject(battleRecord) && !$j.isEmptyObject(battleRecord)) {
                                 battleRecord['deadTime'] = new Date().getTime();

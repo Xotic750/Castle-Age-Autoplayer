@@ -127,9 +127,9 @@
                 siegeClicks  : [10, 20, 50, 100, 200, 300],
                 siegeDam     : [1340000, 2680000, 5360000, 14700000, 28200000, 37520000],
                 siege_img    : ['/graphics/monster_siege_small'],
-                staUse       : 5,
-                staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50]
+                staUse       : 10,
+                staLvl       : [0, 100, 200, 300, 400],
+                staMax       : [10, 20, 50,  100, 200]
             },
             'Legion' : {
                 duration     : 168,
@@ -150,22 +150,46 @@
             'Emerald Dragon' : {
                 duration     : 72,
                 ach          : 100000,
-                siege        : 0
+                siege        : 0,
+                staUse       : 5,
+                staMax       : [5, 10],
+                attack_img   : [
+                    'seamonster_power.gif',
+                    'serpent_10stam_attack.gif'
+                ]
             },
             'Frost Dragon' : {
                 duration     : 72,
                 ach          : 100000,
-                siege        : 0
+                siege        : 0,
+                staUse       : 5,
+                staMax       : [5, 10],
+                attack_img   : [
+                    'seamonster_power.gif',
+                    'serpent_10stam_attack.gif'
+                ]
             },
             'Gold Dragon' : {
                 duration     : 72,
                 ach          : 100000,
-                siege        : 0
+                siege        : 0,
+                staUse       : 5,
+                staMax       : [5, 10],
+                attack_img   : [
+                    'seamonster_power.gif',
+                    'serpent_10stam_attack.gif'
+                ]
             },
             'Red Dragon' : {
                 duration     : 72,
                 ach          : 100000,
-                siege        : 0
+                siege        : 0,
+                staUse       : 5,
+                staMax       : [5, 10],
+                attack_img   : [
+                    'seamonster_power.gif',
+                    'serpent_10stam_attack.gif'
+                ]
             },
             'King'      : {
                 duration     : 72,
@@ -204,7 +228,9 @@
                 ach          : 250000,
                 siege        : 0,
                 fort         : true,
-                //staUse       : 5,
+                staUse       : 10,
+                staLvl       : [0,  50],
+                staMax       : [10, 20],
                 defense_img  : 'seamonster_ship_health.jpg'
             },
             'Siege'    : {
@@ -426,10 +452,10 @@
                     '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,
-                staUse       : 5,
-                staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staUse       : 10,
+                staLvl       : [0,  50, 100, 200],
+                staMax       : [10, 20, 50,  100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg'
             },
             'Priestess of Aurora' : {
@@ -447,10 +473,10 @@
                     '/graphics/war_siege_holy_smite_2'
                 ],
                 fort         : true,
-                staUse       : 5,
-                staLvl       : [0, 100, 200, 500],
-                staMax       : [5, 10, 20, 50],
-                nrgMax       : [10, 20, 40, 100],
+                staUse       : 10,
+                staLvl       : [0,  50, 100, 200],
+                staMax       : [10, 20, 50,  100],
+                nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg'
             }
         },
@@ -1053,6 +1079,10 @@
                             }
 
                             if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staMax && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                                if (monster.info[monstType].attack_img) {
+                                    nodeNum = 1;
+                                }
+
                                 state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staMax[nodeNum]);
                             } else if (monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staUse) {
                                 state.setItem('MonsterStaminaReq', monster.info[monsterObj['type']].staUse);

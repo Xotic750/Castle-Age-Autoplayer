@@ -7,11 +7,11 @@
     css = {
         addCSS: function () {
             try {
-                if (!$j('link[href*="jquery-ui.css"]').length) {
+                if (!$u.hasContent($j('link[href*="jquery-ui.css"]'))) {
                     $j("<link>").appendTo("head").attr({
-                        rel: "stylesheet",
-                        type: "text/css",
-                        href: "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/smoothness/jquery-ui.css"
+                        rel  : "stylesheet",
+                        type : "text/css",
+                        href : "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/smoothness/jquery-ui.css"
                     });
                 }
 

@@ -15,7 +15,11 @@
         caapTopObject       : {},
         documentTitle       : '',
         newVersionAvailable : false,
+        ajaxLoadIcon        : {},
+        globalContainer     : {},
         appBodyDiv          : {},
+        resultsWrapperDiv   : {},
+        resultsText         : '',
         domain              : {
             which    : -1,
             protocol : ["http://", "https://"],
@@ -29,7 +33,6 @@
         start: function () {
             var FBID      = 0,
                 idOk      = false,
-                tempText  = '',
                 accountEl = $j(),
                 delay     = 1000;
 
@@ -44,8 +47,8 @@
                 caap.domain.which = 2;
                 delay = 5000;
             } else {
-                caap.errorCheck();
-                $u.error('Unknown domain!');
+                $u.error('Unknown domain!', window.location.href);
+                $u.reload();
                 return;
             }
 
@@ -54,7 +57,9 @@
             } else if (window.location.href.hasIndexOf('https://')) {
                 caap.domain.ptype = 1;
             } else {
-                $u.warn('Unknown protocol! Using default.', caap.domain.protocol[caap.domain.ptype]);
+                $u.error('Unknown protocol!', window.location.href);
+                $u.reload();
+                return;
             }
 
             caap.domain.link = caap.domain.protocol[caap.domain.ptype] + caap.domain.url[caap.domain.which];
@@ -79,44 +84,33 @@
             /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
             /*jslint sub: true */
             if (caap.domain.which >= 0 && caap.domain.which < 2) {
-                accountEl = $j('#navAccountName');
-                if (accountEl && accountEl.length) {
-                    tempText = accountEl.attr('href');
-                    FBID = tempText ? tempText.regex(/id=(\d+)/i) : 0;
+                accountEl = $j('#navAccountName');/*
+                if ($u.hasContent(accountEl)) {
+                    FBID = $u.setContent(accountEl.attr('href'), 'id=0').regex(/id=(\d+)/i);
                     if ($u.isNumber(FBID) && FBID > 0) {
                         caap.stats['FBID'] = FBID;
                         idOk = true;
                     }
-                }
+                }*/
 
                 if (!idOk) {
-                    tempText = $j('script').text();
-                    if (tempText) {
-                        FBID = tempText.regex(new RegExp('user:(\\d+),', 'i'));
-                        if ($u.isNumber(FBID) && FBID > 0) {
-                            caap.stats['FBID'] = FBID;
-                            idOk = true;
-                        } else {
-                            FBID = tempText.regex(new RegExp('."user.":(\\d+),', 'i'));
-                            if ($u.isNumber(FBID) && FBID > 0) {
-                                caap.stats['FBID'] = FBID;
-                                idOk = true;
-                            }
-                        }
+                    FBID = $u.setContent($j('script').text(), 'user:0,').regex(new RegExp('[\\s"]*?user[\\s"]*?:(\\d+),', 'i'));
+                    if ($u.isNumber(FBID) && FBID > 0) {
+                        caap.stats['FBID'] = FBID;
+                        idOk = true;
                     }
 
-                    if (!idOk) {
-                        FBID = window.presence.user ? window.presence.user.parseInt() : 0;
+                    /*if (!idOk) {
+                        FBID = $u.setContent(window.presence.user, '0').parseInt();
                         if ($u.isNumber(FBID) && FBID > 0) {
                             caap.stats['FBID'] = FBID;
                             idOk = true;
                         }
-                    }
+                    }*/
                 }
             } else {
                 accountEl = $j("img[src*='graph.facebook.com']");
-                tempText = accountEl.attr("src");
-                FBID = $u.hasContent(tempText) ? tempText.regex(new RegExp("facebook.com\\/(\\d+)\\/")) : 0;
+                FBID = $u.setContent(accountEl.attr("src"), "facebook.com/0/").regex(new RegExp("facebook.com\\/(\\d+)\\/"));
                 if ($u.isNumber(FBID) && FBID > 0) {
                     caap.stats['FBID'] = FBID;
                     idOk = true;
@@ -128,7 +122,12 @@
                 // Force reload without retrying
                 $u.error('No Facebook UserID!!! Reloading ...', FBID, window.location.href);
                 window.setTimeout(function () {
-                    $u.reload();
+                    var newdiv = document.createElement('div');
+                    newdiv.innerHTML = "<p>CAAP will retry shortly!</p>";
+                    document.body.appendChild(newdiv);
+                    window.setTimeout(function () {
+                        $u.reload();
+                    }, 60000 + (Math.floor(Math.random() * 60) * 1000));
                 }, delay);
 
                 return;
@@ -247,10 +246,7 @@
 
         releaseUpdate: function () {
             try {
-                if (state.getItem('SUC_remote_version', 0) > caapVersion) {
-                    caap.newVersionAvailable = true;
-                }
-
+                caap.newVersionAvailable = state.getItem('SUC_remote_version', 0) > caapVersion ? true : false;
                 // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
                 function updateCheck(forced) {
                     if (forced || schedule.check('SUC_last_update')) {
@@ -271,12 +267,10 @@
                                     $u.log(1, 'Remote version ', remote_version);
                                     if (remote_version > caapVersion) {
                                         caap.newVersionAvailable = true;
-                                        if (forced) {
-                                            if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                                /*jslint newcap: false */
-                                                GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
-                                                /*jslint newcap: true */
-                                            }
+                                        if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            /*jslint newcap: false */
+                                            GM_openInTab('http://senses.ws/caap/index.php?topic=771.msg3582#msg3582');
+                                            /*jslint newcap: true */
                                         }
                                     } else if (forced) {
                                         alert('No update is available for "' + script_name + '."');
@@ -305,10 +299,7 @@
 
         devUpdate: function () {
             try {
-                if (state.getItem('SUC_remote_version', 0) > caapVersion || (state.getItem('SUC_remote_version', 0) >= caapVersion && state.getItem('DEV_remote_version', 0) > devVersion)) {
-                    caap.newVersionAvailable = true;
-                }
-
+                caap.newVersionAvailable = state.getItem('SUC_remote_version', 0) > caapVersion || (state.getItem('SUC_remote_version', 0) >= caapVersion && state.getItem('DEV_remote_version', 0) > devVersion) ? true : false;
                 // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
                 function updateCheck(forced) {
                     if (forced || schedule.check('SUC_last_update')) {
@@ -331,12 +322,10 @@
                                     $u.log(1, 'Remote version ', remote_version, dev_version);
                                     if (remote_version > caapVersion || (remote_version >= caapVersion && dev_version > devVersion)) {
                                         caap.newVersionAvailable = true;
-                                        if (forced) {
-                                            if (confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
-                                                /*jslint newcap: false */
-                                                GM_openInTab('http://code.google.com/p/castle-age-auto-player/updates/list');
-                                                /*jslint newcap: true */
-                                            }
+                                        if (forced && confirm('There is an update available for the Greasemonkey script "' + script_name + '."\nWould you like to go to the install page now?')) {
+                                            /*jslint newcap: false */
+                                            GM_openInTab('http://code.google.com/p/castle-age-auto-player/updates/list');
+                                            /*jslint newcap: true */
                                         }
                                     } else if (forced) {
                                         alert('No update is available for "' + script_name + '."');
@@ -363,12 +352,13 @@
             }
         },
 
-        injectCATools: function() {
+        injectCATools: function () {
             $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp");
         },
 
         init: function () {
             try {
+                caap.ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
                 if (caap.domain.which === 0 && config.getItem('backgroundCA', false)) {
                     $j("body").css({
                         'background-image'    : "url('http://image4.castleagegame.com/graphics/guild_webpage_bg.jpg')",
@@ -493,12 +483,12 @@
                     throw 'Null object passed to Click';
                 }
 
+                caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
                 if (caap.waitingForDomLoad === false) {
                     schedule.setItem('clickedOnSomething', 0);
                     caap.waitingForDomLoad = true;
                 }
 
-                caap.waitMilliSecs = $u.setContent(loadWaitTime, caap.waitTime);
                 var evt = document.createEvent("MouseEvents");
                 evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
                 /*
@@ -564,39 +554,46 @@
             }
         },
 
-        navigateTo: function (pathToPage, imageOnPage) {
+        navigateTo: function (pathToPage, imageOnPage, webSlice) {
             try {
-                var pathList  = [],
-                    s         = 0,
-                    a         = $j(),
-                    imageTest = '',
-                    img       = $j();
-
-                if (!$u.hasContent(caap.globalContainer)) {
+                webSlice = $u.setContent(webSlice, caap.globalContainer);
+                if (!$u.hasContent(webSlice)) {
                     $u.warn('No content to Navigate to', imageOnPage, pathToPage);
                     return false;
                 }
 
-                if ($u.hasContent(imageOnPage) && caap.hasImage(imageOnPage)) {
+                if ($u.hasContent(imageOnPage) && caap.hasImage(imageOnPage, webSlice)) {
+                    $u.log(3, 'Image found on page', imageOnPage);
                     return false;
                 }
 
-                pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [];
+                var pathList  = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
+                    s    = 0,
+                    jq   = $j(),
+                    path = '';
+
                 for (s = pathList.length - 1; s >= 0; s -= 1) {
-                    a = $j("a[href*='" + pathList[s] + ".php']").not("a[href*='" + pathList[s] + ".php?']", caap.globalContainer);
-                    if ($u.hasContent(a)) {
-                        $u.log(2, 'Go to', pathList[s]);
-                        caap.click(a);
-                        return true;
+                    path = $u.setContent(pathList[s], '');
+                    if (!$u.hasContent(path)) {
+                        $u.warn('pathList had no content!', pathList[s]);
+                        continue;
                     }
 
-                    imageTest = $u.setContent(pathList[s], '');
-                    imageTest = imageTest.hasIndexOf(".") ? imageTest : imageTest + '.';
-                    img = $u.hasContent(imageTest) ? caap.checkForImage(imageTest) : img;
-                    if ($u.hasContent(img)) {
-                        $u.log(2, 'Click on image', img.attr("src").basename());
-                        caap.click(img);
+                    jq = $j("a[href*='" + path + ".php']").not("a[href*='" + path + ".php?']", webSlice);
+                    if ($u.hasContent(jq)) {
+                        $u.log(2, 'Go to', path);
+                    } else {
+                        jq = caap.checkForImage(path.hasIndexOf(".") ? path : path + '.', webSlice);
+                        if ($u.hasContent(jq)) {
+                            $u.log(2, 'Click on image', jq.attr("src").basename());
+                        }
+                    }
+
+                    if ($u.hasContent(jq)) {
+                        caap.click(jq);
                         return true;
+                    } else {
+                        $u.log(3, 'No anchor or image found', path);
                     }
                 }
 
@@ -610,10 +607,9 @@
 
         checkForImage: function (image, webSlice, subDocument, nodeNum) {
             try {
-                nodeNum = $u.isNumber(nodeNum) ? nodeNum : ($u.isNaN(nodeNum) ? 0 : nodeNum.parseInt());
-                webSlice = $u.setContent(webSlice, ($u.isDefined(subDocument) && $u.isDefined(subDocument.body) ? subDocument.body : window.document.body));
-                webSlice = webSlice.jquery ? webSlice : $j(webSlice);
-                return $j("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']", webSlice).eq(nodeNum);
+                webSlice = $u.setContent(webSlice, $u.setContent(subDocument, window.document).body);
+                //webSlice = webSlice.jquery ? webSlice : $j(webSlice);
+                return $j("input[src*='" + image + "'],img[src*='" + image + "'],div[style*='" + image + "']", webSlice).eq($u.setContent(nodeNum, 0));
             } catch (err) {
                 $u.error("ERROR in caap.checkForImage: " + err);
                 return undefined;
@@ -1657,7 +1653,6 @@
 
                 htmlCode += caap.makeCheckTR('Advanced', 'AdvancedOptions', false);
                 htmlCode += caap.startCheckHide('AdvancedOptions');
-                //htmlCode += $u.is_chrome && $u.inputtypes.number ? caap.makeCheckTR('Number Roller', 'numberRoller', true, "Enable or disable the number roller on GUI options.") : '';
                 htmlCode += caap.makeCheckTR('Enable Level Up Mode', 'EnableLevelUpMode', true, levelupModeInstructions, true);
                 htmlCode += caap.makeCheckTR('Serialize Raid and Monster', 'SerializeRaidsAndMonsters', false, serializeInstructions, true);
                 htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
@@ -1806,7 +1801,7 @@
                 /*-------------------------------------------------------------------------------------\
                  Then we put in the Live Feed link since we overlay the Castle Age link.
                 \-------------------------------------------------------------------------------------*/
-                layout += "<div id='caap_buttonFeed' style='position:absolute;top:0px;left:80px;'><input id='caap_crusaders' type='button' value='Crusaders' style='padding: 0; font-size: 9px; height: 18px' /></div>";
+                layout += "<div id='caap_buttonCrusaders' style='position:absolute;top:0px;left:80px;'><input id='caap_crusaders' type='button' value='Crusaders' style='padding: 0; font-size: 9px; height: 18px' /></div>";
                 /*-------------------------------------------------------------------------------------\
                  We install the display selection box that allows the user to toggle through the
                  available displays.
@@ -3538,20 +3533,20 @@
                     caap.reloadCastleAge();
                 }
 
-                $j('#caap_DBDisplay', caap.caapTopObject).change(caap.dbDisplayListener);
-                $j('#caap_refreshMonsters', caap.caapTopObject).click(caap.refreshMonstersListener);
-                $j('#caap_refreshGuildMonsters', caap.caapTopObject).click(caap.refreshGuildMonstersListener);
-                $j('#caap_liveFeed', caap.caapTopObject).click(caap.liveFeedButtonListener);
-                $j('#caap_crusaders', caap.caapTopObject).click(caap.crusadersButtonListener);
-                $j('#caap_clearTargets', caap.caapTopObject).click(caap.clearTargetsButtonListener);
-                $j('#caap_clearBattle', caap.caapTopObject).click(caap.clearBattleButtonListener);
-                $j('#caap_clearGifting', caap.caapTopObject).click(caap.clearGiftingButtonListener);
-                $j('#caap_clearGiftQueue', caap.caapTopObject).click(caap.clearGiftQueueButtonListener);
-                $j('#caap_sortGenerals', caap.caapTopObject).click(caap.sortGeneralsButtonListener);
-                $j('#caap_sortSoldiers', caap.caapTopObject).click(caap.sortSoldiersButtonListener);
-                $j('#caap_sortItem', caap.caapTopObject).click(caap.sortItemButtonListener);
-                $j('#caap_sortMagic', caap.caapTopObject).click(caap.sortMagicButtonListener);
-                $j('#caap_getArmy', caap.caapTopObject).click(caap.getArmyButtonListener);
+                $j('#caap_DBDisplay', caap.caapTopObject).bind('change', caap.dbDisplayListener);
+                $j('#caap_refreshMonsters', caap.caapTopObject).bind('click', caap.refreshMonstersListener);
+                $j('#caap_refreshGuildMonsters', caap.caapTopObject).bind('click', caap.refreshGuildMonstersListener);
+                $j('#caap_liveFeed', caap.caapTopObject).bind('click', caap.liveFeedButtonListener);
+                $j('#caap_crusaders', caap.caapTopObject).bind('click', caap.crusadersButtonListener);
+                $j('#caap_clearTargets', caap.caapTopObject).bind('click', caap.clearTargetsButtonListener);
+                $j('#caap_clearBattle', caap.caapTopObject).bind('click', caap.clearBattleButtonListener);
+                $j('#caap_clearGifting', caap.caapTopObject).bind('click', caap.clearGiftingButtonListener);
+                $j('#caap_clearGiftQueue', caap.caapTopObject).bind('click', caap.clearGiftQueueButtonListener);
+                $j('#caap_sortGenerals', caap.caapTopObject).bind('click', caap.sortGeneralsButtonListener);
+                $j('#caap_sortSoldiers', caap.caapTopObject).bind('click', caap.sortSoldiersButtonListener);
+                $j('#caap_sortItem', caap.caapTopObject).bind('click', caap.sortItemButtonListener);
+                $j('#caap_sortMagic', caap.caapTopObject).bind('click', caap.sortMagicButtonListener);
+                $j('#caap_getArmy', caap.caapTopObject).bind('click', caap.getArmyButtonListener);
                 $u.log(4, "Listeners added for caap_top");
                 return true;
             } catch (err) {
@@ -3603,12 +3598,6 @@
                 config.setItem(idName, e.target.checked);
                 caap.setDisplay("caapDivObject", idName + '_hide', e.target.checked, true);
                 caap.setDisplay("caapDivObject", idName + '_not_hide', !e.target.checked, true);
-                /*
-                if (e.target.className) {
-                    caap.setDisplay("caapDivObject", e.target.className, e.target.checked);
-                }
-                */
-
                 switch (idName) {
                 case "AutoStatAdv" :
                     $u.log(9, "AutoStatAdv");
@@ -3813,10 +3802,10 @@
         colorUpdate: function () {
             try {
                 var color = state.getItem('caapPause', 'none') === 'none' ? state.getItem('StyleBackgroundLight', 1) : state.getItem('StyleBackgroundDark', 1),
-                    bgo  = state.getItem('caapPause', 'none') === 'none' ? state.getItem('StyleOpacityLight', 1) : state.getItem('StyleOpacityDark', 1),
-                    btc  = $u.bestTextColor(color),
-                    chk1 = caap.caapDivObject.css('background-color'),
-                    chk2 = caap.caapDivObject.css('color');
+                    bgo   = state.getItem('caapPause', 'none') === 'none' ? state.getItem('StyleOpacityLight', 1) : state.getItem('StyleOpacityDark', 1),
+                    btc   = $u.bestTextColor(color),
+                    chk1  = caap.caapDivObject.css('background-color'),
+                    chk2  = caap.caapDivObject.css('color');
 
                 if ($u.hex2rgb(color).color !== chk1) {
                     $u.log(4, "Update background color", color, chk1);
@@ -3934,7 +3923,7 @@
             try {
                 var id  = e.target.id.stripCaap(),
                     val = $u.addSharp(e.target.value).toUpperCase(),
-                    c = new $u.ColorConv();
+                    c   = new $u.ColorConv();
 
                 e.target.style.backgroundColor = val;
                 c.setRgb(e.target.style.backgroundColor);
@@ -4222,14 +4211,6 @@
             }
 
             $j('#caapPaused', caap.caapDivObject).css('display', 'block');
-            /*
-            if ($u.is_chrome && config.getItem("numberRoller", true) && $u.inputtypes.number) {
-                $j(":input[data-subtype='number']", caap.caapDivObject).each(function() {
-                    this.type = 'number';
-                });
-            }
-            */
-
             state.setItem('caapPause', 'block');
         },
 
@@ -4259,12 +4240,6 @@
             if (btc !== chk) {
                 $j("th[data-type='bestcolor'],td[data-type='bestcolor']", caap.caapTopObject).css({'color': btc});
             }
-
-            /*
-            $j(":input[data-subtype='number']", caap.caapDivObject).each(function() {
-                this.type = 'text';
-            });
-            */
 
             $j('#unlockMenu', caap.caapDivObject).attr('checked', false);
             state.setItem('caapPause', 'none');
@@ -4399,7 +4374,9 @@
             }
 
             caap.stats['gold']['ticker'] = tArr;
-            //$u.log(3, "goldTimeListenerr", tArr[0] + ":" + (tArr[1] < 10 ? '0' + tArr[1] : tArr[1]));
+            if (tArr[1] === 0 || $u.get_log_level() >= 4) {
+                $u.log(3, "goldTimeListenerr", tArr[0] + ":" + (tArr[1] < 10 ? '0' + tArr[1] : tArr[1]));
+            }
         },
 
         energyListener: function (e) {
@@ -4410,7 +4387,7 @@
 
             caap.stats['energy'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['energy']['max']), caap.stats['energy']);
             caap.stats['energyT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['energyT']['max']), caap.stats['energy']);
-            //$u.log(3, "energyListener", num);
+            $u.log(3, "energyListener", num);
         },
 
         healthListener: function (e) {
@@ -4421,7 +4398,7 @@
 
             caap.stats['health'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['health']['max']), caap.stats['health']);
             caap.stats['healthT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['healthT']['max']), caap.stats['healthT']);
-            //$u.log(3, "healthListener", num);
+            $u.log(3, "healthListener", num);
         },
 
         staminaListener: function (e) {
@@ -4432,69 +4409,26 @@
 
             caap.stats['stamina'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['stamina']['max']), caap.stats['stamina']);
             caap.stats['staminaT'] = $u.setContent(caap.getStatusNumbers(num + "/" + caap.stats['staminaT']['max']), caap.stats['staminaT']);
-            //$u.log(3, "staminaListener", num);
+            $u.log(3, "staminaListener", num);
         },
         /*jslint sub: false */
 
-        targetList: [
-            "app_body",
-            "index",
-            "keep",
-            "generals",
-            "battle_monster",
-            "battle",
-            "battlerank",
-            "battle_train",
-            "quests",
-            "raid",
-            "party",
-            "symbolquests",
-            "alchemy",
-            "goblin_emp",
-            "soldiers",
-            "item",
-            "land",
-            "magic",
-            "oracle",
-            "symbols",
-            "treasure_chest",
-            "gift",
-            "war_council",
-            "apprentice",
-            "news",
-            "friend_page",
-            "party",
-            "comments",
-            "army",
-            "army_member",
-            "army_news_feed",
-            "army_reqs",
-            "guild",
-            "guild_panel",
-            "guild_shop",
-            "guild_class",
-            "guild_formation",
-            "guild_monster_summon",
-            "guild_current_battles",
-            "guild_current_monster_battles",
-            "guild_battle_monster",
-            "guild_monster_summon_list",
-            "arena",
-            "arena_battle",
-            "specialmembership",
-            "festival_home",
-            "festival_feat_nav",
-            "festival_challenge",
-            "festival_achievements",
-            "festival_battle_home",
-            "festival_battle_rank",
-            "festival_tower",
-            "festival_battle_monster"
-        ],
-
         caTools: false,
 
-        globalContainer: {},
+        reBind: function () {
+            try {
+                $j('a', caap.globalContainer).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
+                $j("div[id*='friend_box_']", caap.globalContainer).unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
+                $j("span[id*='gold_time_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
+                $j("span[id*='energy_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
+                $j("span[id*='stamina_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
+                $j("span[id*='health_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
+                return true;
+            } catch (err) {
+                $u.error("ERROR in whatFriendBox: " + err, event);
+                return false;
+            }
+        },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
@@ -4562,8 +4496,8 @@
 
                     $u.log(1, "CA-Tools detected! Changing layout.");
                     caap.caTools = true;
+                    $j('#CA-Tools a').bind('click', caap.whatClickedURLListener);
                     window.setTimeout(function () {
-                        $j('#CA-Tools a').bind('click', caap.whatClickedURLListener);
                         var styleXY = caap.getControlXY(true, true);
                         caap.caapDivObject.css({
                             top  : styleXY.y + 'px',
@@ -4583,27 +4517,74 @@
                     throw 'Global Container not found';
                 }
 
-                // Fires when CAAP navigates to new location
+                // Fires once when page loads
                 $j('a', caap.globalContainer).bind('click', caap.whatClickedURLListener);
                 $j("div[id*='friend_box_']", caap.globalContainer).bind('click', caap.whatFriendBox);
-                $j("input[src*='dragon_list_btn_']", caap.globalContainer).bind('click', caap.guildMonsterEngageListener);
-                /*$j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', arena.engageListener);
-                $j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', arena.engageListener);
-                $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
-                    $j(this).attr("id", index).bind('click', arena.dualListener);
-                });*/
-
-                $j("input[src*='guild_duel_button']", caap.globalContainer).bind('click', caap.guildMonsterEngageListener);
                 $j("span[id*='gold_time_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.goldTimeListener);
                 $j("span[id*='energy_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.energyListener);
                 $j("span[id*='stamina_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.staminaListener);
                 $j("span[id*='health_current_value']", caap.globalContainer).bind('DOMSubtreeModified', caap.healthListener);
+                //arena.addListeners();
 
                 caap.globalContainer.bind('DOMNodeInserted', function (event) {
-                    var tId = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id;
+                    var tId        = $u.hasContent(event.target.id) ? event.target.id.replace('app46755028429_', '') : event.target.id,
+                        targetList = [
+                            "app_body",
+                            "index",
+                            "keep",
+                            "generals",
+                            "battle_monster",
+                            "battle",
+                            "battlerank",
+                            "battle_train",
+                            "quests",
+                            "raid",
+                            "party",
+                            "symbolquests",
+                            "alchemy",
+                            "goblin_emp",
+                            "soldiers",
+                            "item",
+                            "land",
+                            "magic",
+                            "oracle",
+                            "symbols",
+                            "treasure_chest",
+                            "gift",
+                            "war_council",
+                            "apprentice",
+                            "news",
+                            "friend_page",
+                            "party",
+                            "comments",
+                            "army",
+                            "army_member",
+                            "army_news_feed",
+                            "army_reqs",
+                            "guild",
+                            "guild_panel",
+                            "guild_shop",
+                            "guild_class",
+                            "guild_formation",
+                            "guild_monster_summon",
+                            "guild_current_battles",
+                            "guild_current_monster_battles",
+                            "guild_battle_monster",
+                            "guild_monster_summon_list",
+                            "arena",
+                            "arena_battle",
+                            "specialmembership",
+                            "festival_home",
+                            "festival_feat_nav",
+                            "festival_challenge",
+                            "festival_achievements",
+                            "festival_battle_home",
+                            "festival_battle_rank",
+                            "festival_tower",
+                            "festival_battle_monster"
+                        ];
 
                     // Uncomment this to see the id of domNodes that are inserted
-
                     /*
                     if (event.target.id && !event.target.id.match(/globalContainer/) && !event.target.id.match(/time/i) && !event.target.id.match(/ticker/i) && !event.target.id.match(/caap/i)) {
                         caap.setDivContent('debug2_mess', tId);
@@ -4611,16 +4592,11 @@
                     }
                     */
 
-                    if (caap.targetList.hasIndexOf(tId)) {
-                        $u.log(4, "Refreshing DOM Listeners", event.target.id);
+                    if (targetList.hasIndexOf(tId)) {
+                        $u.log(4, "DOM load target matched", tId);
                         caap.waitingForDomLoad = false;
-                        $j('a', caap.globalContainer).unbind('click', caap.whatClickedURLListener).bind('click', caap.whatClickedURLListener);
-                        $j("div[id*='friend_box_']", caap.globalContainer).unbind('click', caap.whatFriendBox).bind('click', caap.whatFriendBox);
-                        $j("span[id*='gold_time_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.goldTimeListener).bind('DOMSubtreeModified', caap.goldTimeListener);
-                        $j("span[id*='energy_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.energyListener).bind('DOMSubtreeModified', caap.energyListener);
-                        $j("span[id*='stamina_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.staminaListener).bind('DOMSubtreeModified', caap.staminaListener);
-                        $j("span[id*='health_current_value']", caap.globalContainer).unbind('DOMSubtreeModified', caap.healthListener).bind('DOMSubtreeModified', caap.healthListener);
                         caap.incrementPageLoadCounter();
+                        caap.reBind();
                         if (caap.domain.which === 0 && config.getItem('HideAdsIframe', false)) {
                             $j("iframe[name*='fb_iframe']").eq(0).parent().css('display', 'none');
                         }
@@ -4826,31 +4802,22 @@
 
                 schedule.setItem('CheckResultsTimer', 1);
                 caap.appBodyDiv = $j("#" + caap.domain.id[caap.domain.which] + "app_body", caap.globalContainer);
+                caap.resultsWrapperDiv = $j("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper", caap.appBodyDiv);
+                caap.resultsText = $u.setContent(caap.resultsWrapperDiv.text(), '').trim().innerTrim();
                 caap.battlePage = caap.stats['level'] < 10 ? 'battle_train,battle_off' : 'battle';
                 caap.pageLoadOK = caap.getStats();
                 if (!caap.pageLoadOK) {
                     return true;
                 }
 
-                var pageUrl         = '',
-                    page            = 'none',
-                    pageUser        = 0,
-                    resultsText     = '',
-                    demiPointsFirst = false,
-                    whenMonster     = '',
+                var pageUrl         = state.getItem('clickUrl', ''),
+                    page            = $u.setContent(pageUrl, 'none').basename(".php"),
+                    demiPointsFirst = config.getItem('DemiPointsFirst', false),
+                    whenMonster     = config.getItem('WhenMonster', 'Never'),
                     it              = 0,
                     len             = 0;
 
-                pageUrl = state.getItem('clickUrl', '');
-                if ($u.hasContent(pageUrl)) {
-                    page = pageUrl.basename(".php");
-                    if (page === 'keep') {
-                        pageUser = pageUrl.regex(/user=(\d+)/);
-                        pageUser = $u.setContent(pageUser, 0);
-                    }
-                }
-
-                state.setItem('pageUserCheck', pageUser);
+                state.setItem('pageUserCheck', page === 'keep' ? $u.setContent(pageUrl.regex(/user=(\d+)/), 0) : 0);
                 if ($u.hasContent(page) && $u.hasContent(caap.pageList[page]) && $u.hasContent(caap.pageList[page].subpages)) {
                     for (it = 0, len = caap.pageList[page].subpages.length; it < len; it += 1) {
                         if ($u.hasContent($j("img[src*='" + caap.pageList[caap.pageList[page].subpages[it]].signaturePic + "']", caap.appBodyDiv))) {
@@ -4861,11 +4828,11 @@
                 }
 
                 state.setItem('page', page);
-                resultsText = $u.setContent($j("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper span[class*='result_body']", caap.appBodyDiv).text(), '').trim().innerTrim();
                 if ($u.hasContent(caap.pageList[page])) {
                     $u.log(2, 'Checking results for', page);
                     if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
-                        caap[caap.pageList[page].CheckResultsFunction](resultsText);
+                        $u.log(2, 'Calling function', caap.pageList[page].CheckResultsFunction, caap.resultsText);
+                        caap[caap.pageList[page].CheckResultsFunction]();
                     } else {
                         $u.warn('Check Results function not found', caap.pageList[page]);
                     }
@@ -4882,8 +4849,6 @@
                 caap.updateDashboard();
                 caap.addExpDisplay();
                 caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr(true)));
-                demiPointsFirst = config.getItem('DemiPointsFirst', false);
-                whenMonster = config.getItem('WhenMonster', 'Never');
                 if ((demiPointsFirst && whenMonster !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
                     if (state.getItem('DemiPointsDone', true)) {
                         caap.setDivContent('demipoint_mess', 'Daily Demi Points: Done');
@@ -6388,24 +6353,19 @@
 
         questName: null,
 
-        checkResults_symbolquests: function (resultsText) {
+        checkResults_symbolquests: function () {
             try {
-                var demiDiv = $j("div[id*='symbol_desc_symbolquests']", caap.globalContainer),
+                $j("div[id*='symbol_tab_symbolquests']", caap.appBodyDiv).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
+                $j("form[id*='symbols_form_']", caap.appBodyDiv).unbind('click', caap.symbolquestsClickListener).bind('click', caap.symbolquestsClickListener);
+                var demiDiv = $j("div[id*='symbol_desc_symbolquests']", caap.appBodyDiv),
                     points  = [],
                     success = true;
 
-                if ($u.hasContent(resultsText)) {
-                    caap.blessingResults(resultsText);
-                }
-
+                caap.blessingResults();
                 if ($u.hasContent(demiDiv) && demiDiv.length === 5) {
                     demiDiv.each(function () {
-                        var text = '',
-                            num  = 0;
-
-                        text = $j(this).children().next().eq(1).children().children().next().text();
-                        if ($u.hasContent(text)) {
-                            num = text.numberOnly();
+                        var num = $u.setContent($j(this).children().next().eq(1).children().children().next().text(), '').trim().innerTrim().regex(/(\d+)/);
+                        if ($u.hasContent(num) && !$u.isNaN(num)) {
                             points.push(num);
                         } else {
                             success = false;
@@ -6413,8 +6373,8 @@
                         }
                     });
 
-                    $u.log(4, 'Points', points);
                     if (success) {
+                        $u.log(3, 'Demi-Power Points', points);
                         caap.demi['ambrosia']['power']['total'] = $u.setContent(points[0], 0);
                         caap.demi['malekus']['power']['total'] = $u.setContent(points[1], 0);
                         caap.demi['corvintheus']['power']['total'] = $u.setContent(points[2], 0);
@@ -6457,9 +6417,15 @@
         },
 
         symbolquestsListener: function (event) {
-            $u.log(4, "symbolquests");
+            $u.log(3, "Clicked Demi Power image", event.target.parentNode.parentNode.parentNode.parentNode.id);
             state.setItem('clickUrl', caap.domain.link + '/symbolquests.php');
             caap.checkResults();
+        },
+
+        symbolquestsClickListener: function (event) {
+            $u.log(3, "Clicked Demi Power blessing", event.target.parentNode.id);
+            state.setItem('clickUrl', caap.domain.link + '/symbolquests.php');
+            caap.blessingPerformed = true;
         },
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
@@ -6468,11 +6434,11 @@
             try {
                 //$u.log(1, "checkResults_quests pickQuestTF", pickQuestTF);
                 pickQuestTF = pickQuestTF ? pickQuestTF : false;
-                if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container", caap.globalContainer))) {
+                if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container", caap.appBodyDiv))) {
                     $j("div[id*='meta_quest_']", caap.globalContainer).each(function (index) {
                         var row = $j(this);
                         if (!($u.hasContent($j("img[src*='_completed']", row)) || $u.hasContent($j("img[src*='_locked']", row)))) {
-                            $j("div[id*='quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.globalContainer).css("display", "block");
+                            $j("div[id*='quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.appBodyDiv).css("display", "block");
                         }
                     });
                 }
@@ -6493,8 +6459,7 @@
 
                 if (caap.hasImage('demi_quest_on.gif')) {
                     caap.checkResults_symbolquests($u.isString(pickQuestTF) ? pickQuestTF : undefined);
-                    $j("div[id*='symbol_tab_symbolquests']", caap.globalContainer).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
-                    ss = $j("div[id*='symbol_displaysymbolquest']", caap.globalContainer);
+                    ss = $j("div[id*='symbol_displaysymbolquest']", caap.appBodyDiv);
                     if (!$u.hasContent(ss)) {
                         $u.warn("Failed to find symbol_displaysymbolquest");
                     }
@@ -7065,33 +7030,43 @@
         },
         /*jslint sub: false */
 
-        blessingResults: function (resultsText) {
+        blessingPerformed: false,
+
+        blessingResults: function () {
             var hours   = 0,
                 minutes = 0,
                 done    = false;
 
-            if (/Please come back in:/i.test(resultsText)) {
-                // Check time until next Oracle Blessing
-                hours = $u.setContent(resultsText.regex(/(\d+) hour/i), 3);
-                minutes = $u.setContent(resultsText.regex(/(\d+) minute/i), 0);
-                done = true;
-            } else if (/You have paid tribute to/i.test(resultsText)) {
-                // Recieved Demi Blessing.  Wait X hours to try again.
-                hours = /Azeron/i.test(resultsText) ? 48 : 12;
-                done = true;
-            } else {
-                if ($u.hasContent(resultsText)) {
-                    $u.warn("Unknown blessing result text", resultsText);
+            if (caap.blessingPerformed) {
+                if (/Please come back in:/i.test(caap.resultsText)) {
+                    // Check time until next Oracle Blessing
+                    hours = $u.setContent(caap.resultsText.regex(/(\d+) hour/i), 3);
+                    minutes = $u.setContent(caap.resultsText.regex(/(\d+) minute/i), 0);
+                    done = true;
+                } else if (/You have paid tribute to/i.test(caap.resultsText)) {
+                    // Recieved Demi Blessing.  Wait X hours to try again.
+                    hours = /Azeron/i.test(caap.resultsText) ? 48 : 24;
+                    done = true;
+                } else {
+                    if ($u.hasContent(caap.resultsText)) {
+                        $u.warn("Unknown blessing result text", caap.resultsText);
+                    }
                 }
-            }
 
-            if (done) {
-                $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
-                schedule.setItem('BlessingTimer', (hours * 60 + minutes + 5) * 60, 300);
+                if (done) {
+                    $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
+                    schedule.setItem('BlessingTimer', (hours * 60 + minutes + 5) * 60, 300);
+                }
+
+                caap.blessingPerformed = false;
             }
         },
 
         autoBless: function () {
+            if (caap.blessingPerformed) {
+                return true;
+            }
+
             var autoBless  = config.getItem('AutoBless', 'none'),
                 autoBlessN = caap.deityTable[autoBless.toLowerCase()],
                 picSlice   = $j(),
@@ -7129,7 +7104,9 @@
 
             $u.log(1, 'Click deity blessing for', autoBless, autoBlessN);
             schedule.setItem('BlessingTimer', 300, 300);
-            return caap.click(picSlice);
+            caap.blessingPerformed = true;
+            caap.click(picSlice);
+            return true;
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -7908,7 +7885,7 @@
                 }
 
                 // Check if we should chain attack
-                if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "results_main_wrapper img[src*='battle_victory.gif']", caap.globalContainer))) {
+                if ($u.hasContent($j("img[src*='battle_victory.gif']", caap.resultsWrapperDiv))) {
                     button = caap.checkForImage(chainImg);
                     battleChainId = state.getItem("BattleChainId", 0);
                     if ($u.hasContent(button) && battleChainId) {
@@ -8249,7 +8226,7 @@
 
         checkResults_guild_current_monster_battles: function () {
             try {
-                caap.globalContainer.find("input[src*='dragon_list_btn_']").bind('click', caap.guildMonsterEngageListener);
+                caap.globalContainer.find("input[src*='dragon_list_btn_']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
                 guild_monster.populate();
 
                 return true;
@@ -8261,7 +8238,7 @@
 
         checkResults_guild_battle_monster: function () {
             try {
-                caap.globalContainer.find("input[src*='guild_duel_button']").bind('click', caap.guildMonsterEngageListener);
+                caap.globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
                 guild_monster.onMonster();
                 if (config.getItem("enableTitles", true)) {
                     spreadsheet.doTitles();
@@ -9375,7 +9352,7 @@
                     energyRequire = $u.isDefined(nodeNum) && nodeNum >= 0 && config.getItem('PowerAttackMax', false) && monster.info[monstType].nrgMax ? monster.info[monstType].nrgMax[nodeNum] : energyRequire;
                 }
 
-                $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
+                $u.log(2, "Energy Required/Node", energyRequire, nodeNum);
                 switch (config.getItem('FortifyGeneral', 'Use Current')) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
@@ -9438,8 +9415,6 @@
                         } else {
                             buttonList.unshift("button_nm_s_");
                         }
-
-                        $u.log(4, "monster/button list", currentMonster, buttonList);
                     } else if (state.getItem('MonsterStaminaReq', 1) === 1) {
                         // not power attack only normal attacks
                         buttonList = singleButtonList;
@@ -9475,9 +9450,14 @@
                                 'event_attack1.gif',
                                 'attack_monster_button.jpg'
                             ].concat(singleButtonList);
+
+                            if (monster.info[monstType] && monster.info[monstType].attack_img && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false)) {
+                                buttonList.unshift(monster.info[monstType].attack_img[1]);
+                            }
                         }
                     }
 
+                    $u.log(2, "monster/button list", currentMonster, buttonList);
                     nodeNum = 0;
                     if (!caap.inLevelUpMode()) {
                         if (((fightMode === 'Fortify' && config.getItem('PowerFortifyMax', false)) || (fightMode !== 'Fortify' && config.getItem('PowerAttack', false) && config.getItem('PowerAttackMax', false))) && monster.info[monstType].staLvl) {
@@ -10421,7 +10401,7 @@
         //                              ARMY
         /////////////////////////////////////////////////////////////////////
 
-        checkResults_army: function (resultsText) {
+        checkResults_army: function () {
             var listHref = $j(),
                 link     = $j(),
                 autoGift = false;
@@ -10454,7 +10434,7 @@
             }
         },
 
-        checkResults_army_member: function (resultsText) {
+        checkResults_army_member: function () {
             army.page();
         },
 
@@ -10464,7 +10444,7 @@
 
         /* This section is formatted to allow Advanced Optimisation by the Closure Compiler */
         /*jslint sub: true */
-        checkResults_index: function (resultsText) {
+        checkResults_index: function () {
             try {
                 function news() {
                     try {
@@ -10568,7 +10548,7 @@
                 // A warrior wants to join your Army!
                 // Send Gifts to Friends
                 if (config.getItem('AutoGift', false)) {
-                    if (resultsText && /Send Gifts to Friends/.test(resultsText)) {
+                    if ($u.hasContent(caap.resultsText) && /Send Gifts to Friends/.test(caap.resultsText)) {
                         $u.log(1, 'We have a gift waiting!');
                         state.setItem('HaveGift', true);
                     } else {
@@ -10635,7 +10615,7 @@
             }
         },
 
-        checkResults_gift_accept: function (resultsText) {
+        checkResults_gift_accept: function () {
             // Confirm gifts actually sent
             gifting.queue.sent();
             gifting.collected();
@@ -10773,7 +10753,6 @@
             try {
                 attribute = attribute.toLowerCase();
                 var button        = $j(),
-                    ajaxLoadIcon  = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon'),
                     level         = 0,
                     attrCurrent   = 0,
                     energy        = 0,
@@ -10789,10 +10768,12 @@
                     healthDiv     = $j("a[href*='health_max']", atributeSlice),
                     logTxt        = "";
 
-                if (!$u.hasContent(ajaxLoadIcon) || ajaxLoadIcon.css("display") !== 'none') {
+                /*
+                if (caap.waitingAjaxLoad()) {
                     $u.warn("Unable to find AjaxLoadIcon or page not loaded: Fail");
                     return "Fail";
                 }
+                */
 
                 switch (attribute) {
                 case "energy" :
@@ -11900,15 +11881,16 @@
             }
 
             // Try again button
-            var button = $j('#try_again_button');
+            var button = $j("#try_again_button, input[name='try_again_button']");
             if ($u.hasContent(button)) {
                 $u.warn('Detected "Try Again" message, clicking button else refresh.');
+                $j(".phl").append("<p>CAAP will retry shortly!</p>");
                 window.setTimeout(function () {
                     caap.click(button);
                     window.setTimeout(function () {
                         $u.reload();
-                    }, 60000);
-                }, 20000);
+                    }, 180000);
+                }, 60000 + (Math.floor(Math.random() * 60) * 1000));
 
                 caap.errorCheckWait = true;
                 return true;
@@ -11917,14 +11899,22 @@
             return false;
         },
 
+        waitingAjaxLoad: function () {
+            try {
+                return $u.hasContent(caap.ajaxLoadIcon) && caap.ajaxLoadIcon.css("display") !== "none";
+            } catch (err) {
+                $u.error("ERROR in waitingAjaxLoad: " + err);
+                return false;
+            }
+        },
+
         mainLoop: function () {
             try {
                 var button          = null,
                     noWindowLoad    = 0,
                     actionsListCopy = [],
                     action          = 0,
-                    len             = 0,
-                    ajaxLoadIcon    = null;
+                    len             = 0;
 
                 // assorted errors...
                 if (caap.errorCheck()) {
@@ -11980,8 +11970,7 @@
                         return true;
                     }
 
-                    ajaxLoadIcon = $j('#' + caap.domain.id[caap.domain.which] + 'AjaxLoadIcon');
-                    if ($u.hasContent(ajaxLoadIcon) && ajaxLoadIcon.css("display") !== "none") {
+                    if (caap.waitingAjaxLoad()) {
                         $u.log(1, 'Waiting for page load ...');
                         caap.waitMainLoop();
                         return true;

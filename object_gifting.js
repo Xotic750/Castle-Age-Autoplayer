@@ -846,13 +846,7 @@
                             gift = gifting.queue.records[it]['gift'];
                             break;
                         case gifting.gifts.options[1]:
-                            if (gifting.randomImg) {
-                                gift = gifting.queue.randomImg;
-                            } else {
-                                gift = gifting.gifts.random();
-                                gifting.queue.randomImg = gift;
-                            }
-
+                            gift = $u.setContent(gifting.queue.randomImg, gifting.queue.randomImg = gifting.gifts.random());
                             break;
                         default:
                             gift = choice;
@@ -1055,14 +1049,12 @@
             sent: function () {
                 try {
                     var it         = 0,
-                        resultDiv  = $j(),
                         resultText = '',
                         sentok     = false;
 
                     if (window.location.href.hasIndexOf('act=create')) {
-                        resultDiv = $j('#' + caap.domain.id[caap.domain.which] + 'results_main_wrapper', caap.globalContainer);
-                        if ($u.hasContent(resultDiv)) {
-                            resultText = $u.setContent(resultDiv.text(), '').trim().innerTrim();
+                        if ($u.hasContent(caap.resultsWrapperDiv)) {
+                            resultText = $u.setContent(caap.resultsWrapperDiv.text(), '').trim().innerTrim();
                             if ($u.hasContent(resultText)) {
                                 if (/You have sent \d+ gift/.test(resultText)) {
                                     for (it = gifting.queue.records.length - 1; it >= 0; it -= 1) {

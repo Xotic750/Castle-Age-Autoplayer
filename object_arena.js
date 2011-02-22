@@ -1160,7 +1160,6 @@
             }
         },
 
-
         menu: function () {
             try {
                 var mbattleList = [
@@ -1518,6 +1517,21 @@
                 $u.error("ERROR in arena.index: " + err);
                 return false;
             }
-        }
+        },
         /*jslint sub: false */
+
+        addListeners: function () {
+            try {
+                $j("input[src*='battle_enter_battle']", caap.globalContainer).bind('click', arena.engageListener);
+                $j("div[style*='arena3_newsfeed']", caap.globalContainer).bind('click', arena.engageListener);
+                $j("input[src*='monster_duel_button']", caap.globalContainer).each(function (index) {
+                    $j(this).attr("id", index).bind('click', arena.dualListener);
+                });
+
+                return true;
+            } catch (err) {
+                $u.error("ERROR in arena.addListeners: " + err);
+                return false;
+            }
+        }
     };
