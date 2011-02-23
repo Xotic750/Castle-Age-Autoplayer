@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            66
+// @dev            67
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "66",
+        devVersion    = "67",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -5159,9 +5159,6 @@
                     chainAttack     = false,
                     inp             = $j(),
                     txt             = '',
-                    tNum            = 0,
-                    tempArr         = [],
-                    levelm          = [],
                     minRank         = 0,
                     maxLevel        = 0,
                     ARBase          = 0,
@@ -5169,13 +5166,10 @@
                     ARMin           = 0,
                     levelMultiplier = 0,
                     armyRatio       = 0,
-                    tempRecord      = {},
                     battleRecord    = {},
-                    tempTime        = 0,
                     it              = 0,
                     itx,
                     len             = 0,
-                    tr              = $j(),
                     form            = $j(),
                     firstId         = '',
                     lastBattleID    = 0,
@@ -5240,21 +5234,23 @@
                     ARMin = 0;
                 }
 
-                for (it = 0, len = inputDiv.length; it < len; it += 1) {
-                    tr = $j();
-                    levelm = [];
-                    txt = '';
-                    tempArr = [];
-                    tempTime = -1;
-                    tempRecord = new battle.record();
-                    tempRecord.data['button'] = $j(inputDiv.eq(it));
+                inputDiv.each(function (index) {
+                    var tr         = $j(),
+                        levelm     = [],
+                        tempTxt    = '',
+                        tNum       = 0,
+                        tempArr    = [],
+                        tempTime   = -1,
+                        tempRecord = new battle.record();
+
+                    tempRecord.data['button'] = $j(this);
                     if (type === 'Raid') {
                         tr = tempRecord.data['button'].parents().eq(4);
-                        txt = $u.setContent(tr.children().eq(1).text(), '').trim();
-                        levelm = battle.battles['Raid']['regex1'].exec(txt);
+                        tempTxt = $u.setContent(tr.children().eq(1).text(), '').trim();
+                        levelm = battle.battles['Raid']['regex1'].exec(tempTxt);
                         if (!$u.hasContent(levelm)) {
-                            $u.warn("Can't match Raid regex in ", txt);
-                            continue;
+                            $u.warn("Can't match Raid regex in ", tempTxt);
+                            return true;
                         }
 
                         tempRecord.data['nameStr'] = $u.setContent(levelm[1], '').trim();
@@ -5266,7 +5262,7 @@
                         tr = tempRecord.data['button'].parents("tr").eq(0);
                         if (!$u.hasContent(tr)) {
                             $u.warn("Can't find parent tr in tempRecord.data['button']");
-                            continue;
+                            return true;
                         }
 
                         tNum = $u.setContent($j("img[src*='symbol_']", tr).attr("src"), '').regex(/(\d+)\.jpg/i);
@@ -5280,45 +5276,45 @@
                                 tempRecord.data['deityStr'] = caap.demiTable[tempRecord.data['deityNum']];
                             }
                         } else {
-                            $u.warn("Unable to match demi number in txt");
+                            $u.warn("Unable to match demi number in tempTxt");
                         }
 
                         // If looking for demi points, and already full, continue
                         if (config.getItem('DemiPointsFirst', false) && !state.getItem('DemiPointsDone', true) && (config.getItem('WhenMonster', 'Never') !== 'Never')) {
                             if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0 || !config.getItem('DemiPoint' + tempRecord.data['deityNum'], true)) {
                                 $u.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
-                                continue;
+                                return true;
                             }
                         } else if (config.getItem('WhenBattle', 'Never') === "Demi Points Only") {
                             if (caap.demi[tempRecord.data['deityStr']]['daily']['dif'] <= 0) {
                                 $u.log(2, "Daily Demi Points done for", tempRecord.data['deityStr']);
-                                continue;
+                                return true;
                             }
                         }
 
-                        txt = $u.setContent(tr.text(), '').trim();
-                        if (!$u.hasContent(txt)) {
-                            $u.warn("Can't find txt in tr");
-                            continue;
+                        tempTxt = $u.setContent(tr.text(), '').trim();
+                        if (!$u.hasContent(tempTxt)) {
+                            $u.warn("Can't find tempTxt in tr");
+                            return true;
                         }
 
                         if (battle.battles['Freshmeat']['warLevel']) {
-                            levelm = battle.battles['Freshmeat']['regex1'].exec(txt);
+                            levelm = battle.battles['Freshmeat']['regex1'].exec(tempTxt);
                             if (!levelm) {
-                                levelm = battle.battles['Freshmeat']['regex2'].exec(txt);
+                                levelm = battle.battles['Freshmeat']['regex2'].exec(tempTxt);
                                 battle.battles['Freshmeat']['warLevel'] = false;
                             }
                         } else {
-                            levelm = battle.battles['Freshmeat']['regex2'].exec(txt);
+                            levelm = battle.battles['Freshmeat']['regex2'].exec(tempTxt);
                             if (!levelm) {
-                                levelm = battle.battles['Freshmeat']['regex1'].exec(txt);
+                                levelm = battle.battles['Freshmeat']['regex1'].exec(tempTxt);
                                 battle.battles['Freshmeat']['warLevel'] = true;
                             }
                         }
 
                         if (!levelm) {
-                            $u.warn("Can't match Freshmeat regex in ", txt);
-                            continue;
+                            $u.warn("Can't match Freshmeat regex in ", tempTxt);
+                            return true;
                         }
 
                         tempRecord.data['nameStr'] = $u.setContent(levelm[1], '').trim();
@@ -5337,12 +5333,12 @@
                     inp = $j("input[name='target_id']", tr);
                     if (!$u.hasContent(inp)) {
                         $u.warn("Could not find 'target_id' input");
-                        continue;
+                        return true;
                     }
 
                     tempRecord.data['userId'] = $u.setContent(inp.attr("value"), '').parseInt();
                     if (battle.hashCheck(tempRecord.data)) {
-                        continue;
+                        return true;
                     }
 
                     levelMultiplier = caap.stats['level'] / (tempRecord.data['levelNum'] > 0 ? tempRecord.data['levelNum'] : 1);
@@ -5351,30 +5347,30 @@
                     armyRatio = Math.max(armyRatio, ARMin);
                     if (armyRatio <= 0) {
                         $u.warn("Bad ratio", armyRatio, ARBase, ARMin, ARMax, levelMultiplier);
-                        continue;
+                        return true;
                     }
 
                     if (tempRecord.data['levelNum'] - caap.stats['level'] > maxLevel) {
                         $u.log(2, "Greater than maxLevel", {'levelDif': tempRecord.data['levelNum'] - caap.stats['level'], 'maxLevel': maxLevel});
-                        continue;
+                        return true;
                     }
 
                     if (config.getItem("BattleType", 'Invade') === "War" && battle.battles['Freshmeat']['warLevel']) {
                         if (caap.stats['rank']['war'] && (caap.stats['rank']['war'] - tempRecord.data['warRankNum'] > minRank)) {
                             $u.log(2, "Greater than war minRank", {'rankDif': caap.stats['rank']['war'] - tempRecord.data['warRankNum'], 'minRank': minRank});
-                            continue;
+                            return true;
                         }
                     } else {
                         if (caap.stats['rank']['battle'] && (caap.stats['rank']['battle'] - tempRecord.data['rankNum'] > minRank)) {
                             $u.log(2, "Greater than battle minRank", {'rankDif': caap.stats['rank']['battle'] - tempRecord.data['rankNum'], 'minRank': minRank});
-                            continue;
+                            return true;
                         }
                     }
 
                     // if we know our army size, and this one is larger than armyRatio, don't battle
                     if (caap.stats['army']['capped'] && (tempRecord.data['armyNum'] > (caap.stats['army']['capped'] * armyRatio))) {
                         $u.log(2, "Greater than armyRatio", {'armyRatio': armyRatio.dp(2), 'armyNum': tempRecord.data['armyNum'], 'armyMax': (caap.stats['army']['capped'] * armyRatio).dp()});
-                        continue;
+                        return true;
                     }
 
                     if (config.getItem("BattleType", 'Invade') === "War" && battle.battles['Freshmeat']['warLevel']) {
@@ -5408,7 +5404,7 @@
 
                         if (battleRecord && !battleRecord['newRecord'] && tempTime && !schedule.since(tempTime, 604800)) {
                             $u.log(1, "We lost " + config.getItem("BattleType", 'Invade') + " to this id this week: ", tempRecord.data['userId']);
-                            continue;
+                            return true;
                         }
                     }
 
@@ -5416,28 +5412,28 @@
                     tempTime = $u.setContent(battleRecord['unknownTime'], 0);
                     if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 3600)) {
                         $u.log(1, "User was battled but results unknown in the last hour: ", tempRecord.data['userId']);
-                        continue;
+                        return true;
                     }
 
                     // don't battle people that were dead or hiding in the last hour
                     tempTime = $u.setContent(battleRecord['deadTime'], 0);
                     if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 3600)) {
                         $u.log(1, "User was dead in the last hour: ", tempRecord.data['userId']);
-                        continue;
+                        return true;
                     }
 
                     // don't battle people we've already chained to max in the last 2 days
                     tempTime = $u.setContent(battleRecord['chainTime'], 0);
                     if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 86400)) {
                         $u.log(1, "We chained user within 2 days: ", tempRecord.data['userId']);
-                        continue;
+                        return true;
                     }
 
                     // don't battle people that didn't meet chain gold or chain points in the last week
                     tempTime = $u.setContent(battleRecord['ignoreTime'], 0);
                     if (battleRecord && !battleRecord['newRecord'] && !schedule.since(tempTime, 604800)) {
                         $u.log(1, "User didn't meet chain requirements this week: ", tempRecord.data['userId']);
-                        continue;
+                        return true;
                     }
 
                     tempRecord.data['score'] = (type === 'Raid' ? 0 : tempRecord.data['rankNum']) - (tempRecord.data['armyNum'] / levelMultiplier / caap.stats['army']['capped']);
@@ -5445,14 +5441,16 @@
                         chainAttack = true;
                     }
 
-                    tempRecord.data['targetNumber'] = it + 1;
+                    tempRecord.data['targetNumber'] = index + 1;
                     $u.log(3, "tempRecord/levelm", tempRecord.data, levelm);
                     safeTargets.push(tempRecord.data);
                     tempRecord = null;
-                    if (it === 0 && type === 'Raid') {
+                    if (index === 0 && type === 'Raid') {
                         plusOneSafe = true;
                     }
-                }
+
+                    return true;
+                });
 
                 safeTargets.sort($u.sortBy(true, "score"));
                 if ($u.hasContent(safeTargets)) {
@@ -8567,10 +8565,10 @@
                     return false;
                 }
 
-                var pathList  = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
-                    s    = 0,
-                    jq   = $j(),
-                    path = '';
+                var pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
+                    s        = 0,
+                    jq       = $j(),
+                    path     = '';
 
                 for (s = pathList.length - 1; s >= 0; s -= 1) {
                     path = $u.setContent(pathList[s], '');
@@ -8579,7 +8577,7 @@
                         continue;
                     }
 
-                    jq = $j("a[href*='" + path + ".php']").not("a[href*='" + path + ".php?']", webSlice);
+                    jq = $j("a[href*='" + path + ".php']", webSlice).not("a[href*='" + path + ".php?']", webSlice);
                     if ($u.hasContent(jq)) {
                         $u.log(2, 'Go to', path);
                     } else {
@@ -9162,6 +9160,7 @@
                         'heal_mess',
                         'demipoint_mess',
                         'gifting_mess',
+                        'feats_mess',
                         'demibless_mess',
                         'level_mess',
                         'exp_mess',
@@ -12831,7 +12830,7 @@
                 if ($u.hasContent(caap.pageList[page])) {
                     $u.log(2, 'Checking results for', page);
                     if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
-                        $u.log(2, 'Calling function', caap.pageList[page].CheckResultsFunction, caap.resultsText);
+                        $u.log(3, 'Calling function', caap.pageList[page].CheckResultsFunction, caap.resultsText);
                         caap[caap.pageList[page].CheckResultsFunction]();
                     } else {
                         $u.warn('Check Results function not found', caap.pageList[page]);
@@ -12849,26 +12848,9 @@
                 caap.updateDashboard();
                 caap.addExpDisplay();
                 caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr(true)));
-                if ((demiPointsFirst && whenMonster !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
-                    if (state.getItem('DemiPointsDone', true)) {
-                        caap.setDivContent('demipoint_mess', 'Daily Demi Points: Done');
-                    } else {
-                        if (demiPointsFirst && whenMonster !== 'Never') {
-                            caap.setDivContent('demipoint_mess', 'Daily Demi Points: First');
-                        } else {
-                            caap.setDivContent('demipoint_mess', 'Daily Demi Points: Only');
-                        }
-                    }
-                } else {
-                    caap.setDivContent('demipoint_mess', '');
-                }
-
-                if (schedule.check('BlessingTimer')) {
-                    caap.setDivContent('demibless_mess', 'Demi Blessing = none');
-                } else {
-                    caap.setDivContent('demibless_mess', 'Next Demi Blessing: ' + $u.setContent(schedule.display('BlessingTimer'), "Unknown"));
-                }
-
+                caap.setDivContent('demipoint_mess', (demiPointsFirst && whenMonster !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only' ? (state.getItem('DemiPointsDone', true) ? 'Daily Demi Points: Done' : (demiPointsFirst && whenMonster !== 'Never' ? 'Daily Demi Points: First' : 'Daily Demi Points: Only')) : '');
+                caap.setDivContent('demibless_mess', schedule.check('BlessingTimer') ? 'Demi Blessing = none' : 'Next Demi Blessing: ' + $u.setContent(schedule.display('BlessingTimer'), "Unknown"));
+                caap.setDivContent('feats_mess', schedule.check('festivalBlessTimer') ? 'Feat = none' : 'Next Feat: ' + $u.setContent(schedule.display('festivalBlessTimer'), "Unknown"));
                 if ($u.hasContent(general.List) && general.List.length <= 2) {
                     schedule.setItem("generals", 0);
                     schedule.setItem("allGenerals", 0);

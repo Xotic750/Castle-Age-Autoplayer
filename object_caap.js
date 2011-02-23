@@ -567,10 +567,10 @@
                     return false;
                 }
 
-                var pathList  = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
-                    s    = 0,
-                    jq   = $j(),
-                    path = '';
+                var pathList = $u.hasContent(pathToPage) ? pathToPage.split(",") : [],
+                    s        = 0,
+                    jq       = $j(),
+                    path     = '';
 
                 for (s = pathList.length - 1; s >= 0; s -= 1) {
                     path = $u.setContent(pathList[s], '');
@@ -579,7 +579,7 @@
                         continue;
                     }
 
-                    jq = $j("a[href*='" + path + ".php']").not("a[href*='" + path + ".php?']", webSlice);
+                    jq = $j("a[href*='" + path + ".php']", webSlice).not("a[href*='" + path + ".php?']", webSlice);
                     if ($u.hasContent(jq)) {
                         $u.log(2, 'Go to', path);
                     } else {
@@ -1162,6 +1162,7 @@
                         'heal_mess',
                         'demipoint_mess',
                         'gifting_mess',
+                        'feats_mess',
                         'demibless_mess',
                         'level_mess',
                         'exp_mess',
@@ -4831,7 +4832,7 @@
                 if ($u.hasContent(caap.pageList[page])) {
                     $u.log(2, 'Checking results for', page);
                     if ($u.isFunction(caap[caap.pageList[page].CheckResultsFunction])) {
-                        $u.log(2, 'Calling function', caap.pageList[page].CheckResultsFunction, caap.resultsText);
+                        $u.log(3, 'Calling function', caap.pageList[page].CheckResultsFunction, caap.resultsText);
                         caap[caap.pageList[page].CheckResultsFunction]();
                     } else {
                         $u.warn('Check Results function not found', caap.pageList[page]);
@@ -4849,26 +4850,9 @@
                 caap.updateDashboard();
                 caap.addExpDisplay();
                 caap.setDivContent('level_mess', 'Expected next level: ' + $u.makeTime(caap.stats['indicators']['enl'], schedule.timeStr(true)));
-                if ((demiPointsFirst && whenMonster !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only') {
-                    if (state.getItem('DemiPointsDone', true)) {
-                        caap.setDivContent('demipoint_mess', 'Daily Demi Points: Done');
-                    } else {
-                        if (demiPointsFirst && whenMonster !== 'Never') {
-                            caap.setDivContent('demipoint_mess', 'Daily Demi Points: First');
-                        } else {
-                            caap.setDivContent('demipoint_mess', 'Daily Demi Points: Only');
-                        }
-                    }
-                } else {
-                    caap.setDivContent('demipoint_mess', '');
-                }
-
-                if (schedule.check('BlessingTimer')) {
-                    caap.setDivContent('demibless_mess', 'Demi Blessing = none');
-                } else {
-                    caap.setDivContent('demibless_mess', 'Next Demi Blessing: ' + $u.setContent(schedule.display('BlessingTimer'), "Unknown"));
-                }
-
+                caap.setDivContent('demipoint_mess', (demiPointsFirst && whenMonster !== 'Never') || config.getItem('WhenBattle', 'Never') === 'Demi Points Only' ? (state.getItem('DemiPointsDone', true) ? 'Daily Demi Points: Done' : (demiPointsFirst && whenMonster !== 'Never' ? 'Daily Demi Points: First' : 'Daily Demi Points: Only')) : '');
+                caap.setDivContent('demibless_mess', schedule.check('BlessingTimer') ? 'Demi Blessing = none' : 'Next Demi Blessing: ' + $u.setContent(schedule.display('BlessingTimer'), "Unknown"));
+                caap.setDivContent('feats_mess', schedule.check('festivalBlessTimer') ? 'Feat = none' : 'Next Feat: ' + $u.setContent(schedule.display('festivalBlessTimer'), "Unknown"));
                 if ($u.hasContent(general.List) && general.List.length <= 2) {
                     schedule.setItem("generals", 0);
                     schedule.setItem("allGenerals", 0);
