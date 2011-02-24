@@ -70,6 +70,7 @@
             ss = new $u.storage({'namespace': 'caap', 'storage_type': 'sessionStorage'});
 
             function mainCaapLoop() {
+                caap.makeActionsList();
                 caap.waitMilliSecs = 8000;
                 caap.waitMainLoop();
                 caap.reloadOccasionally();
@@ -1659,6 +1660,9 @@
                 htmlCode += caap.makeCheckTR('Bookmark Mode', 'bookmarkMode', false, bookmarkModeInstructions, true);
                 htmlCode += caap.makeNumberFormTR("Reload Frequency", 'ReloadFrequency', 'Changing this will cause longer/shorter refresh rates. Minimum is 8 minutes.', 8, '', '', true, false);
                 htmlCode += caap.makeNumberFormTR("Log Level", 'DebugLevel', '', 1, '', '', true, false);
+                htmlCode += caap.startTR();
+                htmlCode += caap.makeTD("<input type='button' id='caap_ActionList' value='Modify Action Order' style='padding: 0; font-size: 10px; height: 18px' />");
+                htmlCode += caap.endTR;
                 htmlCode += "<form><fieldset><legend>Database</legend>";
                 htmlCode += caap.makeDropDownTR("Which Data", 'DataSelect', caap.exportList(), '', '', 'Config', true, false, 50);
                 htmlCode += caap.startTR();
@@ -4463,6 +4467,7 @@
                     caap.deleteDialog(val);
                 });
 
+                $j('#caap_ActionList', caap.caapDivObject).click(caap.actionDialog);
                 $j('#caap_FillArmy', caap.caapDivObject).click(function (e) {
                     state.setItem("FillArmy", true);
                     state.setItem("ArmyCount", 0);
@@ -7105,6 +7110,15 @@
             'health'  : 'army',
             'army'    : 'attack'
         },
+
+        festivalBlessGeneral: {
+            'attack'  : 'DuelGeneral',
+            'defense' : 'FortifyGeneral',
+            'energy'  : 'IdleGeneral',
+            'stamina' : 'IdleGeneral',
+            'health'  : 'IdleGeneral',
+            'army'    : 'InvadeGeneral'
+        },
         /*jslint sub: false */
 
         festivalBlessResults: function () {
@@ -7141,11 +7155,18 @@
         festivalBless: function () {
             var autoBless  = config.getItem('festivalBless', 'None'),
                 capPic     = 'festival_capsule_' + autoBless.toLowerCase() + '.gif',
+                general    = caap.festivalBlessGeneral[autoBless.toLowerCase()],
+                luGeneral  = config.getItem('LevelUpGeneral', 'Use Current'),
                 picSlice   = $j(),
                 txt        = '';
 
             if (autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
                 return false;
+            }
+
+            general = general === 'IdleGeneral' ? (luGeneral !== 'Use Current' ? 'LevelUpGeneral' : general) : general;
+            if (general.Select(general)) {
+                return true;
             }
 
             if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
@@ -7581,6 +7602,19 @@
             }
         },
 
+        checkAllGenerals: function () {
+            try {
+                if (!schedule.check("allGenerals")) {
+                    return false;
+                }
+
+                return general.GetAllStats();
+            } catch (err) {
+                $u.error("ERROR in checkAllGenerals: " + err);
+                return false;
+            }
+        },
+
         checkSoldiers: function () {
             try {
                 if (!schedule.check("soldiers")) {
@@ -7667,6 +7701,20 @@
                 return false;
             }
         },
+
+        checkArmy: function () {
+            try {
+                if (!config.getItem("EnableArmy", true) || !schedule.check("army_member")) {
+                    return false;
+                }
+
+                return army.run();
+            } catch (err) {
+                $u.error("ERROR in checkArmy: " + err);
+                return false;
+            }
+        },
+
         /*jslint sub: false */
 
         checkGift: function () {
@@ -10564,7 +10612,7 @@
         //                              AUTOGIFT
         /////////////////////////////////////////////////////////////////////
 
-        AjaxGiftCheck: function () {
+        ajaxGiftCheck: function () {
             try {
                 if (config.getItem('bookmarkMode', false) || !config.getItem('AutoGift', false) || !schedule.check("ajaxGiftCheck")) {
                     return false;
@@ -11349,71 +11397,7 @@
                 state.setItem('resetselectMonster', false);
             }
 
-            if (caap.checkGenerals()) {
-                return true;
-            }
-
-            if (general.GetAllStats()) {
-                return true;
-            }
-
-            if (caap.checkKeep()) {
-                return true;
-            }
-
-            if (caap.checkAchievements()) {
-                return true;
-            }
-
-            if (caap.AjaxGiftCheck()) {
-                return true;
-            }
-
-            if (caap.reconPlayers()) {
-                return true;
-            }
-
-            if (caap.checkOracle()) {
-                return true;
-            }
-
-            if (caap.checkBattleRank()) {
-                return true;
-            }
-
-            if (caap.checkWarRank()) {
-                return true;
-            }
-
-            if (caap.checkSymbolQuests()) {
-                return true;
-            }
-
-            if (caap.checkSoldiers()) {
-                return true;
-            }
-
-            if (caap.checkItem()) {
-                return true;
-            }
-
-            if (caap.checkMagic()) {
-                return true;
-            }
-
-            if (caap.checkCharacterClasses()) {
-                return true;
-            }
-
-            if (army.run()) {
-                return true;
-            }
-
             if (caap.doCTAs()) {
-                return true;
-            }
-
-            if (caap.festivalBless()) {
                 return true;
             }
 
@@ -11655,28 +11639,44 @@
         /////////////////////////////////////////////////////////////////////
 
         actionDescTable: {
-            'autoIncome'         : 'Awaiting Income',
-            'autoStat'           : 'Upgrade Skill Points',
-            'maxEnergyQuest'     : 'At Max Energy Quest',
-            'passiveGeneral'     : 'Setting Idle General',
-            'idle'               : 'Idle Tasks',
-            'immediateBanking'   : 'Immediate Banking',
-            'battle'             : 'Battling Players',
-            'monsterReview'      : 'Review Monsters/Raids',
-            'guildMonsterReview' : 'Review Guild Monsters',
-            'immediateAutoStat'  : 'Immediate Auto Stats',
-            'autoElite'          : 'Fill Elite Guard',
-            'autoPotions'        : 'Auto Potions',
-            'autoAlchemy'        : 'Auto Alchemy',
-            'autoBless'          : 'Auto Bless',
-            'autoGift'           : 'Auto Gifting',
-            'demiPoints'         : 'Demi Points First',
-            'monsters'           : 'Fighting Monsters',
-            'guildMonster'       : 'Fight Guild Monster',
-            'heal'               : 'Auto Healing',
-            'bank'               : 'Auto Banking',
-            'lands'              : 'Land Operations',
-            'quests'             : 'Questing'
+            'autoIncome'            : 'Awaiting Income',
+            'autoStat'              : 'Upgrade Skill Points',
+            'maxEnergyQuest'        : 'At Max Energy Quest',
+            'passiveGeneral'        : 'Setting Idle General',
+            'idle'                  : 'Idle Tasks',
+            'immediateBanking'      : 'Immediate Banking',
+            'battle'                : 'Battling Players',
+            'monsterReview'         : 'Review Monsters/Raids',
+            'guildMonsterReview'    : 'Review Guild Monsters',
+            'immediateAutoStat'     : 'Immediate Auto Stats',
+            'autoElite'             : 'Fill Elite Guard',
+            'autoPotions'           : 'Auto Potions',
+            'autoAlchemy'           : 'Auto Alchemy',
+            'autoBless'             : 'Auto Bless',
+            'autoGift'              : 'Auto Gifting',
+            'demiPoints'            : 'Demi Points First',
+            'monsters'              : 'Fighting Monsters',
+            'guildMonster'          : 'Fight Guild Monster',
+            'heal'                  : 'Auto Healing',
+            'bank'                  : 'Auto Banking',
+            'lands'                 : 'Land Operations',
+            'quests'                : 'Questing',
+            'checkGenerals'         : 'Checking Generals',
+            'checkAllGenerals'      : 'Getting Generals Stats',
+            'checkArmy'             : 'Checking Army',
+            'checkKeep'             : 'Checking Keep',
+            'ajaxGiftCheck'         : 'Ajax Gift Check',
+            'checkAchievements'     : 'Achievements',
+            'reconPlayers'          : 'Player Recon',
+            'checkOracle'           : 'Checking Oracle',
+            'checkBattleRank'       : 'Battle Rank',
+            'checkWarRank'          : 'War Rank',
+            'checkSymbolQuests'     : 'Demi Blessing Stats',
+            'checkSoldiers'         : 'Getting Soldiers',
+            'checkItem'             : 'Getting Items',
+            'checkMagic'            : 'Getting Magic',
+            'checkCharacterClasses' : 'Character Classes',
+            'festivalBless'         : 'Festival Feats'
         },
         /*jslint sub: false */
 
@@ -11706,21 +11706,37 @@
             //0x05: 'arenaReview',
             0x06: 'guildMonsterReview',
             0x07: 'monsterReview',
-            0x08: 'guildMonster',
-            //0x09: 'arena',
+            //0x08: 'arena',
+            0x09: 'guildMonster',
             0x0A: 'demiPoints',
             0x0B: 'monsters',
             0x0C: 'battle',
             0x0D: 'quests',
             0x0E: 'bank',
             0x0F: 'passiveGeneral',
-            0x10: 'lands',
-            0x11: 'autoBless',
-            0x12: 'autoStat',
-            0x13: 'autoGift',
-            0x14: 'autoPotions',
-            0x15: 'autoAlchemy',
-            0x16: 'idle'
+            0x10: 'checkGenerals',
+            0x11: 'checkAllGenerals',
+            0x12: 'checkArmy',
+            0x13: 'lands',
+            0x14: 'autoBless',
+            0x15: 'autoStat',
+            0x16: 'autoGift',
+            0x17: 'checkKeep',
+            0x18: 'autoPotions',
+            0x19: 'autoAlchemy',
+            0x1A: 'checkAchievements',
+            0x1B: 'ajaxGiftCheck',
+            0x1C: 'reconPlayers',
+            0x1D: 'checkOracle',
+            0x1E: 'checkBattleRank',
+            0x1F: 'checkWarRank',
+            0x20: 'checkSymbolQuests',
+            0x21: 'checkSoldiers',
+            0x22: 'checkItem',
+            0x23: 'checkMagic',
+            0x24: 'checkCharacterClasses',
+            0x25: 'festivalBless',
+            0x26: 'idle'
         },
 
         actionsList: [],
@@ -11735,7 +11751,7 @@
                     var action                = '',
                         actionOrderArray      = [],
                         masterActionListCount = 0,
-                        actionOrderUser       = gm.getItem("actionOrder", '', hiddenVar),
+                        actionOrderUser       = config.getItem("actionOrder", ''),
                         actionOrderArrayCount = 0,
                         itemCount             = 0,
                         actionItem            = '';
@@ -11818,31 +11834,11 @@
             } catch (err) {
                 // Something went wrong, log it and use the emergency Action List.
                 $u.error("ERROR in makeActionsList: " + err);
-                caap.actionsList = [
-                    "autoElite",
-                    "heal",
-                    "immediateBanking",
-                    "immediateAutoStat",
-                    "maxEnergyQuest",
-                    'guildMonsterReview',
-                    //"arenaReview",
-                    "monsterReview",
-                    'guildMonster',
-                    //'arena',
-                    "demiPoints",
-                    "monsters",
-                    "battle",
-                    "quests",
-                    "bank",
-                    'passiveGeneral',
-                    "lands",
-                    "autoBless",
-                    "autoStat",
-                    "autoGift",
-                    'autoPotions',
-                    "autoAlchemy",
-                    "idle"
-                ];
+                for (var jt in caap.masterActionList) {
+                    if (caap.masterActionList.hasOwnProperty(jt)) {
+                        caap.actionsList.push(caap.masterActionList[jt]);
+                    }
+                }
 
                 return false;
             }
@@ -11970,7 +11966,7 @@
                 }
 
                 if (caap.delayMain) {
-                    $u.log(1, 'Delay main ...');
+                    $u.log(2, 'Delay main ...');
                     caap.waitMainLoop();
                     return true;
                 }
@@ -11981,16 +11977,10 @@
                     return true;
                 }
 
-                caap.makeActionsList();
                 actionsListCopy = caap.actionsList.slice();
-                if (state.getItem('ReleaseControl', false)) {
-                    state.setItem('ReleaseControl', false);
-                } else {
-                    actionsListCopy.unshift(state.getItem('LastAction', 'idle'));
-                }
-
+                len = state.getItem('ReleaseControl', false) ? state.setItem('ReleaseControl', false) : actionsListCopy.unshift(state.getItem('LastAction', 'idle'));
                 monster.select();
-                for (action = 0, len = actionsListCopy.length; action < len; action += 1) {
+                for (action = 0, len = actionsListCopy.indexOf('idle') + 1; action < len; action += 1) {
                     if (caap[actionsListCopy[action]]()) {
                         caap.checkLastAction(actionsListCopy[action]);
                         break;
@@ -12069,6 +12059,7 @@
                     config.save();
                 },
                 'delete' : function () {
+                    config.options = {};
                     gm.deleteItem("config.options");
                 }
             },
@@ -12081,6 +12072,7 @@
                     state.save();
                 },
                 'delete' : function () {
+                    state.flags = {};
                     gm.deleteItem("state.flags");
                 }
             },
@@ -12093,6 +12085,7 @@
                     schedule.save();
                 },
                 'delete' : function () {
+                    schedule.timers = {};
                     gm.deleteItem("schedule.timers");
                 }
             },
@@ -12105,6 +12098,7 @@
                     monster.save();
                 },
                 'delete' : function () {
+                    monster.records = [];
                     gm.deleteItem("monster.records");
                 }
             },
@@ -12117,6 +12111,7 @@
                     battle.save();
                 },
                 'delete' : function () {
+                    battle.records = [];
                     gm.deleteItem("battle.records");
                 }
             },
@@ -12129,6 +12124,7 @@
                     guild_monster.save();
                 },
                 'delete' : function () {
+                    guild_monster.records = [];
                     gm.deleteItem("guild_monster.records");
                 }
             },
@@ -12141,6 +12137,7 @@
                     caap.saveRecon();
                 },
                 'delete' : function () {
+                    caap.reconRecords = [];
                     gm.deleteItem("recon.records");
                 }
             },
@@ -12153,6 +12150,7 @@
                     caap.saveStats();
                 },
                 'delete' : function () {
+                    caap.stats = {};
                     gm.deleteItem("stats.record");
                 }
             },
@@ -12165,6 +12163,7 @@
                     general.save();
                 },
                 'delete' : function () {
+                    general.records = [];
                     gm.deleteItem("general.records");
                 }
             },
@@ -12177,6 +12176,7 @@
                     town.save('soldiers');
                 },
                 'delete' : function () {
+                    town.soldiers = [];
                     gm.deleteItem("soldiers.records");
                 }
             },
@@ -12189,6 +12189,7 @@
                     town.save('item');
                 },
                 'delete' : function () {
+                    town.item = [];
                     gm.deleteItem("item.records");
                 }
             },
@@ -12201,6 +12202,7 @@
                     town.save('magic');
                 },
                 'delete' : function () {
+                    town.magic = [];
                     gm.deleteItem("magic.records");
                 }
             },
@@ -12213,6 +12215,7 @@
                     gifting.save('history');
                 },
                 'delete' : function () {
+                    gifting.history.records = [];
                     gm.deleteItem("gifting.history");
                 }
             },
@@ -12225,6 +12228,7 @@
                     gifting.save('queue');
                 },
                 'delete' : function () {
+                    gifting.queue.records = [];
                     gm.deleteItem("gifting.queue");
                 }
             },
@@ -12237,6 +12241,7 @@
                     gifting.save('gifts');
                 },
                 'delete' : function () {
+                    gifting.queue.records = [];
                     gm.deleteItem("gifting.gifts");
                 }
             },
@@ -12249,6 +12254,7 @@
                     arena.save();
                 },
                 'delete' : function () {
+                arena.records = [];
                     gm.deleteItem("arena.records");
                 }
             },*/
@@ -12261,6 +12267,7 @@
                     army.save();
                 },
                 'delete' : function () {
+                    army.records = [];
                     gm.deleteItem("army.records");
                 }
             },
@@ -12273,6 +12280,7 @@
                     caap.SaveDemi();
                 },
                 'delete' : function () {
+                    caap.demi = {};
                     gm.deleteItem("demipoint.records");
                 }
             }
@@ -12303,7 +12311,7 @@
 
                 if (!$u.hasContent(w)) {
                     h = "<textarea style='resize:none;width:400px;height:400px;' readonly='readonly'>" + JSON.stringify(data, null, "\t") + "</textarea>";
-                    w = $j('<div id="caap_export" title="Export ' + title + ' Data">' + h + '</div>').appendTo(document.body);
+                    w = $j('<div id="caap_export" class="caap_ff caap_fs" title="Export ' + title + ' Data">' + h + '</div>').appendTo(document.body);
                     w.dialog({
                         resizable : false,
                         width     : 'auto',
@@ -12328,15 +12336,15 @@
 
         importDialog: function (which) {
             try {
-                var h = '',
-                    w = $j("#caap_import"),
-                    l = {},
-                    v = '',
+                var h    = '',
+                    w    = $j("#caap_import"),
+                    l    = {},
+                    v    = '',
                     resp = false;
 
                 if (!$u.hasContent(w)) {
                     h = "<textarea id='caap_import_data' style='resize:none;width:400px;height:400px;'></textarea>";
-                    w = $j('<div id="caap_import" title="Import ' + which + ' Data">' + h + '</div>').appendTo(document.body);
+                    w = $j('<div id="caap_import" class="caap_ff caap_fs" title="Import ' + which + ' Data">' + h + '</div>').appendTo(document.body);
                     w.dialog({
                         resizable : false,
                         width     : 'auto',
@@ -12360,6 +12368,9 @@
                                 } else {
                                     $u.warn(which + " config was not loaded!", l);
                                 }
+                            },
+                            "Close": function () {
+                                w.dialog("destroy").remove();
                             }
                         },
                         close     : function () {
@@ -12387,6 +12398,91 @@
             } catch (err) {
                 $u.error("ERROR in caap.deleteDialog: " + err);
                 return false;
+            }
+        },
+
+        actionDialog: function () {
+            try {
+                var h  = '',
+                    w  = $j("#caap_action"),
+                    it = 0,
+                    jt = '',
+                    t  = '';
+
+                if (!$u.hasContent(w)) {
+                    for (it = 0; it < caap.actionsList.length; it += 1) {
+                        for (jt in caap.masterActionList) {
+                            if (caap.masterActionList.hasOwnProperty(jt)) {
+                                if (caap.actionsList[it] === caap.masterActionList[jt]) {
+                                    h += "<li id='caap_action_" + jt + "' class='" + (caap.masterActionList[jt] === 'idle' ? "ui-state-highlight" : "ui-state-default") + "'>" + caap.actionsList[it] + "</li>";
+                                }
+
+                                if (it === 0) {
+                                    t += $u.dec2hex(jt.parseInt()) + ',';
+                                }
+                            }
+                        }
+                    }
+
+                    t = t.substring(0, t.length - 1);
+                    w = $j('<div id="caap_action" class="caap_ff caap_fs" title="Action Order"><div style="margin:20px 0px; width: 150px; height: 480px;">' + caap.makeCheckTR('Disable AutoIncome', 'disAutoIncome', false, '') + '<ul class="caap_ul" id="caap_action_sortable">' + h + '</ul></div></div>').appendTo(document.body);
+                    w.dialog({
+                        resizable : false,
+                        modal     : true,
+                        width     : 'auto',
+                        height    : 'auto',
+                        buttons   : {
+                            "Ok": function () {
+                                var result = $j("#caap_action_sortable", w).sortable('toArray'),
+                                    s      = '';
+
+                                for (it = 0; it < result.length; it += 1) {
+                                    s += $u.dec2hex(result[it].regex(/(\d+)/)) + (it < result.length - 1 ? ',' : '');
+                                }
+
+                                if (s === t) {
+                                    $u.log(1, "Reset actionOrder to default", config.setItem("actionOrder", ''));
+                                } else {
+                                    $u.log(1, "Saved actionOrder to user preference", config.setItem("actionOrder", s));
+                                }
+
+                                $u.log(1, "Change: setting 'disAutoIncome' to ", config.setItem("disAutoIncome", $j("#caap_disAutoIncome", w).attr("checked")));
+                                w.dialog("destroy").remove();
+                                caap.actionsList = [];
+                                caap.makeActionsList();
+                            },
+                            "Reset": function () {
+                                $u.log(1, "Reset actionOrder to default", config.setItem("actionOrder", ''));
+                                $u.log(1, "Change: setting 'disAutoIncome' to ", config.setItem("disAutoIncome", false));
+                                $j("#caap_disAutoIncome", w).attr("checked", false);
+                                caap.actionsList = [];
+                                caap.makeActionsList();
+                                var ht = '',
+                                    xt = '';
+
+                                for (xt in caap.masterActionList) {
+                                    if (caap.masterActionList.hasOwnProperty(xt)) {
+                                        ht += "<li id='caap_action_" + xt + "' class='" + (caap.masterActionList[xt] === 'idle' ? "ui-state-highlight" : "ui-state-default") + "'>" + caap.masterActionList[xt] + "</li>";
+                                    }
+                                }
+
+                                $j("#caap_action_sortable", w).html(ht).sortable("refresh");
+                            }
+                        },
+                        close     : function () {
+                            w.dialog("destroy").remove();
+                        }
+                    });
+
+                    $j("#caap_action_sortable", w).sortable({
+                        containment: w
+                    }).disableSelection();
+                }
+
+                return w;
+            } catch (err) {
+                $u.error("ERROR in caap.actionDialog: " + err);
+                return undefined;
             }
         },
 

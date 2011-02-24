@@ -277,10 +277,6 @@
 
         run: function () {
             try {
-                if (!config.getItem("EnableArmy", true) || !schedule.check("army_member")) {
-                    return false;
-                }
-
                 var expectedPageCount = 0,
                     currentPage       = 0,
                     scanDays          = $u.setContent(config.getItem("ArmyScanDays", 7), 7);

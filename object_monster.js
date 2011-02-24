@@ -128,7 +128,7 @@
                 siegeDam     : [1340000, 2680000, 5360000, 14700000, 28200000, 37520000],
                 siege_img    : ['/graphics/monster_siege_small'],
                 staUse       : 10,
-                staLvl       : [0, 100, 200, 300, 400],
+                staLvl       : [0, 100, 200, 400, 400],
                 staMax       : [10, 20, 50,  100, 200]
             },
             'Legion' : {

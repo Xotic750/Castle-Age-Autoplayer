@@ -867,7 +867,6 @@
                         levelm     = [],
                         tempTxt    = '',
                         tNum       = 0,
-                        tempArr    = [],
                         tempTime   = -1,
                         tempRecord = new battle.record();
 

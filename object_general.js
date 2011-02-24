@@ -643,10 +643,6 @@
 
         GetAllStats: function () {
             try {
-                if (!schedule.check("allGenerals")) {
-                    return false;
-                }
-
                 var generalImage = '',
                     it           = 0,
                     len          = 0,
@@ -735,6 +731,8 @@
                     LevelUpGenInstructions11 = "EXPERIMENTAL: Enables the Quest 'Not Fortifying' mode after level up.",
                     LevelUpGenInstructions12 = "Use the Level Up General for Guild Monster mode.",
                     //LevelUpGenInstructions13 = "Use the Level Up General for Arena mode.",
+                    LevelUpGenInstructions14 = "Use the Level Up General for Buy mode.",
+                    LevelUpGenInstructions15 = "Use the Level Up General for Collect mode.",
                     dropDownItem = 0,
                     htmlCode = '';
 
@@ -761,6 +759,8 @@
                 htmlCode += caap.makeCheckTR("Gen For Wars", 'WarLevelUpGeneral', true, LevelUpGenInstructions6, true, false);
                 //htmlCode += caap.makeCheckTR("Gen For Arena", 'ArenaLevelUpGeneral', true, LevelUpGenInstructions13, true, false);
                 htmlCode += caap.makeCheckTR("Gen For SubQuests", 'SubQuestLevelUpGeneral', true, LevelUpGenInstructions7, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Buy", 'BuyLevelUpGeneral', true, LevelUpGenInstructions14, true, false);
+                htmlCode += caap.makeCheckTR("Gen For Collect", 'CollectLevelUpGeneral', true, LevelUpGenInstructions15, true, false);
                 htmlCode += caap.makeCheckTR("Gen For MainQuests", 'QuestLevelUpGeneral', false, LevelUpGenInstructions8, true, false);
                 htmlCode += caap.makeCheckTR("Don't Bank After", 'NoBankAfterLvl', true, LevelUpGenInstructions9, true, false);
                 htmlCode += caap.makeCheckTR("Don't Income After", 'NoIncomeAfterLvl', true, LevelUpGenInstructions10, true, false);

@@ -24,11 +24,14 @@
             }
         },
 
-        caap: ".caap_ff {font-family: 'Lucida Grande', tahoma, verdana, arial, sans-serif;}" +
+        caap: ".caap_ff .ui-dialog-title {font-family: 'Lucida Grande', tahoma, verdana, arial, sans-serif;}" +
               ".caap_fs {font-size: 10px;}" +
               ".caap_fn {font-size: 11px;}" +
+              ".ui-dialog-title {font-size: 11px;}" +
+              ".ui-button-text {font-size: 11px;}" +
               ".caap_ww {width: 100%;}" +
               ".caap_in {padding-left: 5%;}" +
+              ".caap_ul {list-style-type: none; padding: 0px; margin: 0px;}" +
               ".caap_tr {text-align: right;}",
 
         farbtastic: ".farbtastic {position: relative;}" +
