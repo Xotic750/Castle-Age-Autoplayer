@@ -11,7 +11,7 @@
                     $j("<link>").appendTo("head").attr({
                         rel  : "stylesheet",
                         type : "text/css",
-                        href : "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/themes/smoothness/jquery-ui.css"
+                        href : "http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/themes/smoothness/jquery-ui.css"
                     });
                 }
 
@@ -29,9 +29,10 @@
               ".caap_fn {font-size: 11px;}" +
               ".ui-dialog-title {font-size: 11px;}" +
               ".ui-button-text {font-size: 11px;}" +
+              ".ui-state-highlight {height: 11px; line-height: 10px;}" +
               ".caap_ww {width: 100%;}" +
               ".caap_in {padding-left: 5%;}" +
-              ".caap_ul {list-style-type: none; padding: 0px; margin: 0px;}" +
+              ".caap_ul {list-style-type: none; padding: 0px; margin: 0px; height: 11px; line-height: 10px;}" +
               ".caap_tr {text-align: right;}",
 
         farbtastic: ".farbtastic {position: relative;}" +

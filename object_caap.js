@@ -7022,80 +7022,89 @@
         blessingPerformed: false,
 
         blessingResults: function () {
-            var hours   = 0,
-                minutes = 0,
-                done    = false;
+            try {
+                var hours   = 0,
+                    minutes = 0,
+                    done    = false;
 
-            if (caap.blessingPerformed) {
-                if (/Please come back in:/i.test(caap.resultsText)) {
-                    // Check time until next Oracle Blessing
-                    hours = $u.setContent(caap.resultsText.regex(/(\d+) hour/i), 3);
-                    minutes = $u.setContent(caap.resultsText.regex(/(\d+) minute/i), 0);
-                    done = true;
-                } else if (/You have paid tribute to/i.test(caap.resultsText)) {
-                    // Recieved Demi Blessing.  Wait X hours to try again.
-                    hours = /Azeron/i.test(caap.resultsText) ? 48 : 24;
-                    done = true;
-                } else {
-                    if ($u.hasContent(caap.resultsText)) {
-                        $u.warn("Unknown blessing result text", caap.resultsText);
+                if (caap.blessingPerformed) {
+                    if (/Please come back in:/i.test(caap.resultsText)) {
+                        // Check time until next Oracle Blessing
+                        hours = $u.setContent(caap.resultsText.regex(/(\d+) hour/i), 3);
+                        minutes = $u.setContent(caap.resultsText.regex(/(\d+) minute/i), 0);
+                        done = true;
+                    } else if (/You have paid tribute to/i.test(caap.resultsText)) {
+                        // Recieved Demi Blessing.  Wait X hours to try again.
+                        hours = /Azeron/i.test(caap.resultsText) ? 48 : 24;
+                        done = true;
+                    } else {
+                        if ($u.hasContent(caap.resultsText)) {
+                            $u.warn("Unknown blessing result text", caap.resultsText);
+                        }
                     }
-                }
 
-                if (done) {
-                    $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
-                    schedule.setItem('BlessingTimer', (hours * 60 + minutes + 5) * 60, 300);
-                }
+                    if (done) {
+                        $u.log(2, 'Recorded Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
+                        schedule.setItem('BlessingTimer', (hours * 60 + minutes + 5) * 60, 300);
+                    }
 
-                caap.blessingPerformed = false;
+                    caap.blessingPerformed = false;
+                }
+            } catch (err) {
+                $u.error("ERROR in blessingResults: " + err);
             }
         },
 
         autoBless: function () {
-            if (caap.blessingPerformed) {
+            try {
+                if (caap.blessingPerformed) {
+                    return true;
+                }
+
+                var autoBless  = config.getItem('AutoBless', 'none'),
+                    autoBlessN = caap.deityTable[autoBless.toLowerCase()],
+                    picSlice   = $j(),
+                    descSlice  = $j();
+
+                if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
+                    return false;
+                }
+
+                if (caap.navigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
+                    return true;
+                }
+
+                picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + autoBlessN, caap.appBodyDiv);
+                if (!$u.hasContent(picSlice)) {
+                    $u.warn('No diety image for', autoBless);
+                    return false;
+                }
+
+                descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + autoBlessN, caap.appBodyDiv);
+                if (!$u.hasContent(descSlice)) {
+                    $u.warn('No diety description for', autoBless);
+                    return false;
+                }
+
+                if (descSlice.css('display') === 'none') {
+                    return caap.navigateTo(picSlice.attr("src").basename());
+                }
+
+                picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbols_form_" + autoBlessN + " input[name='symbolsubmit']", descSlice);
+                if (!$u.hasContent(picSlice)) {
+                    $u.warn('No image for deity blessing', autoBless);
+                    return false;
+                }
+
+                $u.log(1, 'Click deity blessing for', autoBless, autoBlessN);
+                schedule.setItem('BlessingTimer', 300, 300);
+                caap.blessingPerformed = true;
+                caap.click(picSlice);
                 return true;
-            }
-
-            var autoBless  = config.getItem('AutoBless', 'none'),
-                autoBlessN = caap.deityTable[autoBless.toLowerCase()],
-                picSlice   = $j(),
-                descSlice  = $j();
-
-            if (!$u.hasContent(autoBlessN) || !schedule.check('BlessingTimer')) {
+            } catch (err) {
+                $u.error("ERROR in autoBless: " + err);
                 return false;
             }
-
-            if (caap.navigateTo('quests,demi_quest_off', 'demi_quest_bless')) {
-                return true;
-            }
-
-            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + autoBlessN, caap.appBodyDiv);
-            if (!$u.hasContent(picSlice)) {
-                $u.warn('No diety image for', autoBless);
-                return false;
-            }
-
-            descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + autoBlessN, caap.appBodyDiv);
-            if (!$u.hasContent(descSlice)) {
-                $u.warn('No diety description for', autoBless);
-                return false;
-            }
-
-            if (descSlice.css('display') === 'none') {
-                return caap.navigateTo(picSlice.attr("src").basename());
-            }
-
-            picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbols_form_" + autoBlessN + " input[name='symbolsubmit']", descSlice);
-            if (!$u.hasContent(picSlice)) {
-                $u.warn('No image for deity blessing', autoBless);
-                return false;
-            }
-
-            $u.log(1, 'Click deity blessing for', autoBless, autoBlessN);
-            schedule.setItem('BlessingTimer', 300, 300);
-            caap.blessingPerformed = true;
-            caap.click(picSlice);
-            return true;
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -7122,89 +7131,98 @@
         /*jslint sub: false */
 
         festivalBlessResults: function () {
-            var hours     = 0,
-                minutes   = 0,
-                tDiv      = $j(),
-                txt       = '',
-                autoBless = config.getItem('festivalBless', 'None');
+            try {
+                var hours     = 0,
+                    minutes   = 0,
+                    tDiv      = $j(),
+                    txt       = '',
+                    autoBless = config.getItem('festivalBless', 'None');
 
-            if (autoBless !== 'None') {
-                tDiv = $j("div[style*='festival_feats_bottom.jpg']", caap.globalContainer);
-                txt = $u.setContent(tDiv.text(), '').trim().innerTrim().regex(/(\d+:\d+)/);
-                if ($u.hasContent(txt)) {
-                    // Check time until next Festival Blessing
-                    hours = $u.setContent(txt.regex(/(\d+):/), 0);
-                    minutes = $u.setContent(txt.regex(/:(\d+)/), 30);
-                    $u.log(2, 'Recorded Festival Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
-                    schedule.setItem('festivalBlessTimer', (hours * 60 + minutes + 5) * 60, 300);
-                }
+                if (autoBless !== 'None') {
+                    tDiv = $j("div[style*='festival_feats_bottom.jpg']", caap.globalContainer);
+                    txt = $u.setContent(tDiv.text(), '').trim().innerTrim().regex(/(\d+:\d+)/);
+                    if ($u.hasContent(txt)) {
+                        // Check time until next Festival Blessing
+                        hours = $u.setContent(txt.regex(/(\d+):/), 0);
+                        minutes = $u.setContent(txt.regex(/:(\d+)/), 30);
+                        $u.log(2, 'Recorded Festival Blessing Time. Scheduling next click! ' + hours + ':' + (minutes < 10 ? '0' + minutes : minutes));
+                        schedule.setItem('festivalBlessTimer', (hours * 60 + minutes + 5) * 60, 300);
+                    }
 
-                tDiv = $j("div[style*='festival_victory_popup.jpg']", caap.globalContainer);
-                if ($u.hasContent(tDiv)) {
-                    $u.log(1, "Festival Feat Victory!");
-                } else {
-                    tDiv = $j("div[style*='festival_defeat_popup.jpg']", caap.globalContainer);
+                    tDiv = $j("div[style*='festival_victory_popup.jpg']", caap.globalContainer);
                     if ($u.hasContent(tDiv)) {
-                        $u.log(1, "Festival Feat Defeat!");
-                        $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                        $u.log(1, "Festival Feat Victory!");
+                    } else {
+                        tDiv = $j("div[style*='festival_defeat_popup.jpg']", caap.globalContainer);
+                        if ($u.hasContent(tDiv)) {
+                            $u.log(1, "Festival Feat Defeat!");
+                            $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                        }
                     }
                 }
+            } catch (err) {
+                $u.error("ERROR in festivalBlessResults: " + err);
             }
         },
 
         festivalBless: function () {
-            var autoBless  = config.getItem('festivalBless', 'None'),
-                capPic     = 'festival_capsule_' + autoBless.toLowerCase() + '.gif',
-                general    = caap.festivalBlessGeneral[autoBless.toLowerCase()],
-                luGeneral  = config.getItem('LevelUpGeneral', 'Use Current'),
-                picSlice   = $j(),
-                txt        = '';
+            try {
+                var autoBless  = config.getItem('festivalBless', 'None'),
+                    capPic     = 'festival_capsule_' + autoBless.toLowerCase() + '.gif',
+                    tgeneral   = caap.festivalBlessGeneral[autoBless.toLowerCase()],
+                    luGeneral  = config.getItem('LevelUpGeneral', 'Use Current'),
+                    picSlice   = $j(),
+                    txt        = '';
 
-            if (autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
+                if (autoBless === 'None' || !schedule.check('festivalBlessTimer')) {
+                    return false;
+                }
+
+                tgeneral = tgeneral === 'IdleGeneral' ? (luGeneral !== 'Use Current' ? 'LevelUpGeneral' : tgeneral) : tgeneral;
+                if (general.Select(tgeneral)) {
+                    return true;
+                }
+
+                if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
+                    return true;
+                }
+
+                txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
+                if (/Mastered/i.test(txt)) {
+                    $u.log(1, 'Area Completed!', autoBless);
+                    $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+
+                if (!new RegExp(autoBless).test(txt)) {
+                    $u.warn('No match for text', autoBless);
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+
+                picSlice = $j("img[src*='festival_feat_completedbutton.jpg']", caap.appBodyDiv);
+                if ($u.hasContent(picSlice)) {
+                    $u.log(1, 'Area Completed!', autoBless);
+                    $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+
+                picSlice = $j("input[src*='festival_feat_testbutton.jpg']", caap.appBodyDiv);
+                if (!$u.hasContent(picSlice)) {
+                    $u.warn('No blessing button', autoBless);
+                    caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
+                    return false;
+                }
+
+                $u.log(1, 'Click blessing button for', autoBless);
+                schedule.setItem('festivalBlessTimer', 300, 300);
+                return caap.click(picSlice);
+            } catch (err) {
+                $u.error("ERROR in festivalBless: " + err);
                 return false;
             }
-
-            general = general === 'IdleGeneral' ? (luGeneral !== 'Use Current' ? 'LevelUpGeneral' : general) : general;
-            if (general.Select(general)) {
-                return true;
-            }
-
-            if (caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav,' + capPic, 'festival_feats_bottom.jpg')) {
-                return true;
-            }
-
-            txt = $u.setContent($j("div[style*='festival_feats_middle.jpg'] strong", caap.appBodyDiv).text(), '').trim().innerTrim();
-            if (/Mastered/i.test(txt)) {
-                $u.log(1, 'Area Completed!', autoBless);
-                $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-
-            if (!new RegExp(autoBless).test(txt)) {
-                $u.warn('No match for text', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-
-            picSlice = $j("img[src*='festival_feat_completedbutton.jpg']", caap.appBodyDiv);
-            if ($u.hasContent(picSlice)) {
-                $u.log(1, 'Area Completed!', autoBless);
-                $j("#caap_festivalBless", caap.caapDivObject).val(config.setItem('festivalBless', caap.festivalBlessTable[autoBless.toLowerCase()].ucFirst()));
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-
-            picSlice = $j("input[src*='festival_feat_testbutton.jpg']", caap.appBodyDiv);
-            if (!$u.hasContent(picSlice)) {
-                $u.warn('No blessing button', autoBless);
-                caap.navigateTo('soldiers,tab_festival_off.jpg,festival_feat_nav');
-                return false;
-            }
-
-            $u.log(1, 'Click blessing button for', autoBless);
-            schedule.setItem('festivalBlessTimer', 300, 300);
-            return caap.click(picSlice);
         },
 
         /////////////////////////////////////////////////////////////////////
@@ -12475,7 +12493,8 @@
                     });
 
                     $j("#caap_action_sortable", w).sortable({
-                        containment: w
+                        containment: w,
+                        placeholder: "ui-state-highlight"
                     }).disableSelection();
                 }
 

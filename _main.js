@@ -73,7 +73,7 @@
             $j = window.jQuery.noConflict();
             if (!window.jQuery.ui) {
                 caap_log("Inject jQueryUI.");
-                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js');
+                injectScript('http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.10/jquery-ui.min.js');
             }
 
             caap_WaitForjQueryUI();
