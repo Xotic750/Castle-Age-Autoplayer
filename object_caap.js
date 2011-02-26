@@ -1575,6 +1575,7 @@
 
                 htmlCode += caap.startToggle('Festival', 'FESTIVAL OPTIONS');
                 htmlCode += caap.makeDropDownTR("Feats", 'festivalBless', festivalBlessList, '', '', '', false, false, 62);
+                htmlCode += caap.makeCheckTR('Enable Tower', 'festivalTower', false, '');
                 htmlCode += caap.endToggle;
                 return htmlCode;
             } catch (err) {
@@ -1949,7 +1950,7 @@
                     str                      = '',
                     header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
                     data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
-                    linkRegExp               = new RegExp("'(http:.+)'"),
+                    linkRegExp               = new RegExp("'(http.+)'"),
                     statsRegExp              = new RegExp("caap_.*Stats_"),
                     handler                  = null;
 
@@ -2066,10 +2067,10 @@
                         }
 
                         if (monsterObjLink) {
-                            removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").match(linkRegExp);
+                            removeLink = monsterObjLink.replace("casuser", "remove_list").replace("&action=doObjective", "").regex(linkRegExp) + (monsterObj['page'] === 'festival_tower' ? '&remove_monsterKey=' + monsterObj['mid'].replace("&mid=", "") : '');
                             removeLinkInstructions = "Clicking this link will remove " + monsterObj['name'] + " from both CA and CAAP!";
                             data = {
-                                text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj['name'] + '" rlink="' + removeLink[1] +
+                                text  : '<span id="caap_remove_' + count + '" title="' + removeLinkInstructions + '" mname="' + monsterObj['name'] + '" rlink="' + removeLink +
                                         '" onmouseover="this.style.cursor=\'pointer\';" onmouseout="this.style.cursor=\'default\';" class="ui-icon ui-icon-circle-close">X</span>',
                                 color : 'blue',
                                 id    : '',
@@ -3791,6 +3792,9 @@
                     state.setItem('staminaGuildMonster', 0);
                     schedule.setItem("guildMonsterReview", 0);
                     break;
+                case "festivalTower" :
+                    monster.flagFullReview();
+                    break;
                 default :
                 }
 
@@ -4776,6 +4780,14 @@
             'festival_challenge': {
                 signaturePic: 'festival_rankbarslider.gif',
                 CheckResultsFunction: 'festivalBlessResults'
+            },
+            'festival_tower': {
+                signaturePic: 'festival_monster_towerlist_button.jpg',
+                CheckResultsFunction: 'checkResults_fightList'
+            },
+            'festival_battle_monster': {
+                signaturePic: 'festival_achievement_monster_',
+                CheckResultsFunction: 'checkResults_viewFight'
             }
         },
 
@@ -7111,6 +7123,15 @@
         //                          FESTIVAL BLESSING
         /////////////////////////////////////////////////////////////////////
 
+        checkResults_festival_tower:  function () {
+            try {
+                return true;
+            } catch (err) {
+                $u.error("ERROR in checkResults_festival_tower: " + err);
+                return false;
+            }
+        },
+
         festivalBlessTable: {
             'attack'  : 'defense',
             'defense' : 'energy',
@@ -8489,7 +8510,7 @@
         /*jslint sub: true */
         checkResults_fightList: function () {
             try {
-                var buttonsDiv            = $j("img[src*='dragon_list_btn_']", caap.globalContainer),
+                var buttonsDiv            = $j("img[src*='dragon_list_btn_'],img[src*='festival_monster_']", caap.appBodyDiv),
                     page                  = '',
                     monsterReviewed       = {},
                     it                    = 0,
@@ -8501,7 +8522,7 @@
                     monsterName           = '',
                     monsterRow            = $j(),
                     monsterFull           = '',
-                    summonDiv             = $j("img[src*='mp_button_summon_']", caap.globalContainer),
+                    summonDiv             = $j("img[src*='mp_button_summon_'],img[src*='festival_monster_summonbtn.gif']", caap.appBodyDiv),
                     tempText              = '',
                     pageUserCheck         = 0;
 
@@ -8512,7 +8533,7 @@
                 }
 
                 page = state.getItem('page', 'battle_monster');
-                if (page === 'battle_monster' && !$u.hasContent(buttonsDiv)) {
+                if ((page === 'battle_monster' || page === 'festival_tower') && !$u.hasContent(buttonsDiv)) {
                     $u.log(2, "No monsters to review");
                     state.setItem('reviewDone', true);
                     return true;
@@ -8534,20 +8555,23 @@
                     }
 
                     monsterRow = buttonsDiv.eq(it).parents().eq(3);
-                    monsterFull = $u.setContent(monsterRow.text(), '').trim();
-                    monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').trim();
+                    monsterFull = $u.setContent(monsterRow.text(), '').trim().innerTrim();
+                    monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').trim().innerTrim();
                     monsterReviewed = monster.getItem(monsterName);
                     monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], monster.type(monsterName));
                     monsterReviewed['page'] = page;
-                    engageButtonName = $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
+                    engageButtonName = page === 'festival_tower' ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+).gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
                     switch (engageButtonName) {
+                    case 'collectbtn' :
                     case 'dragon_list_btn_2' :
                         monsterReviewed['status'] = 'Collect Reward';
                         monsterReviewed['color'] = 'grey';
                         break;
+                    case 'engagebtn' :
                     case 'dragon_list_btn_3' :
                         monster.engageButtons[monsterName] = $j(buttonsDiv.eq(it));
                         break;
+                    case 'viewbtn' :
                     case 'dragon_list_btn_4' :
                         if (page === 'raid' && !(/!/.test(monsterFull))) {
                             monster.engageButtons[monsterName] = $j(buttonsDiv.eq(it));
@@ -8555,8 +8579,8 @@
                         }
 
                         if (!$u.hasContent(monster.completeButton['raid']['button']) || !$u.hasContent(monster.completeButton['raid']['name'])) {
-                            monster.completeButton[page]['name'] = $u.setContent(monsterName, '');
-                            monster.completeButton[page]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
+                            monster.completeButton[page.replace("festival_tower", "battle_monster")]['name'] = $u.setContent(monsterName, '');
+                            monster.completeButton[page.replace("festival_tower", "battle_monster")]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
                         }
 
                         monsterReviewed['status'] = 'Complete';
@@ -8567,8 +8591,9 @@
 
                     monsterReviewed['userId'] = $u.setContent(url.regex(/user=(\d+)/), 0);
                     monsterReviewed['mpool'] = /mpool=\d+/.test(url) ? '&mpool=' + url.regex(/mpool=(\d+)/) : '';
+                    monsterReviewed['mid'] = page === 'festival_tower' ? '&mid=' + url.regex(/mid=(\S+)/) : '';
                     siege = monster.info[monsterReviewed['type']] && monster.info[monsterReviewed['type']].siege ? "&action=doObjective" : '';
-                    monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + page + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + siege + "'>Link</a>";
+                    monsterReviewed['link'] = "<a href='" + caap.domain.link + "/" + (page === 'festival_tower' ? 'festival_battle_monster' : page) + ".php?casuser=" + monsterReviewed['userId'] + monsterReviewed['mpool'] + $u.setContent(monsterReviewed['mid'], '') + siege + "'>Link</a>";
                     monster.setItem(monsterReviewed);
                 }
 
@@ -8589,6 +8614,18 @@
                 $u.error("ERROR in checkResults_fightList: " + err);
                 return false;
             }
+        },
+
+        festivalMonsterImgTable: {
+            'festival_monsters_top_seamonster_green.jpg'  : 'Emerald Sea Serpent',
+            'festival_monsters_top_seamonster_red.jpg'    : 'Ancient Red Sea Serpent',
+            'festival_monsters_top_seamonster_blue.jpg'   : 'Sapphire Sea Serpent',
+            'festival_monsters_top_seamonster_purple.jpg' : 'Amethyst Sea Serpent',
+            'festival_monsters_top_orcking.jpg'           : 'Gildamesh, The Orc King',
+            'festival_monsters_top_dragon_blue.jpg'       : 'Frost Dragon',
+            'festival_monsters_top_dragon_red.jpg'        : 'Ancient Red Dragon',
+            'festival_monsters_top_dragon_yellow.jpg'     : 'Gold Dragon',
+            'festival_monsters_top_stonegiant.jpg'        : 'Colossus of Terra'
         },
 
         checkResults_viewFight: function () {
@@ -8619,13 +8656,14 @@
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j(),
+                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='festival_monsters_top_']", caap.appBodyDiv),
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
                     targetFromfortify = {},
                     tStr              = '',
-                    tBool             = false;
+                    tBool             = false,
+                    fMonstStyle       = '';
 
                 battle.checkResults();
                 if (config.getItem("enableTitles", true)) {
@@ -8633,9 +8671,13 @@
                 }
 
                 caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
-                monsterDiv = $j("div[style*='dragon_title_owner']", caap.appBodyDiv);
                 if ($u.hasContent(monsterDiv)) {
-                    tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+.jpg)/);
+                    if ($u.hasContent(fMonstStyle)) {
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle]
+                    } else {
+                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                    }
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
                     if ($u.hasContent(monsterDiv)) {
@@ -8648,6 +8690,10 @@
                             return;
                         }
                     } else {
+                        if ($u.hasContent(fMonstStyle)) {
+                            $j().alert(fMonstStyle + "<br />I don't know this monster!<br />Please inform me.");
+                        }
+
                         $u.warn("Problem finding dragon_title_owner and nm_top");
                         return;
                     }
@@ -8660,6 +8706,7 @@
 
                 $u.log(2, "Monster name", tempText);
                 currentMonster = monster.getItem(tempText);
+                currentMonster['fImg'] = $u.setContent(fMonstStyle, '');
                 if (currentMonster['type'] === '') {
                     currentMonster['type'] = monster.type(currentMonster['name']);
                 }
@@ -8760,7 +8807,7 @@
                 damageDiv = $j("td[class='dragonContainer']:first td[valign='top']:first a[href*='user=" + caap.stats['FBID'] + "']:first", actionDiv);
                 if ($u.hasContent(damageDiv)) {
                     if (monsterInfo && monsterInfo.defense) {
-                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
+                        tempArr = $u.setContent(damageDiv.parent().parent().siblings(":last").text(), '').trim().innerTrim().regex(/([\d,]+ dmg) \/ ([\d,]+ def)/);
                         if ($u.hasContent(tempArr) && tempArr.length === 2) {
                             currentMonster['attacked'] = $u.setContent(tempArr[0], '0').numberOnly();
                             currentMonster['defended'] = $u.setContent(tempArr[1], '0').numberOnly();
@@ -8783,7 +8830,7 @@
 
                 tBool = /Raid/i.test(currentMonster['type']);
                 if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
-                    counter = state.getItem('monsterReviewCounter', -3);
+                    counter = state.getItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
                     if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.globalContainer)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.globalContainer)))) {
                         $u.log(2, 'Collecting Reward');
                         currentMonster['review'] = -1;
@@ -9154,14 +9201,45 @@
                 the monsterOl completely. Otherwise it will be our index into how far we are into
                 reviewing monsterOl.
                 \-------------------------------------------------------------------------------------*/
-                var counter  = state.getItem('monsterReviewCounter', -3),
+                var fCounter = config.getItem("festivalTower", false) ? -4 : -3,
+                    counter = state.getItem('monsterReviewCounter', fCounter),
                     link     = '',
                     tempTime = 0,
-                    isSiege  = false;
+                    isSiege  = false,
+                    listDiv  = $j(),
+                    button   = $j();
 
-                if (counter === -3) {
+                if (counter === fCounter) {
                     state.setItem('monsterReviewCounter', counter += 1);
                     return true;
+                }
+
+                // festival tower
+                if (config.getItem("festivalTower", false) && counter === -3) {
+                    if (caap.stats['level'] > 6) {
+                        if (caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
+                            state.setItem('reviewDone', false);
+                            return true;
+                        }
+                    } else {
+                        $u.log(1, "Monsters: Unlock at level 7");
+                        state.setItem('reviewDone', true);
+                    }
+
+                    if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
+                        caap.click(monster.completeButton['battle_monster']['button']);
+                        monster.deleteItem(monster.completeButton['battle_monster']['name']);
+                        monster.completeButton['battle_monster'] = {'name': undefined, 'button': undefined};
+                        caap.updateDashboard(true);
+                        $u.log(1, 'Cleared a completed monster');
+                        return true;
+                    }
+
+                    if (state.getItem('reviewDone', true)) {
+                        state.setItem('monsterReviewCounter', counter += 1);
+                    } else {
+                        return true;
+                    }
                 }
 
                 if (counter === -2) {
@@ -9320,7 +9398,7 @@
                 \-------------------------------------------------------------------------------------*/
                 schedule.setItem("monsterReview", gm.getItem('monsterReviewMins', 60, hiddenVar) * 60, 300);
                 state.setItem('resetselectMonster', true);
-                state.setItem('monsterReviewCounter', -3);
+                state.setItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
                 $u.log(1, 'Done with monster/raid review.');
                 caap.setDivContent('monster_mess', '');
                 caap.updateDashboard(true);
@@ -9422,7 +9500,7 @@
                     monsterName = state.getItem('targetFrombattle_monster', '');
                     monstType = monster.type(monsterName);
                     currentMonster = monster.getItem(monsterName);
-                    if (monsterName && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster['page'] === 'battle_monster') {
+                    if (monsterName && caap.checkStamina('Monster', state.getItem('MonsterStaminaReq', 1)) && currentMonster['page'].replace('festival_tower', 'battle_monster') === 'battle_monster') {
                         fightMode = 'Monster';
                     } else {
                         schedule.setItem('NotargetFrombattle_monster', 60);
@@ -9436,9 +9514,9 @@
                 }
 
                 // Check if on engage monster page
-                imageTest = monstType && monster.info[monstType].alpha ? 'nm_top' : 'dragon_title_owner';
+                imageTest = monstType && monster.info[monstType].alpha ? 'nm_top' : (config.getItem('festivalTower', false) && currentMonster['page'] === 'festival_tower' ? 'festival_monsters_top_' :'dragon_title_owner');
 
-                if ($u.hasContent($j("div[style*='" + imageTest + "']", caap.globalContainer))) {
+                if ($u.hasContent($j("div[style*='" + imageTest + "']", caap.appBodyDiv))) {
                     if (monster.ConfirmRightPage(monsterName)) {
                         return true;
                     }
@@ -9556,15 +9634,31 @@
                 }
 
                 ///////////////// Check For Monster Page \\\\\\\\\\\\\\\\\\\\\\
-                if (caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
-                    return true;
+                if (currentMonster['page'] === 'battle_monster') {
+                    if (caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
+                        return true;
+                    }
+                } else if (config.getItem('festivalTower', false) && currentMonster['page'] === 'festival_tower') {
+                    if (caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
+                        return true;
+                    }
+                } else {
+                    $u.warn('What kind of monster?', currentMonster);
+                    return false;
                 }
 
-                buttonHref = $u.setContent($j("img[src*='dragon_list_btn_']", caap.globalContainer).eq(0).parent().attr("href"), '');
+                buttonHref = $u.setContent($j("img[src*='dragon_list_btn_']", caap.appBodyDiv).eq(0).parent().attr("href"), '');
                 pageUserCheck = state.getItem('pageUserCheck', 0);
                 if (pageUserCheck && (!buttonHref || !new RegExp('user=' + caap.stats['FBID']).test(buttonHref) || !/alchemy\.php/.test(buttonHref))) {
                     $u.log(2, "On another player's keep.", pageUserCheck);
-                    return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
+                    if (currentMonster['page'] === 'battle_monster') {
+                        return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
+                    } else if (config.getItem('festivalTower', false) && currentMonster['page'] === 'festival_tower') {
+                        return caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg');
+                    } else {
+                        $u.warn('What kind of monster?', currentMonster);
+                        return false;
+                    }
                 }
 
                 if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
@@ -11989,7 +12083,7 @@
                     return true;
                 }
 
-                if (caap.autoIncome()) {
+                if (!config.setItem("disAutoIncome", false) && caap.autoIncome()) {
                     caap.checkLastAction('autoIncome');
                     caap.waitMainLoop();
                     return true;

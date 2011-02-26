@@ -25,6 +25,7 @@
                 'link'       : '',
                 'rix'        : -1,
                 'mpool'      : '',
+                'mid'        : '',
                 'over'       : '',
                 'page'       : '',
                 'color'      : '',
@@ -37,7 +38,8 @@
                 'stunTime'   : -1,
                 'stunDo'     : false,
                 'stunType'   : '',
-                'tip'        : ''
+                'tip'        : '',
+                'fImg'       : ''
             };
         },
         /*jslint sub: false */
@@ -780,7 +782,7 @@
         flagReview: function (force) {
             try {
                 schedule.setItem("monsterReview", 0);
-                state.setItem('monsterReviewCounter', -3);
+                state.setItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
                 return true;
             } catch (err) {
                 $u.error("ERROR in monster.flagReview: " + err);
@@ -875,8 +877,8 @@
                     monster.records[it]['conditions'] = 'none';
                     if (config.getItem('SerializeRaidsAndMonsters', false)) {
                         monsterList['any'].push(monster.records[it]['name']);
-                    } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'] === 'battle_monster')) {
-                        monsterList[monster.records[it]['page']].push(monster.records[it]['name']);
+                    } else if ((monster.records[it]['page'] === 'raid') || (monster.records[it]['page'].replace('festival_tower', 'battle_monster') === 'battle_monster')) {
+                        monsterList[monster.records[it]['page'].replace('festival_tower', 'battle_monster')].push(monster.records[it]['name']);
                     }
                 }
 
@@ -945,7 +947,7 @@
                             // If this monster does not match, skip to next one
                             // Or if this monster is dead, skip to next one
                             // Or if this monster is not the correct type, skip to next one
-                            if (!monsterList[selectTypes[s]][m].toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) || (selectTypes[s] !== 'any' && monsterObj['page'] !== selectTypes[s])) {
+                            if (!monsterList[selectTypes[s]][m].toLowerCase().hasIndexOf(attackOrderList[p].match(new RegExp("^[^:]+")).toString().trim().toLowerCase()) || (selectTypes[s] !== 'any' && monsterObj['page'].replace('festival_tower', 'battle_monster') !== selectTypes[s])) {
                                 continue;
                             }
 
@@ -1071,8 +1073,8 @@
                     // and stamina requirements
                     if (monsterName) {
                         monsterObj = monster.getItem(monsterName);
-                        state.setItem('targetFrom' + monsterObj['page'], monsterName);
-                        if (monsterObj['page'] === 'battle_monster') {
+                        state.setItem('targetFrom' + monsterObj['page'].replace('festival_tower', 'battle_monster'), monsterName);
+                        if (monsterObj['page'].replace('festival_tower', 'battle_monster') === 'battle_monster') {
                             nodeNum = 0;
                             if (!caap.inLevelUpMode() && monster.info[monsterObj['type']] && monster.info[monsterObj['type']].staLvl) {
                                 for (nodeNum = monster.info[monsterObj['type']].staLvl.length - 1; nodeNum >= 0; nodeNum -= 1) {
@@ -1134,12 +1136,18 @@
         ConfirmRightPage: function (monsterName) {
             try {
                 // Confirm name and type of monster
-                var monsterDiv = $j("div[style*='dragon_title_owner']", caap.globalContainer),
-                    tempDiv    = $j(),
-                    tempText   = '';
+                var monsterDiv  = $j("div[style*='dragon_title_owner'],div[style*='festival_monsters_top_']", caap.appBodyDiv),
+                    tempDiv     = $j(),
+                    tempText    = '',
+                    fMonstStyle = '';
 
                 if ($u.hasContent(monsterDiv)) {
-                    tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+.jpg)/);
+                    if ($u.hasContent(fMonstStyle)) {
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle]
+                    } else {
+                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                    }
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", caap.globalContainer);
                     if ($u.hasContent(monsterDiv)) {
