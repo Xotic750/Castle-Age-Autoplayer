@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            70
+// @dev            71
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "70",
+        devVersion    = "71",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -2595,6 +2595,27 @@
                 staMax       : [10, 20, 50,  100],
                 nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg'
+            },
+            "Overseer" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 640000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg'
             }
         },
 
@@ -3222,6 +3243,10 @@
                                 state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
                                 $u.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
                                 break;
+                            case 'Maalvus':
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Maalvus') === 4 ? 3 : 2));
+                                $u.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
+                                break;
                             default:
                             }
                         } else {
@@ -3253,9 +3278,9 @@
                     fMonstStyle = '';
 
                 if ($u.hasContent(monsterDiv)) {
-                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+.jpg)/);
+                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle]
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle];
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                     }
@@ -16565,7 +16590,7 @@
                     monsterReviewed = monster.getItem(monsterName);
                     monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], monster.type(monsterName));
                     monsterReviewed['page'] = page;
-                    engageButtonName = page === 'festival_tower' ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+).gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
+                    engageButtonName = page === 'festival_tower' ? $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/festival_monster_(\S+)\.gif/i) : $u.setContent(buttonsDiv.eq(it).attr("src"), '').regex(/(dragon_list_btn_\d)/i);
                     switch (engageButtonName) {
                     case 'collectbtn' :
                     case 'dragon_list_btn_2' :
@@ -16630,7 +16655,11 @@
             'festival_monsters_top_dragon_blue.jpg'       : 'Frost Dragon',
             'festival_monsters_top_dragon_red.jpg'        : 'Ancient Red Dragon',
             'festival_monsters_top_dragon_yellow.jpg'     : 'Gold Dragon',
-            'festival_monsters_top_stonegiant.jpg'        : 'Colossus of Terra'
+            'festival_monsters_top_stonegiant.jpg'        : 'Colossus of Terra',
+            'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, Sorceress Queen',
+            'festival_monsters_top_agamemnon.jpg'         : 'Agamemnon the Overseer',
+            'festival_monsters_top_skaar_boss.jpg'        : 'Skaar Deathrune',
+            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, Fire Elemental'
         },
 
         checkResults_viewFight: function () {
@@ -16677,9 +16706,9 @@
 
                 caap.chatLink(caap.appBodyDiv, "#" + caap.domain.id[caap.domain.which] + "chat_log div[style*='hidden'] div[style*='320px']");
                 if ($u.hasContent(monsterDiv)) {
-                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+.jpg)/);
+                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle]
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle];
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                     }
@@ -17495,6 +17524,10 @@
                     energyRequire = energyRequire * (general.GetLevel('Barbarus') === 4 ? 3 : 2);
                     $u.log(3, 'Monsters Fortify:Barbarus', energyRequire);
                     break;
+                case 'Maalvus':
+                    energyRequire = energyRequire * (general.GetLevel('Maalvus') === 4 ? 3 : 2);
+                    $u.log(3, 'Monsters Fortify:Maalvus', energyRequire);
+                    break;
                 default:
                 }
 
@@ -17643,7 +17676,7 @@
                     if (caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif')) {
                         return true;
                     }
-                } else if (config.getItem('festivalTower', false) && currentMonster['page'] === 'festival_tower') {
+                } else if (currentMonster['page'] === 'festival_tower') {
                     if (caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg')) {
                         return true;
                     }
@@ -17658,7 +17691,7 @@
                     $u.log(2, "On another player's keep.", pageUserCheck);
                     if (currentMonster['page'] === 'battle_monster') {
                         return caap.navigateTo('keep,battle_monster', 'tab_monster_list_on.gif');
-                    } else if (config.getItem('festivalTower', false) && currentMonster['page'] === 'festival_tower') {
+                    } else if (currentMonster['page'] === 'festival_tower') {
                         return caap.navigateTo('soldiers,festival_home,festival_tower', 'festival_monster_towerlist_button.jpg');
                     } else {
                         $u.warn('What kind of monster?', currentMonster);

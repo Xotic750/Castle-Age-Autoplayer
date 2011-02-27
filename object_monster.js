@@ -484,6 +484,27 @@
                 staMax       : [10, 20, 50,  100],
                 nrgMax       : [20, 40, 100, 200],
                 defense_img  : 'nm_green.jpg'
+            },
+            "Overseer" : {
+                alpha        : true,
+                duration     : 168,
+                hp           : 640000000,
+                ach          : 1000000,
+                siege        : 10,
+                siegeClicks  : [15, 30, 45, 60, 75, 100, 150, 200, 250, 300],
+                siegeDam     : [16000000, 19200000, 22400000, 25600000, 28800000, 32000000, 38400000, 41600000, 44800000, 51200000],
+                siege_img    : [
+                    '/graphics/earth_siege_small',
+                    '/graphics/castle_siege_small',
+                    '/graphics/skaar_siege_small',
+                    '/graphics/death_siege_small'
+                ],
+                fort         : true,
+                staUse       : 5,
+                staLvl       : [0, 100, 200, 500],
+                staMax       : [5, 10, 20, 50],
+                nrgMax       : [10, 20, 40, 100],
+                defense_img  : 'nm_green.jpg'
             }
         },
 
@@ -1111,6 +1132,10 @@
                                 state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Barbarus') === 4 ? 3 : 2));
                                 $u.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
                                 break;
+                            case 'Maalvus':
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Maalvus') === 4 ? 3 : 2));
+                                $u.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
+                                break;
                             default:
                             }
                         } else {
@@ -1142,9 +1167,9 @@
                     fMonstStyle = '';
 
                 if ($u.hasContent(monsterDiv)) {
-                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+.jpg)/);
+                    fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle]
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle];
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                     }
