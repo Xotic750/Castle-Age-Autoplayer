@@ -1947,6 +1947,7 @@
                     len                      = 0,
                     len1                     = 0,
                     len2                     = 0,
+                    duration                 = 0,
                     str                      = '',
                     header                   = {text: '', color: '', bgcolor: '', id: '', title: '', width: ''},
                     data                     = {text: '', color: '', bgcolor: '', id: '', title: ''},
@@ -2020,7 +2021,8 @@
                                     case 'time' :
                                         if ($u.hasContent(value) && value.length === 3) {
                                             value = value[0] + ":" + (value[1] < 10 ? '0' + value[1] : value[1]);
-                                            title = $u.hasContent(monster.info[monsterObj['type']]) && $u.isNumber(monster.info[monsterObj['type']].duration) ? "Total Monster Duration: " + monster.info[monsterObj['type']].duration + " hours" : '';
+                                            duration = (monsterObj['page'] === 'festival_tower' ? (caap.festivalMonsterImgTable[monsterObj['fImg']] ? caap.festivalMonsterImgTable[monsterObj['fImg']].duration : 192) : (monster.info[monsterObj['type']] ? monster.info[monsterObj['type']].duration : 192));
+                                            title = $u.hasContent(duration) ? "Total Monster Duration: " + duration + " hours" : '';
                                         } else {
                                             value = '';
                                         }
@@ -7239,7 +7241,8 @@
 
                 $u.log(1, 'Click blessing button for', autoBless);
                 schedule.setItem('festivalBlessTimer', 300, 300);
-                return caap.click(picSlice);
+                caap.click(picSlice);
+                return true;
             } catch (err) {
                 $u.error("ERROR in festivalBless: " + err);
                 return false;
@@ -8510,7 +8513,7 @@
         /*jslint sub: true */
         checkResults_fightList: function () {
             try {
-                var buttonsDiv            = $j("img[src*='dragon_list_btn_'],img[src*='festival_monster_']", caap.appBodyDiv),
+                var buttonsDiv            = $j("img[src*='dragon_list_btn_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_'" : "") + "]", caap.appBodyDiv),
                     page                  = '',
                     monsterReviewed       = {},
                     it                    = 0,
@@ -8522,7 +8525,7 @@
                     monsterName           = '',
                     monsterRow            = $j(),
                     monsterFull           = '',
-                    summonDiv             = $j("img[src*='mp_button_summon_'],img[src*='festival_monster_summonbtn.gif']", caap.appBodyDiv),
+                    summonDiv             = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif'" : "") + "]", caap.appBodyDiv),
                     tempText              = '',
                     pageUserCheck         = 0;
 
@@ -8617,23 +8620,82 @@
         },
 
         festivalMonsterImgTable: {
-            'festival_monsters_top_seamonster_green.jpg'  : 'Emerald Sea Serpent',
-            'festival_monsters_top_seamonster_red.jpg'    : 'Ancient Red Sea Serpent',
-            'festival_monsters_top_seamonster_blue.jpg'   : 'Sapphire Sea Serpent',
-            'festival_monsters_top_seamonster_purple.jpg' : 'Amethyst Sea Serpent',
-            'festival_monsters_top_orcking.jpg'           : 'Gildamesh, The Orc King',
-            'festival_monsters_top_dragon_blue.jpg'       : 'Frost Dragon',
-            'festival_monsters_top_dragon_red.jpg'        : 'Ancient Red Dragon',
-            'festival_monsters_top_dragon_yellow.jpg'     : 'Gold Dragon',
-            'festival_monsters_top_stonegiant.jpg'        : 'Colossus of Terra',
-            'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, the Sorceress Queen',
-            'festival_monsters_top_agamemnon.jpg'         : 'Agamemnon the Overseer',
-            'festival_monsters_top_skaar_boss.jpg'        : 'Skaar Deathrune',
-            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, The Fire Elemental',
-            'festival_monsters_top_hydra.jpg'             : 'Cronus, The World Hydra',
-            'festival_monsters_top_water_element.jpg'     : 'Ragnarok, The Ice Elemental',
-            'festival_monsters_top_earth_element.jpg'     : 'Genesis, The Earth Elemental',
-            'festival_monsters_top_mephistopheles.jpg'    : 'Mephistopheles'
+            'festival_monsters_top_seamonster_green.jpg'  : {
+                name     : 'Emerald Sea Serpent',
+                duration : 96
+            },
+            'festival_monsters_top_seamonster_red.jpg'    : {
+                name     : 'Ancient Red Sea Serpent',
+                duration : 89
+            },
+            'festival_monsters_top_seamonster_blue.jpg'   : {
+                name     : 'Sapphire Sea Serpent',
+                duration : 96
+            },
+            'festival_monsters_top_seamonster_purple.jpg' : {
+                name     : 'Amethyst Sea Serpent',
+                duration : 96
+            },
+            'festival_monsters_top_orcking.jpg'           : {
+                name     : 'Gildamesh, The Orc King',
+                duration : 96
+            },
+            'festival_monsters_top_dragon_blue.jpg'       : {
+                name     : 'Frost Dragon',
+                duration : 96
+            },
+            'festival_monsters_top_dragon_red.jpg'        : {
+                name     : 'Ancient Red Dragon',
+                duration : 96
+            },
+            'festival_monsters_top_dragon_yellow.jpg'     : {
+                name     : 'Gold Dragon',
+                duration : 96
+            },
+            'festival_monsters_top_stonegiant.jpg'        : {
+                name     : 'Colossus of Terra',
+                duration : 96
+            },
+            'festival_monsters_top_sylvanus.jpg'          : {
+                name     : 'Sylvanas the Sorceress Queen',
+                duration : 72
+            },
+            'festival_monsters_top_agamemnon.jpg'         : {
+                name     : 'Agamemnon the Overseer',
+                duration : 192
+            },
+            'festival_monsters_top_skaar_boss.jpg'        : {
+                name     : 'Skaar Deathrune',
+                duration : 120
+            },
+            'festival_monsters_top_fire_element.jpg'      : {
+                name     : 'Gehenna, The Fire Elemental',
+                duration : 96
+            },
+            'festival_monsters_top_hydra.jpg'             : {
+                name     : 'Cronus, The World Hydra',
+                duration : 144
+            },
+            'festival_monsters_top_water_element.jpg'     : {
+                name     : 'Ragnarok, The Ice Elemental',
+                duration : 144
+            },
+            'festival_monsters_top_earth_element.jpg'     : {
+                name     : 'Genesis, The Earth Elemental',
+                duration : 144
+            },
+            'festival_monsters_top_mephistopheles.jpg'    : {
+                name     : 'Mephistopheles',
+                duration : 89
+            },
+            'festival_monsters_top_boss_azriel.jpg'       : {
+                name     : 'Azriel, the Angel of Wrath',
+                duration : 192
+            },
+            'festival_monsters_top_volcanic_new.jpg'      : {
+                name     : 'Bahamut, the Volcanic Dragon',
+                duration : 192
+            }
 
         },
 
@@ -8665,7 +8727,7 @@
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j("div[style*='dragon_title_owner'],div[style*='festival_monsters_top_']", caap.appBodyDiv),
+                    monsterDiv        = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_'" : "") + "]", caap.appBodyDiv),
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
@@ -8683,7 +8745,7 @@
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle];
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                     }
@@ -9500,7 +9562,7 @@
                     $u.log(3, 'Monsters Fortify:Barbarus', energyRequire);
                     break;
                 case 'Maalvus':
-                    energyRequire = energyRequire * (general.GetLevel('Maalvus') === 4 ? 3 : 2);
+                    energyRequire = energyRequire * (general.GetLevel('Maalvus') >= 3 ? 3 : 2);
                     $u.log(3, 'Monsters Fortify:Maalvus', energyRequire);
                     break;
                 default:

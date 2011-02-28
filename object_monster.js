@@ -726,8 +726,10 @@
         /*jslint sub: true */
         t2kCalc: function (record) {
             try {
-                var timeLeft                       = 0,
-                    timeUsed                       = 0,
+                var boss                           = monster.info[record['type']],
+                    siegeStage                     = record['phase'] - 1,
+                    timeLeft                       = record['time'][0] + (record['time'][1] * 0.0166),
+                    timeUsed                       = (record['page'] === 'festival_tower' ? (caap.festivalMonsterImgTable[record['fImg']] ? caap.festivalMonsterImgTable[record['fImg']].duration : 192) : boss.duration) - timeLeft,
                     T2K                            = 0,
                     damageDone                     = 0,
                     hpLeft                         = 0,
@@ -739,16 +741,12 @@
                     nextSiegeAttackPlusSiegeDamage = 0,
                     s                              = 0,
                     len                            = 0,
-                    siegeImpacts                   = 0,
-                    boss                           = {},
-                    siegeStage                     = 0;
+                    siegeImpacts                   = 0;
 
-                siegeStage = record['phase'] - 1;
-                boss = monster.info[record['type']];
-                timeLeft = record['time'][0] + (record['time'][1] * 0.0166);
-                timeUsed = boss.duration - timeLeft;
                 if (!boss.siege || !boss.hp) {
-                    return (record['life'] * timeUsed) / (100 - record['life']);
+                    T2K = ((record['life'] * timeUsed) / (100 - record['life'])).dp(2);
+                    $u.log(3, 'T2K: ', $u.minutes2hours(T2K));
+                    return T2K;
                 }
 
                 damageDone = (100 - record['life']) / 100 * boss.hp;
@@ -1133,7 +1131,7 @@
                                 $u.log(3, 'MonsterStaminaReq:Barbarus', state.getItem('MonsterStaminaReq', 1));
                                 break;
                             case 'Maalvus':
-                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Maalvus') === 4 ? 3 : 2));
+                                state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Maalvus') >= 3 ? 3 : 2));
                                 $u.log(3, 'MonsterStaminaReq:Maalvus', state.getItem('MonsterStaminaReq', 1));
                                 break;
                             default:
@@ -1169,7 +1167,7 @@
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + caap.festivalMonsterImgTable[fMonstStyle];
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
                     } else {
                         tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
                     }
