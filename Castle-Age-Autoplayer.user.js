@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            72
+// @dev            73
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "72",
+        devVersion    = "73",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -16656,13 +16656,13 @@
             'festival_monsters_top_dragon_red.jpg'        : 'Ancient Red Dragon',
             'festival_monsters_top_dragon_yellow.jpg'     : 'Gold Dragon',
             'festival_monsters_top_stonegiant.jpg'        : 'Colossus of Terra',
-            'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, Sorceress Queen',
+            'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, the Sorceress Queen',
             'festival_monsters_top_agamemnon.jpg'         : 'Agamemnon the Overseer',
             'festival_monsters_top_skaar_boss.jpg'        : 'Skaar Deathrune',
-            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, Fire Elemental',
-            'festival_monsters_top_hydra.jpg'             : 'Cronus, World Hydra',
-            'festival_monsters_top_water_element.jpg'     : 'Ragnarok, Ice Elemental',
-            'festival_monsters_top_earth_element.jpg'     : 'Genesis, Earth Elemental',
+            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, The Fire Elemental',
+            'festival_monsters_top_hydra.jpg'             : 'Cronus, The World Hydra',
+            'festival_monsters_top_water_element.jpg'     : 'Ragnarok, The Ice Elemental',
+            'festival_monsters_top_earth_element.jpg'     : 'Genesis, The Earth Elemental',
             'festival_monsters_top_mephistopheles.jpg'    : 'Mephistopheles'
 
         },

@@ -8626,13 +8626,13 @@
             'festival_monsters_top_dragon_red.jpg'        : 'Ancient Red Dragon',
             'festival_monsters_top_dragon_yellow.jpg'     : 'Gold Dragon',
             'festival_monsters_top_stonegiant.jpg'        : 'Colossus of Terra',
-            'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, Sorceress Queen',
+            'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, the Sorceress Queen',
             'festival_monsters_top_agamemnon.jpg'         : 'Agamemnon the Overseer',
             'festival_monsters_top_skaar_boss.jpg'        : 'Skaar Deathrune',
-            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, Fire Elemental',
-            'festival_monsters_top_hydra.jpg'             : 'Cronus, World Hydra',
-            'festival_monsters_top_water_element.jpg'     : 'Ragnarok, Ice Elemental',
-            'festival_monsters_top_earth_element.jpg'     : 'Genesis, Earth Elemental',
+            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, The Fire Elemental',
+            'festival_monsters_top_hydra.jpg'             : 'Cronus, The World Hydra',
+            'festival_monsters_top_water_element.jpg'     : 'Ragnarok, The Ice Elemental',
+            'festival_monsters_top_earth_element.jpg'     : 'Genesis, The Earth Elemental',
             'festival_monsters_top_mephistopheles.jpg'    : 'Mephistopheles'
 
         },
