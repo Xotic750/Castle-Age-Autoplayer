@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            71
+// @dev            72
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "71",
+        devVersion    = "72",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -16659,7 +16659,12 @@
             'festival_monsters_top_sylvanus.jpg'          : 'Sylvana, Sorceress Queen',
             'festival_monsters_top_agamemnon.jpg'         : 'Agamemnon the Overseer',
             'festival_monsters_top_skaar_boss.jpg'        : 'Skaar Deathrune',
-            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, Fire Elemental'
+            'festival_monsters_top_fire_element.jpg'      : 'Gehenna, Fire Elemental',
+            'festival_monsters_top_hydra.jpg'             : 'Cronus, World Hydra',
+            'festival_monsters_top_water_element.jpg'     : 'Ragnarok, Ice Elemental',
+            'festival_monsters_top_earth_element.jpg'     : 'Genesis, Earth Elemental',
+            'festival_monsters_top_mephistopheles.jpg'    : 'Mephistopheles'
+
         },
 
         checkResults_viewFight: function () {
