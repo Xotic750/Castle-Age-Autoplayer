@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            74
+// @dev            75
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "74",
+        devVersion    = "75",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -16541,7 +16541,7 @@
         /*jslint sub: true */
         checkResults_fightList: function () {
             try {
-                var buttonsDiv            = $j("img[src*='dragon_list_btn_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_'" : "") + "]", caap.appBodyDiv),
+                var buttonsDiv            = $j("img[src*='dragon_list_btn_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_']" : ""), caap.appBodyDiv),
                     page                  = '',
                     monsterReviewed       = {},
                     it                    = 0,
@@ -16553,7 +16553,7 @@
                     monsterName           = '',
                     monsterRow            = $j(),
                     monsterFull           = '',
-                    summonDiv             = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif'" : "") + "]", caap.appBodyDiv),
+                    summonDiv             = $j("img[src*='mp_button_summon_']" + (config.getItem("festivalTower", false) ? ",img[src*='festival_monster_summonbtn.gif']" : ""), caap.appBodyDiv),
                     tempText              = '',
                     pageUserCheck         = 0;
 
@@ -16724,7 +16724,6 @@
                 name     : 'Bahamut, the Volcanic Dragon',
                 duration : 192
             }
-
         },
 
         checkResults_viewFight: function () {
@@ -16755,7 +16754,7 @@
                     KOBbiasedTF       = 0,
                     KOBPercentTimeRemaining = 0,
                     KOBtotalMonsterTime = 0,
-                    monsterDiv        = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_'" : "") + "]", caap.appBodyDiv),
+                    monsterDiv        = $j("div[style*='dragon_title_owner']" + (config.getItem("festivalTower", false) ? ",div[style*='festival_monsters_top_']" : ""), caap.appBodyDiv),
                     actionDiv         = $j(),
                     damageDiv         = $j(),
                     monsterInfo       = {},
