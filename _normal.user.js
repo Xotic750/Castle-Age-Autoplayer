@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            75
+// @dev            76
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "75",
+        devVersion    = "76",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -5759,7 +5759,7 @@
             'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass|Protector/i,
             'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
             'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
-            'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
+            'Armor'  : /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
             'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom|Locket/i
         },
 
@@ -5886,11 +5886,9 @@
         /*jslint sub: true */
         GetItems: function (type) {
             try {
-                var rowDiv  = $j("td[class*='eq_buy_row']", caap.appBodyDiv),
-                    tempDiv = $j(),
-                    current = {},
-                    passed  = true,
-                    save    = false;
+                var rowDiv = $j("div[style*='town_unit_bar']", caap.appBodyDiv),
+                    passed = true,
+                    save   = false;
 
                 if (!$u.isString(type) || type === '' || !town.types.hasIndexOf(type))  {
                     $u.warn("Type passed to load: ", type);
@@ -5900,9 +5898,11 @@
                 town[type] = [];
                 if ($u.hasContent(rowDiv)) {
                     rowDiv.each(function (index) {
-                        var row = $j(this);
-                        current = new town.record();
-                        tempDiv = $j("div[class='eq_buy_txt_int'] strong", row);
+                        var row     = $j(this),
+                            current = new town.record(),
+                            tempDiv = $j("strong", row).eq(0),
+                            tStr    = '';
+
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                             current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
                             current.data['type'] = town.getItemType(current.data['name']);
@@ -5912,24 +5912,24 @@
                         }
 
                         if (passed) {
-                            tempDiv = $j("img", row);
+                            tempDiv = $j("img", row).eq(0);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['image'] = $u.setContent(tempDiv.attr("src"), '').basename();
                             } else {
                                 $u.log(3, "No image found for", type, current.data['name']);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_txt_int'] span[class='negative']", row);
+                            tempDiv = $j("span[class='negative']", row);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['upkeep'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
                                 $u.log(3, "No upkeep found for", type, current.data.name);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_stats_int'] div", row);
-                            if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
-                                current.data['atk'] = $u.setContent(tempDiv.eq(0).text(), '0').numberOnly();
-                                current.data['def'] = $u.setContent(tempDiv.eq(1).text(), '0').numberOnly();
+                            tStr = row.children().eq(2).text().trim().innerTrim();
+                            if ($u.hasContent(tStr)) {
+                                current.data['atk'] = $u.setContent(tStr.regex(/(\d+) Attack/), 0);
+                                current.data['def'] = $u.setContent(tStr.regex(/(\d+) Defense/), 0);
                                 current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
                                 current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                                 current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
@@ -5937,16 +5937,16 @@
                                 $u.warn("No atk/def found for", type, current.data['name']);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_costs_int'] strong[class='gold']", row);
+                            tempDiv = $j("strong[class='gold']", row);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['cost'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
                                 $u.log(3, "No cost found for", type, current.data['name']);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_costs_int'] tr:last td", row).eq(0);
-                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-                                current.data['owned'] = $u.setContent(tempDiv.text(), '0').numberOnly();
+                            tStr = row.children().eq(3).text().trim().innerTrim();
+                            if ($u.hasContent(tStr)) {
+                                current.data['owned'] = $u.setContent(tStr.regex(/Owned: (\d+)/), 0);
                                 current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                             } else {
                                 $u.warn("No number owned found for", type, current.data['name']);
@@ -15309,25 +15309,16 @@
         /*jslint sub: true */
         checkResults_land: function () {
             try {
-                var bestLandCost = {},
-                    ss           = $j(),
-                    row          = $j(),
-                    name         = '',
-                    moneyss      = $j(),
-                    incomeEl     = $j(),
-                    income       = 0,
-                    nums         = [],
-                    tStr         = '',
-                    cost         = 0,
-                    land         = {},
-                    s            = 0,
-                    div          = $j(),
-                    infoDiv      = $j(),
-                    strongs      = $j(),
-                    maxAllowed   = 0,
-                    owned        = 0,
-                    roi          = 0,
-                    selection    = [1, 5, 10];
+                var ss           = $j("div[style*='town_land_bar']", caap.appBodyDiv),
+                    bestLandCost = {};
+
+                if (!$u.hasContent(ss)) {
+                    $u.warn("Can't find town_land_bar.jpg");
+                    return false;
+                }
+
+                caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
+                caap.sellLand = {};
 
                 function selectLands(div, val, type) {
                     try {
@@ -15353,30 +15344,30 @@
                     }
                 }
 
-                caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
-                caap.sellLand = {};
-                ss = $j("tr[class*='land_buy_row']", caap.globalContainer);
-                if (!$u.hasContent(ss)) {
-                    $u.warn("Can't find land_buy_row");
-                    return false;
-                }
-
                 ss.each(function () {
-                    row = $j(this);
+                    var row          = $j(this),
+                        strongs      = $j("strong", row),
+                        name         = '',
+                        income       = 0,
+                        cost         = 0,
+                        tStr         = '',
+                        maxAllowed   = 0,
+                        owned        = 0,
+                        bestLandCost = {},
+                        ss           = $j(),
+                        s            = 0,
+                        div          = $j(),
+                        infoDiv      = $j(),
+                        roi          = 0,
+                        selection    = [1, 5, 10];
+
                     if (!$u.hasContent(row)) {
                         return true;
                     }
 
                     selectLands(row, 10);
-                    infoDiv = $j("div[class*='land_buy_info']", row);
-                    if (!$u.hasContent(infoDiv)) {
-                        $u.warn("Can't find land_buy_info");
-                        return true;
-                    }
-
-                    strongs = $j("strong", infoDiv);
-                    if (!$u.hasContent(strongs)) {
-                        $u.warn("Can't find strong");
+                    if (!$u.hasContent(strongs) || strongs.length !== 3) {
+                        $u.warn("Can't find strongs", strongs.length);
                         return true;
                     }
 
@@ -15386,54 +15377,37 @@
                         return true;
                     }
 
-                    moneyss = $j("strong[class*='gold']", row);
-                    if (!$u.hasContent(moneyss) || moneyss.length < 2) {
-                        $u.warn("Can't find 2 gold instances");
+                    income = strongs.eq(1).text().trim().numberOnly();
+                    if (!$u.hasContent(income)) {
+                        $u.warn("Can't find land income");
                         return true;
                     }
 
-                    nums = [];
-                    moneyss.each(function () {
-                        incomeEl = $j(this);
-                        if (incomeEl.attr("class").hasIndexOf('label')) {
-                            incomeEl = income.parent();
-                            tStr = incomeEl.text();
-                            tStr = tStr ? tStr.regex(/([\d,]+)/) : '';
-                            if (!tStr) {
-                                $u.warn('Cannot find income for ', name, tStr);
-                                return true;
-                            }
-                        } else {
-                            tStr = incomeEl.text();
-                        }
-
-                        income = tStr ? tStr.numberOnly() : 0;
-                        nums.push(income);
+                    cost = strongs.eq(2).text().trim().numberOnly();
+                    if (!$u.hasContent(cost)) {
+                        $u.warn("Can't find land cost");
                         return true;
-                    });
-
-                    income = nums[0] ? nums[0] : 0;
-                    cost = nums[1] ? nums[1] : 0;
-                    if (!income || !cost) {
-                        $u.warn("Can't find income or cost for", name);
-                        return true;
-                    }
-
-                    if (income > cost) {
-                        // income is always less than the cost of land.
-                        income = nums[1] ? nums[1] : 0;
-                        cost = nums[0] ? nums[0] : 0;
                     }
 
                     // Lets get our max allowed from the land_buy_info div
-                    tStr = infoDiv.text();
-                    tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
-                    maxAllowed = tStr ? tStr.parseInt() : 0;
-                    // Lets get our owned total from the land_buy_costs div
-                    div = $j("div[class*='land_buy_costs']", row);
-                    tStr = div.text();
-                    tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
-                    owned = tStr ? tStr.parseInt() : 0;
+                    tStr = row.text().trim().innerTrim();
+                    if (!$u.hasContent(tStr)) {
+                        $u.warn("Can't find land text");
+                        return true;
+                    }
+
+                    maxAllowed = tStr.regex(/Max Allowed For your level: (\d+)/);
+                    if (!$u.hasContent(maxAllowed)) {
+                        $u.warn("Can't find land maxAllowed");
+                        return true;
+                    }
+
+                    owned = tStr.regex(/Owned: (\d+)/);
+                    if (!$u.hasContent(owned)) {
+                        $u.warn("Can't find land owned");
+                        return true;
+                    }
+
                     land = new caap.landRecord();
                     land.data['row'] = row;
                     land.data['name'] = name;
@@ -15456,10 +15430,8 @@
                         }
                     }
 
-                    land.data['roi'] = roi ? roi : 0;
-                    div = $j("strong", infoDiv);
-                    tStr = div.eq(0).text();
-                    div.eq(0).text(tStr + " | " + land.data['roi'] + "% per day.");
+                    land.data['roi'] = $u.setContent(roi, 0);
+                    strongs.eq(0).text(name + " | " + land.data['roi'] + "% per day.");
                     $u.log(4, "Land:", land.data['name']);
                     if (land.data['roi'] > 0 && land.data['roi'] > caap.bestLand['roi']) {
                         $u.log(4, "Set Land:", land.data['name'], land.data);
@@ -16653,7 +16625,7 @@
                 duration : 96
             },
             'festival_monsters_top_seamonster_red.jpg'    : {
-                name     : 'Ancient Red Sea Serpent',
+                name     : 'Ancient Sea Serpent',
                 duration : 89
             },
             'festival_monsters_top_seamonster_blue.jpg'   : {
@@ -16702,15 +16674,15 @@
             },
             'festival_monsters_top_hydra.jpg'             : {
                 name     : 'Cronus, The World Hydra',
-                duration : 144
+                duration : 192
             },
             'festival_monsters_top_water_element.jpg'     : {
                 name     : 'Ragnarok, The Ice Elemental',
-                duration : 144
+                duration : 192
             },
             'festival_monsters_top_earth_element.jpg'     : {
                 name     : 'Genesis, The Earth Elemental',
-                duration : 144
+                duration : 192
             },
             'festival_monsters_top_mephistopheles.jpg'    : {
                 name     : 'Mephistopheles',

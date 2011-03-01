@@ -24,7 +24,7 @@
             'Shield' : /aegis|buckler|shield|tome|Defender|Dragon Scale|Frost Tear Dagger|Harmony|Sword of Redemption|Terra's Guard|The Dreadnought|Purgatory|Zenarean Crest|Serenes Arrow|Hour Glass|Protector/i,
             'Helmet' : /cowl|crown|helm|horns|mask|veil|Tiara|Virtue of Fortitude/i,
             'Glove'  : /gauntlet|glove|hand|bracer|fist|Slayer's Embrace|Soul Crusher|Soul Eater|Virtue of Temperance/i,
-            'Armor'  :  /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
+            'Armor'  : /armor|belt|chainmail|cloak|epaulets|gear|garb|pauldrons|plate|raiments|robe|tunic|vestment|Faerie Wings|Castle Rampart/i,
             'Amulet' : /amulet|bauble|charm|crystal|eye|flask|insignia|jewel|lantern|memento|necklace|orb|pendant|shard|signet|soul|talisman|trinket|Heart of Elos|Mark of the Empire|Paladin's Oath|Poseidons Horn| Ring|Ring of|Ruby Ore|Terra's Heart|Thawing Star|Transcendence|Tooth of Gehenna|Caldonian Band|Blue Lotus Petal| Bar|Magic Mushrooms|Dragon Ashes|Heirloom|Locket/i
         },
 
@@ -151,11 +151,9 @@
         /*jslint sub: true */
         GetItems: function (type) {
             try {
-                var rowDiv  = $j("td[class*='eq_buy_row']", caap.appBodyDiv),
-                    tempDiv = $j(),
-                    current = {},
-                    passed  = true,
-                    save    = false;
+                var rowDiv = $j("div[style*='town_unit_bar']", caap.appBodyDiv),
+                    passed = true,
+                    save   = false;
 
                 if (!$u.isString(type) || type === '' || !town.types.hasIndexOf(type))  {
                     $u.warn("Type passed to load: ", type);
@@ -165,9 +163,11 @@
                 town[type] = [];
                 if ($u.hasContent(rowDiv)) {
                     rowDiv.each(function (index) {
-                        var row = $j(this);
-                        current = new town.record();
-                        tempDiv = $j("div[class='eq_buy_txt_int'] strong", row);
+                        var row     = $j(this),
+                            current = new town.record(),
+                            tempDiv = $j("strong", row).eq(0),
+                            tStr    = '';
+
                         if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                             current.data['name'] = $u.setContent(tempDiv.text(), '').trim().innerTrim();
                             current.data['type'] = town.getItemType(current.data['name']);
@@ -177,24 +177,24 @@
                         }
 
                         if (passed) {
-                            tempDiv = $j("img", row);
+                            tempDiv = $j("img", row).eq(0);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['image'] = $u.setContent(tempDiv.attr("src"), '').basename();
                             } else {
                                 $u.log(3, "No image found for", type, current.data['name']);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_txt_int'] span[class='negative']", row);
+                            tempDiv = $j("span[class='negative']", row);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['upkeep'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
                                 $u.log(3, "No upkeep found for", type, current.data.name);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_stats_int'] div", row);
-                            if ($u.hasContent(tempDiv) && tempDiv.length === 2) {
-                                current.data['atk'] = $u.setContent(tempDiv.eq(0).text(), '0').numberOnly();
-                                current.data['def'] = $u.setContent(tempDiv.eq(1).text(), '0').numberOnly();
+                            tStr = row.children().eq(2).text().trim().innerTrim();
+                            if ($u.hasContent(tStr)) {
+                                current.data['atk'] = $u.setContent(tStr.regex(/(\d+) Attack/), 0);
+                                current.data['def'] = $u.setContent(tStr.regex(/(\d+) Defense/), 0);
                                 current.data['api'] = (current.data['atk'] + (current.data['def'] * 0.7)).dp(2);
                                 current.data['dpi'] = (current.data['def'] + (current.data['atk'] * 0.7)).dp(2);
                                 current.data['mpi'] = ((current.data['api'] + current.data['dpi']) / 2).dp(2);
@@ -202,16 +202,16 @@
                                 $u.warn("No atk/def found for", type, current.data['name']);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_costs_int'] strong[class='gold']", row);
+                            tempDiv = $j("strong[class='gold']", row);
                             if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
                                 current.data['cost'] = $u.setContent(tempDiv.text(), '0').numberOnly();
                             } else {
                                 $u.log(3, "No cost found for", type, current.data['name']);
                             }
 
-                            tempDiv = $j("div[class='eq_buy_costs_int'] tr:last td", row).eq(0);
-                            if ($u.hasContent(tempDiv) && tempDiv.length === 1) {
-                                current.data['owned'] = $u.setContent(tempDiv.text(), '0').numberOnly();
+                            tStr = row.children().eq(3).text().trim().innerTrim();
+                            if ($u.hasContent(tStr)) {
+                                current.data['owned'] = $u.setContent(tStr.regex(/Owned: (\d+)/), 0);
                                 current.data['hourly'] = current.data['owned'] * current.data['upkeep'];
                             } else {
                                 $u.warn("No number owned found for", type, current.data['name']);

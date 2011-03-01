@@ -7281,25 +7281,16 @@
         /*jslint sub: true */
         checkResults_land: function () {
             try {
-                var bestLandCost = {},
-                    ss           = $j(),
-                    row          = $j(),
-                    name         = '',
-                    moneyss      = $j(),
-                    incomeEl     = $j(),
-                    income       = 0,
-                    nums         = [],
-                    tStr         = '',
-                    cost         = 0,
-                    land         = {},
-                    s            = 0,
-                    div          = $j(),
-                    infoDiv      = $j(),
-                    strongs      = $j(),
-                    maxAllowed   = 0,
-                    owned        = 0,
-                    roi          = 0,
-                    selection    = [1, 5, 10];
+                var ss           = $j("div[style*='town_land_bar']", caap.appBodyDiv),
+                    bestLandCost = {};
+
+                if (!$u.hasContent(ss)) {
+                    $u.warn("Can't find town_land_bar.jpg");
+                    return false;
+                }
+
+                caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
+                caap.sellLand = {};
 
                 function selectLands(div, val, type) {
                     try {
@@ -7325,30 +7316,30 @@
                     }
                 }
 
-                caap.bestLand = state.setItem('BestLandCost', new caap.landRecord().data);
-                caap.sellLand = {};
-                ss = $j("tr[class*='land_buy_row']", caap.globalContainer);
-                if (!$u.hasContent(ss)) {
-                    $u.warn("Can't find land_buy_row");
-                    return false;
-                }
-
                 ss.each(function () {
-                    row = $j(this);
+                    var row          = $j(this),
+                        strongs      = $j("strong", row),
+                        name         = '',
+                        income       = 0,
+                        cost         = 0,
+                        tStr         = '',
+                        maxAllowed   = 0,
+                        owned        = 0,
+                        bestLandCost = {},
+                        ss           = $j(),
+                        s            = 0,
+                        div          = $j(),
+                        infoDiv      = $j(),
+                        roi          = 0,
+                        selection    = [1, 5, 10];
+
                     if (!$u.hasContent(row)) {
                         return true;
                     }
 
                     selectLands(row, 10);
-                    infoDiv = $j("div[class*='land_buy_info']", row);
-                    if (!$u.hasContent(infoDiv)) {
-                        $u.warn("Can't find land_buy_info");
-                        return true;
-                    }
-
-                    strongs = $j("strong", infoDiv);
-                    if (!$u.hasContent(strongs)) {
-                        $u.warn("Can't find strong");
+                    if (!$u.hasContent(strongs) || strongs.length !== 3) {
+                        $u.warn("Can't find strongs", strongs.length);
                         return true;
                     }
 
@@ -7358,54 +7349,37 @@
                         return true;
                     }
 
-                    moneyss = $j("strong[class*='gold']", row);
-                    if (!$u.hasContent(moneyss) || moneyss.length < 2) {
-                        $u.warn("Can't find 2 gold instances");
+                    income = strongs.eq(1).text().trim().numberOnly();
+                    if (!$u.hasContent(income)) {
+                        $u.warn("Can't find land income");
                         return true;
                     }
 
-                    nums = [];
-                    moneyss.each(function () {
-                        incomeEl = $j(this);
-                        if (incomeEl.attr("class").hasIndexOf('label')) {
-                            incomeEl = income.parent();
-                            tStr = incomeEl.text();
-                            tStr = tStr ? tStr.regex(/([\d,]+)/) : '';
-                            if (!tStr) {
-                                $u.warn('Cannot find income for ', name, tStr);
-                                return true;
-                            }
-                        } else {
-                            tStr = incomeEl.text();
-                        }
-
-                        income = tStr ? tStr.numberOnly() : 0;
-                        nums.push(income);
+                    cost = strongs.eq(2).text().trim().numberOnly();
+                    if (!$u.hasContent(cost)) {
+                        $u.warn("Can't find land cost");
                         return true;
-                    });
-
-                    income = nums[0] ? nums[0] : 0;
-                    cost = nums[1] ? nums[1] : 0;
-                    if (!income || !cost) {
-                        $u.warn("Can't find income or cost for", name);
-                        return true;
-                    }
-
-                    if (income > cost) {
-                        // income is always less than the cost of land.
-                        income = nums[1] ? nums[1] : 0;
-                        cost = nums[0] ? nums[0] : 0;
                     }
 
                     // Lets get our max allowed from the land_buy_info div
-                    tStr = infoDiv.text();
-                    tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
-                    maxAllowed = tStr ? tStr.parseInt() : 0;
-                    // Lets get our owned total from the land_buy_costs div
-                    div = $j("div[class*='land_buy_costs']", row);
-                    tStr = div.text();
-                    tStr = tStr ? tStr.match(/:\s+\d+/i).toString().trim().replace(/:\s+/, '') : '';
-                    owned = tStr ? tStr.parseInt() : 0;
+                    tStr = row.text().trim().innerTrim();
+                    if (!$u.hasContent(tStr)) {
+                        $u.warn("Can't find land text");
+                        return true;
+                    }
+
+                    maxAllowed = tStr.regex(/Max Allowed For your level: (\d+)/);
+                    if (!$u.hasContent(maxAllowed)) {
+                        $u.warn("Can't find land maxAllowed");
+                        return true;
+                    }
+
+                    owned = tStr.regex(/Owned: (\d+)/);
+                    if (!$u.hasContent(owned)) {
+                        $u.warn("Can't find land owned");
+                        return true;
+                    }
+
                     land = new caap.landRecord();
                     land.data['row'] = row;
                     land.data['name'] = name;
@@ -7428,10 +7402,8 @@
                         }
                     }
 
-                    land.data['roi'] = roi ? roi : 0;
-                    div = $j("strong", infoDiv);
-                    tStr = div.eq(0).text();
-                    div.eq(0).text(tStr + " | " + land.data['roi'] + "% per day.");
+                    land.data['roi'] = $u.setContent(roi, 0);
+                    strongs.eq(0).text(name + " | " + land.data['roi'] + "% per day.");
                     $u.log(4, "Land:", land.data['name']);
                     if (land.data['roi'] > 0 && land.data['roi'] > caap.bestLand['roi']) {
                         $u.log(4, "Set Land:", land.data['name'], land.data);
@@ -8625,7 +8597,7 @@
                 duration : 96
             },
             'festival_monsters_top_seamonster_red.jpg'    : {
-                name     : 'Ancient Red Sea Serpent',
+                name     : 'Ancient Sea Serpent',
                 duration : 89
             },
             'festival_monsters_top_seamonster_blue.jpg'   : {
@@ -8674,15 +8646,15 @@
             },
             'festival_monsters_top_hydra.jpg'             : {
                 name     : 'Cronus, The World Hydra',
-                duration : 144
+                duration : 192
             },
             'festival_monsters_top_water_element.jpg'     : {
                 name     : 'Ragnarok, The Ice Elemental',
-                duration : 144
+                duration : 192
             },
             'festival_monsters_top_earth_element.jpg'     : {
                 name     : 'Genesis, The Earth Elemental',
-                duration : 144
+                duration : 192
             },
             'festival_monsters_top_mephistopheles.jpg'    : {
                 name     : 'Mephistopheles',
