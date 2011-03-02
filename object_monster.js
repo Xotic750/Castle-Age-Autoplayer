@@ -1169,17 +1169,17 @@
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
                     } else {
-                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", caap.globalContainer);
                     if ($u.hasContent(monsterDiv)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
+                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
                         tempDiv = $j("div[style*='nm_bars']", caap.globalContainer);
                         if ($u.hasContent(tempDiv)) {
-                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
+                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().innerTrim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return false;

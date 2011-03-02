@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            77
+// @dev            78
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "77",
+        devVersion    = "78",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -3280,17 +3280,17 @@
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
                     } else {
-                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", caap.globalContainer);
                     if ($u.hasContent(monsterDiv)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
+                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
                         tempDiv = $j("div[style*='nm_bars']", caap.globalContainer);
                         if ($u.hasContent(tempDiv)) {
-                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
+                            tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().innerTrim().replace("'s Life", "");
                         } else {
                             $u.warn("Problem finding nm_bars");
                             return false;
@@ -16560,8 +16560,8 @@
                     }
 
                     monsterRow = buttonsDiv.eq(it).parents().eq(3);
-                    monsterFull = $u.setContent(monsterRow.text(), '').trim().innerTrim();
-                    monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').trim().innerTrim();
+                    monsterFull = monsterRow.text().trim().innerTrim();
+                    monsterName = monsterFull.replace(/Completed!/i, '').replace(/Fled!/i, '').replace(/COLLECTION: \d+:\d+:\d+/i, '').trim().innerTrim();
                     monsterReviewed = monster.getItem(monsterName);
                     monsterReviewed['type'] = $u.setContent(monsterReviewed['type'], monster.type(monsterName));
                     monsterReviewed['page'] = page;
@@ -16746,14 +16746,14 @@
                 if ($u.hasContent(monsterDiv)) {
                     fMonstStyle = monsterDiv.attr("style").regex(/(festival_monsters_top_\S+\.jpg)/);
                     if ($u.hasContent(fMonstStyle)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
+                        tempText = $u.setContent(monsterDiv.children(":eq(3)").text(), '').trim().innerTrim().replace("summoned", '') + (caap.festivalMonsterImgTable[fMonstStyle] ? caap.festivalMonsterImgTable[fMonstStyle].name : fMonstStyle);
                     } else {
-                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim();
+                        tempText = $u.setContent(monsterDiv.children(":eq(2)").text(), '').trim().innerTrim();
                     }
                 } else {
                     monsterDiv = $j("div[style*='nm_top']", caap.appBodyDiv);
                     if ($u.hasContent(monsterDiv)) {
-                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim();
+                        tempText = $u.setContent(monsterDiv.children(":eq(0)").children(":eq(0)").text(), '').trim().innerTrim();
                         tempDiv = $j("div[style*='nm_bars']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
                             tempText += ' ' + $u.setContent(tempDiv.children(":eq(0)").children(":eq(0)").children(":eq(0)").siblings(":last").children(":eq(0)").text(), '').trim().replace("'s Life", "");
