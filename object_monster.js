@@ -871,8 +871,10 @@
                     monstType             = '',
                     p                     = 0,
                     m                     = 0,
-                    attackOrderList       = [];
+                    attackOrderList       = [],
+                    theGeneral            = config.getItem('MonsterGeneral', 'Use Current');
 
+                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop()) : theGeneral;
                 // First we forget everything about who we already picked.
                 state.setItem('targetFrombattle_monster', '');
                 state.setItem('targetFromfortify', energyTarget.data);
@@ -1121,7 +1123,7 @@
                                 state.setItem('MonsterStaminaReq', 1);
                             }
 
-                            switch (config.getItem('MonsterGeneral', 'Use Current')) {
+                            switch (theGeneral) {
                             case 'Orc King':
                                 state.setItem('MonsterStaminaReq', state.getItem('MonsterStaminaReq', 1) * (general.GetLevel('Orc King') + 1));
                                 $u.log(3, 'MonsterStaminaReq:Orc King', state.getItem('MonsterStaminaReq', 1));

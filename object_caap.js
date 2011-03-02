@@ -5268,8 +5268,8 @@
 
         checkResults_keep: function () {
             try {
-                var attrDiv    = $j(".keep_attribute_section", caap.globalContainer),
-                    statsTB    = $j(".statsTB", caap.globalContainer),
+                var attrDiv    = $j(".keep_attribute_section", caap.appBodyDiv),
+                    statsTB    = $j(".statsTB", caap.appBodyDiv),
                     keepTable1 = $j(".keepTable1 tr", statsTB),
                     statCont   = $j(".attribute_stat_container", attrDiv),
                     tempDiv    = $j();
@@ -5277,7 +5277,7 @@
                 if ($u.hasContent(attrDiv)) {
                     $u.log(8, "Getting new values from player keep");
                     // rank
-                    tempDiv = $j("img[src*='gif/rank']", caap.globalContainer);
+                    tempDiv = $j("img[src*='gif/rank']", caap.appBodyDiv);
                     if ($u.hasContent(tempDiv)) {
                         caap.stats['rank']['battle'] = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
                     } else {
@@ -5294,7 +5294,7 @@
 
                     // war rank
                     if (caap.stats['level'] >= 100) {
-                        tempDiv = $j("img[src*='war_rank_']", caap.globalContainer);
+                        tempDiv = $j("img[src*='war_rank_']", caap.appBodyDiv);
                         if ($u.hasContent(tempDiv)) {
                             caap.stats['rank']['war'] = $u.setContent($u.setContent(tempDiv.attr("src"), '').basename().regex(/(\d+)/), 0);
                         } else {
@@ -5364,7 +5364,7 @@
                                 caap.style.cursor = 'default';
                             }
                         ).click(function () {
-                            $j("input[name='get_gold']", caap.globalContainer).val(caap.stats['gold']['bank']);
+                            $j("input[name='get_gold']", caap.appBodyDiv).val(caap.stats['gold']['bank']);
                         });
                     } else {
                         $u.warn('Using stored inStore.');
@@ -5390,7 +5390,7 @@
                     caap.stats['gold']['flow'] = caap.stats['gold']['income'] - caap.stats['gold']['upkeep'];
 
                     // Energy potions
-                    tempDiv = $j("img[title='Energy Potion']", caap.globalContainer).parent().next();
+                    tempDiv = $j("img[title='Energy Potion']", caap.appBodyDiv).parent().next();
                     if ($u.hasContent(tempDiv)) {
                         caap.stats['potions']['energy'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     } else {
@@ -5398,7 +5398,7 @@
                     }
 
                     // Stamina potions
-                    tempDiv = $j("img[title='Stamina Potion']", caap.globalContainer).parent().next();
+                    tempDiv = $j("img[title='Stamina Potion']", caap.appBodyDiv).parent().next();
                     if ($u.hasContent(tempDiv)) {
                         caap.stats['potions']['stamina'] = $u.setContent($u.setContent(tempDiv.text(), '').numberOnly(), 0);
                     } else {
@@ -5468,7 +5468,7 @@
                     tempDiv = $j(".keep_stat_title_inc", attrDiv);
                     tempDiv = $u.hasContent(tempDiv) ? tempDiv.html($u.setContent(tempDiv.html(), '').trim() + ", <span style='white-space: nowrap;'>BSI: " + caap.stats['indicators']['bsi'] + " LSI: " + caap.stats['indicators']['lsi'] + "</span>") : tempDiv;
                 } else {
-                    tempDiv = $j("a[href*='keep.php?user=']", caap.globalContainer);
+                    tempDiv = $j("a[href*='keep.php?user=']", caap.appBodyDiv);
                     if ($u.hasContent(tempDiv)) {
                         $u.log(2, "On another player's keep", $u.setContent($u.setContent(tempDiv.attr("href"), '').basename().regex(/(\d+)/), 0));
                     } else {
@@ -5489,7 +5489,7 @@
 
         checkResults_oracle: function () {
             try {
-                var favorDiv = $j(".title_action"),
+                var favorDiv = $j(".title_action", caap.appBodyDiv),
                     text     = '',
                     tNum     = 0,
                     save     = false;
@@ -5536,7 +5536,7 @@
                 }
 
                 if (config.getItem("enableRecipeClean", true)) {
-                    var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.globalContainer),
+                    var recipeDiv   = $j(".alchemyRecipeBack .recipeTitle", caap.appBodyDiv),
                         titleTxt    = '',
                         titleRegExp = new RegExp("RECIPES: Create (.+)", "i"),
                         image       = '',
@@ -5587,15 +5587,15 @@
                 }
 
                 if (config.getItem("enableIngredientsHide", false)) {
-                    $j("div[class='statsTTitle'],div[class='statsTMain']", caap.globalContainer).css("display", "none");
+                    $j("div[class='statsTTitle'],div[class='statsTMain']", caap.appBodyDiv).css("display", "none");
                 }
 
                 if (config.getItem("enableAlchemyShrink", true)) {
-                    $j("div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']", caap.globalContainer).css("height", "100px");
-                    $j("div[class*='alchemySpace']", caap.globalContainer).css("height", "4px");
-                    $j(".statsT2 img").not("img[src*='emporium_go.gif']", caap.globalContainer).attr("style", "height: 45px; width: 45px;").parent().attr("style", "height: 45px; width: 45px;").parent().css("width", "50px");
-                    $j("input[name='Alchemy Submit']", caap.globalContainer).css("width", "80px");
-                    $j(".recipeTitle", caap.globalContainer).css("margin", "0px");
+                    $j("div[class*='alchemyRecipeBack'],div[class*='alchemyQuestBack']", caap.appBodyDiv).css("height", "100px");
+                    $j("div[class*='alchemySpace']", caap.appBodyDiv).css("height", "4px");
+                    $j(".statsT2 img").not("img[src*='emporium_go.gif']", caap.appBodyDiv).attr("style", "height: 45px; width: 45px;").parent().attr("style", "height: 45px; width: 45px;").parent().css("width", "50px");
+                    $j("input[name='Alchemy Submit']", caap.appBodyDiv).css("width", "80px");
+                    $j(".recipeTitle", caap.appBodyDiv).css("margin", "0px");
                 }
 
                 return true;
@@ -5607,7 +5607,7 @@
 
         commonTown: function () {
             try {
-                $j("div[class='eq_buy_costs_int'] form[id*='itemBuy'] select[name='amount'] option[value='5']", caap.globalContainer).attr('selected', 'selected');
+                $j("form[id*='itemBuy'] select[name='amount'] option[value='5']", caap.appBodyDiv).attr('selected', 'selected');
                 if (config.getItem("enableTitles", true)) {
                     spreadsheet.doTitles();
                 }
@@ -5683,7 +5683,7 @@
         /*jslint sub: true */
         checkResults_battlerank: function () {
             try {
-                var rankDiv = $j("div[style*='battle_rank_banner.jpg']", caap.globalContainer),
+                var rankDiv = $j("div[style*='battle_rank_banner.jpg']", caap.appBodyDiv),
                     tNum    = 0;
 
                 if ($u.hasContent(rankDiv)) {
@@ -5709,7 +5709,7 @@
 
         checkResults_war_rank: function () {
             try {
-                var rankDiv = $j("div[style*='war_rank_banner.jpg']", caap.globalContainer),
+                var rankDiv = $j("div[style*='war_rank_banner.jpg']", caap.appBodyDiv),
                     tNum    = 0;
 
                 if ($u.hasContent(rankDiv)) {
@@ -5735,7 +5735,7 @@
 
         checkResults_achievements: function () {
             try {
-                var achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_2", caap.globalContainer),
+                var achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_2", caap.appBodyDiv),
                     tdDiv  = $j("td div", achDiv);
 
                 if ($u.hasContent(achDiv)) {
@@ -5756,7 +5756,7 @@
                     $u.warn('Battle Achievements not found.');
                 }
 
-                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.globalContainer);
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_3", caap.appBodyDiv);
                 if ($u.hasContent(achDiv)) {
                     tdDiv = $j("td div", achDiv);
                     if ($u.hasContent(tdDiv) && tdDiv.length === 16) {
@@ -5784,7 +5784,7 @@
                     $u.warn('Monster Achievements not found.');
                 }
 
-                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_4", caap.globalContainer);
+                achDiv = $j("#" + caap.domain.id[caap.domain.which] + "achievements_4", caap.appBodyDiv);
                 if ($u.hasContent(achDiv)) {
                     tdDiv = $j("td div", achDiv);
                     if ($u.hasContent(tdDiv) && tdDiv.length === 1) {
@@ -5807,7 +5807,7 @@
 
         checkResults_view_class_progress: function () {
             try {
-                var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']", caap.globalContainer);
+                var classDiv = $j("#" + caap.domain.id[caap.domain.which] + "choose_class_screen div[class*='banner_']", caap.appBodyDiv);
                 if ($u.hasContent(classDiv) && classDiv.length === 6) {
                     classDiv.each(function (index) {
                         var monsterClass = $j(this),
@@ -6146,13 +6146,13 @@
 
                     var subDQArea = config.getItem('QuestSubArea', 'Ambrosia');
                     var deityN = caap.deityTable[caap.demiQuestTable[subDQArea]];
-                    var picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.appBodyDiv);
+                    var picSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_image_symbolquests" + deityN, caap.globalContainer);
                     if (!$u.hasContent(picSlice)) {
                         $u.warn('No diety image for', subDQArea);
                         return false;
                     }
 
-                    var descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.appBodyDiv);
+                    var descSlice = $j("#" + caap.domain.id[caap.domain.which] + "symbol_desc_symbolquests" + deityN, caap.globalContainer);
                     if (!$u.hasContent(descSlice)) {
                         $u.warn('No diety description for', subDQArea);
                         return false;
@@ -6360,7 +6360,7 @@
             try {
                 $j("div[id*='symbol_tab_symbolquests']", caap.appBodyDiv).unbind('click', caap.symbolquestsListener).bind('click', caap.symbolquestsListener);
                 $j("form[id*='symbols_form_']", caap.appBodyDiv).unbind('click', caap.symbolquestsClickListener).bind('click', caap.symbolquestsClickListener);
-                var demiDiv = $j("div[id*='symbol_desc_symbolquests']", caap.appBodyDiv),
+                var demiDiv = $j("div[id*='symbol_desc_symbolquests']", caap.globalContainer),
                     points  = [],
                     success = true;
 
@@ -6437,11 +6437,11 @@
             try {
                 //$u.log(1, "checkResults_quests pickQuestTF", pickQuestTF);
                 pickQuestTF = pickQuestTF ? pickQuestTF : false;
-                if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container", caap.appBodyDiv))) {
-                    $j("div[id*='meta_quest_']", caap.globalContainer).each(function (index) {
+                if ($u.hasContent($j("#" + caap.domain.id[caap.domain.which] + "quest_map_container", caap.globalContainer))) {
+                    $j("div[id*='meta_quest_']", caap.appBodyDiv).each(function (index) {
                         var row = $j(this);
                         if (!($u.hasContent($j("img[src*='_completed']", row)) || $u.hasContent($j("img[src*='_locked']", row)))) {
-                            $j("div[id*='quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.appBodyDiv).css("display", "block");
+                            $j("div[id*='quest_wrapper_" + row.attr("id").replace(caap.domain.id[caap.domain.which] + "meta_quest_", '') + "']", caap.globalContainer).css("display", "block");
                         }
                     });
                 }
@@ -6462,7 +6462,7 @@
 
                 if (caap.hasImage('demi_quest_on.gif')) {
                     caap.checkResults_symbolquests($u.isString(pickQuestTF) ? pickQuestTF : undefined);
-                    ss = $j("div[id*='symbol_displaysymbolquest']", caap.appBodyDiv);
+                    ss = $j("div[id*='symbol_displaysymbolquest']", caap.globalContainer);
                     if (!$u.hasContent(ss)) {
                         $u.warn("Failed to find symbol_displaysymbolquest");
                     }
@@ -6515,7 +6515,7 @@
                     orbCheck : false
                 };
 
-                $j(".autoquest", caap.globalContainer).remove();
+                $j(".autoquest", caap.appBodyDiv).remove();
                 var expRegExp       = new RegExp("\\+(\\d+)"),
                     energyRegExp    = new RegExp("(\\d+)\\s+energy", "i"),
                     moneyRegExp     = new RegExp("\\$([0-9,]+)\\s*-\\s*\\$([0-9,]+)", "i"),
@@ -7331,7 +7331,8 @@
                         div          = $j(),
                         infoDiv      = $j(),
                         roi          = 0,
-                        selection    = [1, 5, 10];
+                        selection    = [1, 5, 10],
+                        land         = new caap.landRecord();
 
                     if (!$u.hasContent(row)) {
                         return true;
@@ -7380,7 +7381,6 @@
                         return true;
                     }
 
-                    land = new caap.landRecord();
                     land.data['row'] = row;
                     land.data['name'] = name;
                     land.data['income'] = income;
@@ -7986,7 +7986,7 @@
                     }
 
                     raidName = state.getItem('targetFromraid', '');
-                    if (!$u.hasContent($j("div[style*='dragon_title_owner']", caap.globalContainer))) {
+                    if (!$u.hasContent($j("div[style*='dragon_title_owner']", caap.appBodyDiv))) {
                         button = monster.engageButtons[raidName];
                         if ($u.hasContent(button)) {
                             caap.click(button);
@@ -8004,7 +8004,7 @@
                     // The user can specify 'raid' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                     if (targetType === "Userid List") {
                         if (battle.freshmeat('Raid')) {
-                            if ($u.hasContent($j("span[class*='result_body']", caap.globalContainer))) {
+                            if ($u.hasContent($j("span[class*='result_body']", caap.appBodyDiv))) {
                                 battle.nextTarget();
                             }
 
@@ -8034,7 +8034,7 @@
                     // The user can specify 'freshmeat' in their Userid List to get us here. In that case we need to adjust NextBattleTarget when we are done
                     if (targetType === "Userid List") {
                         if (battle.freshmeat('Freshmeat')) {
-                            if ($u.hasContent($j("span[class*='result_body']", caap.globalContainer))) {
+                            if ($u.hasContent($j("span[class*='result_body']", caap.appBodyDiv))) {
                                 battle.nextTarget();
                             }
 
@@ -8272,7 +8272,7 @@
 
         checkResults_guild_current_monster_battles: function () {
             try {
-                caap.globalContainer.find("input[src*='dragon_list_btn_']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+                $j("input[src*='dragon_list_btn_']", caap.globalContainer).unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
                 guild_monster.populate();
 
                 return true;
@@ -8284,7 +8284,7 @@
 
         checkResults_guild_battle_monster: function () {
             try {
-                caap.globalContainer.find("input[src*='guild_duel_button']").unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
+                $j("input[src*='guild_duel_button']", caap.globalContainer).unbind('click', caap.guildMonsterEngageListener).bind('click', caap.guildMonsterEngageListener);
                 guild_monster.onMonster();
                 if (config.getItem("enableTitles", true)) {
                     spreadsheet.doTitles();
@@ -8553,7 +8553,7 @@
                             break;
                         }
 
-                        if (!$u.hasContent(monster.completeButton['raid']['button']) || !$u.hasContent(monster.completeButton['raid']['name'])) {
+                        if (page !== "festival_tower" && !$u.hasContent(monster.completeButton[page.replace("festival_tower", "battle_monster")]['button']) || !$u.hasContent(monster.completeButton[page.replace("festival_tower", "battle_monster")]['name'])) {
                             monster.completeButton[page.replace("festival_tower", "battle_monster")]['name'] = $u.setContent(monsterName, '');
                             monster.completeButton[page.replace("festival_tower", "battle_monster")]['button'] = $u.setContent($j("img[src*='cancelButton.gif']", monsterRow), null);
                         }
@@ -8598,7 +8598,7 @@
             },
             'festival_monsters_top_seamonster_red.jpg'    : {
                 name     : 'Ancient Sea Serpent',
-                duration : 89
+                duration : 96
             },
             'festival_monsters_top_seamonster_blue.jpg'   : {
                 name     : 'Sapphire Sea Serpent',
@@ -8873,14 +8873,12 @@
                 tBool = /Raid/i.test(currentMonster['type']);
                 if (/:ac\b/.test(currentMonster['conditions']) || (tBool && config.getItem('raidCollectReward', false)) || (!tBool && config.getItem('monsterCollectReward', false))) {
                     counter = state.getItem('monsterReviewCounter', config.getItem("festivalTower", false) ? -4 : -3);
-                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.globalContainer)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.globalContainer)))) {
+                    if (counter >= 0 && monster.records[counter] && monster.records[counter]['name'] === currentMonster['name'] && ($u.hasContent($j("a[href*='&action=collectReward']", caap.appBodyDiv)) || $u.hasContent($j("input[alt*='Collect Reward']", caap.appBodyDiv)))) {
                         $u.log(2, 'Collecting Reward');
                         currentMonster['review'] = -1;
                         state.setItem('monsterReviewCounter', counter -= 1);
                         currentMonster['status'] = 'Collect Reward';
-                        if (currentMonster['name'].hasIndexOf('Siege')) {
-                            currentMonster['rix'] = $u.hasContent($j("a[href*='&rix=1']", caap.globalContainer)) ? 1 : 0;
-                        }
+                        currentMonster['rix'] = currentMonster['name'].hasIndexOf('Siege') ? $u.setContent($u.setContent($j("a[href*='&rix=']", caap.appBodyDiv).attr("href"), '').regex(/&rix=(\d+)/), -1) : -1;
                     }
                 }
 
@@ -9268,6 +9266,7 @@
                         state.setItem('reviewDone', true);
                     }
 
+                    /*
                     if (config.getItem('clearCompleteMonsters', false) && $u.hasContent(monster.completeButton['battle_monster']['button']) && $u.hasContent(monster.completeButton['battle_monster']['name'])) {
                         caap.click(monster.completeButton['battle_monster']['button']);
                         monster.deleteItem(monster.completeButton['battle_monster']['name']);
@@ -9276,6 +9275,7 @@
                         $u.log(1, 'Cleared a completed monster');
                         return true;
                     }
+                    */
 
                     if (state.getItem('reviewDone', true)) {
                         state.setItem('monsterReviewCounter', counter += 1);
@@ -9508,7 +9508,8 @@
                     pageUserCheck    = 0,
                     it               = 0,
                     len              = 0,
-                    buttonHref       = '';
+                    buttonHref       = '',
+                    theGeneral       = config.getItem('FortifyGeneral', 'Use Current');
 
                 if (monstType) {
                     if (!caap.inLevelUpMode() && config.getItem('PowerFortifyMax', false) && monster.info[monstType].staLvl) {
@@ -9523,7 +9524,8 @@
                 }
 
                 $u.log(4, "Energy Required/Node", energyRequire, nodeNum);
-                switch (config.getItem('FortifyGeneral', 'Use Current')) {
+                theGeneral = theGeneral === "Under Level 4" ? (config.getItem('ReverseLevelUpGenerals') ? general.GetLevelUpNames().reverse().pop() : generalName = general.GetLevelUpNames().pop()) : theGeneral;
+                switch (theGeneral) {
                 case 'Orc King':
                     energyRequire = energyRequire * (general.GetLevel('Orc King') + 1);
                     $u.log(3, 'Monsters Fortify:Orc King', energyRequire);
@@ -9534,7 +9536,7 @@
                     break;
                 case 'Maalvus':
                     energyRequire = energyRequire * (general.GetLevel('Maalvus') >= 3 ? 3 : 2);
-                    $u.log(3, 'Monsters Fortify:Maalvus', energyRequire);
+                    $u.log(2, 'Monsters Fortify:Maalvus', energyRequire);
                     break;
                 default:
                 }
@@ -11149,7 +11151,7 @@
                     return false;
                 }
 
-                var atributeSlice      = $j("div[class*='keep_attribute_section']", caap.globalContainer),
+                var atributeSlice      = $j("div[class*='keep_attribute_section']", caap.appBodyDiv),
                     startAtt           = 0,
                     stopAtt            = 4,
                     attrName           = '',
