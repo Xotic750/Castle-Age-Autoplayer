@@ -91,7 +91,7 @@
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (!window.jQuery) {
         caap_log("Inject jQuery");
-        injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
+        injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js');
     }
 
     caap_WaitForjQuery();

@@ -3,7 +3,7 @@
 // @namespace      caap
 // @description    Auto player for Castle Age
 // @version        140.24.1
-// @dev            78
+// @dev            79
 // @require        http://castle-age-auto-player.googlecode.com/files/jquery-1.4.4.min.js
 // @require        http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js
 // @require        http://castle-age-auto-player.googlecode.com/files/farbtastic.min.js
@@ -26,7 +26,7 @@
 //////////////////////////////////
 (function () {
     var caapVersion   = "140.24.1",
-        devVersion    = "78",
+        devVersion    = "79",
         hiddenVar     = true,
         caap_timeout  = 0,
         image64       = {},
@@ -736,7 +736,49 @@
                         "tRh+nzv2lpQizYzzSGgxQzNoIj5kVVLqPPnGVgPflyy6tyusymwHsLzp1DKmzFzojpyW6XXagUf" +
                         "H5ugxUWW8vjmPL4ph1qwR64hv8AJWDudETjzHkzrncfmDC9MeBh5oEbRZhEUsCY7XTypISQCsYY" +
                         "ZsFyr0DxKSOu+8eXs15+E1alIj30KFqSaa5bLEwzRP67hVWe1qL9uhHQsfowXp2MiJJlbpf6jGq" +
-                        "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z"
+                        "VRjJ+4ec6fTiORn1O4LOAGha3caubFVPV1fzwToWcv//Z",
+
+        'donate':       "R0lGODlhkwAvAOZ/AJCRh+yLNfSqnv/KeC9ss9fa3COZ1f++WuU2Mv+sLIGr0f7hqOLj5ChKbF5y" +
+                        "h9Xn9La5unqHhbfS5optTfnU0f/v0/+yPEmy4//25edbNXdwY9bJqNiaN2rE743M7EhTVD9Vd/7p" +
+                        "wMrd7ruwki88cmGTx+X0+206XElkfLg3QbiLPuxiX7l6RqF+SRU6Z8+HRUCDvP/syf7envKpdv7S" +
+                        "h2hkUffAv42ar/Hm5a2qnuyYQrW9yf63RVKKvysgDF6k1aSstkA3J6uyuL7Bwf718vXGqPKcauLt" +
+                        "9vbCmPP6/crO03iHn/H2+it9wV696/+pJv/z3P/Wlv/itP/57v7nuv/9+P7mtf+vNP7ksP7fogBX" +
+                        "oMnGwcjMzcPHyMfKzL1nKMW7nk5FNfLz9u+mNe7YqO7cspe72vHx73ChypudnIR+c+7Tmv7amBBi" +
+                        "pvvk0LpOQf/gsKadjefb19HS09zNz52ms97KnV5RY/nRt66wpOqhIQAzZgAAAP+ZM////////yH5" +
+                        "BAEAAH8ALAAAAACTAC8AAAf/gH+Cg4SFhoeHfYqLjI2Oj5CRkpOSiJaXmJmahooDUlBVoaKjpKWm" +
+                        "p6ipqqQxUYqbsLGyhH00UFO4ubq7vL2+v8DBwXB9s8bHiVIYy8zNzs/Q0dLT1NXLUMXI2rN9MVDf" +
+                        "4OHi4+Tl5ufo6eEV2dvumH0yFfP09fb3+Pn6+/z9+O3vAhbiEaOgwYMIEypcyLChw4cLyQicOKhW" +
+                        "iIsYM2rMmGaPxz0uIpTZSLKkyRAb8pxcuREgRXcWBlCZSbOmzZoR9jRAgcLFHhQ3gwodmsYFmKFI" +
+                        "hVp4GbAPjwNWokqdSnUqij1gopbxuUFqGTBZq1rZAKbM1K9hpfo0G5VsV7Fw/6ey4eGSqTGnPGhg" +
+                        "2cu3r1++HsnwzQlgb06PLtLsBaPTAeINhj+6gLzh4540ZBx7RCH4r+e+B+ja3YaXB5sFqFOrXr2A" +
+                        "MQjVOSMscAwiRxyfdhYA2DwCxB7ZOfaAGJETxYIRVxtEIHPVQe89AFhLVz2Ah+jRyErnnS59twPY" +
+                        "v+2AJIOa8OyfqB3HWR0H/YLYrXWiHuGeu2oZoa3XxQ6rj4X//x1AQxYEFmhggY4BYGADWHlXYGxZ" +
+                        "MDgCgQyCkQUYPX0UAYG+5ZDFbi6AgIJvIBxoIoEyVAegBfvxp4l/K/73FA00yGDjjTf6NsKNuzUg" +
+                        "Q2w3XhXHGh7ZSOQeMqzhU/8EYHRoI4N2/ChcBFRGEAeOWLJBwwAHxPhfiy7Cc8WYZJZpppkejTnG" +
+                        "BB6pcEULe3wwJgcgjaFCnGPeKaeeV4zhEwdX0OnCmHDWkCegZyaaKJhhWtJHApBGKumkkt5pmUct" +
+                        "QOrnHjXU4FOmbNYAaagJ0Mkpg3tAeqcLE3AwBoOd6jQGpbTSymijiDxa664qfOCrr61KysEHHjWg" +
+                        "wqgfqPBEAhMkuyybxvoaKbF7cFAqtTVYu+u2t+KayBPghivuuOSWa+656KarLrrdesuJl/DGK++8" +
+                        "9NZr77ztuluIUwf06++/AAcs8MAEF2zwwQLnqy8tAzTs8MMQRyzxxBRXbPH/xRErvDAtNETh8ccg" +
+                        "hyzyyCSXbPLJKH+s8cYcS+HyyzDHLPPMNNds8804y7Ayy7TUEoM/QActdNDEPMEzaZQkrfTSTDdy" +
+                        "9NNQRy311FRXbfXVWGet9dZcd601CWCHLfbYZIM9iB9op6322myjbYgTTnTQgRMXGGB3E3gToDch" +
+                        "fPTt99+AB963IEMIbrjg74x9QgqMnwA2CBOwwMIEd4x9dtuYt/123HPXfXfeew/CxxaZl+4HH4Tz" +
+                        "wcDqrLfuuuuouxP2CQjUbnsKEwSg++4siH256aW/LXfnnuPdhN4E8E068G3HXngB0Ecv/fTTx74N" +
+                        "2LTbrn0Gu3f/Qti/M695/yGcE//58aELMvoWW5wxxxYMnAG/G26sLv8W789xhvN8zOH//wAMYACt" +
+                        "pw2waW973Ove7iZgNkH4AQNcOoAfjgCDEqABBkxAQxu0UAI/SAAGPUibITrggRJ6oHM/SGEJStCD" +
+                        "HijPBzUIgw98EAcfqKEFRpgBCzSggSB8AABhCMIc+OeFIhrxiEhEIgGRQYITrCADKzhgBqaogxno" +
+                        "YHc6+B4JfhcHPYTADFpQAAG0AEYCoEEBfhijFpjgtkKYwARJMIEIjvDGOT5ABEwQgQheOAcfhEED" +
+                        "fvQDEopAAQEEIQgACAIgNXC61EEABC5wwRIg4AAX3AACLnDAI2/gAiCQYP8JhUtcCuggBz8U0gYU" +
+                        "oIANBEABIsihAkVwgxTkgIQG/iFtZkABG8Z4BC3AoIwS8KAWhhlMPxjiCEdIQhKCKcc56vEIenyh" +
+                        "In0QhDBYcwI5xAMA1JBIDXwgDI38Q+GAAAIHNECTJDgnJjMJAk6KSAlAWOIxSJACMaDNnn7AQQHQ" +
+                        "hgM3vIABfmAABnAwg8r9TgRaiIAWeiABDjIBBsQsARnD2EZCXOACTjBhCc3AUY4qQAHKW9scckBS" +
+                        "CLAPAgBgG/+EAIKWNoCTlayDJV3wUpqiQAhCkKcxmrhPP4iBCAwQQwFWFwcxYABtdBCDGGq5RQem" +
+                        "bYNakAAYFSACPyhAC2j/GOYwQ2jMQtjtAmgzwQOY8IAj+IGNyAyp2mrwwxwEQQ1qqEEQ1IaBGfDv" +
+                        "kSBowDlRcAMULMEFO/grJz2JAgjodBZNZJxiFfuGN2TgBS+QXGRZoMXw9UALBLBqVLWK2YWKMbNd" +
+                        "JUQTDPCDI4xVAqaF5hHyuEfRLU98RECC7u4KhB3sAJ5zgEBthZBbIRQACHMQwm0PKwsDHtB2U1Sg" +
+                        "7oJgS7VJQAHBfO4RPgpdMyjArNat6CDwBgMVlqCCKwxvCdQKPAzIdnf8G4J618ve9raXuLHA3nFr" +
+                        "l0AFtgB8ThXf+ERrPNAh77/kxRwR8GAE5fKvCwhOsIIXvGD4wmJ2KThgeQru8AIFMhC/t9Tvfgfx" +
+                        "3w57OMBqG/AMlIve1HHhxChOsYpV7OBNKO4EMBbbHSZAObKFT8MiHIQB/uDhHqfvD3yIA/uGDIYR" +
+                        "sOALSE6ykpHMvzQ4+clQjnKUW6yJslnZyjfGcWj/4AEe+/jDojucmP0miP2NWcyZCAQAOw=="
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -9180,6 +9222,7 @@
                     bgc = state.getItem('StyleBackgroundLight', '#E0C691'),
                     htmlCode = '',
                     banner   = '',
+                    donate   = '',
                     divList  = [
                         'banner',
                         'activity_mess',
@@ -9199,7 +9242,8 @@
                         'exp_mess',
                         'debug1_mess',
                         'debug2_mess',
-                        'control'
+                        'control',
+                        'donate'
                     ];
 
                 for (divID = 0, len = divList.length; divID < len; divID += 1) {
@@ -9233,6 +9277,11 @@
                 banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
                 banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
                 caap.setDivContent('banner', banner);
+
+                donate += "<div id='caap_DonateDisplay_hide' style='text-align: center; display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
+                donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&lc=SE&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&currency_code=SEK&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
+                donate += "<img src='data:image/gif;base64," + image64.donate + "' alt='Donate' /></a></div>";
+                caap.setDivContent('donate', donate);
 
                 htmlCode += caap.addPauseMenu();
                 htmlCode += caap.addDisableMenu();
@@ -9626,6 +9675,7 @@
                     hideFBChatInstructions = "Hide the FaceBook Chat",
                     newsSummaryInstructions = "Enable or disable the news summary on the index page.",
                     bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
+                    donateInstructions = "Uncheck if you wish to hide the CAAP donate button.",
                     itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.",
                     goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
                     ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
@@ -9653,6 +9703,7 @@
                 htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
                 htmlCode += caap.endCheckHide('enableRecipeClean');
                 htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
+                htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
                 htmlCode += caap.makeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
                 htmlCode += caap.makeCheckTR('Set Title', 'SetTitle', false, titleInstructions0);
                 htmlCode += caap.startCheckHide('SetTitle');
@@ -20914,7 +20965,7 @@
     caap_timeout = window.setTimeout(caap_DomTimeOut, 180000);
     if (!window.jQuery) {
         caap_log("Inject jQuery");
-        injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js');
+        injectScript('http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js');
     }
 
     caap_WaitForjQuery();

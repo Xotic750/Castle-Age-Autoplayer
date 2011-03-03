@@ -1150,6 +1150,7 @@
                     bgc = state.getItem('StyleBackgroundLight', '#E0C691'),
                     htmlCode = '',
                     banner   = '',
+                    donate   = '',
                     divList  = [
                         'banner',
                         'activity_mess',
@@ -1169,7 +1170,8 @@
                         'exp_mess',
                         'debug1_mess',
                         'debug2_mess',
-                        'control'
+                        'control',
+                        'donate'
                     ];
 
                 for (divID = 0, len = divList.length; divID < len; divID += 1) {
@@ -1203,6 +1205,11 @@
                 banner += "<div id='caap_BannerDisplay_hide' style='display: " + (config.getItem('BannerDisplay', true) ? 'block' : 'none') + "'>";
                 banner += "<img src='data:image/png;base64," + image64.header + "' alt='Castle Age Auto Player' /><br /><hr /></div>";
                 caap.setDivContent('banner', banner);
+
+                donate += "<div id='caap_DonateDisplay_hide' style='text-align: center; display: " + (config.getItem('DonateDisplay', true) ? 'block' : 'none') + "'><br /><hr />";
+                donate += "<a href='https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=xotic750%40gmail%2ecom&lc=SE&item_name=Castle%20Age%20Auto%20Player&item_number=CAAP&currency_code=SEK&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted'>";
+                donate += "<img src='data:image/gif;base64," + image64.donate + "' alt='Donate' /></a></div>";
+                caap.setDivContent('donate', donate);
 
                 htmlCode += caap.addPauseMenu();
                 htmlCode += caap.addDisableMenu();
@@ -1596,6 +1603,7 @@
                     hideFBChatInstructions = "Hide the FaceBook Chat",
                     newsSummaryInstructions = "Enable or disable the news summary on the index page.",
                     bannerInstructions = "Uncheck if you wish to hide the CAAP banner.",
+                    donateInstructions = "Uncheck if you wish to hide the CAAP donate button.",
                     itemTitlesInstructions = "Replaces the CA item titles with more useful tooltips.",
                     goblinHintingInstructions = "When in the Goblin Emporium, CAAP will try to hide items that you require and fade those that may be required.",
                     ingredientsHideInstructions = "Hide the ingredients list on the Alchemy pages.",
@@ -1623,6 +1631,7 @@
                 htmlCode += caap.makeNumberFormTR("Recipe Count", 'recipeCleanCount', recipeCleanCountInstructions, 1, '', '', true);
                 htmlCode += caap.endCheckHide('enableRecipeClean');
                 htmlCode += caap.makeCheckTR('Display CAAP Banner', 'BannerDisplay', true, bannerInstructions);
+                htmlCode += caap.makeCheckTR('Display CAAP Donate', 'DonateDisplay', true, donateInstructions);
                 htmlCode += caap.makeCheckTR('Use 24 Hour Format', 'use24hr', true, timeInstructions);
                 htmlCode += caap.makeCheckTR('Set Title', 'SetTitle', false, titleInstructions0);
                 htmlCode += caap.startCheckHide('SetTitle');
