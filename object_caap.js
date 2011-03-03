@@ -36,7 +36,7 @@
                 accountEl = $j(),
                 delay     = 1000;
 
-            $u.set_log_version(caapVersion + (devVersion ? 'd' + devVersion : ''));
+            $u.set_log_version(caapVersion + (devVersion !== '0' ? 'd' + devVersion : ''));
             $u.log(1, 'DOM load completed');
             window.clearTimeout(caap_timeout);
             if (window.location.href.hasIndexOf('apps.facebook.com/castle_age/')) {
@@ -155,7 +155,7 @@
             /////////////////////////////////////////////////////////////////////
 
             if ($u.is_firefox) {
-                if (devVersion === 0) {
+                if (devVersion === '0') {
                     caap.releaseUpdate();
                 } else {
                     caap.devUpdate();
@@ -167,15 +167,15 @@
             // new format or such here.
             /////////////////////////////////////////////////////////////////////
 
-            if (devVersion > 0) {
-                if (state.getItem('LastVersion', 0) !== caapVersion || state.getItem('LastDevVersion', 0) !== devVersion) {
+            if (devVersion !== '0') {
+                if (state.getItem('LastVersion', '0') !== caapVersion || state.getItem('LastDevVersion', '0') !== devVersion) {
                     state.setItem('LastVersion', caapVersion);
                     state.setItem('LastDevVersion', devVersion);
                 }
             } else {
-                if (state.getItem('LastVersion', 0) !== caapVersion) {
+                if (state.getItem('LastVersion', '0') !== caapVersion) {
                     state.setItem('LastVersion', caapVersion);
-                    state.setItem('LastDevVersion', 0);
+                    state.setItem('LastDevVersion', '0');
                 }
             }
 
@@ -247,7 +247,7 @@
 
         releaseUpdate: function () {
             try {
-                caap.newVersionAvailable = state.getItem('SUC_remote_version', 0) > caapVersion ? true : false;
+                caap.newVersionAvailable = state.getItem('SUC_remote_version', '0') > caapVersion ? true : false;
                 // update script from: http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js
                 function updateCheck(forced) {
                     if (forced || schedule.check('SUC_last_update')) {
@@ -300,7 +300,7 @@
 
         devUpdate: function () {
             try {
-                caap.newVersionAvailable = state.getItem('SUC_remote_version', 0) > caapVersion || (state.getItem('SUC_remote_version', 0) >= caapVersion && state.getItem('DEV_remote_version', 0) > devVersion) ? true : false;
+                caap.newVersionAvailable = state.getItem('SUC_remote_version', '0') > caapVersion || (state.getItem('SUC_remote_version', '0') >= caapVersion && state.getItem('DEV_remote_version', '0') > devVersion) ? true : false;
                 // update script from: http://castle-age-auto-player.googlecode.com/svn/trunk/Castle-Age-Autoplayer.user.js
                 function updateCheck(forced) {
                     if (forced || schedule.check('SUC_last_update')) {
@@ -353,9 +353,11 @@
             }
         },
 
+        /*
         injectCATools: function () {
             $u.injectScript("http://cage.northcornwall.com/hoots/catbox.asp");
         },
+        */
 
         init: function () {
             try {
@@ -434,9 +436,11 @@
                 caap.autoStatCheck();
                 caap.bestLand = new caap.landRecord().data;
                 caap.sellLand = {};
+                /*
                 if (caap.domain.which === 0 && config.getItem('injectCATools', false)) {
                     caap.injectCATools();
                 }
+                */
 
                 return true;
             } catch (err) {
@@ -1641,7 +1645,7 @@
                 htmlCode += caap.makeCheckTR('Auto Comma Text Areas', 'TextAreaCommas', false, "When enabled, text input areas will be automatically converted to comma seperation");
                 if (caap.domain.which === 0) {
                     htmlCode += caap.makeCheckTR('Use CA Background', 'backgroundCA', false, '');
-                    htmlCode += caap.makeCheckTR('Inject CA-Tools', 'injectCATools', false, 'EXPERIMENTAL: Injects the CA-Tools bookmarklet.');
+                    //htmlCode += caap.makeCheckTR('Inject CA-Tools', 'injectCATools', false, 'EXPERIMENTAL: Injects the CA-Tools bookmarklet.');
                     htmlCode += caap.makeCheckTR('Hide Sidebar Adverts', 'HideAds', false, hideAdsInstructions);
                     htmlCode += caap.makeCheckTR('Hide FB Iframe Adverts', 'HideAdsIframe', false, hideAdsIframeInstructions);
                     htmlCode += caap.makeCheckTR('Hide FB Chat', 'HideFBChat', false, hideFBChatInstructions);
@@ -1698,7 +1702,7 @@
                 htmlCode += caap.makeTD("<input type='checkbox' id='unlockMenu' />", false, true, "width: 10%; display: inline-block;");
                 htmlCode += caap.endTR;
 
-                if (!devVersion) {
+                if (devVersion === '0') {
                     htmlCode += caap.makeTD("Version: " + caapVersion + " - <a href='http://senses.ws/caap/index.php' target='_blank'>CAAP Forum</a>");
                     if (caap.newVersionAvailable) {
                         htmlCode += caap.makeTD("<a href='http://castle-age-auto-player.googlecode.com/files/Castle-Age-Autoplayer.user.js'>Install new CAAP version: " + state.getItem('SUC_remote_version') + "!</a>");
@@ -3678,6 +3682,7 @@
                     });
 
                     break;
+                /*
                 case "injectCATools" :
                     if (e.target.checked) {
                         if (caap.domain.which === 0) {
@@ -3690,6 +3695,7 @@
                     }
 
                     break;
+                */
                 case "HideAds" :
                     $u.log(9, "HideAds");
                     $j('.UIStandardFrame_SidebarAds').css('display', e.target.checked ? 'none' : 'block');

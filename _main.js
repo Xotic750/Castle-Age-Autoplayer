@@ -5,7 +5,7 @@
 
     function caap_log(msg) {
         if (typeof console.log !== 'undefined') {
-            console.log(caapVersion + (devVersion ? 'd' + devVersion : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
+            console.log(caapVersion + (devVersion !== '0' ? 'd' + devVersion : '') + ' |' + (new Date()).toLocaleTimeString() + '| ' + msg);
         }
     }
 

@@ -24,11 +24,10 @@
       "48": "48x48.png"
    },
    "name": "Castle Age Autoplayer - Alpha Patched",
-   "update_url": "http://castle-age-auto-player.googlecode.com/svn/trunk/updates.xml",
    "permissions": [ "tabs",
                     "http://apps.facebook.com/castle_age/*",
                     "https://apps.facebook.com/castle_age/*",
                     "http://web3.castleagegame.com/castle_ws/*",
                     "https://web3.castleagegame.com/castle_ws/*" ],
-   "version": "140.24.1.79"
+   "version": "140.25.0"
 }

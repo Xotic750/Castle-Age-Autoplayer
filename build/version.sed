@@ -1,2 +1,2 @@
-s/!version!/140.24.1/g
-s/!dev!/79/g
+s/!version!/140.25.0/g
+s/!dev!/0/g
